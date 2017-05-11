@@ -53,6 +53,54 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging">
+      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
+      <Version>$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Utilities">
+      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Validation">
+      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading">
+      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie">
+      <Version>$(MicrosoftCodeAnalysisElfieVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl">
+      <Version>$(MicrosoftVisualStudioRemoteControlVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
@@ -120,6 +168,7 @@
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionSetComparer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSource.cs" />
+    <Compile Include="Implementation\InfoBar\EditorInfoBarService.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />
@@ -418,9 +467,7 @@
     <Compile Include="GoToDefinition\GoToDefinitionHelpers.cs" />
     <Compile Include="GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\FileSystem\PathCompletionUtilities.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightingService.cs" />
@@ -795,7 +842,6 @@
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\AbstractSemanticQuickInfoProvider.ErrorVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

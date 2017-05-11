@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             var target = useThisAsCallback ? this : callbackTarget;
             _cancellationToken = cancellationToken;
 
-            _rpc = new JsonRpc(stream, stream, target);
+            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             _rpc.Disconnected += OnDisconnected;

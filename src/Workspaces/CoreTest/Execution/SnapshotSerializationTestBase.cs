@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, SolutionStateChecksums solutionObject)
         {
             await VerifyAssetSerializationAsync<SolutionInfo.SolutionAttributes>(
-                service, solutionObject.Info, WellKnownSynchronizationKinds.SolutionAttributes,
+                service, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
             foreach (var projectChecksum in solutionObject.Projects)
@@ -52,15 +52,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, ProjectStateChecksums projectObject)
         {
             var info = await VerifyAssetSerializationAsync<ProjectInfo.ProjectAttributes>(
-                service, projectObject.Info, WellKnownSynchronizationKinds.ProjectAttributes,
+                service, projectObject.Info, WellKnownSynchronizationKind.ProjectAttributes,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<CompilationOptions>(
-                service, projectObject.CompilationOptions, WellKnownSynchronizationKinds.CompilationOptions,
+                service, projectObject.CompilationOptions, WellKnownSynchronizationKind.CompilationOptions,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s));
 
             await VerifyAssetSerializationAsync<ParseOptions>(
-                service, projectObject.ParseOptions, WellKnownSynchronizationKinds.ParseOptions,
+                service, projectObject.ParseOptions, WellKnownSynchronizationKind.ParseOptions,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s));
 
             foreach (var checksum in projectObject.Documents)
@@ -72,21 +72,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             foreach (var checksum in projectObject.ProjectReferences)
             {
                 await VerifyAssetSerializationAsync<ProjectReference>(
-                    service, checksum, WellKnownSynchronizationKinds.ProjectReference,
+                    service, checksum, WellKnownSynchronizationKind.ProjectReference,
                     (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s));
             }
 
             foreach (var checksum in projectObject.MetadataReferences)
             {
                 await VerifyAssetSerializationAsync<MetadataReference>(
-                    service, checksum, WellKnownSynchronizationKinds.MetadataReference,
+                    service, checksum, WellKnownSynchronizationKind.MetadataReference,
                     (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s));
             }
 
             foreach (var checksum in projectObject.AnalyzerReferences)
             {
                 await VerifyAssetSerializationAsync<AnalyzerReference>(
-                    service, checksum, WellKnownSynchronizationKinds.AnalyzerReference,
+                    service, checksum, WellKnownSynchronizationKind.AnalyzerReference,
                     (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s));
             }
 
@@ -100,19 +100,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static async Task VerifyAssetAsync(ISolutionSynchronizationService service, DocumentStateChecksums documentObject)
         {
             var info = await VerifyAssetSerializationAsync<DocumentInfo.DocumentAttributes>(
-                service, documentObject.Info, WellKnownSynchronizationKinds.DocumentAttributes,
+                service, documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
-                service, documentObject.Text, WellKnownSynchronizationKinds.SourceText,
+                service, documentObject.Text, WellKnownSynchronizationKind.SourceText,
                 (v, k, s) => SolutionAsset.Create(s.CreateChecksum(v, CancellationToken.None), v, s));
         }
 
         internal static async Task<T> VerifyAssetSerializationAsync<T>(
             ISolutionSynchronizationService service,
             Checksum checksum,
-            string kind,
-            Func<T, string, Serializer, RemotableData> assetGetter)
+            WellKnownSynchronizationKind kind,
+            Func<T, WellKnownSynchronizationKind, Serializer, RemotableData> assetGetter)
         {
             // re-create asset from object
             var syncService = (SolutionSynchronizationServiceFactory.Service)service;
@@ -206,20 +206,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             int expectedAdditionalDocumentCount)
         {
             VerifyChecksumInService(snapshotService, projectObject.Checksum, projectObject.GetWellKnownSynchronizationKind());
-            VerifyChecksumInService(snapshotService, projectObject.Info, WellKnownSynchronizationKinds.ProjectAttributes);
-            VerifyChecksumInService(snapshotService, projectObject.CompilationOptions, WellKnownSynchronizationKinds.CompilationOptions);
-            VerifyChecksumInService(snapshotService, projectObject.ParseOptions, WellKnownSynchronizationKinds.ParseOptions);
+            VerifyChecksumInService(snapshotService, projectObject.Info, WellKnownSynchronizationKind.ProjectAttributes);
+            VerifyChecksumInService(snapshotService, projectObject.CompilationOptions, WellKnownSynchronizationKind.CompilationOptions);
+            VerifyChecksumInService(snapshotService, projectObject.ParseOptions, WellKnownSynchronizationKind.ParseOptions);
 
             VerifyCollectionInService(snapshotService, projectObject.Documents.ToDocumentObjects(snapshotService), expectedDocumentCount);
 
-            VerifyCollectionInService(snapshotService, projectObject.ProjectReferences, expectedProjectReferenceCount, WellKnownSynchronizationKinds.ProjectReference);
-            VerifyCollectionInService(snapshotService, projectObject.MetadataReferences, expectedMetadataReferenceCount, WellKnownSynchronizationKinds.MetadataReference);
-            VerifyCollectionInService(snapshotService, projectObject.AnalyzerReferences, expectedAnalyzerReferenceCount, WellKnownSynchronizationKinds.AnalyzerReference);
+            VerifyCollectionInService(snapshotService, projectObject.ProjectReferences, expectedProjectReferenceCount, WellKnownSynchronizationKind.ProjectReference);
+            VerifyCollectionInService(snapshotService, projectObject.MetadataReferences, expectedMetadataReferenceCount, WellKnownSynchronizationKind.MetadataReference);
+            VerifyCollectionInService(snapshotService, projectObject.AnalyzerReferences, expectedAnalyzerReferenceCount, WellKnownSynchronizationKind.AnalyzerReference);
 
             VerifyCollectionInService(snapshotService, projectObject.AdditionalDocuments.ToDocumentObjects(snapshotService), expectedAdditionalDocumentCount);
         }
 
-        internal static void VerifyCollectionInService(ISolutionSynchronizationService snapshotService, ChecksumCollection checksums, int expectedCount, string expectedItemKind)
+        internal static void VerifyCollectionInService(ISolutionSynchronizationService snapshotService, ChecksumCollection checksums, int expectedCount, WellKnownSynchronizationKind expectedItemKind)
         {
             VerifyChecksumInService(snapshotService, checksums.Checksum, checksums.GetWellKnownSynchronizationKind());
             Assert.Equal(checksums.Count, expectedCount);
@@ -244,8 +244,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static void VerifySnapshotInService(ISolutionSynchronizationService snapshotService, DocumentStateChecksums documentObject)
         {
             VerifyChecksumInService(snapshotService, documentObject.Checksum, documentObject.GetWellKnownSynchronizationKind());
-            VerifyChecksumInService(snapshotService, documentObject.Info, WellKnownSynchronizationKinds.DocumentAttributes);
-            VerifyChecksumInService(snapshotService, documentObject.Text, WellKnownSynchronizationKinds.SourceText);
+            VerifyChecksumInService(snapshotService, documentObject.Info, WellKnownSynchronizationKind.DocumentAttributes);
+            VerifyChecksumInService(snapshotService, documentObject.Text, WellKnownSynchronizationKind.SourceText);
         }
 
         internal static void VerifySynchronizationObjectInService<T>(ISolutionSynchronizationService snapshotService, T syncObject) where T : RemotableData
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyChecksumInService(snapshotService, syncObject.Checksum, syncObject.Kind);
         }
 
-        internal static void VerifyChecksumInService(ISolutionSynchronizationService snapshotService, Checksum checksum, string kind)
+        internal static void VerifyChecksumInService(ISolutionSynchronizationService snapshotService, Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
             var otherObject = snapshotService.GetRemotableData(checksum, CancellationToken.None);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ChecksumEqual(checksumObject1.Checksum, checksumObject1.Kind, checksumObject2.Checksum, checksumObject2.Kind);
         }
 
-        internal static void ChecksumEqual(Checksum checksum1, string kind1, Checksum checksum2, string kind2)
+        internal static void ChecksumEqual(Checksum checksum1, WellKnownSynchronizationKind kind1, Checksum checksum2, WellKnownSynchronizationKind kind2)
         {
             Assert.Equal(checksum1, checksum2);
             Assert.Equal(kind1, kind2);

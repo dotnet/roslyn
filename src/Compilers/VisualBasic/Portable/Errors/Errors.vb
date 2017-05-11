@@ -1696,7 +1696,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_RefReturningCallInExpressionTree = 37263
 
-        ERR_SourceLinkRequiresPortablePdb = 37264
+        ERR_SourceLinkRequiresPdb = 37264
         ERR_CannotEmbedWithoutPdb = 37265
 
         ERR_InvalidInstrumentationKind = 37266
@@ -1730,6 +1730,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadDocumentationMode = 37286
         ERR_BadLanguageVersion = 37287
         ERR_InvalidPreprocessorConstantType = 37288
+        ERR_TupleInferredNamesNotAvailable = 37289
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
@@ -1951,9 +1952,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_UnableToLoadAnalyzer = 42378
 
         WRN_AttributeIgnoredWhenPublicSigning = 42379
+        WRN_Experimental = 42380
 
-        ' // AVAILABLE                             42380 - 49998
-        ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
+        ' // AVAILABLE                             42381 - 49998
+        ERRWRN_Last = WRN_Experimental
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000

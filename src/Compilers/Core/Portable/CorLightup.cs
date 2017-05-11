@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
 
 namespace Roslyn.Utilities
@@ -47,6 +48,21 @@ namespace Roslyn.Utilities
                     Debug.Assert(false, ex.Message);
                     return null;
                 }
+            }
+
+            private static class _Directory
+            {
+                internal static readonly Type Type = typeof(Directory);
+
+                internal static readonly Func<string[]> s_getLogicalDrivesOpt = Type
+                    .GetTypeInfo()
+                    .GetDeclaredMethod("GetLogicalDrives")?
+                    .CreateDelegate<Func<string[]>>();
+            }
+
+            internal static string[] GetLogicalDrives()
+            {
+                return _Directory.s_getLogicalDrivesOpt?.Invoke() ?? Array.Empty<string>();
             }
 
             private static class _Assembly

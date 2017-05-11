@@ -41,6 +41,11 @@
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
+
+      <!-- Add the UnitTestContainer project capability -->
+      <ItemGroup>
+        <ProjectCapability Include="UnitTestContainer" />
+      </ItemGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
       <PropertyGroup>
@@ -62,8 +67,7 @@
       <PropertyGroup>
         <AllowedReferenceRelatedFileExtensions>$(AllowedReferenceRelatedFileExtensions);.pdb</AllowedReferenceRelatedFileExtensions>
         <CopyNuGetImplementations>true</CopyNuGetImplementations>
-        <OutputPath Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">$(OutputPath)CoreClrTest</OutputPath>
-        <OutputPath Condition="'$(TargetFrameworkIdentifier)' != '.NETPortable'">$(OutputPath)UnitTests\Portable\</OutputPath>
+        <OutputPath>$(OutputPath)$(RoslynUnitTestDir)</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Custom'">
@@ -110,7 +114,7 @@
   -->
   <PropertyGroup Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(AssemblyName)' != ''">
     <DocumentationFile Condition="'$(ProjectLanguage)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
-    <DocumentationFile Condition="'$(ProjectLanguage)' == 'CSharp'">$(IntermediateOutputPath)$(AssemblyName).xml</DocumentationFile>
+    <DocumentationFile Condition="'$(ProjectLanguage)' == 'CSharp'">$(IntermediateOutputPath)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
   
   <PropertyGroup>
@@ -128,6 +132,14 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeVsixLocalOnlyItems</GetVsixSourceItemsDependsOn>
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
     <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+
+    <!-- The netstandard 1.3 package by default includes Microsoft.CodeAnalysis.  That's a bit
+         of a non-starter since we build it.  Using manual references for now -->
+    <DisableImplicitFrameworkReferences Condition="'$(DisableImplicitFrameworkReferences)' == ''" >true</DisableImplicitFrameworkReferences>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+
+    <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -229,10 +241,8 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
-  <Import Project="$(MSBuildTargetsFilePath)" />
-
-  <!-- On *nix the NuGet targets aren't imported by default, so we do that here -->
-  <Import Project="$(MSBuildBinPath)\Microsoft.NuGet.targets" Condition="'$(OS)' != 'Windows_NT'" />
+  <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
+  <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
 
   <!-- The portable v5.0 framework is delivered over NuGet, so std resolution should be disabled -->
   <Import Project="DisableStandardFrameworkResolution.targets"
@@ -420,16 +430,24 @@
     </PropertyGroup>
   </Target>
 
-  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a
-       build definition variable -->
+  <!-- The IBCMerge tool is internal only and hence only available during official Microbuild runs.  This target is 
+       specifically not gated on the existance of this file.  During an official build it shoudl always be present and 
+       if it's not then an error needs to be raised.
+
+       A local build emulating an official build can pass /p:SkipApplyOptimizations=true to avoid this error.
+       -->
   <Target Name="ApplyOptimizations"
-          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND '$(IbcMergePath)' != ''"
+          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
       <Message Text="Adding optimization data to @(IntermediateAssembly)" />
 
+      <Error Text="IBCMerge not found at $(IbcMergePath). Local developer builds should pass /p:SkipApplyOptimizations=true to avoid this"
+             Condition="!Exists('$(IbcMergePath)')" />
+
       <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
-            ConsoleToMSBuild="true">
+            ConsoleToMSBuild="true"
+            Condition="Exists('$(IbcMergePath)')">
         <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
       </Exec>
 
@@ -437,22 +455,18 @@
   </Target>
 
   <!-- This is part of our developer convenience work to allow easy testing of our portable
-       unit test projects.  It's a similar mechanism to CopyNuGetImplementations but is
-       both unsupported and somewhat special cased to our build setup.
+       unit test projects.  It is special cased to our build setup.
 
        This bug tracks getting an official solution out of MSBuild.
 
        https://github.com/Microsoft/msbuild/issues/1499 -->
   <Target Name="DeployPortableOnDeveloperBuild"
           Condition="'$(_IsAnyPortableUnitTest)' == 'true' AND '$(DeveloperBuild)' == 'true' AND '$(OS)' == 'Windows_NT'">
-    <ResolveNuGetPackageAssets IncludeFrameworkReferences="true"
-                               NuGetPackagesDirectory="$(NuGetPackageRoot)"
-                               RuntimeIdentifier="win7"
-                               ProjectLanguage="$(ProjectLanguage)"
-                               ProjectLockFile="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\project.lock.json"
-                               TargetMonikers=".NETFramework,Version=v4.6">
-      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
-    </ResolveNuGetPackageAssets>
+    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\DeployDesktopTestRuntime.csproj"
+             Properties="ExcludeProjectReferences=true"
+             Targets="GetReferenceCopyLocalPaths">
+      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
+    </MSBuild>
 
     <!-- Desktop tests need to load the Desktop version of the TestUtilities via reflection at runtime without
          referencing the assembly at compile time. However, it looks like adding a project-to-project reference 
@@ -468,8 +482,23 @@
     </MSBuild>
   </Target>
 
+  <!-- When getting the dependencies to copy local for developer builds to portable project outputs,
+       (see above), we need to filter out the project references as they create cycles back to the
+       calling test projects and we are only interested in getting the nuget copy local items raised
+       from the deployment project's project.assets.json. -->
+  <Target Name="RemoveExcludedProjectReferences"
+          Condition="'$(ExcludeProjectReferences)' == 'true'">
+    <ItemGroup>
+      <ProjectReference Remove="@(ProjectReference)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GetReferenceCopyLocalPaths" 
+          DependsOnTargets="RemoveExcludedProjectReferences;ResolveAssemblyReferences"
+          Returns="@(ReferenceCopyLocalPaths)" />
+
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(VsixVersion)" />
+  <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
 
   <!-- 
     In order to leverage LUT testing we need to have both of the follownig packages in 

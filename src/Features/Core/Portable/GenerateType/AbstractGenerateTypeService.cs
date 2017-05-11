@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
         protected abstract string DefaultFileExtension { get; }
         protected abstract ImmutableArray<ITypeParameterSymbol> GetTypeParameters(State state, SemanticModel semanticModel, CancellationToken cancellationToken);
         protected abstract Accessibility GetAccessibility(State state, SemanticModel semanticModel, bool intoNamespace, CancellationToken cancellationToken);
-        protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IList<TArgumentSyntax> arguments);
+        protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IList<TArgumentSyntax> arguments, CancellationToken cancellationToken);
 
         protected abstract INamedTypeSymbol DetermineTypeToGenerateIn(SemanticModel semanticModel, TSimpleNameSyntax simpleName, CancellationToken cancellationToken);
         protected abstract ITypeSymbol DetermineArgumentType(SemanticModel semanticModel, TArgumentSyntax argument, CancellationToken cancellationToken);

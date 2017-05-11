@@ -7604,7 +7604,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression of type {0} cannot be handled by a pattern of type {1}..
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; cannot be handled by a pattern of type &apos;{1}&apos; in C# {2}. Please use language version {3} or greater..
+        /// </summary>
+        internal static string ERR_PatternWrongGenericTypeInVersion {
+            get {
+                return ResourceManager.GetString("ERR_PatternWrongGenericTypeInVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; cannot be handled by a pattern of type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_PatternWrongType {
             get {
@@ -8666,11 +8675,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         /// </summary>
-        internal static string ERR_SourceLinkRequiresPortablePdb {
+        internal static string ERR_SourceLinkRequiresPdb {
             get {
-                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture);
             }
         }
         
@@ -9062,6 +9071,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is inferred. Please use language version {1} or greater to access an element by its inferred name..
+        /// </summary>
+        internal static string ERR_TupleInferredNamesNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_TupleInferredNamesNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is only allowed at position {1}..
         /// </summary>
         internal static string ERR_TupleReservedElementName {
@@ -9130,6 +9148,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
             get {
                 return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedOutVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a tuple literal without a natural type..
+        /// </summary>
+        internal static string ERR_TypelessTupleInAs {
+            get {
+                return ResourceManager.GetString("ERR_TypelessTupleInAs", resourceCulture);
             }
         }
         
@@ -12542,6 +12569,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ErrorOverride_Title {
             get {
                 return ResourceManager.GetString("WRN_ErrorOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental {
+            get {
+                return ResourceManager.GetString("WRN_Experimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental_Title {
+            get {
+                return ResourceManager.GetString("WRN_Experimental_Title", resourceCulture);
             }
         }
         

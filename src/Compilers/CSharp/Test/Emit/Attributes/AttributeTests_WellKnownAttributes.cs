@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using PEParameterSymbol = Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEParameterSymbol;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -4705,15 +4704,15 @@ namespace System
             var compilation = CreateStandardCompilation(syntaxTree);
 
             var comp = compilation.VerifyDiagnostics(
-                // test.cs(4,3): warning CS0436: The type 'System.AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'System.AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
-                // 	[AttributeUsage(AttributeTargets.Class)]
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "AttributeUsage").WithArguments("test.cs", "System.AttributeUsageAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.AttributeUsageAttribute"),
-                // test.cs(5,3): warning CS0436: The type 'System.AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'System.AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
-                // 	[AttributeUsage(AttributeTargets.Class)]
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "AttributeUsage").WithArguments("test.cs", "System.AttributeUsageAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.AttributeUsageAttribute"),
-                // test.cs(5,3): error CS0579: Duplicate 'AttributeUsage' attribute
-                // 	[AttributeUsage(AttributeTargets.Class)]
-                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "AttributeUsage").WithArguments("AttributeUsage"));
+                // test.cs(4,6): warning CS0436: The type 'AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
+                //     [AttributeUsage(AttributeTargets.Class)]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "AttributeUsage").WithArguments("test.cs", "System.AttributeUsageAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.AttributeUsageAttribute").WithLocation(4, 6),
+                // test.cs(5,6): warning CS0436: The type 'AttributeUsageAttribute' in 'test.cs' conflicts with the imported type 'AttributeUsageAttribute' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in 'test.cs'.
+                //     [AttributeUsage(AttributeTargets.Class)]
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "AttributeUsage").WithArguments("test.cs", "System.AttributeUsageAttribute", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.AttributeUsageAttribute").WithLocation(5, 6),
+                // test.cs(5,6): error CS0579: Duplicate 'AttributeUsage' attribute
+                //     [AttributeUsage(AttributeTargets.Class)]
+                Diagnostic(ErrorCode.ERR_DuplicateAttribute, "AttributeUsage").WithArguments("AttributeUsage").WithLocation(5, 6));
         }
 
         [WorkItem(541733, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541733")]
@@ -6509,6 +6508,106 @@ internal sealed class C1 : I1
         }
 
         [Fact]
+        public void TestObsoleteAndPropertyAccessors()
+        {
+            var source0 =
+@"using System;
+namespace Windows.Foundation.Metadata
+{
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+    }
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}";
+            var source1 =
+@"using Windows.Foundation.Metadata;
+[Deprecated(null, DeprecationType.Deprecate, 0)] class A { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class B { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class C { }
+class D
+{
+    object P { get { return new A(); } }
+    [Deprecated(null, DeprecationType.Deprecate, 0)] object Q { get { return new B(); } }
+    object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
+}";
+            var comp = CreateStandardCompilation(new[] { Parse(source0), Parse(source1) });
+            comp.VerifyDiagnostics(
+                // (9,17): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
+                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
+                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter").WithLocation(9, 17),
+                // (7,33): warning CS0612: 'A' is obsolete
+                //     object P { get { return new A(); } }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A").WithLocation(7, 33),
+                // (9,82): warning CS0612: 'C' is obsolete
+                //     object R { [Deprecated(null, DeprecationType.Deprecate, 0)] get { return new C(); } }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(9, 82));
+        }
+
+        [Fact]
+        public void TestObsoleteAndEventAccessors()
+        {
+            var source0 =
+@"using System;
+namespace Windows.Foundation.Metadata
+{
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+    }
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}";
+            var source1 =
+@"using System;
+using Windows.Foundation.Metadata;
+[Deprecated(null, DeprecationType.Deprecate, 0)] class A { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class B { }
+[Deprecated(null, DeprecationType.Deprecate, 0)] class C { }
+class D
+{
+    event EventHandler E
+    {
+        add { }
+        remove { M(new A()); }
+    }
+    [Deprecated(null, DeprecationType.Deprecate, 0)] event EventHandler F
+    {
+        add { }
+        remove { M(new B()); }
+    }
+    event EventHandler G
+    {
+        add { }
+        [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
+    }
+    static void M(object o) { }
+}";
+            var comp = CreateStandardCompilation(new[] { Parse(source0), Parse(source1) });
+            comp.VerifyDiagnostics(
+                // (21,10): error CS1667: Attribute 'Windows.Foundation.Metadata.DeprecatedAttribute' is not valid on property or event accessors. It is only valid on 'assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter' declarations.
+                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
+                Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Deprecated").WithArguments("Windows.Foundation.Metadata.DeprecatedAttribute", "assembly, module, class, struct, enum, constructor, method, property, indexer, field, event, interface, parameter, delegate, return, type parameter"),
+                // (11,24): warning CS0612: 'A' is obsolete
+                //         remove { M(new A()); }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "A").WithArguments("A"),
+                // (21,73): warning CS0612: 'C' is obsolete
+                //         [Deprecated(null, DeprecationType.Deprecate, 0)] remove { M(new C()); }
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C").WithArguments("C").WithLocation(21, 73));
+        }
+
+        [Fact]
         [WorkItem(531071, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531071")]
         public void TestObsoleteTypeParameterInAlias()
         {
@@ -6534,31 +6633,30 @@ namespace N
     }
 }";
             CreateStandardCompilation(source).VerifyDiagnostics(
-                // (12,22): error CS0619: 'N.A' is obsolete: 'Do not use'
+                // (12,22): error CS0619: 'A' is obsolete: 'Do not use'
                 //     public class E : Z { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Z").WithArguments("N.A", "Do not use"),
-                // (13,27): error CS0619: 'N.A' is obsolete: 'Do not use'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Z").WithArguments("N.A", "Do not use").WithLocation(12, 22),
+                // (13,27): error CS0619: 'A' is obsolete: 'Do not use'
                 //     public class D : List<Y>
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use"),
-                // (10,22): error CS0619: 'N.A' is obsolete: 'Do not use'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use").WithLocation(13, 27),
+                // (10,22): error CS0619: 'A' is obsolete: 'Do not use'
                 //     public class B : X { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use"),
-                // (11,22): error CS0619: 'N.A' is obsolete: 'Do not use'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use").WithLocation(10, 22),
+                // (11,22): error CS0619: 'A' is obsolete: 'Do not use'
                 //     public class C : Y { }
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use"),
-                // (16,16): error CS0619: 'N.A' is obsolete: 'Do not use'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use").WithLocation(11, 22),
+                // (16,16): error CS0619: 'A' is obsolete: 'Do not use'
                 //         public Y y1;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use"),
-                // (17,21): error CS0619: 'N.A' is obsolete: 'Do not use'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use").WithLocation(16, 16),
+                // (17,21): error CS0619: 'A' is obsolete: 'Do not use'
                 //         public List<Y> y2;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use"),
-                // (18,16): error CS0619: 'N.A' is obsolete: 'Do not use'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Y").WithArguments("N.A", "Do not use").WithLocation(17, 21),
+                // (18,16): error CS0619: 'A' is obsolete: 'Do not use'
                 //         public Z z;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Z").WithArguments("N.A", "Do not use"),
-                // (15,16): error CS0619: 'N.A' is obsolete: 'Do not use'
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Z").WithArguments("N.A", "Do not use").WithLocation(18, 16),
+                // (15,16): error CS0619: 'A' is obsolete: 'Do not use'
                 //         public X x;
-                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use")
-                );
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "X").WithArguments("N.A", "Do not use").WithLocation(15, 16));
         }
 
         [Fact]
@@ -7704,12 +7802,41 @@ class Class6
             compilation2.VerifyDiagnostics(expected);
         }
 
+        /// <summary>
+        /// Report warning or error based on last attribute.
+        /// </summary>
+        [WorkItem(18755, "https://github.com/dotnet/roslyn/issues/18755")]
         [Fact]
-        public void TestDeprecatedAttributeTH1()
+        public void TestMultipleDeprecatedAttributes()
         {
-            var source1 = @"
-using System;
-using Windows.Foundation.Metadata;
+            var source =
+@"using Windows.Foundation.Metadata;
+class C
+{
+    [Deprecated(""Removed"", DeprecationType.Remove, 0)]
+    [Deprecated(""Deprecated"", DeprecationType.Deprecate, 0)]
+    static void F() { }
+    [Deprecated(""Deprecated"", DeprecationType.Deprecate, 0)]
+    [Deprecated(""Removed"", DeprecationType.Remove, 0)]
+    static void G() { }
+    static void Main()
+    {
+        F();
+        G();
+    }
+}";
+            var compilation = CreateCompilation(source, WinRtRefs, TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics(
+                // (12,9): warning CS0618: 'C.F()' is obsolete: 'Deprecated'
+                //         F();
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "F()").WithArguments("C.F()", "Deprecated").WithLocation(12, 9),
+                // (13,9): error CS0619: 'C.G()' is obsolete: 'Removed'
+                //         G();
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "G()").WithArguments("C.G()", "Removed").WithLocation(13, 9));
+        }
+
+        private const string DeprecatedAttributeSourceTH1 =
+@"using System;
 
 namespace Windows.Foundation.Metadata
 {
@@ -7732,24 +7859,28 @@ namespace Windows.Foundation.Metadata
         Deprecate = 0,
         Remove = 1
     }
-}
+}";
+
+        [Fact]
+        public void TestDeprecatedAttributeTH1()
+        {
+            var source1 = @"
+using Windows.Foundation.Metadata;
 
 public class Test
 {
         [Deprecated(""hello"", DeprecationType.Deprecate, 1, typeof(int))]
         public static void Foo()
         {
-
         }
 
         [Deprecated(""hi"", DeprecationType.Deprecate, 1)]
         public static void Bar()
         {
-
         }
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1);
+            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH1), Parse(source1) });
 
             var source2 = @"
 namespace ConsoleApplication74
@@ -7763,11 +7894,8 @@ namespace ConsoleApplication74
         }
     }
 }
-
-
 ";
             var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
-
 
             compilation2.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
@@ -7780,7 +7908,6 @@ namespace ConsoleApplication74
 
             var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
 
-
             compilation3.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
     //             Test.Foo();
@@ -7791,12 +7918,8 @@ namespace ConsoleApplication74
 );
         }
 
-        [Fact]
-        public void TestDeprecatedAttributeTH2()
-        {
-            var source1 = @"
-using System;
-using Windows.Foundation.Metadata;
+        private const string DeprecatedAttributeSourceTH2 =
+@"using System;
 
 namespace Windows.Foundation.Metadata
 {
@@ -7819,24 +7942,28 @@ namespace Windows.Foundation.Metadata
         Deprecate = 0,
         Remove = 1
     }
-}
+}";
+
+        [Fact]
+        public void TestDeprecatedAttributeTH2()
+        {
+            var source1 = @"
+using Windows.Foundation.Metadata;
 
 public class Test
 {
         [Deprecated(""hello"", DeprecationType.Deprecate, 1, ""hello"")]
         public static void Foo()
         {
-
         }
 
         [Deprecated(""hi"", DeprecationType.Deprecate, 1)]
         public static void Bar()
         {
-
         }
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(source1);
+            var compilation1 = CreateCompilationWithMscorlibAndSystemCore(new[] { Parse(DeprecatedAttributeSourceTH2), Parse(source1) });
 
             var source2 = @"
 namespace ConsoleApplication74
@@ -7850,11 +7977,8 @@ namespace ConsoleApplication74
         }
     }
 }
-
-
 ";
             var compilation2 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { compilation1.EmitToImageReference() });
-
 
             compilation2.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
@@ -7867,7 +7991,6 @@ namespace ConsoleApplication74
 
             var compilation3 = CreateCompilationWithMscorlibAndSystemCore(source2, new[] { new CSharpCompilationReference(compilation1) });
 
-
             compilation3.VerifyDiagnostics(
     // (8,13): warning CS0618: 'Test.Foo()' is obsolete: 'hello'
     //             Test.Foo();
@@ -7877,7 +8000,6 @@ namespace ConsoleApplication74
     Diagnostic(ErrorCode.WRN_DeprecatedSymbolStr, "Test.Bar()").WithArguments("Test.Bar()", "hi").WithLocation(9, 13)
 );
         }
-
 
         [Fact, WorkItem(858839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858839")]
         public void Bug858839_1()

@@ -5,6 +5,7 @@
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -145,6 +146,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests</AssemblyName>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -161,6 +163,42 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition">
+      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
@@ -257,7 +295,6 @@
     <Compile Include="Completion\CompletionProviders\CrefCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\EnumAndCompletionListTagCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ExternAliasCompletionProviderTests.cs" />
-    <Compile Include="Completion\CompletionProviders\GlobalAssemblyCacheCompletionHelperTests.cs" />
     <Compile Include="Completion\CompletionProviders\KeywordCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\NamedParameterCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ObjectCreationCompletionProviderTests.cs" />
@@ -270,8 +307,8 @@
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests_NoInteractive.cs" />
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
-    <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
-    <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\LoadDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Completion\CompletionProviders\ReferenceDirectiveCompletionProviderTests.cs" />
     <Compile Include="Diagnostics\NamingStyles\NamingStylesTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
     <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
@@ -360,6 +397,13 @@
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConstructorsRefactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConversionOperatorsRefactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForIndexersRefactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForAccessorsRefactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForPropertiesRefactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForOperatorsRefactoringTests.cs" />
+    <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForMethodsRefactoringTests.cs" />
     <Compile Include="UseNullPropagation\UseNullPropagationTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests_FixAllTests.cs" />
     <Compile Include="UsePatternMatching\CSharpIsAndCastCheckTests.cs" />
@@ -395,13 +439,13 @@
     <Compile Include="Organizing\OrganizeUsingsTests.cs" />
     <Compile Include="Structure\BlockSyntaxStructureTests.cs" />
     <Compile Include="Structure\SwitchStatementStructureTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForIndexerTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForPropertiesTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForConstructorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForConversionOperatorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForAccessorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForOperatorsTests.cs" />
-    <Compile Include="UseExpressionBody\UseExpressionBodyForMethodsTests.cs" />
+    <Compile Include="UseExpressionBody\Analyzer\UseExpressionBodyForIndexersAnalyzerTests.cs" />
+    <Compile Include="UseExpressionBody\Analyzer\UseExpressionBodyForPropertiesAnalyzerTests.cs" />
+    <Compile Include="UseExpressionBody\Analyzer\UseExpressionBodyForConstructorsAnalyzerTests.cs" />
+    <Compile Include="UseExpressionBody\Analyzer\UseExpressionBodyForConversionOperatorsAnalyzerTests.cs" />
+    <Compile Include="UseExpressionBody\Analyzer\UseExpressionBodyForAccessorsAnalyzerTests.cs" />
+    <Compile Include="UseExpressionBody\Analyzer\UseExpressionBodyForOperatorsAnalyzerTests.cs" />
+    <Compile Include="UseExpressionBody\Analyzer\UseExpressionBodyForMethodsAnalyzerTests.cs" />
     <Compile Include="SignatureHelp\TupleConstructionSignatureHelpProviderTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests_FixAllTests.cs" />
     <Compile Include="UseThrowExpression\UseThrowExpressionTests.cs" />
@@ -472,7 +516,6 @@
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />
     <Compile Include="Workspaces\WorkspaceTests.cs" />
-    <None Include="project.json" />
     <None Include="PerfTests\CSharpPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -587,7 +630,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

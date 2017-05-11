@@ -1296,7 +1296,7 @@ lReportErrorOnTwoTokens:
                 meParameter = Nothing
             Else
                 If _lazyMeParameter Is Nothing Then
-                    Interlocked.CompareExchange(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
+                    Interlocked.CompareExchange(Of ParameterSymbol)(_lazyMeParameter, New MeParameterSymbol(Me), Nothing)
                 End If
 
                 meParameter = _lazyMeParameter
@@ -1529,7 +1529,7 @@ lReportErrorOnTwoTokens:
                     Dim BoundAttribute As VisualBasicAttributeData = Nothing
                     Dim obsoleteData As ObsoleteAttributeData = Nothing
 
-                    If EarlyDecodeDeprecatedOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
+                    If EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(arguments, BoundAttribute, obsoleteData) Then
                         If obsoleteData IsNot Nothing Then
                             arguments.GetOrCreateData(Of MethodEarlyWellKnownAttributeData)().ObsoleteAttributeData = obsoleteData
                         End If

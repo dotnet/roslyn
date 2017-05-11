@@ -97,6 +97,11 @@ namespace Microsoft.CodeAnalysis
         public string SourceLink { get; internal set; }
 
         /// <summary>
+        /// Absolute path of the .ruleset file or null if not specified.
+        /// </summary>
+        public string RuleSetPath { get; internal set; }
+
+        /// <summary>
         /// True to emit PDB information (to a standalone PDB file or embedded into the PE file).
         /// </summary>
         public bool EmitPdb { get; internal set; }
@@ -120,6 +125,8 @@ namespace Microsoft.CodeAnalysis
         /// An absolute path of the app.config file or null if not specified.
         /// </summary>
         public string AppConfigPath { get; internal set; }
+
+
 
         /// <summary>
         /// Errors while parsing the command line arguments.

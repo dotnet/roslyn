@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(methodTokens, XElement.Parse(expectedPdb), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: false);
+            VerifyPdb(methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: false);
         }
 
         public void VerifyPdb(
@@ -128,12 +128,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            VerifyPdb(methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: true);
+            VerifyPdb(methodTokens, expectedPdb.ToString(), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: true);
         }
 
         private void VerifyPdb(
             IEnumerable<int> methodTokens,
-            XElement expectedPdb,
+            string expectedPdb,
             DebugInformationFormat format,
             int expectedValueSourceLine,
             string expectedValueSourcePath,
@@ -142,15 +142,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Assert.NotEqual(default(DebugInformationFormat), format);
             Assert.NotEqual(DebugInformationFormat.Embedded, format);
 
-            var actualXml = XElement.Parse(PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), methodTokens));
+            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), methodTokens);
+            var (actualXml, expectedXml) = PdbValidation.AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: NextGeneration.InitialBaseline.HasPortablePdb);
 
-            PdbValidation.AdjustToPdbFormat(
-                actualPdb: actualXml,
-                actualIsPortable: NextGeneration.InitialBaseline.HasPortablePdb,
-                expectedPdb: expectedPdb,
-                expectedIsPortable: format != DebugInformationFormat.Pdb);
-
-            AssertXml.Equal(expectedPdb, actualXml, $"Format: {format}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+            AssertXml.Equal(expectedXml, actualXml, $"Format: {format}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)
@@ -195,6 +190,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var actual = EmitResult.Baseline.SynthesizedMembers.Single(e => e.Key.ToString() == typeName).Value.OfType<IFieldSymbol>().Select(f => f.Name + ": " + f.Type);
             AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
+        }
+
+        public void VerifyUpdatedMethods(params string[] expectedMethodTokens)
+        {
+            AssertEx.Equal(
+                expectedMethodTokens,
+                UpdatedMethods.Select(methodHandle => $"0x{MetadataTokens.GetToken(methodHandle):X8}"));
         }
     }
 }

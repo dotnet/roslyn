@@ -11,6 +11,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.UnitTests.Utilities</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -76,7 +77,6 @@
     <Compile Include="TestWorkspace.cs" />
     <Compile Include="WorkspaceExtensions.cs" />
     <Compile Include="WorkspaceTestBase.cs" />
-    <None Include="project.json" />
     <EmbeddedResource Include="TestFiles\key.snk" />
     <EmbeddedResource Include="TestFiles\VisualBasicProject_Resources.resx_" />
     <EmbeddedResource Include="TestFiles\VisualBasicProject_Settings.settings" />
@@ -91,6 +91,15 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />

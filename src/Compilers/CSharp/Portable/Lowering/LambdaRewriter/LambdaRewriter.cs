@@ -635,25 +635,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var prologue = ArrayBuilder<BoundExpression>.GetInstance();
 
-            BoundExpression newFrame;
-            if (frame.Constructor == null)
-            {
-                Debug.Assert(frame.TypeKind == TypeKind.Struct);
-                newFrame = new BoundDefaultExpression(syntax: syntax, type: frameType);
-            }
-            else
+            if (frame.Constructor != null)
             {
                 MethodSymbol constructor = frame.Constructor.AsMember(frameType);
                 Debug.Assert(frameType == constructor.ContainingType);
-                newFrame = new BoundObjectCreationExpression(
-                syntax: syntax,
-                constructor: constructor);
-            }
 
-            prologue.Add(new BoundAssignmentOperator(syntax,
-                new BoundLocal(syntax, framePointer, null, frameType),
-                newFrame,
-                frameType));
+                prologue.Add(new BoundAssignmentOperator(syntax,
+                    new BoundLocal(syntax, framePointer, null, frameType),
+                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor),
+                    frameType));
+            }
 
             CapturedSymbolReplacement oldInnermostFrameProxy = null;
             if ((object)_innermostFramePointer != null)

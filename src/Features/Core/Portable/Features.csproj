@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -9,8 +9,8 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -112,6 +112,8 @@
     <Compile Include="AddPackage\InstallPackageParentCodeAction.cs" />
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
+    <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="Completion\FileSystemCompletionHelper.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
@@ -122,6 +124,8 @@
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="DesignerAttributes\AbstractDesignerAttributeService.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeProjectData.cs" />
+    <Compile Include="DesignerAttributes\DesignerAttributeDocumentData.cs" />
     <Compile Include="DesignerAttributes\IDesignerAttributeService.cs" />
     <Compile Include="DesignerAttributes\IRemoteDesignerAttributeService.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyleDiagnosticAnalyzerBase.cs" />
@@ -770,13 +774,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeFixes\Suppression\TopLevelSuppressionCodeAction.cs" />
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <PackageReference Include="System.Reflection" Version="$(SystemReflectionVersion)" />
+  </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

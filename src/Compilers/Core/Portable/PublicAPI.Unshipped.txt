@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.CommandLineArguments.EditorConfigFiles.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CommandLineSourceFile>
+Microsoft.CodeAnalysis.CommandLineArguments.RuleSetPath.get -> string
 Microsoft.CodeAnalysis.CommandLineReference.CommandLineReference(string reference, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> void
 Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
@@ -452,7 +453,7 @@ Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.PrimaryOperand.get ->
 Microsoft.CodeAnalysis.Semantics.INullCoalescingExpression.SecondaryOperand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression
 Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.Constructor.get -> Microsoft.CodeAnalysis.IMethodSymbol
-Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.MemberInitializers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Semantics.ISymbolInitializer>
+Microsoft.CodeAnalysis.Semantics.IObjectCreationExpression.Initializers.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation>
 Microsoft.CodeAnalysis.Semantics.IOmittedArgumentExpression
 Microsoft.CodeAnalysis.Semantics.IParameterInitializer
 Microsoft.CodeAnalysis.Semantics.IParameterInitializer.Parameter.get -> Microsoft.CodeAnalysis.IParameterSymbol
