@@ -14,7 +14,7 @@ There are 4 scenarios:
 
 ## Definition of ref assemblies
 Metadata-only assembly have their method bodies replaced with a single `throw null` body, but include all members except anonymous types. The reason for using `throw null` bodies (as opposed to no bodies) is so that PEVerify could run and pass (thus validating the completeness of the metadata).
-Ref assemblies will include an assembly-level `ReferenceAssembly` attribute. This attribute may be specified in should (then we won't need to synthesize it). Because of this attribute, runtimes will refuse to load ref assemblies for execution (but they can still be loaded Reflection-only mode).
+Ref assemblies will include an assembly-level `ReferenceAssembly` attribute. This attribute may be specified in source (then we won't need to synthesize it). Because of this attribute, runtimes will refuse to load ref assemblies for execution (but they can still be loaded Reflection-only mode).
 Ref assemblies further remove metadata (private members) from metadata-only assemblies:
 
 - A ref assembly will only have references for what it needs in the API surface. The real assembly may have additional references related to specific implementations. For instance, the ref assembly for `class C { private void M() { dynamic d = 1; ... } }` will not reference any types required for `dynamic`.

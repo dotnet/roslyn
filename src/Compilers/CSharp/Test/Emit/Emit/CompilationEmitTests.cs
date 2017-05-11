@@ -658,36 +658,17 @@ public class D : ITest1
             {
                 var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
                                 references: new MetadataReference[] { reference });
-                using (var output = new MemoryStream())
-                {
-                    EmitResult emitResult = comp.Emit(output,
-                        options: new EmitOptions(includePrivateMembers: false).WithEmitMetadataOnly(true));
-                    Assert.True(emitResult.Success);
-                    emitResult.Diagnostics.Verify();
-
-                    var refImage = output.ToImmutable();
-                    verifyNoPia(refImage);
-                }
+                var refOnlyImage = EmitRefOnly(comp);
+                verifyNoPia(refOnlyImage);
             }
 
             void verifyRefOut(MetadataReference reference)
             {
                 var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll,
                                 references: new MetadataReference[] { reference });
-                using (var output = new MemoryStream())
-                using (var metadataOutput = new MemoryStream())
-                {
-                    EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
-                        options: new EmitOptions(includePrivateMembers: false));
-                    Assert.True(emitResult.Success);
-                    emitResult.Diagnostics.Verify();
-
-                    var image = output.ToImmutable();
-                    var refImage = metadataOutput.ToImmutable();
-
-                    verifyNoPia(image);
-                    verifyNoPia(refImage);
-                }
+                var (image, refImage) = EmitRefOut(comp);
+                verifyNoPia(image);
+                verifyNoPia(refImage);
             }
 
             void verifyNoPia(ImmutableArray<byte> image)
@@ -744,11 +725,13 @@ public class D
     }
 }
 ";
-            verifyRefOnly(pia.EmitToImageReference(embedInteropTypes: true));
-            verifyRefOut(pia.EmitToImageReference(embedInteropTypes: true));
+            var piaImageReference = pia.EmitToImageReference(embedInteropTypes: true);
+            verifyRefOnly(piaImageReference);
+            verifyRefOut(piaImageReference);
 
-            verifyRefOnly(pia.ToMetadataReference(embedInteropTypes: true));
-            verifyRefOut(pia.ToMetadataReference(embedInteropTypes: true));
+            var piaMetadataReference = pia.ToMetadataReference(embedInteropTypes: true);
+            verifyRefOnly(piaMetadataReference);
+            verifyRefOut(piaMetadataReference);
 
             void verifyRefOnly(MetadataReference reference)
             {
@@ -1124,7 +1107,7 @@ comp => comp.VerifyDiagnostics(
             }
         }
 
-        private void VerifyIdentitiesMatch(ImmutableArray<byte> firstImage, ImmutableArray<byte> secondImage,
+        private static void VerifyIdentitiesMatch(ImmutableArray<byte> firstImage, ImmutableArray<byte> secondImage,
             bool expectMatch = true, bool expectPublicKey = false)
         {
             var id1 = ModuleMetadata.CreateFromImage(firstImage).GetMetadataReader().ReadAssemblyIdentityOrThrow();
@@ -1137,7 +1120,7 @@ comp => comp.VerifyDiagnostics(
             }
         }
 
-        private (ImmutableArray<byte> image, ImmutableArray<byte> refImage) EmitRefOut(CSharpCompilation comp)
+        private static (ImmutableArray<byte> image, ImmutableArray<byte> refImage) EmitRefOut(CSharpCompilation comp)
         {
             using (var output = new MemoryStream())
             using (var metadataOutput = new MemoryStream())
@@ -1150,7 +1133,7 @@ comp => comp.VerifyDiagnostics(
             }
         }
 
-        ImmutableArray<byte> EmitRefOnly(CSharpCompilation comp)
+        private static ImmutableArray<byte> EmitRefOnly(CSharpCompilation comp)
         {
             using (var output = new MemoryStream())
             {
