@@ -19,17 +19,33 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             Return OperationKind.CompoundAssignmentExpression
                         End If
                     Case BoundKind.UserDefinedBinaryOperator
-                        Dim rightOperatorBinary As IBinaryOperatorExpression = DirectCast(Create(value.Right), IBinaryOperatorExpression)
+                        Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = DirectCast(value.Right, BoundUserDefinedBinaryOperator)
+
                         ' It is not permissible to access the Left property of a BoundUserDefinedBinaryOperator unconditionally,
                         ' because that property can throw an exception if the operator expression is semantically invalid.
-                        ' Fetching the left operand through IBinaryOperatorExpression is safe.
-                        If rightOperatorBinary.LeftOperand Is Create(value.LeftOnTheRightOpt) Then
+                        ' get it throw helper method
+                        Dim leftOperand = GetUserDefinedBinaryOperatorChild(rightOperatorBinary, 0)
+                        If leftOperand Is value.LeftOnTheRightOpt Then
                             Return OperationKind.CompoundAssignmentExpression
                         End If
                 End Select
             End If
 
             Return OperationKind.AssignmentExpression
+        End Function
+
+        Private Shared Function GetUserDefinedBinaryOperatorChild([operator] As BoundUserDefinedBinaryOperator, index As Integer) As IOperation
+            If [operator].UnderlyingExpression.Kind = BoundKind.Call Then
+                If index = 0 Then
+                    Return Create([operator].Left)
+                ElseIf index = 1 Then
+                    Return Create([operator].Right)
+                Else
+                    Throw ExceptionUtilities.UnexpectedValue(index)
+                End If
+            Else
+                Return GetChildOfBadExpression([operator].UnderlyingExpression, index)
+            End If
         End Function
 
         Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)

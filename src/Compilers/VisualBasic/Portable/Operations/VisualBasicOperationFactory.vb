@@ -351,20 +351,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Shared Function CreateBoundUserDefinedBinaryOperatorOperation(boundUserDefinedBinaryOperator As BoundUserDefinedBinaryOperator) As IBinaryOperatorExpression
             Dim binaryOperationKind As BinaryOperationKind = Helper.DeriveBinaryOperationKind(boundUserDefinedBinaryOperator.OperatorKind)
-            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
-                                                                                 If boundUserDefinedBinaryOperator.UnderlyingExpression.Kind = BoundKind.Call Then
-                                                                                     Return Create(boundUserDefinedBinaryOperator.Left)
-                                                                                 Else
-                                                                                     Return GetChildOfBadExpression(boundUserDefinedBinaryOperator.UnderlyingExpression, 0)
-                                                                                 End If
-                                                                             End Function)
-            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function()
-                                                                                  If boundUserDefinedBinaryOperator.UnderlyingExpression.Kind = BoundKind.Call Then
-                                                                                      Return Create(boundUserDefinedBinaryOperator.Right)
-                                                                                  Else
-                                                                                      Return GetChildOfBadExpression(boundUserDefinedBinaryOperator.UnderlyingExpression, 1)
-                                                                                  End If
-                                                                              End Function)
+            Dim leftOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, 0))
+            Dim rightOperand As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() GetUserDefinedBinaryOperatorChild(boundUserDefinedBinaryOperator, 1))
             Dim operatorMethod As IMethodSymbol = If(boundUserDefinedBinaryOperator.UnderlyingExpression.Kind = BoundKind.Call, boundUserDefinedBinaryOperator.Call.Method, Nothing)
             Dim usesOperatorMethod As Boolean = operatorMethod IsNot Nothing
             Dim isInvalid As Boolean = boundUserDefinedBinaryOperator.HasErrors
@@ -681,7 +669,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim parameter As IParameterSymbol = boundParameterEqualsValue.Parameter
             Dim value As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundParameterEqualsValue.Value))
             Dim kind As OperationKind = OperationKind.ParameterInitializerAtDeclaration
-            Dim isInvalid As Boolean = value.Value.IsInvalid
+            Dim isInvalid As Boolean = boundParameterEqualsValue.Value.HasErrors
             Dim syntax As SyntaxNode = boundParameterEqualsValue.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
