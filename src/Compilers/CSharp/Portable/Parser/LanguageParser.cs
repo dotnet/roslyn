@@ -2071,9 +2071,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static bool CanStartTypeDeclaration(SyntaxKind kind)
+        private bool IsTypeDeclarationStart()
         {
-            switch (kind)
+            switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
                 case SyntaxKind.DelegateKeyword:
@@ -2081,6 +2081,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.InterfaceKeyword:
                 case SyntaxKind.StructKeyword:
                     return true;
+                case SyntaxKind.RefKeyword:
+                    return PeekToken(1).Kind == SyntaxKind.StructKeyword;
                 default:
                     return false;
             }
@@ -2320,8 +2322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // It's valid to have a type declaration here -- check for those
-                if (CanStartTypeDeclaration(this.CurrentToken.Kind) ||
-                    this.CurrentToken.Kind == SyntaxKind.RefKeyword && PeekToken(1).Kind == SyntaxKind.StructKeyword)
+                if (IsTypeDeclarationStart())
                 {
                     return this.ParseTypeDeclaration(attributes, modifiers);
                 }

@@ -32,8 +32,7 @@ class Program
 ";
 
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -68,6 +67,10 @@ class Program
     ref class S1{}
 
     public ref unsafe struct S2{}
+
+    ref interface I1{};
+
+    public ref delegate ref int D1();
 }
 ";
 
@@ -75,13 +78,19 @@ class Program
             comp.VerifyDiagnostics(
                 // (4,9): error CS1031: Type expected
                 //     ref class S1{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "class").WithLocation(4, 9),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "class"),
                 // (6,16): error CS1031: Type expected
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_TypeExpected, "unsafe"),
+                // (8,9): error CS1031: Type expected
+                //     ref interface I1{};
+                Diagnostic(ErrorCode.ERR_TypeExpected, "interface").WithLocation(8, 9),
+                // (10,16): error CS1031: Type expected
+                //     public ref delegate ref int D1();
+                Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(10, 16),
                 // (6,30): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     public ref unsafe struct S2{}
-                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2").WithLocation(6, 30)
+                Diagnostic(ErrorCode.ERR_IllegalUnsafe, "S2")
             );
         }
 
@@ -98,9 +107,7 @@ class Program
 ";
 
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.DebugDll);
-            comp.VerifyDiagnostics(
-            );
+            comp.VerifyDiagnostics();
         }
-
     }
 }
