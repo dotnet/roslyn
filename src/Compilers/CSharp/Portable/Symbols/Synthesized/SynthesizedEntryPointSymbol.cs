@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string FactoryName = "<Factory>";
 
         private readonly NamedTypeSymbol _containingType;
-        // PROTOTYPE(async-main): remove this and move it out into inheriting classes?
-        private TypeSymbol _returnType;
 
         internal static SynthesizedEntryPointSymbol Create(SynthesizedInteractiveInitializerMethod initializerMethod, DiagnosticBag diagnostics)
         {
@@ -57,12 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType, TypeSymbol returnType = null)
+        private SynthesizedEntryPointSymbol(NamedTypeSymbol containingType)
         {
             Debug.Assert((object)containingType != null);
 
             _containingType = containingType;
-            _returnType = returnType;
         }
 
         internal override bool GenerateDebugInfo
@@ -130,11 +127,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return RefKind.None; }
         }
 
-        public override TypeSymbol ReturnType
-        {
-            get { return _returnType; }
-        }
-
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
         {
             get { return ImmutableArray<CustomModifier>.Empty; }
@@ -162,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool ReturnsVoid
         {
-            get { return _returnType.SpecialType == SpecialType.System_Void; }
+            get { return ReturnType.SpecialType == SpecialType.System_Void; }
         }
 
         public override MethodKind MethodKind
@@ -341,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private readonly ImmutableArray<ParameterSymbol> _parameters;
 
-            internal AsyncForwardEntryPoint(CSharpCompilation compilation, DiagnosticBag diagnosticBag, NamedTypeSymbol containingType, MethodSymbol userMain) :
+            internal AsyncForwardEntryPoint(CSharpCompilation compilation, NamedTypeSymbol containingType, MethodSymbol userMain) :
                 base(containingType)
             {
                 // There should be no way for a userMain to be passed in unless it already passed the 
@@ -349,7 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(userMain.ParameterCount == 0 || userMain.ParameterCount == 1);
 
                 _userMainReturnTypeSyntax = userMain.ExtractReturnTypeSyntax();
-                // PROTOTYPE(async-main): we might need to adjust the containing member of the binder to be the Main method.
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
@@ -371,9 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
-                // PROTOTYPE(async-main): lower the tree.
-                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, diagnosticBag);
-                _returnType = _getAwaiterGetResultCall.Type;
+                // The diagnostics that would be produced here will already have been captured and returned.
+                var droppedBag = DiagnosticBag.GetInstance();
+                var success = binder.GetAwaitableExpressionInfo(userMainInvocation, out _, out _, out _, out _getAwaiterGetResultCall, _userMainReturnTypeSyntax, droppedBag);
+                droppedBag.Free();
 
                 Debug.Assert(
                     ReturnType.SpecialType == SpecialType.System_Void ||
@@ -383,6 +375,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override string Name => MainName;
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
+
+            public override TypeSymbol ReturnType => _getAwaiterGetResultCall.Type;
 
             internal override BoundBlock CreateBody()
             {
@@ -432,20 +426,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             private readonly MethodSymbol _getAwaiterMethod;
             private readonly MethodSymbol _getResultMethod;
+            private readonly TypeSymbol _returnType;
 
             internal ScriptEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType, MethodSymbol getAwaiterMethod, MethodSymbol getResultMethod) :
-                base(containingType, returnType)
+                base(containingType)
             {
                 Debug.Assert(containingType.IsScriptClass);
                 Debug.Assert(returnType.SpecialType == SpecialType.System_Void);
 
                 _getAwaiterMethod = getAwaiterMethod;
                 _getResultMethod = getResultMethod;
+                _returnType = returnType;
             }
 
             public override string Name => MainName;
 
             public override ImmutableArray<ParameterSymbol> Parameters => ImmutableArray<ParameterSymbol>.Empty;
+
+            public override TypeSymbol ReturnType => _returnType;
 
             // private static void <Main>()
             // {
@@ -516,13 +514,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class SubmissionEntryPoint : SynthesizedEntryPointSymbol
         {
             private readonly ImmutableArray<ParameterSymbol> _parameters;
+            private readonly TypeSymbol _returnType;
 
             internal SubmissionEntryPoint(NamedTypeSymbol containingType, TypeSymbol returnType, TypeSymbol submissionArrayType) :
-                base(containingType, returnType)
+                base(containingType)
             {
                 Debug.Assert(containingType.IsSubmissionClass);
                 Debug.Assert(returnType.SpecialType != SpecialType.System_Void);
                 _parameters = ImmutableArray.Create<ParameterSymbol>(SynthesizedParameterSymbol.Create(this, submissionArrayType, 0, RefKind.None, "submissionArray"));
+                _returnType = returnType;
             }
 
             public override string Name
@@ -534,6 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get { return _parameters; }
             }
+
+            public override TypeSymbol ReturnType => _returnType;
 
             // private static T <Factory>(object[] submissionArray) 
             // {
