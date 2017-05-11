@@ -42,12 +42,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 await _rpc.InvokeAsync(targetName, arguments).ConfigureAwait(false);
             }
-            catch (ObjectDisposedException)
+            catch 
             {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
+                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
+                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
+                // the exception
                 _cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
@@ -61,12 +61,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 return await _rpc.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
             }
-            catch (ObjectDisposedException)
+            catch
             {
-                // object disposed exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
-                // the way we added cancellation support to the JsonRpc which doesn't support cancellation natively
-                // can cause this exception to happen. newer version supports cancellation token natively, but
-                // we can't use it now, so we will catch object disposed exception and check cancellation token
+                // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
+                // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
+                // cancellation exception here. if any exception is thrown unrelated to cancellation, then we will rethrow
+                // the exception
                 _cancellationToken.ThrowIfCancellationRequested();
                 throw;
             }
