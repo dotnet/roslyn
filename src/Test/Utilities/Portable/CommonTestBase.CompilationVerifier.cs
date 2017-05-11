@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
     {
         public class CompilationVerifier
         {
-            private readonly CommonTestBase _test;
             private readonly Compilation _compilation;
             private CompilationTestData _testData;
             private readonly IEnumerable<ModuleData> _dependencies;
@@ -36,35 +35,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             internal ImmutableArray<byte> EmittedAssemblyData;
             internal ImmutableArray<byte> EmittedAssemblyPdb;
 
-            public CompilationVerifier(
-                CommonTestBase test,
+            private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> _visualizeRealIL;
+
+            internal CompilationVerifier(
                 Compilation compilation,
+                Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> visualizeRealIL = null,
                 IEnumerable<ModuleData> dependencies = null)
             {
-                _test = test;
                 _compilation = compilation;
                 _dependencies = dependencies;
+                _visualizeRealIL = visualizeRealIL;
             }
 
-            internal CompilationTestData TestData
-            {
-                get { return _testData; }
-            }
-
-            public Compilation Compilation
-            {
-                get { return _compilation; }
-            }
-
-            public TempRoot Temp
-            {
-                get { return _test.Temp; }
-            }
-
-            internal ImmutableArray<Diagnostic> Diagnostics
-            {
-                get { return _diagnostics; }
-            }
+            internal CompilationTestData TestData => _testData;
+            public Compilation Compilation => _compilation;
+            internal ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
 
             internal ImmutableArray<ModuleMetadata> GetAllModuleMetadata()
             {
@@ -283,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     _lazyModuleSymbol = GetModuleSymbolForEmittedImage(EmittedAssemblyData, MetadataImportOptions.All);
                 }
 
-                return _lazyModuleSymbol != null ? _test.VisualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
+                return _lazyModuleSymbol != null ? _visualizeRealIL(_lazyModuleSymbol, methodData, markers) : null;
             }
 
             public CompilationVerifier VerifyMemberInIL(string methodName, bool expected)
@@ -312,8 +297,30 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 var targetReference = LoadTestEmittedExecutableForSymbolValidation(peImage, _compilation.Options.OutputKind, display: _compilation.AssemblyName);
                 var references = _compilation.References.Concat(new[] { targetReference });
-                var assemblies = _test.ReferencesToModuleSymbols(references, importOptions);
+                var assemblies = GetReferencesToModuleSymbols(references, importOptions);
                 return assemblies.Last();
+            }
+
+            private IEnumerable<IModuleSymbol> GetReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions)
+            {
+                var dummy = _compilation
+                    .RemoveAllReferences()
+                    .RemoveAllSyntaxTrees()
+                    .WithReferences(references)
+                    .WithAssemblyName("Dummy")
+                    .WithOptions(_compilation.Options.WithMetadataImportOptions(importOptions));
+
+                return references.Select(reference =>
+                {
+                    if (reference.Properties.Kind == MetadataImageKind.Assembly)
+                    {
+                        return ((IAssemblySymbol)dummy.GetAssemblyOrModuleSymbol(reference))?.Modules.First();
+                    }
+                    else
+                    {
+                        return (IModuleSymbol)dummy.GetAssemblyOrModuleSymbol(reference);
+                    }
+                });
             }
 
             internal static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
