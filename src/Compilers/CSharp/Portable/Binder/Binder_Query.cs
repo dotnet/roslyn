@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             QueryTranslationState state = new QueryTranslationState();
             state.fromExpression = MakeMemberAccessValue(boundFromExpression, diagnostics);
 
+            CheckNotNamespaceOrType(state.fromExpression, diagnostics);
+
             var x = state.rangeVariable = state.AddRangeVariable(this, fromClause.Identifier, diagnostics);
             for (int i = node.Body.Clauses.Count - 1; i >= 0; i--)
             {

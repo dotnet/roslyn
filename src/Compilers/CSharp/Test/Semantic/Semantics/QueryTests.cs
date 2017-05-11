@@ -1421,7 +1421,10 @@ class C
     static IEnumerable<T> Select<T>(Func<int, T> f) { return null; }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (8,27): error CS0119: 'C' is a type, which is not valid in the given context
+                //         var q = from x in C select x;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(8, 27));
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "C").Single();
@@ -1454,7 +1457,10 @@ class C
     static Func<Func<int, object>, IEnumerable<object>> Select = null;
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (8,27): error CS0119: 'C' is a type, which is not valid in the given context
+                //         var q = from x in C select x;
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "C").WithArguments("C", "type").WithLocation(8, 27));
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "C").Single();
@@ -1468,6 +1474,41 @@ class C
             Assert.Null(info0.OperationInfo.Symbol);
             var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
+        }
+
+        [Fact]
+        public void SelectFromNamespace()
+        {
+            string sourceCode = @"using System;
+using System.Collections.Generic;
+namespace N
+{
+    class C
+    {
+        static void Main()
+        {
+            var q = from x in N select x;
+        }
+
+        static IEnumerable<T> Select<T>(Func<int, T> f) { return null; }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            compilation.VerifyDiagnostics(
+                      // (9,31): error CS0118: 'N' is a namespace but is used like a variable
+                      //             var q = from x in N select x;
+                      Diagnostic(ErrorCode.ERR_BadSKknown, "N").WithArguments("N", "namespace", "variable").WithLocation(9, 31));
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var classC = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "C").Single();
+            dynamic main = (MethodDeclarationSyntax)classC.Members[0];
+            QueryExpressionSyntax q = main.Body.Statements[0].Declaration.Variables[0].Initializer.Value;
+            var info0 = model.GetQueryClauseInfo(q.FromClause);
+            var x = model.GetDeclaredSymbol(q.FromClause);
+            Assert.Equal(SymbolKind.RangeVariable, x.Kind);
+            Assert.Equal("x", x.Name);
+            Assert.Equal(null, info0.CastInfo.Symbol);
+            Assert.True(info0.OperationInfo.IsEmpty);
         }
 
         [WorkItem(542624, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542624")]
@@ -1632,10 +1673,10 @@ using System.Linq;
 
 class Test
 {
-	public static void Main ()
-	{
+    public static void Main ()
+    {
         var query8 = from int i in expr1 join int delegate in expr2 on i equals delegate select new { i, delegate };
-	}
+    }
 }
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
