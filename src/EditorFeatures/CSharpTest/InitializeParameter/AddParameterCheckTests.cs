@@ -755,5 +755,34 @@ class Program
             CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
             CodeStyleOptions.FalseWithSuggestionEnforcement)));
         }
+
+        [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestPreferNoBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+            throw new ArgumentNullException(nameof(s));
+    }
+}", ignoreTrivia: false,
+    parameters: new TestParameters(options:
+        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
+        }
     }
 }
