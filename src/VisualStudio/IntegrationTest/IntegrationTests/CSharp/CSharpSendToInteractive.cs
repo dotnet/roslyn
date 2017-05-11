@@ -214,7 +214,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.SolutionCrawler);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19441")]
         public void ResetInteractiveFromProjectAndVerify()
         {
             var assembly = new ProjectUtils.AssemblyReference("System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
