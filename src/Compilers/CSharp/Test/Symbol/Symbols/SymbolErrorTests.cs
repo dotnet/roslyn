@@ -15078,7 +15078,10 @@ using System.Runtime.CompilerServices;
             comp.VerifyDiagnostics(
                 // (4,33): error CS1736: Default parameter value for 'Para1' must be a compile-time constant
                 //     public void Foo(int Para1 = Age)
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Age").WithArguments("Para1")
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Age").WithArguments("Para1").WithLocation(4, 33),
+                // (3,16): warning CS0649: Field 'A.Age' is never assigned to, and will always have its default value 0
+                //     static int Age;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Age").WithArguments("A.Age", "0").WithLocation(3, 16)
                 );
         }
 
@@ -15119,7 +15122,7 @@ class NamedExample
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (9,47): error CS1736: Default parameter value for 'height' must be a compile-time constant
                 //     int CalculateBMI(int weight, int height = y)
-                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "y").WithArguments("height")
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "y").WithArguments("height").WithLocation(9, 47)
                 );
         }
 

@@ -3088,11 +3088,12 @@ class Test : System.Attribute
 
         [Fact]
         [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
-        public void LocalFunctionReportedUsedForNameofDefaultParamter()
+        public void LocalFunctionReportedUsedForNameofDefaultParameter()
         {
             var source = @"
 class Program
 {
+    const int ClassConstant = 10;
     static void Main()
     {
         int LocalVariable;
@@ -3106,6 +3107,19 @@ class Program
         const int Constant = 2;
         void ConstantFunc(int x = Constant) => System.Console.WriteLine(x);
         ConstantFunc();
+
+        const int ConstantExpr1 = 1;
+        const int ConstantExpr2 = 4;
+        void ConstantExprFunc(int x = ConstantExpr1 + ConstantExpr2) => System.Console.WriteLine(x);
+        ConstantExprFunc();
+
+        void StrAdd1() {}
+        void StrAdd2() {}
+        void StrAddFunc(string s = nameof(StrAdd1) + nameof(StrAdd2)) => System.Console.WriteLine(s);
+        StrAddFunc();
+
+        void ClassConstantFunc(int x = ClassConstant * 1) => System.Console.WriteLine(x);
+        ClassConstantFunc();
     }
 }";
 
@@ -3114,6 +3128,9 @@ class Program
 LocalVariable
 LocalFunction
 2
+5
+StrAdd1StrAdd2
+10
 ");
         }
     }
