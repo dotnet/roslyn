@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 {
     internal sealed class CommandLineRunner
     {
+        private static readonly Func<DiagnosticInfo, Diagnostic> s_diagnosticCreate = Diagnostic.Create;
+
         private readonly ConsoleIO _console;
         private readonly CommonCompiler _compiler;
         private readonly ScriptCompiler _scriptCompiler;
@@ -111,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
             var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos);
 
-            var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
+            var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(s_diagnosticCreate));
             if (_compiler.ReportErrors(errors, _console.Error, errorLogger))
             {
                 return CommonCompiler.Failed;

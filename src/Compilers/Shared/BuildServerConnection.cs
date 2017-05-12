@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 keepAlive,
                 libEnvVariable,
                 timeoutOverride: null,
-                tryCreateServerFunc: TryCreateServerCore,
+                tryCreateServerFunc: s_tryCreateServerCore,
                 cancellationToken: cancellationToken);
         }
 
@@ -395,6 +395,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             return true;
         }
+
+        private static readonly Func<string, string, bool> s_tryCreateServerCore = TryCreateServerCore;
 
         internal static bool TryCreateServerCore(string clientDir, string pipeName)
         {

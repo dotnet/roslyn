@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
+        private static readonly Func<IComparable, bool> s_greaterThanOrEqualsZero = GreaterThanOrEqualsZero;
+
         private static bool GreaterThanOrEqualsZero(IComparable value)
         {
             switch (value)
@@ -130,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (existingConstants.Count >= 1 &&
                IntegerUtilities.HasOneBitSet(existingConstants[0]) &&
                Multiply(existingConstants[0], 2).CompareTo(existingConstants[0]) > 0 &&
-               existingConstants.All(GreaterThanOrEqualsZero))
+               existingConstants.All(s_greaterThanOrEqualsZero))
             {
                 if (existingConstants.Count == 1)
                 {

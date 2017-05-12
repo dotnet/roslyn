@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.Editing
                                 modifiers: DeclarationModifiers.From(type),
                                 baseType: TypeExpression(type.BaseType),
                                 interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s_canBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Struct:
                             declaration = StructDeclaration(
@@ -567,20 +567,20 @@ namespace Microsoft.CodeAnalysis.Editing
                                 accessibility: type.DeclaredAccessibility,
                                 modifiers: DeclarationModifiers.From(type),
                                 interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s_canBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Interface:
                             declaration = InterfaceDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
                                 interfaceTypes: type.Interfaces.Select(i => TypeExpression(i)),
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s_canBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Enum:
                             declaration = EnumDeclaration(
                                 type.Name,
                                 accessibility: type.DeclaredAccessibility,
-                                members: type.GetMembers().Where(CanBeDeclared).Select(m => Declaration(m)));
+                                members: type.GetMembers().Where(s_canBeDeclared).Select(m => Declaration(m)));
                             break;
                         case TypeKind.Delegate:
                             var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
@@ -604,6 +604,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             throw new ArgumentException("Symbol cannot be converted to a declaration");
         }
+
+        private static readonly Func<ISymbol, bool> s_canBeDeclared = CanBeDeclared;
 
         private static bool CanBeDeclared(ISymbol symbol)
         {

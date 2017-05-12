@@ -42,6 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
         private class RenameRewriter : CSharpSyntaxRewriter
         {
+            private static readonly Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> s_syntaxFactoryLiteral = SyntaxFactory.Literal;
+            private static readonly Func<SyntaxTriviaList, string, string, SyntaxTriviaList, SyntaxToken> s_syntaxFactoryXmlTextLiteral = SyntaxFactory.XmlTextLiteral;
+
             private readonly DocumentId _documentId;
             private readonly RenameAnnotation _renameRenamableSymbolDeclaration;
             private readonly Solution _solution;
@@ -686,7 +689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     if (newToken.IsKind(SyntaxKind.StringLiteralToken))
                     {
-                        newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.Literal);
+                        newToken = RenameInStringLiteral(oldToken, newToken, s_syntaxFactoryLiteral);
                     }
                     else if (newToken.IsKind(SyntaxKind.InterpolatedStringTextToken))
                     {
@@ -699,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     if (newToken.IsKind(SyntaxKind.XmlTextLiteralToken))
                     {
-                        newToken = RenameInStringLiteral(oldToken, newToken, SyntaxFactory.XmlTextLiteral);
+                        newToken = RenameInStringLiteral(oldToken, newToken, s_syntaxFactoryXmlTextLiteral);
                     }
                     else if (newToken.IsKind(SyntaxKind.IdentifierToken) && newToken.Parent.IsKind(SyntaxKind.XmlName) && newToken.ValueText == _originalText)
                     {

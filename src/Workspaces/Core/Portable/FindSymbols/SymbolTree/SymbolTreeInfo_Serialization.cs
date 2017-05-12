@@ -19,6 +19,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
         private const string SerializationFormat = "17";
 
+        private static readonly Func<ObjectReader, SpellChecker> s_spellCheckerTryReadFrom = SpellChecker.TryReadFrom;
+
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
@@ -36,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly: false,
                 createAsync: () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
                 keySuffix: "_SpellChecker_" + filePath,
-                tryReadObject: SpellChecker.TryReadFrom,
+                tryReadObject: s_spellCheckerTryReadFrom,
                 cancellationToken: CancellationToken.None);
             Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
             return result;

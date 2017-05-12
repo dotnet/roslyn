@@ -19,6 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class ExpressionGenerator
     {
+        private static readonly Func<TypedConstant, ExpressionSyntax> s_generateExpression = GenerateExpression;
+        private static readonly Func<string, int, SyntaxToken> s_syntaxFactoryLiteralInt32 = SyntaxFactory.Literal;
+        private static readonly Func<string, long, SyntaxToken> s_syntaxFactoryLiteralInt64 = SyntaxFactory.Literal;
+        private static readonly Func<string, uint, SyntaxToken> s_syntaxFactoryLiteralUInt32 = SyntaxFactory.Literal;
+        private static readonly Func<string, ulong, SyntaxToken> s_syntaxFactoryLiteralUInt64 = SyntaxFactory.Literal;
+        private static readonly Func<string, float, SyntaxToken> s_syntaxFactoryLiteralSingle = SyntaxFactory.Literal;
+        private static readonly Func<string, double, SyntaxToken> s_syntaxFactoryLiteralDouble = SyntaxFactory.Literal;
+        private static readonly Func<string, decimal, SyntaxToken> s_syntaxFactoryLiteralDecimal = SyntaxFactory.Literal;
+
         internal static ExpressionSyntax GenerateExpression(
             TypedConstant typedConstant)
         {
@@ -38,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         GenerateNullLiteral() :
                         SyntaxFactory.ImplicitArrayCreationExpression(
                             SyntaxFactory.InitializerExpression(SyntaxKind.ArrayInitializerExpression,
-                                SyntaxFactory.SeparatedList(typedConstant.Values.Select(GenerateExpression))));
+                                SyntaxFactory.SeparatedList(typedConstant.Values.Select(s_generateExpression))));
 
                 default:
                     return GenerateNullLiteral();
@@ -84,15 +93,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case char val: return GenerateCharLiteralExpression(val);
                 case sbyte val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.SByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
                 case short val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
-                case int val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
-                case long val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                case int val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int32SpecialValues, null, canUseFieldReference, s_syntaxFactoryLiteralInt32);
+                case long val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.Int64SpecialValues, null, canUseFieldReference, s_syntaxFactoryLiteralInt64);
                 case byte val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.ByteSpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, v));
                 case ushort val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt16SpecialValues, null, canUseFieldReference, (s, v) => SyntaxFactory.Literal(s, (uint)v));
-                case uint val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
-                case ulong val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt64SpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                case uint val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt32SpecialValues, null, canUseFieldReference, s_syntaxFactoryLiteralUInt32);
+                case ulong val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.UInt64SpecialValues, null, canUseFieldReference, s_syntaxFactoryLiteralUInt64);
                 case float val: return GenerateSingleLiteralExpression(type, val, canUseFieldReference);
                 case double val: return GenerateDoubleLiteralExpression(type, val, canUseFieldReference);
-                case decimal val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, SyntaxFactory.Literal);
+                case decimal val: return GenerateLiteralExpression(type, val, LiteralSpecialValues.DecimalSpecialValues, null, canUseFieldReference, s_syntaxFactoryLiteralDecimal);
             }
 
             return type == null || type.IsReferenceType || type.IsPointerType() || type.IsNullable()
@@ -199,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            return GenerateLiteralExpression(type, value, LiteralSpecialValues.DoubleSpecialValues, "R", canUseFieldReference, SyntaxFactory.Literal);
+            return GenerateLiteralExpression(type, value, LiteralSpecialValues.DoubleSpecialValues, "R", canUseFieldReference, s_syntaxFactoryLiteralDouble);
         }
 
         private static ExpressionSyntax GenerateSingleLiteralExpression(ITypeSymbol type, float value, bool canUseFieldReference)
@@ -226,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 }
             }
 
-            return GenerateLiteralExpression(type, value, LiteralSpecialValues.SingleSpecialValues, "R", canUseFieldReference, SyntaxFactory.Literal);
+            return GenerateLiteralExpression(type, value, LiteralSpecialValues.SingleSpecialValues, "R", canUseFieldReference, s_syntaxFactoryLiteralSingle);
         }
 
         private static ExpressionSyntax GenerateLiteralExpression<T>(

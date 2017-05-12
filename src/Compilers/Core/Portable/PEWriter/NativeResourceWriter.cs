@@ -127,6 +127,8 @@ namespace Microsoft.Cci
             }
         }
 
+        private static readonly Comparison<IWin32Resource> s_compareResources = CompareResources;
+
         private static int CompareResources(IWin32Resource left, IWin32Resource right)
         {
             int result = CompareResourceIdentifiers(left.TypeId, left.TypeName, right.TypeId, right.TypeName);
@@ -163,7 +165,7 @@ namespace Microsoft.Cci
         //Where strings and ordinals are compared, strings are less than ordinals.
         internal static IEnumerable<IWin32Resource> SortResources(IEnumerable<IWin32Resource> resources)
         {
-            return resources.OrderBy(CompareResources);
+            return resources.OrderBy(s_compareResources);
         }
 
         public static void SerializeWin32Resources(BlobBuilder builder, IEnumerable<IWin32Resource> theResources, int resourcesRva)

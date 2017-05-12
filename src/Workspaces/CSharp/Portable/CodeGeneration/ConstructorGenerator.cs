@@ -15,6 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class ConstructorGenerator
     {
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_lastConstructorOrField = LastConstructorOrField;
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_firstMember = FirstMember;
+        private static readonly Func<SyntaxNode, ArgumentSyntax> s_argumentGeneratorGenerateArgument = ArgumentGenerator.GenerateArgument;
+
         private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
         {
             return LastConstructor(members) ?? LastField(members);
@@ -34,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
             var members = Insert(destination.Members, constructorDeclaration, options,
-                availableIndices, after: LastConstructorOrField, before: FirstMember);
+                availableIndices, after: s_lastConstructorOrField, before: s_firstMember);
 
             return AddMembersTo(destination, members);
         }
@@ -103,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static ArgumentListSyntax GenerateArgumentList(IList<SyntaxNode> arguments)
         {
-            return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(ArgumentGenerator.GenerateArgument)));
+            return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(arguments.Select(s_argumentGeneratorGenerateArgument)));
         }
 
         private static BlockSyntax GenerateBlock(

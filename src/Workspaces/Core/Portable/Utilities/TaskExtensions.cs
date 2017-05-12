@@ -295,7 +295,7 @@ namespace Roslyn.Utilities
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
 
-            nextTask.ContinueWith(ReportFatalError, continuationFunction,
+            nextTask.ContinueWith(s_reportFatalError, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
@@ -370,13 +370,17 @@ namespace Roslyn.Utilities
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
         }
 
+        private static readonly Action<Task, object> s_reportFatalError = ReportFatalError;
+
         internal static void ReportFatalError(Task task, object continuationFunction)
         {
-            task.ContinueWith(ReportFatalErrorWorker, continuationFunction,
+            task.ContinueWith(s_reportFatalErrorWorker, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
         }
+
+        private static readonly Action<Task, object> s_reportFatalErrorWorker = ReportFatalErrorWorker;
 
         [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
         private static void ReportFatalErrorWorker(Task task, object continuationFunction)

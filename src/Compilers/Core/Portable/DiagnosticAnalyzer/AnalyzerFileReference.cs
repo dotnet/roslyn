@@ -358,8 +358,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     throw new ArgumentException("language");
                 }
 
-                return ImmutableInterlocked.GetOrAdd(ref _lazyExtensionsPerLanguage, language, CreateLanguageSpecificExtensions, this);
+                return ImmutableInterlocked.GetOrAdd(ref _lazyExtensionsPerLanguage, language, s_createLanguageSpecificExtensions, this);
             }
+
+            private static readonly Func<string, Extensions<TExtension>, ImmutableArray<TExtension>> s_createLanguageSpecificExtensions = CreateLanguageSpecificExtensions;
 
             private static ImmutableArray<TExtension> CreateLanguageSpecificExtensions(string language, Extensions<TExtension> extensions)
             {

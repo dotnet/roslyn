@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Roslyn.Utilities;
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -39,6 +40,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return new AnalyzerOptions(additionalFiles);
         }
 
+        private static readonly Func<AdditionalText, AdditionalText, bool> s_referenceEquals = ReferenceEquals;
+
         public override bool Equals(object obj)
         {
             if (ReferenceEquals(this, obj))
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var other = obj as AnalyzerOptions;
             return other != null &&
                 (this.AdditionalFiles == other.AdditionalFiles ||
-                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, ReferenceEquals));
+                this.AdditionalFiles.SequenceEqual(other.AdditionalFiles, s_referenceEquals));
         }
 
         public override int GetHashCode()

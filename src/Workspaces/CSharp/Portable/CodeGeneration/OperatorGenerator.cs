@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class OperatorGenerator
     {
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_lastOperator = LastOperator;
+
         internal static TypeDeclarationSyntax AddOperatorTo(
             TypeDeclarationSyntax destination,
             IMethodSymbol method,
@@ -26,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 method, GetDestination(destination), workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
-            var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastOperator);
+            var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: s_lastOperator);
 
             return AddMembersTo(destination, members);
         }

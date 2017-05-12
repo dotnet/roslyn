@@ -17,6 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class MethodGenerator
     {
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_lastMethod = LastMethod;
+
         internal static NamespaceDeclarationSyntax AddMethodTo(
             NamespaceDeclarationSyntax destination,
             IMethodSymbol method,
@@ -27,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateMethodDeclaration(
                 method, CodeGenerationDestination.Namespace, workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
-            var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
+            var members = Insert(destination.Members, declaration, options, availableIndices, after: s_lastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
 
@@ -41,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var declaration = GenerateMethodDeclaration(
                 method, CodeGenerationDestination.CompilationUnit, workspace, options,
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
-            var members = Insert(destination.Members, declaration, options, availableIndices, after: LastMethod);
+            var members = Insert(destination.Members, declaration, options, availableIndices, after: s_lastMethod);
             return destination.WithMembers(members.ToSyntaxList());
         }
 
@@ -57,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             // Create a clone of the original type with the new method inserted. 
-            var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: LastMethod);
+            var members = Insert(destination.Members, methodDeclaration, options, availableIndices, after: s_lastMethod);
 
             return AddMembersTo(destination, members);
         }

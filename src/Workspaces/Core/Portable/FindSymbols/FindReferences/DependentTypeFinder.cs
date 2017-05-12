@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return FindTypesAsync(type, solution, projects,
                     metadataTypeMatches: metadataTypeMatches,
-                    sourceTypeImmediatelyMatches: ImmediatelyDerivesOrImplementsFrom,
+                    sourceTypeImmediatelyMatches: s_immediatelyDerivesOrImplementsFrom,
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
@@ -592,6 +592,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
+
+        private static readonly Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> s_immediatelyDerivesOrImplementsFrom = ImmediatelyDerivesOrImplementsFrom;
 
         private static bool ImmediatelyDerivesOrImplementsFrom(
             SymbolAndProjectIdSet typesToSearchFor, INamedTypeSymbol type)

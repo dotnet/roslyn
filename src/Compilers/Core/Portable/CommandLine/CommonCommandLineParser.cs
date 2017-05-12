@@ -628,6 +628,8 @@ namespace Microsoft.CodeAnalysis
             return CommandLineUtilities.SplitCommandLineIntoArguments(commandLine, removeHashComments);
         }
 
+        private static readonly Func<string, string> s_removeQuotesAndSlashes = RemoveQuotesAndSlashes;
+
         /// <summary>
         /// Remove the extraneous quotes and slashes from the argument.  This function is designed to have
         /// compat behavior with the native compiler.
@@ -746,7 +748,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static IEnumerable<string> ParseSeparatedPaths(string str)
         {
-            return ParseSeparatedStrings(str, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).Select(RemoveQuotesAndSlashes);
+            return ParseSeparatedStrings(str, s_pathSeparators, StringSplitOptions.RemoveEmptyEntries).Select(s_removeQuotesAndSlashes);
         }
 
         /// <summary>

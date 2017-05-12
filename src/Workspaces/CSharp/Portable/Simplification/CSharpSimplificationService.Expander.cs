@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         }
                     }
 
-                    expression = expression.ReplaceTokens(candidateTokens, computeReplacementToken: ReplaceTokenForCref);
+                    expression = expression.ReplaceTokens(candidateTokens, computeReplacementToken: s_replaceTokenForCref);
                 }
 
                 return expression;
@@ -1042,7 +1042,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return result;
             }
 
-            private SyntaxToken ReplaceTokenForCref(SyntaxToken oldToken, SyntaxToken dummySameToken)
+            private static readonly Func<SyntaxToken, SyntaxToken, SyntaxToken> s_replaceTokenForCref = ReplaceTokenForCref;
+
+            private static SyntaxToken ReplaceTokenForCref(SyntaxToken oldToken, SyntaxToken dummySameToken)
             {
                 if (oldToken.Kind() == SyntaxKind.LessThanToken)
                 {

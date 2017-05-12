@@ -18,6 +18,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
     {
         private readonly static int s_serializationVersion = 4;
 
+        private static readonly Func<XElement, SymbolSpecification> s_symbolSpecificationFromXElement = SymbolSpecification.FromXElement;
+        private static readonly Func<XElement, NamingStyle> s_namingStyleFromXElement = NamingStyle.FromXElement;
+        private static readonly Func<XElement, SerializableNamingRule> s_serializableNamingRuleFromXElement = SerializableNamingRule.FromXElement;
+
         public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
         public readonly ImmutableArray<NamingStyle> NamingStyles;
         public readonly ImmutableArray<SerializableNamingRule> NamingRules;
@@ -70,11 +74,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
 
             return new NamingStylePreferences(
                 element.Element(nameof(SymbolSpecifications)).Elements(nameof(SymbolSpecification))
-                       .Select(SymbolSpecification.FromXElement).ToImmutableArray(),
+                       .Select(s_symbolSpecificationFromXElement).ToImmutableArray(),
                 element.Element(nameof(NamingStyles)).Elements(nameof(NamingStyle))
-                       .Select(NamingStyle.FromXElement).ToImmutableArray(),
+                       .Select(s_namingStyleFromXElement).ToImmutableArray(),
                 element.Element(nameof(NamingRules)).Elements(nameof(SerializableNamingRule))
-                       .Select(SerializableNamingRule.FromXElement).ToImmutableArray());
+                       .Select(s_serializableNamingRuleFromXElement).ToImmutableArray());
         }
 
         public override bool Equals(object obj)

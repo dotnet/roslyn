@@ -773,7 +773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="quoteKind">The kind of the quote for the referenced item in the cref attribute.</param>
         public static XmlCrefAttributeSyntax XmlCrefAttribute(CrefSyntax cref, SyntaxKind quoteKind)
         {
-            cref = cref.ReplaceTokens(cref.DescendantTokens(), XmlReplaceBracketTokens);
+            cref = cref.ReplaceTokens(cref.DescendantTokens(), s_xmlReplaceBracketTokens);
             return XmlCrefAttribute(
                 XmlName(DocumentationCommentXmlNames.CrefAttributeName),
                 Token(quoteKind),
@@ -1190,6 +1190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new SyntaxToken(Syntax.InternalSyntax.SyntaxFactory.XmlTextLiteral(ElasticMarker.UnderlyingNode, text, value, ElasticMarker.UnderlyingNode));
         }
+
+        private static readonly Func<SyntaxToken, SyntaxToken, SyntaxToken> s_xmlReplaceBracketTokens = XmlReplaceBracketTokens;
 
         /// <summary>
         /// Helper method that replaces less-than and greater-than characters with brackets. 

@@ -20,6 +20,9 @@ namespace Microsoft.CodeAnalysis.Scripting
     /// </summary>
     public sealed class ScriptOptions
     {
+        private static readonly Func<string, MetadataReference> s_createUnresolvedReference = CreateUnresolvedReference;
+        private static readonly Func<Assembly, MetadataReference> s_createReferenceFromAssembly = CreateReferenceFromAssembly;
+
         public static ScriptOptions Default { get; } = new ScriptOptions(
             filePath: "",
             references: GetDefaultMetadataReferences(),
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                 "System.Threading.Thread",
             };
 
-            return ImmutableArray.CreateRange(files.Select(CreateUnresolvedReference));
+            return ImmutableArray.CreateRange(files.Select(s_createUnresolvedReference));
         }
 
         /// <summary>
@@ -198,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions WithReferences(IEnumerable<Assembly> references) =>
-            WithReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+            WithReferences(SelectChecked(references, nameof(references), s_createReferenceFromAssembly));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
@@ -214,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         /// <exception cref="NotSupportedException">Specified assembly is not supported (e.g. it's a dynamic assembly).</exception>
         public ScriptOptions AddReferences(IEnumerable<Assembly> references) =>
-            AddReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
+            AddReferences(SelectChecked(references, nameof(references), s_createReferenceFromAssembly));
 
         private static MetadataReference CreateReferenceFromAssembly(Assembly assembly)
         {
@@ -234,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         public ScriptOptions WithReferences(IEnumerable<string> references) =>
-            WithReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
+            WithReferences(SelectChecked(references, nameof(references), s_createUnresolvedReference));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the references changed.
@@ -248,7 +251,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="references"/> is null or contains a null reference.</exception>
         public ScriptOptions AddReferences(IEnumerable<string> references) =>
-            AddReferences(SelectChecked(references, nameof(references), CreateUnresolvedReference));
+            AddReferences(SelectChecked(references, nameof(references), s_createUnresolvedReference));
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.

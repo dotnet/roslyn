@@ -1228,6 +1228,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private static readonly SwitchStringJumpTableEmitter.GetStringHashCode s_computeStringHash = SynthesizedStringSwitchHashMethod.ComputeStringHash;
+
         private void EmitStringSwitchJumpTable(
             BoundSwitchStatement switchStatement,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
@@ -1318,7 +1320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 key: key,
                 keyHash: keyHash,
                 emitStringCondBranchDelegate: emitStringCondBranchDelegate,
-                computeStringHashcodeDelegate: SynthesizedStringSwitchHashMethod.ComputeStringHash);
+                computeStringHashcodeDelegate: s_computeStringHash);
 
             if (keyHash != null)
             {

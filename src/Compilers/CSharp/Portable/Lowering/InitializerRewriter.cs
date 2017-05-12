@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sourceMethod = method as SourceMethodSymbol;
             var syntax = ((object)sourceMethod != null) ? sourceMethod.SyntaxNode : method.GetNonNullSyntaxNode();
-            return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(RewriteInitializersAsStatements));
+            return new BoundTypeOrInstanceInitializers(syntax, boundInitializers.SelectAsArray(s_rewriteInitializersAsStatements));
         }
 
         internal static BoundTypeOrInstanceInitializers RewriteScriptInitializer(ImmutableArray<BoundInitializer> boundInitializers, SynthesizedInteractiveInitializerMethod method, out bool hasTrailingExpression)
@@ -102,6 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement)); 
             return boundStatement;
         }
+
+        private static readonly Func<BoundInitializer, BoundStatement> s_rewriteInitializersAsStatements = RewriteInitializersAsStatements;
 
         private static BoundStatement RewriteInitializersAsStatements(BoundInitializer initializer)
         {

@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var assembly = metadata.GetAssembly();
 
-                var peReferences = assembly.AssemblyReferences.SelectAsArray(MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
+                var peReferences = assembly.AssemblyReferences.SelectAsArray(s_mapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
 
                 assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences);
 
@@ -275,10 +275,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return assemblySymbol;
             }
 
+            private static readonly Func<AssemblyIdentity, AssemblyIdentityMap<AssemblySymbol>, AssemblySymbol> s_mapAssemblyIdentityToResolvedSymbol = MapAssemblyIdentityToResolvedSymbol;
+
             private static AssemblySymbol MapAssemblyIdentityToResolvedSymbol(AssemblyIdentity identity, AssemblyIdentityMap<AssemblySymbol> map)
             {
                 AssemblySymbol symbol;
-                if (map.TryGetValue(identity, out symbol, CompareVersionPartsSpecifiedInSource))
+                if (map.TryGetValue(identity, out symbol, s_compareVersionPartsSpecifiedInSource))
                 {
                     return symbol;
                 }

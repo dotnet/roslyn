@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis
 {
     public static class FileSystemExtensions
     {
+        private static readonly Func<string, Stream> s_fileCreate = File.Create;
+        private static readonly Func<string, Stream> s_fileOpenRead = File.OpenRead;
+
         /// <summary>
         /// Emit the IL for the compilation into the specified stream.
         /// </summary>
@@ -41,10 +44,10 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(compilation));
             }
 
-            using (var outputStream = FileUtilities.CreateFileStreamChecked(File.Create, outputPath, nameof(outputPath)))
-            using (var pdbStream = (pdbPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbPath, nameof(pdbPath))))
-            using (var xmlDocStream = (xmlDocPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, xmlDocPath, nameof(xmlDocPath))))
-            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : FileUtilities.CreateFileStreamChecked(File.OpenRead, win32ResourcesPath, nameof(win32ResourcesPath))))
+            using (var outputStream = FileUtilities.CreateFileStreamChecked(s_fileCreate, outputPath, nameof(outputPath)))
+            using (var pdbStream = (pdbPath == null ? null : FileUtilities.CreateFileStreamChecked(s_fileCreate, pdbPath, nameof(pdbPath))))
+            using (var xmlDocStream = (xmlDocPath == null ? null : FileUtilities.CreateFileStreamChecked(s_fileCreate, xmlDocPath, nameof(xmlDocPath))))
+            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : FileUtilities.CreateFileStreamChecked(s_fileOpenRead, win32ResourcesPath, nameof(win32ResourcesPath))))
             {
                 return compilation.Emit(
                     outputStream,

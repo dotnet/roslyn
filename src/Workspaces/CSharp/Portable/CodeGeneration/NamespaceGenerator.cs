@@ -130,12 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var usingDirectives =
                 CodeGenerationNamespaceInfo.GetImports(innermostNamespace)
-                                           .Select(GenerateUsingDirective)
+                                           .Select(s_generateUsingDirective)
                                            .WhereNotNull()
                                            .ToList();
 
             return usingDirectives.ToSyntaxList();
         }
+
+        private static readonly Func<ISymbol, UsingDirectiveSyntax> s_generateUsingDirective = GenerateUsingDirective;
 
         private static UsingDirectiveSyntax GenerateUsingDirective(ISymbol symbol)
         {

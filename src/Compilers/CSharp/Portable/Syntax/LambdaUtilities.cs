@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -328,6 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private static readonly Func<SyntaxToken, SyntaxToken, bool> s_syntaxFactoryAreEquivalent = SyntaxFactory.AreEquivalent;
+
         /// <summary>
         /// Compares content of two nodes ignoring lambda bodies and trivia.
         /// </summary>
@@ -337,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldTokens = oldNode.DescendantTokens(node => node == oldNode || !IsLambdaBodyStatementOrExpression(node));
             var newTokens = newNode.DescendantTokens(node => node == newNode || !IsLambdaBodyStatementOrExpression(node));
 
-            return oldTokens.SequenceEqual(newTokens, SyntaxFactory.AreEquivalent);
+            return oldTokens.SequenceEqual(newTokens, s_syntaxFactoryAreEquivalent);
         }
 
         /// <summary>

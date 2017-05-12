@@ -104,11 +104,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var syntax = (SkippedTokensTriviaSyntax)skippedTokensTrivia.GetStructure();
             var tokens = syntax.Tokens;
 
-            var updatedTokens = SyntaxFactory.TokenList(tokens.Select(ReplaceUnterminatedConstruct));
+            var updatedTokens = SyntaxFactory.TokenList(tokens.Select(s_replaceUnterminatedConstruct));
             var updatedSyntax = syntax.WithTokens(updatedTokens);
 
             return SyntaxFactory.Trivia(updatedSyntax);
         }
+
+        private static readonly Func<SyntaxToken, SyntaxToken> s_replaceUnterminatedConstruct = ReplaceUnterminatedConstruct;
 
         private static SyntaxToken ReplaceUnterminatedConstruct(SyntaxToken token)
         {

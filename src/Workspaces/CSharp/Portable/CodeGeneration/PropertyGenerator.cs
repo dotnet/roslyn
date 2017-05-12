@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -17,6 +18,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class PropertyGenerator
     {
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_lastPropertyOrField = LastPropertyOrField;
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_firstMember = FirstMember;
+
         public static bool CanBeGenerated(IPropertySymbol property)
         {
             return property.IsIndexer || property.Parameters.Length == 0;
@@ -41,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 destination?.SyntaxTree.Options ?? options.ParseOptions);
 
             var members = Insert(destination.Members, declaration, options,
-                availableIndices, after: LastPropertyOrField, before: FirstMember);
+                availableIndices, after: s_lastPropertyOrField, before: s_firstMember);
             return destination.WithMembers(members);
         }
 
@@ -57,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             // Create a clone of the original type with the new method inserted. 
             var members = Insert(destination.Members, declaration, options,
-                availableIndices, after: LastPropertyOrField, before: FirstMember);
+                availableIndices, after: s_lastPropertyOrField, before: s_firstMember);
 
             // Find the best place to put the field.  It should go after the last field if we already
             // have fields, or at the beginning of the file if we don't.

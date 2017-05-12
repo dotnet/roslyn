@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
@@ -13,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class FieldGenerator
     {
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_firstMember = FirstMember;
+
         private static MemberDeclarationSyntax LastField(
             SyntaxList<MemberDeclarationSyntax> members,
             FieldDeclarationSyntax fieldDeclaration)
@@ -42,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Place the field after the last field or const, or at the start of the type
             // declaration.
             var members = Insert(destination.Members, declaration, options, availableIndices,
-                after: m => LastField(m, declaration), before: FirstMember);
+                after: m => LastField(m, declaration), before: s_firstMember);
             return destination.WithMembers(members.ToSyntaxList());
         }
 
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Place the field after the last field or const, or at the start of the type
             // declaration.
             var members = Insert(destination.Members, declaration, options, availableIndices,
-                after: m => LastField(m, declaration), before: FirstMember);
+                after: m => LastField(m, declaration), before: s_firstMember);
 
             return AddMembersTo(destination, members);
         }

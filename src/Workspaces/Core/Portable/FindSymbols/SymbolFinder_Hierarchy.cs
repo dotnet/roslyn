@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var implementingTypes = await DependentTypeFinder.FindTransitivelyImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Select(s => (SymbolAndProjectId)s)
-                                        .Where(IsAccessible)
+                                        .Where(s_isAccessible)
                                         .ToImmutableArray();
             }
             else if (symbol.IsImplementableMember())
@@ -255,6 +255,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return ImmutableArray<SymbolAndProjectId>.Empty;
         }
+
+        private static readonly Func<SymbolAndProjectId, bool> s_isAccessible = IsAccessible;
 
         private static bool IsAccessible(SymbolAndProjectId symbolAndProjectId)
         {

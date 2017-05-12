@@ -160,8 +160,10 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool DeclaresTheObjectClass(this MetadataReader reader)
         {
-            return reader.DeclaresType(IsTheObjectClass);
+            return reader.DeclaresType(s_isTheObjectClass);
         }
+
+        private static readonly Func<MetadataReader, TypeDefinition, bool> s_isTheObjectClass = IsTheObjectClass;
 
         private static bool IsTheObjectClass(this MetadataReader reader, TypeDefinition typeDef)
         {

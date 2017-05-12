@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             // Sort the switch case labels, see comments below for more details.
             Debug.Assert(caseLabels.Length > 0);
-            Array.Sort(caseLabels, CompareIntegralSwitchLabels);
+            Array.Sort(caseLabels, s_compareIntegralSwitchLabels);
             _sortedCaseLabels = ImmutableArray.Create(caseLabels);
         }
 
@@ -133,6 +133,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         }
 
         #region "Sorting switch labels"
+
+        private static readonly Comparison<KeyValuePair<ConstantValue, object>> s_compareIntegralSwitchLabels
+            = CompareIntegralSwitchLabels;
 
         private static int CompareIntegralSwitchLabels(KeyValuePair<ConstantValue, object> first, KeyValuePair<ConstantValue, object> second)
         {

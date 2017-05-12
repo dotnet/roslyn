@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static int CompareTo(this INamespaceSymbol n1, INamespaceSymbol n2)
         {
-            var names1 = s_namespaceToNameMap.GetValue(n1, GetNameParts);
-            var names2 = s_namespaceToNameMap.GetValue(n2, GetNameParts);
+            var names1 = s_namespaceToNameMap.GetValue(n1, s_getNameParts);
+            var names2 = s_namespaceToNameMap.GetValue(n2, s_getNameParts);
 
             for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
             {

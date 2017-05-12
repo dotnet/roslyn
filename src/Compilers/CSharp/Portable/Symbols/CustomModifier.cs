@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -49,8 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ImmutableArray<CustomModifier>.Empty;
             }
-            return customModifiers.SelectAsArray(Convert);
+            return customModifiers.SelectAsArray(s_convert);
         }
+
+        private static readonly Func<ModifierInfo<TypeSymbol>, CustomModifier> s_convert = Convert;
 
         private static CustomModifier Convert(ModifierInfo<TypeSymbol> customModifier)
         {

@@ -530,6 +530,8 @@ namespace Microsoft.CodeAnalysis
             return lazyBuilder?.ToImmutable() ?? ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Empty;
         }
 
+        internal static readonly Func<Version, Version, TAssemblySymbol, bool> s_compareVersionPartsSpecifiedInSource = CompareVersionPartsSpecifiedInSource;
+
         internal static bool CompareVersionPartsSpecifiedInSource(Version version, Version candidateVersion, TAssemblySymbol candidateSymbol)
         {
             // major and minor parts must match exactly

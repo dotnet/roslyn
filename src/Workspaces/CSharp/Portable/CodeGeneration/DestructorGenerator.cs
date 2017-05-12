@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -12,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 {
     internal static class DestructorGenerator
     {
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_firstMember = FirstMember;
+        private static readonly Func<SyntaxList<MemberDeclarationSyntax>, MemberDeclarationSyntax> s_lastConstructorOrField = LastConstructorOrField;
+
         private static MemberDeclarationSyntax LastConstructorOrField(SyntaxList<MemberDeclarationSyntax> members)
         {
             return LastConstructor(members) ?? LastField(members);
@@ -28,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Generate after the last constructor, or after the last field, or at the start of the
             // type.
             var members = Insert(destination.Members, destructorDeclaration, options,
-                availableIndices, after: LastConstructorOrField, before: FirstMember);
+                availableIndices, after: s_lastConstructorOrField, before: s_firstMember);
 
             return AddMembersTo(destination, members);
         }

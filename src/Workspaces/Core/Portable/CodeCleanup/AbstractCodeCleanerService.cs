@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         currentDocument = originalDocument;
                     }
 
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, s_getCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
                         currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, cancellationToken).ConfigureAwait(false);
                     }
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
                         currentRoot = originalRoot;
                     }
 
-                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
+                    using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, s_getCodeCleanerTypeName, codeCleaner, cancellationToken))
                     {
                         currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, workspace, cancellationToken).ConfigureAwait(false);
                     }
@@ -585,10 +585,8 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
             }
         }
 
-        private string GetCodeCleanerTypeName(ICodeCleanupProvider codeCleaner)
-        {
-            return codeCleaner.ToString();
-        }
+        private static readonly Func<ICodeCleanupProvider, string> s_getCodeCleanerTypeName =
+            codeCleaner => codeCleaner.ToString();
 
         private SyntaxNode InjectAnnotations(SyntaxNode node, Dictionary<SyntaxToken, List<SyntaxAnnotation>> map)
         {

@@ -277,6 +277,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
+        private static readonly Func<AttributeData, bool> s_isInternalsVisibleToAttribute = IsInternalsVisibleToAttribute;
+
         private static bool IsInternalsVisibleToAttribute(AttributeData attr)
         {
             var attrType = attr.AttributeClass;
@@ -351,7 +353,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var internalsVisibleToMap = new Lazy<HashSet<string>>(() =>
             {
                 var map = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                foreach (var attr in assembly.GetAttributes().Where(IsInternalsVisibleToAttribute))
+                foreach (var attr in assembly.GetAttributes().Where(s_isInternalsVisibleToAttribute))
                 {
                     var typeNameConstant = attr.ConstructorArguments.FirstOrDefault();
                     if (typeNameConstant.Type == null || typeNameConstant.Type.SpecialType != SpecialType.System_String)

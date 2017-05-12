@@ -931,8 +931,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                                                    name: WellKnownMemberNames.GetAwaiter,
                                                                    includeReducedExtensionMethods: true);
             var getAwaiters = potentialGetAwaiters.OfType<IMethodSymbol>().Where(x => !x.Parameters.Any());
-            return getAwaiters.Any(VerifyGetAwaiter);
+            return getAwaiters.Any(s_verifyGetAwaiter);
         }
+
+        private static readonly Func<IMethodSymbol, bool> s_verifyGetAwaiter = VerifyGetAwaiter;
 
         private static bool VerifyGetAwaiter(IMethodSymbol getAwaiter)
         {

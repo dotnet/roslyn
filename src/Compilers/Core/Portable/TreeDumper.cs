@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis
                 (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, Array.Empty<object>());
         }
 
+        private static readonly Func<object, string> s_dumperString = DumperString;
+
         private static string DumperString(object o)
         {
             if (o == null)
@@ -183,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             var seq = o as IEnumerable;
             if (seq != null)
             {
-                return string.Format("{{{0}}}", string.Join(", ", seq.Cast<object>().Select(DumperString).ToArray()));
+                return string.Format("{{{0}}}", string.Join(", ", seq.Cast<object>().Select(s_dumperString).ToArray()));
             }
 
             var symbol = o as ISymbol;

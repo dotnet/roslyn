@@ -31,16 +31,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var semanticModel = _compilation.GetSemanticModel(context.Tree);
                 var diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(diagnostics, context.ReportDiagnostic, IsSourceLocation, s_syntactic);
+                ReportDiagnostics(diagnostics, context.ReportDiagnostic, s_isSourceLocation, s_syntactic);
             }
 
             public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
             {
                 var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, IsSourceLocation, s_declaration);
+                ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, s_isSourceLocation, s_declaration);
 
                 var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, IsSourceLocation);
+                ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, s_isSourceLocation);
             }
 
             public static void AnalyzeCompilation(CompilationAnalysisContext context)
@@ -48,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var diagnostics = context.Compilation.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, location => !IsSourceLocation(location), s_declaration);
             }
+
+            private static readonly Func<Location, bool> s_isSourceLocation = IsSourceLocation;
 
             private static bool IsSourceLocation(Location location)
             {

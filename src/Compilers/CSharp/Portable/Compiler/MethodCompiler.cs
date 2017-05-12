@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (emittingPdb || emitTestCoverageData)
             {
-                _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
+                _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, s_createDebugDocumentForFile);
             }
 
             _emitTestCoverageData = emitTestCoverageData;
@@ -1910,6 +1910,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return false;
         }
+
+        private static readonly Func<string, Cci.DebugSourceDocument> s_createDebugDocumentForFile = CreateDebugDocumentForFile;
 
         private static Cci.DebugSourceDocument CreateDebugDocumentForFile(string normalizedPath)
         {

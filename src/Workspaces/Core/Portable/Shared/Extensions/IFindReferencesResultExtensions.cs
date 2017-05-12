@@ -23,8 +23,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IEnumerable<ReferencedSymbol> FilterToItemsToShow(
             this IEnumerable<ReferencedSymbol> result)
         {
-            return result.Where(ShouldShow);
+            return result.Where(s_shouldShow);
         }
+
+        private static readonly Func<ReferencedSymbol, bool> s_shouldShow = ShouldShow;
 
         public static bool ShouldShow(this ReferencedSymbol referencedSymbol)
         {

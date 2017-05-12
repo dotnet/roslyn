@@ -6,7 +6,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 {
     public class Program
     {
+        private static readonly CompileFunc s_cscRun = Csc.Run;
+
         public static int Main(string[] args)
-            => CoreClrBuildClient.Run(args, RequestLanguage.CSharpCompile, Csc.Run);
+            => CoreClrBuildClient.Run(args, RequestLanguage.CSharpCompile, s_cscRun);
     }
 }

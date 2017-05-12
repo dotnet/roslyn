@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis
         public DocumentationCommentIncludeCache(XmlReferenceResolver resolver)
             : base(Size,
                    key => MakeValue(resolver, key),
-                   KeyHashCode,
-                   KeyValueEquality)
+                   s_keyHashCode,
+                   s_keyValueEquality)
         {
             CacheMissCount = 0;
         }
@@ -62,10 +62,14 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             }
         }
 
+        private static readonly Func<string, int> s_keyHashCode = KeyHashCode;
+
         private static int KeyHashCode(string resolvedPath)
         {
             return resolvedPath.GetHashCode();
         }
+
+        private static readonly Func<string, KeyValuePair<string, XDocument>, bool> s_keyValueEquality = KeyValueEquality;
 
         private static bool KeyValueEquality(string resolvedPath, KeyValuePair<string, XDocument> pathAndDocument)
         {

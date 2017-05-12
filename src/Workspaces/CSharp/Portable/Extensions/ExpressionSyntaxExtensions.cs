@@ -416,6 +416,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression.SyntaxTree.IsNameOfContext(expression.SpanStart);
         }
 
+        private static readonly Func<ISymbol, bool> s_canReplace = CanReplace;
+
         private static bool CanReplace(ISymbol symbol)
         {
             switch (symbol.Kind)
@@ -478,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 !expression.IsLeftSideOfAssignExpression())
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-                if (!symbolInfo.GetBestOrAllSymbols().All(CanReplace))
+                if (!symbolInfo.GetBestOrAllSymbols().All(s_canReplace))
                 {
                     // If the expression is actually a reference to a type, then it can't be replaced
                     // with an arbitrary expression.

@@ -11,6 +11,11 @@ namespace CSharpSyntaxGenerator
 {
     internal static class Program
     {
+        private static readonly Action<TextWriter, Tree> s_sourceWriterWriteMain = SourceWriter.WriteMain;
+        private static readonly Action<TextWriter, Tree> s_sourceWriterWriteInternal = SourceWriter.WriteInternal;
+        private static readonly Action<TextWriter, Tree> s_sourceWriterWriteSyntax = SourceWriter.WriteSyntax;
+        private static readonly Action<TextWriter, Tree> s_testWriterWrite = TestWriter.Write;
+
         public static int Main(string[] args)
         {
             if (args.Length < 2 || args.Length > 3)
@@ -77,13 +82,13 @@ namespace CSharpSyntaxGenerator
                     var outputInternalFile = Path.Combine(outputPath, $"{prefix}.Internal.Generated.cs");
                     var outputSyntaxFile = Path.Combine(outputPath, $"{prefix}.Syntax.Generated.cs");
 
-                    WriteToFile(tree, SourceWriter.WriteMain, outputMainFile);
-                    WriteToFile(tree, SourceWriter.WriteInternal, outputInternalFile);
-                    WriteToFile(tree, SourceWriter.WriteSyntax, outputSyntaxFile);
+                    WriteToFile(tree, s_sourceWriterWriteMain, outputMainFile);
+                    WriteToFile(tree, s_sourceWriterWriteInternal, outputInternalFile);
+                    WriteToFile(tree, s_sourceWriterWriteSyntax, outputSyntaxFile);
                 }
                 if (writeTests)
                 {
-                    WriteToFile(tree, TestWriter.Write, outputFile);
+                    WriteToFile(tree, s_testWriterWrite, outputFile);
                 }
             }
 

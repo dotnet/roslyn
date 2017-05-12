@@ -83,10 +83,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return null;
         }
 
+        private static readonly Func<INamedTypeSymbol, ISymbol, bool> s_implementationExists = ImplementationExists;
+
         private static bool ImplementationExists(INamedTypeSymbol classOrStructType, ISymbol member)
         {
             return classOrStructType.FindImplementationForInterfaceMember(member) != null;
         }
+
+        private static readonly Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>, CancellationToken, bool> s_isImplemented = IsImplemented;
 
         private static bool IsImplemented(
             this INamedTypeSymbol classOrStructType,
@@ -165,6 +169,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return true;
         }
 
+        private static readonly Func<INamedTypeSymbol, ISymbol, Func<INamedTypeSymbol, ISymbol, bool>, CancellationToken, bool> s_isExplicitlyImplemented = IsExplicitlyImplemented;
+
         private static bool IsExplicitlyImplemented(
             this INamedTypeSymbol classOrStructType,
             ISymbol member,
@@ -188,9 +194,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return classOrStructType.GetAllUnimplementedMembers(
                 interfacesOrAbstractClasses,
-                IsImplemented,
-                ImplementationExists,
-                GetMembers,
+                s_isImplemented,
+                s_implementationExists,
+                s_getMembers,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
         }
@@ -202,13 +208,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return classOrStructType.GetAllUnimplementedMembers(
                 interfacesOrAbstractClasses,
-                IsImplemented,
+                s_isImplemented,
                 (t, m) =>
                 {
                     var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
                     return implementation != null && implementation.ContainingType == classOrStructType;
                 },
-                GetMembers,
+                s_getMembers,
                 allowReimplementation: true,
                 cancellationToken: cancellationToken);
         }
@@ -221,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return classOrStructType.GetAllUnimplementedMembers(
                 interfacesOrAbstractClasses,
-                IsImplemented,
+                s_isImplemented,
                 (t, m) =>
                 {
                     var implementation = classOrStructType.FindImplementationForInterfaceMember(m);
@@ -239,9 +245,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return classOrStructType.GetAllUnimplementedMembers(
                 interfaces,
-                IsExplicitlyImplemented,
-                ImplementationExists,
-                GetMembers,
+                s_isExplicitlyImplemented,
+                s_implementationExists,
+                s_getMembers,
                 allowReimplementation: false,
                 cancellationToken: cancellationToken);
         }
@@ -410,6 +416,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return null;
         }
+
+        private static readonly Func<INamedTypeSymbol, ISymbol, ImmutableArray<ISymbol>> s_getMembers = GetMembers;
 
         private static ImmutableArray<ISymbol> GetMembers(INamedTypeSymbol type, ISymbol within)
         {

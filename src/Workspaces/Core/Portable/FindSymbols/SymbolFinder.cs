@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
                 else
                 {
-                    return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(InSource), project.Id);
+                    return SymbolAndProjectId.Create(result.CandidateSymbols.FirstOrDefault(s_inSource), project.Id);
                 }
             }
             else
@@ -174,6 +174,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return default(SymbolAndProjectId);
             }
         }
+
+        private static readonly Func<ISymbol, bool> s_inSource = InSource;
 
         private static bool InSource(ISymbol symbol)
         {

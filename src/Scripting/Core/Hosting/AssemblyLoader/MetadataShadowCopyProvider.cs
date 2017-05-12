@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     /// </summary>
     public sealed class MetadataShadowCopyProvider : IDisposable
     {
+        private static readonly Func<string, string> s_fileUtilitiesNormalizeDirectoryPath = FileUtilities.NormalizeDirectoryPath;
+
         private readonly CultureInfo _documentationCommentsCulture;
 
         // normalized absolute path
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             {
                 try
                 {
-                    _noShadowCopyDirectories = ImmutableArray.CreateRange(noShadowCopyDirectories.Select(FileUtilities.NormalizeDirectoryPath));
+                    _noShadowCopyDirectories = ImmutableArray.CreateRange(noShadowCopyDirectories.Select(s_fileUtilitiesNormalizeDirectoryPath));
                 }
                 catch (Exception e)
                 {

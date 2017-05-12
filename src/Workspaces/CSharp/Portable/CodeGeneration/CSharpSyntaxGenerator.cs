@@ -58,11 +58,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private SyntaxList<MemberDeclarationSyntax> AsNamespaceMembers(IEnumerable<SyntaxNode> declarations)
         {
             return (declarations != null)
-                ? SyntaxFactory.List(declarations.Select(AsNamespaceMember).OfType<MemberDeclarationSyntax>())
+                ? SyntaxFactory.List(declarations.Select(s_asNamespaceMember).OfType<MemberDeclarationSyntax>())
                 : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
-        private SyntaxNode AsNamespaceMember(SyntaxNode declaration)
+        private static readonly Func<SyntaxNode, SyntaxNode> s_asNamespaceMember = AsNamespaceMember;
+
+        private static SyntaxNode AsNamespaceMember(SyntaxNode declaration)
         {
             switch (declaration.Kind())
             {
@@ -242,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, modifiers, SyntaxKind.ConstructorDeclaration),
                 (name ?? "ctor").ToIdentifierToken(),
                 AsParameterList(parameters),
-                baseConstructorArguments != null ? SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(baseConstructorArguments.Select(AsArgument)))) : null,
+                baseConstructorArguments != null ? SyntaxFactory.ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(baseConstructorArguments.Select(s_asArgument)))) : null,
                 CreateBlock(statements));
         }
 
@@ -586,10 +588,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private AccessorListSyntax WithoutBodies(AccessorListSyntax accessorList)
         {
-            return accessorList.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(WithoutBody)));
+            return accessorList.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(s_withoutBody)));
         }
 
-        private AccessorDeclarationSyntax WithoutBody(AccessorDeclarationSyntax accessor)
+        private static readonly Func<AccessorDeclarationSyntax, AccessorDeclarationSyntax> s_withoutBody = WithoutBody;
+
+        private static AccessorDeclarationSyntax WithoutBody(AccessorDeclarationSyntax accessor)
         {
             return (accessor.Body != null) ? accessor.WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken)).WithBody(null) : accessor;
         }
@@ -847,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (arguments != null)
             {
-                return SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(arguments.Select(AsAttributeArgument)));
+                return SyntaxFactory.AttributeArgumentList(SyntaxFactory.SeparatedList(arguments.Select(s_asAttributeArgument)));
             }
             else
             {
@@ -855,7 +859,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private AttributeArgumentSyntax AsAttributeArgument(SyntaxNode node)
+        private static readonly Func<SyntaxNode, AttributeArgumentSyntax> s_asAttributeArgument = AsAttributeArgument;
+
+        private static AttributeArgumentSyntax AsAttributeArgument(SyntaxNode node)
         {
             var expr = node as ExpressionSyntax;
             if (expr != null)
@@ -889,7 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (attributes != null)
             {
-                return SyntaxFactory.List(attributes.Select(AsAttributeList));
+                return SyntaxFactory.List(attributes.Select(s_asAttributeList));
             }
             else
             {
@@ -897,7 +903,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private AttributeListSyntax AsAttributeList(SyntaxNode node)
+        private static readonly Func<SyntaxNode, AttributeListSyntax> s_asAttributeList = AsAttributeList;
+
+        private static AttributeListSyntax AsAttributeList(SyntaxNode node)
         {
             var attr = node as AttributeSyntax;
             if (attr != null)
@@ -1402,10 +1410,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return this.AsEnumMember(member);
                 case SyntaxKind.NamespaceDeclaration:
                     var nd = ((NamespaceDeclarationSyntax)declaration);
-                    return this.AsNamespaceMember(member);
+                    return AsNamespaceMember(member);
                 case SyntaxKind.CompilationUnit:
                     var cu = ((CompilationUnitSyntax)declaration);
-                    return this.AsNamespaceMember(member);
+                    return AsNamespaceMember(member);
                 default:
                     return null;
             }
@@ -2489,7 +2497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case DeclarationKind.Attribute:
-                    return this.AsAttributeList(newNode);
+                    return AsAttributeList(newNode);
             }
 
             return newNode;
@@ -3534,11 +3542,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return SyntaxFactory.List(nodes.Select(AsStatement));
+                return SyntaxFactory.List(nodes.Select(s_asStatement));
             }
         }
 
-        private StatementSyntax AsStatement(SyntaxNode node)
+        private static readonly Func<SyntaxNode, StatementSyntax> s_asStatement = AsStatement;
+
+        private static StatementSyntax AsStatement(SyntaxNode node)
         {
             var expression = node as ExpressionSyntax;
             if (expression != null)
@@ -3619,10 +3629,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SeparatedSyntaxList<ArgumentSyntax> CreateArguments(IEnumerable<SyntaxNode> arguments)
         {
-            return SyntaxFactory.SeparatedList(arguments.Select(AsArgument).Cast<ArgumentSyntax>());
+            return SyntaxFactory.SeparatedList(arguments.Select(s_asArgument).Cast<ArgumentSyntax>());
         }
 
-        private ArgumentSyntax AsArgument(SyntaxNode argOrExpression)
+        private static readonly Func<SyntaxNode, ArgumentSyntax> s_asArgument = AsArgument;
+
+        private static ArgumentSyntax AsArgument(SyntaxNode argOrExpression)
         {
             var arg = argOrExpression as ArgumentSyntax;
             if (arg != null)

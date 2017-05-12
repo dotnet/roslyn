@@ -428,6 +428,8 @@ namespace Microsoft.CodeAnalysis
             return hasErrors;
         }
 
+        private static readonly Func<Diagnostic, bool> s_isReportedError = IsReportedError;
+
         /// <summary>
         /// Returns true if the diagnostic is an error that should be reported.
         /// </summary>
@@ -733,7 +735,7 @@ namespace Microsoft.CodeAnalysis
                                 // TryComplete, we may miss diagnostics.
                                 var hostDiagnostics = analyzerDriver.GetDiagnosticsAsync(compilation).Result;
                                 diagnosticBag.AddRange(hostDiagnostics);
-                                if (hostDiagnostics.Any(IsReportedError))
+                                if (hostDiagnostics.Any(s_isReportedError))
                                 {
                                     success = false;
                                 }
