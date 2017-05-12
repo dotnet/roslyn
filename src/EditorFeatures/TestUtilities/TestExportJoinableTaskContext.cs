@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     internal class TestExportJoinableTaskContext
     {
         [Export]
-        private JoinableTaskContext _joinableTaskContext = new JoinableTaskContext();
+        private static JoinableTaskContext _joinableTaskContext = new JoinableTaskContext();
     }
 }
