@@ -1725,7 +1725,7 @@ public class Test : IDisposable
   {
    -IL_0007:  nop
    -IL_0008:  nop
-   ~IL_0009:  leave.s    IL_0016
+    IL_0009:  leave.s    IL_0016
   }
   finally
   {
@@ -1734,7 +1734,7 @@ public class Test : IDisposable
     IL_000e:  ldloc.0
     IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0014:  nop
-    IL_0015:  endfinally
+   ~IL_0015:  endfinally
   }
  -IL_0016:  ret
 }", sequencePoints: "Test.Main");

@@ -349,11 +349,12 @@ public class C
         <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" />
         <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
         <entry offset=""0x16"" hidden=""true"" />
+        <entry offset=""0x20"" hidden=""true"" />
         <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
         <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" />
         <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
-        <entry offset=""0x29"" hidden=""true"" />
         <entry offset=""0x2b"" hidden=""true"" />
+        <entry offset=""0x35"" hidden=""true"" />
         <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
     </method>
@@ -371,9 +372,11 @@ public class C
         <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" />
         <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" />
         <entry offset=""0x12"" hidden=""true"" />
+        <entry offset=""0x1b"" hidden=""true"" />
         <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" />
-        <entry offset=""0x22"" hidden=""true"" />
+        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" />
         <entry offset=""0x24"" hidden=""true"" />
+        <entry offset=""0x2d"" hidden=""true"" />
         <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
     </method>
@@ -560,7 +563,7 @@ public class C
       IL_002b:  ldloc.2
       IL_002c:  call       ""void System.Threading.Monitor.Exit(object)""
       IL_0031:  nop
-      IL_0032:  endfinally
+     ~IL_0032:  endfinally
     }
    -IL_0033:  nop
     IL_0034:  leave.s    IL_0041
@@ -572,7 +575,7 @@ public class C
     IL_0039:  ldloc.0
     IL_003a:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_003f:  nop
-    IL_0040:  endfinally
+   ~IL_0040:  endfinally
   }
  -IL_0041:  ret
 }
@@ -1779,7 +1782,7 @@ class C
   {
    -IL_0008:  nop
    -IL_0009:  nop
-   ~IL_000a:  leave.s    IL_0019
+    IL_000a:  leave.s    IL_0019
   }
   finally
   {
@@ -1788,7 +1791,7 @@ class C
     IL_0010:  ldloc.s    V_6
     IL_0012:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0017:  nop
-    IL_0018:  endfinally
+   ~IL_0018:  endfinally
   }
  -IL_0019:  call       ""object C.F1()""
   IL_001e:  stloc.0
@@ -1811,7 +1814,7 @@ class C
     IL_0031:  ldloc.0
     IL_0032:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_0037:  nop
-    IL_0038:  endfinally
+   ~IL_0038:  endfinally
   }
  -IL_0039:  nop
  -IL_003a:  call       ""string C.F2()""

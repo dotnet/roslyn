@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             lockSyntax,
                             BoundBlock.SynthesizedNoLocals(lockSyntax, ImmutableArray.Create(
                                 enterCall,
-                                rewrittenBody,
-                                new BoundSequencePoint(null, null))),
+                                rewrittenBody)),
                             ImmutableArray<BoundCatchBlock>.Empty,
                             BoundBlock.SynthesizedNoLocals(lockSyntax,
                                 exitCall))));
