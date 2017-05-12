@@ -20470,7 +20470,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -20479,7 +20479,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                    Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }
@@ -20510,7 +20510,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -20519,7 +20519,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                    Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }

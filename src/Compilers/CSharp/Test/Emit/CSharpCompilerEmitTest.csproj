@@ -57,6 +57,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <Compile Include="..\..\..\Core\MSBuildTask\MvidReader.cs">
+      <Link>Emit\MvidReader.cs</Link>
+    </Compile>
     <Compile Include="Attributes\AttributeTests.cs" />
     <Compile Include="Attributes\AttributeTests_Assembly.cs" />
     <Compile Include="Attributes\AttributeTests_CallerInfoAttributes.cs" />
