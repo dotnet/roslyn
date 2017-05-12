@@ -2,8 +2,10 @@
 
 using System;
 using System.ComponentModel.Composition;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Options;
@@ -52,7 +54,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (_installStatus == LiveCAInstallStatus.Unchecked)
             {
                 var vsShell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
-                ErrorHandler.ThrowOnFailure(vsShell.IsPackageInstalled(FxCopAnalyzersPackageGuid, out int installed));
+                var hr = vsShell.IsPackageInstalled(FxCopAnalyzersPackageGuid, out int installed);
+                if (ErrorHandler.Failed(hr))
+                {
+                    FatalError.ReportWithoutCrash(Marshal.GetExceptionForHR(hr));
+
+                    // We set installed to ensure we don't go through this again next time a
+                    // suggested action is called, and we don't want to continue if the shell
+                    // is busted.
+                    _installStatus = LiveCAInstallStatus.Installed;
+                    return;
+                }
                 _installStatus = installed != 0 ? LiveCAInstallStatus.Installed : LiveCAInstallStatus.NotInstalled;
             }
 
