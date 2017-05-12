@@ -1,18 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 {
@@ -24,33 +20,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private static readonly Guid FxCopAnalyzersPackageGuid = Guid.Parse("{4A41D270-A97F-4639-A352-28732FC410E4}");
 
         private readonly VisualStudioWorkspace _workspace;
-        private readonly IForegroundNotificationService _foregroundNotificationService;
-        private readonly IAsynchronousOperationListener _operationListener;
         private readonly SVsServiceProvider _serviceProvider;
 
-        private readonly object _scheduleLock = new object();
-        // If we are currently checking to see if the user fits the treatment profile, then we don't want to schedule another check
-        private bool _checksRunning = false;
         // We don't show the user an infobar more than once per VS session
         private bool _infoBarShown = false;
-        private FxCopInstallStatus _installStatus = FxCopInstallStatus.Unchecked;
+        private LiveCAInstallStatus _installStatus = LiveCAInstallStatus.Unchecked;
         // Initialized the first time we're on the UI thread
         private IExperimentationService _experimentationService;
 
         [ImportingConstructor]
         public AnalyzerVsixSuggestedActionCallback(VisualStudioWorkspace workspace,
-            IForegroundNotificationService foregroundNotificationService,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             SVsServiceProvider serviceProvider)
         {
             _workspace = workspace;
-            _foregroundNotificationService = foregroundNotificationService;
-            _operationListener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.ABTest);
             _serviceProvider = serviceProvider;
         }
 
         public void OnSuggestedActionExecuted(SuggestedAction action)
         {
+            // If the experimentation service hasn't been retrieved, we'll need to be on the UI
+            // thread to get it
             AssertIsForeground();
 
             // Initialize the experimentation service if it hasn't yet been fetched
@@ -60,46 +49,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             // If we haven't yet checked to see if the VSIX is installed, check now
-            if (_installStatus == FxCopInstallStatus.Unchecked)
+            if (_installStatus == LiveCAInstallStatus.Unchecked)
             {
                 var vsShell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
                 ErrorHandler.ThrowOnFailure(vsShell.IsPackageInstalled(FxCopAnalyzersPackageGuid, out int installed));
-                _installStatus = installed != 0 ? FxCopInstallStatus.Installed : FxCopInstallStatus.NotInstalled;
+                _installStatus = installed != 0 ? LiveCAInstallStatus.Installed : LiveCAInstallStatus.NotInstalled;
             }
 
             // Only proceed if the VSIX isn't installed
-            if (_installStatus == FxCopInstallStatus.Installed)
+            if (_installStatus == LiveCAInstallStatus.Installed)
             {
                 return;
             }
 
-            lock (_scheduleLock)
+            if (!_infoBarShown)
             {
-                if (!_checksRunning && !_infoBarShown)
-                {
-                    _checksRunning = true;
-                    Task.Run((Action)SuggestedActionOccurred);
-                }
+                SuggestedActionOccurred();
             }
         }
 
         private void SuggestedActionOccurred()
         {
-            // We don't need to do this work on the UI thread
-            AssertIsBackground();
-
             var options = _workspace.Options;
 
             // If the user has previously clicked don't show again, then we bail out immediately
             if (options.GetOption(AnalyzerABTestOptions.NeverShowAgain))
             {
-                // We set _infoBarShown to true here to make sure that we never run these checks again
-                lock(_scheduleLock)
-                {
-                    _checksRunning = false;
-                    _infoBarShown = true;
-                }
-
                 return;
             }
 
@@ -131,14 +106,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 }
             }
 
-            // If the user still isn't a candidate, then return. Otherwise, we move to checking if the infobar should be shown
+            // If the user still isn't a candidate, then return. Otherwise, we move to checking if
+            // the infobar should be shown
             if (!isCandidate)
             {
-                lock (_scheduleLock)
-                {
-                    _checksRunning = false;
-                }
-
                 return;
             }
 
@@ -149,8 +120,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             if (_experimentationService.IsExperimentEnabled(AnalyzerEnabledFlight))
             {
-                // If we got true from the experimentation service, then we're in the treatment group, and the experiment is enabled.
-                // We determine if the infobar has been displayed in the past 24 hours. If it hasn't been displayed, then we do so now.
+                // If we got true from the experimentation service, then we're in the treatment
+                // group, and the experiment is enabled. We determine if the infobar has been
+                // displayed in the past 24 hours. If it hasn't been displayed, then we do so now.
                 var lastDayInfoBarShown = DateTime.FromBinary(_workspace.Options.GetOption(AnalyzerABTestOptions.LastDayInfoBarShown));
                 var utcNow = DateTime.UtcNow;
                 var timeSinceLastShown = utcNow - lastDayInfoBarShown;
@@ -171,18 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                                       kind: InfoBarUI.UIKind.Button,
                                       action: DoNotShowAgain));
 
-                    lock(_scheduleLock)
-                    {
-                        _checksRunning = false;
-                        _infoBarShown = true;
-                    }
-                }
-            }
-            else
-            {
-                lock(_scheduleLock)
-                {
-                    _checksRunning = false;
+                    _infoBarShown = true;
                 }
             }
         }
@@ -197,7 +158,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.NeverShowAgain, true);
         }
 
-        private enum FxCopInstallStatus
+        private enum LiveCAInstallStatus
         {
             Unchecked,
             Installed,
