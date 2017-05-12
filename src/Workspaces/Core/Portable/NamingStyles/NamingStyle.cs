@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             switch (CapitalizationScheme)
             {
                 case Capitalization.PascalCase:
-                    return words.Select(CapitalizeFirstLetter);
+                    return words.Select(s_capitalizeFirstLetter);
                 case Capitalization.CamelCase:
-                    return words.Take(1).Select(DecapitalizeFirstLetter).Concat(words.Skip(1).Select(CapitalizeFirstLetter));
+                    return words.Take(1).Select(s_decapitalizeFirstLetter).Concat(words.Skip(1).Select(s_capitalizeFirstLetter));
                 case Capitalization.FirstUpper:
-                    return words.Take(1).Select(CapitalizeFirstLetter).Concat(words.Skip(1).Select(DecapitalizeFirstLetter));
+                    return words.Take(1).Select(s_capitalizeFirstLetter).Concat(words.Skip(1).Select(s_decapitalizeFirstLetter));
                 case Capitalization.AllUpper:
                     return words.Select(w => w.ToUpper());
                 case Capitalization.AllLower:
@@ -84,17 +84,17 @@ namespace Microsoft.CodeAnalysis.NamingStyles
             }
         }
 
-        private string CapitalizeFirstLetter(string word)
+        private static readonly Func<string, string> s_capitalizeFirstLetter = word =>
         {
             var chars = word.ToCharArray();
             return new string(chars.Take(1).Select(c => char.ToUpper(c)).Concat(chars.Skip(1)).ToArray());
-        }
+        };
 
-        private string DecapitalizeFirstLetter(string word)
+        private static readonly Func<string, string> s_decapitalizeFirstLetter = word =>
         {
             var chars = word.ToCharArray();
             return new string(chars.Take(1).Select(c => char.ToLower(c)).Concat(chars.Skip(1)).ToArray());
-        }
+        };
 
         public bool IsNameCompliant(string name, out string failureReason)
         {

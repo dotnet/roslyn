@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal Syntax.InternalSyntax.DirectiveStack GetConditionalDirectivesStack()
         {
-            IEnumerable<DirectiveTriviaSyntax> directives = this.GetDirectives(filter: IsActiveConditionalDirective);
+            IEnumerable<DirectiveTriviaSyntax> directives = this.GetDirectives(filter: s_isActiveConditionalDirective);
             var directiveStack = Syntax.InternalSyntax.DirectiveStack.Empty;
             foreach (DirectiveTriviaSyntax directive in directives)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return directiveStack;
         }
 
-        private static bool IsActiveConditionalDirective(DirectiveTriviaSyntax directive)
+        private static readonly Func<DirectiveTriviaSyntax, bool> s_isActiveConditionalDirective = directive =>
         {
             switch (directive.Kind())
             {
@@ -55,6 +55,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 default:
                     return false;
             }
-        }
+        };
     }
 }

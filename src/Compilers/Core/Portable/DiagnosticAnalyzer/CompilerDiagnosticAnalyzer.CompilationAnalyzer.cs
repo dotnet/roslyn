@@ -34,7 +34,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ReportDiagnostics(diagnostics, context.ReportDiagnostic, s_isSourceLocation, s_syntactic);
             }
 
-            public static void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
+            public static Action<SemanticModelAnalysisContext> AnalyzeSemanticModel { get; } = AnalyzeSemanticModelImpl;
+
+            private static void AnalyzeSemanticModelImpl(SemanticModelAnalysisContext context)
             {
                 var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
                 ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, s_isSourceLocation, s_declaration);

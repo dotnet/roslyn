@@ -14,22 +14,18 @@ namespace Microsoft.CodeAnalysis.Simplification
 
         public static SyntaxAnnotation Create(SpecialType specialType)
         {
-            return new SyntaxAnnotation(Kind, s_fromSpecialTypes.GetOrAdd(specialType, CreateFromSpecialTypes));
+            return new SyntaxAnnotation(Kind, s_fromSpecialTypes.GetOrAdd(specialType, s_createFromSpecialTypes));
         }
 
         public static SpecialType GetSpecialType(SyntaxAnnotation annotation)
         {
-            return s_toSpecialTypes.GetOrAdd(annotation.Data, CreateToSpecialTypes);
+            return s_toSpecialTypes.GetOrAdd(annotation.Data, s_createToSpecialTypes);
         }
 
-        private static string CreateFromSpecialTypes(SpecialType arg)
-        {
-            return arg.ToString();
-        }
+        private static Func<SpecialType, string> s_createFromSpecialTypes =
+            arg => arg.ToString();
 
-        private static SpecialType CreateToSpecialTypes(string arg)
-        {
-            return (SpecialType)Enum.Parse(typeof(SpecialType), arg);
-        }
+        private static Func<string, SpecialType> s_createToSpecialTypes =
+            arg => (SpecialType)Enum.Parse(typeof(SpecialType), arg);
     }
 }

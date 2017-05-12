@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             private DocumentationComment ParseInternal(string xml)
             {
-                XmlFragmentParser.ParseFragment(xml, ParseCallback, this);
+                XmlFragmentParser.ParseFragment(xml, s_parseCallback, this);
 
                 if (_exceptionTextBuilders != null)
                 {
@@ -149,10 +149,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return _comment;
             }
 
-            private static void ParseCallback(XmlReader reader, CommentBuilder builder)
-            {
-                builder.ParseCallback(reader);
-            }
+            private static Action<XmlReader, CommentBuilder> s_parseCallback =
+                (reader, builder) => builder.ParseCallback(reader);
 
             private void ParseCallback(XmlReader reader)
             {

@@ -102,14 +102,10 @@ namespace Microsoft.CodeAnalysis
             return new Checksum((byte[])reader.ReadValue());
         }
 
-        public static string GetChecksumLogInfo(Checksum checksum)
-        {
-            return checksum.ToString();
-        }
+        public static readonly Func<Checksum, string> GetChecksumLogInfo =
+            checksum => checksum.ToString();
 
-        public static string GetChecksumsLogInfo(IEnumerable<Checksum> checksums)
-        {
-            return string.Join("|", checksums.Select(c => c.ToString()));
-        }
+        public static readonly Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo =
+            checksums => string.Join("|", checksums.Select(c => c.ToString()));
     }
 }
