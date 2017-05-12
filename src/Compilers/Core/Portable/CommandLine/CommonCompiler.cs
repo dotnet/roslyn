@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Security.Cryptography;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -919,6 +920,24 @@ namespace Microsoft.CodeAnalysis
             }
 
             return builder.ToImmutable();
+        }
+
+        protected SyntaxTreeOptionsProvider CreateSyntaxTreeOptionsProvider()
+        {
+            // If we don't have any editor config files, we can opt out entirely
+            if (Arguments.EditorConfigFiles.IsDefaultOrEmpty)
+            {
+                return null;
+            }
+
+            var builder = ImmutableArray.CreateBuilder<AdditionalText>(initialCapacity: Arguments.EditorConfigFiles.Length);
+
+            foreach (var file in Arguments.EditorConfigFiles)
+            {
+                builder.Add(new AdditionalTextFile(file, this));
+            }
+
+            return new EditorConfigSyntaxTreeOptionsProvider(builder.MoveToImmutable());
         }
 
         private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)

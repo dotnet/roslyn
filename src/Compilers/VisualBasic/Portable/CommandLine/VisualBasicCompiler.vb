@@ -145,7 +145,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithAssemblyIdentityComparer(assemblyIdentityComparer).
                      WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).
-                     WithSourceReferenceResolver(sourceFileResolver))
+                     WithSourceReferenceResolver(sourceFileResolver).
+                     WithSyntaxTreeOptionsProvider(CreateSyntaxTreeOptionsProvider()))
 
             Return result
         End Function

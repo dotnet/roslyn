@@ -137,6 +137,7 @@
     <Compile Include="Operations\UnaryAndBinaryOperationExtensions.cs" />
     <Compile Include="Operations\UnaryOperandKind.cs" />
     <Compile Include="Operations\UnaryOperationKind.cs" />
+    <Compile Include="Options\EditorConfigSyntaxTreeOptionsProvider.cs" />
     <Compile Include="Options\IOption.cs" />
     <Compile Include="Options\OptionKey.cs" />
     <Compile Include="Options\OptionSet.cs" />

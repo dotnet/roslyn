@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -148,7 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithAssemblyIdentityComparer(assemblyIdentityComparer).
                     WithStrongNameProvider(strongNameProvider).
                     WithXmlReferenceResolver(xmlFileResolver).
-                    WithSourceReferenceResolver(sourceFileResolver));
+                    WithSourceReferenceResolver(sourceFileResolver).
+                    WithSyntaxTreeOptionsProvider(CreateSyntaxTreeOptionsProvider()));
 
             return compilation;
         }
