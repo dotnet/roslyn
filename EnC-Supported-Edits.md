@@ -25,8 +25,8 @@ Edit & Continue lets you modify/add to your source code in break-mode while debu
 | Modifying async lambda and LINQ expressions in combination | You can edit various nested expressions provided that they otherwise satisfy the EnC rules | 
 
 ### Not Supported Edits
-| Edit operation | Additional Info |
-| ------------------- |--------------| --------------------|
+| Edit operation      | Additional Info |
+| ------------------- |-----------------|
 | Modify [method signatures](https://msdn.microsoft.com/en-us/library/ms173114.aspx) | - |
 | Add or modify [generics](https://msdn.microsoft.com/en-us/library/512aeb7t.aspx) | - |
 | Modify interfaces | - |
