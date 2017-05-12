@@ -4230,7 +4230,7 @@ public class C
     public static void GetGenericValue()
     {
     }
-}", Documentation("This sample shows how to specify the TestClass.GetGenericValue() method as a cref attribute."));
+}", Documentation("This sample shows how to specify the TestClass.GetGenericValue method as a cref attribute."));
         }
 
         [WorkItem(813350, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/813350")]

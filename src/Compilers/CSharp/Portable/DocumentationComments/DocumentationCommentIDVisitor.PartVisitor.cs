@@ -21,17 +21,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class PartVisitor : CSharpSymbolVisitor<StringBuilder, object>
         {
-            // Everyone outside this type uses this one.
-            internal static readonly PartVisitor Instance = new PartVisitor(inParameterOrReturnType: false);
+            // Everyone outside this type uses this one except for the case of overloaded methods.
+            internal static readonly PartVisitor Instance = new PartVisitor(inParameterOrReturnType: false, overloadedMethods: false);
+
+            /// <summary>
+            /// This one is used when generating an ID for a method symbol using
+            /// <see cref="DocumentationCommentIDVisitor.OverloadInstance"/>.
+            /// </summary>
+            internal static readonly PartVisitor OverloadInstance = new PartVisitor(inParameterOrReturnType: false, overloadedMethods: true);
 
             // Select callers within this type use this one.
-            private static readonly PartVisitor s_parameterOrReturnTypeInstance = new PartVisitor(inParameterOrReturnType: true);
+            private static readonly PartVisitor s_parameterOrReturnTypeInstance = new PartVisitor(inParameterOrReturnType: true, overloadedMethods: false);
 
             private readonly bool _inParameterOrReturnType;
+            private readonly bool _overloadedMethods;
 
-            private PartVisitor(bool inParameterOrReturnType)
+            private PartVisitor(bool inParameterOrReturnType, bool overloadedMethods)
             {
                 _inParameterOrReturnType = inParameterOrReturnType;
+                _overloadedMethods = overloadedMethods;
             }
 
             public override object VisitArrayType(ArrayTypeSymbol symbol, StringBuilder builder)
@@ -96,6 +104,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(symbol.ContainingType, builder);
                 builder.Append('.');
                 builder.Append(GetEscapedMetadataName(symbol));
+
+                if (_overloadedMethods)
+                {
+                    // No need to add arity, parameters, or suffix for overloaded methods
+                    return null;
+                }
 
                 if (symbol.Arity != 0)
                 {

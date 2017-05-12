@@ -7,10 +7,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class DocumentationCommentIDVisitor : CSharpSymbolVisitor<StringBuilder, object>
     {
-        public static readonly DocumentationCommentIDVisitor Instance = new DocumentationCommentIDVisitor();
+        /// <summary>
+        /// Generates a documentation comment ID for a single symbol.
+        /// </summary>
+        public static readonly DocumentationCommentIDVisitor Instance = new DocumentationCommentIDVisitor(overloadedMethods: false);
 
-        private DocumentationCommentIDVisitor()
+        /// <summary>
+        /// Generates documentation comment IDs for methods which resolve to the overload instead of a single specific
+        /// method.
+        /// </summary>
+        public static readonly DocumentationCommentIDVisitor OverloadInstance = new DocumentationCommentIDVisitor(overloadedMethods: true);
+
+        private readonly bool _overloadedMethods;
+
+        private DocumentationCommentIDVisitor(bool overloadedMethods)
         {
+            _overloadedMethods = overloadedMethods;
         }
 
         public override object DefaultVisit(Symbol symbol, StringBuilder builder)
@@ -32,8 +44,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override object VisitMethod(MethodSymbol symbol, StringBuilder builder)
         {
-            builder.Append("M:");
-            PartVisitor.Instance.Visit(symbol, builder);
+            if (_overloadedMethods)
+            {
+                builder.Append("O:");
+                PartVisitor.OverloadInstance.Visit(symbol, builder);
+            }
+            else
+            {
+                builder.Append("M:");
+                PartVisitor.Instance.Visit(symbol, builder);
+            }
 
             return null;
         }

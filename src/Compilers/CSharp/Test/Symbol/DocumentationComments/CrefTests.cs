@@ -1201,10 +1201,7 @@ class C
             var expectedWinner = expectedCandidates.Single(m => m.ParameterCount == 0);
 
             Symbol actualWinner;
-            var actualCandidates = GetReferencedSymbols(crefSyntax, compilation, out actualWinner,
-                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'M'. Assuming 'C.M()', but could have also matched other overloads including 'C.M(int)'.
-                // /// See <see cref="M"/>.
-                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "M").WithArguments("M", "C.M()", "C.M(int)"));
+            var actualCandidates = GetReferencedSymbols(crefSyntax, compilation, out actualWinner);
 
             Assert.Equal(expectedWinner, actualWinner);
             AssertEx.SetEqual(expectedCandidates.AsEnumerable(), actualCandidates.ToArray());
