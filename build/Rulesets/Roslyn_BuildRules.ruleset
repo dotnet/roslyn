@@ -43,7 +43,6 @@
     <Rule Id="CA1812" Action="None" /> <!-- disabled as we create many internal types via reflection-based mechanisms -->
     <Rule Id="CA1814" Action="None" /> <!-- prefer jagged arrays to multidimensional: a silly piece of advice -->
     <Rule Id="CA1815" Action="None" />
-    <Rule Id="CA1821" Action="None" /> <!-- broken due to https://github.com/dotnet/roslyn-analyzers/issues/1176 -->
     <Rule Id="CA1823" Action="None" /> <!-- "avoid unused private fields": many issues including https://github.com/dotnet/roslyn-analyzers/issues/933 -->
     <Rule Id="CA1824" Action="None" /> <!-- mark assemblies with NeutralResourcesLanguageAttribute -->
     <Rule Id="CA2007" Action="Warning" />
