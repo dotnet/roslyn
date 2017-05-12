@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -34,10 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// </summary>
         private IExperimentationService _experimentationService;
 
-        private LiveCAInstallStatus _installStatus = LiveCAInstallStatus.Unchecked;
+        private LiveCodeAnalysisInstallStatus _installStatus = LiveCodeAnalysisInstallStatus.Unknown;
 
         [ImportingConstructor]
-        public AnalyzerVsixSuggestedActionCallback(VisualStudioWorkspace workspace,
+        public AnalyzerVsixSuggestedActionCallback(
+            VisualStudioWorkspace workspace,
             SVsServiceProvider serviceProvider)
         {
             _workspace = workspace;
@@ -50,6 +50,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             // thread to get it
             AssertIsForeground();
 
+            // If the user has previously clicked don't show again, then we bail out immediately
+            if (_workspace.Options.GetOption(AnalyzerABTestOptions.NeverShowAgain))
+            {
+                return;
+            }
+
             // Initialize the experimentation service if it hasn't yet been fetched
             if (_experimentationService == null)
             {
@@ -57,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             }
 
             // If we haven't yet checked to see if the VSIX is installed, check now
-            if (_installStatus == LiveCAInstallStatus.Unchecked)
+            if (_installStatus == LiveCodeAnalysisInstallStatus.Unknown)
             {
                 var vsShell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
                 var hr = vsShell.IsPackageInstalled(FxCopAnalyzersPackageGuid, out int installed);
@@ -68,14 +74,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     // We set installed to ensure we don't go through this again next time a
                     // suggested action is called, and we don't want to continue if the shell
                     // is busted.
-                    _installStatus = LiveCAInstallStatus.Installed;
+                    _installStatus = LiveCodeAnalysisInstallStatus.Installed;
                     return;
                 }
-                _installStatus = installed != 0 ? LiveCAInstallStatus.Installed : LiveCAInstallStatus.NotInstalled;
+                _installStatus = installed != 0 ? LiveCodeAnalysisInstallStatus.Installed : LiveCodeAnalysisInstallStatus.NotInstalled;
             }
 
             // Only proceed if the VSIX isn't installed
-            if (_installStatus == LiveCAInstallStatus.Installed)
+            if (_installStatus == LiveCodeAnalysisInstallStatus.Installed)
             {
                 return;
             }
@@ -90,12 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             var options = _workspace.Options;
 
-            // If the user has previously clicked don't show again, then we bail out immediately
-            if (options.GetOption(AnalyzerABTestOptions.NeverShowAgain))
-            {
-                return;
-            }
-
             // Filter for valid A/B test candidates. Candidates fill the following critera:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
             //     2: Have triggered a lightbulb on 3 separate days
@@ -106,12 +106,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             if (!isCandidate)
             {
                 // We store in UTC to avoid any timezone offset weirdness
-                var lastTriggeredTime = DateTime.FromBinary(options.GetOption(AnalyzerABTestOptions.LastDayUsedSuggestionAction));
+                var lastTriggeredTime = DateTime.FromBinary(options.GetOption(AnalyzerABTestOptions.LastDateTimeUsedSuggestionAction));
                 var currentTime = DateTime.UtcNow;
                 var span = currentTime - lastTriggeredTime;
                 if (span.TotalDays >= 1)
                 {
-                    options = options.WithChangedOption(AnalyzerABTestOptions.LastDayUsedSuggestionAction, currentTime.ToBinary());
+                    options = options.WithChangedOption(AnalyzerABTestOptions.LastDateTimeUsedSuggestionAction, currentTime.ToBinary());
                     var usageCount = options.GetOption(AnalyzerABTestOptions.UsedSuggestedActionCount);
                     usageCount++;
                     options = options.WithChangedOption(AnalyzerABTestOptions.UsedSuggestedActionCount, usageCount);
@@ -142,13 +142,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 // If we got true from the experimentation service, then we're in the treatment
                 // group, and the experiment is enabled. We determine if the infobar has been
                 // displayed in the past 24 hours. If it hasn't been displayed, then we do so now.
-                var lastDayInfoBarShown = DateTime.FromBinary(_workspace.Options.GetOption(AnalyzerABTestOptions.LastDayInfoBarShown));
+                var lastDayInfoBarShown = DateTime.FromBinary(_workspace.Options.GetOption(AnalyzerABTestOptions.LastDateTimeInfoBarShown));
                 var utcNow = DateTime.UtcNow;
                 var timeSinceLastShown = utcNow - lastDayInfoBarShown;
 
                 if (timeSinceLastShown.TotalDays >= 1)
                 {
-                    _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.LastDayInfoBarShown, utcNow.ToBinary());
+                    _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.LastDateTimeInfoBarShown, utcNow.ToBinary());
 
                     var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
                     infoBarService.ShowInfoBarInGlobalView(
@@ -176,39 +176,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         {
             _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.NeverShowAgain, true);
         }
-
-        private enum LiveCAInstallStatus
-        {
-            Unchecked,
-            Installed,
-            NotInstalled
-        }
-    }
-
-    internal static class AnalyzerABTestOptions
-    {
-        private const string LocalRegistryPath = @"Roslyn\Internal\Analyzers\AB\Vsix\";
-
-        [ExportOption]
-        public static readonly Option<long> LastDayUsedSuggestionAction = new Option<long>(nameof(AnalyzerABTestOptions), nameof(LastDayUsedSuggestionAction),
-            defaultValue: DateTime.MinValue.ToBinary(),
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(LastDayUsedSuggestionAction)));
-
-        [ExportOption]
-        public static readonly Option<uint> UsedSuggestedActionCount = new Option<uint>(nameof(AnalyzerABTestOptions), nameof(UsedSuggestedActionCount),
-            defaultValue: 0, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(UsedSuggestedActionCount)));
-
-        [ExportOption]
-        public static readonly Option<bool> NeverShowAgain = new Option<bool>(nameof(AnalyzerABTestOptions), nameof(NeverShowAgain),
-            defaultValue: false, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(NeverShowAgain)));
-
-        [ExportOption]
-        public static readonly Option<bool> HasMetCandidacyRequirements = new Option<bool>(nameof(AnalyzerABTestOptions), nameof(HasMetCandidacyRequirements),
-            defaultValue: false, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(HasMetCandidacyRequirements)));
-
-        [ExportOption]
-        public static readonly Option<long> LastDayInfoBarShown = new Option<long>(nameof(AnalyzerABTestOptions), nameof(LastDayInfoBarShown),
-            defaultValue: DateTime.MinValue.ToBinary(),
-            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(LastDayInfoBarShown)));
     }
 }
