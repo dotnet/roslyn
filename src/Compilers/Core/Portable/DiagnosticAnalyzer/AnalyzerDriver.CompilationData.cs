@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private readonly Dictionary<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataMap;
             private readonly ObjectPool<DeclarationAnalysisData> _declarationAnalysisDataPool;
+            private readonly Func<DeclarationAnalysisData> _declarationAnalysisDataPoolAllocate;
 
             public CompilationData(Compilation comp)
             {
@@ -28,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(comp);
                 _declarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
                 _declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
+                _declarationAnalysisDataPoolAllocate = _declarationAnalysisDataPool.Allocate;
             }
 
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (!cacheAnalysisData)
                 {
-                    return computeDeclarationAnalysisData(_declarationAnalysisDataPool.Allocate);
+                    return computeDeclarationAnalysisData(_declarationAnalysisDataPoolAllocate);
                 }
 
                 DeclarationAnalysisData data;
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                data = computeDeclarationAnalysisData(_declarationAnalysisDataPool.Allocate);
+                data = computeDeclarationAnalysisData(_declarationAnalysisDataPoolAllocate);
 
                 lock (_declarationAnalysisDataMap)
                 {

@@ -25,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // value, and data field offsets are unique within the method, not across all methods.
         internal const string SynthesizedStringHashFunctionName = "ComputeStringHash";
 
+        private readonly Func<uint, Cci.ITypeReference> _getStorageStruct;
+
         private readonly CommonPEModuleBuilder _moduleBuilder;       //the module builder
         private readonly Cci.ITypeReference _systemObject;           //base type
         private readonly Cci.ITypeReference _systemValueType;        //base for nested structs
@@ -73,6 +75,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(systemObject != null);
             Debug.Assert(systemValueType != null);
+
+            _getStorageStruct = GetStorageStruct;
 
             _moduleBuilder = moduleBuilder;
             _systemObject = systemObject;
@@ -136,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal Cci.IFieldReference CreateDataField(ImmutableArray<byte> data)
         {
             Debug.Assert(!IsFrozen);
-            Cci.ITypeReference type = _proxyTypes.GetOrAdd((uint)data.Length, GetStorageStruct);
+            Cci.ITypeReference type = _proxyTypes.GetOrAdd((uint)data.Length, _getStorageStruct);
             return _mappedFields.GetOrAdd(data, data0 =>
             {
                 var name = GenerateDataFieldName(data0);

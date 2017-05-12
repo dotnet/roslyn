@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis
     {
         public static SourceFileResolver Default { get; } = new SourceFileResolver(ImmutableArray<string>.Empty, baseDirectory: null);
 
+        private readonly Func<string, bool> _fileExists;
+
         private readonly string _baseDirectory;
         private readonly ImmutableArray<string> _searchPaths;
         private readonly ImmutableArray<KeyValuePair<string, string>> _pathMap;
@@ -45,6 +47,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, nameof(baseDirectory));
             }
 
+            _fileExists = FileExists;
             _baseDirectory = baseDirectory;
             _searchPaths = searchPaths;
             _pathMap = pathMap.NullToEmpty();
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis
 
         public override string ResolveReference(string path, string baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, FileExists);
+            string resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory, _searchPaths, _fileExists);
             if (resolvedPath == null)
             {
                 return null;

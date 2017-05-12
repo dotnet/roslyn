@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 2. Per-analyzer set of pending compilation events, symbols, declarations, etc. Each of these pending entities has a <see cref="AnalysisState.AnalyzerStateData"/> state object to track partial analysis.
         /// </summary>
         private readonly AnalysisState _analysisState;
+        private readonly Func<DiagnosticAnalyzer, AnalyzerActionCounts> _analysisStateGetAnalyzerActionCounts;
 
         /// <summary>
         /// Builder for storing current, possibly partial, analysis results:
@@ -130,6 +131,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             _compilationData = new CompilationData(_compilation);
             _analysisState = new AnalysisState(analyzers, _compilationData, _compilation.Options);
+            _analysisStateGetAnalyzerActionCounts = _analysisState.GetAnalyzerActionCounts;
             _analysisResultBuilder = new AnalysisResultBuilder(analysisOptions.LogAnalyzerExecutionTime, analyzers);
             _driverPool = new ObjectPool<AnalyzerDriver>(() => _compilation.AnalyzerForLanguage(analyzers, AnalyzerManager.Instance));
             _executingConcurrentTreeTasksOpt = analysisOptions.ConcurrentAnalysis ? new Dictionary<SyntaxTree, Tuple<Task, CancellationTokenSource>>() : null;
@@ -829,7 +831,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     finally
                     {
                         // Update the diagnostic results based on the diagnostics reported on the driver.
-                        _analysisResultBuilder.StoreAnalysisResult(analysisScope, driver, _compilation, _analysisState.GetAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: false);
+                        _analysisResultBuilder.StoreAnalysisResult(analysisScope, driver, _compilation, _analysisStateGetAnalyzerActionCounts, fullAnalysisResultForAnalyzersInScope: false);
                     }
                 }
             }

@@ -39,6 +39,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// </summary>
         private delegate void WhitespaceAppender<T>(LineColumn lineColumn, LineColumnDelta delta, TextSpan span, List<T> changes);
 
+        private readonly Func<char, bool> _isNewLine;
+        private readonly Formatter<TextChange> _formatTextChanges;
+        private readonly Formatter<SyntaxTrivia> _formatTriviaChanges;
+        private readonly WhitespaceAppender<TextChange> _addWhitespaceTextChange;
+        private readonly WhitespaceAppender<SyntaxTrivia> _addWhitespaceTrivia;
+
         protected readonly FormattingContext Context;
         protected readonly ChainedFormattingRules FormattingRules;
 
@@ -72,6 +78,12 @@ namespace Microsoft.CodeAnalysis.Formatting
             Contract.ThrowIfFalse(spaces >= 0);
 
             Contract.ThrowIfTrue(token1 == default(SyntaxToken) && token2 == default(SyntaxToken));
+
+            _isNewLine = IsNewLine;
+            _formatTextChanges = Format;
+            _formatTriviaChanges = Format;
+            _addWhitespaceTrivia = AddWhitespaceTrivia;
+            _addWhitespaceTextChange = AddWhitespaceTextChange;
 
             this.Context = context;
             this.FormattingRules = formattingRules;
@@ -233,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var changes = ListPool<SyntaxTrivia>.Allocate();
 
-            var lineColumn = FormatTrivia(Format, AddWhitespaceTrivia, changes, cancellationToken);
+            var lineColumn = FormatTrivia(_formatTriviaChanges, _addWhitespaceTrivia, changes, cancellationToken);
 
             // deal with edges
             // insert empty linebreaks at the beginning of trivia list
@@ -257,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var changes = ListPool<TextChange>.Allocate();
 
-            var lineColumn = FormatTrivia(Format, AddWhitespaceTextChange, changes, cancellationToken);
+            var lineColumn = FormatTrivia(_formatTextChanges, _addWhitespaceTextChange, changes, cancellationToken);
 
             // deal with edges
             // insert empty linebreaks at the beginning of trivia list
@@ -488,7 +500,7 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return true;
             }
 
-            var index = this.OriginalString.IndexOf(IsNewLine);
+            var index = this.OriginalString.IndexOf(_isNewLine);
             if (index < 0)
             {
                 return IsNullOrWhitespace(this.OriginalString);

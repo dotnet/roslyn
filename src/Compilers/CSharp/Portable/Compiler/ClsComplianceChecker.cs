@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,6 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class ClsComplianceChecker : CSharpSymbolVisitor
     {
+        private readonly Action<Symbol> _visit;
+
         private readonly CSharpCompilation _compilation;
         private readonly SyntaxTree _filterTree; //if not null, limit analysis to types residing in this tree
         private readonly TextSpan? _filterSpanWithinTree; //if filterTree and filterSpanWithinTree is not null, limit analysis to types residing within this span in the filterTree.
@@ -32,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConcurrentQueue<Diagnostic> diagnostics,
             CancellationToken cancellationToken)
         {
+            _visit = Visit;
+
             _compilation = compilation;
             _filterTree = filterTree;
             _filterSpanWithinTree = filterSpanWithinTree;
@@ -163,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var options = _cancellationToken.CanBeCanceled
                     ? new ParallelOptions() { CancellationToken = _cancellationToken }
                     : CSharpCompilation.DefaultParallelOptions; // i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(_visit));
             }
             else
             {
@@ -209,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var options = _cancellationToken.CanBeCanceled
                     ? new ParallelOptions() { CancellationToken = _cancellationToken }
                     : CSharpCompilation.DefaultParallelOptions; //i.e. new ParallelOptions()
-                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture<Symbol>(Visit));
+                Parallel.ForEach(symbol.GetMembersUnordered(), options, UICultureUtilities.WithCurrentUICulture(_visit));
             }
             else
             {

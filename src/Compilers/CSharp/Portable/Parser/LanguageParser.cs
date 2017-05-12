@@ -20,6 +20,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private readonly SyntaxListPool _pool = new SyntaxListPool(); // Don't need to reset this.
 
+        private readonly Func<CompilationUnitSyntax> _parseCompilationUnitCore;
+        private readonly Func<ExpressionSyntax> _parseExpressionCore;
+        private readonly Func<IdentifierNameSyntax> _createMissingIdentifierName;
+
         private readonly SyntaxFactoryContext _syntaxFactoryContext; // Fields are resettable.
         private readonly ContextAwareSyntax _syntaxFactory; // Has context, the fields of which are resettable.
 
@@ -38,6 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             : base(lexer, lexerMode, oldTree, changes, allowModeReset: false,
                 preLexIfNotIncremental: true, cancellationToken: cancellationToken)
         {
+            _parseCompilationUnitCore = ParseCompilationUnitCore;
+            _parseExpressionCore = ParseExpressionCore;
+            _createMissingIdentifierName = CreateMissingIdentifierName;
+
             _syntaxFactoryContext = new SyntaxFactoryContext();
             _syntaxFactory = new ContextAwareSyntax(_syntaxFactoryContext);
         }
@@ -335,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         internal CompilationUnitSyntax ParseCompilationUnit()
         {
             return ParseWithStackGuard(
-                ParseCompilationUnitCore,
+                _parseCompilationUnitCore,
                 () => SyntaxFactory.CompilationUnit(
                         new SyntaxList<ExternAliasDirectiveSyntax>(),
                         new SyntaxList<UsingDirectiveSyntax>(),
@@ -8647,8 +8655,8 @@ tryAgain:
         public ExpressionSyntax ParseExpression()
         {
             return ParseWithStackGuard(
-                this.ParseExpressionCore,
-                this.CreateMissingIdentifierName);
+                _parseExpressionCore,
+                _createMissingIdentifierName);
         }
 
         private ExpressionSyntax ParseExpressionCore()

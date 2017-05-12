@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis
 {
     internal class RelativePathResolver : IEquatable<RelativePathResolver>
     {
+        private readonly Func<string, bool> _fileExists;
+
         public ImmutableArray<string> SearchPaths { get; }
         public string BaseDirectory { get; }
 
@@ -27,13 +29,14 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(searchPaths.All(PathUtilities.IsAbsolute));
             Debug.Assert(baseDirectory == null || PathUtilities.GetPathKind(baseDirectory) == PathKind.Absolute);
 
+            _fileExists = FileExists;
             SearchPaths = searchPaths;
             BaseDirectory = baseDirectory;
         }
 
         public string ResolvePath(string reference, string baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, FileExists);
+            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, _fileExists);
             if (resolvedPath == null)
             {
                 return null;

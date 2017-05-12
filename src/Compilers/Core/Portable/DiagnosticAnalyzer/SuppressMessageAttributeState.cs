@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -21,6 +22,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 { "type", TargetScope.Type },
                 { "member", TargetScope.Member }
             };
+
+        private readonly Func<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>> _decodeLocalSuppressMessageAttributes;
 
         private readonly Compilation _compilation;
         private GlobalSuppressions _lazyGlobalSuppressions;
@@ -73,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal SuppressMessageAttributeState(Compilation compilation)
         {
+            _decodeLocalSuppressMessageAttributes = DecodeLocalSuppressMessageAttributes;
             _compilation = compilation;
             _localSuppressionsBySymbol = new ConcurrentDictionary<ISymbol, ImmutableDictionary<string, SuppressMessageInfo>>();
         }
@@ -207,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private bool IsDiagnosticLocallySuppressed(string id, ISymbol symbol, out SuppressMessageInfo info)
         {
-            var suppressions = _localSuppressionsBySymbol.GetOrAdd(symbol, this.DecodeLocalSuppressMessageAttributes);
+            var suppressions = _localSuppressionsBySymbol.GetOrAdd(symbol, _decodeLocalSuppressMessageAttributes);
             return suppressions.TryGetValue(id, out info);
         }
 

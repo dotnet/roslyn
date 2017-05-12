@@ -76,19 +76,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private abstract class MatchDefs
         {
+            private readonly Func<Cci.IDefinition, Cci.IDefinition> _visitDefInternal;
+            private readonly Func<Cci.ITypeDefinition, IEnumerable<Cci.INestedTypeDefinition>> _getNestedTypes;
+            private readonly Func<Cci.ITypeDefinition, IEnumerable<Cci.IFieldDefinition>> _getFields;
+
             private readonly EmitContext _sourceContext;
             private readonly ConcurrentDictionary<Cci.IDefinition, Cci.IDefinition> _matches;
             private IReadOnlyDictionary<string, Cci.INamespaceTypeDefinition> _lazyTopLevelTypes;
 
             public MatchDefs(EmitContext sourceContext)
             {
+                _visitDefInternal = VisitDefInternal;
+                _getNestedTypes = GetNestedTypes;
+                _getFields = GetFields;
+
                 _sourceContext = sourceContext;
                 _matches = new ConcurrentDictionary<Cci.IDefinition, Cci.IDefinition>(ReferenceEqualityComparer.Instance);
             }
 
             public Cci.IDefinition VisitDef(Cci.IDefinition def)
             {
-                return _matches.GetOrAdd(def, this.VisitDefInternal);
+                return _matches.GetOrAdd(def, _visitDefInternal);
             }
 
             private Cci.IDefinition VisitDefInternal(Cci.IDefinition def)
@@ -111,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return null;
                     }
 
-                    return VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                    return VisitTypeMembers(otherContainer, nestedType, _getNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                 }
 
                 var member = def as Cci.ITypeDefinitionMember;
@@ -126,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var field = def as Cci.IFieldDefinition;
                     if (field != null)
                     {
-                        return VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
+                        return VisitTypeMembers(otherContainer, field, _getFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                     }
                 }
 
@@ -262,6 +270,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private sealed class MatchSymbols : CSharpSymbolVisitor<Symbol>
         {
+            private readonly Func<Symbol, Symbol> _baseVisit;
+            private readonly Func<EventSymbol, EventSymbol, bool> _areEventsEqual;
+            private readonly Func<FieldSymbol, FieldSymbol, bool> _areFieldsEqual;
+            private readonly Func<MethodSymbol, MethodSymbol, bool> _areMethodsEqual;
+            private readonly Func<NamedTypeSymbol, NamedTypeSymbol, bool> _areNamedTypesEqual;
+            private readonly Func<PropertySymbol, PropertySymbol, bool> _arePropertiesEqual;
+            private readonly Func<CustomModifier, CustomModifier> _visitCustomModifier;
+            private readonly Func<ParameterSymbol, ParameterSymbol, bool> _areParametersEqual;
+            private readonly Func<TypeSymbol, TypeSymbol, bool> _areTypesEqual;
+            private readonly Func<TypeParameterSymbol, TypeParameterSymbol, bool> _areTypeParametersEqual;
+
             private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> _anonymousTypeMap;
             private readonly SourceAssemblySymbol _sourceAssembly;
 
@@ -285,6 +304,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> otherSynthesizedMembersOpt,
                 DeepTranslator deepTranslatorOpt)
             {
+                _baseVisit = base.Visit;
+                _areEventsEqual = AreEventsEqual;
+                _areFieldsEqual = AreFieldsEqual;
+                _areMethodsEqual = AreMethodsEqual;
+                _areNamedTypesEqual = AreNamedTypesEqual;
+                _arePropertiesEqual = ArePropertiesEqual;
+                _visitCustomModifier = VisitCustomModifier;
+                _areParametersEqual = AreParametersEqual;
+                _areTypesEqual = AreTypesEqual;
+                _areTypeParametersEqual = AreTypesEqual;
+
                 _anonymousTypeMap = anonymousTypeMap;
                 _sourceAssembly = sourceAssembly;
                 _otherAssembly = otherAssembly;
@@ -320,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 // Add an entry for the match, even if there is no match, to avoid
                 // matching the same symbol unsuccessfully multiple times.
-                return _matches.GetOrAdd(symbol, base.Visit);
+                return _matches.GetOrAdd(symbol, _baseVisit);
             }
 
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
@@ -343,19 +373,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitEvent(EventSymbol symbol)
             {
-                return this.VisitNamedTypeMember(symbol, AreEventsEqual);
+                return this.VisitNamedTypeMember(symbol, _areEventsEqual);
             }
 
             public override Symbol VisitField(FieldSymbol symbol)
             {
-                return this.VisitNamedTypeMember(symbol, AreFieldsEqual);
+                return this.VisitNamedTypeMember(symbol, _areFieldsEqual);
             }
 
             public override Symbol VisitMethod(MethodSymbol symbol)
             {
                 // Not expecting constructed method.
                 Debug.Assert(symbol.IsDefinition);
-                return this.VisitNamedTypeMember(symbol, AreMethodsEqual);
+                return this.VisitNamedTypeMember(symbol, _areMethodsEqual);
             }
 
             public override Symbol VisitModule(ModuleSymbol module)
@@ -527,11 +557,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                         else
                         {
-                            return FindMatchingNamespaceMember((NamespaceSymbol)otherContainer, sourceType, AreNamedTypesEqual);
+                            return FindMatchingNamespaceMember((NamespaceSymbol)otherContainer, sourceType, _areNamedTypesEqual);
                         }
 
                     case SymbolKind.NamedType:
-                        return FindMatchingNamedTypeMember((NamedTypeSymbol)otherContainer, sourceType, AreNamedTypesEqual);
+                        return FindMatchingNamedTypeMember((NamedTypeSymbol)otherContainer, sourceType, _areNamedTypesEqual);
 
                     default:
                         throw ExceptionUtilities.UnexpectedValue(otherContainer.Kind);
@@ -558,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitProperty(PropertySymbol symbol)
             {
-                return this.VisitNamedTypeMember(symbol, ArePropertiesEqual);
+                return this.VisitNamedTypeMember(symbol, _arePropertiesEqual);
             }
 
             public override Symbol VisitTypeParameter(TypeParameterSymbol symbol)
@@ -591,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private ImmutableArray<CustomModifier> VisitCustomModifiers(ImmutableArray<CustomModifier> modifiers)
             {
-                return modifiers.SelectAsArray(VisitCustomModifier);
+                return modifiers.SelectAsArray(_visitCustomModifier);
             }
 
             private CustomModifier VisitCustomModifier(CustomModifier modifier)
@@ -705,8 +735,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 return _comparer.Equals(method.ReturnType, other.ReturnType) &&
                     method.RefKind.Equals(other.RefKind) &&
-                    method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
-                    method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
+                    method.Parameters.SequenceEqual(other.Parameters, _areParametersEqual) &&
+                    method.TypeParameters.SequenceEqual(other.TypeParameters, _areTypeParametersEqual);
             }
 
             private static MethodSymbol SubstituteTypeParameters(MethodSymbol method)
@@ -734,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(!type.IsTupleType);
                 Debug.Assert(!other.IsTupleType);
 
-                return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, AreTypesEqual);
+                return type.TypeArgumentsNoUseSiteDiagnostics.SequenceEqual(other.TypeArgumentsNoUseSiteDiagnostics, _areTypesEqual);
             }
 
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
@@ -759,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert(StringOrdinalComparer.Equals(property.Name, other.Name));
                 return _comparer.Equals(property.Type, other.Type) &&
                     property.RefKind.Equals(other.RefKind) &&
-                    property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
+                    property.Parameters.SequenceEqual(other.Parameters, _areParametersEqual);
             }
 
             private static bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
@@ -848,11 +878,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed class DeepTranslator : CSharpSymbolVisitor<Symbol>
         {
+            private readonly Func<CustomModifier, CustomModifier> _visitCustomModifier;
+
             private readonly ConcurrentDictionary<Symbol, Symbol> _matches;
             private readonly NamedTypeSymbol _systemObject;
 
             public DeepTranslator(NamedTypeSymbol systemObject)
             {
+                _visitCustomModifier = VisitCustomModifier;
+
                 _matches = new ConcurrentDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
                 _systemObject = systemObject;
             }
@@ -925,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private ImmutableArray<CustomModifier> VisitCustomModifiers(ImmutableArray<CustomModifier> modifiers)
             {
-                return modifiers.SelectAsArray(VisitCustomModifier);
+                return modifiers.SelectAsArray(_visitCustomModifier);
             }
 
             private CustomModifier VisitCustomModifier(CustomModifier modifier)
