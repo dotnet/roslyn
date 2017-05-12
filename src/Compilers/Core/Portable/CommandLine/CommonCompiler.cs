@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(new AdditionalTextFile(file, this));
             }
 
-            return builder.ToImmutableArray();
+            return builder.ToImmutable();
         }
 
         private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)
