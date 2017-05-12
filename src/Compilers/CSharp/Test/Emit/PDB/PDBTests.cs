@@ -4602,6 +4602,206 @@ class C
 ", sequencePoints: "C.F", source: source);
         }
 
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedWhile()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        using (var stream = new System.IO.MemoryStream())
+            while (x)
+                x = false;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //stream
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  br.s       IL_000c
+    // sequence point: x = false;
+    IL_0009:  ldc.i4.0
+    IL_000a:  starg.s    V_1
+    // sequence point: while (x)
+    IL_000c:  ldarg.1
+    IL_000d:  stloc.1
+    // sequence point: <hidden>
+    IL_000e:  ldloc.1
+    IL_000f:  brtrue.s   IL_0009
+    // sequence point: <hidden>
+    IL_0011:  leave.s    IL_001e
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0013:  ldloc.0
+    IL_0014:  brfalse.s  IL_001d
+    IL_0016:  ldloc.0
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001c:  nop
+    IL_001d:  endfinally
+  }
+  // sequence point: }
+  IL_001e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedFor()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        using (var stream = new System.IO.MemoryStream())
+            for ( ; x == true; )
+                x = false;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //stream
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  br.s       IL_000c
+    // sequence point: x = false;
+    IL_0009:  ldc.i4.0
+    IL_000a:  starg.s    V_1
+    // sequence point: x == true
+    IL_000c:  ldarg.1
+    IL_000d:  stloc.1
+    // sequence point: <hidden>
+    IL_000e:  ldloc.1
+    IL_000f:  brtrue.s   IL_0009
+    // sequence point: <hidden>
+    IL_0011:  leave.s    IL_001e
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0013:  ldloc.0
+    IL_0014:  brfalse.s  IL_001d
+    IL_0016:  ldloc.0
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001c:  nop
+    IL_001d:  endfinally
+  }
+  // sequence point: }
+  IL_001e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void LockStatement_EmbeddedIf()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        string y = """";
+        lock (y)
+            if (!x)
+                System.Console.Write(1);
+            else
+                System.Console.Write(2);
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (string V_0, //y
+                string V_1,
+                bool V_2,
+                bool V_3)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: string y = """";
+  IL_0001:  ldstr      """"
+  IL_0006:  stloc.0
+  // sequence point: lock (y)
+  IL_0007:  ldloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  stloc.2
+  .try
+  {
+    IL_000b:  ldloc.1
+    IL_000c:  ldloca.s   V_2
+    IL_000e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0013:  nop
+    // sequence point: if (!x)
+    IL_0014:  ldarg.1
+    IL_0015:  ldc.i4.0
+    IL_0016:  ceq
+    IL_0018:  stloc.3
+    // sequence point: <hidden>
+    IL_0019:  ldloc.3
+    IL_001a:  brfalse.s  IL_0025
+    // sequence point: System.Console.Write(1);
+    IL_001c:  ldc.i4.1
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  nop
+    IL_0023:  br.s       IL_002c
+    // sequence point: System.Console.Write(2);
+    IL_0025:  ldc.i4.2
+    IL_0026:  call       ""void System.Console.Write(int)""
+    IL_002b:  nop
+    // sequence point: <hidden>
+    IL_002c:  leave.s    IL_0039
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_002e:  ldloc.2
+    IL_002f:  brfalse.s  IL_0038
+    IL_0031:  ldloc.1
+    IL_0032:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0037:  nop
+    IL_0038:  endfinally
+  }
+  // sequence point: }
+  IL_0039:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
         #endregion
 
         // LockStatement tested in CodeGenLock
