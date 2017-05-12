@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private IModuleSymbol _lazyModuleSymbol;
         private IList<ModuleData> _allModuleData;
 
-        internal ImmutableArray<byte> EmittedAssemblyData;
-        internal ImmutableArray<byte> EmittedAssemblyPdb;
+        public ImmutableArray<byte> EmittedAssemblyData;
+        public ImmutableArray<byte> EmittedAssemblyPdb;
 
         private readonly Func<IModuleSymbol, CompilationTestData.MethodData, IReadOnlyDictionary<int, string>, string> _visualizeRealIL;
 

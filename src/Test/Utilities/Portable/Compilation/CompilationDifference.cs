@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
-using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities

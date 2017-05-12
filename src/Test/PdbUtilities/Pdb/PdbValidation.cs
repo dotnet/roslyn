@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertXml.Equal(expectedXml, actualXml, $"Format: {format}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
         }
 
-        internal static void VerifyPdb(
+        public static void VerifyPdb(
             this Compilation compilation,
             string expectedPdb,
             IMethodSymbol debugEntryPoint = null,
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VerifyPdb(compilation, "", expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
-        internal static void VerifyPdb(
+        public static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             string expectedPdb,
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedIsXmlLiteral: false);
         }
 
-        internal static void VerifyPdb(
+        public static void VerifyPdb(
             this Compilation compilation,
             XElement expectedPdb,
             IMethodSymbol debugEntryPoint = null,
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VerifyPdb(compilation, "", expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
-        internal static void VerifyPdb(
+        public static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             XElement expectedPdb,

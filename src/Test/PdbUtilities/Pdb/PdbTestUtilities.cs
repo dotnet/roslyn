@@ -15,7 +15,7 @@ using Roslyn.Test.PdbUtilities;
 
 namespace Roslyn.Test.Utilities
 {
-    internal static class PdbTestUtilities
+    public static class PdbTestUtilities
     {
         public static ISymUnmanagedReader3 CreateSymReader(this CompilationVerifier verifier)
         {
