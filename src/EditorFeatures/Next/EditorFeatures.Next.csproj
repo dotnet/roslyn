@@ -127,7 +127,7 @@
     <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -29,10 +29,6 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj">
-      <Project>{4371944a-d3ba-4b5b-8285-82e5ffc6d1f8}</Project>
-      <Name>BasicCompilerTestUtilities</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\Interactive\EditorFeatures\Core\InteractiveEditorFeatures.csproj">
       <Project>{92412d1a-0f23-45b5-b196-58839c524917}</Project>
       <Name>InteractiveEditorFeatures</Name>
@@ -56,22 +52,6 @@
     <ProjectReference Include="..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualStudio\Core\Def\ServicesVisualStudio.csproj">
-      <Project>{86fd5b9a-4fa0-4b10-b59f-cfaf077a859c}</Project>
-      <Name>ServicesVisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualStudio\Core\Impl\ServicesVisualStudioImpl.csproj">
-      <Project>{c0e80510-4fbe-4b0c-af2c-4f473787722c}</Project>
-      <Name>ServicesVisualStudioImpl</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\VisualStudio\VisualBasic\Impl\BasicVisualStudio.vbproj">
-      <Project>{d49439d7-56d2-450f-a4f0-74cb95d620e6}</Project>
-      <Name>BasicVisualStudio</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\WorkspacesTestUtilities.csproj">
-      <Project>{3f2fdc1c-dc6f-44cb-b4a1-a9026f25d66e}</Project>
-      <Name>WorkspacesTestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Workspaces\Core\Desktop\Workspaces.Desktop.csproj">
       <Project>{2e87fa96-50bb-4607-8676-46521599f998}</Project>
@@ -257,7 +237,6 @@
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="EditAndContinue\TraceLogTests.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
-    <Compile Include="NavigableSymbols\NavigableSymbolsTest.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Structure\BlockStructureServiceTests.cs" />
     <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
