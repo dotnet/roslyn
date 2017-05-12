@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -400,6 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
             MetadataImportOptions metadataImportOptions = 0;
+            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider = null;
             bool referencesSupersedeLowerVersions = false;
             bool reportSuppressedDiagnostics = false;
             var topLevelBinderFlags = BinderFlags.None;
@@ -409,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, syntaxTreeOptionsProvider);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver

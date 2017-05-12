@@ -1,3 +1,4 @@
+Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.Options.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1 = 701 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConflictMarkerTrivia = 8564 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind

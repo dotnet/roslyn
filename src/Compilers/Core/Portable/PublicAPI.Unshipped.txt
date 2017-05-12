@@ -7,6 +7,8 @@ Microsoft.CodeAnalysis.CommandLineReference.CommandLineReference(string referenc
 Microsoft.CodeAnalysis.CommandLineSourceFile.CommandLineSourceFile(string path, bool isScript) -> void
 Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream = null, System.IO.Stream xmlDocumentationStream = null, System.IO.Stream win32Resources = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources = null, Microsoft.CodeAnalysis.Emit.EmitOptions options = null, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint = null, System.IO.Stream sourceLinkStream = null, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText> embeddedTexts = null, System.IO.Stream metadataPEStream = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Emit.EmitResult
 Microsoft.CodeAnalysis.Compilation.Emit(System.IO.Stream peStream, System.IO.Stream pdbStream, System.IO.Stream xmlDocumentationStream, System.IO.Stream win32Resources, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ResourceDescription> manifestResources, Microsoft.CodeAnalysis.Emit.EmitOptions options, Microsoft.CodeAnalysis.IMethodSymbol debugEntryPoint, System.IO.Stream sourceLinkStream, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.EmbeddedText> embeddedTexts, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Emit.EmitResult
+Microsoft.CodeAnalysis.CompilationOptions.SyntaxTreeOptionsProvider.get -> Microsoft.CodeAnalysis.Options.SyntaxTreeOptionsProvider
+Microsoft.CodeAnalysis.CompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.Options.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
@@ -164,6 +166,8 @@ Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string fea
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.PerLanguageOption(string feature, string name, T defaultValue, params Microsoft.CodeAnalysis.Options.OptionStorageLocation[] storageLocations) -> void
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.StorageLocations.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Options.OptionStorageLocation>
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Type.get -> System.Type
+Microsoft.CodeAnalysis.Options.SyntaxTreeOptionsProvider
+Microsoft.CodeAnalysis.Options.SyntaxTreeOptionsProvider.SyntaxTreeOptionsProvider() -> void
 Microsoft.CodeAnalysis.ParseOptions.Errors.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
 Microsoft.CodeAnalysis.ParseOptions.SpecifiedKind.get -> Microsoft.CodeAnalysis.SourceCodeKind
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Diagnostics;
 using System.ComponentModel;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    metadataImportOptions: MetadataImportOptions.Public,
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
-                   topLevelBinderFlags: BinderFlags.None)
+                   topLevelBinderFlags: BinderFlags.None,
+                   syntaxTreeOptionsProvider: null)
         {
         }
 
@@ -112,13 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             MetadataImportOptions metadataImportOptions,
             bool referencesSupersedeLowerVersions,
             bool publicSign,
-            BinderFlags topLevelBinderFlags)
+            BinderFlags topLevelBinderFlags,
+            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
                    concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver,
                    sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
-                   strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions)
+                   strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, syntaxTreeOptionsProvider)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
@@ -151,6 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             metadataReferenceResolver: other.MetadataReferenceResolver,
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
+            syntaxTreeOptionsProvider: other.SyntaxTreeOptionsProvider,
             metadataImportOptions: other.MetadataImportOptions,
             referencesSupersedeLowerVersions: other.ReferencesSupersedeLowerVersions,
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
@@ -494,6 +498,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
         }
 
+        public new CSharpCompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        {
+            if (ReferenceEquals(provider, this.SyntaxTreeOptionsProvider))
+            {
+                return this;
+            }
+
+            return new CSharpCompilationOptions(this) { SyntaxTreeOptionsProvider = provider };
+        }
+
         protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);
         protected override CompilationOptions CommonWithDeterministic(bool deterministic) => WithDeterministic(deterministic);
 
@@ -519,6 +533,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider) =>
             WithStrongNameProvider(provider);
+
+        protected override CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider) =>
+            WithSyntaxTreeOptionsProvider(provider);
 
         [Obsolete]
         protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)
@@ -787,7 +804,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                    metadataImportOptions: MetadataImportOptions.Public,
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
-                   topLevelBinderFlags: BinderFlags.None)
+                   topLevelBinderFlags: BinderFlags.None,
+                   syntaxTreeOptionsProvider: null)
         {
         }
     }

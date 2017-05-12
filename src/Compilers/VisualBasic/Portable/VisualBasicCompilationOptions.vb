@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Options
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -126,7 +127,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=MetadataImportOptions.Public,
                 referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                ignoreCorLibraryDuplicatedTypes:=False,
+                syntaxTreeOptionsProvider:=Nothing)
 
         End Sub
 
@@ -166,7 +168,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             strongNameProvider As StrongNameProvider,
             metadataImportOptions As MetadataImportOptions,
             referencesSupersedeLowerVersions As Boolean,
-            ignoreCorLibraryDuplicatedTypes As Boolean)
+            ignoreCorLibraryDuplicatedTypes As Boolean,
+            syntaxTreeOptionsProvider As SyntaxTreeOptionsProvider)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -195,7 +198,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 assemblyIdentityComparer:=assemblyIdentityComparer,
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=metadataImportOptions,
-                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions)
+                referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions,
+                syntaxTreeOptionsProvider:=syntaxTreeOptionsProvider)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -249,7 +253,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=other.MetadataImportOptions,
                 referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign,
-                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes)
+                ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes,
+                syntaxTreeOptionsProvider:=other.SyntaxTreeOptionsProvider)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -878,6 +883,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.StrongNameProvider = provider}
         End Function
 
+        Public Shadows Function WithSyntaxTreeOptionsProvider(provider As SyntaxTreeOptionsProvider) As VisualBasicCompilationOptions
+            If provider Is Me.SyntaxTreeOptionsProvider Then
+                Return Me
+            End If
+
+            Return New VisualBasicCompilationOptions(Me) With {.SyntaxTreeOptionsProvider = provider}
+        End Function
+
         Protected Overrides Function CommonWithOutputKind(kind As OutputKind) As CompilationOptions
             Return WithOutputKind(kind)
         End Function
@@ -912,6 +925,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonWithStrongNameProvider(provider As StrongNameProvider) As CompilationOptions
             Return WithStrongNameProvider(provider)
+        End Function
+
+        Protected Overrides Function CommonWithSyntaxTreeOptionsProvider(provider As SyntaxTreeOptionsProvider) As CompilationOptions
+            Return WithSyntaxTreeOptionsProvider(provider)
         End Function
 
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
@@ -1220,7 +1237,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=MetadataImportOptions.Public,
                 referencesSupersedeLowerVersions:=False,
-                ignoreCorLibraryDuplicatedTypes:=False)
+                ignoreCorLibraryDuplicatedTypes:=False,
+                syntaxTreeOptionsProvider:=Nothing)
 
         End Sub
 

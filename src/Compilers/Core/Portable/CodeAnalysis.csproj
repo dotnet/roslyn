@@ -143,6 +143,7 @@
     <Compile Include="Options\OptionStorageLocation.cs" />
     <Compile Include="Options\Option`1.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
+    <Compile Include="Options\SyntaxTreeOptionsProvider.cs" />
     <Compile Include="Emit\AsyncMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\IteratorMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\StateMachineMoveNextDebugInfo.cs" />

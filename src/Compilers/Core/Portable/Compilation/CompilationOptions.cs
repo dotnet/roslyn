@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -226,6 +227,11 @@ namespace Microsoft.CodeAnalysis
         public StrongNameProvider StrongNameProvider { get; protected set; }
 
         /// <summary>
+        /// Provides options for analyzer consumption that apply to specific syntax trees. Null if no syntax tree specific options exist.
+        /// </summary>
+        public SyntaxTreeOptionsProvider SyntaxTreeOptionsProvider { get; protected set; }
+
+        /// <summary>
         /// Used to compare assembly identities. May implement unification and portability policies specific to the target platform.
         /// <see cref="AssemblyIdentityComparer.Default"/> if not specified.
         /// </summary>
@@ -277,7 +283,8 @@ namespace Microsoft.CodeAnalysis
             AssemblyIdentityComparer assemblyIdentityComparer,
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
-            bool referencesSupersedeLowerVersions)
+            bool referencesSupersedeLowerVersions,
+            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -287,6 +294,7 @@ namespace Microsoft.CodeAnalysis
             this.CryptoKeyFile = string.IsNullOrEmpty(cryptoKeyFile) ? null : cryptoKeyFile;
             this.CryptoPublicKey = cryptoPublicKey.NullToEmpty();
             this.DelaySign = delaySign;
+            this.PublicSign = publicSign;
             this.CheckOverflow = checkOverflow;
             this.Platform = platform;
             this.GeneralDiagnosticOption = generalDiagnosticOption;
@@ -305,7 +313,7 @@ namespace Microsoft.CodeAnalysis
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
             this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
-            this.PublicSign = publicSign;
+            this.SyntaxTreeOptionsProvider = syntaxTreeOptionsProvider;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -462,6 +470,11 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
+        public CompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        {
+            return CommonWithSyntaxTreeOptionsProvider(provider);
+        }
+
         public CompilationOptions WithModuleName(string moduleName)
         {
             return CommonWithModuleName(moduleName);
@@ -513,6 +526,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider);
+        protected abstract CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider);
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
@@ -618,6 +632,7 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
+                   object.Equals(this.SyntaxTreeOptionsProvider, other.SyntaxTreeOptionsProvider) &&
                    object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
                    this.PublicSign == other.PublicSign;
 
@@ -652,8 +667,9 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
+                   Hash.Combine(this.SyntaxTreeOptionsProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(this.PublicSign, 0))))))))))))))))))))))))));
+                   Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)
