@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
     internal class AnalyzerVsixSuggestedActionCallback : ForegroundThreadAffinitizedObject, ISuggestedActionCallback
     {
         private const string AnalyzerEnabledFlight = @"LiveCA/LiveCAcf";
-        private const string AnalyzerVsixHyperlink = @"https://aka.ms/livecodeanalysis";
+        private const string AnalyzerVsixHyperlink = @"https://go.microsoft.com/fwlink/?linkid=849061";
         private static readonly Guid FxCopAnalyzersPackageGuid = Guid.Parse("{4A41D270-A97F-4639-A352-28732FC410E4}");
 
         private readonly VisualStudioWorkspace _workspace;
