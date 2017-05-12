@@ -45,12 +45,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, s_isSourceLocation);
             }
 
-            public static void AnalyzeCompilation(CompilationAnalysisContext context)
-            {
-                var diagnostics = context.Compilation.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(diagnostics, context.ReportDiagnostic, location => !IsSourceLocation(location), s_declaration);
-            }
-
             private static readonly Func<Location, bool> s_isSourceLocation = IsSourceLocation;
 
             private static bool IsSourceLocation(Location location)
