@@ -66,6 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState, bool emittingAssemblyAttributesInNetModule)
         {
             CheckDefinitionInvariant();
+            Debug.Assert(this.Kind != SymbolKind.Assembly);
 
             ImmutableArray<CSharpAttributeData> userDefined;
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;

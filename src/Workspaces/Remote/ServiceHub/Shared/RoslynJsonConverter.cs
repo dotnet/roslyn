@@ -127,11 +127,16 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             public override bool CanConvert(Type objectType) => typeof(Checksum) == objectType;
 
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) =>
-                new Checksum(Convert.FromBase64String((string)reader.Value));
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                var value = (string)reader.Value;
+                return value == null ? null : new Checksum(Convert.FromBase64String(value));
+            }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
-                writer.WriteValue(value.ToString());
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                writer.WriteValue(value?.ToString());
+            }
         }
     }
 }
