@@ -19,17 +19,42 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             Return OperationKind.CompoundAssignmentExpression
                         End If
                     Case BoundKind.UserDefinedBinaryOperator
-                        Dim rightOperatorBinary As IBinaryOperatorExpression = DirectCast(Create(value.Right), IBinaryOperatorExpression)
+                        Dim rightOperatorBinary As BoundUserDefinedBinaryOperator = DirectCast(value.Right, BoundUserDefinedBinaryOperator)
+
                         ' It is not permissible to access the Left property of a BoundUserDefinedBinaryOperator unconditionally,
                         ' because that property can throw an exception if the operator expression is semantically invalid.
-                        ' Fetching the left operand through IBinaryOperatorExpression is safe.
-                        If rightOperatorBinary.LeftOperand Is value.LeftOnTheRightOpt Then
+                        ' get it through helper method
+                        Dim leftOperand = GetUserDefinedBinaryOperatorChildBoundNode(rightOperatorBinary, 0)
+                        If leftOperand Is value.LeftOnTheRightOpt Then
                             Return OperationKind.CompoundAssignmentExpression
                         End If
                 End Select
             End If
 
             Return OperationKind.AssignmentExpression
+        End Function
+
+        Private Shared Function GetUserDefinedBinaryOperatorChild([operator] As BoundUserDefinedBinaryOperator, index As Integer) As IOperation
+            Dim child = Create(GetUserDefinedBinaryOperatorChildBoundNode([operator], index))
+            If child IsNot Nothing Then
+                Return child
+            End If
+
+            Return OperationFactory.CreateInvalidExpression([operator].UnderlyingExpression.Syntax, ImmutableArray(Of IOperation).Empty)
+        End Function
+
+        Private Shared Function GetUserDefinedBinaryOperatorChildBoundNode([operator] As BoundUserDefinedBinaryOperator, index As Integer) As BoundNode
+            If [operator].UnderlyingExpression.Kind = BoundKind.Call Then
+                If index = 0 Then
+                    Return [operator].Left
+                ElseIf index = 1 Then
+                    Return [operator].Right
+                Else
+                    Throw ExceptionUtilities.UnexpectedValue(index)
+                End If
+            End If
+
+            Return GetChildOfBadExpressionBoundNode([operator].UnderlyingExpression, index)
         End Function
 
         Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
@@ -119,15 +144,24 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Shared Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
+            Dim child = Create(GetChildOfBadExpressionBoundNode(parent, index))
+            If child IsNot Nothing Then
+                Return child
+            End If
+
+            Return OperationFactory.CreateInvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
+        End Function
+
+        Private Shared Function GetChildOfBadExpressionBoundNode(parent As BoundNode, index As Integer) As BoundNode
             Dim badParent As BoundBadExpression = TryCast(parent, BoundBadExpression)
             If badParent?.ChildBoundNodes.Length > index Then
-                Dim child As IOperation = Create(badParent.ChildBoundNodes(index))
+                Dim child As BoundNode = badParent.ChildBoundNodes(index)
                 If child IsNot Nothing Then
                     Return child
                 End If
             End If
 
-            Return OperationFactory.CreateInvalidExpression(parent.Syntax, ImmutableArray(Of IOperation).Empty)
+            Return Nothing
         End Function
 
         Private Shared ReadOnly s_memberInitializersMappings As New ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
@@ -457,8 +491,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return s_variablesDeclMappings.GetValue(
                     boundUsingStatement,
                     Function(boundUsing)
+                        Dim declaration = If(boundUsing.ResourceList.IsDefaultOrEmpty,
+                            ImmutableArray(Of IVariableDeclaration).Empty,
+                            boundUsing.ResourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray())
                         Return New VariableDeclarationStatement(
-                            boundUsing.ResourceList.SelectAsArray(Function(n) DirectCast(Create(n), IVariableDeclaration)),
+                            declaration,
                             isInvalid:=False,
                             syntax:=Nothing,
                             type:=Nothing,
