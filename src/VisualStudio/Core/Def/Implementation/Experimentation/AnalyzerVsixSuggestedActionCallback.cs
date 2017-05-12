@@ -100,7 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
             //     2: Have triggered a lightbulb on 3 separate days
 
-            // If the user hasn't met candidacy conditions, then we check them. Otherwise, proceed to info bar check
+            // If the user hasn't met candidacy conditions, then we check them. Otherwise, proceed
+            // to info bar check
             var isCandidate = options.GetOption(AnalyzerABTestOptions.HasMetCandidacyRequirements);
             if (!isCandidate)
             {
