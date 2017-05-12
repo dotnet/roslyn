@@ -56,13 +56,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 return;
             }
 
+            EnsureInitialized();
+
+            // Only show if the VSIX is not installed, the info bar hasn't been shown this session,
+            // and the user is an A/B test candidate
+            if (!IsVsixInstalled() &&
+                !_infoBarShown &&
+                IsCandidate())
+            {
+                ShowInfoBarIfNecessary();
+            }
+        }
+
+        private void EnsureInitialized()
+        {
             // Initialize the experimentation service if it hasn't yet been fetched
             if (_experimentationService == null)
             {
                 _experimentationService = _workspace.Services.GetRequiredService<IExperimentationService>();
             }
+        }
 
-            // If we haven't yet checked to see if the VSIX is installed, check now
+        private bool IsVsixInstalled()
+        {
             if (_installStatus == LiveCodeAnalysisInstallStatus.Unknown)
             {
                 var vsShell = _serviceProvider.GetService(typeof(SVsShell)) as IVsShell;
@@ -75,33 +91,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                     // suggested action is called, and we don't want to continue if the shell
                     // is busted.
                     _installStatus = LiveCodeAnalysisInstallStatus.Installed;
-                    return;
                 }
-                _installStatus = installed != 0 ? LiveCodeAnalysisInstallStatus.Installed : LiveCodeAnalysisInstallStatus.NotInstalled;
+                else
+                {
+                    _installStatus = installed != 0 ? LiveCodeAnalysisInstallStatus.Installed : LiveCodeAnalysisInstallStatus.NotInstalled;
+                }
             }
 
-            // Only proceed if the VSIX isn't installed
-            if (_installStatus == LiveCodeAnalysisInstallStatus.Installed)
-            {
-                return;
-            }
-
-            if (!_infoBarShown)
-            {
-                SuggestedActionOccurred();
-            }
+            return _installStatus == LiveCodeAnalysisInstallStatus.Installed;
         }
 
-        private void SuggestedActionOccurred()
+        private bool IsCandidate()
         {
-            var options = _workspace.Options;
-
             // Filter for valid A/B test candidates. Candidates fill the following critera:
             //     1: Are a Dotnet user (as evidenced by the fact that this code is being run)
             //     2: Have triggered a lightbulb on 3 separate days
 
             // If the user hasn't met candidacy conditions, then we check them. Otherwise, proceed
             // to info bar check
+            var options = _workspace.Options;
             var isCandidate = options.GetOption(AnalyzerABTestOptions.HasMetCandidacyRequirements);
             if (!isCandidate)
             {
@@ -125,14 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 }
             }
 
-            // If the user still isn't a candidate, then return. Otherwise, we move to checking if
-            // the infobar should be shown
-            if (!isCandidate)
-            {
-                return;
-            }
-
-            ShowInfoBarIfNecessary();
+            return isCandidate;
         }
 
         private void ShowInfoBarIfNecessary()
@@ -142,12 +143,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                 // If we got true from the experimentation service, then we're in the treatment
                 // group, and the experiment is enabled. We determine if the infobar has been
                 // displayed in the past 24 hours. If it hasn't been displayed, then we do so now.
-                var lastDayInfoBarShown = DateTime.FromBinary(_workspace.Options.GetOption(AnalyzerABTestOptions.LastDateTimeInfoBarShown));
+                var lastTimeInfoBarShown = DateTime.FromBinary(_workspace.Options.GetOption(AnalyzerABTestOptions.LastDateTimeInfoBarShown));
                 var utcNow = DateTime.UtcNow;
-                var timeSinceLastShown = utcNow - lastDayInfoBarShown;
+                var timeSinceLastShown = utcNow - lastTimeInfoBarShown;
 
                 if (timeSinceLastShown.TotalDays >= 1)
                 {
+                    _infoBarShown = true;
                     _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.LastDateTimeInfoBarShown, utcNow.ToBinary());
 
                     var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
@@ -161,8 +163,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
                         new InfoBarUI(title: ServicesVSResources.Analyzer_vsix_do_not_show_again,
                                       kind: InfoBarUI.UIKind.Button,
                                       action: DoNotShowAgain));
-
-                    _infoBarShown = true;
                 }
             }
         }
