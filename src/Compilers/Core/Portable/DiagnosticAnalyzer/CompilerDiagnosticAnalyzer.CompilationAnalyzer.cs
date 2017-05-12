@@ -21,6 +21,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private class CompilationAnalyzer
         {
             private readonly Compilation _compilation;
+            private delegate void ReportDiagnosticOnContext<TContext>(ref TContext context, Diagnostic diagnostic);
+
+            private static readonly ReportDiagnosticOnContext<SyntaxTreeAnalysisContext> s_reportSyntaxTreeDiagnostic =
+                (ref SyntaxTreeAnalysisContext context, Diagnostic diagnostic) => context.ReportDiagnostic(diagnostic);
+
+            private static readonly ReportDiagnosticOnContext<SemanticModelAnalysisContext> s_reportSemanticModelDiagnostic =
+                (ref SemanticModelAnalysisContext context, Diagnostic diagnostic) => context.ReportDiagnostic(diagnostic);
 
             public CompilationAnalyzer(Compilation compilation)
             {
@@ -31,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var semanticModel = _compilation.GetSemanticModel(context.Tree);
                 var diagnostics = semanticModel.GetSyntaxDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(diagnostics, context.ReportDiagnostic, s_isSourceLocation, s_syntactic);
+                ReportDiagnostics(ref context, diagnostics, s_reportSyntaxTreeDiagnostic, s_isSourceLocation, s_syntactic);
             }
 
             public static Action<SemanticModelAnalysisContext> AnalyzeSemanticModel { get; } = AnalyzeSemanticModelImpl;
@@ -39,10 +46,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private static void AnalyzeSemanticModelImpl(SemanticModelAnalysisContext context)
             {
                 var declDiagnostics = context.SemanticModel.GetDeclarationDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(declDiagnostics, context.ReportDiagnostic, s_isSourceLocation, s_declaration);
+                ReportDiagnostics(ref context, declDiagnostics, s_reportSemanticModelDiagnostic, s_isSourceLocation, s_declaration);
 
                 var bodyDiagnostics = context.SemanticModel.GetMethodBodyDiagnostics(cancellationToken: context.CancellationToken);
-                ReportDiagnostics(bodyDiagnostics, context.ReportDiagnostic, s_isSourceLocation);
+                ReportDiagnostics(ref context, bodyDiagnostics, s_reportSemanticModelDiagnostic, s_isSourceLocation);
             }
 
             private static readonly Func<Location, bool> s_isSourceLocation = IsSourceLocation;
@@ -52,9 +59,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return location != null && location.Kind == LocationKind.SourceFile;
             }
 
-            private static void ReportDiagnostics(
+            private static void ReportDiagnostics<TContext>(
+                ref TContext context,
                 ImmutableArray<Diagnostic> diagnostics,
-                Action<Diagnostic> reportDiagnostic,
+                ReportDiagnosticOnContext<TContext> reportDiagnostic,
                 Func<Location, bool> locationFilter,
                 ImmutableDictionary<string, string> properties = null)
             {
@@ -64,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         diagnostic.Severity != DiagnosticSeverity.Hidden)
                     {
                         var current = properties == null ? diagnostic : new CompilerDiagnostic(diagnostic, properties);
-                        reportDiagnostic(current);
+                        reportDiagnostic(ref context, current);
                     }
                 }
             }
