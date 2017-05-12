@@ -10,9 +10,7 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -170,62 +168,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return this;
         }
 
-        public CompilationVerifier VerifyPdb(
-            XElement expectedPdb,
-            IMethodSymbol debugEntryPoint = null,
-            DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
-        {
-            _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-            return this;
-        }
-
-        public CompilationVerifier VerifyPdb(
-            string expectedPdb,
-            IMethodSymbol debugEntryPoint = null,
-            DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
-        {
-            _compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-            return this;
-        }
-
-        public CompilationVerifier VerifyPdb(
-            string qualifiedMethodName,
-            string expectedPdb,
-            IMethodSymbol debugEntryPoint = null,
-            DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
-        {
-            _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-            return this;
-        }
-
-        public CompilationVerifier VerifyPdb(
-            string qualifiedMethodName,
-            XElement expectedPdb,
-            IMethodSymbol debugEntryPoint = null,
-            DebugInformationFormat format = 0,
-            PdbToXmlOptions options = 0,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
-        {
-            _compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
-            return this;
-        }
-
-        public ISymUnmanagedReader3 CreateSymReader()
-        {
-            var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
-            return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
-        }
-
         public string VisualizeIL(string qualifiedMethodName, bool realIL = false, string sequencePoints = null, string source = null)
         {
             // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
@@ -250,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                              PdbToXmlOptions.ExcludeScopes,
                     methodName: sequencePoints);
 
-                markers = PdbValidation.GetMarkers(actualPdbXml, source);
+                markers = ILValidation.GetSequencePointMarkers(actualPdbXml, source);
             }
 
             if (!realIL)

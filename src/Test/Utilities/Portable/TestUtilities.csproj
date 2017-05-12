@@ -151,12 +151,13 @@
     <Compile Include="ICompilationVerifier.cs" />
     <Compile Include="MarkedSource\MarkupTestFile.cs" />
     <Compile Include="MarkedSource\SourceWithMarkedNodes.cs" />
-    <Compile Include="MetadataSignatureUnitTestHelper.cs" />
+    <Compile Include="Metadata\MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="Metadata\CustomAttributeRow.cs" />
     <Compile Include="Metadata\DynamicAnalysisDataReader.cs" />
     <Compile Include="Metadata\EncValidation.cs" />
     <Compile Include="Metadata\IlasmUtilities.cs" />
     <Compile Include="Metadata\ILBuilderVisualizer.cs" />
+    <Compile Include="Metadata\ILValidation.cs" />
     <Compile Include="Metadata\MetadataReaderUtils.cs" />
     <Compile Include="Metadata\MetadataValidation.cs" />
     <Compile Include="Metadata\ModuleData.cs" />
