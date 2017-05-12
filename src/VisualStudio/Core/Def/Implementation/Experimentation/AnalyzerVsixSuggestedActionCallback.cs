@@ -24,11 +24,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         private readonly VisualStudioWorkspace _workspace;
         private readonly SVsServiceProvider _serviceProvider;
 
-        // We don't show the user an infobar more than once per VS session
+        /// <summary>
+        /// Tracks when the bar is shown so we don't show to the user more than once per session
+        /// </summary>
         private bool _infoBarShown = false;
-        private LiveCAInstallStatus _installStatus = LiveCAInstallStatus.Unchecked;
-        // Initialized the first time we're on the UI thread
+
+        /// <summary>
+        /// This service is initialzed by <see cref="OnSuggestedActionExecuted(SuggestedAction)"/>
+        /// </summary>
         private IExperimentationService _experimentationService;
+
+        private LiveCAInstallStatus _installStatus = LiveCAInstallStatus.Unchecked;
 
         [ImportingConstructor]
         public AnalyzerVsixSuggestedActionCallback(VisualStudioWorkspace workspace,
