@@ -388,13 +388,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If none of those are the case then we can just take an early out.
 
-            if (CanSkipRewriting(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, _factory, out var isComReceiver, out var temporariesBuilder))
+            ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
+            rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
+
+            if (CanSkipRewriting(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
             {
-                temps = temporariesBuilder?.ToImmutableAndFree() ?? default(ImmutableArray<LocalSymbol>);
+                temps = temporariesBuilder.ToImmutableAndFree();
                 return rewrittenArguments;
             }
-
-            Debug.Assert(temporariesBuilder != null);
 
             // We have:
             // * a list of arguments, already converted to their proper types, 
@@ -518,13 +519,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
 
-            bool canSkipRewriting = CanSkipRewriting(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, null, out var isComReceiver, out var temporariesBuilder);
-            Debug.Assert(temporariesBuilder == null);
+            bool canSkipRewriting = CanSkipRewriting(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver); 
 
             if (canSkipRewriting)
             {
-                Debug.Assert(temporariesBuilder == null);
-
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.   
                 for (int i = 0; i < arguments.Length; i++)
@@ -557,12 +555,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             bool invokedAsExtensionMethod,
-            SyntheticBoundNodeFactory factory,
-            out bool isComReceiver,
-            out ArrayBuilder<LocalSymbol> temporariesBuilder)
+            out bool isComReceiver)
         {
-            temporariesBuilder = null;
-
             // An applicable "vararg" method could not possibly be applicable in its expanded
             // form, and cannot possibly have named arguments or used optional parameters, 
             // because the __arglist() argument has to be positional and in the last position. 
@@ -573,7 +567,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argsToParamsOpt.IsDefault);
                 Debug.Assert(!expanded);
                 isComReceiver = false;
-                temporariesBuilder = null;
                 return true;
             }
 
@@ -581,13 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
                                     methodOrIndexer.ContainingType;
 
-            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
-
-            if (factory != null)
-            {
-                temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
-                rewrittenArguments = factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
-            }
+            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport; 
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
