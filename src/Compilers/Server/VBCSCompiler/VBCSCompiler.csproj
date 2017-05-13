@@ -13,7 +13,7 @@
     <AssemblyName>VBCSCompiler</AssemblyName>
     <LargeAddressAware>true</LargeAddressAware>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win7;$(UnixRuntimeIdentifier)</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>

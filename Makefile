@@ -12,10 +12,14 @@ TARGET_FX = netcoreapp1.1
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
 
+RUNTIME_ID := $(DOTNET_RUNTIME_ID)
+
+ifeq ($(RUNTIME_ID),)
 ifeq ($(OS_NAME),Linux)
 	RUNTIME_ID := $(shell . /etc/os-release && echo $$ID.$$VERSION_ID)-x64
 else ifeq ($(OS_NAME),Darwin)
 	RUNTIME_ID := osx.10.12-x64
+endif
 endif
 
 ifneq ($(BUILD_LOG_PATH),)
@@ -55,7 +59,7 @@ test:
 
 restore: $(DOTNET)
 	export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
-	./build/scripts/restore.sh
+	./build/scripts/restore.sh $(RUNTIME_ID)
 
 $(DOTNET):
 	mkdir -p $(BINARIES_PATH) ; \
