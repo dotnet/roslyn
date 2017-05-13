@@ -1245,7 +1245,7 @@ class Test
     public void M(ref readonly int x) { }
 }";
 
-            CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseDll).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib(text).VerifyEmitDiagnostics(
                 // (11,19): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public void M(ref readonly int x) { }
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 19));
@@ -2151,6 +2151,127 @@ namespace System.Runtime.CompilerServices
                 // (4,58): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public delegate ref readonly int IsReadOnlyAttribute(ref readonly int x);
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(4, 58));
+        }
+
+        [Fact]
+        public void MissingRequiredConstructorWillReportErrorsOnApproriateSyntax_Constructor()
+        {
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute
+    {
+        public IsReadOnlyAttribute(int p) { }
+    }
+}
+public class Test
+{
+    public Test(ref readonly int x) { }
+}";
+
+            CreateCompilationWithMscorlib(text).VerifyEmitDiagnostics(
+                // (11,17): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public Test(ref readonly int x) { }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 17));
+        }
+
+        [Fact]
+        public void MissingRequiredConstructorWillReportErrorsOnApproriateSyntax_Method()
+        {
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute
+    {
+        public IsReadOnlyAttribute(int p) { }
+    }
+}
+public class Test
+{
+    public ref readonly int Method(ref readonly int x) => ref x;
+}";
+
+            CreateCompilationWithMscorlib(text).VerifyEmitDiagnostics(
+                // (11,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public ref readonly int Method(ref readonly int x) => ref x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 12),
+                // (11,36): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public ref readonly int Method(ref readonly int x) => ref x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 36));
+        }
+
+        [Fact]
+        public void MissingRequiredConstructorWillReportErrorsOnApproriateSyntax_Property()
+        {
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute
+    {
+        public IsReadOnlyAttribute(int p) { }
+    }
+}
+public class Test
+{
+    private int value;
+    public ref readonly int Property => ref value;
+}";
+
+            CreateCompilationWithMscorlib(text).VerifyEmitDiagnostics(
+                // (12,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public ref readonly int Property => ref value;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 12));
+        }
+
+        [Fact]
+        public void MissingRequiredConstructorWillReportErrorsOnApproriateSyntax_Indexer()
+        {
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute
+    {
+        public IsReadOnlyAttribute(int p) { }
+    }
+}
+public class Test
+{
+
+    public ref readonly int this[ref readonly int x] => ref x;
+}";
+
+            CreateCompilationWithMscorlib(text).VerifyEmitDiagnostics(
+                // (12,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public ref readonly int this[ref readonly int x] => ref x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 12),
+                // (12,34): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public ref readonly int this[ref readonly int x] => ref x;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly int x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(12, 34));
+        }
+
+        [Fact]
+        public void MissingRequiredConstructorWillReportErrorsOnApproriateSyntax_Operator()
+        {
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsReadOnlyAttribute : System.Attribute
+    {
+        public IsReadOnlyAttribute(int p) { }
+    }
+}
+public class Test
+{
+    public static int operator + (ref readonly Test x, ref readonly Test y) => 0;
+}";
+
+            CreateCompilationWithMscorlib(text).VerifyEmitDiagnostics(
+                // (11,35): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public static int operator + (ref readonly Test x, ref readonly Test y) => 0;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly Test x").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 35),
+                // (11,56): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
+                //     public static int operator + (ref readonly Test x, ref readonly Test y) => 0;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "ref readonly Test y").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 56));
         }
 
         private void AssertReferencedIsReadOnlyAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)

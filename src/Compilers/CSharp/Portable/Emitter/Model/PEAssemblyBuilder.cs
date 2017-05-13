@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
-        private ImmutableArray<Diagnostic> _lazyEmbeddedAttributesDiagnostics;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -68,9 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             builder.AddRange(_additionalTypes);
 
-            CreateEmbeddedAttributesIfNeeded();
-            diagnostics.AddRange(_lazyEmbeddedAttributesDiagnostics);
-
+            CreateEmbeddedAttributesIfNeeded(diagnostics);
             if ((object)_lazyEmbeddedAttribute != null)
             {
                 builder.Add(_lazyEmbeddedAttribute);
@@ -180,26 +177,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
-        private void CreateEmbeddedAttributesIfNeeded()
+        private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
-            if (_lazyEmbeddedAttributesDiagnostics.IsDefault)
+            if (this.NeedsGeneratedIsReadOnlyAttribute)
             {
-                var diagnostics = DiagnosticBag.GetInstance();
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyEmbeddedAttribute,
+                    diagnostics,
+                    AttributeDescription.CodeAnalysisEmbeddedAttribute);
 
-                if (this.NeedsGeneratedIsReadOnlyAttribute)
-                {
-                    CreateEmbeddedAttributeIfNeeded(
-                        ref _lazyEmbeddedAttribute,
-                        diagnostics,
-                        AttributeDescription.CodeAnalysisEmbeddedAttribute);
-
-                    CreateEmbeddedAttributeIfNeeded(
-                        ref _lazyIsReadOnlyAttribute,
-                        diagnostics,
-                        AttributeDescription.IsReadOnlyAttribute);
-                }
-
-                _lazyEmbeddedAttributesDiagnostics = diagnostics.ToReadOnlyAndFree();
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsReadOnlyAttribute,
+                    diagnostics,
+                    AttributeDescription.IsReadOnlyAttribute);
             }
         }
 
