@@ -55,15 +55,18 @@ namespace System.Runtime.CompilerServices
         //                 span lives.
         private static CSharpCompilation CreateCompilationWithMscorlibAndSpan(string text, CSharpCompilationOptions options = null)
         {
-            var reference = CreateCompilationWithMscorlib45(
+            var reference = CreateCompilation(
                 spanSource,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
-                options: TestOptions.ReleaseDll).EmitToImageReference();
+                options: TestOptions.ReleaseDll);
 
-            var comp = CreateCompilationWithMscorlib45(
-                text, 
-                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference}, 
+            reference.VerifyDiagnostics();
+
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
                 options: options ?? TestOptions.ReleaseExe);
+
 
             return comp;
         }
@@ -71,7 +74,7 @@ namespace System.Runtime.CompilerServices
         private static CSharpCompilation CreateCompilationWithMscorlibAndSpanSrc(string text, CSharpCompilationOptions options = null)
         {
             var textWitSpan = new string[] { text, spanSource };
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilation(
                 textWitSpan,
                 references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
                 options: options ?? TestOptions.ReleaseExe);
@@ -312,40 +315,40 @@ public class Program
 
             comp.VerifyDiagnostics(
                 // (22,16): error CS0610: Field or property cannot be of type 'Span<int>'
-                //         public Span<int> fi1; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                //         public Span<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
                 // (21,23): error CS0610: Field or property cannot be of type 'Span<byte>'
-                //         public static Span<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
+                //         public static Span<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
                 // (10,19): error CS0610: Field or property cannot be of type 'Span<byte>'
                 //     public static Span<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
                 // (11,12): error CS0610: Field or property cannot be of type 'Span<int>'
                 //     public Span<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
                 // (15,23): error CS0610: Field or property cannot be of type 'Span<byte>'
                 //         public static Span<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>")
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
             );
 
             comp = CreateCompilationWithMscorlibAndSpanSrc(text);
 
             comp.VerifyDiagnostics(
                 // (22,16): error CS0610: Field or property cannot be of type 'Span<int>'
-                //         public Span<int> fi1; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                //         public Span<int> fi2; 
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
                 // (21,23): error CS0610: Field or property cannot be of type 'Span<byte>'
-                //         public static Span<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
+                //         public static Span<byte> fs2;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
                 // (10,19): error CS0610: Field or property cannot be of type 'Span<byte>'
                 //     public static Span<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>"),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
                 // (11,12): error CS0610: Field or property cannot be of type 'Span<int>'
                 //     public Span<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>"),
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
                 // (15,23): error CS0610: Field or property cannot be of type 'Span<byte>'
                 //         public static Span<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>")
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
             );
         }
 
@@ -741,13 +744,13 @@ public class Program
             comp.VerifyEmitDiagnostics(
                 // (12,43): error CS0123: No overload for 'GetHashCode' matches delegate 'Func<int>'
                 //         Func<int> d1 = default(Span<int>).GetHashCode;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>"),
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetHashCode").WithArguments("GetHashCode", "System.Func<int>").WithLocation(12, 43),
                 // (14,48): error CS0123: No overload for 'GetType' matches delegate 'Func<Type>'
                 //         Func<Type> d2 = default(SpanLike<int>).GetType;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "GetType").WithArguments("GetType", "System.Func<System.Type>").WithLocation(14, 48),
                 // (16,46): error CS0123: No overload for 'ToString' matches delegate 'Func<string>'
                 //         Func<string> d3 = default(Span<int>).ToString;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "ToString").WithArguments("ToString", "System.Func<string>")
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "ToString").WithArguments("ToString", "System.Func<string>").WithLocation(16, 46)
             );
         }
     }

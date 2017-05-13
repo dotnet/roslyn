@@ -2075,7 +2075,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return false;
             }
 
-            return (object)ns.ContainingNamespace != null;
+            return ns.IsGlobalNamespace;
         }
 
         internal override bool HasDeclarativeSecurity
