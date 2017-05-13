@@ -704,6 +704,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(explicitInterfaceSpecifier != null);
                 _explicitInterfaceType.CheckAllConstraints(conversions, new SourceLocation(explicitInterfaceSpecifier.Name), diagnostics);
             }
+
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, _location, modifyCompilationForRefReadOnly: true);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         private void CheckAccessibility(Location location, DiagnosticBag diagnostics)
@@ -1365,11 +1372,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(errorCode, _location, this);
             }
 
-            if (_refKind == RefKind.RefReadOnly)
-            {
-                binder.Compilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.Type.Location, modifyCompilationForRefReadOnly: true);
-            }
-
             return type;
         }
 
@@ -1390,8 +1392,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_DuplicateGeneratedName, param.Locations.FirstOrDefault() ?? _location, param.Name);
                 }
             }
-
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilationForRefReadOnly: true);
 
             diagnostics.Add(_location, useSiteDiagnostics);
             return parameters;
