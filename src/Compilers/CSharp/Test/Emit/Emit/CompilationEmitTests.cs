@@ -1613,6 +1613,19 @@ internal struct InternalStruct
         }
 
         [Fact]
+        public void MustIncludePrivateMembersUnlessRefAssembly()
+        {
+            CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            using (var output = new MemoryStream())
+            {
+                Assert.Throws<ArgumentException>(() => comp.Emit(output,
+                    options: EmitOptions.Default.WithIncludePrivateMembers(false)));
+            }
+        }
+
+        [Fact]
         public void EmitMetadata_DisallowOutputtingNetModule()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
