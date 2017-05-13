@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         } 
 
-        private static BoundExpression MakeConversionNodeIfNecessaryWithoutLowering(
+        private static BoundExpression MakeConversionForIOperation(
             BoundExpression operand, 
             TypeSymbol type, 
             SyntaxNode syntax, 
@@ -504,15 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool @checked, 
             bool acceptFailingConversion = false)
         {
-            if (operand.Type.Equals(type))
+            Conversion conversion = MakeConversion(operand, type, compilation, diagnostics, acceptFailingConversion);
+
+            if (conversion.Kind == ConversionKind.Identity)
             {
                 return operand;
-            }
-            Conversion conversion = MakeConversion(operand, type, compilation, diagnostics, acceptFailingConversion); 
-
-            if (!conversion.IsValid)
-            {
-                return SyntheticBoundNodeFactory.NullOrDefault(type, syntax);
             }
 
             return new BoundConversion(
@@ -522,7 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             @checked: @checked,
                             explicitCastInCode: false,
                             constantValueOpt: default(ConstantValue),
-                            type: type);
+                            type: type,
+                            hasErrors: !conversion.IsValid);
         }
 
         /// <summary>

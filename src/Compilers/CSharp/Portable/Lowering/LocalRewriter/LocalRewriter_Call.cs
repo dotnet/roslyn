@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// itself. <paramref name="optionalParametersMethod"/> is needed for indexers since getter and setter
         /// may have distinct optional parameter values.
         /// </summary>
-        internal ImmutableArray<BoundExpression> MakeArguments(
+        private ImmutableArray<BoundExpression> MakeArguments(
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If none of those are the case then we can just take an early out.
 
-            if (IsRewritingRequired(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, _factory, out var isComReceiver, out var temporariesBuilder))
+            if (CanSkipRewriting(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, _factory, out var isComReceiver, out var temporariesBuilder))
             {
                 temps = temporariesBuilder?.ToImmutableAndFree() ?? default(ImmutableArray<LocalSymbol>);
                 return rewrittenArguments;
@@ -490,7 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return actualArguments.AsImmutableOrNull();
         }
 
-        internal static ImmutableArray<BoundExpression> MakeArgumentsInEvaluationOrder(
+        internal static ImmutableArray<IArgument> MakeArgumentsInEvaluationOrder(
             Binder binder,
             SyntaxNode syntax,
             ImmutableArray<BoundExpression> arguments,
@@ -498,56 +498,60 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol optionalParametersMethod,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
-            bool invokedAsExtensionMethod,
-            /* out */ ArrayBuilder<ArgumentKind> argumentKindBuilder,
-            /* out */ ArrayBuilder<ParameterSymbol> parameterSymbolBuilder,
-            ThreeState enableCallerInfo = ThreeState.Unknown)
+            bool invokedAsExtensionMethod)
         {
-            Debug.Assert(binder != null && argumentKindBuilder.IsEmpty() && parameterSymbolBuilder.IsEmpty());
+            Debug.Assert(binder != null);
 
             // Either the methodOrIndexer is a property, in which case the method used
             // for optional parameters is an accessor of that property (or an overridden
             // property), or the methodOrIndexer is used for optional parameters directly.
             Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && optionalParametersMethod.IsAccessor()) ||
-                ReferenceEquals(methodOrIndexer, optionalParametersMethod));
+                (object)methodOrIndexer == optionalParametersMethod);
 
             // We need to do a fancy rewrite under the following circumstances:
-            // (1) a params array is being used; we need to generate the array.
-            // (2) there were named arguments that reordered the arguments; we might
-            //     have to generate temporaries to ensure that the arguments are 
-            //     evaluated in source code order, not the actual call order.
-            // (3) there were optional parameters that had no corresponding arguments.
+            // (1) a params array is being used; we need to generate the array. 
+            // (2) there were optional parameters that had no corresponding arguments.
             //
-            // If none of those are the case then we can just take an early out.
+            // If neither of those are the case then we can just take an early out.
 
-            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters(); 
 
-            if (IsRewritingRequired(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, null, out var isComReceiver, out var temporariesBuilder))
-            {
-                // In this case, the invocation is not in expanded form and there's no named argument provided.
-                // So we just return list of arguments as is.
-                for(int i = 0; i < arguments.Length; ++i)
-                {
-                    argumentKindBuilder.Add(ArgumentKind.Explicit);
-                    parameterSymbolBuilder.Add(parameters[i]);
-                }
-                return arguments;
-            }
+            ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
 
+            bool canSkipRewriting = CanSkipRewriting(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, null, out var isComReceiver, out var temporariesBuilder);
             Debug.Assert(temporariesBuilder == null);
 
-            ArrayBuilder<BoundExpression> argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(parameters.Length);
+            if (canSkipRewriting)
+            {
+                Debug.Assert(temporariesBuilder == null);
+
+                // In this case, the invocation is not in expanded form and there's no named argument provided.
+                // So we just return list of arguments as is.   
+                for (int i = 0; i < arguments.Length; i++)
+                {                                                 
+                    argumentsInEvaluationBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
+                } 
+                return argumentsInEvaluationBuilder.ToImmutableAndFree(); ;
+            }                                                                                                                   
+
             ArrayBuilder<ParameterSymbol> missingParametersBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
 
-            BuildExplicitArgumentsInEvaluationOrder(syntax, methodOrIndexer, expanded, argsToParamsOpt, arguments, binder.Compilation, argumentsBuilder, argumentKindBuilder, parameterSymbolBuilder, missingParametersBuilder);
+            BuildExplicitArgumentsInEvaluationOrder(syntax, 
+                methodOrIndexer, 
+                expanded, 
+                argsToParamsOpt, 
+                arguments, 
+                binder, 
+                argumentsInEvaluationBuilder, 
+                missingParametersBuilder);
 
-            AppendMissingOptionalArguments(syntax, missingParametersBuilder.ToImmutableAndFree(), binder, argumentsBuilder, argumentKindBuilder, parameterSymbolBuilder);
+            AppendMissingOptionalArguments(syntax, methodOrIndexer, expanded, binder, missingParametersBuilder.ToImmutableAndFree(), argumentsInEvaluationBuilder);
 
-            return argumentsBuilder.ToImmutableAndFree();
+            return argumentsInEvaluationBuilder.ToImmutableAndFree();
         }
 
         // temporariesBuilder will be null when factory is null.
-        private static bool IsRewritingRequired(
+        private static bool CanSkipRewriting(
             ref ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
             bool expanded,
@@ -685,14 +689,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<BoundExpression> arguments,
-            CSharpCompilation compilation,
-            /* out */ ArrayBuilder<BoundExpression> argumentsBuilder,
-            /* out */ ArrayBuilder<ArgumentKind> argumentKindsBuilder,
-            /* out */ ArrayBuilder<ParameterSymbol> parametersBuilder,
+            Binder binder,
+            /* out */ ArrayBuilder<IArgument> argumentsBuilder,
             /* out */ ArrayBuilder<ParameterSymbol> missingParametersBuilder)
         {
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
-            PooledHashSet<int> processedPeremeters = PooledHashSet<int>.GetInstance();
+            ArrayBuilder<int> processedParameters = ArrayBuilder<int>.GetInstance(parameters.Length);
 
             for (int a = 0; a < arguments.Length; ++a)
             {
@@ -701,8 +703,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
                 var parameter = parameters[p];
 
-                bool processed = processedPeremeters.Add(p);
-                Debug.Assert(processed);
+                Debug.Assert(!processedParameters.Contains(p));
+
+                processedParameters.Add(p); 
 
                 bool isParamArray = false;
                 if (expanded && p == parameters.Length - 1)
@@ -731,23 +734,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var paramArrayType = parameters[p].Type;
                     var arrayArgs = paramArray.ToImmutableAndFree();
 
-                    argument = CreateParamArrayArgument(syntax, methodOrIndexer.ContainingAssembly, paramArrayType, arrayArgs, compilation, null, false);
+                    argument = CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, null, binder);
                 }
 
-                argumentsBuilder.Add(argument);
-                argumentKindsBuilder.Add(isParamArray ? ArgumentKind.ParamArray : ArgumentKind.Explicit);
-                parametersBuilder.Add(parameter);
+                argumentsBuilder.Add(BoundCall.CreateArgumentOperation(isParamArray ? ArgumentKind.ParamArray : ArgumentKind.Explicit, parameter, argument)); 
             }
 
             // Fill in parameters with missing arguments.
             for (int i = 0; i < parameters.Length; ++i)
             {
-                if (!processedPeremeters.Contains(i))
+                if (!processedParameters.Contains(i))
                 {
                     missingParametersBuilder.Add(parameters[i]);
                 }
             }
-            processedPeremeters.Free();
+            processedParameters.Free();
         }
 
         private BoundExpression BuildParamsArray(
@@ -816,20 +817,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return CreateParamArrayArgument(syntax, methodOrIndexer.ContainingAssembly, paramArrayType, arrayArgs, _compilation, _factory.CurrentMethod, _inExpressionLambda);
+            return CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, this, null);
         }
 
-        private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax, AssemblySymbol containingAssembly, TypeSymbol paramArrayType, ImmutableArray<BoundExpression> arrayArgs, CSharpCompilation compilation, MethodSymbol currentMethod, bool inExpressionLambda)
+        private static BoundExpression CreateParamArrayArgument(SyntaxNode syntax,
+            TypeSymbol paramArrayType, 
+            ImmutableArray<BoundExpression> arrayArgs, 
+            LocalRewriter localRewriter,
+            Binder binder)
         {
-
-            var int32Type = containingAssembly.GetSpecialType(SpecialType.System_Int32);
+            Debug.Assert(localRewriter == null ^ binder == null);  
+                                                                            
+            TypeSymbol int32Type = (localRewriter != null ? localRewriter._compilation : binder.Compilation).GetSpecialType(SpecialType.System_Int32);
+            BoundExpression arraySize = MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, localRewriter);    
 
             return new BoundArrayCreation(
                 syntax,
-                ImmutableArray.Create(
-                    MakeLiteral(syntax, ConstantValue.Create(arrayArgs.Length), int32Type, compilation, currentMethod, inExpressionLambda)),
+                ImmutableArray.Create(arraySize),
                 new BoundArrayInitialization(syntax, arrayArgs),
                 paramArrayType);
+        }
+
+        /// <summary>
+        /// To create literal expression for IOperation, set localRewriter to null.
+        /// </summary>
+        private static BoundExpression MakeLiteral(SyntaxNode syntax, ConstantValue constantValue, TypeSymbol type, LocalRewriter localRewriter)
+        {
+            if (localRewriter != null)
+            {
+                return localRewriter.MakeLiteral(syntax, constantValue, type);
+            }
+            else
+            {
+                return new BoundLiteral(syntax, constantValue, type);
+            }
         }
 
         private static void OptimizeTemporaries(
@@ -978,37 +999,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static readonly DiagnosticBag s_notUsedDiagnosticBagForDerivingArgumentsForIOperation = new DiagnosticBag();
-
         private static void AppendMissingOptionalArguments(SyntaxNode syntax,
-            ImmutableArray<ParameterSymbol> missingParameters,
+            Symbol methodOrIndexer,
+            bool expanded, 
             Binder binder,
-            ArrayBuilder<BoundExpression> argumentsBuilder,
-            ArrayBuilder<ArgumentKind> argumentKindsBuilder,
-            ArrayBuilder<ParameterSymbol> parametersBuilder,
-            ThreeState enableCallerInfo = ThreeState.Unknown)
+            ImmutableArray<ParameterSymbol> missingParameters,
+            ArrayBuilder<IArgument> argumentsBuilder)
         {
+            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
             foreach (var parameter in missingParameters)
             {
-                if (parameter.IsParams)
+                if (expanded && parameter.Ordinal == parameters.Length - 1)
                 {
-                    // Create an empty array for omitted param array argument.
-                    var paramArray = CreateParamArrayArgument(syntax, parameter.ContainingAssembly, parameter.Type, ImmutableArray<BoundExpression>.Empty, binder.Compilation, null, false);
+                    Debug.Assert(parameter.IsParams);
 
-                    argumentsBuilder.Add(paramArray);
-                    argumentKindsBuilder.Add(ArgumentKind.ParamArray);
+                    // Create an empty array for omitted param array argument.
+                    var paramArray = CreateParamArrayArgument(syntax, parameter.Type, ImmutableArray<BoundExpression>.Empty, null, binder);
+
+                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.ParamArray, parameter, paramArray)); 
                 }
                 else
                 {
                     Debug.Assert(parameter.IsOptional);
-                    var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo, null, binder, s_notUsedDiagnosticBagForDerivingArgumentsForIOperation);
 
-                    argumentsBuilder.Add(defaultArgument);
-                    argumentKindsBuilder.Add(ArgumentKind.DefaultValue);  
-                }
-                parametersBuilder.Add(parameter);
-            }
-            s_notUsedDiagnosticBagForDerivingArgumentsForIOperation.Clear();
+                    var unusedDiagnostics = DiagnosticBag.GetInstance();
+                    var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.Unknown, localRewriter: null, binder: binder, diagnostics: unusedDiagnostics);
+                    unusedDiagnostics.Free();
+
+                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.DefaultValue, parameter, defaultArgument));
+                }                               
+            }                                                               
         }
 
         private static SourceLocation GetCallerLocation(SyntaxNode syntax, ThreeState enableCallerInfo)
@@ -1072,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>  
         private BoundExpression GetDefaultParameterValue(SyntaxNode syntax, ParameterSymbol parameter, ThreeState enableCallerInfo)
         {
-            return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, null);
+            return GetDefaultParameterValue(syntax, parameter, enableCallerInfo, this, null, this._diagnostics);
         }
 
         /// <summary>
@@ -1089,20 +1109,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(localRewriter == null ^ (binder == null && diagnostics == null));
+            Debug.Assert(localRewriter == null ^ binder == null);
+            Debug.Assert(diagnostics != null);
 
-            bool isLowering;
-            bool inExpressionLambda = false;
-            MethodSymbol currentMethod = null;
+            bool isLowering;                  
             CSharpCompilation compilation; 
 
             if (localRewriter != null)
             {
                 isLowering = true;
                 compilation = localRewriter._compilation;
-                inExpressionLambda = localRewriter._inExpressionLambda;
-                currentMethod = localRewriter._factory.CurrentMethod;
-                diagnostics = localRewriter._diagnostics;
             }
             else
             {
@@ -1122,8 +1138,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocation callerSourceLocation;
 
             // For compatibility with the native compiler we treat all bad imported constant
-            // values as default(T).  
-            if (defaultConstantValue != null && defaultConstantValue.IsBad)
+            // values as default(T). However, we don't do this for IOperation purpose, in which case
+            // we will expose the bad node.
+            if (defaultConstantValue != null && defaultConstantValue.IsBad && isLowering)
             {
                 defaultConstantValue = ConstantValue.Null;
             }
@@ -1132,14 +1149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 int line = callerSourceLocation.SourceTree.GetDisplayLineNumber(callerSourceLocation.SourceSpan);
                                      
-                BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), compilation.GetSpecialType(SpecialType.System_Int32), compilation, currentMethod, inExpressionLambda);
+                BoundExpression lineLiteral = MakeLiteral(syntax, ConstantValue.Create(line), compilation.GetSpecialType(SpecialType.System_Int32), localRewriter);
 
                 if (parameterType.IsNullableType())
                 {
                     TypeSymbol nullableType = parameterType.GetNullableUnderlyingType();
                     defaultValue = isLowering
                         ? localRewriter.MakeConversionNode(lineLiteral, nullableType, false)                
-                        : MakeConversionNodeIfNecessaryWithoutLowering(lineLiteral, nullableType, syntax, compilation, diagnostics, false); 
+                        : MakeConversionForIOperation(lineLiteral, nullableType, syntax, compilation, diagnostics, false); 
 
                     // wrap it in a nullable ctor.
                     defaultValue = new BoundObjectCreationExpression(
@@ -1152,16 +1169,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {                                                                                                                                     
                     defaultValue = isLowering
                         ? localRewriter.MakeConversionNode(lineLiteral, parameterType, false)
-                        : MakeConversionNodeIfNecessaryWithoutLowering(lineLiteral, parameterType, syntax, compilation, diagnostics, false);
+                        : MakeConversionForIOperation(lineLiteral, parameterType, syntax, compilation, diagnostics, false);
                 }  
             }
             else if (parameter.IsCallerFilePath && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
                 string path = callerSourceLocation.SourceTree.GetDisplayPath(callerSourceLocation.SourceSpan, compilation.Options.SourceReferenceResolver);
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), compilation.GetSpecialType(SpecialType.System_String), compilation, currentMethod, inExpressionLambda); 
+                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(path), compilation.GetSpecialType(SpecialType.System_String), localRewriter); 
                 defaultValue = isLowering
                     ? localRewriter.MakeConversionNode(memberNameLiteral, parameterType, false)
-                    : MakeConversionNodeIfNecessaryWithoutLowering(memberNameLiteral, parameterType, syntax, compilation, diagnostics, false);
+                    : MakeConversionForIOperation(memberNameLiteral, parameterType, syntax, compilation, diagnostics, false);
             }
             else if (parameter.IsCallerMemberName && ((callerSourceLocation = GetCallerLocation(syntax, enableCallerInfo)) != null))
             {
@@ -1222,30 +1239,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 else
-                { 
-                    // If the parameter has 'CallerMemberNameAttribute' applied to it, and the containg member is
-                    // property getter/setter or event add/remove, we need to retrieve the actual property and event name instead.
-                    var containingMember = binder.ContainingMember();
-                    if (containingMember.Kind == SymbolKind.Method)
-                    {
-                        var containingMethod = (MethodSymbol)containingMember;
-                        switch (containingMethod.MethodKind)
-                        {
-                            case MethodKind.PropertyGet:
-                            case MethodKind.PropertySet:
-                            case MethodKind.EventAdd:
-                            case MethodKind.EventRemove:
-                                containingMember = containingMethod.AssociatedSymbol;
-                                break;
-                        }
-                    }
-                    memberName = containingMember.Name; 
+                {  
+                    memberName = binder.ContainingMember().GetMemberCallerName(); 
                 }
 
-                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String), compilation, currentMethod, inExpressionLambda);  
+                BoundExpression memberNameLiteral = MakeLiteral(syntax, ConstantValue.Create(memberName), compilation.GetSpecialType(SpecialType.System_String), localRewriter);  
                 defaultValue = isLowering
                     ? localRewriter.MakeConversionNode(memberNameLiteral, parameterType, false)
-                    : MakeConversionNodeIfNecessaryWithoutLowering(memberNameLiteral, parameterType, syntax, compilation, diagnostics, false);
+                    : MakeConversionForIOperation(memberNameLiteral, parameterType, syntax, compilation, diagnostics, false);
             }
             else if (defaultConstantValue == ConstantValue.NotAvailable)
             {                                                                                 
@@ -1255,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // We have something like M([Optional] object x). We have special handling for such situations.
                     defaultValue = isLowering 
                         ? localRewriter.GetDefaultParameterSpecial(syntax, parameter)
-                        : GetDefaultParameterSpecialWithOutLowering(syntax, parameter, compilation, diagnostics);
+                        : GetDefaultParameterSpecialForIOperation(syntax, parameter, compilation, diagnostics);
                 }
                 else
                 {
@@ -1275,14 +1276,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // with new double?(1.23).
 
                 TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType, compilation, currentMethod, inExpressionLambda);
+                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType, localRewriter);
 
                 // The parameter's underlying type might not match the constant type. For example, we might have
                 // a default value of 5 (an integer) but a parameter type of decimal?.
 
                 defaultValue = isLowering
                     ? localRewriter.MakeConversionNode(defaultValue, parameterType.GetNullableUnderlyingType(), @checked: false, acceptFailingConversion: true)
-                    : MakeConversionNodeIfNecessaryWithoutLowering(defaultValue, parameterType.GetNullableUnderlyingType(), syntax, compilation, diagnostics, @checked: false, acceptFailingConversion: true);
+                    : MakeConversionForIOperation(defaultValue, parameterType.GetNullableUnderlyingType(), syntax, compilation, diagnostics, @checked: false, acceptFailingConversion: true);
 
                 // Finally, wrap it in a nullable ctor.
                 defaultValue = new BoundObjectCreationExpression(
@@ -1293,18 +1294,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (defaultConstantValue.IsNull || defaultConstantValue.IsBad)
             {
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, compilation, currentMethod, inExpressionLambda);
+                defaultValue = MakeLiteral(syntax, defaultConstantValue, parameterType, localRewriter);
             }
             else
             {
                 // We have something like M(double x = 1.23), so replace the argument with 1.23.
 
                 TypeSymbol constantType = compilation.GetSpecialType(defaultConstantValue.SpecialType);
-                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType, compilation, currentMethod, inExpressionLambda);
+                defaultValue = MakeLiteral(syntax, defaultConstantValue, constantType, localRewriter);
                 // The parameter type might not match the constant type.                                                                                                                    
                 defaultValue = isLowering
                     ? localRewriter.MakeConversionNode(defaultValue, parameterType, @checked: false, acceptFailingConversion: true)
-                    : MakeConversionNodeIfNecessaryWithoutLowering(defaultValue, parameterType, syntax, compilation, diagnostics, @checked: false, acceptFailingConversion: true);
+                    : MakeConversionForIOperation(defaultValue, parameterType, syntax, compilation, diagnostics, @checked: false, acceptFailingConversion: true);
             }
 
             return defaultValue;
@@ -1316,10 +1317,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MakeConversionNode(defaultValue, parameter.Type, @checked: false);
         }
 
-        private static BoundExpression GetDefaultParameterSpecialWithOutLowering(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static BoundExpression GetDefaultParameterSpecialForIOperation(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, compilation);
-            return MakeConversionNodeIfNecessaryWithoutLowering(defaultValue, parameter.Type, syntax, compilation, diagnostics, @checked: false);
+            return MakeConversionForIOperation(defaultValue, parameter.Type, syntax, compilation, diagnostics, @checked: false);
         }
 
         private static BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation)

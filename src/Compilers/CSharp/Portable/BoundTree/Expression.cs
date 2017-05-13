@@ -75,7 +75,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private static readonly ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>> s_callToArgumentsMappings 
-            = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>();
+            = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>(); 
+
+        internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
+        {
+            return new Argument(kind,
+                parameter,
+                value,
+                inConversion: null,
+                outConversion: null,
+                isInvalid: parameter == null || value.IsInvalid,
+                syntax: value.Syntax,
+                type: value.Type,
+                constantValue: default(Optional<object>));
+        }
 
         internal static ImmutableArray<IArgument> DeriveArguments(
             BoundExpression boundNode,
@@ -90,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             SyntaxNode invocationSyntax,
             bool invokedAsExtensionMethod = false)
-        {
+        {                       
             // We can simply return empty array only if both parameters and boundArguments are empty, because:
             // - if only parameters is empty, there's error in code but we still need to return provided expression.
             // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters. 
@@ -104,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (n) =>
                 {
                     //TODO: https://github.com/dotnet/roslyn/issues/18722
-                    //      Right now, for errornous code, we try to recover as much data as we can
-                    //      and expose them as IArguments, so user needs to check IsInvalid firdt before using 
+                    //      Right now, for erroneous code, we try to recover as much data as we can
+                    //      and expose them as IArguments, so user needs to check IsInvalid first before using 
                     //      anything we returned. Need to implement a new interface for invalid invocation instead.
                     if (n.HasErrors)
                     {
@@ -120,16 +133,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 ? parameters[argumentsToParametersOpt[a]]
                                                 : null);
 
-                            argumentsWithErrors.Add(new Argument(ArgumentKind.Explicit, parameter, boundArguments[a]));
+                            argumentsWithErrors.Add(CreateArgumentOperation(ArgumentKind.Explicit, parameter, boundArguments[a]));
                         }
 
                         return argumentsWithErrors.ToImmutableAndFree();
-                    } 
+                    }                                                                                           
 
-                    var argumentKindBuilder = ArrayBuilder<ArgumentKind>.GetInstance(parameters.Length);
-                    var parameterSymbolBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
-
-                    var derivedArguments = LocalRewriter.MakeArgumentsInEvaluationOrder(
+                   return LocalRewriter.MakeArgumentsInEvaluationOrder(
                         binder: binder,
                         syntax: invocationSyntax,
                         arguments: boundArguments,
@@ -137,64 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         optionalParametersMethod: optionalParametersMethod,
                         expanded: expanded,
                         argsToParamsOpt: argumentsToParametersOpt,
-                        invokedAsExtensionMethod: invokedAsExtensionMethod,
-                        argumentKindBuilder: argumentKindBuilder,
-                        parameterSymbolBuilder: parameterSymbolBuilder);
-                    
-                    Debug.Assert(derivedArguments.Length == parameters.Length 
-                              && derivedArguments.Length == argumentKindBuilder.Count
-                              && derivedArguments.Length == parameterSymbolBuilder.Count);
-                    
-                    ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
-                    for (int a = 0; a < derivedArguments.Length; a++)
-                    {
-                        argumentsInEvaluationBuilder.Add(new Argument(argumentKindBuilder[a], parameterSymbolBuilder[a], derivedArguments[a]));
-                    }
-
-                    return argumentsInEvaluationBuilder.ToImmutableAndFree();
+                        invokedAsExtensionMethod: invokedAsExtensionMethod); 
                 });
-        }
-
-        private class Argument : IArgument
-        {
-            public Argument(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
-            {
-                Debug.Assert(value != null);
-
-                this.Value = value;
-                this.Parameter = parameter;
-                this.ArgumentKind = kind;
-            }
-
-            public IParameterSymbol Parameter { get; }
-
-            public IOperation Value { get; }
-
-            IOperation IArgument.InConversion => null;
-
-            IOperation IArgument.OutConversion => null;
-
-            bool IOperation.IsInvalid => (object)this.Parameter == null || this.Value.IsInvalid;
-
-            OperationKind IOperation.Kind => OperationKind.Argument;
-
-            SyntaxNode IOperation.Syntax => this.Value?.Syntax;
-
-            public ITypeSymbol Type => null;
-
-            public Optional<object> ConstantValue => default(Optional<object>);
-
-            public ArgumentKind ArgumentKind { get; }
-
-            void IOperation.Accept(OperationVisitor visitor)
-            {
-                visitor.VisitArgument(this);
-            }
-
-            TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-            {
-                return visitor.VisitArgument(this, argument);
-            }
         }
     }
 

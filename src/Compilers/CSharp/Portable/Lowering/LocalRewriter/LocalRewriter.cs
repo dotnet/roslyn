@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
 
-        internal LocalRewriter(
+        private LocalRewriter(
             CSharpCompilation compilation,
             MethodSymbol containingMethod,
             int containingMethodOrdinal,
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _compilation = compilation;
             _factory = factory;
             _factory.CurrentMethod = containingMethod;
-            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod?.ContainingType));
+            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
             _dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             _previousSubmissionFields = previousSubmissionFields;
             _allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
@@ -322,6 +322,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UnsafeGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics);
         }
 
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
         private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             MethodSymbol method;

@@ -956,5 +956,149 @@ IInvocationExpression ( void P.M2([System.Int32 x = 0])) (OperationKind.Invocati
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact]
+        public void WrongArgumentType()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    void M2(string x )
+    { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExpression, Type: System.Void, IsInvalid) (Syntax: 'M2(1)')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] 
+            {
+                // file.cs(6,22): error CS1503: Argument 1: cannot convert from 'int' to 'string'
+                //         /*<bind>*/M2(1)/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "string").WithLocation(6, 22)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact(Skip ="todo")]
+        public void InvalidConversionForDefaultArgument()
+        {
+            string source = @"
+class P
+{
+    void M1()
+    {
+        /*<bind>*/M2()/*</bind>*/;
+    }
+
+    void M2(int x = ""string"")
+    { }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2()')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'M2')
+  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: x) (OperationKind.Argument, IsInvalid) (Syntax: 'M2()')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: null, IsInvalid) (Syntax: 'M2()')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1750: A value of type 'string' cannot be used as a default parameter because there are no standard conversions to type 'int'
+                //     void M2(int x = "string")
+                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "x").WithArguments("string", "int")
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact(Skip = "todo")]
+        public void AssigningToIndexerSetter()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int index]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    void M1()
+    {
+        /*<bind>*/this[10]/*</bind>*/ = 9;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact(Skip = "todo")]
+        public void AssigningToWriteOnlyIndexer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int index]
+    {
+        set { _number = value; }
+    }
+
+    void M1()
+    {
+        /*<bind>*/this[10]/*</bind>*/ = 9;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact(Skip = "todo")]
+        public void AssigningToReadOnlyIndexer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int index]
+    {
+        get { return _number; }
+    }
+
+    void M1()
+    {
+        /*<bind>*/this[10]/*</bind>*/ = 9;
+    }
+}
+";
+            string expectedOperationTree = @"";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
