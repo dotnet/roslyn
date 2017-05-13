@@ -117,25 +117,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (n) =>
                 {
                     //TODO: https://github.com/dotnet/roslyn/issues/18722
-                    //      Right now, for erroneous code, we try to recover as much data as we can
-                    //      and expose them as IArguments, so user needs to check IsInvalid first before using 
-                    //      anything we returned. Need to implement a new interface for invalid invocation instead.
+                    //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
+                    //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
                     if (n.HasErrors)
                     {
                         ArrayBuilder<IArgument> argumentsWithErrors = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-                        for (int a = 0; a < boundArguments.Length; a++)
+                        for (int a = 0; a < boundArguments.Length; ++a)
                         {
-                            var parameter = argumentsToParametersOpt.IsDefault
-                                            ? (a < parameters.Length
-                                                ? parameters[a]
-                                                : null)
-                                            : (argumentsToParametersOpt[a] > 0
-                                                ? parameters[argumentsToParametersOpt[a]]
-                                                : null);
-
-                            argumentsWithErrors.Add(CreateArgumentOperation(ArgumentKind.Explicit, parameter, boundArguments[a]));
+                            argumentsWithErrors.Add(CreateArgumentOperation(ArgumentKind.Explicit, null, boundArguments[a]));
                         }
-
                         return argumentsWithErrors.ToImmutableAndFree();
                     }                                                                                           
 
