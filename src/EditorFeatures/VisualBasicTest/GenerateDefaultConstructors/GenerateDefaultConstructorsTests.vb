@@ -28,8 +28,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
-    Public Sub New(message As String)
-        MyBase.New(message)
+    Public Sub New()
     End Sub
     Sub Main(args As String())
     End Sub
@@ -52,8 +51,8 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
-    Public Sub New(message As String, innerException As Exception)
-        MyBase.New(message, innerException)
+    Public Sub New(message As String)
+        MyBase.New(message)
     End Sub
     Sub Main(args As String())
     End Sub
@@ -75,12 +74,14 @@ End Class",
 "Imports System
 Imports System.Collections.Generic
 Imports System.Linq
-Imports System.Runtime.Serialization
+
 Class Program
     Inherits Exception
-    Protected Sub New(info As SerializationInfo, context As StreamingContext)
-        MyBase.New(info, context)
+
+    Public Sub New(message As String, innerException As Exception)
+        MyBase.New(message, innerException)
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class",
@@ -104,17 +105,11 @@ Imports System.Linq
 Imports System.Runtime.Serialization
 Class Program
     Inherits Exception
-    Public Sub New()
-    End Sub
-    Public Sub New(message As String)
-        MyBase.New(message)
-    End Sub
-    Public Sub New(message As String, innerException As Exception)
-        MyBase.New(message, innerException)
-    End Sub
+
     Protected Sub New(info As SerializationInfo, context As StreamingContext)
         MyBase.New(info, context)
     End Sub
+
     Sub Main(args As String())
     End Sub
 End Class",
@@ -122,13 +117,61 @@ index:=3)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException4() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits [||]Exception
+    Sub Main(args As String())
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.Serialization
+
+Class Program
+    Inherits Exception
+
+    Public Sub New()
+    End Sub
+
+    Public Sub New(message As String)
+        MyBase.New(message)
+    End Sub
+
+    Public Sub New(message As String, innerException As Exception)
+        MyBase.New(message, innerException)
+    End Sub
+
+    Protected Sub New(info As SerializationInfo, context As StreamingContext)
+        MyBase.New(info, context)
+    End Sub
+
+    Sub Main(args As String())
+    End Sub
+End Class",
+index:=4)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         <WorkItem(539676, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539676")>
         Public Async Function TestNotOfferedOnResolvedBaseClassName() As Task
-            Await TestMissingInRegularAndScriptAsync(
+            Await TestInRegularAndScript1Async(
 "Class Base
 End Class
 Class Derived
     Inherits B[||]ase
+End Class",
+"Class Base
+End Class
+Class Derived
+    Inherits Base
+
+    Public Sub New()
+    End Sub
 End Class")
         End Function
 
@@ -253,8 +296,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
-    Public Sub New()
-    End Sub
+
     Public Sub New()
     End Sub
     Public Sub New(message As String)
@@ -289,8 +331,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 Class Program
     Inherits Exception
-    Public Sub New(message As String)
-        MyBase.New(message)
+    Public Sub New()
     End Sub
     Sub Main(args As String())
     End Sub
@@ -484,6 +525,98 @@ End Class
 </Text>.Value.Replace(vbLf, vbCrLf),
 index:=2,
 ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateInDerivedType_InvalidClassStatement() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public [||]Class ;;Derived
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class ;;Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateInDerivedType1() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class [||]Derived
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As String)
+        MyBase.New(a)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateInDerivedType2() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class [||]Derived
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace
