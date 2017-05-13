@@ -1,8 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.GenerateDefaultConstructors
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultConstructors
     Public Class GenerateDefaultConstructorsTests

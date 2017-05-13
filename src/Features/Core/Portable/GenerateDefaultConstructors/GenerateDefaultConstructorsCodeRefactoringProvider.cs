@@ -2,6 +2,7 @@
 
 using System.Composition;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
