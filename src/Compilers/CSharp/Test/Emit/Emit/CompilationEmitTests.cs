@@ -737,36 +737,17 @@ public class D
             {
                 var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
                                 references: new MetadataReference[] { reference });
-                using (var output = new MemoryStream())
-                {
-                    EmitResult emitResult = comp.Emit(output,
-                        options: new EmitOptions(includePrivateMembers: false).WithEmitMetadataOnly(true));
-                    Assert.True(emitResult.Success);
-                    emitResult.Diagnostics.Verify();
-
-                    var refImage = output.ToImmutable();
-                    verifyNoPia(refImage, expectMissing: true);
-                }
+                var refOnlyImage = EmitRefOnly(comp);
+                verifyNoPia(refOnlyImage, expectMissing: true);
             }
 
             void verifyRefOut(MetadataReference reference)
             {
                 var comp = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,
                                 references: new MetadataReference[] { reference });
-                using (var output = new MemoryStream())
-                using (var metadataOutput = new MemoryStream())
-                {
-                    EmitResult emitResult = comp.Emit(output, metadataPEStream: metadataOutput,
-                        options: new EmitOptions(includePrivateMembers: false));
-                    Assert.True(emitResult.Success);
-                    emitResult.Diagnostics.Verify();
-
-                    var image = output.ToImmutable();
-                    var refImage = metadataOutput.ToImmutable();
-
-                    verifyNoPia(image, expectMissing: false);
-                    verifyNoPia(refImage, expectMissing: false);
-                }
+                var (image, refImage) = EmitRefOut(comp);
+                verifyNoPia(image, expectMissing: false);
+                verifyNoPia(refImage, expectMissing: false);
             }
 
             // The ref assembly produced by refout has more types than that produced by refonly,
@@ -787,7 +768,7 @@ public class D
                     return;
                 }
 
-                Assert.NotNull(itest1.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute").ToString());
+                Assert.NotNull(itest1.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute"));
 
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
@@ -877,6 +858,7 @@ public struct S
 {
     private object _field;
     public static S GetValue() => new S() { _field = new object() };
+    public object GetField() => _field;
 }",
 @"class C
 {
@@ -916,6 +898,202 @@ comp => comp.VerifyDiagnostics());
         }
 
         [Fact]
+        public void RefAssemblyClient_EmitTupleNames()
+        {
+            VerifyRefAssemblyClient(@"
+public class A
+{
+    public (int first, int) field;
+}",
+@"class C
+{
+    void M(A a)
+    {
+        System.Console.Write(a.field.first);
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitDynamic()
+        {
+            VerifyRefAssemblyClient(@"
+public class A
+{
+    public dynamic field;
+}",
+@"class C
+{
+    void M(A a)
+    {
+        System.Console.Write(a.field.DynamicMethod());
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitOut()
+        {
+            VerifyRefAssemblyClient(@"
+public class A
+{
+    public void M(out int x) { x = 1; }
+}",
+@"class C
+{
+    void M(A a)
+    {
+        a.M(out int x);
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitVariance()
+        {
+            VerifyRefAssemblyClient(@"
+public interface I<out T>
+{
+}",
+@"
+class Base { }
+class Derived : Base
+{
+    I<Derived> M(I<Base> x)
+    {
+        return x;
+    }
+}",
+comp => comp.VerifyDiagnostics(
+                // (7,16): error CS0266: Cannot implicitly convert type 'I<Base>' to 'I<Derived>'. An explicit conversion exists (are you missing a cast?)
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<Base>", "I<Derived>").WithLocation(7, 16)
+                ));
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitOptionalArguments()
+        {
+            VerifyRefAssemblyClient(@"
+public class A
+{
+    public void M(int x = 42) { }
+}",
+@"
+class C
+{
+    void M2(A a)
+    {
+        a.M();
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitArgumentNames()
+        {
+            VerifyRefAssemblyClient(@"
+public class Base
+{
+    public virtual void M(int x) { }
+}
+public class Derived : Base
+{
+    public override void M(int different) { }
+}",
+@"
+class C
+{
+    void M2(Derived d)
+    {
+        d.M(different: 1);
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitEnum()
+        {
+            VerifyRefAssemblyClient(@"
+public enum E
+{
+    Default,
+    Other
+}",
+@"
+class C
+{
+    void M2(E e)
+    {
+        System.Console.Write(E.Other);
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitConst()
+        {
+            VerifyRefAssemblyClient(@"
+public class A
+{
+    public const int number = 42;
+}",
+@"
+class C
+{
+    void M2()
+    {
+        System.Console.Write(A.number);
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitParams()
+        {
+            VerifyRefAssemblyClient(@"
+public class A
+{
+    public void M(params int[] x) { }
+}",
+@"
+class C
+{
+    void M2(A a)
+    {
+        a.M(1, 2, 3);
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitExtension()
+        {
+            VerifyRefAssemblyClient(@"
+public static class A
+{
+    public static void M(this string x) { }
+}",
+@"
+class C
+{
+    void M2(string s)
+    {
+        s.M();
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
         public void RefAssemblyClient_EmitAllTypes()
         {
             VerifyRefAssemblyClient(@"
@@ -935,12 +1113,30 @@ comp => comp.VerifyDiagnostics());
         }
 
         [Fact]
+        public void RefAssemblyClient_EmitNestedTypes()
+        {
+            VerifyRefAssemblyClient(@"
+public class A
+{
+    public class Nested { }
+}
+",
+@"class C
+{
+    void M(A.Nested a) { }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
         public void RefAssemblyClient_StructWithPrivateGenericField()
         {
             VerifyRefAssemblyClient(@"
 public struct Container<T>
 {
     private T contained;
+    public void SetField(T value) { contained = value; }
+    public T GetField() => contained;
 }",
 @"public struct Usage
 {
@@ -994,6 +1190,10 @@ public abstract class C1
 public struct S
 {
     private int i;
+    private void M()
+    {
+        System.Console.Write(i++);
+    }
 }",
 @"class C
 {
@@ -1041,11 +1241,13 @@ comp => comp.VerifyDiagnostics(
         private static void VerifyRefAssemblyClient(string lib_cs, string source, Action<CSharpCompilation> validator, EmitOptions emitOptions)
         {
             string name = GetUniqueName();
-            var libComp = CreateStandardCompilation(Parse(lib_cs),
+            var libComp = CreateStandardCompilation(Parse(lib_cs), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
                 options: TestOptions.DebugDll.WithDeterministic(true), assemblyName: name);
+            libComp.VerifyDiagnostics();
             var libImage = libComp.EmitToImageReference(emitOptions);
 
-            var comp = CreateStandardCompilation(source, references: new[] { libImage }, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            var comp = CreateStandardCompilation(source, references: new[] { libImage, ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.DebugDll.WithAllowUnsafe(true));
             validator(comp);
         }
 
