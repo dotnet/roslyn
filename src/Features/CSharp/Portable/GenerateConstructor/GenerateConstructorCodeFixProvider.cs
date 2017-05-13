@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 {
@@ -46,40 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
 
         protected override bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic)
         {
-            if (node is ObjectCreationExpressionSyntax ||
-                node is ConstructorInitializerSyntax ||
-                node is AttributeSyntax)
-            {
-                return true;
-            }
-
-            return diagnostic.Id == GenerateConstructorDiagnosticIds.CS7036 && 
-                node is ClassDeclarationSyntax && 
-                IsInClassDeclarationHeader((ClassDeclarationSyntax)node, token);
-        }
-
-        private bool IsInClassDeclarationHeader(ClassDeclarationSyntax node, SyntaxToken token)
-        {
-            var start = node.SpanStart;
-            var end = node.BaseList != null
-                ? node.BaseList.Span.End
-                : node.Identifier.Span.End;
-
-            return TextSpan.FromBounds(start, end).Contains(token.Span);
+            return node is ObjectCreationExpressionSyntax ||
+                   node is ConstructorInitializerSyntax ||
+                   node is AttributeSyntax;
         }
 
         protected override SyntaxNode GetTargetNode(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            switch (node)
             {
-                return objectCreationNode.Type.GetRightmostName();
-            }
-
-            var attributeNode = node as AttributeSyntax;
-            if (attributeNode != null)
-            {
-                return attributeNode.Name;
+                case ObjectCreationExpressionSyntax objectCreationNode:
+                    return objectCreationNode.Type.GetRightmostName();
+                case AttributeSyntax attributeNode:
+                    return attributeNode.Name;
             }
 
             return node;
