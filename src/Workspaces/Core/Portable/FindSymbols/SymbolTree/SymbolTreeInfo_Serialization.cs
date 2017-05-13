@@ -20,25 +20,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private const string SerializationFormat = "17";
 
         /// <summary>
-        /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
-        /// info can't be loaded, it will be created (and persisted if possible).
-        /// </summary>
-        private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
-            Project project, Checksum checksum, bool loadOnly, CancellationToken cancellationToken)
-        {
-            return LoadOrCreateAsync(
-                project.Solution,
-                checksum,
-                project.FilePath,
-                loadOnly,
-                createAsync: () => CreateSourceSymbolTreeInfoAsync(project, checksum, cancellationToken),
-                keySuffix: "_Source",
-                getPersistedChecksum: info => info.Checksum,
-                readObject: reader => ReadSymbolTreeInfo(reader, (names, nodes) => GetSpellCheckerTask(project.Solution, checksum, project.FilePath, names, nodes)),
-                cancellationToken: cancellationToken);
-        }
-
-        /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
@@ -46,34 +27,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             Checksum checksum,
             string filePath,
-            Func<Task<SpellChecker>> createAsync)
+            string concatenatedNames,
+            Node[] sortedNodes)
         {
-            return LoadOrCreateAsync(
+            var result = TryLoadOrCreateAsync(
                 solution,
                 checksum,
-                filePath,
                 loadOnly: false,
-                createAsync: createAsync,
-                keySuffix: "_SpellChecker",
-                getPersistedChecksum: s => s.Checksum,
-                readObject: SpellChecker.ReadFrom,
+                createAsync: () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
+                keySuffix: "_SpellChecker_" + filePath,
+                tryReadObject: SpellChecker.TryReadFrom,
                 cancellationToken: CancellationToken.None);
+            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
+            return result;
         }
 
         /// <summary>
         /// Generalized function for loading/creating/persisting data.  Used as the common core
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
-        private static async Task<T> LoadOrCreateAsync<T>(
+        private static async Task<T> TryLoadOrCreateAsync<T>(
             Solution solution,
             Checksum checksum,
-            string filePath,
             bool loadOnly,
             Func<Task<T>> createAsync,
             string keySuffix,
-            Func<T, Checksum> getPersistedChecksum,
-            Func<ObjectReader, T> readObject,
-            CancellationToken cancellationToken) where T : class, IObjectWritable
+            Func<ObjectReader, T> tryReadObject,
+            CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
         {
             if (checksum == null) 
             {
@@ -87,7 +67,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
             {
                 // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + keySuffix + "_" + filePath;
+                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
@@ -96,8 +76,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // We have some previously persisted data.  Attempt to read it back.  
                         // If we're able to, and the version of the persisted data matches
                         // our version, then we can reuse this instance.
-                        result = readObject(reader);
-                        if (result != null && checksum == getPersistedChecksum(result))
+                        result = tryReadObject(reader);
+                        if (result?.Checksum == checksum)
                         {
                             return result;
                         }
@@ -116,16 +96,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Now, try to create a new instance and write it to the persistence service.
                 result = await createAsync().ConfigureAwait(false);
-                if (result != null)
-                {
-                    using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                    {
-                        result.WriteTo(writer);
-                        stream.Position = 0;
+                Contract.ThrowIfNull(result);
 
-                        await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
-                    }
+                using (var stream = SerializableBytes.CreateWritableStream())
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                {
+                    result.WriteTo(writer);
+                    stream.Position = 0;
+
+                    await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -163,12 +142,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
             ObjectReader reader, Checksum checksum)
         {
-            return ReadSymbolTreeInfo(reader, 
+            return TryReadSymbolTreeInfo(reader, 
                 (names, nodes) => Task.FromResult(
                     new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
-        private static SymbolTreeInfo ReadSymbolTreeInfo(
+        private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
             Func<string, Node[], Task<SpellChecker>> createSpellCheckerTask)
         {

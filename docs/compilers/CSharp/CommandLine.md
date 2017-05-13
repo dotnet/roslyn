@@ -4,6 +4,7 @@
 | ---- | ---- |
 | **OUTPUT FILES** |
 | `/out:`*file* | Specify output file name (default: base name of file with main class or first file)
+| `/refout:`*file* | Specify the reference assembly's output file name
 | `/target:exe` |  Build a console executable (default) (Short form: `/t:exe`)
 | `/target:winexe` | Build a Windows executable (Short form: `/t:winexe` )
 | `/target:library` | Build a library (Short form: `/t:library`)
@@ -36,6 +37,7 @@
 | `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/source_link.md) info to embed into PDB.
 | `/optimize`{`+`&#124;`-`} | Enable optimizations (Short form: `/o`)
 | `/deterministic` | Produce a deterministic assembly (including module version GUID and timestamp)
+| `/refonly | Produce a reference assembly, instead of a full assembly, as the primary output 
 | **ERRORS AND WARNINGS**
 | `/warnaserror`{`+`&#124;`-`} | Report all warnings as errors
 | `/warnaserror`{`+`&#124;`-`}`:`*warn list* | Report specific warnings as errors
