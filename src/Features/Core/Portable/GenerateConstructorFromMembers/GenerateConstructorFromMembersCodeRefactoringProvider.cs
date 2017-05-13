@@ -93,26 +93,10 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 
             // Find all the possible writable instance fields/properties.  If there are any, then
             // show a dialog to the user to select the ones they want.  Otherwise, if there are none
-            // just offer to generate the no-param constructor if they don't already have one.
+            // don't offer to generate anything.
             var viableMembers = containingType.GetMembers().WhereAsArray(IsWritableInstanceFieldOrProperty);
             if (viableMembers.Length == 0)
             {
-                var noParamConstructor = containingType.InstanceConstructors.FirstOrDefault(c => c.Parameters.Length == 0);
-                if (noParamConstructor == null ||
-                    noParamConstructor.IsImplicitlyDeclared)
-                {
-                    // Offer to just make the no-param-constructor directly.
-                    var state = State.TryGenerate(this, document, textSpan, containingType,
-                        ImmutableArray<ISymbol>.Empty, cancellationToken);
-
-                    if (state != null)
-                    {
-                        context.RegisterRefactoring(
-                            new FieldDelegatingCodeAction(this, document, state, addNullChecks: false));
-                    }
-                }
-
-                // already had an explicit, no-param constructor.  No need to offer anything.
                 return;
             }
 
