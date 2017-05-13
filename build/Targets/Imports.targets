@@ -518,4 +518,11 @@
       <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
     </ItemGroup>
   </Target>
+
+  <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
+       https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
+       isn't fully supported yet in the new project system. -->
+  <ItemGroup>
+    <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
 </Project>
