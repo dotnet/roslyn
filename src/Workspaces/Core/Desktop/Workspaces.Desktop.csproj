@@ -96,7 +96,7 @@
     <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
     <Compile Include="Workspace\Host\SimpleAnalyzerAssemblyLoaderService.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
+    <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedInfo.cs" />
     <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.cs" />
     <Compile Include="Workspace\MSBuild\CSharp\CSharpProjectFileLoader.CSharpProjectFile.cs" />
