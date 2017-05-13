@@ -360,6 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
                         resultKind: LookupResultKind.Viable,
+                        binderOpt: binder,
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
