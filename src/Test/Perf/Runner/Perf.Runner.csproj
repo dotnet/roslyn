@@ -11,7 +11,7 @@
     <RootNamespace>Roslyn.Test.Performance.Runner</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Runner</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>
