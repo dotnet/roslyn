@@ -129,6 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ObsoleteAttributeData lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             internal AttributeUsageInfo lazyAttributeUsageInfo = AttributeUsageInfo.Null;
             internal ThreeState lazyContainsExtensionMethods;
+            internal ThreeState lazyIsByRefLike;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
 
@@ -2019,6 +2020,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal override bool IsSerializable
         {
             get { return (_flags & TypeAttributes.Serializable) != 0; }
+        }
+
+        internal override bool IsByRefLikeType
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyIsByRefLike.HasValue())
+                {
+                    var isByRefLike = ThreeState.False;
+
+                    if (this.TypeKind == TypeKind.Struct)
+                    {
+                        if (IsWellknownSpans())
+                        {
+                            isByRefLike = ThreeState.True;
+                        }
+                        else
+                        {
+                            var moduleSymbol = this.ContainingPEModule;
+                            var module = moduleSymbol.Module;
+                            isByRefLike = module.HasIsByRefLikeAttribute(_handle).ToThreeState();
+                        }
+                    }
+
+                    uncommon.lazyIsByRefLike = isByRefLike;
+                }
+
+                return uncommon.lazyIsByRefLike.Value();
+            }
+        }
+
+        //PROTOTYPE(span): Span and ReadonlySpan should have spanLike marker.
+        //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
+        //                 are span-like
+        private bool IsWellknownSpans()
+        {
+            var originalDef = this.OriginalDefinition;
+
+            if (originalDef.Name != "Span" && originalDef.Name != "ReadonlySpan")
+            {
+                return false;
+            }
+
+            var ns = originalDef.ContainingSymbol as NamespaceSymbol;
+            if (ns?.Name != "System")
+            {
+                return false;
+            }
+
+            return ns.IsGlobalNamespace;
         }
 
         internal override bool HasDeclarativeSecurity
