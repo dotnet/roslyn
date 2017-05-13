@@ -591,7 +591,7 @@ class Program : Exception
     {
     }
 }",
-index: 3,
+index: 4,
 ignoreTrivia: false);
         }
 
@@ -729,10 +729,6 @@ class Program : Exception
     {
     }
 
-    public Program()
-    {
-    }
-
     public Program(string message) : base(message)
     {
     }
@@ -805,6 +801,66 @@ class B
 class B
 {
     public B((int a, string b) x)
+    {
+    }
+}");
+        }
+
+        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFromDerivedClass()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    public Base(string value)
+    {
+    }
+}
+
+class [||]Derived : Base
+{
+}",
+@"class Base
+{
+    public Base(string value)
+    {
+    }
+}
+
+class Derived : Base
+{
+    public Derived(string value) : base(value)
+    {
+    }
+}");
+        }
+
+        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TestGenerateFromDerivedClass2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Base
+{
+    public Base(int a, string value = null)
+    {
+    }
+}
+
+class [||]Derived : Base
+{
+}",
+@"class Base
+{
+    public Base(int a, string value = null)
+    {
+    }
+}
+
+class Derived : Base
+{
+    public Derived(int a, string value = null) : base(a, value)
     {
     }
 }");
