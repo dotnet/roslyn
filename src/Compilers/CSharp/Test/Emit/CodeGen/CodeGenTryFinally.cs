@@ -2512,6 +2512,68 @@ class C
 
         [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
         [Fact]
+        public void TryCatchConstantFalseFilter3()
+        {
+            var src = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch (NullReferenceException) when ((1+1) == 2)
+        {
+            Console.Write(""Catch1"");
+        }
+        catch (Exception) when (true == false)
+        {
+            Console.Write(""Catch2"");
+        }
+        catch when ((1+1) != 2)
+        {
+            Console.Write(""Catch"");
+        }
+    }
+}";
+            var comp = CompileAndVerify(src);
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .try
+  {
+    IL_0000:  newobj     ""System.Exception..ctor()""
+    IL_0005:  throw
+  }
+  filter
+  {
+    IL_0006:  isinst     ""System.NullReferenceException""
+    IL_000b:  dup
+    IL_000c:  brtrue.s   IL_0012
+    IL_000e:  pop
+    IL_000f:  ldc.i4.0
+    IL_0010:  br.s       IL_0017
+    IL_0012:  pop
+    IL_0013:  ldc.i4.1
+    IL_0014:  ldc.i4.0
+    IL_0015:  cgt.un
+    IL_0017:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0019:  pop
+    IL_001a:  ldstr      ""Catch1""
+    IL_001f:  call       ""void System.Console.Write(string)""
+    IL_0024:  leave.s    IL_0026
+  }
+  IL_0026:  ret
+}");
+        }
+
+        [WorkItem(18678, "https://github.com/dotnet/roslyn/issues/18678")]
+        [Fact]
         public void TryCatchConstantFalseFilterCombined()
         {
             var src = @"

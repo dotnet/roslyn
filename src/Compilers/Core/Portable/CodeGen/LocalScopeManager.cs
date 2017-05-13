@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             public override void CloseScope(ILBuilder builder)
             {
-                Debug.Assert(_handlers.Count > 0);
+                Debug.Assert(_handlers.Count > 1);
 
                 // Fix up the NextExceptionHandler reference of each leader block.
                 var tryScope = _handlers[0];
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                 Debug.Assert(builder._currentBlock == builder._labelInfos[_endLabel].bb);
 
-                if (_handlers.Count > 1 && _handlers[1].Type == ScopeType.Finally)
+                if (_handlers[1].Type == ScopeType.Finally)
                 {
                     // Generate "nop" branch to itself. If this block is unreachable
                     // (because the finally block does not complete), the "nop" will be
@@ -739,6 +739,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal override void GetExceptionHandlerRegions(ArrayBuilder<Cci.ExceptionHandlerRegion> regions)
             {
+                Debug.Assert(_handlers.Count > 1);
+
                 ExceptionHandlerScope tryScope = null;
                 ScopeBounds tryBounds = new ScopeBounds();
 

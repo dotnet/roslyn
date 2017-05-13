@@ -78,6 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return base.VisitCatchBlock(node);
             }
+            if (node.ExceptionFilterOpt.ConstantValue?.BooleanValue == false)
+            {
+                return null;
+            }
 
             BoundExpression rewrittenExceptionSourceOpt = (BoundExpression)this.Visit(node.ExceptionSourceOpt);
             BoundExpression rewrittenFilter = (BoundExpression)this.Visit(node.ExceptionFilterOpt);
