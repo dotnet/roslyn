@@ -2,8 +2,9 @@
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.GenerateDefaultConstructors
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateDefaultConstructors
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultConstructors
     Public Class GenerateDefaultConstructorsTests
         Inherits AbstractVisualBasicCodeActionTest
 
