@@ -8,6 +8,17 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
 {
+    /// <summary>
+    /// This <see cref="CodeRefactoringProvider"/> gives users a way to generate constructors for
+    /// a derived type that delegate to a base type.  For all accessibly constructors in the base
+    /// type, the user will be offered to create a constructor in the derived type with the same
+    /// signature if they don't already have one.  This way, a user can override a type and easily
+    /// create all the forwarding constructors.
+    /// 
+    /// Importantly, this type is not responsible for generating constructors when the user types
+    /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
+    /// for a type based on the fields/properties of that type.
+    /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
     internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
