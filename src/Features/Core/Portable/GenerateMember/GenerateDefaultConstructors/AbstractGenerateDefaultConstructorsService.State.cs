@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                if (!service.TryInitializeState(document, textSpan, cancellationToken, 
-                        out var classOrStructType))
+                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var classOrStructType))
                 {
                     return false;
                 }
