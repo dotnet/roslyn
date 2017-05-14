@@ -292,5 +292,27 @@ End Class",
     End Sub
 End Class")
         End Function
+
+        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCaretPositionAtTheEnd3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
+        M(1,[||],3)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCaretPositionAtTheEnd4() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
+        M(1[||],,3)
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
