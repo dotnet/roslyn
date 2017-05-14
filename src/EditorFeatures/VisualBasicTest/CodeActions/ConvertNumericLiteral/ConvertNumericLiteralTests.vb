@@ -111,5 +111,17 @@ End Class",
     End Sub
 End Class", index:=Refactoring.ChangeBase2, ignoreTrivia:=False)
         End Function
+
+        <WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestCaretPositionAtTheEnd() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim a As Integer = 42[||]
+End Class",
+"Class C
+    Dim a As Integer = &B101010
+End Class", index:=Refactoring.ChangeBase1)
+        End Function
     End Class
 End Namespace

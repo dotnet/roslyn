@@ -121,5 +121,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
     }
 }", index: (int)Refactoring.ChangeBase2, ignoreTrivia: false);
         }
+
+        [WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestCaretPositionAtTheEnd()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+  int a = 42[||];
+}",
+@"class C
+{
+  int a = 0b101010;
+}", index: (int)Refactoring.ChangeBase1);
+        }
     }
 }
