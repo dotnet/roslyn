@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
             }
-            //PROTOTYPE(span): span-like instance fields are allowed in span-like types, for now allow inany  struct
-            else if (type.IsRestrictedType(ignoreSpanLikeTypes: !this.IsStatic && containingType.IsStructType()))
+            else if (type.IsRestrictedType(ignoreSpanLikeTypes: !this.IsStatic && containingType.IsByRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);
             }

@@ -586,6 +586,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
         }
 
+        internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute()
+        {
+            // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next change
+            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor, isOptionalUse: true);
+        }
+
         internal static class TupleNamesEncoder
         {
             public static ImmutableArray<string> Encode(TypeSymbol type)

@@ -418,6 +418,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
 
+        System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+
         Count
     }
 }

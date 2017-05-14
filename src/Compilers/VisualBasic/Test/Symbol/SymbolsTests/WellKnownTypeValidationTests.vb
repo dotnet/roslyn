@@ -508,7 +508,8 @@ End Namespace
                         ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
-                         WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -544,7 +545,8 @@ End Namespace
                         ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
-                         WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -583,7 +585,8 @@ End Namespace
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
-                         WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select
@@ -664,7 +667,8 @@ End Namespace
                         ' Not available yet, but will be in upcoming release.
                         Continue For
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
-                         WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select

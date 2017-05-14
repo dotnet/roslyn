@@ -75,8 +75,6 @@ var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
-var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
-var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
@@ -110,6 +108,7 @@ string[] NonRedistPackageNames = {
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
@@ -127,6 +126,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
@@ -203,9 +203,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "authors", Authors },
         { "projectURL", ProjectURL },
         { "tags", Tags },
-        { "thirdPartyNoticesPath", ThirdPartyNoticesPath },
-        { "netCompilersPropsPath", NetCompilersPropsPath },
         { "emptyDirPath", emptyDir },
+        { "additionalFilesPath", NuGetAdditionalFilesPath }
     };
 
     foreach (var dependencyVersion in dependencyVersions)

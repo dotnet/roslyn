@@ -207,6 +207,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingType.IsSerializable; }
         }
 
+        internal override bool IsByRefLikeType
+        {
+            get { return _underlyingType.IsByRefLikeType; }
+        }
+
         internal override bool HasDeclarativeSecurity
         {
             get { return _underlyingType.HasDeclarativeSecurity; }

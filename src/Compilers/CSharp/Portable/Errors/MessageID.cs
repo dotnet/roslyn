@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_ThrowExpression = MessageBase + 12717,
 
         IDS_FeatureReadonlyReferences = MessageBase + 12718,
+        IDS_FeatureRefStructs = MessageBase + 12719,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 7.1 features.
                 case MessageID.IDS_FeatureReadonlyReferences:
+                case MessageID.IDS_FeatureRefStructs:
                     return LanguageVersion.CSharp7_1;
 
                 // C# 7 features.

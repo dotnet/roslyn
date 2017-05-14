@@ -1029,6 +1029,11 @@ namespace Microsoft.CodeAnalysis
             return TryExtractStringArrayValueFromAttribute(info.Handle, out tupleElementNames);
         }
 
+        internal bool HasIsByRefLikeAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.IsByRefLikeAttribute).HasValue;
+        }
+
         internal bool HasDeprecatedOrObsoleteAttribute(EntityHandle token, out ObsoleteAttributeData obsoleteData)
         {
             AttributeInfo info;

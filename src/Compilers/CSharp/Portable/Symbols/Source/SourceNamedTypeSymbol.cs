@@ -1122,6 +1122,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
+            if (this.IsByRefLikeType)
+            {
+                //PROTOTYPE(span): should also set [Obsolete] Attribute with a known marker
+                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeIsByRefLikeAttribute());
+            }
+
             if (this.Indexers.Any())
             {
                 string defaultMemberName = this.Indexers.First().MetadataName; // UNDONE: IndexerNameAttribute

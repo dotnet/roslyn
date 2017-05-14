@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // d = FieldDefinitionsNoted. 1 bit
             private const int SpecialTypeOffset = 0;
             private const int DeclarationModifiersOffset = 6;
-            private const int IsManagedTypeOffset = 26;
+            private const int IsManagedTypeOffset = 27;
 
             private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x1FFFFF;
+            private const int DeclarationModifiersMask = 0x3FFFFF;
             private const int IsManagedTypeMask = 0x3;
 
-            private const int FieldDefinitionsNotedBit = 1 << 28;
+            private const int FieldDefinitionsNotedBit = 1 << 29;
 
             private int _flags;
 
@@ -249,6 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
+                    allowedModifiers |= DeclarationModifiers.Ref | DeclarationModifiers.Unsafe;
+                    break;
                 case TypeKind.Interface:
                 case TypeKind.Delegate:
                     allowedModifiers |= DeclarationModifiers.Unsafe;
@@ -665,6 +667,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return (_flags.DeclarationModifiers & DeclarationModifiers.Static) != 0;
+            }
+        }
+
+        internal override bool IsByRefLikeType
+        {
+            get
+            {
+                return (_flags.DeclarationModifiers & DeclarationModifiers.Ref) != 0;
             }
         }
 

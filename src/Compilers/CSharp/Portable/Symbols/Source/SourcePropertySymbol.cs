@@ -1316,8 +1316,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
                                 this.Type.CheckAllConstraints(conversions, _location, diagnostics);
 
-                                //PROTOTYPE(span): allow in span-like structs?
-                                if (this.Type.IsRestrictedType(ignoreSpanLikeTypes: !this.IsAutoProperty))
+                                // autoproperties can have span-like types only
+                                // inside a span-like type and when not static
+                                var canReturnSpan = !this.IsAutoProperty || 
+                                                    (!this.IsStatic && this.ContainingType.IsByRefLikeType);
+
+                                if (this.Type.IsRestrictedType(ignoreSpanLikeTypes: canReturnSpan))
                                 {
                                     diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type);
                                 }
