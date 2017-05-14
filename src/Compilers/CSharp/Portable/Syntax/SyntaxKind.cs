@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WhenKeyword = 8437,
 
         // additional preprocessor keywords
+        // keywords with an enum value less than ElifKeyword are considered i.a. contextual keywords
         ElifKeyword = 8467,
         EndIfKeyword = 8468,
         RegionKeyword = 8469,
