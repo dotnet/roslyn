@@ -456,7 +456,7 @@ public class C
                 }
 
                 methodsText.AppendLine("\r\n}");
-                CreateCompilationWithMscorlib(methodsText.ToString()).VerifyEmitDiagnostics();
+                CreateStandardCompilation(methodsText.ToString()).VerifyEmitDiagnostics();
             });
         }
     }

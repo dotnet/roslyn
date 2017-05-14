@@ -1,7 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System.Collections.Immutable;
-
+                                   
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
@@ -12,21 +10,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         None = 0x0,
 
         /// <summary>
-        /// Argument is specified positionally and matches the parameter of the same ordinality.
+        /// Argument value is explicitly supplied.
         /// </summary>
-        Positional = 0x1,
+        Explicit = 0x1,
+
         /// <summary>
-        /// Argument is specified by name and matches the parameter of the same name.
+        /// Argument is a param array created by compilers for the matching C# params or VB ParamArray parameter. 
+        /// Note, the value is a an array creation expression that encapsulates all the elements, if any.
         /// </summary>
-        Named = 0x2,
+        ParamArray = 0x2,
+
         /// <summary>
-        /// Argument becomes an element of an array that matches a trailing C# params or VB ParamArray parameter.
+        /// Argument is a default value supplied automatically by the compilers.
         /// </summary>
-        ParamArray = 0x3,
-        /// <summary>
-        /// Argument was omitted in source but has a default value supplied automatically.
-        /// </summary>
-        DefaultValue = 0x4
+        DefaultValue = 0x3
     }
 }
 

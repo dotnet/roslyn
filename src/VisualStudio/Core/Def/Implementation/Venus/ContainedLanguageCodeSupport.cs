@@ -61,7 +61,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var tree = document.GetSyntaxTreeSynchronously(cancellationToken);
             var typeNode = type.DeclaringSyntaxReferences.Where(r => r.SyntaxTree == tree).Select(r => r.GetSyntax(cancellationToken)).First();
             var codeModel = document.Project.LanguageServices.GetService<ICodeModelNavigationPointService>();
-            var point = codeModel.GetStartPoint(typeNode, EnvDTE.vsCMPart.vsCMPartBody);
+            var options = document.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var point = codeModel.GetStartPoint(typeNode, options, EnvDTE.vsCMPart.vsCMPartBody);
             var reservedNames = semanticModel.LookupSymbols(point.Value.Position, type).Select(m => m.Name);
 
             return NameGenerator.EnsureUniqueness(name, reservedNames, document.Project.LanguageServices.GetService<ISyntaxFactsService>().IsCaseSensitive);
@@ -202,7 +203,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var position = type.Locations.First(loc => loc.SourceTree == targetSyntaxTree).SourceSpan.Start;
             var destinationType = syntaxFacts.GetContainingTypeDeclaration(targetSyntaxTree.GetRoot(cancellationToken), position);
-            var insertionPoint = codeModel.GetEndPoint(destinationType, EnvDTE.vsCMPart.vsCMPartBody);
+            var options = targetDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            var insertionPoint = codeModel.GetEndPoint(destinationType, options, EnvDTE.vsCMPart.vsCMPartBody);
 
             if (insertionPoint == null)
             {
@@ -261,10 +263,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             var memberNode = member.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).FirstOrDefault();
             if (memberNode != null)
             {
-                var navigationPoint = codeModel.GetStartPoint(memberNode, EnvDTE.vsCMPart.vsCMPartNavigate);
+                var memberNodeDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
+                var options = memberNodeDocument.GetOptionsAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+                var navigationPoint = codeModel.GetStartPoint(memberNode, options, EnvDTE.vsCMPart.vsCMPartNavigate);
                 if (navigationPoint != null)
                 {
-                    targetDocument = thisDocument.Project.Solution.GetDocument(memberNode.SyntaxTree);
+                    targetDocument = memberNodeDocument;
                     textSpan = navigationPoint.Value.ToVsTextSpan();
                     return true;
                 }

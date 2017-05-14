@@ -1,6 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.IO
+Imports System.Reflection.Metadata
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.Metadata.Tools
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
@@ -404,6 +408,10 @@ End Class
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
             <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x0" endOffset="0x139"/>
+                    <slot startOffset="0x0" endOffset="0x139"/>
+                </hoistedLocalScopes>
                 <encLocalSlotMap>
                     <slot kind="27" offset="-1"/>
                     <slot kind="33" offset="118"/>
@@ -477,6 +485,11 @@ End Class
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_Lambda" name="MoveNext">
+            <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x0" endOffset="0x10f"/>
+                </hoistedLocalScopes>
+            </customDebugInfo>
             <sequencePoints>
                 <entry offset="0x0" hidden="true"/>
                 <entry offset="0x7" hidden="true"/>
@@ -538,6 +551,10 @@ End Class
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
             <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x0" endOffset="0xf6"/>
+                    <slot startOffset="0x0" endOffset="0xf6"/>
+                </hoistedLocalScopes>
                 <encLocalSlotMap>
                     <slot kind="27" offset="-1"/>
                     <slot kind="33" offset="62"/>
@@ -604,11 +621,17 @@ End Class
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.ReleaseDll)
 
-            ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
+            ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_NoLambda.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Async_NoLambda" name="MoveNext">
+            <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x0" endOffset="0xe3"/>
+                    <slot startOffset="0x0" endOffset="0xe3"/>
+                </hoistedLocalScopes>
+            </customDebugInfo>
             <sequencePoints>
                 <entry offset="0x0" hidden="true"/>
                 <entry offset="0x7" hidden="true"/>
@@ -836,6 +859,135 @@ End Module
   IL_0109:  ret
 }
 ", sequencePoints:="M+VB$StateMachine_0_F.MoveNext")
+        End Sub
+
+        <Fact>
+        Public Sub PartialKickoffMethod()
+            Dim src = "
+Public Partial Class C
+    Private Partial Sub M()
+    End Sub
+
+    Private Async Sub M()
+    End Sub
+End Class
+"
+            Dim compilation = CreateCompilation(src, LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(compilation)
+            v.VerifyPdb("C.M", "
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forwardIterator name=""VB$StateMachine_1_M"" />
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>")
+
+            Dim peStream = New MemoryStream()
+            Dim pdbStream = New MemoryStream()
+
+            Dim result = compilation.Emit(peStream, pdbStream, options:=EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb))
+            pdbStream.Position = 0
+
+            Using provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream)
+                Dim mdReader = provider.GetMetadataReader()
+                Dim writer = New StringWriter()
+                Dim visualizer = New MetadataVisualizer(mdReader, writer)
+                visualizer.WriteMethodDebugInformation()
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences("
+MethodDebugInformation (index: 0x31, size: 20): 
+==================================================
+1: nil
+2: nil
+3: nil
+4: #4
+{
+  Kickoff Method: 0x06000002 (MethodDef)
+  Locals: 0x11000002 (StandAloneSig)
+  Document: #1
+  IL_0000: <hidden>
+  IL_0007: (6, 5) - (6, 26)
+  IL_0008: (7, 5) - (7, 12)
+  IL_000A: <hidden>
+  IL_0011: <hidden>
+  IL_002D: (7, 5) - (7, 12)
+  IL_0037: <hidden>
+}
+5: nil
+", writer.ToString())
+            End Using
+        End Sub
+
+        <Fact>
+        Public Sub CatchInAsyncStateMachine()
+            Dim src = "
+Imports System
+Imports System.Threading.Tasks
+Class C
+    Shared Async Function M() As Task
+        Dim o As Object
+        Try
+            o = Nothing
+        Catch e As Exception
+#ExternalSource(""test"", 999)
+            o = e
+#End ExternalSource
+        End Try
+    End Function
+End Class"
+            Dim v = CompileAndVerify(src, LatestVbReferences, options:=TestOptions.DebugDll)
+
+            v.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
+<symbols>
+    <files>
+        <file id="1" name="test" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
+    <methods>
+        <method containingType="C+VB$StateMachine_1_M" name="MoveNext">
+            <customDebugInfo>
+                <hoistedLocalScopes format="portable">
+                    <slot startOffset="0x0" endOffset="0x71"/>
+                    <slot startOffset="0x12" endOffset="0x34"/>
+                </hoistedLocalScopes>
+                <encLocalSlotMap>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="temp"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0x8" hidden="true" document="1"/>
+                <entry offset="0x9" hidden="true" document="1"/>
+                <entry offset="0x12" hidden="true" document="1"/>
+                <entry offset="0x20" hidden="true" document="1"/>
+                <entry offset="0x21" startLine="999" startColumn="13" endLine="999" endColumn="18" document="1"/>
+                <entry offset="0x34" hidden="true" document="1"/>
+                <entry offset="0x35" hidden="true" document="1"/>
+                <entry offset="0x37" hidden="true" document="1"/>
+                <entry offset="0x3e" hidden="true" document="1"/>
+                <entry offset="0x5a" hidden="true" document="1"/>
+                <entry offset="0x64" hidden="true" document="1"/>
+            </sequencePoints>
+            <scope startOffset="0x0" endOffset="0x71">
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
+                <local name="$VB$ResumableLocal_o$0" il_index="0" il_start="0x0" il_end="0x71" attributes="0"/>
+                <scope startOffset="0x12" endOffset="0x33">
+                    <local name="$VB$ResumableLocal_e$1" il_index="1" il_start="0x12" il_end="0x33" attributes="0"/>
+                </scope>
+            </scope>
+            <asyncInfo>
+                <kickoffMethod declaringType="C" methodName="M"/>
+            </asyncInfo>
+        </method>
+    </methods>
+</symbols>)
         End Sub
     End Class
 End Namespace

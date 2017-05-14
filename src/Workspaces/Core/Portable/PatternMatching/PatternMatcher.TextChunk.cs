@@ -32,13 +32,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 this.Text = text;
                 this.CharacterSpans = StringBreaker.BreakIntoCharacterParts(text);
                 this.SimilarityChecker = allowFuzzingMatching
-                    ? new WordSimilarityChecker(text, substringsAreSimilar: false)
+                    ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
                     : null;
             }
 
             public void Dispose()
             {
-                this.SimilarityChecker?.Dispose();
+                this.CharacterSpans.Dispose();
+                this.SimilarityChecker?.Free();
             }
         }
     }

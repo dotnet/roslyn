@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return result.ToArray();
         }
 
-        public void ActivateMainWindow()
+        public void ActivateMainWindow(bool skipAttachingThreads = false)
             => InvokeOnUIThread(() => {
                 var dte = GetDTE();
 
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
                 }
 
-                IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
+                IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow, skipAttachingThreads);
             });
 
         public int GetErrorListErrorCount()

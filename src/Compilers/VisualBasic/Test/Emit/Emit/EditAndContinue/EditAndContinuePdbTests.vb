@@ -38,6 +38,7 @@ Public Class C
         Return 1
     End Function
 
+#ExternalSource(""C:\Enc1.vb"", 20) 
     Sub G()
         Dim H1 = <N:0>Function() 1</N:0>
 
@@ -45,6 +46,7 @@ Public Class C
             Dim H3 = <N:2>Function() 3</N:2>
         End Sub</N:1>
     End Sub
+#End ExternalSource 
 End Class                           
 ", fileName:="C:\Enc1.vb")
 
@@ -65,6 +67,7 @@ Public Class C
 #End ExternalSource
     End Sub
 
+#ExternalSource(""C:\Enc1.vb"", 20) 
     Sub G()
         Dim H1 = <N:0>Function() 1</N:0>
 
@@ -73,6 +76,7 @@ Public Class C
             Dim H4 = <N:3>Function() 4</N:3>
         End Sub</N:1>
     End Sub
+#End ExternalSource 
 
     Function E() As Integer 
         Return 1
@@ -96,6 +100,7 @@ Public Class C
 #End ExternalSource
     End Sub
 
+#ExternalSource(""C:\Enc1.vb"", 20) 
     Sub G()
 
 
@@ -104,6 +109,7 @@ Public Class C
             Dim H4 = <N:3>Function() 4</N:3>
         End Sub</N:1>
     End Sub
+#End ExternalSource
 
     Function E() As Integer 
         Return 1
@@ -182,6 +188,7 @@ End Class", fileName:="C:\Enc1.vb")
     <files>
         <file id="1" name="C:\F\A.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
         <file id="2" name="C:\F\C.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="3" name="C:\Enc1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="E2, 3A, 75, D7, B2, 2D, 78, 1C,  E, F7, 75, E2, 8C,  9, 4B, 4E, E1, 68, 2E, 9D, "/>
     </files>
     <methods>
         <method token="0x600000b">
@@ -197,6 +204,12 @@ End Class", fileName:="C:\Enc1.vb")
             </scope>
         </method>
         <method token="0x600000d">
+            <sequencePoints>
+                <entry offset="0x0" startLine="20" startColumn="5" endLine="20" endColumn="12" document="3"/>
+                <entry offset="0x1" startLine="21" startColumn="13" endLine="21" endColumn="35" document="3"/>
+                <entry offset="0x26" startLine="23" startColumn="13" endLine="26" endColumn="16" document="3"/>
+                <entry offset="0x4b" startLine="27" startColumn="5" endLine="27" endColumn="12" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4c">
                 <importsforward token="0x600000b"/>
                 <local name="H1" il_index="2" il_start="0x0" il_end="0x4c" attributes="0"/>
@@ -204,11 +217,21 @@ End Class", fileName:="C:\Enc1.vb")
             </scope>
         </method>
         <method token="0x6000010">
+            <sequencePoints>
+                <entry offset="0x0" startLine="21" startColumn="23" endLine="21" endColumn="33" document="3"/>
+                <entry offset="0x1" startLine="21" startColumn="34" endLine="21" endColumn="35" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward token="0x600000b"/>
             </scope>
         </method>
         <method token="0x6000011">
+            <sequencePoints>
+                <entry offset="0x0" startLine="23" startColumn="23" endLine="23" endColumn="28" document="3"/>
+                <entry offset="0x1" startLine="24" startColumn="17" endLine="24" endColumn="39" document="3"/>
+                <entry offset="0x26" startLine="25" startColumn="17" endLine="25" endColumn="39" document="3"/>
+                <entry offset="0x4b" startLine="26" startColumn="9" endLine="26" endColumn="16" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x4c">
                 <importsforward token="0x600000b"/>
                 <local name="H3" il_index="0" il_start="0x0" il_end="0x4c" attributes="0"/>
@@ -216,11 +239,19 @@ End Class", fileName:="C:\Enc1.vb")
             </scope>
         </method>
         <method token="0x6000012">
+            <sequencePoints>
+                <entry offset="0x0" startLine="24" startColumn="27" endLine="24" endColumn="37" document="3"/>
+                <entry offset="0x1" startLine="24" startColumn="38" endLine="24" endColumn="39" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward token="0x600000b"/>
             </scope>
         </method>
         <method token="0x6000013">
+            <sequencePoints>
+                <entry offset="0x0" startLine="25" startColumn="27" endLine="25" endColumn="37" document="3"/>
+                <entry offset="0x1" startLine="25" startColumn="38" endLine="25" endColumn="39" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
                 <importsforward token="0x600000b"/>
             </scope>
@@ -270,15 +301,9 @@ End Class", fileName:="C:\Enc1.vb")
     <files>
         <file id="1" name="C:\F\A.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
         <file id="2" name="C:\F\E.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="3" name="C:\Enc1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="DB, 81, EA, 11, DD, DE, 3B, 51, F3,  7, C3, A7, 7E,  B, 41, D3, D4, 12, 86, 93, "/>
     </files>
     <methods>
-        <method token="0x600000a">
-            <scope startOffset="0x0" endOffset="0x7">
-                <namespace name="System" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="A" il_index="1" il_start="0x0" il_end="0x7" attributes="0"/>
-            </scope>
-        </method>
         <method token="0x600000b">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
@@ -287,30 +312,39 @@ End Class", fileName:="C:\Enc1.vb")
                 <entry offset="0xd" hidden="true" document="2"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xe">
-                <importsforward token="0x600000a"/>
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
             </scope>
         </method>
         <method token="0x600000d">
+            <sequencePoints>
+                <entry offset="0x0" startLine="20" startColumn="5" endLine="20" endColumn="12" document="3"/>
+                <entry offset="0x1" startLine="23" startColumn="13" endLine="26" endColumn="16" document="3"/>
+                <entry offset="0x27" startLine="27" startColumn="5" endLine="27" endColumn="12" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x28">
-                <importsforward token="0x600000a"/>
+                <importsforward token="0x600000b"/>
                 <local name="H2" il_index="4" il_start="0x0" il_end="0x28" attributes="0"/>
             </scope>
         </method>
         <method token="0x6000011">
+            <sequencePoints>
+                <entry offset="0x0" startLine="23" startColumn="23" endLine="23" endColumn="28" document="3"/>
+                <entry offset="0x1" startLine="25" startColumn="17" endLine="25" endColumn="39" document="3"/>
+                <entry offset="0x26" startLine="26" startColumn="9" endLine="26" endColumn="16" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x27">
-                <importsforward token="0x600000a"/>
+                <importsforward token="0x600000b"/>
                 <local name="H4" il_index="0" il_start="0x0" il_end="0x27" attributes="0"/>
             </scope>
         </method>
         <method token="0x6000013">
+            <sequencePoints>
+                <entry offset="0x0" startLine="25" startColumn="27" endLine="25" endColumn="37" document="3"/>
+                <entry offset="0x1" startLine="25" startColumn="38" endLine="25" endColumn="39" document="3"/>
+            </sequencePoints>
             <scope startOffset="0x0" endOffset="0x7">
-                <importsforward token="0x600000a"/>
-            </scope>
-        </method>
-        <method token="0x6000014">
-            <scope startOffset="0x0" endOffset="0x7">
-                <importsforward token="0x600000a"/>
-                <local name="B" il_index="0" il_start="0x0" il_end="0x7" attributes="0"/>
+                <importsforward token="0x600000b"/>
             </scope>
         </method>
     </methods>

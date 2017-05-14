@@ -29,6 +29,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                 Assert.NotNull(codeElement)
 
                 expected(codeElement)
+
+                ' Now close the file and ensure the behavior is still the same
+                state.VisualStudioWorkspace.CloseDocument(state.Workspace.Documents.Single().Id)
+
+                codeElement = GetCodeElement(state)
+                Assert.NotNull(codeElement)
+
+                expected(codeElement)
             End Using
         End Sub
 

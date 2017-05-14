@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             // no-op
         }
-        
+
         public virtual void VisitBlockStatement(IBlockStatement operation)
         {
             DefaultVisit(operation);
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
-        
+
         public virtual void VisitBranchStatement(IBranchStatement operation)
         {
             DefaultVisit(operation);
@@ -398,8 +398,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     /// <summary>
     /// Represents a <see cref="IOperation"/> visitor that visits only the single IOperation
-    /// passed into its Visit method with an additional argument of the type specified by the 
-    /// <typeparamref name="TArgument"/> parameter and produces a value of the type specified by 
+    /// passed into its Visit method with an additional argument of the type specified by the
+    /// <typeparamref name="TArgument"/> parameter and produces a value of the type specified by
     /// the <typeparamref name="TResult"/> parameter.
     /// </summary>
     /// <typeparam name="TArgument">
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return DefaultVisit(operation, argument);
         }
-        
+
         public virtual TResult VisitFixedStatement(IFixedStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);

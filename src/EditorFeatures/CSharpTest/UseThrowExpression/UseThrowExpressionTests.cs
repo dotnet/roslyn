@@ -360,5 +360,75 @@ public interface ISyntax
 {
 }");
         }
+
+        [WorkItem(18670, "https://github.com/dotnet/roslyn/issues/18670")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWithElseClause()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+using System;
+
+class C
+{
+    int? _x;
+
+    public C(int? x)
+    {
+        if (x == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(x));
+        }
+        else
+        {
+            Console.WriteLine();
+        }
+
+        _x = x;
+    }
+}");
+        }
+
+        [WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWithMultipleStatementsInIf1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s == null)
+        {
+            Console.WriteLine();
+            [|throw|] new ArgumentNullException(nameof(s));
+        }
+        _s = s;
+    }
+}");
+        }
+
+        [WorkItem(19377, "https://github.com/dotnet/roslyn/issues/19377")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseThrowExpression)]
+        public async Task TestNotWithMultipleStatementsInIf2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void M(string s)
+    {
+        if (s == null)
+        {
+            [|throw|] new ArgumentNullException(nameof(s));
+            Console.WriteLine();
+        }
+        _s = s;
+    }
+}");
+        }
     }
 }

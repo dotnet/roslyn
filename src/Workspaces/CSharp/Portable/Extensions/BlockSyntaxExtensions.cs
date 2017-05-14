@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool MatchesPreference(
+        public static bool MatchesPreference(
             ExpressionSyntax expression, ExpressionBodyPreference preference)
         {
             if (preference == ExpressionBodyPreference.WhenPossible)
@@ -70,9 +70,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 if (returnStatement.Expression != null)
                 {
-                    // If there are any comments on the return keyword, move them to
+                    // If there are any comments or directives on the return keyword, move them to
                     // the expression.
-                    expression = firstStatement.GetLeadingTrivia().Any(t => t.IsSingleOrMultiLineComment())
+                    expression = firstStatement.GetLeadingTrivia().Any(t => t.IsDirective || t.IsSingleOrMultiLineComment())
                         ? returnStatement.Expression.WithLeadingTrivia(returnStatement.GetLeadingTrivia())
                         : returnStatement.Expression;
                     semicolonToken = returnStatement.SemicolonToken;

@@ -1120,7 +1120,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+            CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,17): error CS8154: The body of 'localFunction()' cannot be an iterator block because 'localFunction()' returns by reference
                 //         ref int localFunction()
                 Diagnostic(ErrorCode.ERR_BadIteratorReturnRef, "localFunction").WithArguments("localFunction()").WithLocation(9, 17),
@@ -1269,7 +1269,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+            CreateStandardCompilation(code).VerifyDiagnostics(
                 // (12,43): error CS8173: The expression must be of type 'int?' because it is being assigned by reference
                 //         ref int? nullableConversion = ref intVar;
                 Diagnostic(ErrorCode.ERR_RefAssignmentMustHaveIdentityConversion, "intVar").WithArguments("int?").WithLocation(12, 43),
@@ -1310,7 +1310,7 @@ class TestClass
     }
 }";
 
-            CreateCompilationWithMscorlib(code).VerifyDiagnostics(
+            CreateStandardCompilation(code).VerifyDiagnostics(
                 // (13,21): error CS8176: Iterators cannot have by reference locals
                 //             ref int z = ref x;
                 Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),

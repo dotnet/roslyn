@@ -188,7 +188,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 // delegating.
                 var remainingParameterNames = _service.GenerateParameterNames(
                     _document.SemanticModel, remainingArguments,
-                    delegatedConstructor.Parameters.Select(p => p.Name).ToList());
+                    delegatedConstructor.Parameters.Select(p => p.Name).ToList(),
+                    _cancellationToken);
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
                 // conflict with any names we generated.
@@ -275,8 +276,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 ImmutableArray<TArgumentSyntax> arguments, ImmutableArray<string> typeParametersNames)
             {
                 return _state.AttributeArguments != null
-                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames)
-                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames);
+                    ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames, _cancellationToken)
+                    : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames, _cancellationToken);
             }
 
             private void GetParameters(
@@ -364,8 +365,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 // use so we can assign to that.  
                                 var newFieldName = NameGenerator.EnsureUniqueness(
                                     attributeArguments != null
-                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index])
-                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index]),
+                                        ? _service.GenerateNameForArgument(_document.SemanticModel, attributeArguments.Value[index], _cancellationToken)
+                                        : _service.GenerateNameForArgument(_document.SemanticModel, arguments[index], _cancellationToken),
                                     GetUnavailableMemberNames().Concat(parameterToNewFieldMap.Values));
 
                                 if (isFixed)

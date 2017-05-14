@@ -237,7 +237,7 @@ unsafe class C
     fixed int G[1];
 }
 ";
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (5,15): error CS1642: Fixed size buffer fields may only be members of structs
                 //     fixed int G[1];
                 Diagnostic(ErrorCode.ERR_FixedNotInStruct, "G"),
@@ -311,7 +311,7 @@ unsafe struct S
 {
     fixed int F[3, 4];
 }";
-            CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,16): error CS7092: A fixed buffer may only have one dimension.
                 //     fixed int F[3, 4];
                 Diagnostic(ErrorCode.ERR_FixedBufferTooManyDimensions, "[3, 4]"));
@@ -396,7 +396,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,34): error CS0106: The modifier 'readonly' is not valid for this item
     //     public readonly fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("readonly").WithLocation(8, 34)
@@ -425,7 +425,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,32): error CS0106: The modifier 'static' is not valid for this item
     //     public static fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("static").WithLocation(8, 32)
@@ -454,7 +454,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,18): error CS1031: Type expected
     //     public fixed const UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_TypeExpected, "const").WithLocation(8, 18),
@@ -510,7 +510,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,18): error CS1031: Type expected
     //     public const fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_TypeExpected, "fixed").WithLocation(8, 18),
@@ -551,7 +551,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics(
     // (8,34): error CS0106: The modifier 'volatile' is not valid for this item
     //     public volatile fixed UInt32 StartOfTables[ 16 ];
     Diagnostic(ErrorCode.ERR_BadMemberFlag, "StartOfTables").WithArguments("volatile").WithLocation(8, 34)

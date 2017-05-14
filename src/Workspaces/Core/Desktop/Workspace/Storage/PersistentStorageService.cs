@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Storage
     /// A service that enables storing and retrieving of information associated with solutions,
     /// projects or documents across runtime sessions.
     /// </summary>
-    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService
+    internal abstract partial class AbstractPersistentStorageService : IPersistentStorageService2
     {
         protected readonly IOptionService OptionService;
         private readonly SolutionSizeTracker _solutionSizeTracker;
@@ -54,12 +54,15 @@ namespace Microsoft.CodeAnalysis.Storage
         }
 
         protected abstract string GetDatabaseFilePath(string workingFolderPath);
-        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath);
+        protected abstract AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath);
         protected abstract bool ShouldDeleteDatabase(Exception exception);
 
         public IPersistentStorage GetStorage(Solution solution)
+            => GetStorage(solution, checkBranchId: true);
+
+        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
         {
-            if (!ShouldUseDatabase(solution))
+            if (!ShouldUseDatabase(solution, checkBranchId))
             {
                 return NoOpPersistentStorage.Instance;
             }
@@ -136,16 +139,21 @@ namespace Microsoft.CodeAnalysis.Storage
             }
         }
 
-        private bool ShouldUseDatabase(Solution solution)
+        private bool ShouldUseDatabase(Solution solution, bool checkBranchId)
         {
             if (_testing)
             {
                 return true;
             }
 
-            // we only use database for primary solution. (Ex, forked solution will not use database)
-            if (solution.BranchId != solution.Workspace.PrimaryBranchId || solution.FilePath == null)
+            if (solution.FilePath == null)
             {
+                return false;
+            }
+
+            if (checkBranchId && solution.BranchId != solution.Workspace.PrimaryBranchId)
+            {
+                // we only use database for primary solution. (Ex, forked solution will not use database)
                 return false;
             }
 
@@ -156,6 +164,14 @@ namespace Microsoft.CodeAnalysis.Storage
         {
             if (_testing)
             {
+                return true;
+            }
+
+            var workspace = solution.Workspace;
+            if (workspace.Kind == WorkspaceKind.RemoteWorkspace ||
+                workspace.Kind == WorkspaceKind.RemoteTemporaryWorkspace)
+            {
+                // Storage is always available in the remote server.
                 return true;
             }
 
@@ -216,9 +232,10 @@ namespace Microsoft.CodeAnalysis.Storage
             persistentStorage = null;
             AbstractPersistentStorage database = null;
 
+            var databaseFilePath = GetDatabaseFilePath(workingFolderPath);
             try
             {
-                database = OpenDatabase(solution, workingFolderPath);
+                database = OpenDatabase(solution, workingFolderPath, databaseFilePath);
                 database.Initialize(solution);
 
                 persistentStorage = database;
@@ -238,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Storage
                     // this was not a normal exception that we expected during DB open.
                     // Report this so we can try to address whatever is causing this.
                     FatalError.ReportWithoutCrash(ex);
-                    IOUtilities.PerformIO(() => Directory.Delete(database.DatabaseDirectory, recursive: true));
+                    IOUtilities.PerformIO(() => Directory.Delete(Path.GetDirectoryName(databaseFilePath), recursive: true));
                 }
 
                 return false;

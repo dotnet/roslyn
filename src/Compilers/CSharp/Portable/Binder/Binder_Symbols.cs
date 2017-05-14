@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locations.Add(argumentSyntax.Location);
                 }
 
-                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
+                CollectTupleFieldMemberName(name, i, numElements, ref elementNames);
             }
 
             uniqueFieldNames.Free();
@@ -480,11 +480,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 elementNames.ToImmutableAndFree(),
                                             this.Compilation,
                                             this.ShouldCheckConstraints,
-                                            syntax,
-                                            diagnostics);
+                                            errorPositions: default(ImmutableArray<bool>),
+                                            syntax: syntax,
+                                            diagnostics: diagnostics);
         }
 
-        private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)
+        private static void CollectTupleFieldMemberName(string name, int elementIndex, int tupleSize, ref ArrayBuilder<string> elementNames)
         {
             // add the name to the list
             // names would typically all be there or none at all
@@ -498,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (name != null)
                 {
                     elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
-                    for (int j = 1; j < position; j++)
+                    for (int j = 0; j < elementIndex; j++)
                     {
                         elementNames.Add(null);
                     }
@@ -2059,12 +2060,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal static void CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
+        internal static bool CheckFeatureAvailability(SyntaxNode syntax, MessageID feature, DiagnosticBag diagnostics, Location locationOpt = null)
         {
             var options = (CSharpParseOptions)syntax.SyntaxTree.Options;
             if (options.IsFeatureEnabled(feature))
             {
-                return;
+                return true;
             }
 
             var location = locationOpt ?? syntax.GetLocation();
@@ -2072,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (requiredFeature != null)
             {
                 diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
-                return;
+                return false;
             }
 
             LanguageVersion availableVersion = options.LanguageVersion;
@@ -2080,7 +2081,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (requiredVersion > availableVersion)
             {
                 diagnostics.Add(availableVersion.GetErrorCode(), location, feature.Localize(), new CSharpRequiredLanguageVersion(requiredVersion));
+                return false;
             }
+
+            return true;
         }
     }
 }

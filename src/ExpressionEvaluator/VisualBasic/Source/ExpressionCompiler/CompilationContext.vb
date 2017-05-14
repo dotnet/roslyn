@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             compilation As VisualBasicCompilation,
             currentFrame As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
-            inScopeHoistedLocals As InScopeHoistedLocals,
+            inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer),
             methodDebugInfo As MethodDebugInfo(Of TypeSymbol, LocalSymbol),
             withSyntax As Boolean)
 
@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             If _methodNotType Then
                 _locals = locals
                 Dim displayClassVariableNamesInOrder As ImmutableArray(Of String) = Nothing
-                GetDisplayClassVariables(currentFrame, locals, inScopeHoistedLocals, displayClassVariableNamesInOrder, _displayClassVariables, _hoistedParameterNames)
+                GetDisplayClassVariables(currentFrame, locals, inScopeHoistedLocalSlots, displayClassVariableNamesInOrder, _displayClassVariables, _hoistedParameterNames)
                 Debug.Assert(displayClassVariableNamesInOrder.Length = _displayClassVariables.Count)
                 _localsForBinding = GetLocalsForBinding(locals, displayClassVariableNamesInOrder, _displayClassVariables)
             Else
@@ -998,7 +998,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Private Shared Sub GetDisplayClassVariables(
             method As MethodSymbol,
             locals As ImmutableArray(Of LocalSymbol),
-            inScopeHoistedLocals As InScopeHoistedLocals,
+            inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer),
             <Out> ByRef displayClassVariableNamesInOrder As ImmutableArray(Of String),
             <Out> ByRef displayClassVariables As ImmutableDictionary(Of String, DisplayClassVariable),
             <Out> ByRef hoistedParameterNames As ImmutableHashSet(Of String))
@@ -1076,7 +1076,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                         displayClassVariableNamesInOrderBuilder,
                         displayClassVariablesBuilder,
                         parameterNames,
-                        inScopeHoistedLocals,
+                        inScopeHoistedLocalSlots,
                         instance,
                         pooledHoistedParameterNames)
                 Next
@@ -1209,7 +1209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             displayClassVariableNamesInOrder As ArrayBuilder(Of String),
             displayClassVariablesBuilder As Dictionary(Of String, DisplayClassVariable),
             parameterNames As HashSet(Of String),
-            inScopeHoistedLocals As InScopeHoistedLocals,
+            inScopeHoistedLocalSlots As ImmutableSortedSet(Of Integer),
             instance As DisplayClassInstanceAndFields,
             hoistedParameterNames As HashSet(Of String))
 
@@ -1229,6 +1229,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
                 Dim variableKind As DisplayClassVariableKind
                 Dim variableName As String
+                Dim hoistedLocalName As String = Nothing
+                Dim hoistedLocalSlotIndex As Integer = 0
 
                 If fieldName.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
                     Debug.Assert(Not field.IsShared)
@@ -1238,14 +1240,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     Debug.Assert(Not field.IsShared)
                     variableKind = DisplayClassVariableKind.Local
                     variableName = fieldName.Substring(StringConstants.HoistedSpecialVariablePrefix.Length)
-                ElseIf fieldName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                ElseIf GeneratedNames.TryParseStateMachineHoistedUserVariableName(fieldName, hoistedLocalName, hoistedLocalSlotIndex) Then
                     Debug.Assert(Not field.IsShared)
-                    variableKind = DisplayClassVariableKind.Local
-                    variableName = Nothing
-                    Dim unusedIndex As Integer = Nothing
-                    If Not inScopeHoistedLocals.IsInScope(fieldName) OrElse Not GeneratedNames.TryParseStateMachineHoistedUserVariableName(fieldName, variableName, unusedIndex) Then
+
+                    If Not inScopeHoistedLocalSlots.Contains(hoistedLocalSlotIndex) Then
                         Continue For
                     End If
+
+                    variableKind = DisplayClassVariableKind.Local
+                    variableName = hoistedLocalName
+
                 ElseIf IsHoistedMeFieldName(fieldName) Then
                     Debug.Assert(Not field.IsShared)
                     ' A reference to "Me".

@@ -40,6 +40,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
 
+        internal override void VisitNoneOperation(IOperation operation)
+        {
+            if (operation is IOperationWithChildren operationWithChildren)
+            {
+                VisitArray(operationWithChildren.Children);
+            }
+        }
+
         public override void VisitBlockStatement(IBlockStatement operation)
         {
             VisitArray(operation.Statements);
@@ -47,12 +55,12 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitVariableDeclarationStatement(IVariableDeclarationStatement operation)
         {
-            VisitArray(operation.Variables);
+            VisitArray(operation.Declarations);
         }
 
         public override void VisitVariableDeclaration(IVariableDeclaration operation)
         {
-            Visit(operation.InitialValue);
+            Visit(operation.Initializer);
         }
 
         public override void VisitSwitchStatement(ISwitchStatement operation)
@@ -194,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitInvocationExpression(IInvocationExpression operation)
         {
             Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInParameterOrder);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitArgument(IArgument operation)
@@ -273,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
         {
             Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInParameterOrder);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
@@ -336,8 +344,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
-            VisitArray(operation.ArgumentsInParameterOrder);
-            VisitArray(operation.MemberInitializers);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
+            VisitArray(operation.Initializers);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
@@ -404,9 +412,13 @@ namespace Microsoft.CodeAnalysis.Semantics
         { }
 
         public override void VisitInvalidStatement(IInvalidStatement operation)
-        { }
+        {
+            VisitArray(operation.Children);
+        }
 
         public override void VisitInvalidExpression(IInvalidExpression operation)
-        { }
+        {
+            VisitArray(operation.Children);
+        }
     }
 }

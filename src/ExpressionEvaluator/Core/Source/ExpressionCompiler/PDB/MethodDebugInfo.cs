@@ -21,7 +21,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             ImmutableArray<TLocalSymbol>.Empty,
             ILSpan.MaxValue);
 
+        /// <summary>
+        /// Hoisted local variable scopes.
+        /// Null if the information should be decoded from local variable debug info (VB Windows PDBs).
+        /// Empty if there are no hoisted user defined local variables.
+        /// </summary>
         public readonly ImmutableArray<HoistedLocalScopeRecord> HoistedLocalScopeRecords;
+
         public readonly ImmutableArray<ImmutableArray<ImportRecord>> ImportRecordGroups;
         public readonly ImmutableArray<ExternAliasRecord> ExternAliasRecords; // C# only.
         public readonly ImmutableDictionary<int, ImmutableArray<bool>> DynamicLocalMap; // C# only.
@@ -45,7 +51,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Debug.Assert(!importRecordGroups.IsDefault);
             Debug.Assert(!externAliasRecords.IsDefault);
             Debug.Assert(defaultNamespaceName != null);
-            Debug.Assert(!hoistedLocalScopeRecords.IsDefault);
 
             HoistedLocalScopeRecords = hoistedLocalScopeRecords;
             ImportRecordGroups = importRecordGroups;
@@ -63,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public ImmutableSortedSet<int> GetInScopeHoistedLocalIndices(int ilOffset, ref ILSpan methodContextReuseSpan)
         {
-            if (this.HoistedLocalScopeRecords.IsEmpty)
+            if (HoistedLocalScopeRecords.IsDefaultOrEmpty)
             {
                 return ImmutableSortedSet<int>.Empty;
             }
@@ -75,7 +80,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             var scopesBuilder = ArrayBuilder<int>.GetInstance();
             int i = 0;
-            foreach (var record in this.HoistedLocalScopeRecords)
+            foreach (var record in HoistedLocalScopeRecords)
             {
                 var delta = ilOffset - record.StartOffset;
                 if (0 <= delta && delta < record.Length)
