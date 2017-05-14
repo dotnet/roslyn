@@ -322,7 +322,7 @@ class C
 {
     public ref readonly int P1 { get; set; }
 }";
-            var comp = CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            var comp = CreateCompilation(text).VerifyDiagnostics(
                 // (4,29): error CS8145: Auto-implemented properties cannot return by reference
                 //     public ref readonly int P1 { get; set; }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithArguments("C.P1").WithLocation(4, 29),

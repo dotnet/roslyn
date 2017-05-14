@@ -5453,7 +5453,7 @@ class Derived2 : Base2
     public override void Method(int x, ref int y, out Exception z) { z = null; }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilation(text).VerifyDiagnostics(
                 // (14,26): error CS0663: 'Derived2' cannot define an overloaded method that differs only on parameter modifiers 'ref' and 'out'
                 //     public override void Method(int x, ref int y, out Exception z) { z = null; }
                 Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("Derived2", "method", "ref", "out").WithLocation(14, 26));

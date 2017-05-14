@@ -5501,7 +5501,7 @@ public class C
     public ref readonly int P => ref _p;
     public ref readonly int this[in int i] => ref _p;
 }";
-            var compA = CreateCompilationWithMscorlib(sourceA);
+            var compA = CreateCompilation(sourceA);
             compA.VerifyDiagnostics();
             var refA = compA.EmitToImageReference();
             // From C# symbols.
@@ -5527,7 +5527,7 @@ public class C
     public ref readonly int P => ref _p;
     public ref readonly int this[ref readonly int i] => ref _p;
 }";
-            var compA = CreateCompilationWithMscorlib(sourceA);
+            var compA = CreateCompilation(sourceA);
             compA.VerifyDiagnostics();
             var refA = compA.EmitToImageReference();
             // From C# symbols.

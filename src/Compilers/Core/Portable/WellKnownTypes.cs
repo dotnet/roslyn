@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
-            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"
+            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
 
             "System.Runtime.CompilerServices.ReadOnlyAttribute",
             "System.Runtime.CompilerServices.IsByRefLikeAttribute",
