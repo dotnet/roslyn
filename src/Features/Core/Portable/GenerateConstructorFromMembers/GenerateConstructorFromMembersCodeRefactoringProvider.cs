@@ -16,6 +16,18 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
 {
+    /// <summary>
+    /// This <see cref="CodeRefactoringProvider"/> is responsible for allowing a user to pick a 
+    /// set of members from a class or struct, and then generate a constructor for that takes in
+    /// matching parameters and assigns them to those members.  The members can be picked using 
+    /// a actual selection in the editor, or they can be picked using a picker control that will
+    /// then display all the viable members and allow the user to pick which ones they want to
+    /// use.
+    /// 
+    /// Importantly, this type is not responsible for generating constructors when the user types
+    /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
+    /// in a derived type that delegate to a base type.
+    /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers)]
