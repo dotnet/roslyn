@@ -2417,9 +2417,9 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 41),
                 // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
@@ -3975,9 +3975,9 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7.0").WithLocation(3, 41),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
