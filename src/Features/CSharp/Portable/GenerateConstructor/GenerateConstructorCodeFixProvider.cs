@@ -29,6 +29,18 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor
             ImmutableArray.Create(CS1729);
     }
 
+    /// <summary>
+    /// This <see cref="CodeFixProvider"/> gives users a way to generate constructors for an existing
+    /// type when a user tries to 'new' up an instance of that type with a set of parameter that does
+    /// not match any existing constructor.  i.e. it is the equivalent of 'Generate-Method' but for
+    /// constructors.  Parameters for the constructor will be picked in a manner similar to Generate-
+    /// Method.  However, this type will also attempt to hook up those parameters to existing fields
+    /// and properties, or pass them to a this/base constructor if available.
+    /// 
+    /// Importantly, this type is not responsible for generating constructors for a type based on 
+    /// the user selecting some fields/properties of that type.  Nor is it responsible for generating
+    /// derived class constructors for all unmatched base class constructors in a type hierarchy.
+    /// </summary>
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateConstructor), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]
     internal class GenerateConstructorCodeFixProvider : AbstractGenerateMemberCodeFixProvider

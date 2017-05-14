@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
     /// 
     /// Importantly, this type is not responsible for generating constructors when the user types
     /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
-    /// for a type based on the fields/properties of that type.
+    /// for a type based on the fields/properties of that type. Both of those are handled by other 
+    /// services.
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]

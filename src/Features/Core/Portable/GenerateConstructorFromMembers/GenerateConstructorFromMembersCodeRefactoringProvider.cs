@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers
     /// 
     /// Importantly, this type is not responsible for generating constructors when the user types
     /// something like "new MyType(x, y, z)", nor is it responsible for generating constructors
-    /// in a derived type that delegate to a base type.
+    /// in a derived type that delegate to a base type. Both of those are handled by other services.
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
         Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
