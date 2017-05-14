@@ -44,24 +44,24 @@ public class Vec
 }
 ";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7 or greater.
+                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i1 = 0b001010; // binary literals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7").WithLocation(7, 18),
-                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7.0").WithLocation(7, 18),
+                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int i2 = 23_554; // digit separators
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7").WithLocation(8, 18),
-                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7.0").WithLocation(8, 18),
+                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(12, 13),
-                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7.0").WithLocation(12, 13),
+                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(13, 9),
-                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(13, 9),
+                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 22),
-                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(13, 22),
+                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         string s = o is string k ? k : null; // pattern matching
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7").WithLocation(14, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7.0").WithLocation(14, 20),
                 // (12,13): warning CS0168: The variable 'f' is declared but never used
                 //         int f() => 2;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
@@ -3398,9 +3398,9 @@ other 6");
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case 1 when true:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7").WithLocation(7, 13)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7.0").WithLocation(7, 13)
                 );
         }
 
@@ -4103,12 +4103,12 @@ class B
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7").WithLocation(15, 27),
-                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7.0").WithLocation(15, 27),
+                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7").WithLocation(16, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7.0").WithLocation(16, 27)
                 );
             var expectedOutput =
 @"5
@@ -5706,12 +5706,12 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7. Please use language version 7.1 or greater.
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived b0);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived b1:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7", "7.1").WithLocation(16, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7.0", "7.1").WithLocation(16, 18)
                 );
             compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
@@ -5749,12 +5749,12 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is T b0);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7.0. Please use language version 7.1 or greater.
                 //             case T b1:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7", "7.1")
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7.0", "7.1")
                 );
             compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
@@ -5792,12 +5792,12 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7. Please use language version 7.1 or greater.
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Derived<T> b0);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7", "7.1").WithLocation(13, 28),
-                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Derived<T> b1:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7", "7.1").WithLocation(16, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7.0", "7.1").WithLocation(16, 18)
                 );
             compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
@@ -5840,10 +5840,10 @@ public class Program
             compilation.VerifyDiagnostics(
                 // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived b0);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7", "7.1").WithLocation(16, 28),
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(16, 28),
                 // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived b1:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7.0", "7.1").WithLocation(19, 18)
                 );
             compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
@@ -5884,12 +5884,12 @@ public class Program
 ";
             var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
             compilation.VerifyDiagnostics(
-                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7. Please use language version 7.1 or greater.
+                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //         Console.Write(x is Container<T>.Derived[] b0);
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7", "7.1").WithLocation(16, 28),
-                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(16, 28),
+                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7.0. Please use language version 7.1 or greater.
                 //             case Container<T>.Derived[] b1:
-                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7", "7.1").WithLocation(19, 18)
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7.0", "7.1").WithLocation(19, 18)
                 );
             compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics();
