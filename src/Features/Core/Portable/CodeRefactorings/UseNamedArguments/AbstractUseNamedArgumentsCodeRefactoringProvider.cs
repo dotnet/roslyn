@@ -34,7 +34,13 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     return;
                 }
 
-                var argument = root.FindNode(context.Span).FirstAncestorOrSelf<TBaseArgumentSyntax>() as TArgumentSyntax;
+                var token = root.FindToken(context.Span.Start);
+                if (token.ValueText == ")" || token.ValueText == ",")
+                {
+                    token = token.GetPreviousToken();
+                }
+
+                var argument = root.FindNode(token.Span).FirstAncestorOrSelf<TBaseArgumentSyntax>() as TArgumentSyntax;
                 if (argument == null)
                 {
                     return;
