@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.Kind() == SyntaxKind.ColonToken)
             {
                 if (token.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
-                                        SyntaxKind.DefaultSwitchLabel,
                                         SyntaxKind.LabeledStatement,
+                                        SyntaxKind.DefaultSwitchLabel,
                                         SyntaxKind.CasePatternSwitchLabel))
                 {
                     return true;
