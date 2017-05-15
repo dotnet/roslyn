@@ -1430,6 +1430,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         return true;
                     }
 
+                    // "async TypeName class". In this case, we just have an incomplete member before
+                    // an existing type declaration.  Treat this 'async' as a keyword.
+                    if (CanStartTypeDeclaration(this.CurrentToken.Kind))
+                    {
+                        return true;
+                    }
+
                     // "async TypeName namespace". In this case, we just have an incomplete member before
                     // an existing namespace declaration.  Treat this 'async' as a keyword.
                     if (currentTokenKind == SyntaxKind.NamespaceKeyword)
@@ -2114,6 +2121,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.RefKeyword:
                     return true;
 
+                default:
+                    return false;
+            }
+        }
+
+        private static bool CanStartTypeDeclaration(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.ClassKeyword:
+                case SyntaxKind.DelegateKeyword:
+                case SyntaxKind.EnumKeyword:
+                case SyntaxKind.InterfaceKeyword:
+                case SyntaxKind.StructKeyword:
+                    return true;
                 default:
                     return false;
             }

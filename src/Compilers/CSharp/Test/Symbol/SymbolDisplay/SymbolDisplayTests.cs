@@ -4058,7 +4058,7 @@ class C
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
                 memberOptions: SymbolDisplayMemberOptions.IncludeContainingType | SymbolDisplayMemberOptions.IncludeType | SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeExplicitInterface);
 
-            var comp = CreateCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var comp = CreateStandardCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
             var eventSymbol = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<EventSymbol>("E");
             Assert.True(eventSymbol.IsWindowsRuntimeEvent);
 
@@ -5322,7 +5322,7 @@ public class C
     public ref int P => ref _p;
     public ref int this[int i] => ref _p;
 }";
-            var compA = CreateCompilation(sourceA, new[] { MscorlibRef });
+            var compA = CreateStandardCompilation(sourceA, new[] { MscorlibRef });
             compA.VerifyDiagnostics();
             var refA = compA.EmitToImageReference();
             // From C# symbols.
@@ -5501,7 +5501,7 @@ public class C
     public ref readonly int P => ref _p;
     public ref readonly int this[in int i] => ref _p;
 }";
-            var compA = CreateCompilation(sourceA);
+            var compA = CreateStandardCompilation(sourceA);
             compA.VerifyDiagnostics();
             var refA = compA.EmitToImageReference();
             // From C# symbols.
@@ -5527,7 +5527,7 @@ public class C
     public ref readonly int P => ref _p;
     public ref readonly int this[ref readonly int i] => ref _p;
 }";
-            var compA = CreateCompilation(sourceA);
+            var compA = CreateStandardCompilation(sourceA);
             compA.VerifyDiagnostics();
             var refA = compA.EmitToImageReference();
             // From C# symbols.

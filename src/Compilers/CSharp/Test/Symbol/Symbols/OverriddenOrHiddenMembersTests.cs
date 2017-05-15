@@ -3999,7 +3999,7 @@ class B : A
     public void M(ref readonly int x) { }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (8,17): warning CS0108: 'B.M(in int)' hides inherited member 'A.M(in int)'. Use the new keyword if hiding was intended.
                 //     public void M(ref readonly int x) { }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M(in int)", "A.M(in int)").WithLocation(8, 17));
@@ -4029,7 +4029,7 @@ class B : A
     public ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     public ref readonly int M() { return ref x; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(9, 29));
@@ -4059,7 +4059,7 @@ class B : A
     public ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     public ref readonly int M() { return ref x; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(9, 29));
@@ -4089,7 +4089,7 @@ class B : A
     public ref int M() { return ref x; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,20): warning CS0108: 'B.M()' hides inherited member 'A.M()'. Use the new keyword if hiding was intended.
                 //     public ref int M() { return ref x; }
                 Diagnostic(ErrorCode.WRN_NewRequired, "M").WithArguments("B.M()", "A.M()").WithLocation(9, 20));
@@ -4119,7 +4119,7 @@ class B : A
     public ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     public ref readonly int Property { get { return ref x; } }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(9, 29));
@@ -4149,7 +4149,7 @@ class B : A
     public ref int Property { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,20): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     public ref int Property { get { return ref x; } }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(9, 20));
@@ -4179,7 +4179,7 @@ class B : A
     public ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,29): warning CS0108: 'B.Property' hides inherited member 'A.Property'. Use the new keyword if hiding was intended.
                 //     public ref readonly int Property { get { return ref x; } }
                 Diagnostic(ErrorCode.WRN_NewRequired, "Property").WithArguments("B.Property", "A.Property").WithLocation(9, 29));
@@ -4208,7 +4208,7 @@ class B : A
     public new void M(ref readonly int x) { }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4235,7 +4235,7 @@ class B : A
     public new ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4262,7 +4262,7 @@ class B : A
     public new ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
 
             var aProperty = comp.GetMember<PropertySymbol>("A.Property");
             var bProperty = comp.GetMember<PropertySymbol>("B.Property");
@@ -4288,7 +4288,7 @@ class B : A
     public override void M(ref readonly int x) { }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4315,7 +4315,7 @@ class B : A
     public override ref readonly int M() { return ref x; }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4342,7 +4342,7 @@ class B : A
     public override ref readonly int Property { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
 
             var aProperty = comp.GetMember<PropertySymbol>("A.Property");
             var bProperty = comp.GetMember<PropertySymbol>("B.Property");
@@ -4368,7 +4368,7 @@ class B : A
     public void M(ref int x) { }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
 
             var aMethod = comp.GetMember<MethodSymbol>("A.M");
             var bMethod = comp.GetMember<MethodSymbol>("B.M");
@@ -4402,7 +4402,7 @@ class DerivedClass : BaseClass
     public override ref readonly int this[int a] { get { return ref field; } }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(text).VerifyDiagnostics();
 
             var baseMethod = comp.GetMember<MethodSymbol>("BaseClass.Method1");
             var baseProperty = comp.GetMember<PropertySymbol>("BaseClass.Property1");
@@ -4447,7 +4447,7 @@ class ChildClass : BaseClass
     public override void Method2(ref int x) { }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,26): error CS0115: 'ChildClass.Method2(ref int)': no suitable method found to override
                 //     public override void Method2(ref int x) { }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Method2").WithArguments("ChildClass.Method2(ref int)").WithLocation(10, 26),
@@ -4473,7 +4473,7 @@ class ChildClass : BaseClass
     public override ref int Method2() { return ref x; }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(text).VerifyDiagnostics(
                 // (11,29): error CS8148: 'ChildClass.Method2()' must match by reference return of overridden member 'BaseClass.Method2()'
                 //     public override ref int Method2() { return ref x; }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Method2").WithArguments("ChildClass.Method2()", "BaseClass.Method2()").WithLocation(11, 29),
@@ -4499,7 +4499,7 @@ class B : A
     public override ref int Property2 { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (11,29): error CS8148: 'B.Property2' must match by reference return of overridden member 'A.Property2'
                 //     public override ref int Property2 { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "Property2").WithArguments("B.Property2", "A.Property2").WithLocation(11, 29),
@@ -4523,7 +4523,7 @@ class B : A
     public override ref readonly int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,38): error CS8148: 'B.this[int]' must match by reference return of overridden member 'A.this[int]'
                 //     public override ref readonly int this[int p] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("B.this[int]", "A.this[int]").WithLocation(9, 38));
@@ -4544,7 +4544,7 @@ class B : A
     public override ref int this[int p] { get { return ref x; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (9,29): error CS8148: 'B.this[int]' must match by reference return of overridden member 'A.this[int]'
                 //     public override ref int this[int p] { get { return ref x; } }
                 Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "this").WithArguments("B.this[int]", "A.this[int]").WithLocation(9, 29));
@@ -4564,7 +4564,7 @@ class B : A
     public override int this[ref readonly int p] { get { return p; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics();
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics();
         }
 
         [Fact]
@@ -4581,7 +4581,7 @@ class B : A
     public override int this[int p] { get { return p; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (8,25): error CS0115: 'B.this[int]': no suitable method found to override
                 //     public override int this[int p] { get { return p; } }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[int]").WithLocation(8, 25),
@@ -4604,7 +4604,7 @@ class B : A
     public override int this[ref readonly int p] { get { return p; } }
 }";
 
-            var comp = CreateCompilation(code).VerifyDiagnostics(
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
                 // (8,25): error CS0115: 'B.this[in int]': no suitable method found to override
                 //     public override int this[ref readonly int p] { get { return p; } }
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "this").WithArguments("B.this[in int]").WithLocation(8, 25),
