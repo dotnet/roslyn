@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigableSymbols
         Private Shared ReadOnly s_ExportProvider As ExportProvider =
             MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(
-                    GetType(MockDocumentNavigationService), GetType(MockSymbolNavigationServiceProvider)))
+                    GetType(MockDocumentNavigationServiceFactory), GetType(MockSymbolNavigationServiceProvider)))
 
         <WpfFact>
         Public Async Function TestCSharp() As Task
@@ -29,7 +29,7 @@ class C
 
         <WpfFact>
         Public Async Function TestVB() As Task
-            Using workspace = TestWorkspace.CreateCSharp(<text>
+            Using workspace = TestWorkspace.CreateVisualBasic(<text>
 Class C
     Dim c as C$$;
 End Class</text>.Value, exportProvider:=s_ExportProvider)
@@ -51,10 +51,8 @@ End Class</text>.Value, exportProvider:=s_ExportProvider)
             Assert.NotNull(symbol)
             symbol.Navigate(symbol.Relationships.First())
 
-            Dim navigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), MockDocumentNavigationServiceProvider.MockDocumentNavigationService)
-            Assert.Equal(True, navigationService.TryNavigateToLineAndOffsetReturnValue)
-            Assert.Equal(True, navigationService.TryNavigateToPositionReturnValue)
-            Assert.Equal(True, navigationService.TryNavigateToSpanReturnValue)
+            Dim navigationService = DirectCast(workspace.Services.GetService(Of IDocumentNavigationService)(), GoToHelpers.MockDocumentNavigationService)
+            Assert.Equal(True, navigationService._triedNavigationToSpan)
         End Function
     End Class
 End Namespace
