@@ -912,7 +912,7 @@ Additional information: {1}</value>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
   </data>
-  <data name="Prefer_default_literal" xml:space="preserve">
-    <value>Prefer 'default' literal</value>
+  <data name="Prefer_simple_default_expression" xml:space="preserve">
+    <value>Prefer simple 'default' expression</value>
   </data>
 </root>

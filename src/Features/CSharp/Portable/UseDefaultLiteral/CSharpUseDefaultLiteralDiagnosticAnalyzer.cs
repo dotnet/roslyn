@@ -1,11 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
@@ -16,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     {
         public CSharpUseDefaultLiteralDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
-                   new LocalizableResourceString(
-                       nameof(FeaturesResources.Use_default_literal), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+                   new LocalizableResourceString(nameof(FeaturesResources.Simplify_default_expression), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
+                   new LocalizableResourceString(nameof(FeaturesResources.default_expression_can_be_simplified), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
         }
 
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             // Create a normal diagnostic that covers the entire default expression.
             context.ReportDiagnostic(
                 Diagnostic.Create(GetDescriptorWithSeverity(
-                    optionSet.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Notification.Value),
+                    optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Notification.Value),
                     defaultExpression.GetLocation()));
 
             // Also fade out the part of the default expression from the open paren through 

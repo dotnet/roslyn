@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(Func<CancellationToken, Task<Document>> createChangedDocument)
-                : base(FeaturesResources.Use_default_literal, createChangedDocument)
+                : base(FeaturesResources.Simplify_default_expression, createChangedDocument)
             {
             }
         }

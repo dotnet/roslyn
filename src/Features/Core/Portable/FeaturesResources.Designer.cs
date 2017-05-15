@@ -864,6 +864,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; expression can be simplified.
+        /// </summary>
+        internal static string default_expression_can_be_simplified {
+            get {
+                return ResourceManager.GetString("default_expression_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to delegate.
         /// </summary>
         internal static string delegate_ {
@@ -2665,6 +2674,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Simplify &apos;default&apos; expression.
+        /// </summary>
+        internal static string Simplify_default_expression {
+            get {
+                return ResourceManager.GetString("Simplify_default_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Simplify Member Access.
         /// </summary>
         internal static string Simplify_Member_Access {
@@ -3277,15 +3295,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Use_coalesce_expression {
             get {
                 return ResourceManager.GetString("Use_coalesce_expression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Use &apos;default&apos; literal.
-        /// </summary>
-        internal static string Use_default_literal {
-            get {
-                return ResourceManager.GetString("Use_default_literal", resourceCulture);
             }
         }
         

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             CancellationToken cancellationToken)
         {
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1 ||
-                !options.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Value)
+                !options.GetOption(CSharpCodeStyleOptions.PreferSimpleDefaultExpression).Value)
             {
                 return false;
             }
