@@ -18,6 +18,10 @@
          contains a reference to C# + VB CodeAnalysis. This ensures that the project
          reference is a higher version than the NuGet reference. -->
     <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
+    <PreBuildEvent>dotnet "$(SolutionDir)Binaries\Debug\Exes\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.dll" "$(SolutionDir)src\Compilers\VisualBasic\Portable\Syntax\Syntax.xml" "$(SolutionDir)src\Compilers\VisualBasic\Portable\Generated\"
+dotnet "$(SolutionDir)Binaries\Debug\Exes\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.dll" "$(SolutionDir)src\Compilers\VisualBasic\Portable\Errors\ErrorCode.vb" "$(SolutionDir)src\Compilers\VisualBasic\Portable\Generated\ErrorFacts.Generated.vb"
+dotnet "$(SolutionDir)Binaries\Debug\Exes\CompilersBoundTreeGenerator\BoundTreeGenerator.dll" VB "$(SolutionDir)src\Compilers\VisualBasic\Portable\BoundTree\BoundNodes.xml" "$(SolutionDir)src\Compilers\VisualBasic\Portable\Generated\BoundNodes.xml.Generated.vb"
+</PreBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
