@@ -15,7 +15,7 @@ Consider the case where the type of `a` is `System.Func<bool>` and you write `va
 
 - https://github.com/dotnet/roslyn/issues/16870 In C# 7.0 and before C# 7.1, the compiler accepted self-assignments in deconstruction-assignment. The compiler now produces a warning for that. For instance, in `(x, y) = (x, 2);`.
 
-- The compiler is now more precise in detecting erroneous pattern-matching operations because the expression could not possibly match the pattern. The following situations now cause an error:
+- https://github.com/dotnet/roslyn/issues/19151 The compiler is now more precise in detecting erroneous pattern-matching operations because the expression could not possibly match the pattern. The following situations now cause an error:
   1. `bool M(int? i) => i is long l; // error CS8121: An expression of type 'int?' cannot be handled by a pattern of type 'long'.`
   2. and other cases where the integral types are not the same
   3. the same error can occur in other pattern-matching contexts (i.e. `switch`)
