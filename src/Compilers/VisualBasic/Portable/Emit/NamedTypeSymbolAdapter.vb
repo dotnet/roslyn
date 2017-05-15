@@ -232,18 +232,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return Nothing
         End Function
 
-        Private ReadOnly Property ITypeDefinitionEvents As IEnumerable(Of IEventDefinition) Implements ITypeDefinition.Events
-            Get
-                Debug.Assert(Not Me.IsAnonymousType)
-                'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
+        Private Iterator Function ITypeDefinitionEvents(context As EmitContext) As IEnumerable(Of IEventDefinition) Implements ITypeDefinition.GetEvents
+            Debug.Assert(Not Me.IsAnonymousType)
+            'Debug.Assert(((ITypeReference)this).AsTypeDefinition != null);
 
-                ' can't be generic instantiation
-                ' must be declared in the module we are building
-                CheckDefinitionInvariant()
+            ' can't be generic instantiation
+            ' must be declared in the module we are building
+            CheckDefinitionInvariant()
 
-                Return GetEventsToEmit()
-            End Get
-        End Property
+            For Each e In GetEventsToEmit()
+                If e.ShouldInclude(context) Then
+                    Yield e
+                End If
+            Next
+        End Function
 
         Friend Overridable Iterator Function GetEventsToEmit() As IEnumerable(Of EventSymbol)
             CheckDefinitionInvariant()
@@ -329,14 +331,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' must be declared in the module we are building
             CheckDefinitionInvariant()
 
+            ' All fields in a struct should be emitted
+            Dim isStruct = Me.IsStructureType()
+
             For Each field In Me.GetFieldsToEmit()
-                Yield field
+                If isStruct OrElse field.ShouldInclude(context) Then
+                    Yield field
+                End If
             Next
 
             Dim syntheticFields = DirectCast(context.Module, PEModuleBuilder).GetSynthesizedFields(Me)
             If syntheticFields IsNot Nothing Then
                 For Each field In syntheticFields
-                    Yield field
+                    If isStruct OrElse field.ShouldInclude(context) Then
+                        Yield field
+                    End If
                 Next
             End If
         End Function
@@ -661,13 +670,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             CheckDefinitionInvariant()
 
             For Each method In Me.GetMethodsToEmit()
-                Yield method
+                If method.ShouldInclude(context) Then
+                    Yield method
+                End If
             Next
 
             Dim syntheticMethods = DirectCast(context.Module, PEModuleBuilder).GetSynthesizedMethods(Me)
             If syntheticMethods IsNot Nothing Then
                 For Each method In syntheticMethods
-                    Yield method
+                    If method.ShouldInclude(context) Then
+                        Yield method
+                    End If
                 Next
             End If
         End Function
@@ -726,13 +739,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For Each [property] In Me.GetPropertiesToEmit()
                 Debug.Assert([property] IsNot Nothing)
-                Yield [property]
+                If [property].ShouldInclude(context) Then
+                    Yield [property]
+                End If
             Next
 
             Dim syntheticProperties = DirectCast(context.Module, PEModuleBuilder).GetSynthesizedProperties(Me)
             If syntheticProperties IsNot Nothing Then
                 For Each prop In syntheticProperties
-                    Yield prop
+                    If prop.ShouldInclude(context) Then
+                        Yield prop
+                    End If
                 Next
             End If
         End Function

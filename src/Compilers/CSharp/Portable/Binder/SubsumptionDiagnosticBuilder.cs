@@ -20,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DecisionTree _subsumptionTree;
 
         internal SubsumptionDiagnosticBuilder(Symbol enclosingSymbol,
-                                               Conversions conversions,
-                                               BoundExpression expression)
-            : base(enclosingSymbol, conversions)
+                                              SyntaxNode syntax,
+                                              Conversions conversions,
+                                              BoundExpression expression)
+            : base(enclosingSymbol, syntax, conversions)
         {
-            _subsumptionTree = DecisionTree.Create(expression, expression.Type, enclosingSymbol);
+            _subsumptionTree = CreateEmptyDecisionTree(expression);
         }
 
         /// <summary>

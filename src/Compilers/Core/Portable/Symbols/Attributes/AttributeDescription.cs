@@ -322,6 +322,8 @@ namespace Microsoft.CodeAnalysis
             s_signature_HasThis_Void_CompilationRelaxations
         };
 
+        private static readonly byte[][] s_signaturesOfReferenceAssemblyAttribute = { s_signature_HasThis_Void };
+
         private static readonly byte[][] s_signaturesOfDebuggableAttribute =
         {
             s_signature_HasThis_Void_Boolean_Boolean,
@@ -475,6 +477,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription AsyncStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AsyncStateMachineAttribute", s_signaturesOfAsyncStateMachineAttribute);
         internal static readonly AttributeDescription IteratorStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IteratorStateMachineAttribute", s_signaturesOfIteratorStateMachineAttribute);
         internal static readonly AttributeDescription CompilationRelaxationsAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilationRelaxationsAttribute", s_signaturesOfCompilationRelaxationsAttribute);
+        internal static readonly AttributeDescription ReferenceAssemblyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ReferenceAssemblyAttribute", s_signaturesOfReferenceAssemblyAttribute);
         internal static readonly AttributeDescription RuntimeCompatibilityAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeCompatibilityAttribute", s_signaturesOfRuntimeCompatibilityAttribute);
         internal static readonly AttributeDescription DebuggableAttribute = new AttributeDescription("System.Diagnostics", "DebuggableAttribute", s_signaturesOfDebuggableAttribute);
         internal static readonly AttributeDescription TypeForwardedToAttribute = new AttributeDescription("System.Runtime.CompilerServices", "TypeForwardedToAttribute", s_signaturesOfTypeForwardedToAttribute);

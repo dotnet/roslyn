@@ -114,7 +114,8 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 context.RegisterRefactoring(new MyCodeAction(title, c =>
                 {
                     var generator = SyntaxGenerator.GetGenerator(document);
-                    var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value);
+                    var updatedToken = generator.NumericLiteralToken(text + suffix, (ulong)value)
+                        .WithTriviaFrom(numericToken);
                     var updatedRoot = root.ReplaceToken(numericToken, updatedToken);
                     return Task.FromResult(document.WithSyntaxRoot(updatedRoot));
                 }));

@@ -27,16 +27,62 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly Symbol _enclosingSymbol;
         protected readonly Conversions _conversions;
         protected HashSet<DiagnosticInfo> _useSiteDiagnostics = new HashSet<DiagnosticInfo>();
+        private Dictionary<TypeSymbol, LocalSymbol> localByType = new Dictionary<TypeSymbol, LocalSymbol>();
 
         protected DecisionTreeBuilder(
             Symbol enclosingSymbol,
+            SyntaxNode syntax,
             Conversions conversions)
         {
             this._enclosingSymbol = enclosingSymbol;
+            this.Syntax = syntax;
             this._conversions = conversions;
         }
 
         protected SyntaxNode Syntax { private get; set; }
+
+        private LocalSymbol PatternMatchingTemp(TypeSymbol type)
+        {
+            LocalSymbol temp;
+            if (!localByType.TryGetValue(type, out temp))
+            {
+                temp = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax);
+                localByType.Add(type, temp);
+            }
+
+            return temp;
+        }
+
+        /// <summary>
+        /// Create a fresh decision tree for the given input expression of the given type.
+        /// </summary>
+        protected DecisionTree CreateEmptyDecisionTree(BoundExpression expression)
+        {
+            var type = expression.Type;
+
+            LocalSymbol temp = null;
+            if (expression.ConstantValue == null)
+            {
+                // Unless it is a constant, the decision tree acts on a copy of the input expression.
+                // We create a temp to represent that copy. Lowering will assign into this temp.
+                temp = PatternMatchingTemp(type);
+                expression = new BoundLocal(expression.Syntax, temp, null, type);
+            }
+
+            if (type.CanContainNull() || type.SpecialType == SpecialType.None)
+            {
+                // We need the ByType decision tree to separate null from non-null values.
+                // Note that, for the purpose of the decision tree (and subsumption), we
+                // ignore the fact that the input may be a constant, and therefore always
+                // or never null.
+                return new DecisionTree.ByType(expression, type, temp);
+            }
+            else
+            {
+                // If it is a (e.g. builtin) value type, we can switch on its (constant) values.
+                return new DecisionTree.ByValue(expression, type, temp);
+            }
+        }
 
         protected DecisionTree AddToDecisionTree(DecisionTree decisionTree, SyntaxNode sectionSyntax, BoundPatternSwitchLabel label)
         {
@@ -258,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (forType == null)
             {
                 var type = value.Value.Type;
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax, false, RefKind.None);
+                var localSymbol = PatternMatchingTemp(type);
                 var narrowedExpression = new BoundLocal(Syntax, localSymbol, null, type);
                 forType = new DecisionTree.ByValue(narrowedExpression, value.Value.Type.TupleUnderlyingTypeOrSelf(), localSymbol);
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Value.Type, forType));
@@ -371,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result == null)
             {
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax, false, RefKind.None);
+                var localSymbol = PatternMatchingTemp(type);
                 var expression = new BoundLocal(Syntax, localSymbol, null, type);
                 result = makeDecision(expression, type);
                 Debug.Assert(result.Temp == null);

@@ -20479,7 +20479,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -20488,7 +20488,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                    Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }
@@ -20519,7 +20519,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -20528,7 +20528,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                    Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }
@@ -22880,6 +22880,79 @@ class C
                 //         var x = (0, null) as (int, T)?;
                 Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(0, null) as (int, T)?").WithLocation(6, 17)
                 );
+        }
+
+        [Fact]
+        [WorkItem(19434, "https://github.com/dotnet/roslyn/issues/19434")]
+        public void ExplicitTupleLiteralConversionWithNullable01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 1;
+        var y = ((byte, byte)?)(x, x);
+        System.Console.WriteLine(y.Value);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs, options: TestOptions.DebugExe, expectedOutput:
+@"(1, 1)");
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (int V_0, //x
+                (byte, byte)? V_1) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldloc.0
+  IL_0006:  conv.u1
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u1
+  IL_0009:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_000e:  call       ""(byte, byte)?..ctor((byte, byte))""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       ""(byte, byte) (byte, byte)?.Value.get""
+  IL_001a:  box        ""System.ValueTuple<byte, byte>""
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+
+            comp = CompileAndVerify(source,
+    additionalRefs: s_valueTupleRefs, options: TestOptions.ReleaseExe, expectedOutput:
+@"(1, 1)");
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int V_0, //x
+                (byte, byte)? V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldloc.0
+  IL_0005:  conv.u1
+  IL_0006:  ldloc.0
+  IL_0007:  conv.u1
+  IL_0008:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_000d:  call       ""(byte, byte)?..ctor((byte, byte))""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  call       ""(byte, byte) (byte, byte)?.Value.get""
+  IL_0019:  box        ""System.ValueTuple<byte, byte>""
+  IL_001e:  call       ""void System.Console.WriteLine(object)""
+  IL_0023:  ret
+}
+");
         }
     }
 }
