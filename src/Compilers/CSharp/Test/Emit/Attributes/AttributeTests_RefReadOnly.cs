@@ -49,7 +49,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -114,7 +114,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -179,7 +179,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -236,7 +236,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 public delegate ref readonly int D(ref readonly int x);
@@ -300,7 +300,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 public class Test
@@ -375,7 +375,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 delegate ref readonly int D(ref readonly int x);
@@ -415,7 +415,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -424,7 +424,7 @@ using System.Runtime.CompilerServices;
 public delegate ref readonly int D([ReadOnly] ref readonly int x);
 ";
 
-            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
                 // [ReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(4, 2),
@@ -442,7 +442,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -453,7 +453,7 @@ public class Test
 }
 ";
 
-            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
                 // [ReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(4, 2));
@@ -468,7 +468,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -482,7 +482,7 @@ public class Test
 }
 ";
 
-            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [ReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(6, 6));
@@ -497,7 +497,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -511,7 +511,7 @@ public class Test
 }
 ";
 
-            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (8,6): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [ReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(8, 6));
@@ -526,7 +526,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -563,7 +563,7 @@ namespace System.Runtime.CompilerServices
     public class ReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -575,7 +575,7 @@ public class Test
 }
 ";
 
-            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [ReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReadOnlyAttr, "ReadOnly").WithLocation(6, 6),

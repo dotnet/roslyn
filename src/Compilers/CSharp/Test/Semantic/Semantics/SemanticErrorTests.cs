@@ -15483,7 +15483,7 @@ public unsafe class C
     static readonly S _s1;
     public readonly S _s2;
 }";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (18,9): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
                 //         myC.UnsafeMethod().name[3] = 'a';  // CS1708
                 Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "myC.UnsafeMethod().name").WithLocation(18, 9),
@@ -20778,7 +20778,7 @@ public static class C
 }";
             // include both mscorlib 4.0 and System.Core 3.5, both of which contain ExtensionAttribute
             // These libraries are not yet in our suite
-            CreateCompilation(text).
+            CreateStandardCompilation(text).
                 VerifyDiagnostics(Diagnostic(ErrorCode.WRN_MultiplePredefTypes, ""));
         }
 
