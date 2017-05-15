@@ -1498,8 +1498,9 @@
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
 
-    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <!-- BinderOpt and IsLeftOfAssignment are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
     <Field Name="BinderOpt" Type="Binder" Null="allow"/>
+    <Field Name="IsLeftOfAssignment" Type="bool"/>
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">

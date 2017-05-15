@@ -115,12 +115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (ImmutableArray<IArgument>) s_callToArgumentsMappings.GetValue(
                 boundNode, 
                 (n) =>
-                {
+                {                          
                     //TODO: https://github.com/dotnet/roslyn/issues/18722
                     //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
                     //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
-                    if (n.HasErrors)
+                    if (n.HasErrors || optionalParametersMethod == null)
                     {
+                        // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
+                        // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
                         ArrayBuilder<IArgument> argumentsWithErrors = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
                         for (int a = 0; a < boundArguments.Length; ++a)
                         {
@@ -209,8 +211,29 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ISymbol IMemberReferenceExpression.Member => this.Indexer;
 
-        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder 
-            => BoundCall.DeriveArguments(this, this.BinderOpt, this.Indexer, this.Indexer.GetOwnOrInheritedGetMethod(),this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Indexer.Parameters, this.Expanded, this.Syntax);
+        ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder
+        {
+            get
+            {
+                MethodSymbol accessor = this.IsLeftOfAssignment ? this.Indexer.SetMethod : this.Indexer.GetMethod; 
+                return BoundCall.DeriveArguments(this, 
+                    this.BinderOpt, 
+                    this.Indexer, 
+                    accessor, 
+                    this.Arguments, 
+                    this.ArgumentNamesOpt, 
+                    this.ArgsToParamsOpt, 
+                    this.ArgumentRefKindsOpt, 
+                    this.Indexer.Parameters, 
+                    this.Expanded, 
+                    this.Syntax);
+            }
+        }
+
+        bool IOperation.IsInvalid
+             => this.HasErrors 
+            || (this.Indexer.IsReadOnly && this.IsLeftOfAssignment) 
+            || (this.Indexer.IsWriteOnly && !this.IsLeftOfAssignment);
 
         protected override OperationKind ExpressionKind => OperationKind.IndexedPropertyReferenceExpression;
 
@@ -345,7 +368,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         IMethodSymbol IObjectCreationExpression.Constructor => this.Constructor;
 
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder 
-            => BoundCall.DeriveArguments(this, this.BinderOpt, this.Constructor, this.Constructor, this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Constructor.Parameters, this.Expanded, this.Syntax);
+            => BoundCall.DeriveArguments(this, 
+                this.BinderOpt,
+                this.Constructor, 
+                this.Constructor, 
+                this.Arguments, 
+                this.ArgumentNamesOpt,
+                this.ArgsToParamsOpt, 
+                this.ArgumentRefKindsOpt, 
+                this.Constructor.Parameters, 
+                this.Expanded, 
+                this.Syntax);
 
         ImmutableArray<IOperation> IObjectCreationExpression.Initializers => GetChildInitializers(this.InitializerExpressionOpt).As<IOperation>();
 

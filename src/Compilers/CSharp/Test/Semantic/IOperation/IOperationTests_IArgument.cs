@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+                                                                
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -988,7 +988,7 @@ IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExp
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip ="todo")]
+        [Fact]
         public void InvalidConversionForDefaultArgument()
         {
             string source = @"
@@ -1018,9 +1018,9 @@ IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (Op
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "todo")]
-        public void AssigningToIndexerSetter()
-        {
+        [Fact]
+        public void AssigningToIndexer()
+        {                      
             string source = @"
 class P
 {
@@ -1048,8 +1048,71 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "todo")]
-        public void AssigningToWriteOnlyIndexer()
+        [Fact]
+        public void ReadingFromIndexer()
+        {
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int index]
+    {
+        get { return _number; }
+        set { _number = value; }
+    }
+
+    void M1()
+    {
+        var x = /*<bind>*/this[10]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void DefaultArgumentForIndexerGetter()
+        {                     
+            string source = @"
+class P
+{
+    private int _number = 0;
+    public int this[int i = 1, int j = 2]
+    {
+        get { return _number; }
+        set { _number = i + j; }
+    }
+
+    void M1()
+    {
+        var x = /*<bind>*/this[j:10]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[j:10]')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: i) (OperationKind.Argument) (Syntax: 'this[j:10]')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'this[j:10]')
+";
+
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ReadingFromWriteOnlyIndexer()
         {
             string source = @"
 class P
@@ -1062,22 +1125,25 @@ class P
 
     void M1()
     {
-        /*<bind>*/this[10]/*</bind>*/ = 9;
+        var x = /*<bind>*/this[10]/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
-  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
-      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-";
-            var expectedDiagnostics = DiagnosticDescription.None;
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')";
+            var expectedDiagnostics = new DiagnosticDescription[] {               
+                // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
+                //         var x = /*<bind>*/this[10]/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "this[10]").WithArguments("P.this[int]").WithLocation(12, 27)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
-        [Fact(Skip = "todo")]
+        [Fact]
         public void AssigningToReadOnlyIndexer()
         {
             string source = @"
@@ -1095,8 +1161,18 @@ class P
     }
 }
 ";
-            string expectedOperationTree = @"";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // file.cs(12,19): error CS0200: Property or indexer 'P.this[int]' cannot be assigned to -- it is read only
+                //         /*<bind>*/this[10]/*</bind>*/ = 9;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "this[10]").WithArguments("P.this[int]").WithLocation(12, 19)
+            };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

@@ -6830,6 +6830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     isExpanded,
                     argsToParams,
                     this,
+                    false,
                     property.Type,
                     gotError);
             }

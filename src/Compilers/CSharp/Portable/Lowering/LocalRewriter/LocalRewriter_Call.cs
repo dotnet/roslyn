@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentsInEvaluationBuilder, 
                 missingParametersBuilder);
 
-            AppendMissingOptionalArguments(syntax, methodOrIndexer, expanded, binder, missingParametersBuilder.ToImmutableAndFree(), argumentsInEvaluationBuilder);
+            AppendMissingOptionalArguments(syntax, optionalParametersMethod, expanded, binder, missingParametersBuilder.ToImmutableAndFree(), argumentsInEvaluationBuilder);
 
             return argumentsInEvaluationBuilder.ToImmutableAndFree();
         }
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return new BoundLiteral(syntax, constantValue, type);
+                return new BoundLiteral(syntax, constantValue, type, constantValue.IsBad);
             }
         }
 
@@ -986,35 +986,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static void AppendMissingOptionalArguments(SyntaxNode syntax,
-            Symbol methodOrIndexer,
+        private static void AppendMissingOptionalArguments(SyntaxNode syntax,  
+            MethodSymbol optionalParametersMethod,
             bool expanded, 
             Binder binder,
             ImmutableArray<ParameterSymbol> missingParameters,
             ArrayBuilder<IArgument> argumentsBuilder)
         {
-            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
-            foreach (var parameter in missingParameters)
+            ImmutableArray<ParameterSymbol> parametersOfOptionalParametersMethod = optionalParametersMethod.Parameters; 
+
+            foreach (ParameterSymbol parameter in missingParameters)
             {
-                if (expanded && parameter.Ordinal == parameters.Length - 1)
+                BoundExpression argument;
+                ArgumentKind kind;
+
+                // In case of indexer access, missing parameters are corresponding to the indexer symbol, we need to 
+                // get default values base on actual accessor method parameter symbols (but still want to tie resulted IArgument 
+                // to the indexer parameter.)
+                ParameterSymbol parameterOfOptionalParametersMethod = parametersOfOptionalParametersMethod[parameter.Ordinal];
+
+                if (expanded && parameterOfOptionalParametersMethod.Ordinal == parametersOfOptionalParametersMethod.Length - 1)
                 {
-                    Debug.Assert(parameter.IsParams);
+                    Debug.Assert(parameterOfOptionalParametersMethod.IsParams);
 
                     // Create an empty array for omitted param array argument.
-                    var paramArray = CreateParamArrayArgument(syntax, parameter.Type, ImmutableArray<BoundExpression>.Empty, null, binder);
-
-                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.ParamArray, parameter, paramArray)); 
+                    argument = CreateParamArrayArgument(syntax, parameterOfOptionalParametersMethod.Type, ImmutableArray<BoundExpression>.Empty, null, binder);
+                    kind = ArgumentKind.ParamArray;                                                                               
                 }
                 else
                 {
-                    Debug.Assert(parameter.IsOptional);
+                    Debug.Assert(parameterOfOptionalParametersMethod.IsOptional);
 
                     var unusedDiagnostics = DiagnosticBag.GetInstance();
-                    var defaultArgument = GetDefaultParameterValue(syntax, parameter, enableCallerInfo: ThreeState.Unknown, localRewriter: null, binder: binder, diagnostics: unusedDiagnostics);
-                    unusedDiagnostics.Free();
 
-                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.DefaultValue, parameter, defaultArgument));
-                }                               
+                    argument = GetDefaultParameterValue(syntax,
+                        parameterOfOptionalParametersMethod, 
+                        enableCallerInfo: ThreeState.Unknown, 
+                        localRewriter: null, 
+                        binder: binder, 
+                        diagnostics: unusedDiagnostics);
+                    kind = ArgumentKind.DefaultValue;
+
+                    unusedDiagnostics.Free();                                                                                       
+                }                                                              
+
+                argumentsBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument));
             }                                                               
         }
 

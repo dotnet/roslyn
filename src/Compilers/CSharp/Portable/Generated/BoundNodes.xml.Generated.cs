@@ -5424,7 +5424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIndexerAccess : BoundExpression
     {
-        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder binderOpt, bool isLeftOfAssignment, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.IndexerAccess, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
@@ -5440,6 +5440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Expanded = expanded;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.BinderOpt = binderOpt;
+            this.IsLeftOfAssignment = isLeftOfAssignment;
         }
 
 
@@ -5459,16 +5460,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public Binder BinderOpt { get; }
 
+        public bool IsLeftOfAssignment { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitIndexerAccess(this);
         }
 
-        public BoundIndexerAccess Update(BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder binderOpt, TypeSymbol type)
+        public BoundIndexerAccess Update(BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder binderOpt, bool isLeftOfAssignment, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || indexer != this.Indexer || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || binderOpt != this.BinderOpt || type != this.Type)
+            if (receiverOpt != this.ReceiverOpt || indexer != this.Indexer || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || binderOpt != this.BinderOpt || isLeftOfAssignment != this.IsLeftOfAssignment || type != this.Type)
             {
-                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, binderOpt, type, this.HasErrors);
+                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, binderOpt, isLeftOfAssignment, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -9133,7 +9136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, type);
+            return node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.IsLeftOfAssignment, type);
         }
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
@@ -10614,6 +10617,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("expanded", node.Expanded, null),
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
                 new TreeDumperNode("binderOpt", node.BinderOpt, null),
+                new TreeDumperNode("isLeftOfAssignment", node.IsLeftOfAssignment, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

@@ -1744,7 +1744,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
-        {
+        {                      
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1773,7 +1773,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            }
+            } 
             else
             {
                 type = op1.Type;
@@ -1932,6 +1932,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(receiver),
                         GetNonMethodMemberType(otherSymbol));
                 }
+            }
+            else if (expr.Kind == BoundKind.IndexerAccess && valueKind == BindValueKind.Assignment)
+            {
+                // Assigning to an indexer access, need to set 'isLeftOfAssignment' to true.
+                // This is for IOperation purpose.
+                var indexerAccess = (BoundIndexerAccess)expr;
+                expr = indexerAccess.Update(indexerAccess.ReceiverOpt,
+                    indexerAccess.Indexer,
+                    indexerAccess.Arguments,
+                    indexerAccess.ArgumentNamesOpt,
+                    indexerAccess.ArgumentRefKindsOpt,
+                    indexerAccess.Expanded,
+                    indexerAccess.ArgsToParamsOpt,
+                    indexerAccess.BinderOpt,
+                    isLeftOfAssignment: true,
+                    type: indexerAccess.Type);
             }
 
             if (!hasResolutionErrors && CheckValueKind(expr, valueKind, diagnostics) ||
