@@ -31,6 +31,8 @@ public class Bar
             return a;
         }
     }
+
+    public string WindowsUserID => ""Domain""; 
 }")
         {
         }
@@ -227,7 +229,7 @@ public class Bar
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartBody);
 
-            Assert.Equal(19, endPoint.Line);
+            Assert.Equal(21, endPoint.Line);
             Assert.Equal(1, endPoint.LineCharOffset);
         }
 
@@ -292,7 +294,7 @@ public class Bar
 
             TextPoint endPoint = testObject.GetEndPoint(vsCMPart.vsCMPartWholeWithAttributes);
 
-            Assert.Equal(19, endPoint.Line);
+            Assert.Equal(21, endPoint.Line);
             Assert.Equal(2, endPoint.LineCharOffset);
         }
 
@@ -316,8 +318,20 @@ public class Bar
 
             TextPoint endPoint = testObject.EndPoint;
 
-            Assert.Equal(19, endPoint.Line);
+            Assert.Equal(21, endPoint.Line);
             Assert.Equal(2, endPoint.LineCharOffset);
         }
+
+        [ConditionalWpfFact(typeof(x86))]
+        [Trait(Traits.Feature, Traits.Features.CodeModel)]
+        public void Accessor()
+        {
+            CodeClass testObject = GetCodeClass("Bar");
+
+            var l =  from p in testObject.Members.OfType<CodeProperty>() where vsCMAccess.vsCMAccessPublic == p.Access && p.Getter != null && !p.Getter.IsShared && vsCMAccess.vsCMAccessPublic == p.Getter.Access select p ;
+            var z = l.ToList<CodeProperty>();
+            Assert.Equal(2, z.Count);
+        }
+
     }
 }
