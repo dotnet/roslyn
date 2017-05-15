@@ -170,8 +170,8 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="Microsoft.Tpl.Dataflow">
-      <Version>$(MicrosoftTplDataflowVersion)</Version>
+    <PackageReference Include="System.Threading.Tasks.Dataflow">
+      <Version>$(SystemThreadingTasksDataflowVersion)</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>$(NewtonsoftJsonVersion)</Version>
