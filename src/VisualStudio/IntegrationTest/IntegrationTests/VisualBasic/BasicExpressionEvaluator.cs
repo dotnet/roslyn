@@ -96,40 +96,12 @@ End Module");
             VisualStudio.Debugger.CheckExpression("myString", "String", "\"\"");
         }
 
-        [Fact]
-        public void EvaluateSimpleExpressionsDTEE()
-        {
-            VisualStudio.Debugger.Go(waitForBreakMode: true);
-            // It is better to use the Immediate Window but DTE does not provide an access to it.
-
-            // Bug 1016765
-            VisualStudio.Debugger.CheckExpression("myInt = (Integer.MaxValue)", "object", "Expression has been evaluated and has no value");
-            //< ValidateCommand command = "" expectedResult =  /> < !--- >
-            //< ValidateCommand command = "?myInt" expectedResult = "2147483647" />
-            //   < ValidateCommand command = "myUInt += 1" expectedResult = "Expression has been evaluated and has no value" /> < !--Bug 1010922-- >
-            //   < ValidateCommand command = "?myUInt" expectedResult = "1" />
-            //      < ValidateCommand command = "myDouble.ToString()" expectedResult = "Expression has been evaluated and has no value" /> < !--Bug 1011011-- >
-            //      < ValidateCommand command = "?myDouble.ToString()" expectedResult = "&quot;0&quot;" />
-            //         < ValidateCommand command = "myObject = New Object()" expectedResult = "Expression has been evaluated and has no value" />
-            //          < ValidateCommand command = "?myObject" expectedResult = "{Object}" />
-
-
-
-            //           < ValidateCommand command = "myArray = New Integer() { 1, 2, 3 }" expectedResult = "Expression has been evaluated and has no value" />
-
-
-
-            //            < ValidateCommand command = "?myArray" expectedResult = "{Length=3}" />
-            throw new System.NotImplementedException();
-        }
-
-        //  Disabled due to Bug #8724 (https://github.com/dotnet/roslyn/issues/8724
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19526")]
         public void EvaluateLambdaExpressions()
         {
             VisualStudio.Debugger.Go(waitForBreakMode: true);
             // It is better to use the Immediate Window but DTE does not provide an access to it.
-            VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "", "2");
+            VisualStudio.Debugger.CheckExpression("(Function(val)(val+val))(1)", "Integer", "2");
         }
 
         [Fact]
