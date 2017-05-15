@@ -153,8 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.Kind() == SyntaxKind.ColonToken)
             {
-                if (token.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
-                                        SyntaxKind.LabeledStatement,
+                if (token.Parent.IsKind(SyntaxKind.LabeledStatement,
+                                        SyntaxKind.CaseSwitchLabel,
                                         SyntaxKind.DefaultSwitchLabel,
                                         SyntaxKind.CasePatternSwitchLabel))
                 {
