@@ -57,6 +57,106 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInIfCheck()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Foo(string s)
+    {
+        if (s == [||]default(string)) { }
+    }
+}",
+@"
+class C
+{
+    void Foo(string s)
+    {
+        if (s == default) { }
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInReturnStatement()
+        {
+            await TestAsync(
+@"
+class C
+{
+    string Foo()
+    {
+        return [||]default(string);
+    }
+}",
+@"
+class C
+{
+    string Foo()
+    {
+        return default;
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInReturnStatement2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    string Foo()
+    {
+        return [||]default(int);
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInLambda1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class C
+{
+    void Foo()
+    {
+        Func<string> f = () => [||]default(string);
+    }
+}",
+@"
+using System;
+
+class C
+{
+    void Foo()
+    {
+        Func<string> f = () => [||]default;
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInLambda2()
+        {
+            await TestMissingAsync(
+@"
+using System;
+
+class C
+{
+    void Foo()
+    {
+        Func<string> f = () => [||]default(int);
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
         public async Task TestInLocalInitializer()
         {
             await TestAsync(
@@ -76,6 +176,20 @@ class C
         string s = default;
     }
 }", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInLocalInitializer2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    void Foo()
+    {
+        string s = [||]default(int);
+    }
+}", parameters: s_testParameters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
@@ -221,6 +335,30 @@ class C
     void Foo(bool b)
     {
         string s1 = b ? default : default(string);
+    }
+}", parseOptions: s_parseOptions);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestFixAll3()
+        {
+            await TestAsync(
+@"
+class C
+{
+    void Foo()
+    {
+        string s1 = {|FixAllInDocument:default|}(string);
+        string s2 = default(int);
+    }
+}",
+@"
+class C
+{
+    void Foo()
+    {
+        string s1 = default;
+        string s2 = default(int);
     }
 }", parseOptions: s_parseOptions);
         }
