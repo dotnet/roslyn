@@ -20,14 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' </summary>
     Friend Class SpeculationAnalyzer
         Inherits AbstractSpeculationAnalyzer(Of
-            SyntaxNode,
             ExpressionSyntax,
             TypeSyntax,
             AttributeSyntax,
             ArgumentSyntax,
             ForEachStatementSyntax,
             ThrowStatementSyntax,
-            SemanticModel,
             Conversion)
 
         ''' <summary>
