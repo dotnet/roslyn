@@ -221,10 +221,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
       <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Validation">
-      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
-    </PackageReference>
-	
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
