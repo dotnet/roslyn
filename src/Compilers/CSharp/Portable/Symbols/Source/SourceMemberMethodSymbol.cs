@@ -348,13 +348,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             CheckModifiers(location, diagnostics);
-
-            if (_refKind == RefKind.RefReadOnly)
-            {
-                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.Location, modifyCompilationForRefReadOnly: true);
-            }
-
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(_lazyParameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         // This is also used for async lambdas.  Probably not the best place to locate this method, but where else could it go?
@@ -1038,6 +1031,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
+
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetSyntax().ReturnType.Location, modifyCompilationForRefReadOnly: true);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         /// <summary>

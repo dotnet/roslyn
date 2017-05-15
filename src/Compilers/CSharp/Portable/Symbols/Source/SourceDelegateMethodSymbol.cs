@@ -283,9 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
 
-            protected override void MethodChecks(DiagnosticBag diagnostics)
+            internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
             {
-                base.MethodChecks(diagnostics);
+                base.AfterAddingTypeMembersChecks(conversions, diagnostics);
 
                 if (refKind == RefKind.RefReadOnly)
                 {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.GetLocation(), modifyCompilationForRefReadOnly: true);
                 }
 
-                ParameterHelpers.EnsureIsReadOnlyAttributeExists(_parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+                ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
             }
         }
 

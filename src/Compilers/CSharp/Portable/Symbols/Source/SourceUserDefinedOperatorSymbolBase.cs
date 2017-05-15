@@ -133,8 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowThis: false,
                 diagnostics: diagnostics);
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(_lazyParameters, diagnostics, modifyCompilationForRefReadOnly: true);
-
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
                 // This is a parse-time error in the native compiler; it is a semantic analysis error in Roslyn.
@@ -651,6 +649,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
             }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
     }
 }

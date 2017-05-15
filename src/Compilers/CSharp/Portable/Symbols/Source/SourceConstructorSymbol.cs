@@ -85,8 +85,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 allowThis: false,
                 diagnostics: diagnostics);
 
-            ParameterHelpers.EnsureIsReadOnlyAttributeExists(_lazyParameters, diagnostics, modifyCompilationForRefReadOnly: true);
-
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
@@ -102,6 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
+        }
+
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         internal ConstructorDeclarationSyntax GetSyntax()
