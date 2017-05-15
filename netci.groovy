@@ -11,9 +11,10 @@ def branchName = GithubBranchName
 def projectFoldername = Utilities.getFolderName(projectName) + '/' + Utilities.getFolderName(branchName)
 
 // Based on machine affinity names
-def unixPlatforms = ['Ubuntu14.04', 'Ubuntu16.04', 'OSX10.12']
+def unixPlatforms = ['RHEL7.2', 'Ubuntu14.04', 'Ubuntu16.04', 'OSX10.12']
 
-def osShortName = ['Ubuntu14.04': 'ubuntu_14',
+def osShortName = ['RHEL7.2': 'rhel_7.2',
+                   'Ubuntu14.04': 'ubuntu_14',
                    'Ubuntu16.04': 'ubuntu_16',
                    'OSX10.12': 'mac']
 
@@ -107,10 +108,12 @@ commitPullList.each { isPr ->
   unixPlatforms.each { platform ->
     def shortJobName = osShortName[platform] + '_debug'
     def jobName = Utilities.getFullJobName(projectName, shortJobName, isPr)
+    // old git versions don't support the --no-patch argument used to print commit version
+    def oldGit = platform.startsWith('RHEL7');
     def myJob = job(jobName) {
       description(platform + " tests")
       steps {
-        shell("./cibuild.sh --nocache --debug")
+        shell("./cibuild.sh --nocache --debug" + (oldGit ? " --skipcommitprinting" : ""))
       }
     }
 
