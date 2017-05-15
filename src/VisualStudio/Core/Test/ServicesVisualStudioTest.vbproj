@@ -238,6 +238,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
       <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
     </PackageReference>
+	    <PackageReference Include="System.Threading.Tasks.Dataflow">
+      <Version>$(SystemThreadingTasksDataflowVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />
