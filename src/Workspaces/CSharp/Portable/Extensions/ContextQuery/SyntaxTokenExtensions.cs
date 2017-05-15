@@ -146,10 +146,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
 
                 case SyntaxKind.ColonToken:
-                    return token.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
+                    return token.Parent.IsKind(SyntaxKind.LabeledStatement,
+                                               SyntaxKind.CaseSwitchLabel,
                                                SyntaxKind.CasePatternSwitchLabel,
-                                               SyntaxKind.DefaultSwitchLabel,
-                                               SyntaxKind.LabeledStatement);
+                                               SyntaxKind.DefaultSwitchLabel);
 
                 case SyntaxKind.DoKeyword:
                     return token.Parent.IsKind(SyntaxKind.DoStatement);
