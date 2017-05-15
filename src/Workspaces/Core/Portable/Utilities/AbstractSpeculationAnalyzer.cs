@@ -17,8 +17,16 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// It uses the original tree's semantic model to create a speculative semantic model and verifies that
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
-    internal abstract class AbstractSpeculationAnalyzer<TSyntaxNode, TExpressionSyntax, TTypeSyntax, TAttributeSyntax,
-        TArgumentSyntax, TForEachStatementSyntax, TThrowStatementSyntax, TSemanticModel, TConversion>
+    internal abstract class AbstractSpeculationAnalyzer<
+            TSyntaxNode,
+            TExpressionSyntax,
+            TTypeSyntax,
+            TAttributeSyntax,
+            TArgumentSyntax,
+            TForEachStatementSyntax,
+            TThrowStatementSyntax,
+            TSemanticModel,
+            TConversion>
         where TSyntaxNode : SyntaxNode
         where TExpressionSyntax : TSyntaxNode
         where TTypeSyntax : TExpressionSyntax
