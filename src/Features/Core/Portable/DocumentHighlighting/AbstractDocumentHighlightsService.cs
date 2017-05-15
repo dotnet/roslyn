@@ -14,11 +14,46 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
-    internal abstract class AbstractDocumentHighlightsService : IDocumentHighlightsService
+    internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
         public async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
+            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+        {
+            var (succeeded, highlights) = await GetDocumentHighlightsInRemoteProcessAsync(
+                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+
+            if (succeeded)
+            {
+                return highlights;
+            }
+
+            return await GetDocumentHighlightsInCurrentProcessAsync(
+                document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
+            Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
+        {
+            using (var session = await TryGetRemoteSessionAsync(
+                document.Project.Solution, cancellationToken).ConfigureAwait(false))
+            {
+                if (session == null)
+                {
+                    return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
+                }
+
+                var result = await session.InvokeAsync<SerializableDocumentHighlights[]>(
+                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
+                    document.Id,
+                    position,
+                    documentsToSearch.Select(d => d.Id).ToArray()).ConfigureAwait(false);
+                return (true, SerializableDocumentHighlights.Rehydrate(result, document.Project.Solution));
+            }
+        }
+
+        private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             // use speculative semantic model to see whether we are on a symbol we can do HR
@@ -41,11 +76,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
 
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(
-                new SymbolAndProjectId(symbol, document.Project.Id), documentsToSearch, 
+                new SymbolAndProjectId(symbol, document.Project.Id), documentsToSearch,
                 solution, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
+        private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
         {
             // see whether we can use the symbol as it is
             var currentSemanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -82,7 +117,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return ImmutableArray<DocumentHighlights>.Empty;
         }
 
-        private bool ShouldConsiderSymbol(ISymbol symbol)
+        private static bool ShouldConsiderSymbol(ISymbol symbol)
         {
             switch (symbol.Kind)
             {
@@ -132,19 +167,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
-        private Task<IEnumerable<Location>> GetAdditionalReferencesAsync(
+        protected virtual Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
             Document document, ISymbol symbol, CancellationToken cancellationToken)
         {
-            var additionalReferenceProvider = document.Project.LanguageServices.GetService<IReferenceHighlightingAdditionalReferenceProvider>();
-            if (additionalReferenceProvider != null)
-            {
-                return additionalReferenceProvider.GetAdditionalReferencesAsync(document, symbol, cancellationToken);
-            }
-
-            return Task.FromResult(SpecializedCollections.EmptyEnumerable<Location>());
+            return SpecializedTasks.EmptyImmutableArray<Location>();
         }
 
-        private async Task<ImmutableArray<DocumentHighlights>> CreateSpansAsync(
+        private static async Task<ImmutableArray<DocumentHighlights>> CreateSpansAsync(
             Solution solution,
             ISymbol symbol,
             IEnumerable<ReferencedSymbol> references,
@@ -252,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             return true;
         }
 
-        private async Task AddLocationSpan(Location location, Solution solution, HashSet<DocumentSpan> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
+        private static async Task AddLocationSpan(Location location, Solution solution, HashSet<DocumentSpan> spanSet, MultiDictionary<Document, HighlightSpan> tagList, HighlightSpanKind kind, CancellationToken cancellationToken)
         {
             var span = await GetLocationSpanAsync(solution, location, cancellationToken).ConfigureAwait(false);
             if (span != null && !spanSet.Contains(span.Value))
@@ -262,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
         }
 
-        private async Task<DocumentSpan?> GetLocationSpanAsync(
+        private static async Task<DocumentSpan?> GetLocationSpanAsync(
             Solution solution, Location location, CancellationToken cancellationToken)
         {
             try
