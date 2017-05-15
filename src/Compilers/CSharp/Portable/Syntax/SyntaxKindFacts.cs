@@ -1048,25 +1048,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static IReadOnlyCollection<SyntaxKind> _lazyContextualKeywordKindsArray;
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            if (_lazyContextualKeywordKindsArray == null)
+            ushort firstKeywordIdInclusive = (ushort)SyntaxKind.YieldKeyword;
+            ushort lastKeywordIdExclusive = (ushort)SyntaxKind.ElifKeyword;
+            var builder = new ArrayBuilder<SyntaxKind>(lastKeywordIdExclusive - firstKeywordIdInclusive);
+            for (ushort id = firstKeywordIdInclusive; id < lastKeywordIdExclusive; ++id)
             {
-                ushort firstKeywordIdInclusive = (ushort)SyntaxKind.YieldKeyword;
-                ushort lastKeywordIdExclusive = (ushort)SyntaxKind.ElifKeyword;
-                var builder = new ArrayBuilder<SyntaxKind>(lastKeywordIdExclusive - firstKeywordIdInclusive);
-                for (ushort id = firstKeywordIdInclusive; id < lastKeywordIdExclusive; ++id)
+                if (Enum.IsDefined(typeof(SyntaxKind), id))
                 {
-                    if (Enum.IsDefined(typeof(SyntaxKind), id))
-                    {
-                        builder.Add((SyntaxKind)id);
-                    }
+                    builder.Add((SyntaxKind)id);
                 }
-                _lazyContextualKeywordKindsArray = builder.ToImmutable();
             }
 
-            return _lazyContextualKeywordKindsArray;
+            return builder.ToImmutable();
         }
 
         public static bool IsContextualKeyword(SyntaxKind kind)
