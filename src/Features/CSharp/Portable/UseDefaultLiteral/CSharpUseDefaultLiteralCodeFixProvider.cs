@@ -60,24 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
                 if (defaultExpression.CanReplaceWithDefaultLiteral(semanticModel, cancellationToken))
                 {
-                    document = FixOne(document, currentRoot, defaultExpression);
+                    var replacement = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
+                                                   .WithTriviaFrom(defaultExpression);
+
+                    document = document.WithSyntaxRoot(currentRoot.ReplaceNode(defaultExpression, replacement));
+
                     semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                     currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
             editor.ReplaceNode(originalRoot, currentRoot);
-        }
-
-        private static Document FixOne(
-            Document document, SyntaxNode currentRoot, DefaultExpressionSyntax defaultExpression)
-        {
-            var replacement = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
-                                           .WithTriviaFrom(defaultExpression);
-
-            var newRoot = currentRoot.ReplaceNode(defaultExpression, replacement);
-
-            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
