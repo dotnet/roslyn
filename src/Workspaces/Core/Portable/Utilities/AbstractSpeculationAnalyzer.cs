@@ -439,8 +439,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 previousOriginalNode = currentOriginalNode;
                 previousReplacedNode = currentReplacedNode;
-                currentOriginalNode = (SyntaxNode)currentOriginalNode.Parent;
-                currentReplacedNode = (SyntaxNode)currentReplacedNode.Parent;
+                currentOriginalNode = currentOriginalNode.Parent;
+                currentReplacedNode = currentReplacedNode.Parent;
                 skipVerificationForCurrentNode = skipVerificationForCurrentNode && IsParenthesizedExpression(currentReplacedNode);
             }
 
