@@ -129,11 +129,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             await TestInRegularAndScriptAsync(
 @"class C
 {
-  int a = 42[||];
+    int a = 42[||];
 }",
 @"class C
 {
-  int a = 0b101010;
+    int a = 0b101010;
 }", index: (int)Refactoring.ChangeBase1);
         }
 
@@ -143,11 +143,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             await TestInRegularAndScriptAsync(
 @"class C
 {
-  int a = [|42|];
+    int a = [|42|];
 }",
 @"class C
 {
-  int a = 0b101010;
+    int a = 0b101010;
 }", index: (int)Refactoring.ChangeBase1);
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             await TestMissingInRegularAndScriptAsync(
 @"class C
 {
-  int a = [|42 * 2|];
+    int a = [|42 * 2|];
 }");
         }
     }
