@@ -1205,7 +1205,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             byte[] debugInfo;
             try
             {
-                debugInfo = symReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
+                debugInfo = symReader.GetCustomDebugInfo(methodToken, methodVersion: 1);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Sometimes the debugger returns the HRESULT for ArgumentOutOfRangeException, rather than E_FAIL,
+                // for methods without custom debug info (https://github.com/dotnet/roslyn/issues/4138).
+                debugInfo = null;
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
             {
