@@ -81,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    await RoslynServices.SolutionService.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
+                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
                 }
                 catch (IOException)
                 {

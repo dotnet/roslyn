@@ -1371,7 +1371,7 @@ class C : B<string>
                 var module = new PEAssemblyBuilder((SourceAssemblySymbol)sourceType.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                     GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-                var context = new EmitContext(module, null, new DiagnosticBag());
+                var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
                 var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
                 var fieldDefinition = typeDefinition.GetFields(context).First();
