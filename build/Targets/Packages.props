@@ -119,7 +119,7 @@
     <MicrosoftVisualStudioTextManagerInterop100Version>10.0.30319</MicrosoftVisualStudioTextManagerInterop100Version>
     <MicrosoftVisualStudioTextManagerInterop120Version>12.0.30110</MicrosoftVisualStudioTextManagerInterop120Version>
     <MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioTextManagerInterop121DesignTimeVersion>
-    <MicrosoftVisualStudioThreadingVersion>15.0.26507-alpha</MicrosoftVisualStudioThreadingVersion>
+    <MicrosoftVisualStudioThreadingVersion>15.3.20</MicrosoftVisualStudioThreadingVersion>
     <MicrosoftVisualStudioUtilitiesVersion>15.0.26507-alpha</MicrosoftVisualStudioUtilitiesVersion>
     <MicrosoftVisualStudioValidationVersion>15.3.15</MicrosoftVisualStudioValidationVersion>
     <MicrosoftVisualStudioVsInteractiveWindowVersion>2.0.0-rc3-61304-01</MicrosoftVisualStudioVsInteractiveWindowVersion>
@@ -144,7 +144,7 @@
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.4-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.1</RoslynToolsReferenceAssembliesVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
-    <StreamJsonRpcVersion>1.0.2-rc</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>1.1.68</StreamJsonRpcVersion>
     <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.3.0</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.3.0</SystemCollectionsConcurrentVersion>
