@@ -40,6 +40,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetCustomAttributesToEmit(compilationState As ModuleCompilationState, emittingAssemblyAttributesInNetModule As Boolean) As IEnumerable(Of VisualBasicAttributeData)
+            Debug.Assert(Me.Kind <> SymbolKind.Assembly)
+
             Dim synthesized As ArrayBuilder(Of SynthesizedAttributeData) = Nothing
             AddSynthesizedAttributes(compilationState, synthesized)
             Return GetCustomAttributesToEmit(Me.GetAttributes(), synthesized, isReturnType:=False, emittingAssemblyAttributesInNetModule:=emittingAssemblyAttributesInNetModule)

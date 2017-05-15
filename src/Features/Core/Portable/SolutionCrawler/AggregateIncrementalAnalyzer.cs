@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SolutionCrawler
 {
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public async Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
         {
-            foreach (var analyzer in this.Analyzers.Values)
+            foreach (var (_, analyzer) in this.Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void RemoveDocument(DocumentId documentId)
         {
-            foreach (var analyzer in this.Analyzers.Values)
+            foreach (var (_, analyzer) in this.Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {
@@ -109,7 +110,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         public void RemoveProject(ProjectId projectId)
         {
-            foreach (var analyzer in this.Analyzers.Values)
+            foreach (var (_, analyzer) in this.Analyzers)
             {
                 if (analyzer.IsValueCreated)
                 {

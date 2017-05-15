@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.VisualBasic
                 {
                     if (!string.IsNullOrWhiteSpace(languageVersion))
                     {
-                        _commandLineArgs.Add("/languageversion:" + languageVersion);
+                        _commandLineArgs.Add("/langversion:" + languageVersion);
                     }
 
                     return true;

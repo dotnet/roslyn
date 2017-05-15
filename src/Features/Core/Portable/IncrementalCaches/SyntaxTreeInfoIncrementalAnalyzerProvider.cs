@@ -21,6 +21,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
+                if (!document.SupportsSyntaxTree)
+                {
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return SpecializedTasks.EmptyTask;
+                }
+
                 if (document.Project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
                     document.Project.Solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed))
                 {

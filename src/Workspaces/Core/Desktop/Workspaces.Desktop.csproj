@@ -22,6 +22,18 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="ManagedEsent">
+      <Version>$(ManagedEsentVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="SQLitePCLRaw.bundle_green">
+      <Version>$(SQLitePCLRawbundle_greenVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build">
+      <Version>$(MicrosoftBuildVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Tasks.Core">
+      <Version>$(MicrosoftBuildTasksCoreVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">
@@ -108,6 +120,25 @@
     <Compile Include="Workspace\MSBuild\MSBuildProjectLoader.cs" />
     <Compile Include="Workspace\SolutionSize\SolutionSizeTracker.cs" />
     <Compile Include="Workspace\Esent\EsentPersistentStorageService.cs" />
+    <Compile Include="Workspace\SQLite\Interop\OpenFlags.cs" />
+    <Compile Include="Workspace\SQLite\Interop\ResettableSqlStatement.cs" />
+    <Compile Include="Workspace\SQLite\Interop\Result.cs" />
+    <Compile Include="Workspace\SQLite\Interop\SqlConnection.cs" />
+    <Compile Include="Workspace\SQLite\Interop\SqlException.cs" />
+    <Compile Include="Workspace\SQLite\Interop\SqlStatement.cs" />
+    <Compile Include="Workspace\SQLite\PooledConnection.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage.Accessor.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_DocumentSerialization.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorageService.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_ProjectIds.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_ProjectSerialization.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_Helpers.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_DocumentIds.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_StringIds.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_SolutionSerialization.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_WriteBatching.cs" />
+    <Compile Include="Workspace\SQLite\SQLitePersistentStorage_BulkPopulateIds.cs" />
     <Compile Include="Workspace\Storage\PersistenceStorageServiceFactory.cs" />
     <Compile Include="Workspace\Storage\PersistentStorageService.cs" />
     <Compile Include="Workspace\Storage\StorageDatabase.cs" />
@@ -168,7 +199,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

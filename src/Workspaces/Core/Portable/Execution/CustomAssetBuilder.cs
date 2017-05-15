@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            return new SimpleCustomAsset(WellKnownSynchronizationKinds.OptionSet,
+            return new SimpleCustomAsset(WellKnownSynchronizationKind.OptionSet,
                 (writer, cancellationTokenOnStreamWriting) =>
                     _serializer.SerializeOptionSet(options, language, writer, cancellationTokenOnStreamWriting));
         }

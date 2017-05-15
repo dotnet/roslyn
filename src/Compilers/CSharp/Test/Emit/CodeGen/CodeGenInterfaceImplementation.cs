@@ -351,17 +351,17 @@ class Test
 
             var asmRef = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
 
-            var comp1 = CreateCompilationWithMscorlib(
+            var comp1 = CreateStandardCompilation(
                 text1,
                 references: new[] { asmRef },
                 assemblyName: "OHI_ExpImpImplVBNested001");
 
-            var comp2 = CreateCompilationWithMscorlib(
+            var comp2 = CreateStandardCompilation(
                 text2,
                 references: new[] { asmRef, comp1.EmitToImageReference() },
                 assemblyName: "OHI_ExpImpImplVBNested002");
 
-            var comp3 = CreateCompilationWithMscorlib(
+            var comp3 = CreateStandardCompilation(
                 text3,
                 references: new MetadataReference[] { asmRef, new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) },
                 options: TestOptions.ReleaseExe,

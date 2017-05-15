@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.UnaryOperator:
                     return VisitUnaryOperator((BoundUnaryOperator)node);
 
-                case BoundKind.DefaultOperator:
+                case BoundKind.DefaultExpression:
                 case BoundKind.HostObjectMemberReference:
                 case BoundKind.Literal:
                 case BoundKind.Local:
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // error should have been reported earlier
                     // Bound.Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer, node.Syntax.Location);
-                    return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), ExpressionType);
+                    return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), ExpressionType);
                 }
             }
             else
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // should have been reported earlier.
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsBaseAccess, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, 0, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), ExpressionType);
+            return new BoundBadExpression(node.Syntax, 0, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), ExpressionType);
         }
 
         private static string GetBinaryOperatorName(BinaryOperatorKind opKind, out bool isChecked, out bool isLifted, out bool requiresLifted)
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversion = (BoundConversion)operand;
                 if (!conversion.ConversionKind.IsUserDefinedConversion() &&
                     conversion.ConversionKind.IsImplicitConversion() &&
-                    conversion.ConversionKind != ConversionKind.NullLiteral &&
+                    conversion.ConversionKind != ConversionKind.DefaultOrNullLiteral &&
                     conversion.Type.StrippedType().IsEnumType())
                 {
                     operand = conversion.Operand;
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var e1 = Convert(Visit(node.Operand), node.Operand.Type, intermediate, node.Checked, false);
                         return Convert(e1, intermediate, node.Type, node.Checked, false);
                     }
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
                     return Convert(Constant(_bound.Null(_objectType)), _objectType, node.Type, false, node.ExplicitCastInCode);
                 default:
                     return Convert(Visit(node.Operand), node.Operand.Type, node.Type, node.Checked, node.ExplicitCastInCode);
@@ -983,14 +983,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // error should have been reported earlier
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
         }
 
         private static BoundExpression VisitPointerElementAccess(BoundPointerElementAccess node)
         {
             // error should have been reported earlier
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
         }
 
         private BoundExpression VisitPropertyAccess(BoundPropertyAccess node)
@@ -1022,7 +1022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // error should have been reported earlier
             // Diagnostics.Add(ErrorCode.ERR_ExpressionTreeContainsPointerOp, node.Syntax.Location);
-            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), node.Type);
+            return new BoundBadExpression(node.Syntax, default(LookupResultKind), ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundExpression>(node), node.Type);
         }
 
         private BoundExpression VisitUnaryOperator(BoundUnaryOperator node)

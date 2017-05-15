@@ -83,14 +83,6 @@ namespace Microsoft.Cci
             var pooledBuilder = PooledBlobBuilder.GetInstance();
             var encoder = new CustomDebugInfoEncoder(pooledBuilder);
 
-            // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
-            // that appears in source, not the synthesized ones), Dev10 only emits the StateMachineTypeName
-            // custom debug info (e.g. there will be no information about the usings that were in scope).
-            // NOTE: There seems to be an unusual behavior in ISymUnmanagedWriter where, if all the methods in a type are
-            // iterator methods, no custom debug info is emitted for any method.  Adding a single non-iterator
-            // method causes the custom debug info to be produced for all methods (including the iterator methods).
-            // Since we are making the same ISymUnmanagedWriter calls as Dev10, we see the same behavior (i.e. this
-            // is not a regression).
             if (methodBody.StateMachineTypeName != null)
             {
                 encoder.AddStateMachineTypeName(methodBody.StateMachineTypeName);
@@ -149,21 +141,21 @@ namespace Microsoft.Cci
         {
             ArrayBuilder<T> builder = null;
 
-            foreach (var local in methodBody.LocalVariables)
-            {
-                Debug.Assert(local.SlotIndex >= 0);
-                if (filter(local))
-                {
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<T>.GetInstance();
-                    }
-                    builder.Add(getInfo(default(LocalScope), local));
-                }
-            }
-
             foreach (var currentScope in methodBody.LocalScopes)
             {
+                foreach (var local in currentScope.Variables)
+                {
+                    Debug.Assert(local.SlotIndex >= 0);
+                    if (filter(local))
+                    {
+                        if (builder == null)
+                        {
+                            builder = ArrayBuilder<T>.GetInstance();
+                        }
+                        builder.Add(getInfo(default(LocalScope), local));
+                    }
+                }
+
                 foreach (var localConstant in currentScope.Constants)
                 {
                     Debug.Assert(localConstant.SlotIndex < 0);
