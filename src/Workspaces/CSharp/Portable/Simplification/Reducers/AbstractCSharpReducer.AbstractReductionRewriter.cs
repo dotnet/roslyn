@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             private readonly ObjectPool<IReductionRewriter> _pool;
 
+            protected ParseOptions ParseOptions { get; private set; }
             private OptionSet _optionSet;
             private CancellationToken _cancellationToken;
             private SemanticModel _semanticModel;
@@ -33,14 +34,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             protected AbstractReductionRewriter(ObjectPool<IReductionRewriter> pool)
                 => _pool = pool;
 
-            public void Initialize(OptionSet optionSet, CancellationToken cancellationToken)
+            public void Initialize(ParseOptions parseOptions, OptionSet optionSet, CancellationToken cancellationToken)
             {
+                ParseOptions = parseOptions;
                 _optionSet = optionSet;
                 _cancellationToken = cancellationToken;
             }
 
             public void Dispose()
             {
+                ParseOptions = null;
                 _optionSet = null;
                 _cancellationToken = CancellationToken.None;
                 _processedParentNodes.Clear();
