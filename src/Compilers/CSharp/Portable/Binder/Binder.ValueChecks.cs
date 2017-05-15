@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!resolvedToMethodGroup)
                 {
                     Debug.Assert(methodGroup.ResultKind != LookupResultKind.Viable);
-                    BoundNode receiver = methodGroup.ReceiverOpt;
+                    var receiver = methodGroup.ReceiverOpt;
                     if ((object)otherSymbol != null && receiver?.Kind == BoundKind.TypeOrValueExpression)
                     {
                         // Since we're not accessing a method, this can't be a Color Color case, so TypeOrValueExpression should not have been used.
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         expr.Syntax,
                         methodGroup.ResultKind,
                         (object)otherSymbol == null ? ImmutableArray<Symbol>.Empty : ImmutableArray.Create(otherSymbol),
-                        receiver == null ? ImmutableArray<BoundNode>.Empty : ImmutableArray.Create(receiver),
+                        receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(receiver),
                         GetNonMethodMemberType(otherSymbol));
                 }
             }

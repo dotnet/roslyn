@@ -1432,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                     // "async TypeName class". In this case, we just have an incomplete member before
                     // an existing type declaration.  Treat this 'async' as a keyword.
-                    if (CanStartTypeDeclaration(this.CurrentToken.Kind))
+                    if (IsTypeDeclarationStart())
                     {
                         return true;
                     }
