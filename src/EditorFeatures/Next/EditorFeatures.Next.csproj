@@ -97,8 +97,8 @@
     <PackageReference Include="System.Collections.Immutable">
       <Version>$(SystemCollectionsImmutableVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Tpl.Dataflow">
-      <Version>$(MicrosoftTplDataflowVersion)</Version>
+    <PackageReference Include="System.Threading.Tasks.Dataflow">
+      <Version>$(SystemThreadingTasksDataflowVersion)</Version>
     </PackageReference>
     <PackageReference Include="VS.ExternalAPIs.CodingConventions">
       <Version>$(VSExternalAPIsCodingConventionsVersion)</Version>
