@@ -12,9 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool CanReplaceWithDefaultLiteral(
             this DefaultExpressionSyntax defaultExpression,
+            CSharpParseOptions parseOptions,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1)
+            {
+                return false;
+            }
+
             var speculationAnalyzer = new SpeculationAnalyzer(
                 defaultExpression, s_defaultLiteralExpression, semanticModel,
                 cancellationToken,

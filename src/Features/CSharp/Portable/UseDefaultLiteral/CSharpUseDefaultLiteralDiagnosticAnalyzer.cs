@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             }
 
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
-            if (!defaultExpression.CanReplaceWithDefaultLiteral(context.SemanticModel, cancellationToken))
+            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, context.SemanticModel, cancellationToken))
             {
                 return;
             }

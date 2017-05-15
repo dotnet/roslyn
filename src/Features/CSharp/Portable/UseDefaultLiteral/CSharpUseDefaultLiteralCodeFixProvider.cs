@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             // Here, we can replace either of the default expressions, but not both. So we have 
             // to replace one at a time, and only actually replace if it's still safe to do so.
 
+            var parseOptions = (CSharpParseOptions)document.Project.ParseOptions;
             var workspace = document.Project.Solution.Workspace;
             var originalRoot = editor.OriginalRoot;
 
@@ -58,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             {
                 var defaultExpression = currentRoot.GetCurrentNode(originalDefaultExpression);
 
-                if (defaultExpression.CanReplaceWithDefaultLiteral(semanticModel, cancellationToken))
+                if (defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, semanticModel, cancellationToken))
                 {
                     var replacement = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
                                                    .WithTriviaFrom(defaultExpression);
