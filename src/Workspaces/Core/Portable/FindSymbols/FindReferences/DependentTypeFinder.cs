@@ -469,12 +469,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // implement that type.  Because the mapping is from the simple name
             // we might get false positives.  But that's fine as we still use 
             // 'metadataTypeMatches' to make sure the match is correct.
-            var symbolTreeInfo = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+            var symbolTreeInfo = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                 project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-            if (symbolTreeInfo == null)
-            {
-                return;
-            }
 
             // For each type we care about, see if we can find any derived types
             // in this index.

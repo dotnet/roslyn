@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return modules;
             }
 
-            public void Emit(string expectedOutput, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
+            public void Emit(string expectedOutput, int? expectedReturnCode, string[] args, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool peVerify, SignatureDescription[] expectedSignatures)
             {
                 using (var testEnvironment = RuntimeEnvironmentFactory.Create(_dependencies))
                 {
@@ -105,9 +105,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         MetadataSignatureUnitTestHelper.VerifyMemberSignatures(testEnvironment, expectedSignatures);
                     }
 
-                    if (expectedOutput != null)
+                    if (expectedOutput != null || expectedReturnCode != null)
                     {
-                        testEnvironment.Execute(mainModuleName, expectedOutput);
+                        var returnCode = testEnvironment.Execute(mainModuleName, args, expectedOutput);
+
+                        if (expectedReturnCode is int exCode)
+                        {
+                            Assert.Equal(exCode, returnCode);
+                        }
                     }
                 }
             }
@@ -311,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return assemblies.Last();
             }
 
-            private static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
+            internal static MetadataReference LoadTestEmittedExecutableForSymbolValidation(
                 ImmutableArray<byte> image,
                 OutputKind outputKind,
                 string display = null)

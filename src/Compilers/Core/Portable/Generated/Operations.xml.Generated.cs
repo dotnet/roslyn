@@ -2778,7 +2778,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
-        public abstract ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
+        public abstract ImmutableArray<IOperation> Initializers { get; }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
@@ -2802,16 +2802,16 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
     {
-        public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<ISymbolInitializer> memberInitializers, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public ObjectCreationExpression(IMethodSymbol constructor, ImmutableArray<IOperation> initializers, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(constructor, isInvalid, syntax, type, constantValue)
         {
-            MemberInitializers = memberInitializers;
+            Initializers = initializers;
             ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
         }
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
-        public override ImmutableArray<ISymbolInitializer> MemberInitializers { get; }
+        public override ImmutableArray<IOperation> Initializers { get; }
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
@@ -2827,10 +2827,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
     {
-        private readonly Lazy<ImmutableArray<ISymbolInitializer>> _lazyMemberInitializers;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyMemberInitializers;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
 
-        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<ImmutableArray<ISymbolInitializer>> memberInitializers, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, isInvalid, syntax, type, constantValue)
+        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<ImmutableArray<IOperation>> memberInitializers, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, isInvalid, syntax, type, constantValue)
         {
             _lazyMemberInitializers = memberInitializers;
             _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
@@ -2838,7 +2838,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
-        public override ImmutableArray<ISymbolInitializer> MemberInitializers => _lazyMemberInitializers.Value;
+        public override ImmutableArray<IOperation> Initializers => _lazyMemberInitializers.Value;
 
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.

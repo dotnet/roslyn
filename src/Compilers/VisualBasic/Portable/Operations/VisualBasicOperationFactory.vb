@@ -469,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Shared Function CreateBoundObjectCreationExpressionOperation(boundObjectCreationExpression As BoundObjectCreationExpression) As IObjectCreationExpression
             Dim constructor As IMethodSymbol = boundObjectCreationExpression.ConstructorOpt
-            Dim memberInitializers As Lazy(Of ImmutableArray(Of ISymbolInitializer)) = New Lazy(Of ImmutableArray(Of ISymbolInitializer))(
+            Dim memberInitializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
                     Return GetObjectCreationMemberInitializers(boundObjectCreationExpression)
                 End Function)

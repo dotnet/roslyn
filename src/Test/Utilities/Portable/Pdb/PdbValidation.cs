@@ -10,11 +10,13 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
 using Roslyn.Test.MetadataUtilities;
@@ -265,11 +267,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return actual;
         }
 
+        public unsafe static byte[] GetSourceLinkData(Stream pdbStream)
+        {
+            pdbStream.Position = 0;
+
+            var symReader = SymReaderFactory.CreateReader(pdbStream);
+            try
+            {
+                Marshal.ThrowExceptionForHR(symReader.GetSourceServerData(out byte* data, out int size));
+                if (size == 0)
+                {
+                    return Array.Empty<byte>();
+                }
+
+                var result = new byte[size];
+                Marshal.Copy((IntPtr)data, result, 0, result.Length);
+                return result;
+            }
+            finally
+            {
+                ((ISymUnmanagedDispose)symReader).Destroy();
+            }
+        }
+
         public static void ValidateDebugDirectory(Stream peStream, Stream portablePdbStreamOpt, string pdbPath, bool isDeterministic)
         {
-            peStream.Seek(0, SeekOrigin.Begin);
-            PEReader peReader = new PEReader(peStream);
+            peStream.Position = 0;
 
+            var peReader = new PEReader(peStream);
             var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
 
             int position;

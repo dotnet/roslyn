@@ -202,64 +202,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return null;
         }
 
-        private static readonly ConditionalWeakTable<BoundObjectCreationExpression, object> s_memberInitializersMappings =
-            new ConditionalWeakTable<BoundObjectCreationExpression, object>();
-
-        private static ImmutableArray<ISymbolInitializer> GetObjectCreationMemberInitializers(BoundObjectCreationExpression expression)
+        private static ImmutableArray<IOperation> GetObjectCreationMemberInitializers(BoundObjectCreationExpression expression)
         {
-            return (ImmutableArray<ISymbolInitializer>)s_memberInitializersMappings.GetValue(expression,
-                objectCreationExpression =>
-                {
-                    var objectInitializerExpression = expression.InitializerExpressionOpt as BoundObjectInitializerExpression;
-                    if (objectInitializerExpression != null)
-                    {
-                        var builder = ArrayBuilder<ISymbolInitializer>.GetInstance(objectInitializerExpression.Initializers.Length);
-                        foreach (var memberAssignment in objectInitializerExpression.Initializers)
-                        {
-                            var assignment = memberAssignment as BoundAssignmentOperator;
-                            var leftSymbol = (assignment?.Left as BoundObjectInitializerMember)?.MemberSymbol;
-
-                            if ((object)leftSymbol == null)
-                            {
-                                continue;
-                            }
-
-                            switch (leftSymbol.Kind)
-                            {
-                                case SymbolKind.Field:
-                                    {
-                                        var value = Create(assignment.Right);
-                                        builder.Add(new FieldInitializer(
-                                            ImmutableArray.Create((IFieldSymbol)leftSymbol),
-                                            value,
-                                            OperationKind.FieldInitializerInCreation,
-                                            value.IsInvalid || leftSymbol == null,
-                                            assignment.Syntax,
-                                            type: null,
-                                            constantValue: default(Optional<object>)));
-                                        break;
-                                    }
-                                case SymbolKind.Property:
-                                    {
-                                        var value = Create(assignment.Right);
-                                        builder.Add(new PropertyInitializer(
-                                            (IPropertySymbol)leftSymbol,
-                                            value,
-                                            OperationKind.PropertyInitializerInCreation,
-                                            value.IsInvalid || leftSymbol == null,
-                                            assignment.Syntax,
-                                            type: null,
-                                            constantValue: default(Optional<object>)));
-                                        break;
-                                    }
-                            }
-                        }
-
-                        return builder.ToImmutableAndFree();
-                    }
-
-                    return ImmutableArray<ISymbolInitializer>.Empty;
-                });
+            return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
         }
 
         private static ConversionKind GetConversionKind(CSharp.ConversionKind kind)

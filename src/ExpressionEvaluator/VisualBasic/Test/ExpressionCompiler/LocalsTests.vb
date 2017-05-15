@@ -3187,7 +3187,7 @@ End Module"
                         1,
                         Function(bufferLength As Integer, ByRef count As Integer, name() As Byte)
                             count = 0
-                            Return DiaSymReader.SymUnmanagedReaderExtensions.E_NOTIMPL
+                            Return HResult.E_NOTIMPL
                         End Function)
 
                     Dim debugInfo = New MethodDebugInfoBytes.Builder(constants:={badConst}).Build()
