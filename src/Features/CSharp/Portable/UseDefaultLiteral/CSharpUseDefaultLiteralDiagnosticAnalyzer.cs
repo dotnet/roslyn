@@ -59,8 +59,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             // Also fade out the part of the default expression from the open paren through 
             // the close paren.
             context.ReportDiagnostic(
-                Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor,
-                syntaxTree.GetLocation(fadeSpan)));
+                Diagnostic.Create(
+                    UnnecessaryWithoutSuggestionDescriptor,
+                    syntaxTree.GetLocation(fadeSpan)));
         }
     }
 }
