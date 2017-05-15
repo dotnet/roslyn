@@ -98,6 +98,7 @@
     <Compile Include="CodeStyle\TypeStyle\TypeStyle.cs" />
     <Compile Include="CodeStyle\TypeStyle\TypeStyleHelper.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Simplification\Reducers\CSharpDefaultExpressionReducer.Rewriter.cs" />
     <Compile Include="Diagnostics\CSharpDiagnosticPropertiesService.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
     <Compile Include="Extensions\ArrowExpressionClauseSyntaxExtensions.cs" />
@@ -213,6 +214,7 @@
     <Compile Include="Simplification\Reducers\AbstractCSharpReducer.AbstractReductionRewriter.cs" />
     <Compile Include="Simplification\Reducers\AbstractCSharpReducer.cs" />
     <Compile Include="Simplification\Reducers\CSharpCastReducer.cs" />
+    <Compile Include="Simplification\Reducers\CSharpDefaultExpressionReducer.cs" />
     <Compile Include="Simplification\Reducers\CSharpInferredMemberNameReducer.cs" />
     <Compile Include="Simplification\Reducers\CSharpInferredMemberNameReducer.Rewriter.cs" />
     <Compile Include="Simplification\Reducers\CSharpCastReducer.Rewriter.cs" />

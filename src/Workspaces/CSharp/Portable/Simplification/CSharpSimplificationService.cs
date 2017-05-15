@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpParenthesesReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
-                new CSharpInferredMemberNameReducer());
+                new CSharpInferredMemberNameReducer(),
+                new CSharpDefaultExpressionReducer());
 
         public CSharpSimplificationService() : base(s_reducers)
         {
