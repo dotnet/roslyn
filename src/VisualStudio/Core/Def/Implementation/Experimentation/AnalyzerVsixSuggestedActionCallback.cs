@@ -154,13 +154,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                     var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
                     infoBarService.ShowInfoBarInGlobalView(
-                        ServicesVSResources.Analyzer_vsix_try_description,
+                        ServicesVSResources.Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues,
                         // Install link
-                        new InfoBarUI(title: ServicesVSResources.Analyzer_vsix_hyperlink,
+                        new InfoBarUI(title: ServicesVSResources.Learn_more,
                                       kind: InfoBarUI.UIKind.HyperLink,
                                       action: OpenInstallHyperlink),
                         // Don't show the InfoBar again link
-                        new InfoBarUI(title: ServicesVSResources.Analyzer_vsix_do_not_show_again,
+                        new InfoBarUI(title: ServicesVSResources.Never_show_this_again,
                                       kind: InfoBarUI.UIKind.Button,
                                       action: DoNotShowAgain));
                 }

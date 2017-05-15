@@ -912,13 +912,10 @@ Additional information: {1}</value>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
   </data>
-  <data name="Analyzer_vsix_hyperlink" xml:space="preserve">
-    <value>Install</value>
+  <data name="Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues" xml:space="preserve">
+    <value>Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues</value>
   </data>
-  <data name="Analyzer_vsix_try_description" xml:space="preserve">
-    <value>Try the new analyzer extension!</value>
-  </data>
-  <data name="Analyzer_vsix_do_not_show_again" xml:space="preserve">
-    <value>Do not show again</value>
+  <data name="Never_show_this_again" xml:space="preserve">
+    <value>Never show this again</value>
   </data>
 </root>
