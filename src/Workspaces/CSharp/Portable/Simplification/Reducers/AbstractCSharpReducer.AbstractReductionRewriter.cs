@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
         {
             private readonly ObjectPool<IReductionRewriter> _pool;
 
-            protected ParseOptions ParseOptions { get; private set; }
+            protected CSharpParseOptions ParseOptions { get; private set; }
             private OptionSet _optionSet;
             private CancellationToken _cancellationToken;
             private SemanticModel _semanticModel;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             public void Initialize(ParseOptions parseOptions, OptionSet optionSet, CancellationToken cancellationToken)
             {
-                ParseOptions = parseOptions;
+                ParseOptions = (CSharpParseOptions)parseOptions;
                 _optionSet = optionSet;
                 _cancellationToken = cancellationToken;
             }

@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 CancellationToken cancellationToken)
             {
                 if (optionSet.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Value &&
-                    ((CSharpParseOptions)ParseOptions).LanguageVersion >= LanguageVersion.CSharp7_1 &&
+                    ParseOptions.LanguageVersion >= LanguageVersion.CSharp7_1 &&
                     node.CanReplaceWithDefaultLiteral(semanticModel, cancellationToken))
                 {
                     return SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
