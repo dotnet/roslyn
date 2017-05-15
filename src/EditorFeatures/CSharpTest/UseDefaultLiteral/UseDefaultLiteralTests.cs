@@ -212,7 +212,7 @@ class C
 {
     void Foo(bool b)
     {
-        string s1 = b ? {|FixAllInDocument:default|}(string) : defalut(string);
+        string s1 = b ? {|FixAllInDocument:default|}(string) : default(string);
     }
 }",
 @"
@@ -220,7 +220,7 @@ class C
 {
     void Foo(bool b)
     {
-        string s1 = b ? default : defalut(string);
+        string s1 = b ? default : default(string);
     }
 }", parseOptions: s_parseOptions);
         }
