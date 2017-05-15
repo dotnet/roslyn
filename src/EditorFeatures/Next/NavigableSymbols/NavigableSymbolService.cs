@@ -12,9 +12,9 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
-    [Export(typeof(INavigableSymbolSourceProvider))]
-    [Name(nameof(NavigableSymbolService))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
+    //[Export(typeof(INavigableSymbolSourceProvider))]
+    //[Name(nameof(NavigableSymbolService))]
+    //[ContentType(ContentTypeNames.RoslynContentType)]
     internal partial class NavigableSymbolService : INavigableSymbolSourceProvider
     {
         private static readonly object _key = new object();
