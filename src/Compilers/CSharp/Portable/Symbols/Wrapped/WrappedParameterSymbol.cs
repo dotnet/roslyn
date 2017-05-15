@@ -76,10 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _underlyingParameter.AddSynthesizedAttributes(compilationState, ref attributes);
         }
 
-        internal override BoundExpression ExplicitDefaultExpression
-        {
-            get { return _underlyingParameter.ExplicitDefaultExpression; }
-        }
+        internal override BoundExpression ExplicitDefaultExpression => null;
 
         internal sealed override ConstantValue ExplicitDefaultConstantValue
         {

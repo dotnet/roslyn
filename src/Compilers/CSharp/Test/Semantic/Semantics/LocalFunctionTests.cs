@@ -3090,17 +3090,35 @@ class Test : System.Attribute
         [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
         public void LocalFunctionReportedUsedForNameofDefaultParameter()
         {
+            // TODO (ashauck): Unskip Abstract.FuncVar
             var source = @"
+/*
+internal abstract class Abstract
+{
+    static int FuncVar = 2;
+    protected abstract void Func(string a = nameof(FuncVar));
+}
+*/
 class Program
 {
-    const int ClassConstant = 10;
     static void Main()
+    {
+    }
+
+    static int F1var = 2;
+    static void F1(string a = nameof(F1var)) { }
+
+    static int F2var = 2;
+    int this[int dummy, string a = nameof(F2var)] { set { } }
+
+    const int ClassConstant = 10;
+    static void LocFuncs()
     {
         int LocalVariable;
         void LocalVariableFunc(string s = nameof(LocalVariable)) => System.Console.WriteLine(s);
         LocalVariableFunc();
 
-        void LocalFunction() {}
+        void LocalFunction() { }
         void LocalFunctionFunc(string s = nameof(LocalFunction)) => System.Console.WriteLine(s);
         LocalFunctionFunc();
 
@@ -3113,15 +3131,21 @@ class Program
         void ConstantExprFunc(int x = ConstantExpr1 + ConstantExpr2) => System.Console.WriteLine(x);
         ConstantExprFunc();
 
-        void StrAdd1() {}
-        void StrAdd2() {}
+        void StrAdd1() { }
+        void StrAdd2() { }
         void StrAddFunc(string s = nameof(StrAdd1) + nameof(StrAdd2)) => System.Console.WriteLine(s);
         StrAddFunc();
 
         void ClassConstantFunc(int x = ClassConstant * 1) => System.Console.WriteLine(x);
         ClassConstantFunc();
+
+        const bool ConstBoolFalse = false;
+        const bool ConstBoolTrue = true;
+        void LogicalExpr(bool x = ConstBoolFalse || ConstBoolTrue) => System.Console.WriteLine(x);
+        LogicalExpr();
     }
-}";
+}
+";
 
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             CompileAndVerify(comp.VerifyDiagnostics(), expectedOutput: @"
@@ -3131,6 +3155,7 @@ LocalFunction
 5
 StrAdd1StrAdd2
 10
+True
 ");
         }
     }

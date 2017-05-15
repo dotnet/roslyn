@@ -25,35 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DefaultParameter = 4,
         }
 
-        private class OptionalParameterValue
-        {
-            internal ConstantValue ConstantValue { get; }
-            internal BoundExpression Expression { get; }
-
-            internal OptionalParameterValue(ConstantValue constantValue) : this(constantValue, null)
-            {
-            }
-
-            internal OptionalParameterValue(ConstantValue constantValue, BoundExpression expression)
-            {
-                ConstantValue = constantValue;
-                Expression = expression;
-            }
-
-            public override string ToString()
-            {
-                if (Expression == null)
-                    return ConstantValue.ToString();
-                return $"{Expression} =({ConstantValue})";
-            }
-        }
-
         private readonly SyntaxReference _syntaxRef;
         private readonly ParameterSyntaxKind _parameterSyntaxKind;
 
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
         private ThreeState _lazyHasOptionalAttribute;
-        private OptionalParameterValue _lazyOptionalParameterValue;
+        protected ConstantValue _lazyDefaultSyntaxValue;
 
         internal SourceComplexParameterSymbol(
             Symbol owner,
@@ -63,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
-            BoundExpression defaultExpression,
             ConstantValue defaultSyntaxValue,
             bool isParams,
             bool isExtensionMethodThis)
@@ -90,10 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _parameterSyntaxKind |= ParameterSyntaxKind.DefaultParameter;
             }
 
-            if (defaultExpression != null || defaultSyntaxValue != ConstantValue.Unset)
-            {
-                _lazyOptionalParameterValue = new OptionalParameterValue(defaultSyntaxValue, defaultExpression);
-            }
+            _lazyDefaultSyntaxValue = defaultSyntaxValue;
         }
 
         private Binder ParameterBinderOpt => (ContainingSymbol as LocalFunctionSymbol)?.ParameterBinder;
@@ -104,7 +77,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal SyntaxTree SyntaxTree => _syntaxRef == null ? null : _syntaxRef.SyntaxTree;
 
-        internal override BoundExpression ExplicitDefaultExpression => OptionalParameter.Expression;
+        internal override BoundExpression ExplicitDefaultExpression
+        {
+            get
+            {
+                LazyDefaultSyntaxValue(out var boundExpressionOpt, needsBoundExpression: true);
+                return boundExpressionOpt;
+            }
+        }
 
         internal override ConstantValue ExplicitDefaultConstantValue
         {
@@ -120,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Dev11 emits the first parameter as option with default value and the second as regular parameter.
                 // The syntactic default value is suppressed since additional synthesized parameters are added at the end of the signature.
 
-                return OptionalParameter.ConstantValue ?? DefaultValueFromAttributes;
+                return DefaultSyntaxValue ?? DefaultValueFromAttributes;
             }
         }
 
@@ -156,48 +136,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
-        private OptionalParameterValue OptionalParameter
+        private ConstantValue DefaultSyntaxValue => LazyDefaultSyntaxValue(out var unused, needsBoundExpression: false);
+
+        private ConstantValue LazyDefaultSyntaxValue(out BoundExpression boundExpressionOpt, bool needsBoundExpression)
         {
-            get
+            if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
             {
-                if (_lazyOptionalParameterValue == null)
+                var diagnostics = DiagnosticBag.GetInstance();
+
+                if (Interlocked.CompareExchange(
+                    ref _lazyDefaultSyntaxValue,
+                    MakeDefaultExpression(diagnostics, ParameterBinderOpt, out boundExpressionOpt),
+                    ConstantValue.Unset) == ConstantValue.Unset)
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-
-                    if (Interlocked.CompareExchange(
-                        ref _lazyOptionalParameterValue,
-                        MakeOptionalParameterValue(diagnostics, ParameterBinderOpt),
-                        null) == null)
-                    {
-                        // This is a race condition where the thread that loses
-                        // the compare exchange tries to access the diagnostics
-                        // before the thread which won the race finishes adding
-                        // them. https://github.com/dotnet/roslyn/issues/17243
-                        AddDeclarationDiagnostics(diagnostics);
-                    }
-
-                    diagnostics.Free();
+                    // This is a race condition where the thread that loses
+                    // the compare exchange tries to access the diagnostics
+                    // before the thread which won the race finishes adding
+                    // them. https://github.com/dotnet/roslyn/issues/17243
+                    AddDeclarationDiagnostics(diagnostics);
                 }
 
-                return _lazyOptionalParameterValue;
+                diagnostics.Free();
             }
+            else if (needsBoundExpression)
+            {
+                // Constant value is already calculated, but we still need to recalculate the BoundExpression
+                var diagnostics = DiagnosticBag.GetInstance();
+                MakeDefaultExpression(diagnostics, ParameterBinderOpt, out boundExpressionOpt);
+                // Drop diagnostics - they were already reported on the first calculation.
+                diagnostics.Free();
+            }
+            else
+            {
+                boundExpressionOpt = null;
+            }
+
+            return _lazyDefaultSyntaxValue;
         }
 
         // If binder is null, then get it from the compilation. Otherwise use the provided binder.
         // Don't always get it from the compilation because we might be in a speculative context (local function parameter),
         // in which case the declaring compilation is the wrong one.
-        private OptionalParameterValue MakeOptionalParameterValue(DiagnosticBag diagnostics, Binder binder)
+        protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder, out BoundExpression expressionOpt)
         {
             var parameterSyntax = this.CSharpSyntaxNode;
             if (parameterSyntax == null)
             {
-                return new OptionalParameterValue(ConstantValue.NotAvailable);
+                expressionOpt = null;
+                return ConstantValue.NotAvailable;
             }
 
             var defaultSyntax = parameterSyntax.Default;
             if (defaultSyntax == null)
             {
-                return new OptionalParameterValue(ConstantValue.NotAvailable);
+                expressionOpt = null;
+                return ConstantValue.NotAvailable;
             }
 
             if (binder == null)
@@ -220,7 +213,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
             {
-                return new OptionalParameterValue(ConstantValue.Bad, convertedExpression);
+                expressionOpt = convertedExpression;
+                return ConstantValue.Bad;
             }
 
             // If we have something like M(double? x = 1) then the expression we'll get is (double?)1, which
@@ -238,7 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // represent default(struct) by a Null constant:
             var value = convertedExpression.ConstantValue ?? ConstantValue.Null;
             VerifyParamDefaultValueMatchesAttributeIfAny(value, defaultSyntax.Value, diagnostics);
-            return new OptionalParameterValue(value, convertedExpression);
+            expressionOpt = convertedExpression;
+            return value;
         }
 
         public override string MetadataName
@@ -995,11 +990,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string name,
             ImmutableArray<Location> locations,
             SyntaxReference syntaxRef,
-            BoundExpression defaultExpression,
             ConstantValue defaultSyntaxValue,
             bool isParams,
             bool isExtensionMethodThis)
-            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultExpression, defaultSyntaxValue, isParams, isExtensionMethodThis)
+            : base(owner, ordinal, parameterType, refKind, name, locations, syntaxRef, defaultSyntaxValue, isParams, isExtensionMethodThis)
         {
             Debug.Assert(!customModifiers.IsEmpty || !refCustomModifiers.IsEmpty);
 

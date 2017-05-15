@@ -1400,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void EnterParameter(ParameterSymbol parameter)
         {
-            Visit(parameter.ExplicitDefaultExpression);
+            VisitRvalue(parameter.ExplicitDefaultExpression);
             if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
             {
                 int slot = GetOrCreateSlot(parameter);
