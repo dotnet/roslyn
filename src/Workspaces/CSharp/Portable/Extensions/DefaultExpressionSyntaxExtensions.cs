@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -13,9 +15,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool CanReplaceWithDefaultLiteral(
             this DefaultExpressionSyntax defaultExpression,
             CSharpParseOptions parseOptions,
+            OptionSet options,
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            if (!options.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Value)
+            {
+                return false;
+            }
+
             if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1)
             {
                 return false;

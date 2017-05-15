@@ -35,35 +35,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             var cancellationToken = context.CancellationToken;
 
             var syntaxTree = context.Node.SyntaxTree;
-            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
-            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1)
-            {
-                return;
-            }
-
-            var options = context.Options;
-            var optionSet = options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
             }
 
-            var codeStyleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral);
-            if (!codeStyleOption.Value)
-            {
-                return;
-            }
-
+            var parseOptions = (CSharpParseOptions)syntaxTree.Options;
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
-            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, context.SemanticModel, cancellationToken))
+            if (!defaultExpression.CanReplaceWithDefaultLiteral(parseOptions, optionSet, context.SemanticModel, cancellationToken))
             {
                 return;
             }
 
             var fadeSpan = TextSpan.FromBounds(defaultExpression.OpenParenToken.SpanStart, defaultExpression.CloseParenToken.Span.End);
 
-            context.ReportDiagnostic(Diagnostic.Create(GetDescriptorWithSeverity(codeStyleOption.Notification.Value), defaultExpression.GetLocation()));
-            context.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, syntaxTree.GetLocation(fadeSpan)));
+            // Create a normal diagnostic that covers the entire default expression.
+            context.ReportDiagnostic(
+                Diagnostic.Create(GetDescriptorWithSeverity(
+                    optionSet.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Notification.Value),
+                    defaultExpression.GetLocation()));
+
+            // Also fade out the part of the default expression from the open paren through 
+            // the close paren.
+            context.ReportDiagnostic(
+                Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor,
+                syntaxTree.GetLocation(fadeSpan)));
         }
     }
 }
