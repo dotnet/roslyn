@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Symbols;
 using static Microsoft.CodeAnalysis.CSharp.Binder;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -99,6 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// We do so by creating a new reference manager for such compilation.
         /// </summary>
         private ReferenceManager _referenceManager;
+
+        private readonly SyntaxTreeOptionsManager _syntaxTreeOptionsManager;
 
         private readonly SyntaxAndDeclarationManager _syntaxAndDeclarations;
 
@@ -266,6 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isSubmission,
                 referenceManager: null,
                 reuseReferenceManager: false,
+                syntaxTreeOptionsManagerToReuse: null,
                 syntaxAndDeclarations: new SyntaxAndDeclarationManager(
                     ImmutableArray<SyntaxTree>.Empty,
                     options.ScriptClassName,
@@ -293,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isSubmission,
             ReferenceManager referenceManager,
             bool reuseReferenceManager,
+            SyntaxTreeOptionsManager syntaxTreeOptionsManagerToReuse,
             SyntaxAndDeclarationManager syntaxAndDeclarations,
             AsyncQueue<CompilationEvent> eventQueue = null)
             : base(assemblyName, references, SyntaxTreeCommonFeatures(syntaxAndDeclarations.ExternalSyntaxTrees), isSubmission, eventQueue)
@@ -329,6 +334,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MakeSourceAssemblySimpleName(),
                     this.Options.AssemblyIdentityComparer,
                     observedMetadata: referenceManager?.ObservedMetadata);
+            }
+
+            if (syntaxTreeOptionsManagerToReuse != null)
+            {
+                _syntaxTreeOptionsManager = syntaxTreeOptionsManagerToReuse;
+                _syntaxTreeOptionsManager.AssertCanReuseForCompilation(this);
+            }
+            else
+            {
+                _syntaxTreeOptionsManager = new SyntaxTreeOptionsManager(Options.SyntaxTreeOptionsProvider);
             }
 
             _syntaxAndDeclarations = syntaxAndDeclarations;
@@ -368,6 +383,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result ?? LanguageVersion.Default.MapSpecifiedToEffectiveVersion();
         }
 
+        public override OptionSet GetOptionsForSyntaxTree(SyntaxTree tree)
+        {
+            if (tree == null)
+            {
+                throw new ArgumentNullException(nameof(tree));
+            }
+
+            if (!ContainsSyntaxTree(tree))
+            {
+                throw new ArgumentException(CSharpResources.TreeNotPartOfCompilation, paramName: nameof(tree));
+            }
+
+            return _syntaxTreeOptionsManager.GetOptionsForSyntaxTree(tree);
+        }
+
         /// <summary>
         /// Create a duplicate of this compilation with different symbol instances.
         /// </summary>
@@ -383,6 +413,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
+                syntaxTreeOptionsManagerToReuse: _syntaxTreeOptionsManager,
                 syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
@@ -401,6 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager,
                 reuseReferenceManager,
+                _syntaxTreeOptionsManager,
                 syntaxAndDeclarations);
         }
 
@@ -423,6 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: assemblyName == this.AssemblyName,
+                syntaxTreeOptionsManagerToReuse: _syntaxTreeOptionsManager,
                 syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
@@ -452,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 referenceManager: null,
                 reuseReferenceManager: false,
+                syntaxTreeOptionsManagerToReuse: _syntaxTreeOptionsManager,
                 syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
@@ -472,6 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool reuseReferenceManager = oldOptions.CanReuseCompilationReferenceManager(options);
             bool reuseSyntaxAndDeclarationManager = oldOptions.ScriptClassName == options.ScriptClassName &&
                 oldOptions.SourceReferenceResolver == options.SourceReferenceResolver;
+            bool reuseSyntaxTreeOptionsManager = object.Equals(oldOptions.SyntaxTreeOptionsProvider, options.SyntaxTreeOptionsProvider);
 
             return new CSharpCompilation(
                 this.AssemblyName,
@@ -483,6 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager,
+                reuseSyntaxTreeOptionsManager ? _syntaxTreeOptionsManager : null,
                 reuseSyntaxAndDeclarationManager ?
                     _syntaxAndDeclarations :
                     new SyntaxAndDeclarationManager(
@@ -516,6 +552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 info != null,
                 _referenceManager,
                 reuseReferenceManager: true,
+                syntaxTreeOptionsManagerToReuse: _syntaxTreeOptionsManager,
                 syntaxAndDeclarations: _syntaxAndDeclarations);
         }
 
@@ -534,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager: true,
+                syntaxTreeOptionsManagerToReuse: _syntaxTreeOptionsManager,
                 syntaxAndDeclarations: _syntaxAndDeclarations,
                 eventQueue: eventQueue);
         }
