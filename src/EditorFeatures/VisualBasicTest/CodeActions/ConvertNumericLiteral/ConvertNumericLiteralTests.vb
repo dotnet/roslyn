@@ -123,5 +123,24 @@ End Class",
     Dim a As Integer = &B101010
 End Class", index:=Refactoring.ChangeBase1)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestSelectionMatchesToken() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Dim a As Integer = [|42|]
+End Class",
+"Class C
+    Dim a As Integer = &B101010
+End Class", index:=Refactoring.ChangeBase1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)>
+        Public Async Function TestSelectionDoesntMatchToken() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Dim a As Integer = [|42 * 2|]
+End Class")
+        End Function
     End Class
 End Namespace

@@ -136,5 +136,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
   int a = 0b101010;
 }", index: (int)Refactoring.ChangeBase1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestSelectionMatchesToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+  int a = [|42|];
+}",
+@"class C
+{
+  int a = 0b101010;
+}", index: (int)Refactoring.ChangeBase1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestSelectionDoesntMatchToken()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+  int a = [|42 * 2|];
+}");
+        }
     }
 }
