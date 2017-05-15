@@ -1052,16 +1052,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ushort firstKeywordIdInclusive = (ushort)SyntaxKind.YieldKeyword;
             ushort lastKeywordIdExclusive = (ushort)SyntaxKind.ElifKeyword;
-            var builder = new ArrayBuilder<SyntaxKind>(lastKeywordIdExclusive - firstKeywordIdInclusive);
+
             for (ushort id = firstKeywordIdInclusive; id < lastKeywordIdExclusive; ++id)
             {
                 if (Enum.IsDefined(typeof(SyntaxKind), id))
                 {
-                    builder.Add((SyntaxKind)id);
+                    yield return ((SyntaxKind)id);
                 }
             }
-
-            return builder.ToImmutable();
         }
 
         public static bool IsContextualKeyword(SyntaxKind kind)
