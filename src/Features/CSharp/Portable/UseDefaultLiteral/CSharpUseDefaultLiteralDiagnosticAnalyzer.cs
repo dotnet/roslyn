@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
                 return;
             }
 
-            var codeStyleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferSimpleDefault);
+            var codeStyleOption = optionSet.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral);
             if (!codeStyleOption.Value)
             {
                 return;

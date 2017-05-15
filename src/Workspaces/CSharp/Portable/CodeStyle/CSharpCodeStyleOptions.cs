@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_braces"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferBraces)}")});
 
-        public static readonly Option<CodeStyleOption<bool>> PreferSimpleDefault = new Option<CodeStyleOption<bool>>(
-            nameof(CodeStyleOptions), nameof(PreferSimpleDefault), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
+        public static readonly Option<CodeStyleOption<bool>> PreferDefaultLiteral = new Option<CodeStyleOption<bool>>(
+            nameof(CodeStyleOptions), nameof(PreferDefaultLiteral), defaultValue: CodeStyleOptions.TrueWithSuggestionEnforcement,
             storageLocations: new OptionStorageLocation[] {
-                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_simple_default"),
-                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSimpleDefault)}")});
+                EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_default_literal"),
+                new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferDefaultLiteral)}")});
 
         public static IEnumerable<Option<CodeStyleOption<bool>>> GetCodeStyleOptions()
         {
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             yield return PreferPatternMatchingOverAsWithNullCheck;
             yield return PreferPatternMatchingOverIsWithCastCheck;
             yield return PreferBraces;
-            yield return PreferSimpleDefault;
+            yield return PreferDefaultLiteral;
         }
 
         public static IEnumerable<Option<CodeStyleOption<ExpressionBodyPreference>>> GetExpressionBodyOptions()
