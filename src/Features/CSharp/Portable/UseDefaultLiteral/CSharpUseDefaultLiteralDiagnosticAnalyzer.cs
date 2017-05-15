@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-
         public CSharpUseDefaultLiteralDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
                    new LocalizableResourceString(
