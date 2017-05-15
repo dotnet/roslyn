@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 CancellationToken cancellationToken)
             {
                 if (optionSet.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Value &&
-                    node.CanReplaceWithDefaultLiteral(semanticModel, cancellationToken) &&
-                    ((CSharpParseOptions)ParseOptions).LanguageVersion >= LanguageVersion.CSharp7_1)
+                    ((CSharpParseOptions)ParseOptions).LanguageVersion >= LanguageVersion.CSharp7_1 &&
+                    node.CanReplaceWithDefaultLiteral(semanticModel, cancellationToken))
                 {
                     return SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
                                         .WithTriviaFrom(node);
