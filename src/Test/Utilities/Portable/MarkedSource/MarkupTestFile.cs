@@ -40,7 +40,7 @@ namespace Roslyn.Test.Utilities
         private const string NamedSpanStartString = "{|";
         private const string NamedSpanEndString = "|}";
 
-        private static readonly Regex s_namedSpanStartRegex = new Regex(@"\{\| ([-_.A-Za-z0-9]+) \:",
+        private static readonly Regex s_namedSpanStartRegex = new Regex(@"\{\| ([-_.A-Za-z0-9\+]+) \:",
             RegexOptions.Multiline | RegexOptions.IgnorePatternWhitespace);
 
         private static void Parse(string input, out string output, out int? position, out IDictionary<string, IList<TextSpan>> spans)
