@@ -713,7 +713,9 @@ abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.R
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
+abstract Microsoft.CodeAnalysis.Options.SyntaxTreeOptionsProvider.GetOptionsForSyntaxTreePath(string path) -> Microsoft.CodeAnalysis.Options.OptionSet
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation
+override Microsoft.CodeAnalysis.Options.EditorConfigSyntaxTreeOptionsProvider.GetOptionsForSyntaxTreePath(string path) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.Options.Option<T>.ToString() -> string
 override Microsoft.CodeAnalysis.Options.OptionKey.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Options.OptionKey.GetHashCode() -> int

@@ -25,5 +25,26 @@ namespace Microsoft.CodeAnalysis.Options
         {
             return new EditorConfigSyntaxTreeOptionsProvider(this.EditorConfigFiles.RemoveRange(editorConfigFiles));
         }
+
+        public override OptionSet GetOptionsForSyntaxTreePath(string path)
+        {
+            // PROTOTYPE: implement.
+            return new EditorConfigOptionSet();
+        }
+
+        private class EditorConfigOptionSet : OptionSet
+        {
+            public override object GetOption(OptionKey optionKey)
+            {
+                // PROTOTYPE: implement.
+                return optionKey.Option.DefaultValue;
+            }
+
+            public override OptionSet WithChangedOption(OptionKey optionAndLanguage, object value)
+            {
+                // PROTOTYPE: implement.
+                throw new NotImplementedException();
+            }
+        }
     }
 }
