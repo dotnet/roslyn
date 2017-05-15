@@ -34,6 +34,12 @@ namespace Microsoft.CodeAnalysis.ConvertNumericLiteral
                 return;
             }
 
+            if (context.Span.Length > 0 && 
+                context.Span != numericToken.Span)
+            {
+                return;
+            }
+
             var syntaxNode = numericToken.Parent;
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var symbol = semanticModel.GetTypeInfo(syntaxNode, cancellationToken).Type;
