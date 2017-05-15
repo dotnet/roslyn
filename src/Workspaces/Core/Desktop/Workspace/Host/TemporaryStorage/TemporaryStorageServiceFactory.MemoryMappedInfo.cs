@@ -22,16 +22,27 @@ namespace Microsoft.CodeAnalysis.Host
         {
             private readonly string _name;
             private readonly long _size;
-            private readonly MemoryMappedFile _memoryMappedFile;
 
             /// <summary>
-            /// ref count of stream given out
+            /// The memory mapped file.
             /// </summary>
-            private int _streamCount;
+            /// <remarks>
+            /// <para>It is possible for this accessor to be disposed prior to the view and/or the streams which use it.
+            /// However, the operating system does not actually close the views which are in use until the view handles
+            /// are closed as well, even if the <see cref="MemoryMappedFile"/> is disposed first.</para>
+            /// </remarks>
+            private readonly MemoryMappedFile _memoryMappedFile;
 
             /// <summary>
             /// actual memory accessor that owns the VM
             /// </summary>
+            /// <remarks>
+            /// <para>It is possible for this accessor to be disposed prior to the streams which use it. However, the
+            /// streams interact directly with the underlying memory buffer, and keep a
+            /// <see cref="CopiedMemoryMappedViewHandle"/> to prevent that buffer from being released while still in
+            /// use. The <see cref="SafeHandle"/> used by this accessor is reference counted, and is not finally
+            /// released until the reference count reaches zero.</para>
+            /// </remarks>
             private MemoryMappedViewAccessor _accessor;
 
             public MemoryMappedInfo(long size)
@@ -40,9 +51,6 @@ namespace Microsoft.CodeAnalysis.Host
                 _size = size;
 
                 _memoryMappedFile = MemoryMappedFile.CreateNew(_name, size);
-
-                _streamCount = 0;
-                _accessor = null;
             }
 
             public MemoryMappedInfo(string name, long size)
@@ -51,9 +59,6 @@ namespace Microsoft.CodeAnalysis.Host
                 _size = size;
 
                 _memoryMappedFile = MemoryMappedFile.OpenExisting(_name);
-
-                _streamCount = 0;
-                _accessor = null;
             }
 
             /// <summary>
@@ -81,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // CreateViewStream is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
-                    if (_streamCount == 0)
+                    if (_accessor == null)
                     {
                         try
                         {
@@ -97,8 +102,8 @@ namespace Microsoft.CodeAnalysis.Host
                         }
                     }
 
-                    _streamCount++;
-                    return new SharedReadableStream(this, _accessor, _size);
+                    Contract.Assert(_accessor.CanRead);
+                    return new SharedReadableStream(this, new CopiedMemoryMappedViewHandle(_accessor.SafeMemoryMappedViewHandle), _accessor.PointerOffset, _size);
                 }
             }
 
@@ -115,24 +120,6 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            private void StreamDisposed()
-            {
-                lock (_memoryMappedFile)
-                {
-                    _streamCount--;
-                    if (_streamCount == 0 && _accessor != null)
-                    {
-                        _accessor.Dispose();
-                        _accessor = null;
-                    }
-                }
-            }
-
-            ~MemoryMappedInfo()
-            {
-                Dispose(false);
-            }
-
             public void Dispose()
             {
                 Dispose(true);
@@ -141,25 +128,21 @@ namespace Microsoft.CodeAnalysis.Host
 
             private void Dispose(bool disposing)
             {
-                lock (_memoryMappedFile)
+                if (disposing)
                 {
-                    if (_accessor != null)
+                    lock (_memoryMappedFile)
                     {
-                        // dispose accessor it owns.
-                        // if someone explicitly called Dispose when streams given out are not
-                        // disposed yet, the accessor each stream has will simply stop working.
-                        //
-                        // it is caller's responsibility to make sure all streams it got from
-                        // the temporary storage are disposed before calling dispose on the storage.
-                        //
-                        // otherwise, finalizer will take care of disposing stuff as we used to be.
-                        _accessor.Dispose();
-                        _accessor = null;
+                        if (_accessor != null)
+                        {
+                            // (see remarks on accessor for relation between _accessor and the streams)
+                            _accessor.Dispose();
+                            _accessor = null;
+                        }
                     }
-                }
 
-                // Dispose the memoryMappedFile
-                _memoryMappedFile.Dispose();
+                    // (see remarks on accessor for relation between _memoryMappedFile and the views/streams)
+                    _memoryMappedFile.Dispose();
+                }
             }
 
             public static string CreateUniqueName(long size)
@@ -169,29 +152,17 @@ namespace Microsoft.CodeAnalysis.Host
 
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
-                private readonly MemoryMappedViewAccessor _accessor;
+                private readonly CopiedMemoryMappedViewHandle _handle;
 
-                private MemoryMappedInfo _owner;
                 private byte* _start;
                 private byte* _current;
                 private readonly byte* _end;
 
-                public SharedReadableStream(MemoryMappedInfo owner, MemoryMappedViewAccessor accessor, long length)
+                public SharedReadableStream(MemoryMappedInfo owner, CopiedMemoryMappedViewHandle handle, long offset, long length)
                 {
-                    Contract.Assert(accessor.CanRead);
-
-                    _owner = owner;
-                    _accessor = accessor;
-                    _current = _start = AcquirePointer(accessor);
+                    _handle = handle;
+                    _current = _start = handle.Pointer + offset;
                     _end = checked(_start + length);
-                }
-
-                ~SharedReadableStream()
-                {
-                    // we don't have control on stream we give out to others such as
-                    // compiler (ImageOnlyMetadataReference), make sure we dispose resource 
-                    // at the end if Disposed is not called explicitly.
-                    Dispose(false);
                 }
 
                 public override bool CanRead
@@ -326,17 +297,12 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     base.Dispose(disposing);
 
-                    if (_start != null)
+                    if (disposing)
                     {
-                        _accessor.SafeMemoryMappedViewHandle.ReleasePointer();
-                        _start = null;
+                        _handle.Dispose();
                     }
 
-                    if (_owner != null)
-                    {
-                        _owner.StreamDisposed();
-                        _owner = null;
-                    }
+                    _start = null;
                 }
 
                 /// <summary>
@@ -345,19 +311,6 @@ namespace Microsoft.CodeAnalysis.Host
                 public IntPtr GetPointer()
                 {
                     return (IntPtr)_start;
-                }
-
-                /// <summary>
-                /// Acquire the fixed pointer to the start of the memory mapped view.
-                /// The pointer will be released during <see cref="Dispose(bool)"/>
-                /// </summary>
-                /// <returns>The pointer to the start of the memory mapped view. The pointer is valid, and remains fixed for the lifetime of this object.</returns>
-                private static byte* AcquirePointer(MemoryMappedViewAccessor accessor)
-                {
-                    byte* ptr = null;
-                    accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-                    ptr += accessor.PointerOffset;
-                    return ptr;
                 }
             }
         }
