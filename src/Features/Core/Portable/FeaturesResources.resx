@@ -1241,4 +1241,7 @@ This version used in: {2}</value>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
   </data>
+  <data name="Use_default_literal" xml:space="preserve">
+    <value>Use 'default' literal</value>
+  </data>
 </root>

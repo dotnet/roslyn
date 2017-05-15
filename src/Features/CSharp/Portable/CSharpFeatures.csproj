@@ -95,6 +95,7 @@
     <Compile Include="UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyHelper.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyCodeRefactoringProvider.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyDiagnosticAnalyzer.cs" />
@@ -109,6 +110,7 @@
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="UseDefaultLiteral\CSharpUseDefaultLiteralDiagnosticAnalyzer.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\UseInitializerHelpers.cs" />
