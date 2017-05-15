@@ -15,6 +15,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
+            var options = (CSharpParseOptions)semanticModel.SyntaxTree.Options;
+            if (options.LanguageVersion < LanguageVersion.CSharp7_1)
+            {
+                return false;
+            }
+
             var speculationAnalyzer = new SpeculationAnalyzer(
                 defaultExpression, s_defaultLiteralExpression, semanticModel,
                 cancellationToken,
