@@ -19,23 +19,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            if (!options.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Value)
+            if (parseOptions.LanguageVersion >= LanguageVersion.CSharp7_1 &&
+                options.GetOption(CSharpCodeStyleOptions.PreferDefaultLiteral).Value)
             {
-                return false;
+                var speculationAnalyzer = new SpeculationAnalyzer(
+                    defaultExpression, s_defaultLiteralExpression, semanticModel,
+                    cancellationToken,
+                    skipVerificationForReplacedNode: true,
+                    failOnOverloadResolutionFailuresInOriginalCode: true);
+
+                return !speculationAnalyzer.ReplacementChangesSemantics();
             }
 
-            if (parseOptions.LanguageVersion < LanguageVersion.CSharp7_1)
-            {
-                return false;
-            }
-
-            var speculationAnalyzer = new SpeculationAnalyzer(
-                defaultExpression, s_defaultLiteralExpression, semanticModel,
-                cancellationToken,
-                skipVerificationForReplacedNode: true,
-                failOnOverloadResolutionFailuresInOriginalCode: true);
-
-            return !speculationAnalyzer.ReplacementChangesSemantics();
+            return false;
         }
     }
 }
