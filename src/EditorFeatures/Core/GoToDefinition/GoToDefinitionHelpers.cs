@@ -88,6 +88,11 @@ namespace Microsoft.CodeAnalysis.Editor.GoToDefinition
             var title = string.Format(EditorFeaturesResources._0_declarations,
                 FindUsagesHelpers.GetDisplayName(symbol));
 
+            if (definitions.IsDefaultOrEmpty)
+            {
+                return false;
+            }
+
             return presenter.TryNavigateToOrPresentItemsAsync(
                 project.Solution.Workspace, title, definitions).WaitAndGetResult(cancellationToken);
         }
