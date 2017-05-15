@@ -1,9 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -15,12 +14,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
     {
         private class State
         {
-            public INamedTypeSymbol ClassType { get; private set; }
+            public INamedTypeSymbol ClassOrStructType { get; private set; }
 
-            public IList<IMethodSymbol> UnimplementedConstructors { get; private set; }
-            public IMethodSymbol UnimplementedDefaultConstructor { get; private set; }
-
-            public SyntaxNode BaseTypeNode { get; private set; }
+            public ImmutableArray<IMethodSymbol> UnimplementedConstructors { get; private set; }
 
             private State()
             {
@@ -47,55 +43,53 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var baseTypeNode, out var classType))
+                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var classOrStructType))
                 {
                     return false;
                 }
 
-                if (!baseTypeNode.Span.IntersectsWith(textSpan.Start))
-                {
-                    return false;
-                }
+                this.ClassOrStructType = classOrStructType;
 
-                this.BaseTypeNode = baseTypeNode;
-                this.ClassType = classType;
-
-                var baseType = this.ClassType.BaseType;
-
-                if (this.ClassType.TypeKind != TypeKind.Class ||
-                    this.ClassType.IsStatic ||
+                var baseType = this.ClassOrStructType.BaseType;
+                if (this.ClassOrStructType.IsStatic ||
                     baseType == null ||
-                    baseType.SpecialType == SpecialType.System_Object ||
                     baseType.TypeKind == TypeKind.Error)
                 {
                     return false;
                 }
 
                 var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                var classConstructors = this.ClassType.InstanceConstructors;
-                var baseTypeConstructors =
-                    baseType.InstanceConstructors
-                            .Where(c => c.IsAccessibleWithin(this.ClassType));
+                var classConstructors = this.ClassOrStructType.InstanceConstructors;
 
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);
+                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassOrStructType.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
+                var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
-                var missingConstructors =
-                    baseTypeConstructors.Where(c1 => !classConstructors.Any(
-                        c2 => SignatureComparer.Instance.HaveSameSignature(c1.Parameters, c2.Parameters, compareParameterName: true, isCaseSensitive: syntaxFacts.IsCaseSensitive))).ToList();
+                this.UnimplementedConstructors =
+                    baseType.InstanceConstructors
+                            .WhereAsArray(c => c.IsAccessibleWithin(this.ClassOrStructType) &&
+                                               IsMissing(c, classConstructors, isCaseSensitive));
 
-                this.UnimplementedConstructors = missingConstructors;
+                return this.UnimplementedConstructors.Length > 0;
+            }
 
-                this.UnimplementedDefaultConstructor = baseTypeConstructors.FirstOrDefault(c => c.Parameters.Length == 0);
-                if (this.UnimplementedDefaultConstructor != null)
+            private bool IsMissing(
+                IMethodSymbol constructor, 
+                ImmutableArray<IMethodSymbol> classConstructors, 
+                bool isCaseSensitive)
+            {
+                var matchingConstructor = classConstructors.FirstOrDefault(
+                    c => SignatureComparer.Instance.HaveSameSignature(
+                        constructor.Parameters, c.Parameters, compareParameterName: true, isCaseSensitive: isCaseSensitive));
+
+                if (matchingConstructor == null)
                 {
-                    if (classConstructors.Any(c => c.Parameters.Length == 0 && !c.IsImplicitlyDeclared))
-                    {
-                        this.UnimplementedDefaultConstructor = null;
-                    }
+                    return true;
                 }
 
-                return this.UnimplementedConstructors.Count > 0;
+                // We have a matching constructor in this type.  But we'll still offer to create the
+                // constructor if the constructor that we have is implicit. 
+                return matchingConstructor.IsImplicitlyDeclared;
             }
         }
     }

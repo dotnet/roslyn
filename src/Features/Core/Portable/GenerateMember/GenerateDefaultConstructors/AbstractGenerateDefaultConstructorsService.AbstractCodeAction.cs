@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
             {
                 var result = await CodeGenerator.AddMemberDeclarationsAsync(
                     _document.Project.Solution,
-                    _state.ClassType,
+                    _state.ClassOrStructType,
                     _constructors.Select(CreateConstructorDefinition),
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                     attributes: default(ImmutableArray<AttributeData>),
                     accessibility: constructor.DeclaredAccessibility,
                     modifiers: new DeclarationModifiers(),
-                    typeName: _state.ClassType.Name,
+                    typeName: _state.ClassOrStructType.Name,
                     parameters: constructor.Parameters,
                     statements: default(ImmutableArray<SyntaxNode>),
                     baseConstructorArguments: baseConstructorArguments);
