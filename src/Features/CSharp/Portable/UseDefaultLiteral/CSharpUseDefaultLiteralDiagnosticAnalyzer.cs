@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     internal class CSharpUseDefaultLiteralDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
-        private static readonly LiteralExpressionSyntax s_defaultLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
 
         public CSharpUseDefaultLiteralDiagnosticAnalyzer() 
             : base(IDEDiagnosticIds.UseDefaultLiteralDiagnosticId,
@@ -60,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             }
 
             var defaultExpression = (DefaultExpressionSyntax)context.Node;
-            if (!CanUseDefaultLiteral(defaultExpression, context.SemanticModel, cancellationToken))
+            if (!defaultExpression.CanReplaceWithDefaultLiteral(context.SemanticModel, cancellationToken))
             {
                 return;
             }
@@ -69,20 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
 
             context.ReportDiagnostic(Diagnostic.Create(GetDescriptorWithSeverity(codeStyleOption.Notification.Value), defaultExpression.GetLocation()));
             context.ReportDiagnostic(Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, syntaxTree.GetLocation(fadeSpan)));
-        }
-
-        private bool CanUseDefaultLiteral(
-            DefaultExpressionSyntax defaultExpression,
-            SemanticModel semanticModel, 
-            CancellationToken cancellationToken)
-        {
-            var speculationAnalyzer = new SpeculationAnalyzer(
-                defaultExpression, s_defaultLiteralExpression, semanticModel,
-                cancellationToken,
-                skipVerificationForReplacedNode: true,
-                failOnOverloadResolutionFailuresInOriginalCode: true);
-
-            return !speculationAnalyzer.ReplacementChangesSemantics();
         }
     }
 }

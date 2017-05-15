@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -30,30 +32,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UseDefaultLiteral
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override Task FixAllAsync(
+        protected override async Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
-            foreach (var diagnostic in diagnostics)
+            // Fix-All for this feature is somewhat complicated.  Each time we fix one case, it
+            // may make the next case unfixable.  For example:
+            //
+            //    'var v = x ? default(string) : default(string)'.
+
+            var workspace = document.Project.Solution.Workspace;
+            var originalRoot = editor.OriginalRoot;
+
+            var originalNodes = diagnostics.SelectAsArray(
+                d => (DefaultExpressionSyntax)originalRoot.FindNode(d.Location.SourceSpan, getInnermostNodeForTie: true));
+
+            // We're going to be continually editing this tree.  Track all the nodes we
+            // care about so we can find them across each edit.
+            document = document.WithSyntaxRoot(originalRoot.TrackNodes(originalNodes));
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+            foreach (var originalDefaultExpression in originalNodes)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                AddEdits(editor, diagnostic, cancellationToken);
+                var defaultExpression = currentRoot.GetCurrentNode(originalDefaultExpression);
+
+                if (defaultExpression.CanReplaceWithDefaultLiteral(semanticModel, cancellationToken))
+                {
+                    document = FixOne(document, currentRoot, defaultExpression);
+                    semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    currentRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                }
             }
 
-            return SpecializedTasks.EmptyTask;
+            editor.ReplaceNode(originalRoot, currentRoot);
         }
 
-        private void AddEdits(
-            SyntaxEditor editor,
-            Diagnostic diagnostic,
-            CancellationToken cancellationToken)
+        private static Document FixOne(
+            Document document, SyntaxNode currentRoot, DefaultExpressionSyntax defaultExpression)
         {
-            var defaultExpression = (DefaultExpressionSyntax)diagnostic.Location.FindNode(
-                getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-
             var replacement = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression)
                                            .WithTriviaFrom(defaultExpression);
-            editor.ReplaceNode(defaultExpression, replacement);
+
+            var newRoot = currentRoot.ReplaceNode(defaultExpression, replacement);
+
+            return document.WithSyntaxRoot(newRoot);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
