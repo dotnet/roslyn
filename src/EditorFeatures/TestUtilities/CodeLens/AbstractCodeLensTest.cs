@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeLens
 
         protected static async Task RunFullyQualifiedNameTest(XElement input)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(input))
+            using (var workspace = TestWorkspace.Create(input))
             {
                 foreach (var annotatedDocument in workspace.Documents.Where(d => d.AnnotatedSpans.Any()))
                 {
