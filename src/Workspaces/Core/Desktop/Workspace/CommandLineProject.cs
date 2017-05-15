@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis
                     ? Path.GetFullPath(fileArg.Path)
                     : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
 
-                var relativePath = FilePathUtilities.GetRelativePath(projectDirectory, absolutePath);
-                var isWithinProject = FilePathUtilities.IsNestedPath(projectDirectory, absolutePath);
+                var relativePath = PathUtilities.GetRelativePath(projectDirectory, absolutePath);
+                var isWithinProject = PathUtilities.IsChildPath(projectDirectory, absolutePath);
 
                 var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
                 var folders = isWithinProject ? GetFolders(relativePath) : null;
@@ -121,8 +121,8 @@ namespace Microsoft.CodeAnalysis
                         ? Path.GetFullPath(fileArg.Path)
                         : Path.GetFullPath(Path.Combine(projectDirectory, fileArg.Path));
 
-                var relativePath = FilePathUtilities.GetRelativePath(projectDirectory, absolutePath);
-                var isWithinProject = FilePathUtilities.IsNestedPath(projectDirectory, absolutePath);
+                var relativePath = PathUtilities.GetRelativePath(projectDirectory, absolutePath);
+                var isWithinProject = PathUtilities.IsChildPath(projectDirectory, absolutePath);
 
                 var folderRoot = isWithinProject ? Path.GetDirectoryName(relativePath) : "";
                 var folders = isWithinProject ? GetFolders(relativePath) : null;

@@ -174,14 +174,6 @@ namespace Microsoft.Cci
             }
         }
 
-        public IManagedPointerTypeReference AsManagedPointerTypeReference
-        {
-            get
-            {
-                return this as IManagedPointerTypeReference;
-            }
-        }
-
         public ITypeDefinition AsTypeDefinition(EmitContext context)
         {
             return this as ITypeDefinition;

@@ -75,11 +75,11 @@ End Class]]>
     </Project>
 </Workspace>.ToString()
 
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
                 options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
-                compareTokens:=False,
+                ignoreTrivia:=False,
                 fixAllActionEquivalenceKey:=VBFeaturesResources.Add_Me)
         End Function
     End Class

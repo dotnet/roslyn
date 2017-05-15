@@ -77,6 +77,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
+        public static string CreateTemporaryPath()
+        {
+            return Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        }
+
         public static bool DetachThreadInput(uint idAttach, uint idAttachTo)
         {
             var success = NativeMethods.AttachThreadInput(idAttach, idAttachTo, false);
@@ -212,7 +217,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             }
         }
 
-        public static void SetForegroundWindow(IntPtr window)
+        public static void SetForegroundWindow(IntPtr window, bool skipAttachingThread = false)
         {
             var foregroundWindow = GetForegroundWindow();
 
@@ -228,8 +233,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             try
             {
-                // Attach the thread inputs so that 'SetActiveWindow' and 'SetFocus' work
-                threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);
+                // No need to re-attach threads in case when VS initializaed an UI thread for a debugged application.
+                if (!skipAttachingThread)
+                {
+                    // Attach the thread inputs so that 'SetActiveWindow' and 'SetFocus' work
+                    threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);
+                }
 
                 // Make the window a top-most window so it will appear above any existing top-most windows
                 NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));

@@ -473,8 +473,8 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                         // Document once https://github.com/dotnet/roslyn/issues/5260 is fixed.
                         if (documentId == null)
                         {
-                            Debug.Assert(newProject.Solution.Workspace.Kind == "Interactive");
-                            continue;
+                            Debug.Assert(newProject.Solution.Workspace.Kind == WorkspaceKind.Interactive || newProject.Solution.Workspace.Kind == WorkspaceKind.MiscellaneousFiles);
+                            continue;                                
                         }
 
                         map = map.SetItem(documentId, newTree);

@@ -108,7 +108,6 @@
     <Compile Include="EventHookup\IHACK_EventHookupDismissalOnBufferChangePreventerService.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCommandHandler.cs" />
     <Compile Include="ExtractMethod\ExtractMethodCommandHandler.cs" />
-    <Compile Include="FindReferences\CSharpFindReferencesService.cs" />
     <Compile Include="FindUsages\CSharpFindUsagesService.cs" />
     <Compile Include="Formatting\CSharpEditorFormattingService.cs" />
     <Compile Include="Formatting\Indentation\CSharpIndentationService.cs" />
@@ -153,7 +152,6 @@
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.StringSplitter.cs" />
     <Compile Include="SplitStringLiteral\SplitStringLiteralOptions.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.cs" />
-    <Compile Include="TodoComment\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.cs" />
     <Compile Include="UseAutoProperty\UseAutoPropertyCodeFixProvider.cs" />
   </ItemGroup>
@@ -165,6 +163,12 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CSharpEditorResources.resx">
@@ -174,10 +178,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

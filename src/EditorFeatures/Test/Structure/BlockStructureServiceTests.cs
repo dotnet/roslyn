@@ -30,7 +30,7 @@ class C
 }
 ";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 
@@ -56,7 +56,7 @@ class C
 }
 ";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 
@@ -82,7 +82,7 @@ class C
 }
 ";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var spans = await GetSpansFromWorkspaceAsync(workspace);
 

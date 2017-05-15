@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                     foreach (var documentOptionSource in _documentOptions)
                     {
-                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, out value))
+                        if (documentOptionSource.TryGetDocumentOption(_document, optionKey, _underlyingOptions, out value))
                         {
                             // Cache and return
                             lock (_gate)

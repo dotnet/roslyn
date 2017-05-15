@@ -112,9 +112,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            if (!node.HasAnyErrors)
+            {
+                CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)node.Left, node.Right);
+            }
+
+            return base.VisitDeconstructionAssignmentOperator(node);
+        }
+
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
         {
             CheckForAssignmentToSelf(node);
+
             if (_inExpressionLambda && node.Left.Kind != BoundKind.ObjectInitializerMember && node.Left.Kind != BoundKind.DynamicObjectInitializerMember)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsAssignment, node);
@@ -286,11 +297,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Called when a local represents an out variable declaration. Its syntax is of type DeclarationExpressionSyntax.
         /// </summary>
-        private void CheckOutDeclaration(BoundLocal local, Symbol method)
+        private void CheckOutDeclaration(BoundLocal local)
         {
             if (_inExpressionLambda)
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsOutVariable, local);
+            }
+        }
+
+        private void CheckDiscard(BoundDiscardExpression argument)
+        {
+            if (_inExpressionLambda)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsDiscard, argument);
             }
         }
 
@@ -588,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
-            if (_inExpressionLambda && node.LeftOperand.IsLiteralNull())
+            if (_inExpressionLambda && (node.LeftOperand.IsLiteralNull() || node.LeftOperand.IsLiteralDefault()))
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsBadCoalesce, node.LeftOperand);
             }

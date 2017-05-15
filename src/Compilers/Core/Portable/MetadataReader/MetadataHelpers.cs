@@ -33,6 +33,10 @@ namespace Microsoft.CodeAnalysis
             internal readonly string[] NestedTypes;
             internal readonly AssemblyQualifiedTypeName[] TypeArguments;
             internal readonly int PointerCount;
+
+            /// <summary>
+            /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
+            /// </summary>
             internal readonly int[] ArrayRanks;
             internal readonly string AssemblyName;
 
@@ -400,12 +404,16 @@ namespace Microsoft.CodeAnalysis
                 return name;
             }
 
+            /// <summary>
+            /// Rank equal 0 is used to denote an SzArray, rank equal 1 denotes multi-dimensional array of rank 1.
+            /// </summary>
             private void DecodeArrayShape(StringBuilder typeNameBuilder, ref ArrayBuilder<int> arrayRanksBuilder)
             {
                 Debug.Assert(Current == '[');
 
                 int start = _offset;
                 int rank = 1;
+                bool isMultiDimensionalIfRankOne = false;
                 Advance();
 
                 while (!EndOfInput)
@@ -423,9 +431,26 @@ namespace Microsoft.CodeAnalysis
                                 arrayRanksBuilder = ArrayBuilder<int>.GetInstance();
                             }
 
-                            arrayRanksBuilder.Add(rank);
+                            arrayRanksBuilder.Add(rank == 1 && !isMultiDimensionalIfRankOne ? 0 : rank);
                             Advance();
                             return;
+
+                        case '*':
+                            if (rank != 1)
+                            {
+                                goto default;
+                            }
+                             
+                            Advance();
+                            if (Current != ']')
+                            {
+                                // Error case, process as regular characters
+                                typeNameBuilder.Append(_input.Substring(start, _offset - start));
+                                return;
+                            }
+
+                            isMultiDimensionalIfRankOne = true;
+                            break;
 
                         default:
                             // Error case, process as regular characters

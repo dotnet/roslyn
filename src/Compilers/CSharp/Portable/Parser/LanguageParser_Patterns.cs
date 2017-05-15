@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 case SyntaxKind.SemicolonToken:
                 case SyntaxKind.CommaToken:
                     // HACK: for error recovery, we prefer a (missing) type.
-                    return this.ParseType(ParseTypeMode.AfterIsOrCase);
+                    return this.ParseType(ParseTypeMode.AfterIs);
                 default:
                     // attempt to disambiguate.
                     break;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCase);
+                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIs);
 
                     if (!type.IsMissing && this.IsTrueIdentifier())
                     {
@@ -138,7 +138,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return false;
                 }
 
-                return mode != ParseTypeMode.FirstElementOfPossibleTupleLiteral || this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                switch (mode)
+                {
+                    case ParseTypeMode.FirstElementOfPossibleTupleLiteral:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken;
+                    case ParseTypeMode.AfterTupleComma:
+                        return this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseParenToken;
+                    default:
+                        // The other case where we disambiguate between a declaration and expression is before the `in` of a foreach loop.
+                        // There we err on the side of accepting a declaration.
+                        return true;
+                }
             }
             finally
             {
@@ -213,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         // Priority is the ExpressionSyntax. It might return ExpressionSyntax which might be a constant pattern such as 'case 3:' 
         // All constant expressions are converted to the constant pattern in the switch binder if it is a match statement.
         // It is used for parsing patterns in the switch cases. It never returns constant pattern!
-        private CSharpSyntaxNode ParseExpressionOrPattern(bool whenIsKeyword)
+        private CSharpSyntaxNode ParseExpressionOrPatternForCase()
         {
             var tk = this.CurrentToken.Kind;
             CSharpSyntaxNode node = null;
@@ -225,11 +235,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var resetPoint = this.GetResetPoint();
                 try
                 {
-                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterIsOrCase);
+                    TypeSyntax type = this.ParseType(ParseTypeMode.AfterCase);
                     if (!type.IsMissing)
                     {
                         // X.Y.Z id
-                        if (this.IsTrueIdentifier() && (!whenIsKeyword || this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword))
+                        if (this.IsTrueIdentifier() && this.CurrentToken.ContextualKind != SyntaxKind.WhenKeyword)
                         {
                             var designation = ParseSimpleDesignation();
                             node = _syntaxFactory.DeclarationPattern(type, designation);

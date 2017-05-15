@@ -29,9 +29,14 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = assetStorage;
         }
 
-        public T Deserialize<T>(string kind, ObjectReader reader, CancellationToken cancellationToken)
+        public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
             return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
+        }
+
+        public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
+        {
+            return _assetStorage.GetGlobalAssetsOfType<T>(cancellationToken);
         }
 
         public async Task<T> GetAssetAsync<T>(Checksum checksum, CancellationToken cancellationToken)

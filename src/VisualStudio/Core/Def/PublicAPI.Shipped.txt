@@ -1,15 +1,15 @@
-Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation
-Microsoft.VisualStudio.LanguageServices.RQName
-Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace
-Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.CreatePortableExecutableReference(string filePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> Microsoft.CodeAnalysis.PortableExecutableReference
-XamlGeneratedNamespace.GeneratedInternalTypeHelper
-XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.DisplayReferencedSymbols(Microsoft.CodeAnalysis.Solution solution, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.FindSymbols.ReferencedSymbol> referencedSymbols) -> void
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetFileCodeModel(Microsoft.CodeAnalysis.DocumentId documentId) -> EnvDTE.FileCodeModel
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetFilePath(Microsoft.CodeAnalysis.DocumentId documentId) -> string
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.GetHierarchy(Microsoft.CodeAnalysis.ProjectId projectId) -> Microsoft.VisualStudio.Shell.Interop.IVsHierarchy
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryFindAllReferences(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> bool
 abstract Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.TryGoToDefinition(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Project project, System.Threading.CancellationToken cancellationToken) -> bool
+Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation
+Microsoft.VisualStudio.LanguageServices.RQName
+Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace
+Microsoft.VisualStudio.LanguageServices.VisualStudioWorkspace.CreatePortableExecutableReference(string filePath, Microsoft.CodeAnalysis.MetadataReferenceProperties properties) -> Microsoft.CodeAnalysis.PortableExecutableReference
 static Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation.CreateNodeAsync(this Microsoft.VisualStudio.GraphModel.Graph graph, Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.GraphModel.GraphNode>
 static Microsoft.VisualStudio.LanguageServices.Progression.GraphNodeCreation.CreateNodeIdAsync(Microsoft.CodeAnalysis.ISymbol symbol, Microsoft.CodeAnalysis.Solution solution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.VisualStudio.GraphModel.GraphNodeId>
 static Microsoft.VisualStudio.LanguageServices.RQName.From(Microsoft.CodeAnalysis.ISymbol symbol) -> string
+XamlGeneratedNamespace.GeneratedInternalTypeHelper
+XamlGeneratedNamespace.GeneratedInternalTypeHelper.GeneratedInternalTypeHelper() -> void

@@ -742,12 +742,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the new name.
+        /// </summary>
+        public Solution WithDocumentName(DocumentId documentId, string name)
+        {
+            var newState = _state.WithDocumentName(documentId, name);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the document specified updated to be contained in
         /// the sequence of logical folders.
         /// </summary>
         public Solution WithDocumentFolders(DocumentId documentId, IEnumerable<string> folders)
         {
             var newState = _state.WithDocumentFolders(documentId, folders);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the document specified updated to have the specified file path.
+        /// </summary>
+        public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
+        {
+            var newState = _state.WithDocumentFilePath(documentId, filePath);
             if (newState == _state)
             {
                 return this;

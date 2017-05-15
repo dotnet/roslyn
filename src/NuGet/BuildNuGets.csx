@@ -42,10 +42,11 @@ var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
 // Read preceding variables from MSBuild file
-var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Dependencies.props"));
+var packagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Packages.props"));
+var fixedPackagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/FixedPackages.props"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
 
-var dependencyVersions = from e in doc.Root.Descendants()
+var dependencyVersions = from e in packagesDoc.Root.Descendants().Concat(fixedPackagesDoc.Root.Descendants())
                          where e.Name.LocalName.EndsWith("Version")
                          select new { VariableName = e.Name.LocalName, Value=e.Value };
 
@@ -70,7 +71,7 @@ string GetExistingPackageVersion(string name)
     return null;
 }
 
-var IsCoreBuild = Directory.Exists(ToolsetPath);
+var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 
 #endregion
 
@@ -85,6 +86,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
     "Microsoft.CodeAnalysis.CSharp",
+    "Microsoft.CodeAnalysis.CSharp.CodeStyle",
     "Microsoft.CodeAnalysis.CSharp.Scripting",
     "Microsoft.CodeAnalysis.CSharp.Workspaces",
     "Microsoft.CodeAnalysis.EditorFeatures",
@@ -96,6 +98,7 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Features",
     "Microsoft.CodeAnalysis.VisualBasic",
+    "Microsoft.CodeAnalysis.VisualBasic.CodeStyle",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.CodeAnalysis.VisualBasic.Workspaces",
     "Microsoft.CodeAnalysis.Workspaces.Common",
@@ -215,8 +218,12 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
 
     if (!IsCoreBuild)
     {
+        // The -NoPackageAnalysis argument is to work around the following issue.  The warning output of 
+        // NuGet gets promoted to an error by MSBuild /warnaserror
+        // https://github.com/dotnet/roslyn/issues/18152
         commonArgs = $"-BasePath \"{BinDir}\" " +
         $"-OutputDirectory \"{OutDir}\" " +
+        $"-NoPackageAnalysis " +
         string.Join(" ", commonProperties.Select(p => $"-prop {p.Key}=\"{p.Value}\""));
     }
     else

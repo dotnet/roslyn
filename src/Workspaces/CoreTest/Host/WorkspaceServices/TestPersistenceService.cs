@@ -7,13 +7,12 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.UnitTests.Persistence
 {
     [ExportWorkspaceService(typeof(IPersistentStorageService), "Test"), Shared]
-    public class TestPersistenceService : IPersistentStorageService
+    public class TestPersistenceService : IPersistentStorageService2
     {
-        private readonly IPersistentStorage _storage = new NoOpPersistentStorage();
+        public IPersistentStorage GetStorage(Solution solution)
+            => NoOpPersistentStorage.Instance;
 
-        IPersistentStorage IPersistentStorageService.GetStorage(Solution solution)
-        {
-            return _storage;
-        }
+        public IPersistentStorage GetStorage(Solution solution, bool checkBranchId)
+            => NoOpPersistentStorage.Instance;
     }
 }

@@ -4,6 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Reflection;
+using System.Text;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
                 AddReferences("System.Linq").
                 AddReferences("System.Linq");
 
-            Assert.Equal(GacFileResolver.IsAvailable ? 5 : 28, options.MetadataReferences.Length);
+            Assert.Equal(GacFileResolver.IsAvailable ? 5 : 29, options.MetadataReferences.Length);
         }
 
         [Fact]
@@ -147,6 +149,35 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             options.WithImports("blah.");
             options.WithImports("b\0lah");
             options.WithImports(".blah");
+        }
+
+        [Fact]
+        public void WithEmitDebugInformation_SetsEmitDebugInformation()
+        {
+            Assert.True(ScriptOptions.Default.WithEmitDebugInformation(true).EmitDebugInformation);
+            Assert.False(ScriptOptions.Default.WithEmitDebugInformation(false).EmitDebugInformation);
+            Assert.False(ScriptOptions.Default.EmitDebugInformation);
+        }
+
+        [Fact]
+        public void WithEmitDebugInformation_SameValueTwice_DoesNotCreateNewInstance()
+        {
+            var options = ScriptOptions.Default.WithEmitDebugInformation(true);
+            Assert.Same(options, options.WithEmitDebugInformation(true));
+        }
+
+        [Fact]
+        public void WithFileEncoding_SetsWithFileEncoding()
+        {
+            var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
+            Assert.Equal(Encoding.ASCII, options.FileEncoding);
+        }
+
+        [Fact]
+        public void WithFileEncoding_SameValueTwice_DoesNotCreateNewInstance()
+        {
+            var options = ScriptOptions.Default.WithFileEncoding(Encoding.ASCII);
+            Assert.Same(options, options.WithFileEncoding(Encoding.ASCII));
         }
     }
 }

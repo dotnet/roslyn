@@ -5,6 +5,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -93,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (conversion.IsTupleLiteralConversion ||
-                (conversion.Kind == ConversionKind.ImplicitNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
+                (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
             {
                 return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
             }
@@ -104,6 +105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
+            if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+            {
+                source = ((BoundDefaultExpression)source).Update(constantValue, destination);
+            }
+
             return new BoundConversion(
                 syntax,
                 source,
@@ -337,12 +343,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
-            Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
+            Debug.Assert(conversion.IsNullable == destination.IsNullableType());
 
             var destinationWithoutNullable = destination;
             var conversionWithoutNullable = conversion;
 
-            if (conversion.Kind == ConversionKind.ImplicitNullable)
+            if (conversion.IsNullable)
             {
                 destinationWithoutNullable = destination.GetNullableUnderlyingType();
                 conversionWithoutNullable = conversion.UnderlyingConversions[0];
@@ -740,20 +746,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // - Return types "match"
-            var returnsMatch =
-                method.ReturnsVoid && delegateMethod.ReturnsVoid ||
-                Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
-            if (!returnsMatch)
+            if (delegateMethod.ReturnsByRef != method.ReturnsByRef)
             {
-                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
+                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
 
-            if (method.ReturnsByRef != delegateMethod.ReturnsByRef)
+            bool returnsMatch = delegateMethod.ReturnsByRef?
+                                    // - Return types identity-convertible
+                                    Conversions.HasIdentityConversion(method.ReturnType, delegateMethod.ReturnType):
+                                    // - Return types "match"
+                                    method.ReturnsVoid && delegateMethod.ReturnsVoid ||
+                                        Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, delegateMethod.ReturnType, ref useSiteDiagnostics);
+
+            if (!returnsMatch)
             {
-                Error(diagnostics, ErrorCode.ERR_DelegateRefMismatch, errorLocation, method, delegateType);
+                Error(diagnostics, ErrorCode.ERR_BadRetType, errorLocation, method, method.ReturnType);
                 diagnostics.Add(errorLocation, useSiteDiagnostics);
                 return false;
             }
@@ -893,7 +902,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var sourceConstantValue = source.ConstantValue;
-            if (sourceConstantValue == null || sourceConstantValue.IsBad)
+            if (sourceConstantValue == null)
+            {
+                if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
+                {
+                    return destination.GetDefaultValue();
+                }
+                else
+                {
+                    return sourceConstantValue;
+                }
+            }
+            else if (sourceConstantValue.IsBad)
             {
                 return sourceConstantValue;
             }
@@ -914,7 +934,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return sourceConstantValue;
                     }
 
-                case ConversionKind.NullLiteral:
+                case ConversionKind.DefaultOrNullLiteral:
+                    // 'default' case is handled above, 'null' is handled here
                     return sourceConstantValue;
 
                 case ConversionKind.ImplicitConstant:

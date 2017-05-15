@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 proxyValue,
                 flags: ExpansionFlags.None,
                 predicate: TypeHelpers.IsPublic,
-                resultProvider: resultProvider);
+                resultProvider: resultProvider,
+                isProxyType: false);
             return new ResultsViewExpansion(proxyValue, proxyMembers);
         }
 
@@ -225,7 +226,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var fullName = parent.ChildFullNamePrefix;
             var childFullNamePrefix = (fullName == null) ?
                 null :
-                fullNameProvider.GetClrObjectCreationExpression(inspectionContext, proxyTypeAndInfo.ClrType, proxyTypeAndInfo.Info, fullName);
+                fullNameProvider.GetClrObjectCreationExpression(
+                    inspectionContext,
+                    proxyTypeAndInfo.ClrType,
+                    proxyTypeAndInfo.Info,
+                    new[] { fullName });
             return new EvalResult(
                 ExpansionKind.ResultsView,
                 Resources.ResultsView,
@@ -259,7 +264,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 formatSpecifiers = Formatter.AddFormatSpecifier(formatSpecifiers, ResultsFormatSpecifier);
             }
-            var childFullNamePrefix = fullNameProvider.GetClrObjectCreationExpression(inspectionContext, _proxyValue.Type, customTypeInfo: null, arguments: fullName);
+            var childFullNamePrefix = fullNameProvider.GetClrObjectCreationExpression(
+                inspectionContext,
+                _proxyValue.Type,
+                customTypeInfo: null,
+                arguments: new[] { fullName });
             return new EvalResult(
                 ExpansionKind.Default,
                 name,

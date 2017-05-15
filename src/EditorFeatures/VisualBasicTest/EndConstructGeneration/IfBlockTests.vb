@@ -4,8 +4,8 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class IfBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterSimpleIfThen() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterSimpleIfThen()
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
   Sub foo()
     If True Then
@@ -20,11 +20,11 @@ End Class",
   End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterLineIfNextToThen() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterLineIfNextToThen()
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Sub foo()
         If True Then foo()
@@ -39,11 +39,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterLineIfWithMultipleStatements() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterLineIfWithMultipleStatements()
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Sub foo()
         If True Then foo() : foo()
@@ -59,11 +59,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestApplyAfterLineIfNextToStatement() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestApplyAfterLineIfNextToStatement()
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Sub foo()
         If True Then foo()
@@ -78,11 +78,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifySingleLineIfWithMultiLineLambda() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifySingleLineIfWithMultiLineLambda()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         If True Then Dim x = Function(x As Integer)
@@ -107,11 +107,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifySingleLineIfThenElse() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifySingleLineIfThenElse()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         If True Then dim x = 1 Else y = 6
@@ -128,11 +128,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyNestedIf() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyNestedIf()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         If True Then
@@ -154,12 +154,12 @@ End Class",
 End Class",
                 afterCaret:={4, -1})
 
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         <WorkItem(536441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536441")>
-        Public Async Function TestVerifyNestedSingleLineIf() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyNestedSingleLineIf()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         If True Then If True Then X = 1 Else X = 2
@@ -174,11 +174,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyAddingElseIf() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyAddingElseIf()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         If true Then
@@ -187,11 +187,11 @@ End Class",
     End Sub
 End Class",
                 caret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyIfWithImplicitLC() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyIfWithImplicitLC()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         If True And
@@ -208,11 +208,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyReCommitWithCode() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyReCommitWithCode()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         If True Then
@@ -222,11 +222,11 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyReCommitWithoutCode() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyReCommitWithoutCode()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         If True Then
@@ -234,22 +234,22 @@ End Class",
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyWithMultiLineChar() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyWithMultiLineChar()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         If True Then : Elseif true then: End If
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, WorkItem(539576, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539576"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyWithSkippedTokens() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyWithSkippedTokens()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         If True Then #Const foo = 2 ' x = 42
@@ -264,11 +264,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyInvalidMissingEndIf() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyInvalidMissingEndIf()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class C
     Sub S
         If True Then
@@ -276,20 +276,20 @@ End Class",
     End Sub
 End Class",
                 caret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyIfInInvalidCode() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyIfInInvalidCode()
+            VerifyStatementEndConstructNotApplied(
                 text:="If True Then
     if True then
 End If",
                 caret:={1, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestVerifyInternationalCharacter() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyInternationalCharacter()
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
     Sub foo()
         If True Then Dim xæ大% = 1
@@ -304,12 +304,12 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WorkItem(540204, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540204")>
         <WpfFact(Skip:="528838"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function TestBugFix6380() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestBugFix6380()
+            VerifyStatementEndConstructApplied(
                 before:="Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -335,11 +335,11 @@ Module Program
     End Sub
 End Module",
                 afterCaret:={8, 12})
-        End Function
+        End Sub
 
         <WpfFact(Skip:="890307"), Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(544523, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544523")>
-        Public Async Function TestVerifyRewriteOfIfWithColons() As Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub TestVerifyRewriteOfIfWithColons()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub Foo()
         If True Then : Return : End If
@@ -354,14 +354,14 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 12})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration), WorkItem(530648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530648")>
-        Public Async Function TestVerifyRewriteOfIfWithEmptyStatement() As Task
+        Public Sub TestVerifyRewriteOfIfWithEmptyStatement()
             ' Verify the caret is at the beginning of line 3 here.  In VS, it will be moved to the
             ' correct virtual offset as part of the edit.  This is an edge case that we really just
             ' need to avoid crashing.
-            Await VerifyStatementEndConstructAppliedAsync(
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub Foo()
         If True Then Else ' asdf 
@@ -378,6 +378,6 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, 0})
-        End Function
+        End Sub
     End Class
 End Namespace

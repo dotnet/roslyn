@@ -44,22 +44,22 @@ public class Vec
 }
 ";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6. Please use language version 7 or greater.
                 //         int i1 = 0b001010; // binary literals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7").WithLocation(7, 18),
-                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6.  Please use language version 7 or greater.
+                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6. Please use language version 7 or greater.
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7").WithLocation(8, 18),
-                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                // (12,13): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
                 //         int f() => 2;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "f").WithArguments("local functions", "7").WithLocation(12, 13),
-                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(13, 9),
-                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         ref int i3 = ref i1; // ref locals
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 22),
-                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         string s = o is string k ? k : null; // pattern matching
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7").WithLocation(14, 20),
                 // (12,13): warning CS0168: The variable 'f' is declared but never used
@@ -795,6 +795,13 @@ public class X
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -900,6 +907,49 @@ public class X
                 var yRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(name => name.Identifier.ValueText == id).Single();
                 VerifyModelForDeclarationPattern(model, yDecl, yRef);
             }
+        }
+
+        [Fact]
+        public void Query_02()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var res = from x1 in new[] { 1 is var y1 && Print(y1) ? 2 : 0}
+                  select Print(x1);
+
+        res.ToArray(); 
+    }
+
+    static bool Print(object x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"1
+2");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var yDecl = GetPatternDeclaration(tree, "y1");
+            var yRef = GetReferences(tree, "y1").Single();
+            VerifyModelForDeclarationPattern(model, yDecl, yRef);
         }
 
         [Fact]
@@ -1039,6 +1089,33 @@ True");
         }
 
         [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void FieldInitializers_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 = () => 1 is int x1 && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
+        [Fact]
         public void PropertyInitializers_01()
         {
             var source =
@@ -1071,6 +1148,34 @@ True");
                 );
 #endif
         }
+
+        [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void PropertyInitializers_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static System.Func<bool> Test1 {get;} = () => 1 is int x1 && Dummy(x1); 
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: @"1
+True");
+        }
+
         [Fact]
         public void ConstructorInitializers_01()
         {
@@ -1127,6 +1232,54 @@ True");
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x1").WithLocation(17, 28)
                 );
 #endif
+        }
+
+        [Fact]
+        [WorkItem(16935, "https://github.com/dotnet/roslyn/issues/16935")]
+        public void ConstructorInitializers_02()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        var x = new D();
+    }
+}
+
+class D : C
+{
+    public D(System.Func<bool> o) : base(() => 2 is int x1 && Dummy(x1)) 
+    {
+        System.Console.WriteLine(o());
+    }
+
+    public D() : this(() => 1 is int x1 && Dummy(x1)) 
+    {
+    }
+
+    static bool Dummy(int x) 
+    {
+        System.Console.WriteLine(x);
+        return true;
+    }
+}
+
+class C
+{
+    public C(System.Func<bool> b) 
+    { 
+        System.Console.WriteLine(b());
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput:
+@"2
+True
+1
+True");
         }
 
         [Fact]
@@ -2359,6 +2512,14 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"3
 3");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2634,7 +2795,7 @@ public class Cls
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "12").VerifyDiagnostics();
 
@@ -2775,6 +2936,14 @@ public class X
             CompileAndVerify(compilation, expectedOutput:
 @"System.InvalidOperationException
 System.InvalidOperationException");
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetPatternDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForDeclarationPattern(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -2915,7 +3084,7 @@ a:      Test1(2 is var x1);
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (6,1): warning CS0164: This label has not been referenced
@@ -2962,7 +3131,7 @@ a:          Test2(2 is var x1, x1);
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
 
             CompileAndVerify(compilation, expectedOutput: "2").VerifyDiagnostics(
                 // (15,1): warning CS0164: This label has not been referenced
@@ -3229,7 +3398,7 @@ other 6");
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6);
             compilation.VerifyDiagnostics(
-                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //             case 1 when true:
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case 1 when true:").WithArguments("pattern matching", "7").WithLocation(7, 13)
                 );
@@ -3342,7 +3511,7 @@ unsafe struct S
     fixed int F2[3 is var x2 ? 3 : 3, x2];
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseDebugDll.WithAllowUnsafe(true),
                                                             parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
@@ -3581,7 +3750,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3603,7 +3772,7 @@ public class TestClass
 }");
 
             // RELEASE
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3640,7 +3809,7 @@ public class TestClass
     }
 }";
             // DEBUG
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3663,7 +3832,7 @@ public class TestClass
 
             
             // RELEASE
-            compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
+            compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
             compilation.VerifyEmitDiagnostics();
 
@@ -3934,10 +4103,10 @@ class B
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe,
                 parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (15,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         Console.WriteLine(3 is One + 2); // should print True
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is One + 2").WithArguments("pattern matching", "7").WithLocation(15, 27),
-                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                // (16,27): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         Console.WriteLine(One + 2 is 3); // should print True
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "One + 2 is 3").WithArguments("pattern matching", "7").WithLocation(16, 27)
                 );
@@ -4178,6 +4347,77 @@ public class C
         }
 
         [Fact]
+        public void ShortDiscardInPattern()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (8,29): error CS0246: The type or namespace name '_' could not be found (are you missing a using directive or an assembly reference?)
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "_").WithArguments("_").WithLocation(8, 29),
+                // (11,18): error CS0103: The name '_' does not exist in the current context
+                //             case _:
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(12, 17)
+                );
+        }
+
+        [Fact]
+        public void UnderscoreInPattern2()
+        {
+            var source =
+@"
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int i = 3;
+        int _ = 4;
+        Write($""is _: {i is _}, "");
+        switch (3)
+        {
+            case _:
+                Write(""case _"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            compilation.VerifyDiagnostics(
+                // (9,29): error CS0150: A constant value is expected
+                //         Write($"is _: {i is _}, ");
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(9, 29),
+                // (12,18): error CS0150: A constant value is expected
+                //             case _:
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "_").WithLocation(12, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 Write("case _");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Write").WithLocation(13, 17)
+                );
+        }
+
+        [Fact]
         public void UnderscoreInPattern()
         {
             var source =
@@ -4404,7 +4644,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8117: Invalid operand for pattern match; value required, but found '<null>'.
                 //         System.Console.Write(null is Missing x);
@@ -4843,62 +5083,817 @@ public class Program
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
+        [Fact, WorkItem(16696, "https://github.com/dotnet/roslyn/issues/16696")]
         public void TypeParameterSubsumption04()
         {
             var program = @"
+using System;
 using System.Collections.Generic;
 public class Program
 {
-    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    private static int Pattern1<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
             case IEnumerable<TBase> sequence:
-                break;
+                return 1;
+            // IEnumerable<TBase> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
-                break;
+                return 2;
+            default:
+                return 3;
         }
     }
-}
-";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case IEnumerable<TDerived> derivedSequence:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
-                );
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16696")]
-        public void TypeParameterSubsumption05()
-        {
-            var program = @"
-using System.Collections.Generic;
-public class Program
-{
-    private static void Pattern<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
+    private static int Pattern2<TBase, TDerived>(object thing) where TBase : class where TDerived : TBase
     {
         switch (thing)
         {
             case IEnumerable<object> s:
-                break;
+                return 1;
+            // IEnumerable<object> does not subsume IEnumerable<TDerived> because TDerived may be a value type.
             case IEnumerable<TDerived> derivedSequence:
+                return 2;
+            default:
+                return 3;
+        }
+    }
+    public static void Main(string[] args)
+    {
+        Console.WriteLine(Pattern1<object, int>(new List<object>()));
+        Console.WriteLine(Pattern1<object, int>(new List<int>()));
+        Console.WriteLine(Pattern1<object, int>(null));
+        Console.WriteLine(Pattern2<object, int>(new List<object>()));
+        Console.WriteLine(Pattern2<object, int>(new List<int>()));
+        Console.WriteLine(Pattern2<object, int>(null));
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"1
+2
+3
+1
+2
+3");
+        }
+
+        [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
+        public void IsConstantPatternConversion_Positive()
+        {
+            var source =
+@"using System;
+public class Program
+{
+    public static void Main()
+    {
+        {
+            byte b = 12;
+            Console.WriteLine(b is 12); // True
+            Console.WriteLine(b is 13); // False
+            Console.WriteLine(b is (int)12L); // True
+            Console.WriteLine(b is (int)13L); // False
+        }
+        bool Is42(byte b) => b is 42;
+        Console.WriteLine(Is42(42));
+        Console.WriteLine(Is42(43));
+        Console.WriteLine(Is42((int)42L));
+        Console.WriteLine(Is42((int)43L));
+    }
+}";
+            var expectedOutput =
+@"True
+False
+True
+False
+True
+False
+True
+False";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
+        public void IsConstantPatternConversion_Negative()
+        {
+            var source =
+@"using System;
+public class Program
+{
+    public static void Main()
+    {
+        byte b = 12;
+        Console.WriteLine(b is 12L);
+        Console.WriteLine(1 is null);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (7,32): error CS0266: Cannot implicitly convert type 'long' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                //         Console.WriteLine(b is 12L);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "12L").WithArguments("long", "byte"),
+                // (8,32): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         Console.WriteLine(1 is null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(8, 32)
+                );
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        [WorkItem(16876, "https://github.com/dotnet/roslyn/issues/16876")]
+        public void DecisionTreeCoverage_Positive()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"using System;
+public class X
+{
+    public static void Main()
+    {
+        void M1(int i, bool b)
+        {
+            switch (i)
+            {
+                case 1 when b:
+                    Console.WriteLine(""M1a""); break;
+                case 1:
+                    Console.WriteLine(""M1b""); break;
+                case 2:
+                    Console.WriteLine(""M1c""); break;
+            }
+        }
+        M1(1, true);
+        M1(1, false);
+        M1(2, false);
+        M1(3, false);
+
+        void M2(object o, bool b)
+        {
+            switch (o)
+            {
+                case null:
+                    Console.WriteLine(""M2a""); break;
+                case var _ when b:
+                    Console.WriteLine(""M2b""); break;
+                case 1:
+                    Console.WriteLine(""M2c""); break;
+            }
+        }
+        M2(null, true);
+        M2(1, true);
+        M2(1, false);
+
+        void M3(bool? b1, bool b2)
+        {
+            switch (b1)
+            {
+                case null:
+                    Console.WriteLine(""M3a""); break;
+                case var _ when b2:
+                    Console.WriteLine(""M3b""); break;
+                case true:
+                    Console.WriteLine(""M3c""); break;
+                case false:
+                    Console.WriteLine(""M3d""); break;
+            }
+        }
+        M3(null, true);
+        M3(true, true);
+        M3(true, false);
+        M3(false, false);
+
+        void M4(object o, bool b)
+        {
+            switch (o)
+            {
+                case var _ when b:
+                    Console.WriteLine(""M4a""); break;
+                case int i:
+                    Console.WriteLine(""M4b""); break;
+            }
+        }
+        M4(1, true);
+        M4(1, false);
+
+        void M5(int? i, bool b)
+        {
+            switch (i)
+            {
+                case var _ when b:
+                    Console.WriteLine(""M5a""); break;
+                case null:
+                    Console.WriteLine(""M5b""); break;
+                case int q:
+                    Console.WriteLine(""M5c""); break;
+            }
+        }
+        M5(1, true);
+        M5(null, false);
+        M5(1, false);
+
+        void M6(object o, bool b)
+        {
+            switch (o)
+            {
+                case var _ when b:
+                    Console.WriteLine(""M6a""); break;
+                case object q:
+                    Console.WriteLine(""M6b""); break;
+                case null:
+                    Console.WriteLine(""M6c""); break;
+            }
+        }
+        M6(null, true);
+        M6(1, false);
+        M6(null, false);
+
+        void M7(object o, bool b)
+        {
+            switch (o)
+            {
+                case null when b:
+                    Console.WriteLine(""M7a""); break;
+                case object q:
+                    Console.WriteLine(""M7b""); break;
+                case null:
+                    Console.WriteLine(""M7c""); break;
+            }
+        }
+        M7(null, true);
+        M7(1, false);
+        M7(null, false);
+
+        void M8(object o)
+        {
+            switch (o)
+            {
+                case null when false:
+                    throw null;
+                case null:
+                    Console.WriteLine(""M8a""); break;
+            }
+        }
+        M8(null);
+
+        void M9(object o, bool b1, bool b2)
+        {
+            switch (o)
+            {
+                case var _ when b1:
+                    Console.WriteLine(""M9a""); break;
+                case var _ when b2:
+                    Console.WriteLine(""M9b""); break;
+                case var _:
+                    Console.WriteLine(""M9c""); break;
+            }
+        }
+        M9(1, true, false);
+        M9(1, false, true);
+        M9(1, false, false);
+
+        void M10(bool b)
+        {
+            const string nullString = null;
+            switch (nullString)
+            {
+                case null when b:
+                    Console.WriteLine(""M10a""); break;
+                case var _:
+                    Console.WriteLine(""M10b""); break;
+            }
+        }
+        M10(true);
+        M10(false);
+
+        void M11()
+        {
+            const string s = """";
+            switch (s)
+            {
+                case string _:
+                    Console.WriteLine(""M11a""); break;
+            }
+        }
+        M11();
+
+        void M12(bool cond)
+        {
+            const string s = """";
+            switch (s)
+            {
+                case string _ when cond:
+                    Console.WriteLine(""M12a""); break;
+                case var _:
+                    Console.WriteLine(""M12b""); break;
+            }
+        }
+        M12(true);
+        M12(false);
+
+        void M13(bool cond)
+        {
+            string s = """";
+            switch (s)
+            {
+                case string _ when cond:
+                    Console.WriteLine(""M13a""); break;
+                case string _:
+                    Console.WriteLine(""M13b""); break;
+            }
+        }
+        M13(true);
+        M13(false);
+
+        void M14()
+        {
+            const string s = """";
+            switch (s)
+            {
+                case s:
+                    Console.WriteLine(""M14a""); break;
+            }
+        }
+        M14();
+
+        void M15()
+        {
+            const int i = 3;
+            switch (i)
+            {
+                case 3:
+                case 4:
+                case 5:
+                    Console.WriteLine(""M15a""); break;
+            }
+        }
+        M15();
+
+    }
+}";
+            var expectedOutput =
+@"M1a
+M1b
+M1c
+M2a
+M2b
+M2c
+M3a
+M3b
+M3c
+M3d
+M4a
+M4b
+M5a
+M5b
+M5c
+M6a
+M6b
+M6c
+M7a
+M7b
+M7c
+M8a
+M9a
+M9b
+M9c
+M10a
+M10b
+M11a
+M12a
+M12b
+M13a
+M13b
+M14a
+M15a
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        public void DecisionTreeCoverage_BadEquals()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"public class X
+{
+    static void M1(float o)
+    {
+        switch (o)
+        {
+            case 1.1F: break;
+        }
+    }
+}
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { private Boolean m_value; Boolean Use(Boolean b) { m_value = b; return m_value; } }
+    public struct Int32 { private Int32 m_value; Int32 Use(Int32 b) { m_value = b; return m_value; } }
+    public struct Char { }
+    public class String { }
+}
+namespace System
+{
+    public struct Single
+    {
+        private Single m_value;
+        public /*note bad return type*/ void Equals(Single other) { m_value = m_value + 1; }
+    }
+}
+";
+            var compilation = CreateCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            compilation.GetEmitDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Warning).Verify(
+                // (5,9): error CS0407: 'void float.Equals(float)' has the wrong return type
+                //         switch (o)
+                Diagnostic(ErrorCode.ERR_BadRetType, @"switch (o)
+        {
+            case 1.1F: break;
+        }").WithArguments("float.Equals(float)", "void").WithLocation(5, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        public void DecisionTreeCoverage_DuplicateDefault()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"public class X
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case int x:
+            default:
+            default:
                 break;
         }
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(program).VerifyDiagnostics(
-                // (11,18): error CS8120: The switch case has already been handled by a previous case.
-                //             case IEnumerable<TDerived> derivedSequence:
-                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "IEnumerable<TDerived> derivedSequence").WithLocation(11, 18),
-                // (12,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS0152: The switch statement contains multiple cases with the label value 'default:'
+                //             default:
+                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "default:").WithArguments("default:").WithLocation(9, 13)
                 );
+        }
+
+        [Fact]
+        [WorkItem(9542, "https://github.com/dotnet/roslyn/issues/9542")]
+        public void DecisionTreeCoverage_Negative()
+        {
+            // tests added to complete coverage of the decision tree and pattern-matching implementation
+            var source =
+@"public class X
+{
+    static void M1(object o)
+    {
+        switch (o)
+        {
+            case 1:
+            case int _:
+            case 2:
+                break;
+        }
+    }
+    static void M2(object o)
+    {
+        switch (o)
+        {
+            case 1:
+            case int _:
+            case int _:
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source);
+            compilation.VerifyDiagnostics(
+                // (9,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 2:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(9, 13),
+                // (19,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int _:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int _").WithLocation(19, 18)
+                );
+        }
+
+        [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
+        public void DoubleEvaluation01()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        if (TryGet() is int index)
+        {
+            Console.WriteLine(index);
+        }
+    }
+
+    public static int? TryGet()
+    {
+        Console.WriteLine(""eval"");
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"eval";
+            var comp = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        [WorkItem(17089, "https://github.com/dotnet/roslyn/issues/17089")]
+        public void Dynamic_01()
+        {
+            var source =
+@"using System;
+public class X
+{
+    static void M1(dynamic d)
+    {
+        if (d is 1)
+        {
+            Console.Write('r');
+        }
+        else if (d is int i)
+        {
+            Console.Write('o');
+        }
+        else if (d is var z)
+        {
+            long l = z;
+            Console.Write('s');
+        }
+    }
+    static void M2(dynamic d)
+    {
+        switch (d)
+        {
+            case 1:
+                Console.Write('l');
+                break;
+            case int i:
+                Console.Write('y');
+                break;
+            case var z:
+                long l = z;
+                Console.Write('n');
+                break;
+        }
+    }
+    public static void Main(string[] args)
+    {
+        M1(1);
+        M1(2);
+        M1(3L);
+        M2(1);
+        M2(2);
+        M2(3L);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe);
+            var comp = CompileAndVerify(compilation, expectedOutput: "roslyn");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_01()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M(new Derived());
+        M(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Derived b0);
+        switch (x)
+        {
+            case Derived b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Derived b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived' in C# 7. Please use language version 7.1 or greater.
+                //             case Derived b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived").WithArguments("T", "Derived", "7", "7.1").WithLocation(16, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_02()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Derived>(new Derived());
+        M<Derived>(new Base());
+    }
+    public static void M<T>(Base x)
+    {
+        Console.Write(x is T b0);
+        switch (x)
+        {
+            case T b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is T b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'Base' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //             case T b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("Base", "T", "7", "7.1")
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_03()
+        {
+            var source =
+@"using System;
+public class Base { }
+public class Derived<T> : Base { }
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Derived<Base>());
+        M<Base>(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Derived<T> b0);
+        switch (x)
+        {
+            case Derived<T> b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (13,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Derived<T> b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7", "7.1").WithLocation(13, 28),
+                // (16,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Derived<T>' in C# 7. Please use language version 7.1 or greater.
+                //             case Derived<T> b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Derived<T>").WithArguments("T", "Derived<T>", "7", "7.1").WithLocation(16, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_04()
+        {
+            var source =
+@"using System;
+public class Base { }
+class Container<T>
+{
+    public class Derived : Base { }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Container<Base>.Derived());
+        M<Base>(new Base());
+    }
+    public static void M<T>(T x) where T: Base
+    {
+        Console.Write(x is Container<T>.Derived b0);
+        switch (x)
+        {
+            case Container<T>.Derived b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (16,28): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Container<T>.Derived b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7", "7.1").WithLocation(16, 28),
+                // (19,18): error CS9003: An expression of type 'T' cannot be handled by a pattern of type 'Container<T>.Derived' in C# 7. Please use language version 7.1 or greater.
+                //             case Container<T>.Derived b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived").WithArguments("T", "Container<T>.Derived", "7", "7.1").WithLocation(19, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void OpenTypeMatch_05()
+        {
+            var source =
+@"using System;
+public class Base { }
+class Container<T>
+{
+    public class Derived : Base { }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        M<Base>(new Container<Base>.Derived[1]);
+        M<Base>(new Base[1]);
+    }
+    public static void M<T>(T[] x) where T: Base
+    {
+        Console.Write(x is Container<T>.Derived[] b0);
+        switch (x)
+        {
+            case Container<T>.Derived[] b1:
+                Console.Write(1);
+                break;
+            default:
+                Console.Write(0);
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7);
+            compilation.VerifyDiagnostics(
+                // (16,28): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7. Please use language version 7.1 or greater.
+                //         Console.Write(x is Container<T>.Derived[] b0);
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7", "7.1").WithLocation(16, 28),
+                // (19,18): error CS9003: An expression of type 'T[]' cannot be handled by a pattern of type 'Container<T>.Derived[]' in C# 7. Please use language version 7.1 or greater.
+                //             case Container<T>.Derived[] b1:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Container<T>.Derived[]").WithArguments("T[]", "Container<T>.Derived[]", "7", "7.1").WithLocation(19, 18)
+                );
+            compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "True1False0");
         }
     }
 }

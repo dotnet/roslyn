@@ -2,10 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -58,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     #endregion
 
-    public class PreprocessorTests
+    public class PreprocessorTests : TestBase
     {
         public PreprocessorTests()
         {
@@ -182,7 +185,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         {
                             Assert.Equal(exp.Text, ((DefineDirectiveTriviaSyntax)dt).Name.ValueText); // Text
                         }
-
+                        break;
+                    case SyntaxKind.ErrorDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ErrorDirectiveTriviaSyntax)dt).EndOfDirectiveToken.ToFullString());
+                        }
+                        break;
+                    case SyntaxKind.LoadDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((LoadDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.UndefDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((UndefDirectiveTriviaSyntax)dt).Name.ValueText);
+                        }
+                        break;
+                    case SyntaxKind.ReferenceDirectiveTrivia:
+                        if (null != exp.Text)
+                        {
+                            Assert.Equal(exp.Text, ((ReferenceDirectiveTriviaSyntax)dt).File.ValueText);
+                        }
                         break;
                     case SyntaxKind.LineDirectiveTrivia:
                         var ld = dt as LineDirectiveTriviaSyntax;
@@ -217,7 +243,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             Assert.NotEqual(SyntaxKind.None, ld.File.Kind());
                             Assert.Equal(exp.Text, ld.File.Value);
                         }
-
+                        break;
+                    default:
+                        if (null != exp.Text)
+                        {
+                            Assert.True(false, String.Format("You are expecting some text in the directive, but this method doesn't know how to verify it for `{0}`.", exp.Kind));
+                        }
                         break;
                 } // switch
             }
@@ -2560,7 +2591,7 @@ class A { }
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_EndOfPPLineExpected);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO(" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "FOO" });
         }
 
         [Fact]
@@ -2584,7 +2615,7 @@ class A { }
             var node = Parse(text);
             TestRoundTripping(node, text, false);
             VerifyErrorCode(node, (int)ErrorCode.ERR_IdentifierExpected);
-            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "1234" });
+            VerifyDirectivesSpecial(node, new DirectiveInfo { Kind = SyntaxKind.UndefDirectiveTrivia, Status = NodeStatus.IsActive, Text = "" });
         }
 
         [Fact]
@@ -2962,6 +2993,71 @@ class A { }
             Assert.Equal(expectedErrorStringFileName, actualErrorStringFileName);
         }
 
+        [Fact]
+        public void TestErrorWithVersion()
+        {
+            var text = "#error version";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version"
+            });
+
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version'
+                // #error version
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
+                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: 4.
+                // #error version
+                Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), "4").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void TestErrorWithVersionNumber()
+        {
+            var text = "#error version:7.1";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version:7.1"
+            });
+
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version:7.1'
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:7.1").WithArguments("version:7.1"),
+                // (1,8): error CS8025: Feature 'version' is not available in C# 4. Please use language version 7.1 or greater.
+                // #error version:7.1
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion4, "version:7.1").WithArguments("version", "7.1").WithLocation(1, 8)
+                );
+        }
+
+        [Fact]
+        public void TestErrorWithInvalidVersion()
+        {
+            var text = "#error version:A.B";
+            var node = Parse(text, SourceCodeKind.Regular);
+            TestRoundTripping(node, text, disallowErrors: false);
+            VerifyDirectivesSpecial(node, new DirectiveInfo
+            {
+                Kind = SyntaxKind.ErrorDirectiveTrivia,
+                Status = NodeStatus.IsActive,
+                Text = "version:A.B"
+            });
+
+            node.GetDiagnostics().Verify(
+                // (1,8): error CS1029: #error: 'version:A.B'
+                // #error version:A.B
+                Diagnostic(ErrorCode.ERR_ErrorDirective, "version:A.B").WithArguments("version:A.B").WithLocation(1, 8)
+                );
+        }
         #endregion
 
         #region #line
@@ -3326,18 +3422,21 @@ public class Test
         [Trait("Feature", "Directives")]
         public void TestRegressPragmaWarningDisableWithWarningCode()
         {
-            var text = @"#pragma warning disable 440
-using global = A; // CS0440
+            var text = @"
 class A
 {
-static void Main() { }
+    static void Main(bool b)
+    {
+#pragma warning disable 642
+        if (b);{}
+    }
 }
 ";
             // verify that error still appears in GetDiagnostics
             var tree = SyntaxFactory.ParseSyntaxTree(text);
             var diagnostic = tree.GetDiagnostics().Single();
             Assert.Equal(DiagnosticSeverity.Warning, diagnostic.Severity);
-            Assert.Equal(440, diagnostic.Code);
+            Assert.Equal(642, diagnostic.Code);
 
             // verify pragma information
             var node = tree.GetCompilationUnitRoot();
@@ -3346,7 +3445,7 @@ static void Main() { }
                 PragmaKind = SyntaxKind.PragmaWarningDirectiveTrivia,
                 WarningOrChecksumKind = SyntaxKind.WarningKeyword,
                 DisableOrRestoreKind = SyntaxKind.DisableKeyword,
-                WarningList = new[] { "440" }
+                WarningList = new[] { "642" }
             });
 
             // verify that GetParseDiagnostics filters disabled warning
@@ -3871,5 +3970,13 @@ static void Main() { }
         }
 
         #endregion
+
+        private static string GetExpectedVersion()
+        {
+            Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
+            string fileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
+            string hash = CommonCompiler.ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
+            return $"{fileVersion} ({hash})";
+        }
     }
 }

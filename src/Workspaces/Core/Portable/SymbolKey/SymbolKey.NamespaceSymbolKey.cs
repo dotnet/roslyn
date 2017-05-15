@@ -72,19 +72,19 @@ namespace Microsoft.CodeAnalysis
 
             private static IEnumerable<INamespaceSymbol> Resolve(ISymbol container, string metadataName)
             {
-                if (container is IAssemblySymbol)
+                if (container is IAssemblySymbol assembly)
                 {
                     Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(((IAssemblySymbol)container).GlobalNamespace);
+                    return SpecializedCollections.SingletonEnumerable(assembly.GlobalNamespace);
                 }
-                else if (container is IModuleSymbol)
+                else if (container is IModuleSymbol module)
                 {
                     Debug.Assert(metadataName == string.Empty);
-                    return SpecializedCollections.SingletonEnumerable(((IModuleSymbol)container).GlobalNamespace);
+                    return SpecializedCollections.SingletonEnumerable(module.GlobalNamespace);
                 }
-                else if (container is INamespaceSymbol)
+                else if (container is INamespaceSymbol namespaceSymbol)
                 {
-                    return ((INamespaceSymbol)container).GetMembers(metadataName).OfType<INamespaceSymbol>();
+                    return namespaceSymbol.GetMembers(metadataName).OfType<INamespaceSymbol>();
                 }
                 else
                 {

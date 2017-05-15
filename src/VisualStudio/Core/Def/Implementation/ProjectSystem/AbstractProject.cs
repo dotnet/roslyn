@@ -122,7 +122,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             ContentTypeRegistryService = componentModel.GetService<IContentTypeRegistryService>();
 
             this.RunningDocumentTable = (IVsRunningDocumentTable4)serviceProvider.GetService(typeof(SVsRunningDocumentTable));
-            this.DisplayName = projectSystemName;
+
+            var displayName = hierarchy != null && hierarchy.TryGetName(out var name) ? name : projectSystemName;
+            this.DisplayName = displayName;
+
             this.ProjectTracker = projectTracker;
 
             ProjectSystemName = projectSystemName;
@@ -133,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // Set the default value for last design time build result to be true, until the project system lets us know that it failed.
             LastDesignTimeBuildSucceeded = true;
 
-            UpdateProjectDisplayNameAndFilePath(projectSystemName, projectFilePath);
+            UpdateProjectDisplayNameAndFilePath(displayName, projectFilePath);
 
             if (ProjectFilePath != null)
             {

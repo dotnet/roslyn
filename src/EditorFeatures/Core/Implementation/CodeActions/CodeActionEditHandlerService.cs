@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             _associatedViewService = associatedViewService;
         }
 
-        public ITextBufferAssociatedViewService AssociatedViewService
-        {
-            get { return _associatedViewService; }
-        }
+        public ITextBufferAssociatedViewService AssociatedViewService => _associatedViewService;
 
         public SolutionPreviewResult GetPreviews(
             Workspace workspace, ImmutableArray<CodeActionOperation> operations, CancellationToken cancellationToken)

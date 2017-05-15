@@ -5,8 +5,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Globalization;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.TodoComments;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {

@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             this.MainTypeName = mainTypeName;
             this.ScriptClassName = scriptClassName ?? WellKnownMemberNames.DefaultScriptClassName;
             this.CryptoKeyContainer = cryptoKeyContainer;
-            this.CryptoKeyFile = cryptoKeyFile;
+            this.CryptoKeyFile = string.IsNullOrEmpty(cryptoKeyFile) ? null : cryptoKeyFile;
             this.CryptoPublicKey = cryptoPublicKey.NullToEmpty();
             this.DelaySign = delaySign;
             this.CheckOverflow = checkOverflow;
@@ -502,6 +502,8 @@ namespace Microsoft.CodeAnalysis
             return CommonWithCheckOverflow(checkOverflow);
         }
 
+        internal CompilationOptions WithMetadataImportOptions(MetadataImportOptions value) => CommonWithMetadataImportOptions(value);
+
         protected abstract CompilationOptions CommonWithConcurrentBuild(bool concurrent);
         protected abstract CompilationOptions CommonWithDeterministic(bool deterministic);
         protected abstract CompilationOptions CommonWithOutputKind(OutputKind kind);
@@ -525,6 +527,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithCryptoPublicKey(ImmutableArray<byte> cryptoPublicKey);
         protected abstract CompilationOptions CommonWithDelaySign(bool? delaySign);
         protected abstract CompilationOptions CommonWithCheckOverflow(bool checkOverflow);
+        internal abstract CompilationOptions CommonWithMetadataImportOptions(MetadataImportOptions value);
 
         [Obsolete]
         protected abstract CompilationOptions CommonWithFeatures(ImmutableArray<string> features);

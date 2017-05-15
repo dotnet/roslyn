@@ -189,6 +189,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return CanAddImportForTypeOrNamespaceCore(node, nameNode)
         End Function
 
+        Protected Overrides Function CanAddImportForDeconstruct(diagnostic As Diagnostic, node As SyntaxNode) As Boolean
+            ' Not supported yet.
+            Return False
+        End Function
+
         Protected Overrides Function CanAddImportForQuery(diagnostic As Diagnostic, node As SyntaxNode) As Boolean
             If diagnostic.Id <> BC36593 Then
                 Return False
@@ -248,22 +253,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return $"Imports { String.Join(".", nameParts) }"
         End Function
 
-        Protected Overrides Function TryGetDescription(
+        Protected Overrides Function GetDescription(
                 document As Document,
                 symbol As INamespaceOrTypeSymbol,
                 semanticModel As SemanticModel,
                 root As SyntaxNode,
-                checkForExistingImport As Boolean,
-                cancellationToken As CancellationToken) As String
+                cancellationToken As CancellationToken) As (description As String, hasExistingImport As Boolean)
 
             Dim importsStatement = GetImportsStatement(symbol)
-
             Dim addImportService = document.GetLanguageService(Of IAddImportsService)
-            If addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement) Then
-                Return Nothing
-            End If
 
-            Return $"Imports {symbol.ToDisplayString()}"
+            Return ($"Imports {symbol.ToDisplayString()}",
+                    addImportService.HasExistingImport(semanticModel.Compilation, root, root, importsStatement))
         End Function
 
         Private Function GetImportsStatement(symbol As INamespaceOrTypeSymbol) As ImportsStatementSyntax
@@ -283,6 +284,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function GetImportNamespacesInScope(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ISet(Of INamespaceSymbol)
             Return semanticModel.GetImportNamespacesInScope(node)
+        End Function
+
+        Protected Overrides Function GetDeconstructInfo(semanticModel As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken) As ITypeSymbol
+            Return Nothing
         End Function
 
         Protected Overrides Function GetQueryClauseInfo(
@@ -377,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim importsStatement = GetImportsStatement(nameSyntax)
 
             ' Suppress diagnostics on the import we create.  Because we only get here when we are 
-            ' adding a nuget package, it is certainly the case that in the preview this will not
+            ' adding a NuGet package, it is certainly the case that in the preview this will not
             ' bind properly.  It will look silly to show such an error, so we just suppress things.
             importsStatement = importsStatement.WithAdditionalAnnotations(SuppressDiagnosticsAnnotation.Create())
 

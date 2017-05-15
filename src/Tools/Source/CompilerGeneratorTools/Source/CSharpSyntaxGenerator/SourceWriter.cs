@@ -376,9 +376,9 @@ namespace CSharpSyntaxGenerator
 
             // IReadable
             WriteLine();
-            WriteLine("    internal override Func<ObjectReader, object> GetReader()");
+            WriteLine("    static {0}()", node.Name);
             WriteLine("    {");
-            WriteLine("       return r => new {0}(r);", node.Name);
+            WriteLine("       ObjectBinder.RegisterTypeReader(typeof({0}), r => new {0}(r));", node.Name);
             WriteLine("    }");
         }
 

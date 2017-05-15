@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasi
 #Region "GetStartPoint() Tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_PropertyGet() As Task
+        Public Sub TestGetStartPoint_PropertyGet()
             Dim code =
 <Code>
 Public Class C1
@@ -24,7 +24,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -45,10 +45,10 @@ End Class
                      TextPoint(line:=3, lineOffset:=9, absoluteOffset:=57, lineLength:=11)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=3, lineOffset:=9, absoluteOffset:=57, lineLength:=11)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_PropertySet() As Task
+        Public Sub TestGetStartPoint_PropertySet()
             Dim code =
 <Code>
 Public Class C1
@@ -61,7 +61,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -82,10 +82,10 @@ End Class
                      TextPoint(line:=5, lineOffset:=9, absoluteOffset:=85, lineLength:=28)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=9, absoluteOffset:=85, lineLength:=28)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_EventAddHandler() As Task
+        Public Sub TestGetStartPoint_EventAddHandler()
             Dim code =
 <Code>
 Imports System
@@ -102,7 +102,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -123,10 +123,10 @@ End Class
                      TextPoint(line:=5, lineOffset:=7, absoluteOffset:=81, lineLength:=45)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=5, lineOffset:=7, absoluteOffset:=81, lineLength:=45)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_EventRemoveHandler() As Task
+        Public Sub TestGetStartPoint_EventRemoveHandler()
             Dim code =
 <Code>
 Imports System
@@ -143,7 +143,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -164,10 +164,10 @@ End Class
                      TextPoint(line:=7, lineOffset:=7, absoluteOffset:=148, lineLength:=48)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=7, lineOffset:=7, absoluteOffset:=148, lineLength:=48)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetStartPoint_EventRaiseEvent() As Task
+        Public Sub TestGetStartPoint_EventRaiseEvent()
             Dim code =
 <Code>
 Imports System
@@ -184,7 +184,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetStartPoint(code,
+            TestGetStartPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -205,14 +205,14 @@ End Class
                      TextPoint(line:=9, lineOffset:=7, absoluteOffset:=221, lineLength:=62)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=9, lineOffset:=7, absoluteOffset:=221, lineLength:=62)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "GetEndPoint() Tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_PropertyGet() As Task
+        Public Sub TestGetEndPoint_PropertyGet()
             Dim code =
 <Code>
 Public Class C1
@@ -225,7 +225,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -246,10 +246,10 @@ End Class
                      TextPoint(line:=4, lineOffset:=16, absoluteOffset:=76, lineLength:=15)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=4, lineOffset:=16, absoluteOffset:=76, lineLength:=15)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_PropertySet() As Task
+        Public Sub TestGetEndPoint_PropertySet()
             Dim code =
 <Code>
 Public Class C1
@@ -262,7 +262,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -283,10 +283,10 @@ End Class
                      TextPoint(line:=6, lineOffset:=16, absoluteOffset:=121, lineLength:=15)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=6, lineOffset:=16, absoluteOffset:=121, lineLength:=15)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_EventAddHandler() As Task
+        Public Sub TestGetEndPoint_EventAddHandler()
             Dim code =
 <Code>
 Imports System
@@ -303,7 +303,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -324,10 +324,10 @@ End Class
                      TextPoint(line:=6, lineOffset:=21, absoluteOffset:=141, lineLength:=20)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=6, lineOffset:=21, absoluteOffset:=141, lineLength:=20)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_EventRemoveHandler() As Task
+        Public Sub TestGetEndPoint_EventRemoveHandler()
             Dim code =
 <Code>
 Imports System
@@ -344,7 +344,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -365,10 +365,10 @@ End Class
                      TextPoint(line:=8, lineOffset:=24, absoluteOffset:=214, lineLength:=23)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=8, lineOffset:=24, absoluteOffset:=214, lineLength:=23)))
-        End Function
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestGetEndPoint_EventRaiseEvent() As Task
+        Public Sub TestGetEndPoint_EventRaiseEvent()
             Dim code =
 <Code>
 Imports System
@@ -385,7 +385,7 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestGetEndPoint(code,
+            TestGetEndPoint(code,
                 Part(EnvDTE.vsCMPart.vsCMPartAttributes,
                      NullTextPoint),
                 Part(EnvDTE.vsCMPart.vsCMPartAttributesWithDelimiter,
@@ -406,14 +406,14 @@ End Class
                      TextPoint(line:=10, lineOffset:=21, absoluteOffset:=298, lineLength:=20)),
                 Part(EnvDTE.vsCMPart.vsCMPartWholeWithAttributes,
                      TextPoint(line:=10, lineOffset:=21, absoluteOffset:=298, lineLength:=20)))
-        End Function
+        End Sub
 
 #End Region
 
 #Region "Access tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess1() As Task
+        Public Sub TestAccess1()
             Dim code =
     <Code>
 Class C
@@ -428,11 +428,11 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPublic)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestAccess2() As Task
+        Public Sub TestAccess2()
             Dim code =
     <Code>
 Class C
@@ -447,15 +447,15 @@ Class C
 End Class
 </Code>
 
-            Await TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
-        End Function
+            TestAccess(code, EnvDTE.vsCMAccess.vsCMAccessPrivate)
+        End Sub
 
 #End Region
 
 #Region "FunctionKind tests"
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Get() As Task
+        Public Sub TestFunctionKind_Get()
             Dim code =
 <Code>
 Public Class C1
@@ -468,11 +468,11 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertyGet)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertyGet)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_Set() As Task
+        Public Sub TestFunctionKind_Set()
             Dim code =
 <Code>
 Public Class C1
@@ -485,11 +485,11 @@ Public Class C1
 End Class
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertySet)
-        End Function
+            TestFunctionKind(code, EnvDTE.vsCMFunction.vsCMFunctionPropertySet)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_AddHandler() As Task
+        Public Sub TestFunctionKind_AddHandler()
             Dim code =
 <Code>
 Imports System
@@ -512,11 +512,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler)
-        End Function
+            TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionAddHandler)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_RemoveHandler() As Task
+        Public Sub TestFunctionKind_RemoveHandler()
             Dim code =
 <Code>
 Imports System
@@ -539,11 +539,11 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler)
-        End Function
+            TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRemoveHandler)
+        End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
-        Public Async Function TestFunctionKind_RaiseEvent() As Task
+        Public Sub TestFunctionKind_RaiseEvent()
             Dim code =
 <Code>
 Imports System
@@ -566,8 +566,8 @@ Public Class C1
 End Clas
 </Code>
 
-            Await TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent)
-        End Function
+            TestFunctionKind(code, EnvDTE80.vsCMFunction2.vsCMFunctionRaiseEvent)
+        End Sub
 
 #End Region
 

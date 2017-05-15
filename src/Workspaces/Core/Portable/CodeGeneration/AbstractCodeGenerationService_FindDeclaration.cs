@@ -53,9 +53,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         public bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken)
-        {
-            return CanAddTo(destination, solution, cancellationToken, out var availableIndices);
-        }
+            => CanAddTo(destination, solution, cancellationToken, out var availableIndices);
 
         private bool CanAddTo(SyntaxNode destination, Solution solution, CancellationToken cancellationToken,
             out IList<bool> availableIndices, bool checkGeneratedCode = false)
@@ -75,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
 
             // check for generated files if needed.
-            if (checkGeneratedCode && document.IsGeneratedCode())
+            if (checkGeneratedCode && document.IsGeneratedCode(cancellationToken))
             {
                 return false;
             }
@@ -110,13 +108,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return availableIndices != null && availableIndices.Any(b => b);
         }
 
-        private async Task<Tuple<SyntaxNode, IList<bool>>> FindMostRelevantDeclarationAsync(
+        private async Task<(SyntaxNode declaration, IList<bool> availableIndices)> FindMostRelevantDeclarationAsync(
             Solution solution,
             INamespaceOrTypeSymbol namespaceOrType,
             CodeGenerationOptions options,
             CancellationToken cancellationToken)
         {
-            SyntaxNode declaration = default(SyntaxNode);
+            var declaration = default(SyntaxNode);
             IList<bool> availableIndices = null;
 
             var symbol = namespaceOrType;
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 fallbackDeclaration = declaration;
                 if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 {
-                    return Tuple.Create(declaration, availableIndices);
+                    return (declaration, availableIndices);
                 }
 
                 // Then, prefer a declaration from the same file.
@@ -167,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 fallbackDeclaration = fallbackDeclaration ?? declaration;
                 if (CanAddTo(declaration, solution, cancellationToken, out availableIndices))
                 {
-                    return Tuple.Create(declaration, availableIndices);
+                    return (declaration, availableIndices);
                 }
             }
 
@@ -177,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 declaration = await decl.GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
                 if (CanAddTo(declaration, solution, cancellationToken, out availableIndices, checkGeneratedCode: true))
                 {
-                    return Tuple.Create(declaration, availableIndices);
+                    return (declaration, availableIndices);
                 }
             }
 
@@ -185,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             availableIndices = null;
             declaration = fallbackDeclaration ?? await SelectFirstOrDefaultAsync(declarations, node => true, cancellationToken).ConfigureAwait(false);
 
-            return Tuple.Create(declaration, availableIndices);
+            return (declaration, availableIndices);
         }
 
         private static async Task<SyntaxNode> SelectFirstOrDefaultAsync(IEnumerable<SyntaxReference> references, Func<SyntaxNode, bool> predicate, CancellationToken cancellationToken)

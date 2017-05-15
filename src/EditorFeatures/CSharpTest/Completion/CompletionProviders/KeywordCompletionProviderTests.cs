@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task IsTextualTriggerCharacterTest()
+        public void IsTextualTriggerCharacterTest()
         {
-            await TestCommonIsTextualTriggerCharacterAsync();
+            TestCommonIsTextualTriggerCharacter();
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -316,6 +316,29 @@ $$
     void Main() { }
 }";
             await VerifyProviderCommitAsync(markupBeforeCommit, "return", expectedCodeAfterCommit, commitChar: ';', textTypedSoFar: "return");
+        }
+
+        [WorkItem(14218, "https://github.com/dotnet/roslyn/issues/14218")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PredefinedTypeKeywordsShouldBeRecommendedAfterCaseInASwitch()
+        {
+            var text = @"
+class Program
+{
+    public static void Test()
+    {
+        object o = null;
+        switch (o)
+        {
+            case $$
+        }
+    }
+}";
+
+            await VerifyItemExistsAsync(text, "int");
+            await VerifyItemExistsAsync(text, "string");
+            await VerifyItemExistsAsync(text, "byte");
+            await VerifyItemExistsAsync(text, "char");
         }
     }
 }

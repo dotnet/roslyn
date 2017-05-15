@@ -501,6 +501,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="This_workspace_only_supports_opening_documents_on_the_UI_thread" xml:space="preserve">
     <value>This workspace only supports opening documents on the UI thread.</value>
   </data>
+  <data name="This_workspace_does_not_support_updating_Visual_Basic_parse_options" xml:space="preserve">
+    <value>This workspace does not support updating Visual Basic parse options.</value>
+  </data>
   <data name="Synchronize_0" xml:space="preserve">
     <value>Synchronize {0}</value>
   </data>
@@ -750,26 +753,26 @@ Additional information: {1}</value>
   <data name="Prefer_inlined_variable_declaration" xml:space="preserve">
     <value>Prefer inlined variable declaration</value>
   </data>
-  <data name="For_methods" xml:space="preserve">
-    <value>For methods</value>
+  <data name="Use_expression_body_for_methods" xml:space="preserve">
+    <value>Use expression body for methods</value>
   </data>
   <data name="Code_block_preferences_colon" xml:space="preserve">
     <value>Code block preferences:</value>
   </data>
-  <data name="For_accessors" xml:space="preserve">
-    <value>For accessors</value>
+  <data name="Use_expression_body_for_accessors" xml:space="preserve">
+    <value>Use expression body for accessors</value>
   </data>
-  <data name="For_constructors" xml:space="preserve">
-    <value>For constructors</value>
+  <data name="Use_expression_body_for_constructors" xml:space="preserve">
+    <value>Use expression body for constructors</value>
   </data>
-  <data name="For_indexers" xml:space="preserve">
-    <value>For indexers</value>
+  <data name="Use_expression_body_for_indexers" xml:space="preserve">
+    <value>Use expression body for indexers</value>
   </data>
-  <data name="For_operators" xml:space="preserve">
-    <value>For operators</value>
+  <data name="Use_expression_body_for_operators" xml:space="preserve">
+    <value>Use expression body for operators</value>
   </data>
-  <data name="For_properties" xml:space="preserve">
-    <value>For properties</value>
+  <data name="Use_expression_body_for_properties" xml:space="preserve">
+    <value>Use expression body for properties</value>
   </data>
   <data name="Some_naming_rules_are_incomplete_Please_complete_or_remove_them" xml:space="preserve">
     <value>Some naming rules are incomplete. Please complete or remove them.</value>
@@ -867,7 +870,46 @@ Additional information: {1}</value>
   <data name="Remove" xml:space="preserve">
     <value>Remove</value>
   </data>
-  <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual Studio" xml:space="preserve">
+  <data name="Pick_members" xml:space="preserve">
+    <value>Pick members</value>
+  </data>
+  <data name="Unfortunately_a_process_used_by_Visual_Studio_has_encountered_an_unrecoverable_error_We_recommend_saving_your_work_and_then_closing_and_restarting_Visual_Studio" xml:space="preserve">
     <value>Unfortunately, a process used by Visual Studio has encountered an unrecoverable error.  We recommend saving your work, and then closing and restarting Visual Studio.</value>
+  </data>
+  <data name="Add_a_symbol_specification" xml:space="preserve">
+    <value>Add a symbol specification</value>
+  </data>
+  <data name="Remove_symbol_specification" xml:space="preserve">
+    <value>Remove symbol specification</value>
+  </data>
+  <data name="Add_item" xml:space="preserve">
+    <value>Add item</value>
+  </data>
+  <data name="Edit_item" xml:space="preserve">
+    <value>Edit item</value>
+  </data>
+  <data name="Remove_item" xml:space="preserve">
+    <value>Remove item</value>
+  </data>
+  <data name="Add_a_naming_rule" xml:space="preserve">
+    <value>Add a naming rule</value>
+  </data>
+  <data name="Remove_naming_rule" xml:space="preserve">
+    <value>Remove naming rule</value>
+  </data>
+  <data name="VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread" xml:space="preserve">
+    <value>VisualStudioWorkspace.TryApplyChanges cannot be called from a background thread.</value>
+  </data>
+  <data name="prefer_auto_properties" xml:space="preserve">
+    <value>prefer auto properties</value>
+  </data>
+  <data name="prefer_throwing_properties" xml:space="preserve">
+    <value>prefer throwing properties</value>
+  </data>
+    <data name="When_generating_properties" xml:space="preserve">
+    <value>When generating properties:</value>
+    </data>
+  <data name="Options" xml:space="preserve">
+    <value>Options</value>
   </data>
 </root>

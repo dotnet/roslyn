@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Represents an assembly built by compiler.
     ''' </summary>
     ''' <remarks></remarks>
-    Friend NotInheritable Class SourceAssemblySymbol
+    Partial Friend NotInheritable Class SourceAssemblySymbol
         Inherits MetadataOrSourceAssemblySymbol
         Implements ISourceAssemblySymbolInternal, IAttributeTargetSymbol
 
@@ -1064,6 +1064,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 attrData.DecodeGuidAttribute(arguments.AttributeSyntaxOpt, arguments.Diagnostics)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CompilationRelaxationsAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasCompilationRelaxationsAttribute = True
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.ReferenceAssemblyAttribute) Then
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().HasReferenceAssemblyAttribute = True
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.RuntimeCompatibilityAttribute) Then
                 ' VB doesn't need to decode argument values
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().RuntimeCompatibilityWrapNonExceptionThrows = True
@@ -1383,6 +1385,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ''' <summary>
+        ''' True if internals are exposed at all.
+        ''' </summary>
+        ''' <remarks>
+        ''' Forces binding and decoding of attributes.
+        ''' This property shouldn't be accessed during binding as it can lead to attribute binding cycle.
+        ''' </remarks>
+        Public ReadOnly Property InternalsAreVisible As Boolean Implements ISourceAssemblySymbolInternal.InternalsAreVisible
+            Get
+                EnsureAttributesAreBound()
+                Return _lazyInternalsVisibleToMap IsNot Nothing
+            End Get
+        End Property
+
+        ''' <summary>
         ''' We may synthesize some well-known attributes for this assembly symbol.  However, at synthesis time, it is
         ''' too late to report diagnostics or cancel the emit.  Instead, we check for use site errors on the types and members
         ''' we know we'll need at synthesis time.
@@ -1422,7 +1438,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overrides Sub AddSynthesizedAttributes(compilationState as ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
+        Private ReadOnly Property HasReferenceAssemblyAttribute As Boolean
+            Get
+                Dim assemblyData As CommonAssemblyWellKnownAttributeData = Me.GetSourceDecodedWellKnownAttributeData()
+                Return assemblyData IsNot Nothing AndAlso assemblyData.HasReferenceAssemblyAttribute
+            End Get
+        End Property
+
+        Friend Overrides Sub AddSynthesizedAttributes(compilationState As ModuleCompilationState, ByRef attributes As ArrayBuilder(Of SynthesizedAttributeData))
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             Debug.Assert(_lazyEmitExtensionAttribute <> ThreeState.Unknown)
@@ -1652,8 +1675,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
+            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+            Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
         Private Function ComputeIdentity() As AssemblyIdentity
@@ -1693,11 +1716,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Similar to attributes, type forwarders from the second added module should override type forwarders from the first added module, etc. 
                 For i As Integer = _modules.Length - 1 To 1 Step -1
                     Dim peModuleSymbol = DirectCast(_modules(i), PEModuleSymbol)
+                    Dim forwardedToAssemblies = peModuleSymbol.GetAssembliesForForwardedType(emittedName, ignoreCase, matchedName)
 
-                    Dim forwardedToAssembly = peModuleSymbol.GetAssemblyForForwardedType(emittedName, ignoreCase, matchedName)
-                    If forwardedToAssembly IsNot Nothing Then
+                    If forwardedToAssemblies.FirstSymbol IsNot Nothing Then
+                        If forwardedToAssemblies.SecondSymbol IsNot Nothing Then
+                            Return CreateMultipleForwardingErrorTypeSymbol(emittedName, peModuleSymbol, forwardedToAssemblies.FirstSymbol, forwardedToAssemblies.SecondSymbol)
+                        End If
+
                         ' Don't bother to check the forwarded-to assembly if we've already seen it.
-                        If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssembly) Then
+                        If visitedAssemblies IsNot Nothing AndAlso visitedAssemblies.Contains(forwardedToAssemblies.FirstSymbol) Then
                             Return CreateCycleInTypeForwarderErrorTypeSymbol(emittedName)
                         Else
                             visitedAssemblies = New ConsList(Of AssemblySymbol)(Me, If(visitedAssemblies, ConsList(Of AssemblySymbol).Empty))
@@ -1706,7 +1733,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                 emittedName = MetadataTypeName.FromFullName(matchedName, emittedName.UseCLSCompliantNameArityEncoding, emittedName.ForcedArity)
                             End If
 
-                            Return forwardedToAssembly.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
+                            Return forwardedToAssemblies.FirstSymbol.LookupTopLevelMetadataTypeWithCycleDetection(emittedName, visitedAssemblies, digThroughForwardedTypes:=True)
                         End If
                     End If
                 Next

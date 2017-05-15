@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     new[] { SyntaxKind.LocalDeclarationStatement, SyntaxKind.ForStatement, SyntaxKind.UsingStatement, SyntaxKind.FixedStatement }.
                         Contains(nodeToBind.Ancestors().OfType<StatementSyntax>().First().Kind()) ||
                 nodeToBind is ExpressionSyntax);
-            return typeSyntax.IsVar
+            return typeSyntax.IsVar && kind != LocalDeclarationKind.DeclarationExpressionVariable
                 ? new LocalSymbolWithEnclosingContext(containingSymbol, scopeBinder, nodeBinder, typeSyntax, identifierToken, kind, nodeToBind, forbiddenZone)
                 : new SourceLocalSymbol(containingSymbol, scopeBinder, false, typeSyntax, identifierToken, kind);
         }
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
-                        Debug.Assert(node is VariableDeclaratorSyntax || node is SingleVariableDesignationSyntax);
+                        Debug.Assert(node is VariableDeclaratorSyntax);
                         break;
 
                     case LocalDeclarationKind.Constant:
@@ -428,6 +428,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(node is CatchDeclarationSyntax);
                         break;
 
+                    case LocalDeclarationKind.OutVariable:
+                    case LocalDeclarationKind.DeclarationExpressionVariable:
+                    case LocalDeclarationKind.DeconstructionVariable:
                     case LocalDeclarationKind.PatternVariable:
                         Debug.Assert(node is SingleVariableDesignationSyntax);
                         break;
@@ -761,26 +764,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)this._type == null)
                 {
-                    AssertNoOutOrPatternVariable();
+                    Debug.Assert(this.DeclarationKind == LocalDeclarationKind.DeclarationExpressionVariable);
                     SetType(_nodeBinder.CreateErrorType("var"));
                 }
 
                 return this._type;
-            }
-
-            [Conditional("DEBUG")]
-            private void AssertNoOutOrPatternVariable()
-            {
-                var parent = this._typeSyntax.Parent;
-
-                if (parent?.Kind() == SyntaxKind.DeclarationExpression && ((DeclarationExpressionSyntax)parent).IsOutVarDeclaration())
-                {
-                    Debug.Assert(false);
-                }
-                else if (parent?.Kind() == SyntaxKind.DeclarationPattern)
-                {
-                    Debug.Assert(false);
-                }
             }
         }
     }

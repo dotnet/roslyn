@@ -4,8 +4,8 @@
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
     Public Class UsingBlockTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function ApplyAfterUsingStatement() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub ApplyAfterUsingStatement()
+            VerifyStatementEndConstructApplied(
                 before:="Class c1
 Sub foo()
 Using variable
@@ -20,11 +20,11 @@ End Using
 End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function DontApplyForMatchedUsing() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub DontApplyForMatchedUsing()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class c1
 Sub foo()
 Using variable
@@ -32,11 +32,11 @@ End Using
 End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyNestedUsing() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub VerifyNestedUsing()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         Using y
@@ -55,11 +55,11 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={4, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyUsingWithDelegate() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructAppliedAsync(
+        Public Sub VerifyUsingWithDelegate()
+            VerifyStatementEndConstructApplied(
                 before:="Class C
     Sub S
         Using Func(of String, String)
@@ -74,26 +74,26 @@ End Class",
     End Sub
 End Class",
                 afterCaret:={3, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyUsingAtInvalidSyntax() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyUsingAtInvalidSyntax()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Sub S
         Using x asf asdf
     End Sub
 End Class",
                 caret:={2, -1})
-        End Function
+        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
-        Public Async Function VerifyUsingAtInvalidLocation() As Threading.Tasks.Task
-            Await VerifyStatementEndConstructNotAppliedAsync(
+        Public Sub VerifyUsingAtInvalidLocation()
+            VerifyStatementEndConstructNotApplied(
                 text:="Class EC
     Using x
 End Class",
                 caret:={1, -1})
-        End Function
+        End Sub
     End Class
 End Namespace

@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 yield return "System.Reflection.Extensions";
                 yield return "System.Reflection.Primitives";
                 yield return "System.Runtime";
+                yield return "System.Runtime.Extensions";
                 yield return "System.Runtime.InteropServices";
                 yield return "System.Text.Encoding";
                 yield return "System.Text.Encoding.CodePages";
@@ -135,7 +136,7 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
                 runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [Fact(Skip="https://github.com/dotnet/roslyn/issues/17043")]
         [WorkItem(7133, "http://github.com/dotnet/roslyn/issues/7133")]
         public void TestDisplayResultsWithCurrentUICulture()
         {
@@ -215,7 +216,8 @@ Type ""#help"" for more information.
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18479")]
+        [WorkItem(18479, "https://github.com/dotnet/roslyn/issues/18479")]
         public void Tuples()
         {
             var runner = CreateRunner(input: "(1,2)");

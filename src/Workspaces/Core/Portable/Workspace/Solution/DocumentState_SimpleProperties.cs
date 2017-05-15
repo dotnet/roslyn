@@ -6,15 +6,9 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class DocumentState
     {
-        public HostLanguageServices LanguageServices
-        {
-            get { return _languageServices; }
-        }
+        public HostLanguageServices LanguageServices => _languageServices;
 
-        public ParseOptions ParseOptions
-        {
-            get { return _options; }
-        }
+        public ParseOptions ParseOptions => _options;
 
         public SourceCodeKind SourceCodeKind
         {

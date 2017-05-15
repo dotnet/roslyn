@@ -151,13 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        public string OriginalSymbolName
-        {
-            get
-            {
-                return _renameInfo.DisplayName;
-            }
-        }
+        public string OriginalSymbolName => _renameInfo.DisplayName;
 
         private void InitializeOpenBuffers(SnapshotSpan triggerSpan)
         {
@@ -259,10 +253,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             QueueApplyReplacements();
         }
 
-        public Workspace Workspace { get { return _workspace; } }
-        public OptionSet OptionSet { get { return _optionSet; } }
-        public bool HasRenameOverloads { get { return _renameInfo.HasOverloads; } }
-        public bool ForceRenameOverloads { get { return _renameInfo.ForceRenameOverloads; } }
+        public Workspace Workspace => _workspace;
+        public OptionSet OptionSet => _optionSet;
+        public bool HasRenameOverloads => _renameInfo.HasOverloads;
+        public bool ForceRenameOverloads => _renameInfo.ForceRenameOverloads;
 
         public IInlineRenameUndoManager UndoManager { get; }
 
@@ -381,7 +375,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             AssertIsForeground();
             VerifyNotDismissed();
-            this.ReplacementText = replacementText;
+            this.ReplacementText = _renameInfo.GetFinalSymbolName(replacementText);
 
             var asyncToken = _asyncListener.BeginAsyncOperation(nameof(ApplyReplacementText));
 
@@ -603,7 +597,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void CommitCore(IWaitContext waitContext, bool previewChanges)
         {
-            using (Logger.LogBlock(previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore, waitContext.CancellationToken))
+            var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
+            using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), waitContext.CancellationToken))
             {
                 _conflictResolutionTask.Wait(waitContext.CancellationToken);
                 waitContext.AllowCancel = false;
@@ -616,7 +611,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     newSolution = previewService.PreviewChanges(
                         string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                         "vs.csharp.refactoring.rename",
-                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, _renameInfo.GetFinalSymbolName(this.ReplacementText)),
+                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
                         _renameInfo.FullDisplayName,
                         _renameInfo.Glyph,
                         _conflictResolutionTask.Result.NewSolution,

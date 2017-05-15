@@ -35,18 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             Return VBFeaturesResources.Make_Async_Sub
         End Function
 
-        Protected Overrides Function IsMethodOrAnonymousFunction(node As SyntaxNode) As Boolean
-            Return node.IsKind(SyntaxKind.FunctionBlock) OrElse
-                node.IsKind(SyntaxKind.SubBlock) OrElse
-                node.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.MultiLineSubLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) OrElse
-                node.IsKind(SyntaxKind.SingleLineSubLambdaExpression)
+        Protected Overrides Function IsAsyncSupportingFunctionSyntax(node As SyntaxNode) As Boolean
+            Return node.IsAsyncSupportedFunctionSyntax()
         End Function
 
         Protected Overrides Function AddAsyncTokenAndFixReturnType(
                 keepVoid As Boolean, methodSymbolOpt As IMethodSymbol, node As SyntaxNode,
-                taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol) As SyntaxNode
+                taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol, valueTaskOfTType As INamedTypeSymbol) As SyntaxNode
 
             If node.IsKind(SyntaxKind.SingleLineSubLambdaExpression) OrElse
                node.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) Then
@@ -59,17 +54,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
             ElseIf node.IsKind(SyntaxKind.SubBlock) Then
                 Return FixSubBlock(keepVoid, DirectCast(node, MethodBlockSyntax), taskType)
             Else
-                Return FixFunctionBlock(methodSymbolOpt, DirectCast(node, MethodBlockSyntax), taskType, taskOfTType)
+                Return FixFunctionBlock(
+                    methodSymbolOpt, DirectCast(node, MethodBlockSyntax), taskType, taskOfTType, valueTaskOfTType)
             End If
         End Function
 
         Private Function FixFunctionBlock(methodSymbol As IMethodSymbol, node As MethodBlockSyntax,
-                                          taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol) As SyntaxNode
+                                          taskType As INamedTypeSymbol, taskOfTType As INamedTypeSymbol, valueTaskOfTType As INamedTypeSymbol) As SyntaxNode
 
             Dim functionStatement = node.SubOrFunctionStatement
             Dim newFunctionStatement = AddAsyncKeyword(functionStatement)
 
-            If Not IsTaskLike(methodSymbol.ReturnType, taskType, taskOfTType) Then
+            If Not IsTaskLike(methodSymbol.ReturnType, taskType, taskOfTType, valueTaskOfTType) Then
                 ' if the current return type is not already task-list, then wrap it in Task(of ...)
                 Dim returnType = taskOfTType.Construct(methodSymbol.ReturnType).GenerateTypeSyntax()
                 newFunctionStatement = newFunctionStatement.WithAsClause(
@@ -90,16 +86,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 
             ' Have to convert this sub into a func. 
             Dim subStatement = node.SubOrFunctionStatement
-            Dim asClause = SyntaxFactory.SimpleAsClause(taskType.GenerateTypeSyntax()).
-                                         WithTrailingTrivia(subStatement.ParameterList.GetTrailingTrivia())
+            Dim asClause =
+                SyntaxFactory.SimpleAsClause(taskType.GenerateTypeSyntax()).
+                              WithTrailingTrivia(
+                                If(subStatement.ParameterList?.GetTrailingTrivia(),
+                                   subStatement.GetTrailingTrivia()))
 
             Dim functionStatement = SyntaxFactory.FunctionStatement(
                 subStatement.AttributeLists,
                 subStatement.Modifiers.Add(s_asyncToken),
                 SyntaxFactory.Token(SyntaxKind.FunctionKeyword).WithTriviaFrom(subStatement.SubOrFunctionKeyword),
-                subStatement.Identifier,
-                subStatement.TypeParameterList,
-                subStatement.ParameterList.WithoutTrailingTrivia(),
+                subStatement.Identifier.WithTrailingTrivia(),
+                subStatement.TypeParameterList?.WithoutTrailingTrivia(),
+                subStatement.ParameterList?.WithoutTrailingTrivia(),
                 asClause,
                 subStatement.HandlesClause,
                 subStatement.ImplementsClause)

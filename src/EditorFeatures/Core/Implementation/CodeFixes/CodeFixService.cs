@@ -73,7 +73,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             _fixAllProviderMap = ImmutableDictionary<object, FixAllProviderInfo>.Empty;
         }
 
-        public async Task<FirstDiagnosticResult> GetFirstDiagnosticWithFixAsync(Document document, TextSpan range, bool considerSuppressionFixes, CancellationToken cancellationToken)
+        public async Task<FirstDiagnosticResult> GetFirstDiagnosticWithFixAsync(
+            Document document, TextSpan range, CancellationToken cancellationToken)
         {
             if (document == null || !document.IsOpen())
             {
@@ -99,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     //
                     // first approach is simpler, so I will implement that first. if the first approach turns out to be not good enough, then
                     // I will try the second approach which will be more complex but quicker
-                    var hasFix = await ContainsAnyFix(document, diagnostic, considerSuppressionFixes, cancellationToken).ConfigureAwait(false);
+                    var hasFix = await ContainsAnyFix(document, diagnostic, cancellationToken).ConfigureAwait(false);
                     if (hasFix)
                     {
                         return new FirstDiagnosticResult(!fullResult, hasFix, diagnostic);
@@ -149,7 +150,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             {
                 // sort the result to the order defined by the fixers
                 var priorityMap = _fixerPriorityMap[document.Project.Language].Value;
-                result.Sort((d1, d2) => priorityMap.ContainsKey((CodeFixProvider)d1.Provider) ? (priorityMap.ContainsKey((CodeFixProvider)d2.Provider) ? priorityMap[(CodeFixProvider)d1.Provider] - priorityMap[(CodeFixProvider)d2.Provider] : -1) : 1);
+                result.Sort((d1, d2) =>
+                {
+                    if (priorityMap.TryGetValue((CodeFixProvider)d1.Provider, out int priority1))
+                    {
+                        if (priorityMap.TryGetValue((CodeFixProvider)d2.Provider, out int priority2))
+                        {
+                            return priority1 - priority2;
+                        }
+                        else
+                        {
+                            return -1;
+                        }
+                    }
+                    else
+                    {
+                        return 1;
+                    }
+                });
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
@@ -354,10 +372,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        private async Task<bool> ContainsAnyFix(Document document, DiagnosticData diagnostic, bool considerSuppressionFixes, CancellationToken cancellationToken)
+        private async Task<bool> ContainsAnyFix(
+            Document document, DiagnosticData diagnostic, CancellationToken cancellationToken)
         {
-            ImmutableArray<CodeFixProvider> workspaceFixers = ImmutableArray<CodeFixProvider>.Empty;
-            bool hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out var fixerMap) && fixerMap.Value.TryGetValue(diagnostic.Id, out workspaceFixers);
+            var workspaceFixers = ImmutableArray<CodeFixProvider>.Empty;
+            var hasAnySharedFixer = _workspaceFixersMap.TryGetValue(document.Project.Language, out var fixerMap) && fixerMap.Value.TryGetValue(diagnostic.Id, out workspaceFixers);
             var hasAnyProjectFixer = GetProjectFixers(document.Project).TryGetValue(diagnostic.Id, out var projectFixers);
 
             // TODO (https://github.com/dotnet/roslyn/issues/4932): Don't restrict CodeFixes in Interactive
@@ -369,7 +388,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             Lazy<ISuppressionFixProvider> lazySuppressionProvider = null;
             var hasSuppressionFixer = 
-                considerSuppressionFixes &&
                 _suppressionProvidersMap.TryGetValue(document.Project.Language, out lazySuppressionProvider) &&
                 lazySuppressionProvider.Value != null;
 

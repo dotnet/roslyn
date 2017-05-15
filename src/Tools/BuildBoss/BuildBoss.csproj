@@ -11,6 +11,7 @@
     <RootNamespace>BuildBoss</RootNamespace>
     <AssemblyName>BuildBoss</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -22,11 +23,19 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>$(NewtonsoftJsonVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ICheckerUtil.cs" />
+    <Compile Include="PackageReference.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProjectData.cs" />
+    <Compile Include="ProjectReferenceEntry.cs" />
     <Compile Include="ProjectUtil.cs" />
     <Compile Include="ProjectKey.cs" />
     <Compile Include="ProjectType.cs" />
@@ -41,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="project.json" />
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>

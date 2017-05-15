@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public struct SyntaxToken : IEquatable<SyntaxToken>
     {
+        private static readonly Func<DiagnosticInfo, Diagnostic> s_createDiagnosticWithoutLocation = Diagnostic.Create;
+
         internal static readonly Func<SyntaxToken, bool> NonZeroWidth = t => t.Width > 0;
         internal static readonly Func<SyntaxToken, bool> Any = t => true;
 
@@ -634,9 +636,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Location GetLocation()
         {
-            return Node != null
-                ? this.SyntaxTree.GetLocation(this.Span)
-                : Location.None;
+            var tree = SyntaxTree;
+
+            return tree == null
+                ? Location.None
+                : tree.GetLocation(Span);
         }
 
         /// <summary>
@@ -646,9 +650,23 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public IEnumerable<Diagnostic> GetDiagnostics()
         {
-            return Node != null
-                ? this.SyntaxTree.GetDiagnostics(this)
-                : SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            if (Node == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<Diagnostic>();
+            }
+
+            var tree = SyntaxTree;
+
+            if (tree == null)
+            {
+                var diagnostics = Node.GetDiagnostics();
+
+                return diagnostics.Length == 0
+                    ? SpecializedCollections.EmptyEnumerable<Diagnostic>()
+                    : diagnostics.Select(s_createDiagnosticWithoutLocation);
+            }
+
+            return tree.GetDiagnostics(this);
         }
 
         /// <summary>

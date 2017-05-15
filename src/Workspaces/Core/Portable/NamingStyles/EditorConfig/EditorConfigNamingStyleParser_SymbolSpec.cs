@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 switch (symbolSpecRequiredModifier)
                 {
                     case "abstract":
-                    case "must_inherit ":
+                    case "must_inherit":
                         builder.Add(_abstractModifierKind);
                         break;
                     case "async":

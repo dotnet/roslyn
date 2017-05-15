@@ -70,13 +70,7 @@ namespace Microsoft.CodeAnalysis
             return lastIndex;
         }
 
-        public int Capacity
-        {
-            get
-            {
-                return _capacity;
-            }
-        }
+        public int Capacity => _capacity;
 
         [Conditional("DEBUG_BITARRAY")]
         private void Check()
@@ -213,21 +207,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static BitVector Null
-        {
-            get
-            {
-                return s_nullValue;
-            }
-        }
+        public static BitVector Null => s_nullValue;
 
-        public static BitVector Empty
-        {
-            get
-            {
-                return s_emptyValue;
-            }
-        }
+        public static BitVector Empty => s_emptyValue;
 
         /// <summary>
         /// Modify this bit vector by bitwise AND-ing each element with the other bit vector.

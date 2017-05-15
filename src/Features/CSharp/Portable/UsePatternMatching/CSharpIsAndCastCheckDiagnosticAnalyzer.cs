@@ -141,6 +141,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
                 return;
             }
 
+            var semanticModel = syntaxContext.SemanticModel;
+            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
+            var isType = semanticModel.GetTypeInfo(castExpression.Type).Type;
+            if (!localSymbol.Type.Equals(isType))
+            {
+                // we have something like:
+                //
+                //      if (x is DerivedType)
+                //      {
+                //          BaseType b = (DerivedType)x;
+                //      }
+                //
+                // It's not necessarily safe to convert this to:
+                //
+                //      if (x is DerivedType b) { ... }
+                //
+                // That's because there may be later code that wants to do something like assign a 
+                // 'BaseType' into 'b'.  As we've now claimed that it must be DerivedType, that 
+                // won't work.  This might also cause unintended changes like changing overload
+                // resolution.  So, we conservatively do not offer the change in a situation like this.
+                return;
+            }
+
             // Looks good!
             var additionalLocations = ImmutableArray.Create(
                 ifStatement.GetLocation(),

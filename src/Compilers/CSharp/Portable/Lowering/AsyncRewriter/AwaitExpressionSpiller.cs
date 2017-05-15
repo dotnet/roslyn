@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.ToDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
                 }
 
                 _locals.Add(local);
@@ -772,26 +772,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static RefKind ReceiverSpillRefKind(BoundExpression receiver)
         {
-            if (!receiver.Type.IsReferenceType)
-            {
-                switch (receiver.Kind)
-                {
-                    case BoundKind.Parameter:
-                    case BoundKind.Local:
-                    case BoundKind.ArrayAccess:
-                    case BoundKind.ThisReference:
-                    case BoundKind.BaseReference:
-                    case BoundKind.PointerIndirectionOperator:
-                    case BoundKind.RefValueOperator:
-                    case BoundKind.FieldAccess:
-                        return RefKind.Ref;
-
-                    case BoundKind.Call:
-                        return ((BoundCall)receiver).Method.RefKind;
-                }
-            }
-
-            return RefKind.None;
+            return LocalRewriter.WouldBeAssignableIfUsedAsMethodReceiver(receiver) ? 
+                RefKind.Ref : 
+                RefKind.None;
         }
 
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
@@ -856,9 +839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            BoundSpillSequenceBuilder builder = null;
-            var receiver = VisitExpression(ref builder, node.ReceiverOpt);
-            return UpdateExpression(builder, node.Update(node.TypeArgumentsOpt, node.Name, node.Methods, node.LookupSymbolOpt, node.LookupError, node.Flags, receiver, node.ResultKind));
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)

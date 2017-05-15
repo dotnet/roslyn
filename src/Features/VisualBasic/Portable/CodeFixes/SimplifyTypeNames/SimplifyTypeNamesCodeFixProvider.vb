@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                     Return String.Format(VBFeaturesResources.Simplify_member_access_0, nodeText)
 
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(simplifyDiagnosticId)
             End Select
         End Function
 

@@ -16,17 +16,15 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static CompletionItem CreateWorker(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
+            int contextPosition,
             Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
-            int contextPosition = -1,
             string sortText = null,
             string insertionText = null,
-            Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
             var props = properties ?? ImmutableDictionary<string, string>.Empty;
 
@@ -35,21 +33,18 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 props = props.Add("InsertionText", insertionText);
             }
 
-            if (contextPosition >= 0)
-            {
-                props = props.Add("ContextPosition", contextPosition.ToString());
-            }
+            props = props.Add("ContextPosition", contextPosition.ToString());
 
+            var firstSymbol = symbols[0];
             var item = CommonCompletionItem.Create(
                 displayText: displayText,
-                filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : symbols[0].Name),
-                sortText: sortText ?? symbols[0].Name,
-                glyph: glyph ?? symbols[0].GetGlyph(),
-                matchPriority: matchPriority.GetValueOrDefault(),
+                rules: rules,
+                filterText: filterText ?? (displayText.Length > 0 && displayText[0] == '@' ? displayText : firstSymbol.Name),
+                sortText: sortText ?? firstSymbol.Name,
+                glyph: firstSymbol.GetGlyph(),
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
-                tags: tags,
-                rules: rules);
+                tags: tags);
 
             item = WithSupportedPlatforms(item, supportedPlatforms);
             return symbolEncoder(symbols, item);
@@ -60,45 +55,11 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return item.AddProperty("Symbols", EncodeSymbols(symbols));
         }
 
-        public static CompletionItem AddSymbolEncoding(ISymbol symbol, CompletionItem item)
-        {
-            return item.AddProperty("Symbols", EncodeSymbol(symbol));
-        }
-
         public static CompletionItem AddSymbolNameAndKind(IReadOnlyList<ISymbol> symbols, CompletionItem item)
         {
             var symbol = symbols[0];
             return item.AddProperty("SymbolKind", ((int)symbol.Kind).ToString())
                        .AddProperty("SymbolName", symbol.Name);
-        }
-
-        private static CompletionItem CreateWorker(
-            string displayText,
-            ISymbol symbol,
-            Func<IReadOnlyList<ISymbol>, CompletionItem, CompletionItem> symbolEncoder,
-            int contextPosition = -1,
-            string sortText = null,
-            string insertionText = null,
-            Glyph? glyph = null,
-            string filterText = null,
-            int? matchPriority = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            CompletionItemRules rules = null)
-        {
-            return CreateWorker(
-                displayText: displayText,
-                symbols: ImmutableArray.Create(symbol),
-                symbolEncoder: symbolEncoder,
-                contextPosition: contextPosition,
-                sortText: sortText,
-                insertionText: insertionText,
-                glyph: glyph,
-                filterText: filterText,
-                matchPriority: matchPriority.GetValueOrDefault(),
-                supportedPlatforms: supportedPlatforms,
-                properties: properties,
-                rules: rules);
         }
 
         public static string EncodeSymbols(IReadOnlyList<ISymbol> symbols)
@@ -279,54 +240,37 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         public static CompletionItem CreateWithSymbolId(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
             int contextPosition,
             string sortText = null,
             string insertionText = null,
-            Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
-            return CreateWorker(displayText, symbols, AddSymbolEncoding, contextPosition, sortText, insertionText, glyph,
-                          filterText, matchPriority, supportedPlatforms, properties, tags, rules);
-        }
-
-        public static CompletionItem CreateWithSymbolId(
-            string displayText,
-            ISymbol symbol,
-            int contextPosition,
-            string sortText = null,
-            string insertionText = null,
-            Glyph? glyph = null,
-            string filterText = null,
-            int? matchPriority = null,
-            SupportedPlatformData supportedPlatforms = null,
-            ImmutableDictionary<string, string> properties = null,
-            CompletionItemRules rules = null)
-        {
-            return CreateWorker(displayText, symbol, AddSymbolEncoding, contextPosition, sortText, insertionText, glyph,
-                          filterText, matchPriority, supportedPlatforms, properties, rules);
+            return CreateWorker(
+                displayText, symbols, rules, contextPosition, 
+                AddSymbolEncoding, sortText, insertionText,
+                filterText, supportedPlatforms, properties, tags);
         }
 
         public static CompletionItem CreateWithNameAndKind(
             string displayText,
             IReadOnlyList<ISymbol> symbols,
+            CompletionItemRules rules,
             int contextPosition,
             string sortText = null,
             string insertionText = null,
-            Glyph? glyph = null,
             string filterText = null,
-            int? matchPriority = null,
             SupportedPlatformData supportedPlatforms = null,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>),
-            CompletionItemRules rules = null)
+            ImmutableArray<string> tags = default(ImmutableArray<string>))
         {
-            return CreateWorker(displayText, symbols, AddSymbolNameAndKind, contextPosition, sortText, insertionText, glyph,
-                            filterText, matchPriority, supportedPlatforms, properties, tags, rules);
+            return CreateWorker(
+                displayText, symbols, rules, contextPosition, 
+                AddSymbolNameAndKind, sortText, insertionText,
+                filterText, supportedPlatforms, properties, tags);
         }
 
         internal static string GetSymbolName(CompletionItem item)

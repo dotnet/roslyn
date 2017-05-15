@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var ifStatement = (IfStatementSyntax)syntaxContext.Node;
 
             // "x is Type y" is only available in C# 7.0 and above.  Don't offer this refactoring
-            // in projects targetting a lesser version.
+            // in projects targeting a lesser version.
             if (((CSharpParseOptions)ifStatement.SyntaxTree.Options).LanguageVersion < LanguageVersion.CSharp7)
             {
                 return;
@@ -130,6 +130,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var initializerValue = declarator.Initializer.Value;
             if (!initializerValue.IsKind(SyntaxKind.AsExpression))
             {
+                return;
+            }
+
+            var semanticModel = syntaxContext.SemanticModel;
+            var asExpression = (BinaryExpressionSyntax)initializerValue;
+            var typeNode = (TypeSyntax)asExpression.Right;
+            var asType = semanticModel.GetTypeInfo(typeNode, cancellationToken).Type;
+            if (asType.IsNullable())
+            {
+                // not legal to write "if (x is int? y)"
+                return;
+            }
+
+            var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclaration.Variables[0]);
+            if (!localSymbol.Type.Equals(asType))
+            {
+                // we have something like:
+                //
+                //      BaseType b = x as DerivedType;
+                //      if (b != null) { ... }
+                //
+                // It's not necessarily safe to convert this to:
+                //
+                //      if (x is DerivedType b) { ... }
+                //
+                // That's because there may be later code that wants to do something like assign a 
+                // 'BaseType' into 'b'.  As we've now claimed that it must be DerivedType, that 
+                // won't work.  This might also cause unintended changes like changing overload
+                // resolution.  So, we conservatively do not offer the change in a situation like this.
                 return;
             }
 

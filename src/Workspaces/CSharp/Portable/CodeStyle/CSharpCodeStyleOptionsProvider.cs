@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             CodeStyleOptions.QualifyPropertyAccess,
             CodeStyleOptions.QualifyMethodAccess,
             CodeStyleOptions.QualifyEventAccess,
-            CSharpCodeStyleOptions.UseVarWhenDeclaringLocals,
             CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
             CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,
             CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes,

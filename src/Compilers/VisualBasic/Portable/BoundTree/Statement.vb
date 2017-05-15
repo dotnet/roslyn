@@ -6,12 +6,12 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Partial Friend Class BoundStatement
-        Implements IOperation
+    Partial Friend Class BoundNode
+        Implements IOperation, IOperationWithChildren
 
         Private ReadOnly Property IOperation_Kind As OperationKind Implements IOperation.Kind
             Get
-                Return Me.StatementKind()
+                Return Me.OperationKind
             End Get
         End Property
 
@@ -29,24 +29,77 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IOperation_Type As ITypeSymbol Implements IOperation.Type
             Get
-                Return Nothing
+                Return Me.OperationType
             End Get
         End Property
 
         Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
             Get
+                Return Me.OperationConstantValue
+            End Get
+        End Property
+
+        Public ReadOnly Property IOperationWithChildren_Children As ImmutableArray(Of IOperation) Implements IOperationWithChildren.Children
+            Get
+                Return Me.Children
+            End Get
+        End Property
+
+        Protected Overridable ReadOnly Property OperationKind As OperationKind
+            Get
+                Return OperationKind.None
+            End Get
+        End Property
+
+        Protected Overridable ReadOnly Property OperationType As ITypeSymbol
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Protected Overridable ReadOnly Property OperationConstantValue As [Optional](Of Object)
+            Get
                 Return New [Optional](Of Object)()
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Override this property to return the child operations if the IOperation API corresponding to this bound node is not yet designed or implemented.
+        ''' </summary>
+        ''' <remarks>
+        ''' Note that any of the child operation nodes may be null.
+        ''' </remarks>
+        Protected Overridable ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray(Of IOperation).Empty
+            End Get
+        End Property
+
+        Public Overridable Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overridable Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+            visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Partial Friend Class BoundStatement
+
+        Protected Overrides ReadOnly Property OperationKind As OperationKind
+            Get
+                Return Me.StatementKind
             End Get
         End Property
 
         Protected MustOverride Function StatementKind() As OperationKind
 
-        Public MustOverride Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
+        Public MustOverride Overloads Overrides Sub Accept(visitor As OperationVisitor)
 
-        Public MustOverride Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
+        Public MustOverride Overloads Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
     End Class
 
-    Friend Partial Class BoundIfStatement
+    Partial Friend Class BoundIfStatement
         Implements IIfStatement
 
         Private ReadOnly Property IOperation_Condition As IOperation Implements IIfStatement.Condition
@@ -80,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundSelectStatement
+    Partial Friend Class BoundSelectStatement
         Implements ISwitchStatement
 
         Private Shared ReadOnly s_caseBlocksMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundSelectStatement, Object)
@@ -256,10 +309,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Friend Partial Class BoundCaseBlock
+    Partial Friend Class BoundCaseBlock
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.CaseStatement, Me.Body)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -270,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundCaseClause
+    Partial Friend Class BoundCaseClause
         Implements ICaseClause
 
         Private ReadOnly Property IOperation_IsInvalid As Boolean Implements IOperation.IsInvalid
@@ -306,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend Partial Class BoundSimpleCaseClause
+    Partial Friend Class BoundSimpleCaseClause
         Implements ISingleValueCaseClause
 
         Private ReadOnly Property ISingleValueCaseClause_Equality As BinaryOperationKind Implements ISingleValueCaseClause.Equality
@@ -372,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundRangeCaseClause
+    Partial Friend Class BoundRangeCaseClause
         Implements IRangeCaseClause
 
         Private ReadOnly Property IRangeCaseClause_MaximumValue As IOperation Implements IRangeCaseClause.MaximumValue
@@ -430,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundRelationalCaseClause
+    Partial Friend Class BoundRelationalCaseClause
         Implements IRelationalCaseClause
 
         Private ReadOnly Property IRelationalCaseClause_Relation As BinaryOperationKind Implements IRelationalCaseClause.Relation
@@ -479,12 +538,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundCaseStatement
+    Partial Friend Class BoundCaseStatement
 
         ' Cases are found by going through ISwitch, so the VB Case statement is orphaned.
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.CaseClauses.As(Of IOperation).Add(Me.ConditionOpt)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -495,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundDoLoopStatement
+    Partial Friend Class BoundDoLoopStatement
         Implements IWhileUntilLoopStatement
 
         Private ReadOnly Property IForWhileUntilLoopStatement_Condition As IOperation Implements IForWhileUntilLoopStatement.Condition
@@ -541,7 +606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundForToStatement
+    Partial Friend Class BoundForToStatement
         Implements IForLoopStatement
 
         Private Shared ReadOnly s_loopBottomMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, Object)
@@ -569,7 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
 
                                 Dim stepOperand As IOperation = If(stepValue.IsConstant, DirectCast(stepValue, IOperation), New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, stepValue))
-                                statements.Add(New CompoundAssignment(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
+                                statements.Add(New ExpressionStatement(controlReference, stepOperand, Semantics.Expression.DeriveAdditionKind(controlType), Nothing, stepValue.Syntax))
                             End If
                         End If
 
@@ -592,17 +657,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' ControlVariable = InitialValue
                         Dim controlReference As IOperation = BoundFor.ControlVariable
                         If controlReference IsNot Nothing Then
-                            statements.Add(New Assignment(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
+                            statements.Add(New ExpressionStatement(controlReference, BoundFor.InitialValue, BoundFor.InitialValue.Syntax))
                         End If
 
                         ' T0 = LimitValue
                         If Not Me.LimitValue.IsConstant Then
-                            statements.Add(New Assignment(New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue), BoundFor.LimitValue, BoundFor.LimitValue.Syntax))
+                            statements.Add(New ExpressionStatement(New Temporary(SyntheticLocalKind.ForLoopLimitValue, BoundFor, BoundFor.LimitValue), BoundFor.LimitValue, BoundFor.LimitValue.Syntax))
                         End If
 
                         ' T1 = StepValue
                         If BoundFor.StepValue IsNot Nothing AndAlso Not BoundFor.StepValue.IsConstant Then
-                            statements.Add(New Assignment(New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue), BoundFor.StepValue, BoundFor.StepValue.Syntax))
+                            statements.Add(New ExpressionStatement(New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue), BoundFor.StepValue, BoundFor.StepValue.Syntax))
                         End If
 
                         Return statements.ToImmutableAndFree()
@@ -640,25 +705,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 ' Either ControlVariable <= LimitValue or ControlVariable >= LimitValue, depending on whether the step value is negative.
 
                                 Dim relationalCode As BinaryOperationKind = DeriveBinaryOperationKind(If(BoundFor.StepValue IsNot Nothing AndAlso BoundFor.StepValue.ConstantValueOpt.IsNegativeNumeric, BinaryOperatorKind.GreaterThanOrEqual, BinaryOperatorKind.LessThanOrEqual), controlVariable)
-                                Return New Binary(relationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
+                                Return New BinaryOperatorExpression(relationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
                             Else
                                 ' If(StepValue >= 0, ControlVariable <= LimitValue, ControlVariable >= LimitValue)
 
                                 Dim stepValue As IOperation = New Temporary(SyntheticLocalKind.ForLoopStepValue, BoundFor, BoundFor.StepValue)
                                 Dim stepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, BoundFor.StepValue)
-                                Dim stepCondition As IOperation = New Binary(stepRelationalCode,
+                                Dim stepCondition As IOperation = New BinaryOperatorExpression(stepRelationalCode,
                                                                              stepValue,
-                                                                             New Literal(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type, BoundFor.StepValue.Syntax),
+                                                                             New LiteralExpression(Semantics.Expression.SynthesizeNumeric(stepValue.Type, 0), BoundFor.StepValue.Type, BoundFor.StepValue.Syntax),
                                                                              booleanType,
                                                                              BoundFor.StepValue.Syntax)
 
                                 Dim positiveStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.LessThanOrEqual, controlVariable)
-                                Dim positiveStepCondition As IOperation = New Binary(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
+                                Dim positiveStepCondition As IOperation = New BinaryOperatorExpression(positiveStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
 
                                 Dim negativeStepRelationalCode As BinaryOperationKind = DeriveBinaryOperationKind(BinaryOperatorKind.GreaterThanOrEqual, controlVariable)
-                                Dim negativeStepCondition As IOperation = New Binary(negativeStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
+                                Dim negativeStepCondition As IOperation = New BinaryOperatorExpression(negativeStepRelationalCode, controlVariable, limitValue, booleanType, limitValue.Syntax)
 
-                                Return New ConditionalChoice(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
+                                Return New ConditionalChoiceExpression(stepCondition, positiveStepCondition, negativeStepCondition, booleanType, limitValue.Syntax)
                             End If
                         End If
                     End Function)
@@ -754,7 +819,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Friend Partial Class BoundForEachStatement
+    Partial Friend Class BoundForEachStatement
         Implements IForEachLoopStatement
 
         Private ReadOnly Property IForEachLoopStatement_IterationVariable As ILocalSymbol Implements IForEachLoopStatement.IterationVariable
@@ -799,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTryStatement
+    Partial Friend Class BoundTryStatement
         Implements ITryStatement
 
         Private ReadOnly Property ITryStatement_Body As IBlockStatement Implements ITryStatement.Body
@@ -896,15 +961,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Overloads Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
-            visitor.VisitCatch(Me)
+            visitor.VisitCatchClause(Me)
         End Sub
 
         Public Overloads Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
-            Return visitor.VisitCatch(Me, argument)
+            Return visitor.VisitCatchClause(Me, argument)
         End Function
     End Class
 
-    Friend Partial Class BoundBlock
+    Partial Friend Class BoundBlock
         Implements IBlockStatement
 
         Private Shared ReadOnly s_blockStatementsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundBlock, Object)
@@ -943,6 +1008,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend Class BoundBadStatement
         Implements IInvalidStatement
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation) Implements IInvalidStatement.Children
+            Get
+                Dim builder As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance(Me.ChildBoundNodes.Length)
+                For Each childNode In Me.ChildBoundNodes
+                    Dim operation = TryCast(childNode, IOperation)
+                    If operation IsNot Nothing Then
+                        builder.Add(operation)
+                    End If
+                Next
+
+                Return builder.ToImmutableAndFree()
+            End Get
+        End Property
+
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.InvalidStatement
         End Function
@@ -956,7 +1035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundReturnStatement
+    Partial Friend Class BoundReturnStatement
         Implements IReturnStatement
 
         Private ReadOnly Property IReturnStatement_ReturnedValue As IOperation Implements IReturnStatement.ReturnedValue
@@ -978,7 +1057,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundThrowStatement
+    Partial Friend Class BoundThrowStatement
         Implements IThrowStatement
 
         Private ReadOnly Property IThrowStatement_ThrownObject As IOperation Implements IThrowStatement.ThrownObject
@@ -1000,7 +1079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundWhileStatement
+    Partial Friend Class BoundWhileStatement
         Implements IWhileUntilLoopStatement
 
         Private ReadOnly Property IForWhileUntilLoopStatement_Condition As IOperation Implements IForWhileUntilLoopStatement.Condition
@@ -1046,12 +1125,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundDimStatement
+    Partial Friend Class BoundDimStatement
         Implements IVariableDeclarationStatement
 
         Private Shared ReadOnly s_variablesMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundDimStatement, Object)
 
-        Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Variables
+        Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Declarations
             Get
                 Dim variables = s_variablesMappings.GetValue(Me, Function(dimStatement)
                                                                      Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
@@ -1061,9 +1140,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                              builder.Add(New VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax))
                                                                          ElseIf base.Kind = BoundKind.AsNewLocalDeclarations Then
                                                                              Dim asNewDeclarations = DirectCast(base, BoundAsNewLocalDeclarations)
-                                                                             For Each asNewDeclaration In asNewDeclarations.LocalDeclarations
-                                                                                 builder.Add(New VariableDeclaration(asNewDeclaration.LocalSymbol, asNewDeclarations.Initializer, asNewDeclaration.Syntax))
-                                                                             Next
+                                                                             Dim localSymbols = asNewDeclarations.LocalDeclarations.SelectAsArray(Of ILocalSymbol)(Function(declaration) declaration.LocalSymbol)
+                                                                             builder.Add(New VariableDeclaration(localSymbols, asNewDeclarations.Initializer, asNewDeclarations.Syntax))
                                                                          End If
                                                                      Next
                                                                      Return builder.ToImmutableAndFree()
@@ -1086,7 +1164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundYieldStatement
+    Partial Friend Class BoundYieldStatement
         Implements IReturnStatement
         Private ReadOnly Property IReturnStatement_ReturnedValue As IOperation Implements IReturnStatement.ReturnedValue
             Get
@@ -1107,7 +1185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLabelStatement
+    Partial Friend Class BoundLabelStatement
         Implements ILabelStatement
 
         Private ReadOnly Property ILabelStatement_Label As ILabelSymbol Implements ILabelStatement.Label
@@ -1136,7 +1214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundGotoStatement
+    Partial Friend Class BoundGotoStatement
         Implements IBranchStatement
 
         Private ReadOnly Property IBranchStatement_Target As ILabelSymbol Implements IBranchStatement.Target
@@ -1164,7 +1242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundContinueStatement
+    Partial Friend Class BoundContinueStatement
         Implements IBranchStatement
 
         Private ReadOnly Property IBranchStatement_Target As ILabelSymbol Implements IBranchStatement.Target
@@ -1192,7 +1270,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundExitStatement
+    Partial Friend Class BoundExitStatement
         Implements IBranchStatement
 
         Private ReadOnly Property IBranchStatement_Target As ILabelSymbol Implements IBranchStatement.Target
@@ -1220,7 +1298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundSyncLockStatement
+    Partial Friend Class BoundSyncLockStatement
         Implements ILockStatement
 
         Private ReadOnly Property ILockStatement_LockedObject As IOperation Implements ILockStatement.LockedObject
@@ -1264,7 +1342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundSequencePoint
+    Partial Friend Class BoundSequencePoint
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1278,7 +1356,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundSequencePointWithSpan
+    Partial Friend Class BoundSequencePointWithSpan
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1292,7 +1370,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundStateMachineScope
+    Partial Friend Class BoundStateMachineScope
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1338,7 +1416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundWithStatement
+    Partial Friend Class BoundWithStatement
         Implements IWithStatement
 
         Private ReadOnly Property IWithStatement_Body As IOperation Implements IWithStatement.Body
@@ -1366,7 +1444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUsingStatement
+    Partial Friend Class BoundUsingStatement
         Implements IUsingStatement
 
         Private ReadOnly Property IUsingStatement_Value As IOperation Implements IUsingStatement.Value
@@ -1440,7 +1518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Variables
+            Private ReadOnly Property IVariableDeclarationStatement_Variables As ImmutableArray(Of IVariableDeclaration) Implements IVariableDeclarationStatement.Declarations
                 Get
                     Return _variables
                 End Get
@@ -1460,7 +1538,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Class
     End Class
 
-    Friend Partial Class BoundExpressionStatement
+    Partial Friend Class BoundExpressionStatement
         Implements IExpressionStatement
 
         Private ReadOnly Property IExpressionStatement_Expression As IOperation Implements IExpressionStatement.Expression
@@ -1617,6 +1695,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Clauses.As(Of IOperation)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1631,6 +1715,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return OperationKind.None
         End Function
 
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Indices.As(Of IOperation).Insert(0, Me.Operand)
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
         End Sub
@@ -1644,6 +1734,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return Me.Clauses.As(Of IOperation)
+            End Get
+        End Property
 
         Public Overrides Sub Accept(visitor As OperationVisitor)
             visitor.VisitNoneOperation(Me)
@@ -1746,7 +1842,67 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundResumeStatement
+    Partial Friend Class BoundResumeStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.LabelExpressionOpt)
+            End Get
+        End Property
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Partial Friend Class BoundOnErrorStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.LabelExpressionOpt)
+            End Get
+        End Property
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Partial Friend Class BoundUnstructuredExceptionHandlingStatement
+        Protected Overrides Function StatementKind() As OperationKind
+            Return OperationKind.None
+        End Function
+
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+            Get
+                Return ImmutableArray.Create(Of IOperation)(Me.Body)
+            End Get
+        End Property
+
+        Public Overrides Sub Accept(visitor As OperationVisitor)
+            visitor.VisitNoneOperation(Me)
+        End Sub
+
+        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
+            Return visitor.VisitNoneOperation(Me, argument)
+        End Function
+    End Class
+
+    Partial Friend Class BoundUnstructuredExceptionOnErrorSwitch
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1760,49 +1916,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundOnErrorStatement
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Friend Partial Class BoundUnstructuredExceptionHandlingStatement
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Friend Partial Class BoundUnstructuredExceptionOnErrorSwitch
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Friend Partial Class BoundUnstructuredExceptionResumeSwitch
+    Partial Friend Class BoundUnstructuredExceptionResumeSwitch
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.None
         End Function

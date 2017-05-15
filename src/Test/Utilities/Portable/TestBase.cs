@@ -3,6 +3,8 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -62,6 +64,10 @@ namespace Roslyn.Test.Utilities
 
         private static MetadataReference[] s_winRtRefs;
         private static MetadataReference[] s_portableRefsMinimal;
+
+        public static readonly AssemblyName RuntimeCorLibName = CoreClrShim.IsRunningOnCoreClr
+            ? new AssemblyName("netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")
+            : new AssemblyName("mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
         /// <summary>
         /// The array of 7 metadataimagereferences that are required to compile
@@ -142,7 +148,12 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_systemCoreRef == null)
                 {
-                    s_systemCoreRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll");
+                    // We rely on reference equality in CreateSharedCompilation, so
+                    // we must use a CompareExchange here.
+                    Interlocked.CompareExchange(
+                        ref s_systemCoreRef,
+                        AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System_Core).GetReference(display: "System.Core.v4_0_30319.dll"),
+                        null);
                 }
 
                 return s_systemCoreRef;
@@ -357,17 +368,47 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        private static MetadataReference s_csharpRef;
-        public static MetadataReference CSharpRef
+        public static MetadataReference CSharpRef => CoreClrShim.IsRunningOnCoreClr ? StandardCSharpRef : DesktopCSharpRef;
+
+        private static MetadataReference s_desktopCSharpRef;
+        public static MetadataReference DesktopCSharpRef
         {
             get
             {
-                if (s_csharpRef == null)
+                if (s_desktopCSharpRef == null)
                 {
-                    s_csharpRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll");
+                    s_desktopCSharpRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.Microsoft_CSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll");
                 }
 
-                return s_csharpRef;
+                return s_desktopCSharpRef;
+            }
+        }
+
+        private static MetadataReference s_stdCSharpRef;
+        public static MetadataReference StandardCSharpRef
+        {
+            get
+            {
+                if (s_stdCSharpRef == null)
+                {
+                    s_stdCSharpRef = AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/Microsoft.CSharp.dll")).GetReference(display: "Microsoft.CSharp.dll (netstandard 1.0 ref)");
+                }
+
+                return s_stdCSharpRef;
+            }
+        }
+
+        private static MetadataReference s_systemDynamicRuntimeRef;
+        public static MetadataReference SystemDynamicRuntimeRef
+        {
+            get
+            {
+                if (s_systemDynamicRuntimeRef == null)
+                {
+                    s_systemDynamicRuntimeRef = AssemblyMetadata.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "ref/System.Dynamic.Runtime.dll")).GetReference(display: "System.Dynamic.Runtime.dll (netstandard 1.3 ref)");
+                }
+
+                return s_systemDynamicRuntimeRef;
             }
         }
 
@@ -379,10 +420,29 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_systemRef == null)
                 {
-                    s_systemRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.v4_0_30319.dll");
+                    // We rely on reference equality in CreateSharedCompilation, so
+                    // we must use a CompareExchange here.
+                    Interlocked.CompareExchange(
+                        ref s_systemRef,
+                        AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.System).GetReference(display: "System.v4_0_30319.dll"),
+                        null);
                 }
 
                 return s_systemRef;
+            }
+        }
+
+        private static MetadataReference s_systemRef_v46;
+        public static MetadataReference SystemRef_v46
+        {
+            get
+            {
+                if (s_systemRef_v46 == null)
+                {
+                    s_systemRef_v46 = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_6_1038_0.System).GetReference(display: "System.v4_6_1038_0.dll");
+                }
+
+                return s_systemRef_v46;
             }
         }
 

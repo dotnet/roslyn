@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.GoToImplementation
     Public Class GoToImplementationTests
         Private Async Function TestAsync(workspaceDefinition As XElement, Optional shouldSucceed As Boolean = True) As Tasks.Task
-            Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
+            Using workspace = TestWorkspace.Create(workspaceDefinition)
                 Dim documentWithCursor = workspace.DocumentWithCursor
                 Dim position = documentWithCursor.CursorPosition.Value
 

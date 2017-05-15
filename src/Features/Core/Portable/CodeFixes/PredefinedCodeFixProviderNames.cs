@@ -7,6 +7,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string AddDocCommentNodes = nameof(AddDocCommentNodes);
         public const string AddAwait = nameof(AddAwait);
         public const string AddAsync = nameof(AddAsync);
+        public const string AddParameter = nameof(AddParameter);
         public const string ApplyNamingStyle = nameof(ApplyNamingStyle);
         public const string AddBraces = nameof(AddBraces);
         public const string ChangeReturnType = nameof(ChangeReturnType);
@@ -36,6 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         public const string QualifyMemberAccess = nameof(QualifyMemberAccess);
         public const string RemoveUnnecessaryCast = nameof(RemoveUnnecessaryCast);
         public const string RemoveUnnecessaryImports = nameof(RemoveUnnecessaryImports);
+        public const string RemoveUnusedVariable = nameof(RemoveUnusedVariable);
         public const string RenameTracking = nameof(RenameTracking);
         public const string SimplifyNames = nameof(SimplifyNames);
         public const string SpellCheck = nameof(SpellCheck);

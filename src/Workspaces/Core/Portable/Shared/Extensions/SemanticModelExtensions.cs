@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                  symbol != null;
                  symbol = symbol.ContainingSymbol)
             {
-                if (symbol is TSymbol)
+                if (symbol is TSymbol tSymbol)
                 {
-                    return (TSymbol)symbol;
+                    return tSymbol;
                 }
             }
 

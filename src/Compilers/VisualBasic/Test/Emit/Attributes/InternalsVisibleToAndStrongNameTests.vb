@@ -31,15 +31,12 @@ Partial Public Class InternalsVisibleToAndStrongNameTests
         Return New SigningTestHelpers.VirtualizedStrongNameProvider(ImmutableArray.Create(keyFilePath))
     End Function
 
-    Private Shared Sub VerifySigned(comp As Compilation)
+    Private Shared Sub VerifySigned(comp As Compilation, Optional expectedToBeSigned As Boolean = True)
         Using outStream = comp.EmitToStream()
-
             outStream.Position = 0
 
             Dim headers = New PEHeaders(outStream)
-
-            Dim flags = headers.CorHeader.Flags
-            Assert.True(flags.HasFlag(CorFlags.StrongNameSigned))
+            Assert.Equal(expectedToBeSigned, headers.CorHeader.Flags.HasFlag(CorFlags.StrongNameSigned))
         End Using
     End Sub
 
@@ -472,7 +469,10 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("foo", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).Contains("HRESULT: 0x80090016"))
+        Dim errorText = DirectCast(err.Arguments(1), String)
+        Assert.True(
+            errorText.Contains("HRESULT") AndAlso
+            errorText.Contains("0x80090016"))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -621,11 +621,13 @@ End Class
         'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
 
         Dim err = c2.GetDiagnostics(CompilationStage.Emit).Single()
-
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).Contains("HRESULT: 0x80090016"))
+        Dim errorText = DirectCast(err.Arguments(1), String)
+        Assert.True(
+            errorText.Contains("HRESULT") AndAlso 
+            errorText.Contains("0x80090016"))
     End Sub
 
     <Fact>
@@ -1176,7 +1178,7 @@ End Class
                      </file>
                  </compilation>
 
-        Dim ilRef = CompileIL(il.Value, appendDefaultHeader:=False)
+        Dim ilRef = CompileIL(il.Value, prependDefaultHeader:=False)
 
         Dim comp = CreateCompilationWithMscorlibAndReferences(vb, {ilRef}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 
@@ -1624,7 +1626,10 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyFileFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal(s_keyPairFile, DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80131423)", StringComparison.Ordinal))
+        Dim errorText = DirectCast(err.Arguments(1), String)
+        Assert.True(
+            errorText.Contains("HRESULT") AndAlso
+            errorText.Contains("0x80131423"))
     End Sub
 
     <Fact>
@@ -1978,7 +1983,7 @@ End Class
 <Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("Bug769840_B, PublicKey=0024000004800000940000000602000000240000525341310004000001000100458a131798af87d9e33088a3ab1c6101cbd462760f023d4f41d97f691033649e60b42001e94f4d79386b5e087b0a044c54b7afce151b3ad19b33b332b83087e3b8b022f45b5e4ff9b9a1077b0572ff0679ce38f884c7bd3d9b4090e4a7ee086b7dd292dc20f81a3b1b8a0b67ee77023131e59831c709c81d11c6856669974cc4")>
 
 Friend Class A
-	Public Value As Integer = 3
+    Public Value As Integer = 3
 End Class
 ]]></file>
 </compilation>, options:=TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
@@ -2070,6 +2075,48 @@ End Class]]>
 
         CreateCompilationWithMscorlib(source).VerifyDiagnostics(
             Diagnostic(ERRID.ERR_FriendAssemblyNameInvalid, "Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")").WithArguments("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000").WithLocation(1, 2))
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options).VerifyEmitDiagnostics()
+
+        VerifySigned(compilation, expectedToBeSigned:=False)
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options).VerifyEmitDiagnostics()
+
+        VerifySigned(compilation, expectedToBeSigned:=False)
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingNullKeyFile_PublicSign()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=Nothing, publicSign:=True)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options)
+
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
+    End Sub
+
+    <Fact>
+    <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+    Public Sub ConsistentErrorMessageWhenProvidingEmptyKeyFile_PublicSign()
+        Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoKeyFile:=String.Empty, publicSign:=True)
+        Dim compilation = CreateCompilationWithMscorlib(String.Empty, options:=options)
+
+        CompilationUtils.AssertTheseDiagnostics(compilation,
+<errors>
+BC37254: Public sign was specified and requires a public key, but no public key was specified
+</errors>)
     End Sub
 
 End Class

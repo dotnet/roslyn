@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, _cancellationToken))
+                    using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken))
                     using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
                     {
                         _progress.AddItems(_solution.Projects.Count());

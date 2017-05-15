@@ -570,13 +570,40 @@ class C
             var tree2 = await document.GetSyntaxTreeAsync();
             var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<CSharp.Syntax.BaseMethodDeclarationSyntax>();
 
-            var service = new CSharp.CSharpSemanticFactsService();
+            var service = CSharp.CSharpSemanticFactsService.Instance;
             var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out var testModel);
 
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
             // This should not throw an exception.
             Assert.NotNull(SymbolKey.Create(xSymbol));
+        }
+
+        [Fact]
+        public void TestGenericMethodTypeParameterMissing1()
+        {
+            var source1 = @"
+public class C
+{
+    void M<T>(T t) { }
+}
+";
+
+            var source2 = @"
+public class C
+{
+}
+";
+
+            var compilation1 = GetCompilation(source1, LanguageNames.CSharp);
+            var compilation2 = GetCompilation(source2, LanguageNames.CSharp);
+
+            var methods = GetDeclaredSymbols(compilation1).OfType<IMethodSymbol>();
+            foreach (var method in methods)
+            {
+                var key = SymbolKey.Create(method);
+                key.Resolve(compilation2);
+            }
         }
 
         [Fact, WorkItem(377839, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=377839")]
@@ -606,7 +633,7 @@ class C
                 // Ensure we don't crash getting these symbol keys.
                 var id = SymbolKey.ToString(symbol);
                 Assert.NotNull(id);
-                var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
+                var found = SymbolKey.Resolve(id, compilation: compilation).GetAnySymbol();
                 Assert.NotNull(found);
 
                 // note: we don't check that the symbols are equal.  That's because the compiler
@@ -618,6 +645,80 @@ class C
             }
 
             Assert.True(tested);
+        }
+
+        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        public void TestTupleWithLocalTypeReferences1()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method((C, int) t)
+    {
+    }
+}";
+            // Tuples store locations along with them.  But we can only recover those locations
+            // if we're re-resolving into a compilation with the same files.
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs");
+
+            var symbol = GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.ToString(symbol);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(symbol.Name, found.Name);
+            Assert.Equal(symbol.Kind, found.Kind);
+
+            var method = found as IMethodSymbol;
+            Assert.True(method.Parameters[0].Type.IsTupleType);
+        }
+
+        [Fact, WorkItem(17702, "https://github.com/dotnet/roslyn/issues/17702")]
+        public void TestTupleWithLocalTypeReferences2()
+        {
+            var source = @"
+using System.Linq;
+
+class C
+{
+    void Method((C a, int b) t)
+    {
+    }
+}";
+            // Tuples store locations along with them.  But we can only recover those locations
+            // if we're re-resolving into a compilation with the same files.
+            var compilation1 = GetCompilation(source, LanguageNames.CSharp, "File1.cs");
+            var compilation2 = GetCompilation(source, LanguageNames.CSharp, "File2.cs");
+
+            var symbol = GetAllSymbols(
+                compilation1.GetSemanticModel(compilation1.SyntaxTrees.Single()),
+                n => n is CSharp.Syntax.MethodDeclarationSyntax).Single();
+
+            // Ensure we don't crash getting these symbol keys.
+            var id = SymbolKey.ToString(symbol);
+            Assert.NotNull(id);
+
+            // Validate that if the client does ask to resolve locations that we
+            // do not crash if those locations cannot be found.
+            var found = SymbolKey.Resolve(id, compilation2, resolveLocations: true).GetAnySymbol();
+            Assert.NotNull(found);
+
+            Assert.Equal(symbol.Name, found.Name);
+            Assert.Equal(symbol.Kind, found.Kind);
+
+            var method = found as IMethodSymbol;
+            Assert.True(method.Parameters[0].Type.IsTupleType);
         }
 
         private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
@@ -647,7 +748,7 @@ class C
             }
         }
 
-        private Compilation GetCompilation(string source, string language)
+        private Compilation GetCompilation(string source, string language, string path = "")
         {
             var references = new[]
             {
@@ -657,12 +758,12 @@ class C
 
             if (language == LanguageNames.CSharp)
             {
-                var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source);
+                var tree = CSharp.SyntaxFactory.ParseSyntaxTree(source, path: path);
                 return CSharp.CSharpCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
             else if (language == LanguageNames.VisualBasic)
             {
-                var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source);
+                var tree = VisualBasic.SyntaxFactory.ParseSyntaxTree(source, path: path);
                 return VisualBasic.VisualBasicCompilation.Create("Test", syntaxTrees: new[] { tree }, references: references);
             }
 

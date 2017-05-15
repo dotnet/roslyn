@@ -10,6 +10,7 @@ Supported Platforms:
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Elfie" version="$MicrosoftCodeAnalysisElfieVersion$" />
     </dependencies>
 
     <language>en-US</language>

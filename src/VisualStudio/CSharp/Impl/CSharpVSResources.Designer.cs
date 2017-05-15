@@ -610,6 +610,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Never.
+        /// </summary>
+        internal static string Never {
+            get {
+                return ResourceManager.GetString("Never", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Never add new line on enter.
         /// </summary>
         internal static string Never_add_new_line_on_enter {
@@ -808,11 +817,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Place open brace on new line for methods.
+        ///   Looks up a localized string similar to Place open brace on new line for methods and local functions.
         /// </summary>
-        internal static string Place_open_brace_on_new_line_for_methods {
+        internal static string Place_open_brace_on_new_line_for_methods_local_functions {
             get {
-                return ResourceManager.GetString("Place_open_brace_on_new_line_for_methods", resourceCulture);
+                return ResourceManager.GetString("Place_open_brace_on_new_line_for_methods_local_functions", resourceCulture);
             }
         }
         
@@ -1218,6 +1227,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string var_preferences_colon {
             get {
                 return ResourceManager.GetString("var_preferences_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When on single line.
+        /// </summary>
+        internal static string When_on_single_line {
+            get {
+                return ResourceManager.GetString("When_on_single_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When possible.
+        /// </summary>
+        internal static string When_possible {
+            get {
+                return ResourceManager.GetString("When_possible", resourceCulture);
             }
         }
         

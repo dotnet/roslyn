@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                         continue;
 
                     case (int)ErrorCode.ERR_MissingPredefinedMember:
+                    case (int)ErrorCode.ERR_PredefinedTypeNotFound:
                         // make it build only error.
                         continue;
                     case (int)ErrorCode.ERR_NoEntryPoint:

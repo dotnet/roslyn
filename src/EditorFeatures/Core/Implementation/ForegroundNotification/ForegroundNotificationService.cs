@@ -65,13 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
             _workQueue.Enqueue(new PendingWork(current + delay, action, asyncToken, cancellationToken));
         }
 
-        public bool IsEmpty_TestOnly
-        {
-            get
-            {
-                return _workQueue.IsEmpty;
-            }
-        }
+        public bool IsEmpty_TestOnly => _workQueue.IsEmpty;
 
         private async Task ProcessAsync()
         {

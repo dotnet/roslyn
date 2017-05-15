@@ -117,13 +117,18 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 proxyValue,
                 ExpansionFlags.IncludeBaseMembers,
                 TypeHelpers.IsPublic,
-                resultProvider);
+                resultProvider,
+                isProxyType: true);
             if (proxyMembers != null)
             {
                 string proxyMemberFullNamePrefix = null;
                 if (childFullNamePrefix != null)
                 {
-                    proxyMemberFullNamePrefix = resultProvider.FullNameProvider.GetClrObjectCreationExpression(inspectionContext, proxyTypeAndInfo.ClrType, proxyTypeAndInfo.Info, childFullNamePrefix);
+                    proxyMemberFullNamePrefix = resultProvider.FullNameProvider.GetClrObjectCreationExpression(
+                        inspectionContext,
+                        proxyTypeAndInfo.ClrType,
+                        proxyTypeAndInfo.Info,
+                        new[] { childFullNamePrefix });
                 }
                 _proxyItem = new EvalResult(
                     ExpansionKind.Default,

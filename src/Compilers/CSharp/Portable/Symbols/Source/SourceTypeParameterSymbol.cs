@@ -3,11 +3,10 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -159,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public sealed override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return this.GetAttributesBag(null).Attributes;
+            return this.GetAttributesBag().Attributes;
         }
 
         /// <summary>
@@ -168,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        internal virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag(DiagnosticBag diagnosticsOpt)
+        internal virtual CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
             if (_lazyCustomAttributesBag == null || !_lazyCustomAttributesBag.IsSealed)
             {
@@ -179,13 +178,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     lazyAttributesStored = LoadAndValidateAttributes(
                         OneOrMany.Create(this.MergedAttributeDeclarationSyntaxLists),
-                        ref _lazyCustomAttributesBag,
-                        addToDiagnostics: diagnosticsOpt);
+                        ref _lazyCustomAttributesBag);
                 }
                 else
                 {
                     var typeParameter = (SourceTypeParameterSymbolBase)sourceMethod.SourcePartialDefinition.TypeParameters[_ordinal];
-                    CustomAttributesBag<CSharpAttributeData> attributesBag = typeParameter.GetAttributesBag(diagnosticsOpt);
+                    CustomAttributesBag<CSharpAttributeData> attributesBag = typeParameter.GetAttributesBag();
 
                     lazyAttributesStored = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
                 }
@@ -448,60 +446,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
     }
 
+    // TODO: https://github.com/dotnet/roslyn/issues/17244 This type is probably not necessary
     internal sealed class LocalFunctionTypeParameterSymbol : SourceTypeParameterSymbolBase
     {
         private readonly LocalFunctionSymbol _owner;
 
-        public LocalFunctionTypeParameterSymbol(LocalFunctionSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
+        public LocalFunctionTypeParameterSymbol(
+            LocalFunctionSymbol owner,
+            string name,
+            int ordinal,
+            ImmutableArray<Location> locations,
+            ImmutableArray<SyntaxReference> syntaxRefs)
             : base(name, ordinal, locations, syntaxRefs)
         {
             _owner = owner;
         }
 
-        public override TypeParameterKind TypeParameterKind
-        {
-            get
-            {
-                return TypeParameterKind.Method;
-            }
-        }
+        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+            => _owner.AddDeclarationDiagnostics(diagnostics);
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _owner; }
-        }
+        public override TypeParameterKind TypeParameterKind => TypeParameterKind.Method;
+
+        public override Symbol ContainingSymbol => _owner;
 
         public override bool HasConstructorConstraint
-        {
-            get
-            {
-                var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.Constructor) != 0;
-            }
-        }
+            => (GetDeclaredConstraints() & TypeParameterConstraintKind.Constructor) != 0;
 
         public override bool HasValueTypeConstraint
-        {
-            get
-            {
-                var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ValueType) != 0;
-            }
-        }
+            => (GetDeclaredConstraints() & TypeParameterConstraintKind.ValueType) != 0;
 
         public override bool HasReferenceTypeConstraint
-        {
-            get
-            {
-                var constraints = this.GetDeclaredConstraints();
-                return (constraints & TypeParameterConstraintKind.ReferenceType) != 0;
-            }
-        }
+            => (GetDeclaredConstraints() & TypeParameterConstraintKind.ReferenceType) != 0;
 
-        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters
-        {
-            get { return _owner.TypeParameters; }
-        }
+        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters => _owner.TypeParameters;
 
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
@@ -509,10 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
         }
 
-        private TypeParameterConstraintKind GetDeclaredConstraints()
-        {
-            return _owner.GetTypeParameterConstraints(this.Ordinal);
-        }
+        private TypeParameterConstraintKind GetDeclaredConstraints() => _owner.GetTypeParameterConstraints(Ordinal);
     }
 
     /// <summary>

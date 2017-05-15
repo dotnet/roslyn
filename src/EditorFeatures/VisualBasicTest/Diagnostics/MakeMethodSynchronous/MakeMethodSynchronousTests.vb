@@ -8,13 +8,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.MakeMe
     Public Class MakeMethodSynchronousTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New VisualBasicMakeMethodSynchronousCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New VisualBasicMakeMethodSynchronousCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestTaskReturnType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -27,12 +27,12 @@ Class C
     Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestTaskOfTReturnType() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -45,12 +45,12 @@ Class C
     Function Foo() As String
     End Function
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestSecondModifier() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -63,12 +63,12 @@ Class C
     Public Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestFirstModifier() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -81,14 +81,14 @@ Class C
     Public Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
 
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestRenameMethod() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -101,12 +101,12 @@ Class C
     Sub Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestRenameMethod1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks
 
 Class C
@@ -127,12 +127,12 @@ Class C
         Foo()
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestSingleLineSubLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -151,12 +151,12 @@ Class C
             Sub() Return
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestSingleLineFunctionLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -175,12 +175,12 @@ Class C
             Function() 1
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestMultiLineSubLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -203,12 +203,12 @@ Class C
             End Sub
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         Public Async Function TestMultiLineFunctionLambda() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System
 Imports System.Threading.Tasks
 
@@ -231,13 +231,13 @@ Class C
             End Function
     End Sub
 End Class",
-compareTokens:=False)
+ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -257,13 +257,13 @@ Public Class Class1
     Async Sub BarAsync()
         Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -283,13 +283,13 @@ Public Class Class1
     Async Sub BarAsync()
         Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller3() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -309,13 +309,13 @@ Public Class Class1
     Async Sub BarAsync()
         Me.Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCaller4() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -335,13 +335,13 @@ Public Class Class1
     Async Sub BarAsync()
         Me.Foo()
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested1() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -361,13 +361,13 @@ Public Class Class1
     Async Sub BarAsync()
         Foo(Foo(0))
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)>
         <WorkItem(13961, "https://github.com/dotnet/roslyn/issues/13961")>
         Public Async Function TestRemoveAwaitFromCallerNested2() As Task
-            Await TestAsync(
+            Await TestInRegularAndScriptAsync(
 "Imports System.Threading.Tasks;
 
 Public Class Class1
@@ -387,7 +387,7 @@ Public Class Class1
     Async Sub BarAsync()
         Me.Foo(Me.Foo(0))
     End Sub
-End Class", compareTokens:=False)
+End Class", ignoreTrivia:=False)
         End Function
     End Class
 End Namespace

@@ -14,14 +14,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             this.PeekResultFactory = peekResultFactory;
         }
 
-        public string DisplayName
-        {
-            get
-            {
+        public string DisplayName =>
                 // This is unused, and was supposed to have been removed from IPeekableItem.
-                return null;
-            }
-        }
+                null;
 
         public abstract IEnumerable<IPeekRelationship> Relationships { get; }
 

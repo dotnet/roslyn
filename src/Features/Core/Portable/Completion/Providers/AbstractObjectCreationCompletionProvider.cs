@@ -30,13 +30,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             return SymbolCompletionItem.CreateWithSymbolId(
                 displayText: displayText,
+                symbols: symbols,
+                // Always preselect
+                rules: GetCompletionItemRules(symbols).WithMatchPriority(MatchPriority.Preselect),
+                contextPosition: context.Position,
                 insertionText: insertionText,
                 filterText: GetFilterText(symbols[0], displayText, context),
-                contextPosition: context.Position,
-                symbols: symbols,
-                supportedPlatforms: supportedPlatformData,
-                matchPriority: MatchPriority.Preselect, // Always preselect
-                rules: GetCompletionItemRules(symbols, context));
+                supportedPlatforms: supportedPlatformData);
         }
 
         protected override Task<ImmutableArray<ISymbol>> GetSymbolsWorker(SyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)

@@ -41,6 +41,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly HostWorkspaceServices _workspaceServices;
 
         /// <summary>
+        /// Set to true while we're batching project loads. That is, between
+        /// <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
+        /// <see cref="IVsSolutionLoadEvents.OnAfterLoadProjectBatch"/>.
+        /// </summary>
+        private bool _batchingProjectLoads = false;
+
+        /// <summary>
         /// The list of projects loaded in this batch between <see cref="IVsSolutionLoadEvents.OnBeforeLoadProjectBatch" /> and
         /// <see cref="IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool)"/>.
         /// </summary>
@@ -282,7 +289,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(SpecializedCollections.SingletonEnumerable(project));
             }
-            else
+            else if (_batchingProjectLoads)
             {
                 _projectsLoadedThisBatch.Add(project);
             }
@@ -539,9 +546,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (_deferredLoadWasEnabledForLastSolution)
             {
-                // Copy to avoid modifying the collection while enumerating
-                var loadedProjects = ImmutableProjects.ToList();
-                foreach (var p in loadedProjects)
+                foreach (var p in ImmutableProjects)
                 {
                     p.Disconnect();
                 }
@@ -690,6 +695,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
+            var solution7 = (IVsSolution7)_vsSolution;
+            if (!solution7.IsDeferredProjectLoadAllowed(projectFilename))
+            {
+                return null;
+            }
+
             var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
@@ -698,7 +709,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 isInteractive: false,
                 sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
 
-            // TODO: Should come from sln file?
+            // TODO: Should come from .sln file?
             var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
 
             // `AbstractProject` only sets the filename if it actually exists.  Since we want 
@@ -912,6 +923,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
+            _batchingProjectLoads = true;
             _projectsLoadedThisBatch.Clear();
         }
 
@@ -926,6 +938,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 StartPushingToWorkspaceAndNotifyOfOpenDocuments(_projectsLoadedThisBatch);
             }
 
+            _batchingProjectLoads = false;
             _projectsLoadedThisBatch.Clear();
         }
 

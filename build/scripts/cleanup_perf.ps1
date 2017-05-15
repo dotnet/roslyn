@@ -36,10 +36,34 @@ if ($ShouldArchive) {
     # Move all etl files to the a folder for archiving
     echo "creating ToArchive directory"
     mkdir ToArchive
-    echo "moving $CPCLocation/DataBackup* to ToArchive"
-    mv $CPCLocation/DataBackup* ToArchive
-    echo "moving $CPCLocation/consumptionTempResults.xml to ToArchive"
-    mv $CPCLocation/consumptionTempResults.xml ToArchive
+    if (Test-Path $CPCLocation) {
+        try
+        {
+            echo "moving $CPCLocation/DataBackup* to ToArchive"
+            mv $CPCLocation/DataBackup* ToArchive
+            echo "moving $CPCLocation/consumptionTempResults.xml to ToArchive"
+            mv $CPCLocation/consumptionTempResults.xml ToArchive
+        }
+        catch
+        {
+            echo "Copying CPC data failed"
+            $ExitCode = 1
+        }
+    }
+    if (Test-Path C:\PerfLogs)
+    {
+        try
+        {    
+            mkdir ToArchive/PerfLogs
+            xcopy /S C:\PerfLogs ToArchive\PerfLogs
+        }
+        catch
+        {
+            echo "Copying PerfLogs failed"
+            $ExitCode = 1
+        }
+    }
+
     ls ToArchive
 }
 

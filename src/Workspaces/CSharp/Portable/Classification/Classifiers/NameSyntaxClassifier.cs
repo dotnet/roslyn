@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             if (symbol != null)
             {
                 // Use .Equals since we can't rely on object identity for constructed types.
-                if (symbol is ITypeSymbol)
+                if (symbol is ITypeSymbol typeSymbol)
                 {
-                    var classification = GetClassificationForType((ITypeSymbol)symbol);
+                    var classification = GetClassificationForType(typeSymbol);
                     if (classification != null)
                     {
                         var token = name.GetNameToken();
@@ -179,8 +179,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool IsInVarContext(NameSyntax name)
         {
             return
-                name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
+                name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
                 name.CheckParent<ForEachStatementSyntax>(f => f.Type == name) ||
+                name.CheckParent<DeclarationPatternSyntax>(v => v.Type == name) ||
+                name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
                 name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
         }
 
@@ -217,6 +219,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         // If a constructor wasn't accessible, still classify the type if it's accessible.
                         if (firstSymbol.IsConstructor() && semanticModel.IsAccessible(name.SpanStart, firstSymbol.ContainingType))
                         {
+                            return firstSymbol;
+                        }
+
+                        break;
+
+                    case CandidateReason.WrongArity:
+                        if (name.GetRightmostName().Arity == 0)
+                        {
+                            // When the user writes something like "IList" we don't want to *not* classify 
+                            // just because the type bound to "IList<T>".  This is also important for use
+                            // cases like "Add-using" where it can be confusing when the using is added for
+                            // "using System.Collection.Generic" but then the type name still does not classify.
                             return firstSymbol;
                         }
 
@@ -287,9 +301,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 
         private bool IsSymbolCalledVar(ISymbol symbol)
         {
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return ((INamedTypeSymbol)symbol).Arity == 0 && symbol.Name == "var";
+                return namedType.Arity == 0 && symbol.Name == "var";
             }
 
             return symbol != null && symbol.Name == "var";

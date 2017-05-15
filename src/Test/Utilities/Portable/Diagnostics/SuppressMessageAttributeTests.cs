@@ -2,12 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1213,10 +1212,8 @@ public class C2
         // Generate a diagnostic on every token in the specified spans, and verify that only the specified diagnostics are not suppressed
         private Task VerifyTokenDiagnosticsAsync(string markup, string language, DiagnosticDescription[] diagnostics)
         {
-            string source;
-            IList<TextSpan> spans;
-            MarkupTestFile.GetSpans(markup, out source, out spans);
-            Assert.True(spans.Count > 0, "Must specify a span within which to generate diagnostics on each token");
+            MarkupTestFile.GetSpans(markup, out var source, out ImmutableArray<TextSpan> spans);
+            Assert.True(spans.Length > 0, "Must specify a span within which to generate diagnostics on each token");
 
             return VerifyAsync(source, language, new DiagnosticAnalyzer[] { new WarningOnTokenAnalyzer(spans) }, diagnostics);
         }
@@ -1225,7 +1222,9 @@ public class C2
 
         protected DiagnosticDescription Diagnostic(string id, string squiggledText)
         {
-            var arguments = (this.ConsiderArgumentsForComparingDiagnostics && squiggledText != null) ? new[] { squiggledText } : null;
+            var arguments = this.ConsiderArgumentsForComparingDiagnostics && squiggledText != null
+                ? new[] { squiggledText }
+                : null;
             return new DiagnosticDescription(id, false, squiggledText, arguments, null, null, false);
         }
     }

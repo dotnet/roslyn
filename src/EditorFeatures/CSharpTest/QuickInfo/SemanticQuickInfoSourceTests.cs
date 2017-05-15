@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     {
         private async Task TestWithOptionsAsync(CSharpParseOptions options, string markup, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(markup, options))
+            using (var workspace = TestWorkspace.CreateCSharp(markup, options))
             {
                 await TestWithOptionsAsync(workspace, expectedResults);
             }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
     </Project>
 </Workspace>", SecurityElement.Escape(markup));
 
-            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var workspace = TestWorkspace.Create(xmlString))
             {
                 var position = workspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.Where(d => d.Name == "SourceDocument").Single().Id;
@@ -250,7 +250,7 @@ using System.Linq;
 
         private async Task VerifyWithReferenceWorkerAsync(string xmlString, params Action<object>[] expectedResults)
         {
-            using (var workspace = await TestWorkspace.CreateAsync(xmlString))
+            using (var workspace = TestWorkspace.Create(xmlString))
             {
                 var position = workspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = workspace.Documents.First(d => d.Name == "SourceDocument").Id;
@@ -4805,7 +4805,7 @@ namespace MyNs
     </Submission>
 </Workspace>
 ";
-            using (var workspace = await TestWorkspace.CreateAsync(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
+            using (var workspace = TestWorkspace.Create(XElement.Parse(workspaceDefinition), workspaceKind: WorkspaceKind.Interactive))
             {
                 await TestWithOptionsAsync(workspace, MainDescription("(parameter) int x = 1"));
             }
@@ -4835,6 +4835,114 @@ class C : I
     }
 }",
                 MainDescription("(int, int) C.Name { get; set; }"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity0VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create();
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) ValueTuple y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity0ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create();
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("struct System.ValueTuple"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity1VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create(1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) ValueTuple<int> y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity1ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create(1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("ValueTuple<System.Int32>"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity2VariableName()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var y$$ = ValueTuple.Create(1, 1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(local variable) (int, int) y"));
+        }
+
+        [WorkItem(18311, "https://github.com/dotnet/roslyn/issues/18311")]
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task ValueTupleWithArity2ImplicitVar()
+        {
+            await TestAsync(
+@"
+using System;
+public class C
+{
+    void M()
+    {
+        var$$ y = ValueTuple.Create(1, 1);
+    }
+}
+" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+                MainDescription("(System.Int32, System.Int32)"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]

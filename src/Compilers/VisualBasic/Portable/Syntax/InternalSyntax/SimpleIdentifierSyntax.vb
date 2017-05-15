@@ -22,9 +22,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyBase.New(reader)
         End Sub
 
-        Friend Overrides Function GetReader() As Func(Of ObjectReader, Object)
-            Return Function(r) New SimpleIdentifierSyntax(r)
-        End Function
+        Shared Sub New()
+            ObjectBinder.RegisterTypeReader(GetType(SimpleIdentifierSyntax), Function(r) New SimpleIdentifierSyntax(r))
+        End Sub
 
         ''' <summary>
         ''' Contextual Nodekind

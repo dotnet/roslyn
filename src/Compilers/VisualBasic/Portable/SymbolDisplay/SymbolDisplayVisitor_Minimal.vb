@@ -159,7 +159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim compilation = semanticModelOpt.Compilation
 
             Dim sourceModule = DirectCast(compilation.SourceModule, SourceModuleSymbol)
-            Dim sourceFile = sourceModule.GetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
+            Dim sourceFile = sourceModule.TryGetSourceFile(DirectCast(GetSyntaxTree(DirectCast(semanticModelOpt, SemanticModel)), VisualBasicSyntaxTree))
+            Debug.Assert(sourceFile IsNot Nothing)
 
             If Not sourceFile.AliasImportsOpt Is Nothing Then
                 For Each [alias] In sourceFile.AliasImportsOpt.Values

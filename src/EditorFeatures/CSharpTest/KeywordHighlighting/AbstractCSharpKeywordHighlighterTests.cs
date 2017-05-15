@@ -11,10 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
     public abstract class AbstractCSharpKeywordHighlighterTests
         : AbstractKeywordHighlighterTests
     {
-        protected override Task<TestWorkspace> CreateWorkspaceFromFileAsync(string code, ParseOptions options)
-        {
-            return TestWorkspace.CreateCSharpAsync(code, (CSharpParseOptions)options);
-        }
+        protected override TestWorkspace CreateWorkspaceFromFile(string code, ParseOptions options)
+            => TestWorkspace.CreateCSharp(code, (CSharpParseOptions)options);
 
         protected override IEnumerable<ParseOptions> GetOptions()
         {

@@ -53,6 +53,54 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging">
+      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
+      <Version>$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Utilities">
+      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Validation">
+      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading">
+      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie">
+      <Version>$(MicrosoftCodeAnalysisElfieVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl">
+      <Version>$(MicrosoftVisualStudioRemoteControlVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
@@ -76,6 +124,7 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
     <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
@@ -89,6 +138,7 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
@@ -103,14 +153,37 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
+    <Compile Include="FindUsages\AbstractFindUsagesService.DefinitionTrackingContext.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\FindUsagesContext.cs" />
+    <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\LinkedFileDiscrepancyException.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionSetComparer.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActionsSource.cs" />
+    <Compile Include="Implementation\InfoBar\EditorInfoBarService.cs" />
+    <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
+    <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\IDelayService.cs" />
+    <Compile Include="SymbolSearch\IIOService.cs" />
+    <Compile Include="SymbolSearch\IPatchService.cs" />
+    <Compile Include="SymbolSearch\IRemoteControlService.cs" />
+    <Compile Include="SymbolSearch\Patching\Delta.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DelayService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.IOService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.PatchService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.RemoteControlService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.Update.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchUpdateEngineFactory.cs" />
     <Compile Include="Tags\ExportImageMonikerServiceAttribute.cs" />
     <Compile Include="Implementation\NavigateTo\AbstractNavigateToItemDisplay.cs" />
     <Compile Include="CommandArgs.cs" />
@@ -278,8 +351,8 @@
     <Compile Include="Implementation\Structure\AbstractStructureTaggerProvider.cs" />
     <Compile Include="Implementation\Preview\DifferenceViewerPreview.cs" />
     <Compile Include="Implementation\Preview\PreviewReferenceHighlightingTaggerProvider.cs" />
-    <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.FixAllCodeAction.cs" />
-    <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\FixAllSuggestedAction.FixAllCodeAction.cs" />
+    <Compile Include="Implementation\Suggestions\FixAll\FixMultipleOccurrencesService.cs" />
     <Compile Include="GoToImplementation\GoToImplementationCommandHandler.cs" />
     <Compile Include="Implementation\TodoComment\ITodoListProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoItem.cs" />
@@ -377,7 +450,6 @@
     <Compile Include="Implementation\EndConstructGeneration\IEndConstructGenerationService.cs" />
     <Compile Include="Implementation\ExtractInterface\AbstractExtractInterfaceCommandHandler.cs" />
     <Compile Include="Implementation\ExtractMethod\AbstractExtractMethodCommandHandler.cs" />
-    <Compile Include="FindReferences\AbstractFindReferencesService.cs" />
     <Compile Include="FindReferences\FindReferencesCommandHandler.cs" />
     <Compile Include="FindReferences\IFindReferencesService.cs" />
     <Compile Include="Implementation\ForegroundNotification\ForegroundNotificationService.cs" />
@@ -395,9 +467,7 @@
     <Compile Include="GoToDefinition\GoToDefinitionHelpers.cs" />
     <Compile Include="GoToDefinition\IGoToDefinitionService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\CurrentWorkingDirectoryDiscoveryService.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\FileSystem\FileSystemCompletionHelper.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FileSystem\ICurrentWorkingDirectoryDiscoveryService.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\FileSystem\PathCompletionUtilities.cs" />
     <Compile Include="Implementation\KeywordHighlighting\AbstractKeywordHighlighter.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlighterViewTaggerProvider.cs" />
     <Compile Include="Implementation\KeywordHighlighting\HighlightingService.cs" />
@@ -598,22 +668,20 @@
     <Compile Include="Implementation\SmartIndent\IIndentationService.cs" />
     <Compile Include="Implementation\SmartIndent\SmartIndent.cs" />
     <Compile Include="Implementation\SmartIndent\SmartIndentProvider.cs" />
-    <Compile Include="Implementation\Suggestions\FixAllGetFixesService.cs" />
-    <Compile Include="Implementation\Suggestions\FixAllSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\CodeFixSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\CodeRefactoringSuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\FixAll\FixAllGetFixesService.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\FixAllSuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\CodeFixSuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\CodeRefactoringSuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\PreviewChanges\PreviewChangesCodeAction.cs" />
     <Compile Include="Implementation\Suggestions\PreviewChanges\PreviewChangesSuggestedAction.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedAction.CaretPositionRestorer.cs" />
-    <Compile Include="Implementation\Suggestions\SuggestedAction.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\SuggestedAction.CaretPositionRestorer.cs" />
+    <Compile Include="Implementation\Suggestions\SuggestedActions\SuggestedAction.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSourceProvider.cs" />
     <Compile Include="Implementation\TextBufferAssociatedViewService.cs" />
     <Compile Include="Implementation\TextDiffing\EditorTextDifferencingService.cs" />
     <Compile Include="Implementation\TextStructureNavigation\AbstractTextStructureNavigatorProvider.cs" />
     <Compile Include="Implementation\TextStructureNavigation\AbstractTextStructureNavigatorProvider.TextStructureNavigator.cs" />
-    <Compile Include="Implementation\TodoComment\AbstractTodoCommentIncrementalAnalyzer.cs" />
-    <Compile Include="Implementation\TodoComment\AbstractTodoCommentService.cs" />
-    <Compile Include="Implementation\TodoComment\ITodoCommentService.cs" />
+    <Compile Include="Implementation\TodoComment\TodoCommentIncrementalAnalyzer.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentOptions.cs" />
     <Compile Include="Implementation\TodoComment\TodoCommentState.cs" />
@@ -774,7 +842,6 @@
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\AbstractSemanticQuickInfoProvider.ErrorVisitor.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

@@ -156,8 +156,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
             miscellaneousFilesWorkspace.RegisterLanguage(
                 Guids.VisualBasicLanguageServiceId,
                 LanguageNames.VisualBasic,
-                ".vbx",
-                VisualBasicParseOptions.Default)
+                ".vbx")
         End Sub
 
         Protected Overrides ReadOnly Property RoslynLanguageName As String

@@ -3,6 +3,7 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Xaml.Features.OrganizeImports;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.OrganizeImports;
@@ -21,9 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml.OrganizeImports
             _organizeService = organizeService;
         }
 
-        public Task<Document> OrganizeImportsAsync(Document document, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
+        public async Task<Document> OrganizeImportsAsync(Document document, CancellationToken cancellationToken)
         {
-            return _organizeService.OrganizeNamespacesAsync(document, placeSystemNamespaceFirst, cancellationToken) ?? Task.FromResult(document);
+            var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+            return await _organizeService.OrganizeNamespacesAsync(document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false) ?? document;
         }
 
         public string SortAndRemoveUnusedImportsDisplayStringWithAccelerator

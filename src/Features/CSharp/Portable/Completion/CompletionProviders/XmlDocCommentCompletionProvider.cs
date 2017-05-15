@@ -168,19 +168,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private IEnumerable<CompletionItem> GetTagsForSymbol(ISymbol symbol, DocumentationCommentTriviaSyntax trivia)
         {
-            if (symbol is IMethodSymbol)
+            if (symbol is IMethodSymbol method)
             {
-                return GetTagsForMethod((IMethodSymbol)symbol, trivia);
+                return GetTagsForMethod(method, trivia);
             }
 
-            if (symbol is IPropertySymbol)
+            if (symbol is IPropertySymbol property)
             {
-                return GetTagsForProperty((IPropertySymbol)symbol, trivia);
+                return GetTagsForProperty(property, trivia);
             }
 
-            if (symbol is INamedTypeSymbol)
+            if (symbol is INamedTypeSymbol namedType)
             {
-                return GetTagsForType((INamedTypeSymbol)symbol, trivia);
+                return GetTagsForType(namedType, trivia);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();

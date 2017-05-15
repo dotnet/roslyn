@@ -381,19 +381,6 @@ namespace Microsoft.Cci
     }
 
     /// <summary>
-    /// This interface models the metadata representation of a managed pointer.
-    /// Remark: This should be only used in attributes. For other objects like Local variables etc
-    /// there is explicit IsReference field that should be used.
-    /// </summary>
-    internal interface IManagedPointerTypeReference : ITypeReference
-    {
-        /// <summary>
-        /// The type of value stored at the target memory location.
-        /// </summary>
-        ITypeReference GetTargetType(EmitContext context);
-    }
-
-    /// <summary>
     /// A type ref with attributes attached directly to the type reference
     /// itself. Unlike <see cref="IReference.GetAttributes(EmitContext)"/> a
     /// <see cref="TypeReferenceWithAttributes"/> will never provide attributes
@@ -446,7 +433,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Zero or more events defined by this type.
         /// </summary>
-        IEnumerable<IEventDefinition> Events { get; }
+        IEnumerable<IEventDefinition> GetEvents(EmitContext context);
 
         /// <summary>
         /// Zero or more implementation overrides provided by the class.

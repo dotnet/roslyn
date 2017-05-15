@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -1285,10 +1286,8 @@ End Class
         private static void VerifyResolution(string markup, string[] fxCopFullyQualifiedNames, SuppressMessageAttributeState.TargetScope scope, string language, string rootNamespace)
         {
             // Parse out the span containing the declaration of the expected symbol
-            string source;
-            int? pos;
-            IDictionary<string, IList<TextSpan>> spans;
-            MarkupTestFile.GetPositionAndSpans(markup, out source, out pos, out spans);
+            MarkupTestFile.GetPositionAndSpans(markup, 
+                out var source, out var pos, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             Assert.True(pos != null || spans.Count > 0, "Must specify a position or spans marking expected symbols for resolution");
 

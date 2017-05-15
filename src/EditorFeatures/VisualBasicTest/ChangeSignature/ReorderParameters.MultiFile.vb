@@ -48,7 +48,7 @@ class C
     }
 }]]></Text>.NormalizedValue()
 
-            Using testState = Await ChangeSignatureTestState.CreateAsync(workspace)
+            Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation
@@ -102,7 +102,7 @@ class C
     }
 }]]></Text>.NormalizedValue()
 
-            Using testState = Await ChangeSignatureTestState.CreateAsync(workspace)
+            Using testState = ChangeSignatureTestState.Create(workspace)
                 Dim history = testState.Workspace.GetService(Of ITextUndoHistoryRegistry)().RegisterHistory(testState.Workspace.Documents.First().GetTextBuffer())
                 testState.TestChangeSignatureOptionsService.IsCancelled = False
                 testState.TestChangeSignatureOptionsService.UpdatedSignature = permutation

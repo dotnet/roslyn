@@ -435,6 +435,22 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestAddHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.AddEventHandler(_g.IdentifierName("@event"), _g.IdentifierName("handler")),
+                "@event += (handler)");
+        }
+
+        [Fact]
+        public void TestSubtractHandlerExpressions()
+        {
+            VerifySyntax<AssignmentExpressionSyntax>(
+                _g.RemoveEventHandler(_g.IdentifierName("@event"),
+                _g.IdentifierName("handler")), "@event -= (handler)");
+        }
+
+        [Fact]
         public void TestAwaitExpressions()
         {
             VerifySyntax<AwaitExpressionSyntax>(_g.AwaitExpression(_g.IdentifierName("x")), "await x");
@@ -548,6 +564,14 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<UsingStatementSyntax>(
                 _g.UsingStatement(_g.IdentifierName("x"), "y", _g.IdentifierName("z"), new[] { _g.IdentifierName("q") }),
                 "using (x y = z)\r\n{\r\n    q;\r\n}");
+        }
+
+        [Fact]
+        public void TestLockStatements()
+        {
+            VerifySyntax<LockStatementSyntax>(
+                _g.LockStatement(_g.IdentifierName("x"), new[] { _g.IdentifierName("y") }),
+                "lock (x)\r\n{\r\n    y;\r\n}");
         }
 
         [Fact]
@@ -1212,11 +1236,11 @@ public interface IFace
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 _g.InterfaceDeclaration("i", members: new[] { _g.CustomEventDeclaration("ep", _g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Static) }),
-                "interface i\r\n{\r\n    event t ep\r\n    {\r\n        add;\r\n        remove;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    event t ep;\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 _g.InterfaceDeclaration("i", members: new[] { _g.EventDeclaration("ef", _g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Static) }),
-                "interface i\r\n{\r\n    event t ef\r\n    {\r\n        add;\r\n        remove;\r\n    }\r\n}");
+                "interface i\r\n{\r\n    event t ef;\r\n}");
 
             VerifySyntax<InterfaceDeclarationSyntax>(
                 _g.InterfaceDeclaration("i", members: new[] { _g.FieldDeclaration("f", _g.IdentifierName("t"), accessibility: Accessibility.Public, modifiers: DeclarationModifiers.Sealed) }),
@@ -1677,11 +1701,7 @@ public class C { } // end").Members[0];
                 _g.Declaration(_emptyCompilation.GetTypeByMetadataName("System.ComponentModel.INotifyPropertyChanged")),
 @"public interface INotifyPropertyChanged
 {
-    event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged
-    {
-        add;
-        remove;
-    }
+    event global::System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
 }");
         }
         #endregion

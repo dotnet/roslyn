@@ -38,7 +38,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 workspace.Options = workspace.Options.WithChangedOption(
                     BlockStructureOptions.CollapseRegionsWhenCollapsingToDefinitions, LanguageNames.CSharp, true);
@@ -82,7 +82,7 @@ namespace MyNamespace
 #endregion
 }";
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(code))
+            using (var workspace = TestWorkspace.CreateCSharp(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -119,7 +119,7 @@ Namespace MyNamespace
 #End Region
 End Namespace";
 
-            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace = TestWorkspace.CreateVisualBasic(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 
@@ -150,7 +150,7 @@ End Namespace";
     End Sub
 End Module";
 
-            using (var workspace = await TestWorkspace.CreateVisualBasicAsync(code))
+            using (var workspace = TestWorkspace.CreateVisualBasic(code))
             {
                 var tags = await GetTagsFromWorkspaceAsync(workspace);
 

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         public void Syntax01()
         {
             // Language feature enabled by default
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public int P => 1;
@@ -33,7 +33,7 @@ class C
             comp.VerifyDiagnostics(
     // (4,5): error CS8056: Properties cannot combine accessor lists with expression bodies.
     //     public int P { get; } => 1;
-    Diagnostic(ErrorCode.ERR_AccessorListAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5)
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "public int P { get; } => 1;").WithLocation(4, 5)
     );
         }
 

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Host
             private void ForceCompactingGC()
             {
                 // repeated GC.Collect / WaitForPendingFinalizers till memory freed delta is super small, ignore the return value
-                GC.GetTotalMemory(forceFullCollection:true);
+                GC.GetTotalMemory(forceFullCollection: true);
 
                 // compact the LOH
                 GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
@@ -141,18 +141,21 @@ namespace Microsoft.CodeAnalysis.Host
 
             private void Dispose(bool disposing)
             {
-                if (_accessor != null)
+                lock (_memoryMappedFile)
                 {
-                    // dispose accessor it owns.
-                    // if someone explicitly called Dispose when streams given out are not
-                    // disposed yet, the accessor each stream has will simply stop working.
-                    //
-                    // it is caller's responsibility to make sure all streams it got from
-                    // the temporary storage are disposed before calling dispose on the storage.
-                    //
-                    // otherwise, finalizer will take care of disposing stuff as we used to be.
-                    _accessor.Dispose();
-                    _accessor = null;
+                    if (_accessor != null)
+                    {
+                        // dispose accessor it owns.
+                        // if someone explicitly called Dispose when streams given out are not
+                        // disposed yet, the accessor each stream has will simply stop working.
+                        //
+                        // it is caller's responsibility to make sure all streams it got from
+                        // the temporary storage are disposed before calling dispose on the storage.
+                        //
+                        // otherwise, finalizer will take care of disposing stuff as we used to be.
+                        _accessor.Dispose();
+                        _accessor = null;
+                    }
                 }
 
                 // Dispose the memoryMappedFile

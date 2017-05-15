@@ -409,6 +409,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // error CS1978: Cannot use an expression of type '__arglist' as an argument to a dynamically dispatched operation
                         Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArg, arg.Syntax, "__arglist");
                     }
+                    else if (arg.IsLiteralDefault())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, arg.Syntax);
+                        hasErrors = true;
+                    }
                     else
                     {
                         // Lambdas,anonymous methods and method groups are the typeless expressions that
@@ -1127,12 +1132,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             return method.IsGenericMethod && method.ConstructedFrom() == method;
         }
 
+        // Arbitrary limit on the number of parameter lists from overload
+        // resolution candidates considered when binding argument types.
+        // Any additional parameter lists are ignored.
+        internal const int MaxParameterListsForErrorRecovery = 10;
+
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<MethodSymbol> methods)
         {
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
             foreach (var m in methods)
             {
-                if (!IsUnboundGeneric(m) && m.ParameterCount > 0) parameterListList.Add(m.Parameters);
+                if (!IsUnboundGeneric(m) && m.ParameterCount > 0)
+                {
+                    parameterListList.Add(m.Parameters);
+                    if (parameterListList.Count == MaxParameterListsForErrorRecovery)
+                    {
+                        break;
+                    }
+                }
             }
 
             var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
@@ -1143,9 +1160,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<PropertySymbol> properties)
         {
             var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
-            foreach (var m in properties)
+            foreach (var p in properties)
             {
-                if (m.ParameterCount > 0) parameterListList.Add(m.Parameters);
+                if (p.ParameterCount > 0)
+                {
+                    parameterListList.Add(p.Parameters);
+                    if (parameterListList.Count == MaxParameterListsForErrorRecovery)
+                    {
+                        break;
+                    }
+                }
             }
 
             var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
@@ -1181,7 +1205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             foreach (var parameterList in parameterListList)
                             {
                                 var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
-                                if (parameterType?.Kind == SymbolKind.NamedType)
+                                if (parameterType?.Kind == SymbolKind.NamedType &&
+                                    (object)parameterType.GetDelegateType() != null)
                                 {
                                     var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
                                 }
@@ -1350,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindNameofOperatorInternal(InvocationExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            CheckFeatureAvailability(node.GetLocation(), MessageID.IDS_FeatureNameof, diagnostics);
+            CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
             string name = "";
             // We relax the instance-vs-static requirement for top-level member access expressions by creating a NameofBinder binder.

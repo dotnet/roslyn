@@ -11,7 +11,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private ReadOnly _trailingTriviaOrTriviaInfo As Object
 
         Friend Class TriviaInfo
-            Implements IObjectWritable, IObjectReadable
+            Implements IObjectWritable
+
+            Shared Sub New()
+                ObjectBinder.RegisterTypeReader(GetType(TriviaInfo), Function(r) New TriviaInfo(r))
+            End Sub
 
             Private Sub New(leadingTrivia As GreenNode, trailingTrivia As GreenNode)
                 Me._leadingTrivia = leadingTrivia
@@ -84,10 +88,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me._leadingTrivia = DirectCast(reader.ReadValue(), GreenNode)
                 Me._trailingTrivia = DirectCast(reader.ReadValue(), GreenNode)
             End Sub
-
-            Public Function GetReader() As Func(Of ObjectReader, Object) Implements IObjectReadable.GetReader
-                Return Function(r) New TriviaInfo(r)
-            End Function
 
             Public Sub WriteTo(writer As ObjectWriter) Implements IObjectWritable.WriteTo
                 writer.WriteValue(_leadingTrivia)

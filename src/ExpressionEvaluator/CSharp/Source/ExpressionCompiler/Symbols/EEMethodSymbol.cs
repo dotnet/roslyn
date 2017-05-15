@@ -8,11 +8,18 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
-    internal delegate BoundStatement GenerateMethodBody(EEMethodSymbol method, DiagnosticBag diagnostics, out ImmutableArray<LocalSymbol> declaredLocals);
+    internal delegate BoundExpression GenerateThisReference(SyntaxNode syntax);
+
+    internal delegate BoundStatement GenerateMethodBody(
+        EEMethodSymbol method,
+        DiagnosticBag diagnostics,
+        out ImmutableArray<LocalSymbol> declaredLocals,
+        out ResultProperties properties);
 
     /// <summary>
     /// Synthesized expression evaluation method.
@@ -48,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         /// </summary>
         private readonly GenerateMethodBody _generateMethodBody;
         private TypeSymbol _lazyReturnType;
+        private ResultProperties _lazyResultProperties;
 
         // NOTE: This is only used for asserts, so it could be conditional on DEBUG.
         private readonly ImmutableArray<TypeParameterSymbol> _allTypeParameters;
@@ -405,10 +413,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { throw ExceptionUtilities.Unreachable; }
         }
 
+        internal ResultProperties ResultProperties
+        {
+            get { return _lazyResultProperties; }
+        }
+
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             ImmutableArray<LocalSymbol> declaredLocalsArray;
-            var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray);
+            var body = _generateMethodBody(this, diagnostics, out declaredLocalsArray, out _lazyResultProperties);
             var compilation = compilationState.Compilation;
 
             _lazyReturnType = CalculateReturnType(compilation, body);
@@ -442,7 +455,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 try
                 {
                     // Rewrite local declaration statement.
-                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(compilation, _container, declaredLocals, body, declaredLocalsArray);
+                    body = (BoundStatement)LocalDeclarationRewriter.Rewrite(
+                        compilation,
+                        _container,
+                        declaredLocals,
+                        body,
+                        declaredLocalsArray,
+                        diagnostics);
 
                     // Verify local declaration names.
                     foreach (var local in declaredLocals)
@@ -559,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 // Rewrite "this" and "base" references to parameter in this method.
                 // Rewrite variables within body to reference existing display classes.
                 body = (BoundStatement)CapturedVariableRewriter.Rewrite(
-                    this.SubstitutedSourceMethod.IsStatic ? null : _parameters[0],
+                    this.GenerateThisReference,
                     compilation.Conversions,
                     _displayClassVariables,
                     body,
@@ -628,6 +647,28 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 ex.AddAnError(diagnostics);
             }
+        }
+
+        private BoundExpression GenerateThisReference(SyntaxNode syntax)
+        {
+            var thisProxy = CompilationContext.GetThisProxy(_displayClassVariables);
+            if (thisProxy != null)
+            {
+                return thisProxy.ToBoundExpression(syntax);
+            }
+            if ((object)_thisParameter != null)
+            {
+                var typeNameKind = GeneratedNames.GetKind(_thisParameter.Type.Name);
+                if (typeNameKind != GeneratedNameKind.None && typeNameKind != GeneratedNameKind.AnonymousType)
+                {
+                    Debug.Assert(typeNameKind == GeneratedNameKind.LambdaDisplayClass ||
+                        typeNameKind == GeneratedNameKind.StateMachineType,
+                        $"Unexpected typeNameKind '{typeNameKind}'");
+                    return null;
+                }
+                return new BoundParameter(syntax, _thisParameter);
+            }
+            return null;
         }
 
         private static TypeSymbol CalculateReturnType(CSharpCompilation compilation, BoundStatement bodyOpt)

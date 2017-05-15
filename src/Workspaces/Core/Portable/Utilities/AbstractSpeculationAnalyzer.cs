@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities
@@ -82,10 +81,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Original expression to be replaced.
         /// </summary>
-        public TExpressionSyntax OriginalExpression
-        {
-            get { return _expression; }
-        }
+        public TExpressionSyntax OriginalExpression => _expression;
 
         /// <summary>
         /// First ancestor of <see cref="OriginalExpression"/> which is either a statement, attribute, constructor initializer,
@@ -109,10 +105,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Semantic model for the syntax tree corresponding to <see cref="OriginalExpression"/>
         /// </summary>
-        public TSemanticModel OriginalSemanticModel
-        {
-            get { return _semanticModel; }
-        }
+        public TSemanticModel OriginalSemanticModel => _semanticModel;
 
         /// <summary>
         /// Node which replaces the <see cref="OriginalExpression"/>.
@@ -154,13 +147,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             }
         }
 
-        public CancellationToken CancellationToken
-        {
-            get
-            {
-                return _cancellationToken;
-            }
-        }
+        public CancellationToken CancellationToken => _cancellationToken;
 
         protected abstract TSyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 
@@ -367,7 +354,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            // Handle equivalence of special built-in comparison operators between enum types and it's underlying enum type.
+            // Handle equivalence of special built-in comparison operators between enum types and 
+            // it's underlying enum type.
             if (symbol.Kind == SymbolKind.Method && newSymbol.Kind == SymbolKind.Method)
             {
                 var methodSymbol = (IMethodSymbol)symbol;
@@ -378,23 +366,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     var type = methodSymbol.ContainingType;
                     var newType = newMethodSymbol.ContainingType;
-                    if ((type != null && newType != null) &&
-                        (
-                            type.IsEnumType() &&
-                            type.EnumUnderlyingType != null &&
-                            type.EnumUnderlyingType.SpecialType == newType.SpecialType) ||
-                        (
-                            newType.IsEnumType() &&
-                            newType.EnumUnderlyingType != null &&
-                            newType.EnumUnderlyingType.SpecialType == type.SpecialType))
+                    if (type != null && newType != null)
                     {
-                        return true;
+                        if (EnumTypesAreCompatible(type, newType) ||
+                            EnumTypesAreCompatible(newType, type))
+                        {
+                            return true;
+                        }
                     }
                 }
             }
 
             return false;
         }
+
+        private static bool EnumTypesAreCompatible(INamedTypeSymbol type1, INamedTypeSymbol type2)
+            => type1.IsEnumType() &&
+               type1.EnumUnderlyingType?.SpecialType == type2.SpecialType;
 
         #endregion
 
@@ -489,21 +477,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                 return !ImplicitConversionsAreCompatible(originalExpression, newExpression);
             }
-            else if (currentOriginalNode is TForEachStatementSyntax)
+            else if (currentOriginalNode is TForEachStatementSyntax originalForEachStatement)
             {
-                var originalForEachStatement = (TForEachStatementSyntax)currentOriginalNode;
                 var newForEachStatement = (TForEachStatementSyntax)currentReplacedNode;
                 return ReplacementBreaksForEachStatement(originalForEachStatement, newForEachStatement);
             }
-            else if (currentOriginalNode is TAttributeSyntax)
+            else if (currentOriginalNode is TAttributeSyntax originalAttribute)
             {
-                var originalAttribute = (TAttributeSyntax)currentOriginalNode;
                 var newAttribute = (TAttributeSyntax)currentReplacedNode;
                 return ReplacementBreaksAttribute(originalAttribute, newAttribute);
             }
-            else if (currentOriginalNode is TThrowStatementSyntax)
+            else if (currentOriginalNode is TThrowStatementSyntax originalThrowStatement)
             {
-                var originalThrowStatement = (TThrowStatementSyntax)currentOriginalNode;
                 var newThrowStatement = (TThrowStatementSyntax)currentReplacedNode;
                 return ReplacementBreaksThrowStatement(originalThrowStatement, newThrowStatement);
             }
@@ -512,15 +497,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 return true;
             }
 
-            if (currentOriginalNode is TTypeSyntax)
+            if (currentOriginalNode is TTypeSyntax originalType)
             {
-                var originalType = (TTypeSyntax)currentOriginalNode;
                 var newType = (TTypeSyntax)currentReplacedNode;
                 return ReplacementBreaksTypeResolution(originalType, newType);
             }
-            else if (currentOriginalNode is TExpressionSyntax)
+            else if (currentOriginalNode is TExpressionSyntax originalExpression)
             {
-                var originalExpression = (TExpressionSyntax)currentOriginalNode;
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
                 if (!ImplicitConversionsAreCompatible(originalExpression, newExpression) ||
                     ReplacementIntroducesErrorType(originalExpression, newExpression))

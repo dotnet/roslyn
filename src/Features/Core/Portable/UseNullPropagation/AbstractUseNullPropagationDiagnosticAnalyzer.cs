@@ -37,15 +37,25 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticDocumentAnalysis;
 
         protected abstract TSyntaxKind GetSyntaxKindToAnalyze();
-        protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract bool IsEquals(TBinaryExpressionSyntax condition);
         protected abstract bool IsNotEquals(TBinaryExpressionSyntax condition);
         protected abstract bool ShouldAnalyze(ParseOptions options);
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, GetSyntaxKindToAnalyze());
+        protected abstract ISyntaxFactsService GetSyntaxFactsService();
+        protected abstract ISemanticFactsService GetSemanticFactsService();
 
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+        protected override void InitializeWorker(AnalysisContext context)
+        {
+            context.RegisterCompilationStartAction(startContext =>
+            {
+                var expressionTypeOpt = startContext.Compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
+                startContext.RegisterSyntaxNodeAction(
+                    c => AnalyzeSyntax(c, expressionTypeOpt), GetSyntaxKindToAnalyze());
+            });
+
+        }
+
+        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context, INamedTypeSymbol expressionTypeOpt)
         {
             var conditionalExpression = (TConditionalExpressionSyntax)context.Node;
             if (!ShouldAnalyze(conditionalExpression.SyntaxTree.Options))
@@ -102,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 return;
             }
 
-            // Needs to be of the forme:
+            // Needs to be of the form:
             //      x == null ? null : ...    or
             //      x != null ? ...  : null;
             if (isEquals && !syntaxFacts.IsNullLiteralExpression(whenTrueNode))
@@ -120,6 +130,14 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
             var whenPartMatch = GetWhenPartMatch(syntaxFacts, conditionPartToCheck, whenPartToCheck);
             if (whenPartMatch == null)
+            {
+                return;
+            }
+
+            // ?. is not available in expression-trees.  Disallow the fix in that case.
+            var semanticFacts = GetSemanticFactsService();
+            var semanticModel = context.SemanticModel;
+            if (semanticFacts.IsInExpressionTree(semanticModel, conditionNode, expressionTypeOpt, cancellationToken))
             {
                 return;
             }
@@ -162,26 +180,22 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
 
         private static SyntaxNode Unwrap(ISyntaxFactsService syntaxFacts, SyntaxNode node)
         {
-            var invocation = node as TInvocationExpression;
-            if (invocation != null)
+            if (node is TInvocationExpression invocation)
             {
                 return syntaxFacts.GetExpressionOfInvocationExpression(invocation);
             }
 
-            var memberAccess = node as TMemberAccessExpression;
-            if (memberAccess != null)
+            if (node is TMemberAccessExpression memberAccess)
             {
                 return syntaxFacts.GetExpressionOfMemberAccessExpression(memberAccess);
             }
 
-            var conditionalAccess = node as TConditionalAccessExpression;
-            if (conditionalAccess != null)
+            if (node is TConditionalAccessExpression conditionalAccess)
             {
                 return syntaxFacts.GetExpressionOfConditionalAccessExpression(conditionalAccess);
             }
 
-            var elementAccess = node as TElementAccessExpression;
-            if (elementAccess != null)
+            if (node is TElementAccessExpression elementAccess)
             {
                 return syntaxFacts.GetExpressionOfElementAccessExpression(elementAccess);
             }

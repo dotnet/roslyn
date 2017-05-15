@@ -190,11 +190,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static bool IsGeneratedCode(this Document document)
+        public static bool IsGeneratedCode(this Document document, CancellationToken cancellationToken)
         {
             var solution = document.Project.Solution;
             var generatedCodeRecognitionService = solution.Workspace.Services.GetService<IGeneratedCodeRecognitionService>();
-            return generatedCodeRecognitionService != null && generatedCodeRecognitionService.IsGeneratedCode(document);
+            return generatedCodeRecognitionService?.IsGeneratedCode(document, cancellationToken) == true;
         }
     }
 }

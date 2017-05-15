@@ -22,13 +22,7 @@ namespace Roslyn.Utilities
             _releaser = releaser;
         }
 
-        public T Object
-        {
-            get
-            {
-                return _pooledObject;
-            }
-        }
+        public T Object => _pooledObject;
 
         public void Dispose()
         {
@@ -42,32 +36,50 @@ namespace Roslyn.Utilities
         #region factory
         public static PooledObject<StringBuilder> Create(ObjectPool<StringBuilder> pool)
         {
-            return new PooledObject<StringBuilder>(pool, Allocator, Releaser);
+            return new PooledObject<StringBuilder>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
         }
 
         public static PooledObject<Stack<TItem>> Create<TItem>(ObjectPool<Stack<TItem>> pool)
         {
-            return new PooledObject<Stack<TItem>>(pool, Allocator, Releaser);
+            return new PooledObject<Stack<TItem>>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
         }
 
         public static PooledObject<Queue<TItem>> Create<TItem>(ObjectPool<Queue<TItem>> pool)
         {
-            return new PooledObject<Queue<TItem>>(pool, Allocator, Releaser);
+            return new PooledObject<Queue<TItem>>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
         }
 
         public static PooledObject<HashSet<TItem>> Create<TItem>(ObjectPool<HashSet<TItem>> pool)
         {
-            return new PooledObject<HashSet<TItem>>(pool, Allocator, Releaser);
+            return new PooledObject<HashSet<TItem>>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
         }
 
         public static PooledObject<Dictionary<TKey, TValue>> Create<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)
         {
-            return new PooledObject<Dictionary<TKey, TValue>>(pool, Allocator, Releaser);
+            return new PooledObject<Dictionary<TKey, TValue>>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
         }
 
         public static PooledObject<List<TItem>> Create<TItem>(ObjectPool<List<TItem>> pool)
         {
-            return new PooledObject<List<TItem>>(pool, Allocator, Releaser);
+            return new PooledObject<List<TItem>>(
+                pool,
+                p => Allocator(p),
+                (p, sb) => Releaser(p, sb));
         }
         #endregion
 

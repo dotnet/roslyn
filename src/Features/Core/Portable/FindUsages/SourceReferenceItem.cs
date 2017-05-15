@@ -5,7 +5,7 @@ using System;
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     /// <summary>
-    /// Information about a symbol's reference that can be used for diplay and 
+    /// Information about a symbol's reference that can be used for display and 
     /// navigation in an editor.
     /// </summary>
     internal sealed class SourceReferenceItem
@@ -20,10 +20,16 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// </summary>
         public DocumentSpan SourceSpan { get; }
 
-        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan)
+        /// <summary>
+        /// If this reference is a location where the definition is written to.
+        /// </summary>
+        public bool IsWrittenTo { get; }
+
+        public SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, bool isWrittenTo)
         {
             Definition = definition;
             SourceSpan = sourceSpan;
+            IsWrittenTo = isWrittenTo;
         }
     }
 }

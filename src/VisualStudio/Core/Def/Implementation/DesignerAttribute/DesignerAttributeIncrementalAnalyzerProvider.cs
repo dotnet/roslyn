@@ -4,20 +4,36 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribute
 {
     [ExportIncrementalAnalyzerProvider(Name, new[] { WorkspaceKind.Host }), Shared]
-    internal class DesignerAttributeIncrementalAnalyzerProvider : IncrementalAnalyzerProviderBase
+    internal class DesignerAttributeIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
-        public const string Name = "DesignerAttributeIncrementalAnalyzerProvider";
+        public const string Name = nameof(DesignerAttributeIncrementalAnalyzerProvider);
+
+        private readonly IServiceProvider _serviceProvider;
+        private readonly IForegroundNotificationService _notificationService;
+        private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
 
         [ImportingConstructor]
         public DesignerAttributeIncrementalAnalyzerProvider(
-            [ImportMany] IEnumerable<Lazy<IPerLanguageIncrementalAnalyzerProvider, PerLanguageIncrementalAnalyzerProviderMetadata>> perLanguageProviders) :
-            base(Name, perLanguageProviders)
+            SVsServiceProvider serviceProvider,
+            IForegroundNotificationService notificationService,
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
+            _serviceProvider = serviceProvider;
+            _notificationService = notificationService;
+            _asyncListeners = asyncListeners;
+        }
+
+        public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
+        {
+            return new DesignerAttributeIncrementalAnalyzer(_serviceProvider, _notificationService, _asyncListeners);
         }
     }
 }

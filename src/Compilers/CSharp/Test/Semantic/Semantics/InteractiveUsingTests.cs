@@ -135,7 +135,7 @@ using System;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int32").WithArguments("Int32").WithLocation(2, 11)
             };
 
-            CreateCompilationWithMscorlib(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateStandardCompilation(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -154,7 +154,7 @@ using I = Int32;
 
             var options = TestOptions.DebugDll.WithUsings("System");
 
-            CreateCompilationWithMscorlib(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateStandardCompilation(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source, options: options).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -172,7 +172,7 @@ using J = I;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I").WithArguments("I").WithLocation(3, 11)
             };
 
-            CreateCompilationWithMscorlib(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateStandardCompilation(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -244,7 +244,7 @@ using System.IO;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Path").WithArguments("Path").WithLocation(2, 14)
             };
 
-            CreateCompilationWithMscorlib(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateStandardCompilation(source).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -263,7 +263,7 @@ using static Path;
 
             var options = TestOptions.DebugDll.WithUsings("System");
 
-            CreateCompilationWithMscorlib(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
+            CreateStandardCompilation(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source, options: options).GetDiagnostics().Verify(expectedDiagnostics);
         }
 
@@ -315,8 +315,8 @@ namespace B
 }}
 ";
 
-            var lib1 = CreateCompilationWithMscorlib(string.Format(libSourceTemplate, 1), assemblyName: "Lib1").EmitToImageReference();
-            var lib2 = CreateCompilationWithMscorlib(string.Format(libSourceTemplate, 2), assemblyName: "Lib2").EmitToImageReference();
+            var lib1 = CreateStandardCompilation(string.Format(libSourceTemplate, 1), assemblyName: "Lib1").EmitToImageReference();
+            var lib2 = CreateStandardCompilation(string.Format(libSourceTemplate, 2), assemblyName: "Lib2").EmitToImageReference();
 
             var options = TestOptions.DebugDll.WithUsings("B");
 
@@ -508,7 +508,7 @@ namespace NOuter
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var lib = CreateStandardCompilation(libSource).EmitToImageReference();
             var refs = new[] { lib };
 
             var submissions = new[]
@@ -549,7 +549,7 @@ namespace NOuter
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
+            var lib = CreateStandardCompilation(libSource).EmitToImageReference();
             var refs = new[] { lib };
 
             CreateSubmission("using NInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(

@@ -433,7 +433,7 @@ End Class
 "
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source1)
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
                 Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
@@ -477,7 +477,7 @@ End Class
 "
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source)
+            Using workspace = TestWorkspace.CreateVisualBasic(source)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
                 Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
@@ -506,7 +506,7 @@ End Class
 "
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source1)
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
                 Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
@@ -532,7 +532,7 @@ End Class
 "
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source)
+            Using workspace = TestWorkspace.CreateVisualBasic(source)
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
                 Dim result = Await analyzer.AnalyzeDocumentAsync(workspace.CurrentSolution, baseActiveStatements, document, Nothing)
@@ -543,8 +543,8 @@ End Class
             End Using
         End Function
 
-        <Fact>
-        Public Async Function AnalyzeDocumentAsync_SemanticError_Change() As Threading.Tasks.Task
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change() As Task
             Dim source1 = "
 Class C
     Public Shared Sub Main()
@@ -563,7 +563,39 @@ End Class
 "
 
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source1)
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
+                Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
+                Dim oldSolution = workspace.CurrentSolution
+                Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
+
+                Dim baseActiveStatements = ImmutableArray.Create(Of ActiveStatementSpan)()
+                Dim result = Await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), Nothing)
+
+                ' no declaration errors (error in method body is only reported when emitting)
+                Assert.False(result.HasChangesAndErrors)
+                Assert.False(result.HasChangesAndCompilationErrors)
+            End Using
+        End Function
+
+        <Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")>
+        Public Async Function AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change() As Task
+            Dim source1 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+"
+            Dim source2 = "
+Class C
+    Public Shared Sub Main(x As Bar)
+        System.Console.WriteLine(2)
+    End Sub
+End Class
+"
+
+            Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
                 Dim documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id
                 Dim oldSolution = workspace.CurrentSolution
                 Dim newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2))
@@ -614,7 +646,7 @@ End Class
 "
             Dim analyzer = New VisualBasicEditAndContinueAnalyzer()
 
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(source1)
+            Using workspace = TestWorkspace.CreateVisualBasic(source1)
                 ' fork the solution to introduce a change
                 Dim project = workspace.CurrentSolution.Projects.Single()
                 Dim newDocId = Microsoft.CodeAnalysis.DocumentId.CreateNewId(project.Id)

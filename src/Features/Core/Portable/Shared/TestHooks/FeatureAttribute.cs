@@ -16,9 +16,6 @@ namespace Microsoft.CodeAnalysis.Shared.TestHooks
             _featureName = featureName;
         }
 
-        public string FeatureName
-        {
-            get { return _featureName; }
-        }
+        public string FeatureName => _featureName;
     }
 }

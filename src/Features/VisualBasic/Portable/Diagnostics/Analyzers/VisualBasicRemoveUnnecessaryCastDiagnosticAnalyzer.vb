@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
                 Case SyntaxKind.PredefinedCastExpression
                     Return DirectCast(node, PredefinedCastExpressionSyntax).IsUnnecessaryCast(model, assumeCallKeyword:=True, cancellationToken:=cancellationToken)
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
         End Function
 
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Diagnostics.RemoveUnnecessaryCast
                 Case SyntaxKind.PredefinedCastExpression
                     Return DirectCast(node, PredefinedCastExpressionSyntax).Keyword.Span
                 Case Else
-                    Throw ExceptionUtilities.Unreachable
+                    Throw ExceptionUtilities.UnexpectedValue(node.Kind)
             End Select
         End Function
     End Class

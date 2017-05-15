@@ -46,7 +46,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
     internal static class CompletionControllerOptions
     {
-        public static readonly Option<bool> AlwaysShowBuilder = new Option<bool>(nameof(CompletionControllerOptions), nameof(AlwaysShowBuilder), defaultValue: false);
         public static readonly Option<bool> FilterOutOfScopeLocals = new Option<bool>(nameof(CompletionControllerOptions), nameof(FilterOutOfScopeLocals), defaultValue: true);
         public static readonly Option<bool> ShowXmlDocCommentCompletion = new Option<bool>(nameof(CompletionControllerOptions), nameof(ShowXmlDocCommentCompletion), defaultValue: true);
     }

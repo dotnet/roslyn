@@ -1,4 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
 using System;
 using System.Collections.Immutable;
@@ -12,6 +13,8 @@ using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.Text;
+using System.IO;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -27,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         private Compilation _lazyCompilation;
 
-        internal Script(ScriptCompiler compiler, ScriptBuilder builder, string code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, SourceText sourceText, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
         {
-            Debug.Assert(code != null);
+            Debug.Assert(sourceText != null);
             Debug.Assert(options != null);
             Debug.Assert(compiler != null);
             Debug.Assert(builder != null);
@@ -37,14 +40,14 @@ namespace Microsoft.CodeAnalysis.Scripting
             Compiler = compiler;
             Builder = builder;
             Previous = previousOpt;
-            Code = code;
+            SourceText = sourceText;
             Options = options;
             GlobalsType = globalsTypeOpt;
         }
 
-        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, string codeOpt, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
+        internal static Script<T> CreateInitialScript<T>(ScriptCompiler compiler, SourceText sourceText, ScriptOptions optionsOpt, Type globalsTypeOpt, InteractiveAssemblyLoader assemblyLoaderOpt)
         {
-            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), codeOpt ?? "", optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
+            return new Script<T>(compiler, new ScriptBuilder(assemblyLoaderOpt ?? new InteractiveAssemblyLoader()), sourceText, optionsOpt ?? ScriptOptions.Default, globalsTypeOpt, previousOpt: null);
         }
 
         /// <summary>
@@ -62,7 +65,12 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// The source code of the script.
         /// </summary>
-        public string Code { get; }
+        public string Code => SourceText.ToString();
+
+        /// <summary>
+        /// The <see cref="SourceText"/> of the script.
+        /// </summary>
+        internal SourceText SourceText { get; }
 
         /// <summary>
         /// The type of an object whose members can be accessed by the script as global variables.
@@ -87,10 +95,33 @@ namespace Microsoft.CodeAnalysis.Scripting
             ContinueWith<object>(code, options);
 
         /// <summary>
+        /// Continues the script with given <see cref="Stream"/> representing code.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Stream is null.</exception>
+        /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
+        public Script<object> ContinueWith(Stream code, ScriptOptions options = null) =>
+            ContinueWith<object>(code, options);
+
+        /// <summary>
         /// Continues the script with given code snippet.
         /// </summary>
-        public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null) =>
-            new Script<TResult>(Compiler, Builder, code ?? "", options ?? InheritOptions(Options), GlobalsType, this);
+        public Script<TResult> ContinueWith<TResult>(string code, ScriptOptions options = null)
+        {
+            options = options ?? InheritOptions(Options);
+            return new Script<TResult>(Compiler, Builder, SourceText.From(code ?? "", options.FileEncoding), options, GlobalsType, this);
+        }
+
+        /// <summary>
+        /// Continues the script with given <see cref="Stream"/> representing code.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">Stream is null.</exception>
+        /// <exception cref="ArgumentException">Stream is not readable or seekable.</exception>
+        public Script<TResult> ContinueWith<TResult>(Stream code, ScriptOptions options = null)
+        {
+            if (code == null) throw new ArgumentNullException(nameof(code));
+            options = options ?? InheritOptions(Options);
+            return new Script<TResult>(Compiler, Builder, SourceText.From(code, options.FileEncoding), options, GlobalsType, this);
+        }
 
         private static ScriptOptions InheritOptions(ScriptOptions previous)
         {
@@ -278,8 +309,8 @@ namespace Microsoft.CodeAnalysis.Scripting
         private ImmutableArray<Func<object[], Task>> _lazyPrecedingExecutors;
         private Func<object[], Task<T>> _lazyExecutor;
 
-        internal Script(ScriptCompiler compiler, ScriptBuilder builder, string code, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
-            : base(compiler, builder, code, options, globalsTypeOpt, previousOpt)
+        internal Script(ScriptCompiler compiler, ScriptBuilder builder, SourceText sourceText, ScriptOptions options, Type globalsTypeOpt, Script previousOpt)
+            : base(compiler, builder, sourceText, options, globalsTypeOpt, previousOpt)
         {
         }
 
@@ -287,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         public new Script<T> WithOptions(ScriptOptions options)
         {
-            return (options == Options) ? this : new Script<T>(Compiler, Builder, Code, options, GlobalsType, Previous);
+            return (options == Options) ? this : new Script<T>(Compiler, Builder, SourceText, options, GlobalsType, Previous);
         }
 
         internal override Script WithOptionsInternal(ScriptOptions options) => WithOptions(options);
@@ -325,7 +356,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         {
             if (_lazyExecutor == null)
             {
-                Interlocked.CompareExchange(ref _lazyExecutor, Builder.CreateExecutor<T>(Compiler, GetCompilation(), cancellationToken), null);
+                Interlocked.CompareExchange(ref _lazyExecutor, Builder.CreateExecutor<T>(Compiler, GetCompilation(), Options.EmitDebugInformation, cancellationToken), null);
             }
 
             return _lazyExecutor;

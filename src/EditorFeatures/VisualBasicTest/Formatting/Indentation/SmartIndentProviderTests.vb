@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Sub GetSmartIndent2()
-            Using workspace = Await TestWorkspace.CreateCSharpAsync("")
+        Public Sub GetSmartIndent2()
+            Using workspace = TestWorkspace.CreateCSharp("")
                 Assert.Equal(True, workspace.Options.GetOption(InternalFeatureOnOffOptions.SmartIndenter))
 
                 Dim document = workspace.Projects.Single().Documents.Single()
@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
 
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
-        Public Async Sub GetSmartIndent3()
-            Using workspace = Await TestWorkspace.CreateCSharpAsync("")
+        Public Sub GetSmartIndent3()
+            Using workspace = TestWorkspace.CreateCSharp("")
                 workspace.Options = workspace.Options.WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False)
 
                 Dim document = workspace.Projects.Single().Documents.Single()

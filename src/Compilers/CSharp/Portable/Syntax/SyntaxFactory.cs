@@ -1458,7 +1458,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!enumerator.MoveNext())
                         {
-                            throw new ArgumentException();
+                            throw new ArgumentException($"{nameof(nodes)} must not be empty.", nameof(nodes));
                         }
 
                         builder.Add(enumerator.Current);
@@ -1471,7 +1471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.Add(enumerator.Current);
                     if (enumerator.MoveNext())
                     {
-                        throw new ArgumentException();
+                        throw new ArgumentException($"{nameof(separators)} must have 1 fewer element than {nameof(nodes)}", nameof(separators));
                     }
                 }
 
@@ -1480,7 +1480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (separators != null)
             {
-                throw new ArgumentException();
+                throw new ArgumentException($"When {nameof(nodes)} is null, {nameof(separators)} must also be null.", nameof(separators));
             }
 
             return default(SeparatedSyntaxList<TNode>);
@@ -1816,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (var lexer = MakeLexer(text, offset, (CSharpParseOptions)options))
             using (var parser = MakeParser(lexer))
             {
-                var node = parser.ParseParenthesizedParameterList(allowThisKeyword: true, allowDefaults: true, allowAttributes: true);
+                var node = parser.ParseParenthesizedParameterList();
                 if (consumeFullText) node = parser.ConsumeUnexpectedTokens(node);
                 return (ParameterListSyntax)node.CreateRed();
             }

@@ -372,7 +372,7 @@ Done:
             Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentOnErrorStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentOnErrorStatement(node, rewritten)
             End If
 
             Return rewritten
@@ -438,7 +438,7 @@ Done:
             Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
 
             If Instrument(node, rewritten) Then
-                rewritten = _instrumenter.InstrumentResumeStatement(node, rewritten)
+                rewritten = _instrumenterOpt.InstrumentResumeStatement(node, rewritten)
             End If
 
             Return rewritten

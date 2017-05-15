@@ -254,7 +254,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -311,7 +311,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -340,7 +340,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var workspace = TestWorkspace.CreateCSharp(source))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
@@ -375,7 +375,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -406,7 +406,7 @@ class C
             var experimentalFeatures = new Dictionary<string, string>(); // no experimental features to enable
             var experimental = TestOptions.Regular.WithFeatures(experimentalFeatures);
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(
+            using (var workspace = TestWorkspace.CreateCSharp(
                 source, parseOptions: experimental, compilationOptions: null, exportProvider: null))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
@@ -451,7 +451,7 @@ class C
                 var featuresToEnable = new Dictionary<string, string>() { { feature, "enabled" } };
                 var experimental = TestOptions.Regular.WithFeatures(featuresToEnable);
 
-                using (var workspace = await TestWorkspace.CreateCSharpAsync(
+                using (var workspace = TestWorkspace.CreateCSharp(
                     source1, parseOptions: experimental, compilationOptions: null, exportProvider: null))
                 {
                     var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
@@ -484,7 +484,7 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source))
+            using (var workspace = TestWorkspace.CreateCSharp(source))
             {
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
@@ -496,8 +496,8 @@ class C
             }
         }
 
-        [Fact]
-        public async Task AnalyzeDocumentAsync_SemanticError_Change()
+        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
             string source1 = @"
 class C
@@ -521,7 +521,47 @@ class C
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
+            {
+                var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
+                var oldSolution = workspace.CurrentSolution;
+                var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+
+                var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
+                var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken));
+
+                Assert.True(result.HasChanges);
+
+                // no declaration errors (error in method body is only reported when emitting):
+                Assert.False(result.HasChangesAndErrors);
+                Assert.False(result.HasChangesAndCompilationErrors);
+            }
+        }
+
+        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
+        {
+            string source1 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            string source2 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(2);
+    }
+}
+";
+            var analyzer = new CSharpEditAndContinueAnalyzer();
+
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
                 var oldSolution = workspace.CurrentSolution;
@@ -560,7 +600,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 // fork the solution to introduce a change
                 var project = workspace.CurrentSolution.Projects.Single();
@@ -610,7 +650,7 @@ namespace N
 ";
             var analyzer = new CSharpEditAndContinueAnalyzer();
 
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source1))
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
             {
                 // fork the solution to introduce a change
                 var project = workspace.CurrentSolution.Projects.Single();

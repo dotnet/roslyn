@@ -2,6 +2,7 @@
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
@@ -31,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public TrySymbolNavigationNotifyProvidedSolution As Solution
             Public TrySymbolNavigationNotifyReturnValue As Boolean = False
 
-            Public WouldNavigateToSymbolProvidedSymbol As ISymbol
+            Public WouldNavigateToSymbolProvidedDefinitionItem As DefinitionItem
             Public WouldNavigateToSymbolProvidedSolution As Solution
             Public WouldNavigateToSymbolReturnValue As Boolean = False
             Public NavigationFilePathReturnValue As String = String.Empty
@@ -45,15 +46,20 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Return True
             End Function
 
-            Public Function TrySymbolNavigationNotify(symbol As ISymbol, solution As Solution) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
+            Public Function TrySymbolNavigationNotify(symbol As ISymbol,
+                                                      solution As Solution,
+                                                      cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
                 Me.TrySymbolNavigationNotifyProvidedSymbol = symbol
                 Me.TrySymbolNavigationNotifyProvidedSolution = solution
 
                 Return TrySymbolNavigationNotifyReturnValue
             End Function
 
-            Public Function WouldNavigateToSymbol(symbol As ISymbol, solution As Solution, ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
-                Me.WouldNavigateToSymbolProvidedSymbol = symbol
+            Public Function WouldNavigateToSymbol(definitionItem As DefinitionItem,
+                                                  solution As Solution,
+                                                  cancellationToken As CancellationToken,
+                                                  ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
+                Me.WouldNavigateToSymbolProvidedDefinitionItem = definitionItem
                 Me.WouldNavigateToSymbolProvidedSolution = solution
 
                 filePath = Me.NavigationFilePathReturnValue

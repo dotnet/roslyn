@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -99,9 +100,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal static CSharpSyntaxNode AnonymousFunctionBody(this SyntaxNode lambda)
+        {
+            switch (lambda.Kind())
+            {
+                case SyntaxKind.SimpleLambdaExpression:
+                    return ((SimpleLambdaExpressionSyntax)lambda).Body;
+                case SyntaxKind.ParenthesizedLambdaExpression:
+                    return ((ParenthesizedLambdaExpressionSyntax)lambda).Body;
+                case SyntaxKind.AnonymousMethodExpression:
+                    return ((AnonymousMethodExpressionSyntax)lambda).Block;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(lambda.Kind());
+            }
+        }
+
         /// <summary>
-        /// Given an initializer expression infer the name of anonymous property.
-        /// Returns default(SyntaxToken) if unsuccessful
+        /// Given an initializer expression infer the name of anonymous property or tuple element.
+        /// Returns default if unsuccessful
         /// </summary>
         internal static SyntaxToken ExtractAnonymousTypeMemberName(this ExpressionSyntax input)
         {

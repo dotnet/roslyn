@@ -1,11 +1,11 @@
 **Customer scenario**
 
 What does the customer do to get into this situation, and why do we think this
-is common enough to address in Escrow.  (Granted, sometimes this will be
+is common enough to address for this release.  (Granted, sometimes this will be
 obvious "Open project, VS crashes" but in general, I need to understand how
 common a scenario is)
 
-**Bugs this fixes:** 
+**Bugs this fixes:**
 
 (either VSO or GitHub links)
 

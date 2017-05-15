@@ -450,6 +450,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing document properties is not supported.
+        /// </summary>
+        internal static string Changing_document_property_is_not_supported {
+            get {
+                return ResourceManager.GetString("Changing_document_property_is_not_supported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing documents is not supported..
         /// </summary>
         internal static string Changing_documents_is_not_supported {
@@ -959,16 +968,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string None {
             get {
                 return ResourceManager.GetString("None", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Option &apos;{0}&apos; has an unsupported type to use with {1}. You should specify a parsing function..
-        /// </summary>
-        internal static string Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function {
-            get {
-                return ResourceManager.GetString("Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_funct" +
-                        "ion", resourceCulture);
             }
         }
         

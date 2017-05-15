@@ -38,10 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TextStructureNavigation
                 _waitIndicator = waitIndicator;
             }
 
-            public IContentType ContentType
-            {
-                get { return _subjectBuffer.ContentType; }
-            }
+            public IContentType ContentType => _subjectBuffer.ContentType;
 
             public TextExtent GetExtentOfWord(SnapshotPoint currentPosition)
             {

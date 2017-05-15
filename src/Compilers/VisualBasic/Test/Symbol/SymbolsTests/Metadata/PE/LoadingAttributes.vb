@@ -1558,6 +1558,52 @@ End Class
             Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(634925952000000000)", m1.Parameters(1).GetCustomAttributesToEmit(context).Single().ToString())
         End Sub
 
+        <Fact>
+        <WorkItem(18092, "https://github.com/dotnet/roslyn/issues/18092")>
+        Public Sub ForwardedSystemType()
+
+            Dim ilSource = <![CDATA[
+.class extern forwarder System.Type
+{
+  .assembly extern mscorlib
+}
+
+.class public auto ansi beforefieldinit MyAttribute
+       extends [mscorlib]System.Attribute
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor(class [mscorlib]System.Type val) cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method MyAttribute::.ctor
+
+} // end of class MyAttribute
+]]>.Value
+
+
+            Dim c = CompilationUtils.CreateCompilationWithCustomILSource(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<MyAttribute(GetType(MyAttribute))>
+Class Test
+End Class
+    ]]></file>
+</compilation>, ilSource)
+
+            Const expected = "MyAttribute(GetType(MyAttribute))"
+            Assert.Equal(expected, c.GetTypeByMetadataName("Test").GetAttributes().Single().ToString())
+
+            CompileAndVerify(c, symbolValidator:=Sub(m)
+                                                     Assert.Equal(expected, m.GlobalNamespace.GetTypeMember("Test").GetAttributes().Single().ToString())
+                                                 End Sub)
+        End Sub
+
     End Class
 
 End Namespace

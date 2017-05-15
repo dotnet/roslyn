@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new NamedParameterCompletionProvider(),
                 new KeywordCompletionProvider(),
                 new SymbolCompletionProvider(),
-                new ExplicitInterfaceCompletionProvider(),
+                new ExplicitInterfaceMemberCompletionProvider(),
+                new ExplicitInterfaceTypeCompletionProvider(),
                 new ObjectCreationCompletionProvider(),
                 new ObjectInitializerCompletionProvider(),
                 new SpeculativeTCompletionProvider(),
@@ -41,7 +42,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
                 new OverrideCompletionProvider(),
                 new PartialMethodCompletionProvider(),
                 new PartialTypeCompletionProvider(),
-                new XmlDocCommentCompletionProvider()
+                new XmlDocCommentCompletionProvider(),
+                new TupleNameCompletionProvider(),
+                new DeclarationNameCompletionProvider()
             );
 
         private readonly Workspace _workspace;

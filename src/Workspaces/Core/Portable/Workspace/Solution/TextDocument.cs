@@ -34,40 +34,22 @@ namespace Microsoft.CodeAnalysis
         /// The document's identifier. Many document instances may share the same ID, but only one
         /// document in a solution may have that ID.
         /// </summary>
-        public DocumentId Id
-        {
-            get { return State.Id; }
-        }
+        public DocumentId Id => State.Id;
 
         /// <summary>
         /// The path to the document file or null if there is no document file.
         /// </summary>
-        public string FilePath
-        {
-            get { return State.FilePath; }
-        }
+        public string FilePath => State.FilePath;
 
         /// <summary>
         /// The name of the document.
         /// </summary>
-        public string Name
-        {
-            get
-            {
-                return State.Name;
-            }
-        }
+        public string Name => State.Name;
 
         /// <summary>
         /// The sequence of logical folders the document is contained in.
         /// </summary>
-        public IReadOnlyList<string> Folders
-        {
-            get
-            {
-                return State.Folders;
-            }
-        }
+        public IReadOnlyList<string> Folders => State.Folders;
 
         /// <summary>
         /// Get the current text for the document if it is already loaded and available.

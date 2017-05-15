@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.Debugger;
@@ -20,7 +19,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     public abstract class ExpressionCompiler :
         IDkmClrExpressionCompiler,
         IDkmClrExpressionCompilerCallback,
-        IDkmModuleModifiedNotification
+        IDkmModuleModifiedNotification,
+        IDkmModuleInstanceUnloadNotification
     {
         static ExpressionCompiler()
         {
@@ -218,6 +218,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         void IDkmModuleModifiedNotification.OnModuleModified(DkmModuleInstance moduleInstance)
+        {
+            RemoveDataItemIfNecessary(moduleInstance);
+        }
+
+        void IDkmModuleInstanceUnloadNotification.OnModuleInstanceUnload(DkmModuleInstance moduleInstance, DkmWorkList workList, DkmEventDescriptor eventDescriptor)
+        {
+            RemoveDataItemIfNecessary(moduleInstance);
+        }
+
+        private void RemoveDataItemIfNecessary(DkmModuleInstance moduleInstance)
         {
             // If the module is not a managed module, the module change has no effect.
             var module = moduleInstance as DkmClrModuleInstance;

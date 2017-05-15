@@ -2608,17 +2608,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     CreateEvent(eventDecl.EventStatement, eventDecl, binder, diagBag, members)
 
                 Case Else
-                    If binder.BindingTopLevelScriptCode Then
-                        If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
-
-                            If reportAsInvalid Then
-                                diagBag.Add(ERRID.ERR_InvalidInNamespace, memberSyntax.GetLocation())
-                            End If
+                    If memberSyntax.Kind = SyntaxKind.EmptyStatement OrElse TypeOf memberSyntax Is ExecutableStatementSyntax Then
+                        If binder.BindingTopLevelScriptCode Then
+                            Debug.Assert(Not reportAsInvalid)
 
                             Dim initializer = Function(precedingInitializersLength As Integer)
                                                   Return New FieldOrPropertyInitializer(binder.GetSyntaxReference(memberSyntax), precedingInitializersLength)
                                               End Function
                             SourceNamedTypeSymbol.AddInitializer(instanceInitializers, initializer, members.InstanceSyntaxLength)
+                        ElseIf reportAsInvalid Then
+                            diagBag.Add(ERRID.ERR_InvalidInNamespace, memberSyntax.GetLocation())
                         End If
                     End If
             End Select

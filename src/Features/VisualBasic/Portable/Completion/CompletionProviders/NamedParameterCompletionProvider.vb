@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 context.AddItem(SymbolCompletionItem.CreateWithSymbolId(
                     displayText:=parameter.Name & s_colonEquals,
                     insertionText:=parameter.Name.ToIdentifierToken().ToString() & s_colonEquals,
-                    symbol:=parameter,
+                    symbols:=ImmutableArray.Create(parameter),
                     contextPosition:=position,
                     rules:=s_itemRules))
             Next

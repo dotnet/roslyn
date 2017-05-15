@@ -3,9 +3,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -29,15 +28,16 @@ namespace Microsoft.CodeAnalysis.Navigation
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
             Solution solution,
             ISymbol symbol, 
-            ImmutableArray<TaggedText>? displayTaggedParts)
+            ImmutableArray<TaggedText>? displayTaggedParts,
+            CancellationToken cancellationToken)
         {
-            var locations = GetPreferredSourceLocations(solution, symbol);
+            var locations = GetPreferredSourceLocations(solution, symbol, cancellationToken);
             return locations.Select(loc => GetItemFromSymbolLocation(
                 solution, symbol, loc, displayTaggedParts));
         }
 
         public static IEnumerable<Location> GetPreferredSourceLocations(
-            Solution solution, ISymbol symbol)
+            Solution solution, ISymbol symbol, CancellationToken cancellationToken)
         {
             // Prefer non-generated source locations over generated ones.
 
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Navigation
             var candidateLocationGroups = from c in sourceLocations
                                           let doc = solution.GetDocument(c.SourceTree)
                                           where doc != null
-                                          group c by doc.IsGeneratedCode();
+                                          group c by doc.IsGeneratedCode(cancellationToken);
 
             var generatedSourceLocations = candidateLocationGroups.SingleOrDefault(g => g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
             var nonGeneratedSourceLocations = candidateLocationGroups.SingleOrDefault(g => !g.Key) ?? SpecializedCollections.EmptyEnumerable<Location>();
@@ -66,59 +66,16 @@ namespace Microsoft.CodeAnalysis.Navigation
                 : locations.Where(loc => loc.IsInSource);
         }
 
-        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(Solution solution, IEnumerable<INavigableItem> navigableItems)
+        public static IEnumerable<INavigableItem> GetPreferredNavigableItems(
+            Solution solution, 
+            IEnumerable<INavigableItem> navigableItems,
+            CancellationToken cancellationToken)
         {
             navigableItems = navigableItems.Where(n => n.Document != null);
-            var hasNonGeneratedCodeItem = navigableItems.Any(n => !n.Document.IsGeneratedCode());
+            var hasNonGeneratedCodeItem = navigableItems.Any(n => !n.Document.IsGeneratedCode(cancellationToken));
             return hasNonGeneratedCodeItem
-                ? navigableItems.Where(n => !n.Document.IsGeneratedCode())
-                : navigableItems.Where(n => n.Document.IsGeneratedCode());
+                ? navigableItems.Where(n => !n.Document.IsGeneratedCode(cancellationToken))
+                : navigableItems.Where(n => n.Document.IsGeneratedCode(cancellationToken));
         }
-
-        public static ImmutableArray<TaggedText> GetSymbolDisplayTaggedParts(Project project, ISymbol symbol)
-        {
-            var symbolDisplayService = project.LanguageServices.GetRequiredService<ISymbolDisplayService>();
-            return symbolDisplayService.ToDisplayParts(symbol, GetSymbolDisplayFormat(symbol)).ToTaggedText();
-        }
-
-        private static SymbolDisplayFormat GetSymbolDisplayFormat(ISymbol symbol)
-        {
-            switch (symbol.Kind)
-            {
-                case SymbolKind.NamedType:
-                    return s_shortFormatWithModifiers;
-
-                case SymbolKind.Method:
-                    return symbol.IsStaticConstructor() ? s_shortFormatWithModifiers : s_shortFormat;
-
-                default:
-                    return s_shortFormat;
-            }
-        }
-
-        private static readonly SymbolDisplayFormat s_shortFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-                genericsOptions:
-                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
-                    SymbolDisplayGenericsOptions.IncludeVariance,
-                memberOptions:
-                    SymbolDisplayMemberOptions.IncludeExplicitInterface |
-                    SymbolDisplayMemberOptions.IncludeParameters,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.IncludeExtensionThis |
-                    SymbolDisplayParameterOptions.IncludeParamsRefOut |
-                    SymbolDisplayParameterOptions.IncludeType,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
-                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
-
-        private static readonly SymbolDisplayFormat s_shortFormatWithModifiers =
-            s_shortFormat.WithMemberOptions(
-                SymbolDisplayMemberOptions.IncludeModifiers |
-                SymbolDisplayMemberOptions.IncludeExplicitInterface |
-                SymbolDisplayMemberOptions.IncludeParameters);
     }
 }

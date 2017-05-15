@@ -44,11 +44,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EncapsulateField
             notificationService.NotificationCallback = callback;
         }
 
-        public static async Task<EncapsulateFieldTestState> CreateAsync(string markup)
+        public static EncapsulateFieldTestState Create(string markup)
         {
-            var workspace = await TestWorkspace.CreateCSharpAsync(markup, exportProvider: s_exportProvider);
-            workspace.Options = workspace.Options.WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CodeStyleOptions.FalseWithNoneEnforcement)
-                                                 .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CodeStyleOptions.FalseWithNoneEnforcement);
+            var workspace = TestWorkspace.CreateCSharp(markup, exportProvider: s_exportProvider);
+            workspace.Options = workspace.Options
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithNoneEnforcement)
+                .WithChangedOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement);
             return new EncapsulateFieldTestState(workspace);
         }
 

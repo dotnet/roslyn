@@ -13,9 +13,12 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            var service = context.Document.GetLanguageService<AbstractChangeSignatureService>();
-            var actions = await service.GetChangeSignatureCodeActionAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
-            context.RegisterRefactorings(actions);
+            if (context.Span.IsEmpty)
+            {
+                var service = context.Document.GetLanguageService<AbstractChangeSignatureService>();
+                var actions = await service.GetChangeSignatureCodeActionAsync(context.Document, context.Span, context.CancellationToken).ConfigureAwait(false);
+                context.RegisterRefactorings(actions);
+            }
         }
     }
 }

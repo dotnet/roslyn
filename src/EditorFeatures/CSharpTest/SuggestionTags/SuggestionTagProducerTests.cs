@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SuggestionTags
 
         private async Task<(ImmutableArray<ITagSpan<SuggestionTag>> spans, TextSpan selection)> GetTagSpansAndSelectionAsync(string content)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(content))
+            using (var workspace = TestWorkspace.CreateCSharp(content))
             {
                 var analyzerMap = new Dictionary<string, DiagnosticAnalyzer[]>()
                 {

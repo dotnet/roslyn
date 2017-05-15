@@ -4,6 +4,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -80,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
-                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type == loweredPattern.Variable.GetTypeOrReturnType());
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.IgnoreDynamicAndTupleNames));
 
                 var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);
@@ -93,10 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return _factory.Sequence(ImmutableArray.Create(temp),
                          sideEffects: ImmutableArray<BoundExpression>.Empty,
-                         result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: true));
+                         result: MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, discard, requiresNullTest: loweredInput.Type.CanContainNull()));
             }
 
-            return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: true);
+            return MakeIsDeclarationPattern(loweredPattern.Syntax, loweredInput, loweredPattern.VariableAccess, requiresNullTest: loweredInput.Type.CanContainNull());
         }
 
         /// <summary>
@@ -141,9 +142,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 );
         }
 
+        private bool MatchIsIrrefutable(TypeSymbol sourceType, TypeSymbol targetType, bool requiredNullTest)
+        {
+            // use site diagnostics will already have been reported during binding.
+            HashSet<DiagnosticInfo> ignoredDiagnostics = null;
+            switch (_compilation.Conversions.ClassifyBuiltInConversion(sourceType, targetType, ref ignoredDiagnostics).Kind)
+            {
+                case ConversionKind.Boxing:
+                case ConversionKind.ImplicitReference:
+                case ConversionKind.Identity:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
             var type = loweredTarget.Type;
+            requiresNullTest = requiresNullTest && loweredInput.Type.CanContainNull();
+
+            // It is possible that the input value is already of the correct type, in which case the pattern
+            // is irrefutable, and we can just do the assignment and return true (or perform the null test).
+            if (MatchIsIrrefutable(loweredInput.Type, loweredTarget.Type, requiresNullTest))
+            {
+                var convertedInput = _factory.Convert(loweredTarget.Type, loweredInput);
+                var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
+                return requiresNullTest
+                    ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
+                    : _factory.MakeSequence(assignment, _factory.Literal(true));
+            }
 
             // a pattern match of the form "expression is Type identifier" is equivalent to
             // an invocation of one of these helpers:
@@ -154,47 +182,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     t = e as T;
                 //     return t != null;
                 // }
-                if (loweredInput.Type == type)
-                {
-                    // CONSIDER: this can be done whenever input.Type is a subtype of type for improved code
-                    var assignment = _factory.AssignmentExpression(loweredTarget, loweredInput);
-                    return requiresNullTest
-                        ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
-                        : _factory.MakeSequence(assignment, _factory.Literal(true));
-                }
-                else
-                {
-                    return _factory.ObjectNotEqual(
-                        _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                        _factory.Null(type));
-                }
-            }
-            else if (type.IsNullableType())
-            {
-                // While `(o is int?)` is statically an error in the binder, we can get here
-                // through generic substitution. Note that (null is int?) is false.
-
-                // bool Is<T>(object e, out T? t) where T : struct
-                // {
-                //     t = e as T?;
-                //     return t.HasValue;
-                // }
-                return _factory.Call(
+                return _factory.ObjectNotEqual(
                     _factory.AssignmentExpression(loweredTarget, _factory.As(loweredInput, type)),
-                    GetNullableMethod(syntax, type, SpecialMember.System_Nullable_T_get_HasValue));
+                    _factory.Null(type));
             }
             else if (type.IsValueType)
             {
-                // It is possible that the input value is already of the correct type, in which case the pattern
-                // is irrefutable, and we can just do the assignment and return true.
-                if (loweredInput.Type == type)
-                {
-                    return _factory.MakeSequence(
-                        _factory.AssignmentExpression(loweredTarget, loweredInput),
-                        _factory.Literal(true));
-                }
+                // The type here is not a Nullable<T> instance type, as that would have led to the semantic error:
+                // ERR_PatternNullableType: It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.
+                Debug.Assert(!type.IsNullableType());
 
-                // It would be possible to improve this code by only assigning t when returning
+                // It may be possible to improve this code by only assigning t when returning
                 // true (avoid returning a new default value)
                 // bool Is<T>(object e, out T t) where T : struct // non-Nullable value type
                 // {
@@ -203,44 +201,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return tmp.HasValue;
                 // }
                 var tmpType = _factory.SpecialType(SpecialType.System_Nullable_T).Construct(type);
-                if (tmpType == loweredInput.Type)
-                {
-                    var value = _factory.Call(
-                        loweredInput,
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = requiresNullTest ? MakeNullableHasValue(syntax, loweredInput) : _factory.Literal(true);
-                    return _factory.MakeSequence(asg2, result);
-                }
-                else
-                {
-                    var tmp = _factory.SynthesizedLocal(tmpType, syntax);
-                    var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), _factory.As(loweredInput, tmpType));
-                    var value = _factory.Call(
-                        _factory.Local(tmp),
-                        GetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
-                    var asg2 = _factory.AssignmentExpression(loweredTarget, value);
-                    var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
-                    return _factory.MakeSequence(tmp, asg1, asg2, result);
-                }
+                var tmp = _factory.SynthesizedLocal(tmpType, syntax);
+                var asg1 = _factory.AssignmentExpression(_factory.Local(tmp), tmpType == loweredInput.Type ? loweredInput : _factory.As(loweredInput, tmpType));
+                var value = _factory.Call(
+                    _factory.Local(tmp),
+                    UnsafeGetNullableMethod(syntax, tmpType, SpecialMember.System_Nullable_T_GetValueOrDefault));
+                var asg2 = _factory.AssignmentExpression(loweredTarget, value);
+                var result = MakeNullableHasValue(syntax, _factory.Local(tmp));
+                return _factory.MakeSequence(tmp, asg1, asg2, result);
             }
             else // type parameter
             {
                 Debug.Assert(type.IsTypeParameter());
                 // bool Is<T>(this object i, out T o)
                 // {
-                //     // inefficient because it performs the type test twice.
-                //     bool s = i is T;
-                //     if (s) o = (T)i;
+                //     // inefficient because it performs the type test twice, and also because it boxes the input.
+                //     bool s;
+                //     o = (s = i is T) ? (T)i : default(T);
                 //     return s;
                 // }
-                return _factory.Conditional(_factory.Is(loweredInput, type),
-                    _factory.MakeSequence(_factory.AssignmentExpression(
-                        loweredTarget,
-                        _factory.Convert(type, loweredInput)),
-                        _factory.Literal(true)),
-                    _factory.Literal(false),
-                    _factory.SpecialType(SpecialType.System_Boolean));
+
+                // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
+                // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
+                var tmpType = _factory.SpecialType(SpecialType.System_Object);
+                var s = _factory.SynthesizedLocal(_factory.SpecialType(SpecialType.System_Boolean), syntax);
+                var i = _factory.SynthesizedLocal(tmpType, syntax); // we copy the input to avoid double evaluation
+                return _factory.Sequence(
+                    ImmutableArray.Create(s, i),
+                    ImmutableArray.Create<BoundExpression>(
+                        _factory.AssignmentExpression(_factory.Local(i), _factory.Convert(tmpType, loweredInput)),
+                        _factory.AssignmentExpression(loweredTarget, _factory.Conditional(
+                            _factory.AssignmentExpression(_factory.Local(s), _factory.Is(_factory.Local(i), type)),
+                            _factory.Convert(type, _factory.Local(i)),
+                            _factory.Default(type), type))
+                        ),
+                    _factory.Local(s)
+                    );
             }
         }
     }

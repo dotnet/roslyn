@@ -30,11 +30,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [Fact]
+        [WorkItem(17014, "https://github.com/dotnet/roslyn/pull/17014")]
+        public void RecursiveLocalFuncsAsParameterTypes()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        int L(L2 l2) => 0;
+        int L2(L l1) => 0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0246: The type or namespace name 'L2' could not be found (are you missing a using directive or an assembly reference?)
+                //         int L(L2 l2) => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L2").WithArguments("L2").WithLocation(6, 15),
+                // (7,16): error CS0246: The type or namespace name 'L' could not be found (are you missing a using directive or an assembly reference?)
+                //         int L2(L l1) => 0;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "L").WithArguments("L").WithLocation(7, 16),
+                // (6,13): warning CS0168: The variable 'L' is declared but never used
+                //         int L(L2 l2) => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "L").WithArguments("L").WithLocation(6, 13),
+                // (7,13): warning CS0168: The variable 'L2' is declared but never used
+                //         int L2(L l1) => 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "L2").WithArguments("L2").WithLocation(7, 13));
+        }
+
+        [Fact]
+        [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
+        public void BadGenericConstraint()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    public void M<T>(T value) where T : object { }
+}");
+            comp.VerifyDiagnostics(
+                // (4,41): error CS0702: Constraint cannot be special class 'object'
+                //     public void M<T>(T value) where T : object { }
+                Diagnostic(ErrorCode.ERR_SpecialTypeAsBound, "object").WithArguments("object").WithLocation(4, 41));
+        }
+
+        [Fact]
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -50,11 +93,11 @@ class C
             comp.DeclarationDiagnostics.Verify();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [Fact]
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter2()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 class C
 {
@@ -71,11 +114,11 @@ class C
             comp.DeclarationDiagnostics.Verify();
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16451")]
+        [Fact]
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void MutuallyRecursiveDefaultParameters()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -112,7 +155,7 @@ class C
         Local<int>();
     }
 }");
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -162,7 +205,7 @@ class C
         [Fact]
         public void TypeParameterAttributesInSemanticModel()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 class C
 {
@@ -243,7 +286,7 @@ class C
         [Fact]
         public void ParameterAttributesInSemanticModel()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 class C
 {
@@ -334,7 +377,7 @@ class C
         Local<int>();
     }
 }");
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -377,6 +420,7 @@ class C
                              .GetMember<NamedTypeSymbol>("CLSCompliantAttribute"),
                 attrs[2].AttributeClass);
             Assert.True(attrs[3].AttributeClass.IsErrorType());
+
             comp.DeclarationDiagnostics.Verify();
         }
 
@@ -393,7 +437,7 @@ class C
         Local(0);
     }
 }");
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -516,7 +560,7 @@ class C
     public void V<V>() { }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(src);
+            var comp = CreateStandardCompilation(src);
             comp.VerifyDiagnostics(
                 // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int Local<T>() => 0; // Should conflict with above
@@ -550,7 +594,7 @@ class C
         [Fact]
         public void LocalFuncAndTypeParameterOnType()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C2<T>
 {
     public void M()
@@ -708,7 +752,7 @@ class C
             })();
     }
 }";
-            CreateCompilationWithMscorlib(src, options: TestOptions.UnsafeDebugDll)
+            CreateStandardCompilation(src, options: TestOptions.UnsafeDebugDll)
                 .VerifyDiagnostics(
                 // (8,37): error CS1637: Iterators cannot have unsafe parameters or yield types
                 //         IEnumerable<int> Local(int* a) { yield break; }
@@ -743,7 +787,7 @@ class C
         [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
         public void LocalFunctionConflictingName()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public void M<TLocal>()
@@ -843,7 +887,7 @@ class C
         [Fact]
         public void VarLocalFunction2()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     private class var
@@ -988,9 +1032,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CallerMemberName]").WithLocation(9, 31),
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //         void CallerMemberName([CallerMemberName] int s = 2)
-                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32)
-    );
+                Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32));
         }
+
         [WorkItem(10708, "https://github.com/dotnet/roslyn/issues/10708")]
         [CompilerTrait(CompilerFeature.Dynamic, CompilerFeature.Params)]
         [Fact]
@@ -2123,8 +2167,8 @@ class Program
 }
 ";
             var option = TestOptions.ReleaseExe;
-            CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+            CreateStandardCompilation(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
                 //         void Local() { }
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Local").WithArguments("local functions", "7").WithLocation(6, 14)
                 );
@@ -2783,12 +2827,13 @@ class C
         }
 
         [Fact]
+        [WorkItem(16757, "https://github.com/dotnet/roslyn/issues/16757")]
         public void LocalFunctionParameterDefaultUsingConst()
         {
             var source = @"
 class C
 {
-    public static void Main(string[] args)
+    public static void Main()
     {
         const int N = 2;
         void Local1(int n = N) { System.Console.Write(n); }
@@ -2810,14 +2855,18 @@ class C
                 var model = compilation.GetSemanticModel(tree);
                 var descendents = tree.GetRoot().DescendantNodes();
 
+                var parameter = descendents.OfType<ParameterSyntax>().Single();
+                Assert.Equal("int n = N", parameter.ToString());
+                Assert.Equal("[System.Int32 n = 2]", model.GetDeclaredSymbol(parameter).ToTestDisplayString());
+
                 var name = "N";
                 var declarator = descendents.OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == name).Single();
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declarator);
                 Assert.NotNull(symbol);
-                Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
+                Assert.Equal("System.Int32 N", symbol.ToTestDisplayString());
                 var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
                 Assert.Equal(1, refs.Length);
-                Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
+                Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
         }
 
@@ -2988,6 +3037,58 @@ class Program
             CompileAndVerify(comp, expectedOutput: 
 @"a
 5");
+        }
+
+        [Fact]
+        [WorkItem(16751, "https://github.com/dotnet/roslyn/issues/16751")]
+        public void SemanticModelInAttribute_01()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        const bool b1 = true;
+
+        void Local1(
+            [Test(p = b1)]
+            [Test(p = b2)]
+            int p1)
+        {
+        }
+
+        Local1(1);
+    }
+}
+
+class b1 {}
+
+class Test : System.Attribute
+{
+    public bool p {get; set;}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl).Verify(
+                // (10,23): error CS0103: The name 'b2' does not exist in the current context
+                //             [Test(p = b2)]
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b2").WithArguments("b2").WithLocation(10, 23),
+                // (6,20): warning CS0219: The variable 'b1' is assigned but its value is never used
+                //         const bool b1 = true;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var b2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b2").Single();
+            Assert.Null(model.GetSymbolInfo(b2).Symbol);
+
+            var b1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b1").Single();
+            var b1Symbol = model.GetSymbolInfo(b1).Symbol;
+            Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
+            Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
         }
     }
 }

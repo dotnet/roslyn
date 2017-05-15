@@ -25,7 +25,7 @@
          where building multiple projects that produce VSIXes larger than 10MB will race against each other -->
     <MSBuild Projects="@(Project)" Targets="Build" BuildInParallel="false" />
 
-    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\CSharp\Diagnostic\Analyzer" />
     <Copy SourceFiles="@(PowerShellScriptsToCopy)" DestinationFolder="Templates\VisualBasic\Diagnostic\Analyzer\tools" />
 

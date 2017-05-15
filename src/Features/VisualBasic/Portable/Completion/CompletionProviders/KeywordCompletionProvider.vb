@@ -38,8 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 description:=keyword.DescriptionFactory(CancellationToken.None),
                 glyph:=Glyph.Keyword,
                 tags:=s_Tags,
-                matchPriority:=keyword.MatchPriority,
-                rules:=rules)
+                rules:=rules.WithMatchPriority(keyword.MatchPriority))
         End Function
 
         Private Shared Function GetKeywordRecommenders() As ImmutableArray(Of IKeywordRecommender(Of VisualBasicSyntaxContext))

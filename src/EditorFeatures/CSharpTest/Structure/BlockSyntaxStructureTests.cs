@@ -38,6 +38,42 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestUnsafe1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:unsafe{|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
+        public async Task TestFixed1()
+        {
+            const string code = @"
+class C
+{
+    void M()
+    {
+        {|hint:fixed(int* i = &j){|textspan:
+        {$$
+        }|}|}
+    }
+}";
+
+            await VerifyBlockSpansAsync(code,
+                Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]
         public async Task TestUsing1()
         {
             const string code = @"

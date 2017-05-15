@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument(node, boundGoto) Then
-                boundGoto = _instrumenter.InstrumentExitStatement(node, boundGoto)
+                boundGoto = _instrumenterOpt.InstrumentExitStatement(node, boundGoto)
             End If
 
             Return boundGoto

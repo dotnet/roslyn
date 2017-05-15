@@ -121,16 +121,25 @@ namespace RunTests
             }
 
             Console.WriteLine("================");
+            var line = new StringBuilder();
             foreach (var testResult in testResults)
             {
+                line.Length = 0;
                 var color = testResult.Succeeded ? Console.ForegroundColor : ConsoleColor.Red;
-                var message = $"{testResult.DisplayName,-75} {(testResult.Succeeded ? "PASSED" : "FAILED")} {testResult.Elapsed}{(testResult.IsFromCache ? "*" : "")}";
+                line.Append($"{testResult.DisplayName,-75}");
+                line.Append($" {(testResult.Succeeded ? "PASSED" : "FAILED")}");
+                line.Append($" {testResult.Elapsed}");
+                line.Append($" {(testResult.IsFromCache ? "*" : "")}");
+                line.Append($" {(!string.IsNullOrEmpty(testResult.Diagnostics) ? "?" : "")}");
+
+                var message = line.ToString();
                 ConsoleUtil.WriteLine(color, message);
                 Logger.Log(message);
             }
             Console.WriteLine("================");
 
             // Print diagnostics out last so they are cleanly visible at the end of the test summary
+            Console.WriteLine("Extra run diagnostics for logging, did not impact run results");
             foreach (var testResult in testResults.Where(x => !string.IsNullOrEmpty(x.Diagnostics)))
             {
                 Console.WriteLine(testResult.Diagnostics);

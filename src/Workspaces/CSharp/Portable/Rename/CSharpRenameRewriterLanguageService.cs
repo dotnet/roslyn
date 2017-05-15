@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     isRenameLocation ||
                     token.ValueText == _replacementText ||
                     isOldText ||
-                    _possibleNameConflicts.Contains(token.ValueText);
+                    _possibleNameConflicts.Contains(token.ValueText) ||
+                    IsPossiblyDestructorConflict(token, _replacementText);
 
                 if (tokenNeedsConflictCheck)
                 {
@@ -228,6 +229,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
 
                 return newToken;
+            }
+
+            private bool IsPossiblyDestructorConflict(SyntaxToken token, string replacementText)
+            {
+                return _replacementText == "Finalize" &&
+                    token.IsKind(SyntaxKind.IdentifierToken) && 
+                    token.Parent.IsKind(SyntaxKind.DestructorDeclaration);
             }
 
             private SyntaxNode Complexify(SyntaxNode originalNode, SyntaxNode newNode)
@@ -355,9 +363,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                         var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, _solution, _cancellationToken).ConfigureAwait(false);
                         symbol = sourceDefinition ?? symbol;
 
-                        if (symbol is INamedTypeSymbol)
+                        if (symbol is INamedTypeSymbol namedTypeSymbol)
                         {
-                            var namedTypeSymbol = (INamedTypeSymbol)symbol;
                             if (namedTypeSymbol.IsImplicitlyDeclared &&
                                 namedTypeSymbol.IsDelegateType() &&
                                 namedTypeSymbol.AssociatedSymbol != null)
@@ -1235,9 +1242,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 {
                     nodeToSpeculate = ((TypeConstraintSyntax)node).Type;
                 }
-                else if (node is BaseTypeSyntax)
+                else if (node is BaseTypeSyntax baseType)
                 {
-                    nodeToSpeculate = ((BaseTypeSyntax)node).Type;
+                    nodeToSpeculate = baseType.Type;
                 }
                 else
                 {

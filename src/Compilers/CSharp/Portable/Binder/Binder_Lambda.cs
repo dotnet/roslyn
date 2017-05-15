@@ -94,6 +94,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var p in parameterSyntaxList.Value)
                 {
+                    foreach (var attributeList in p.AttributeLists)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_AttributesNotAllowed, attributeList);
+                    }
+
+                    if (p.Default != null)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
+                    }
+
                     if (p.IsArgList)
                     {
                         Error(diagnostics, ErrorCode.ERR_IllegalVarArgs, p);
@@ -113,19 +123,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
-                            if (modifier.Kind() == SyntaxKind.RefKeyword)
+                            SyntaxKind modifierKind = modifier.Kind();
+                            if (modifierKind == SyntaxKind.ThisKeyword)
+                            {
+                                Error(diagnostics, ErrorCode.ERR_ThisInBadContext, modifier);
+                                break;
+                            }
+                            else if (modifierKind == SyntaxKind.RefKeyword)
                             {
                                 refKind = RefKind.Ref;
                                 allValue = false;
                                 break;
                             }
-                            else if (modifier.Kind() == SyntaxKind.OutKeyword)
+                            else if (modifierKind == SyntaxKind.OutKeyword)
                             {
                                 refKind = RefKind.Out;
                                 allValue = false;
                                 break;
                             }
-                            else if (modifier.Kind() == SyntaxKind.ParamsKeyword)
+                            else if (modifierKind == SyntaxKind.ParamsKeyword)
                             {
                                 // This was a parse error in the native compiler; 
                                 // it is a semantic analysis error in Roslyn. See comments to

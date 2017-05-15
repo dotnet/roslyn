@@ -9,9 +9,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class MessageProvider : CommonMessageProvider, IObjectWritable, IObjectReadable
+    internal sealed class MessageProvider : CommonMessageProvider, IObjectWritable
     {
         public static readonly MessageProvider Instance = new MessageProvider();
+
+        static MessageProvider()
+        {
+            ObjectBinder.RegisterTypeReader(typeof(MessageProvider), r => Instance);
+        }
 
         private MessageProvider()
         {
@@ -20,11 +25,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             // write nothing, always read/deserialized as global Instance
-        }
-
-        Func<ObjectReader, object> IObjectReadable.GetReader()
-        {
-            return (r) => Instance;
         }
 
         public override DiagnosticSeverity GetSeverity(int code)
@@ -145,6 +145,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int INF_UnableToLoadSomeTypesInAnalyzer => (int)ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer;
         public override int ERR_CantReadRulesetFile => (int)ErrorCode.ERR_CantReadRulesetFile;
         public override int ERR_CompileCancelled => (int)ErrorCode.ERR_CompileCancelled;
+
+        // parse options:
+        public override int ERR_BadSourceCodeKind => (int)ErrorCode.ERR_BadSourceCodeKind;
+        public override int ERR_BadDocumentationMode => (int)ErrorCode.ERR_BadDocumentationMode;
 
         // compilation options:
         public override int ERR_BadCompilationOptionValue => (int)ErrorCode.ERR_BadCompilationOptionValue;

@@ -7,18 +7,16 @@ using Microsoft.CodeAnalysis.CodeLens;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
     internal partial class CodeAnalysisService
     {
-        public async Task<ReferenceCount> GetReferenceCountAsync(CodeLensArguments arguments, int maxResultCount)
+        public async Task<ReferenceCount> GetReferenceCountAsync(DocumentId documentId, TextSpan textSpan, int maxResultCount)
         {
             try
             {
-                var documentId = arguments.GetDocumentId();
-                var textSpan = arguments.GetTextSpan();
-
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetReferenceCountAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
                     var solution = await GetSolutionAsync().ConfigureAwait(false);
@@ -43,13 +41,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(CodeLensArguments arguments)
+        public async Task<IEnumerable<ReferenceLocationDescriptor>> FindReferenceLocationsAsync(DocumentId documentId, TextSpan textSpan)
         {
             try
             {
-                var documentId = arguments.GetDocumentId();
-                var textSpan = arguments.GetTextSpan();
-
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceLocationsAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
                     var solution = await GetSolutionAsync().ConfigureAwait(false);
@@ -74,13 +69,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(CodeLensArguments arguments)
+        public async Task<IEnumerable<ReferenceMethodDescriptor>> FindReferenceMethodsAsync(DocumentId documentId, TextSpan textSpan)
         {
             try
             {
-                var documentId = arguments.GetDocumentId();
-                var textSpan = arguments.GetTextSpan();
-
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_FindReferenceMethodsAsync, documentId.ProjectId.DebugName, CancellationToken))
                 {
                     var solution = await GetSolutionAsync().ConfigureAwait(false);
@@ -105,13 +97,10 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public async Task<string> GetFullyQualifiedName(CodeLensArguments arguments)
+        public async Task<string> GetFullyQualifiedName(DocumentId documentId, TextSpan textSpan)
         {
             try
             {
-                var documentId = arguments.GetDocumentId();
-                var textSpan = arguments.GetTextSpan();
-
                 using (Internal.Log.Logger.LogBlock(FunctionId.CodeAnalysisService_GetFullyQualifiedName, documentId.ProjectId.DebugName, CancellationToken))
                 {
                     var solution = await GetSolutionAsync().ConfigureAwait(false);

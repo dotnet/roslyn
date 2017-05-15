@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement initializer = new BoundStatementList(forEachSyntax,
                 statements: ImmutableArray.Create<BoundStatement>(stringVarDecl, positionVariableDecl));
 
-            MethodSymbol method = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
+            MethodSymbol method = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Length);
             BoundExpression stringLength = BoundCall.Synthesized(
                     syntax: forEachSyntax,
                     receiverOpt: boundStringVar,
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.ElementConversion.IsValid);
 
             // (V)s.Chars[p]
-            MethodSymbol chars = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
+            MethodSymbol chars = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_String__Chars);
             BoundExpression iterationVarInitValue = MakeConversionNode(
                 syntax: forEachSyntax,
                 rewrittenOperand: BoundCall.Synthesized(
@@ -697,8 +697,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             // Values we'll use every iteration
-            MethodSymbol getLowerBoundMethod = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetLowerBound);
-            MethodSymbol getUpperBoundMethod = GetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetUpperBound);
+            MethodSymbol getLowerBoundMethod = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetLowerBound);
+            MethodSymbol getUpperBoundMethod = UnsafeGetSpecialTypeMethod(forEachSyntax, SpecialMember.System_Array__GetUpperBound);
 
             BoundExpression rewrittenExpression = (BoundExpression)Visit(collectionExpression);
             BoundStatement rewrittenBody = (BoundStatement)Visit(node.Body);

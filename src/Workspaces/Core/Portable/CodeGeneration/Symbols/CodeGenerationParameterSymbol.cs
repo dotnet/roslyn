@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public CodeGenerationParameterSymbol(
             INamedTypeSymbol containingType,
-            IList<AttributeData> attributes,
+            ImmutableArray<AttributeData> attributes,
             RefKind refKind,
             bool isParams,
             ITypeSymbol type,
@@ -45,54 +45,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 this.ExplicitDefaultValue);
         }
 
-        public new IParameterSymbol OriginalDefinition
-        {
-            get
-            {
-                return this;
-            }
-        }
+        public new IParameterSymbol OriginalDefinition => this;
 
-        public override SymbolKind Kind
-        {
-            get
-            {
-                return SymbolKind.Parameter;
-            }
-        }
+        public override SymbolKind Kind => SymbolKind.Parameter;
 
         public override void Accept(SymbolVisitor visitor)
-        {
-            visitor.VisitParameter(this);
-        }
+            => visitor.VisitParameter(this);
 
         public override TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitParameter(this);
-        }
+            => visitor.VisitParameter(this);
 
-        public bool IsThis
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsThis => false;
 
-        public ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public ImmutableArray<CustomModifier> RefCustomModifiers => ImmutableArray.Create<CustomModifier>();
 
-        public ImmutableArray<CustomModifier> CustomModifiers
-        {
-            get
-            {
-                return ImmutableArray.Create<CustomModifier>();
-            }
-        }
+        public ImmutableArray<CustomModifier> CustomModifiers => ImmutableArray.Create<CustomModifier>();
     }
 }

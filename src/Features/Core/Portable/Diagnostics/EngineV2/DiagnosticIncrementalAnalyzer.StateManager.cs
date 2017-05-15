@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 _projectStates = new ProjectStates(this);
             }
 
-            private HostAnalyzerManager AnalyzerManager { get { return _analyzerManager; } }
+            private HostAnalyzerManager AnalyzerManager => _analyzerManager;
 
             /// <summary>
             /// This will be raised whenever <see cref="StateManager"/> finds <see cref="Project.AnalyzerReferences"/> change

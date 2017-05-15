@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                             || cursorPosition == lastSpan.Start || cursorPosition == lastSpan.End,
                     "cursorPosition wasn't at an endpoint of the 'Selection' annotated span");
 
-                _textView.Selection.Mode = selectionSpanList.Count > 1
+                _textView.Selection.Mode = selectionSpanList.Length > 1
                     ? TextSelectionMode.Box
                     : TextSelectionMode.Stream;
 
@@ -414,6 +414,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
         public void SendSelectAll(Action<SelectAllCommandArgs, Action> commandHandler, Action nextHandler)
         {
             commandHandler(new SelectAllCommandArgs(TextView, SubjectBuffer), nextHandler);
+        }
+
+        public void SendToggleCompletionMode(Action<ToggleCompletionModeCommandArgs, Action> commandHandler, Action nextHandler)
+        {
+            commandHandler(new ToggleCompletionModeCommandArgs(TextView, SubjectBuffer), nextHandler);
         }
         #endregion
     }

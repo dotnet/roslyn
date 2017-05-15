@@ -290,10 +290,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigationBar
             // If this is a project item, try to get the actual proper image from the VSHierarchy it 
             // represents.  That way the icon will always look right no matter which type of project
             // it is.  For example, if phone/Windows projects have different icons, then this can 
-            // ensure we get the right icon, and not just a hardcoded C#/VB icon.
-            if (item is NavigationBarProjectItem)
+            // ensure we get the right icon, and not just a hard-coded C#/VB icon.
+            if (item is NavigationBarProjectItem projectItem)
             {
-                var projectItem = (NavigationBarProjectItem)item;
                 if (_workspace.TryGetImageListAndIndex(_imageService, projectItem.DocumentId.ProjectId, out phImageList, out piImageIndex))
                 {
                     return VSConstants.S_OK;

@@ -209,9 +209,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var stream = new MemoryStream();
             root.SerializeTo(stream);
 
-            stream.Position = 2;
-            Assert.Equal(expectRecursive, Roslyn.Utilities.StreamObjectReader.IsRecursive(stream));
-
             stream.Position = 0;
             var newRoot = CSharpSyntaxNode.DeserializeFrom(stream);
             var newText = newRoot.ToFullString();

@@ -36,23 +36,25 @@ End Class
 ]]>
     </file>
 </compilation>
+            Using(new EnsureEnglishUICulture()) 
+            
+                Dim comp = CreateCompilationWithMscorlib(sources)
+                Dim diags = New DiagnosticBag()
+                Dim badStream = New BrokenStream()
+                badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
 
-            Dim comp = CreateCompilationWithMscorlib(sources)
-            Dim diags = New DiagnosticBag()
-            Dim badStream = New BrokenStream()
-            badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite
+                DocumentationCommentCompiler.WriteDocumentationCommentXml(
+                    comp,
+                    assemblyName:=Nothing,
+                    xmlDocStream:=badStream,
+                    diagnostics:=diags,
+                    cancellationToken:=Nothing)
 
-            DocumentationCommentCompiler.WriteDocumentationCommentXml(
-                comp,
-                assemblyName:=Nothing,
-                xmlDocStream:=badStream,
-                diagnostics:=diags,
-                cancellationToken:=Nothing)
-
-            AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
-                                   <errors><![CDATA[
+                AssertTheseDiagnostics(diags.ToReadOnlyAndFree(),
+									   <errors><![CDATA[
 BC37258: Error writing to XML documentation file: I/O error occurred.
                                    ]]></errors>)
+            End Using
         End Sub
 
         <Fact>

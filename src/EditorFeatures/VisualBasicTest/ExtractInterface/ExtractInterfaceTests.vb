@@ -1177,7 +1177,7 @@ Partial Class C
     End Property
 End Class</text>.NormalizedValue()
 
-            Dim workspace = Await TestWorkspace.CreateAsync(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
+            Dim workspace = TestWorkspace.Create(workspaceXml, exportProvider:=ExtractInterfaceTestState.ExportProvider)
             Using testState = New ExtractInterfaceTestState(workspace)
                 Dim result = testState.ExtractViaCommand()
                 Assert.True(result.Succeeded)
@@ -1259,11 +1259,11 @@ End Namespace
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.ExtractInterface)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
-        Public Async Function TestExtractInterfaceCommandDisabledInSubmission() As Task
+        Public Sub TestExtractInterfaceCommandDisabledInSubmission()
             Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(
                 TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(InteractiveDocumentSupportsFeatureService)))
 
-            Using workspace = Await TestWorkspace.CreateAsync(
+            Using workspace = TestWorkspace.Create(
                 <Workspace>
                     <Submission Language="Visual Basic" CommonReferences="true">  
                         Public Class C
@@ -1292,10 +1292,10 @@ End Namespace
                 Assert.True(delegatedToNext)
                 Assert.False(state.IsAvailable)
             End Using
-        End Function
+        End Sub
 
         Private Shared Async Function TestTypeDiscoveryAsync(markup As String, typeDiscoveryRule As TypeDiscoveryRule, expectedExtractable As Boolean) As System.Threading.Tasks.Task
-            Using testState = Await ExtractInterfaceTestState.CreateAsync(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
+            Using testState = ExtractInterfaceTestState.Create(markup, LanguageNames.VisualBasic, compilationOptions:=Nothing)
                 Dim result = Await testState.GetTypeAnalysisResultAsync(typeDiscoveryRule)
                 Assert.Equal(expectedExtractable, result.CanExtractInterface)
             End Using

@@ -257,9 +257,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        public override string ToString()
-        {
-            return DisplayText;
-        }
+        public override string ToString() => DisplayText;
     }
 }

@@ -271,10 +271,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 ProgressReporter = progressReporter;
             }
 
-            public Solution CurrentSolution
-            {
-                get { return Workspace.CurrentSolution; }
-            }
+            public Solution CurrentSolution => Workspace.CurrentSolution;
 
             public TService GetService<TService>() where TService : IWorkspaceService
             {

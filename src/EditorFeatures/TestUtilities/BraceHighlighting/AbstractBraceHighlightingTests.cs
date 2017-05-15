@@ -2,7 +2,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -19,12 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
     {
         protected async Task TestBraceHighlightingAsync(string markup, ParseOptions options = null)
         {
-            using (var workspace = await CreateWorkspaceAsync(markup, options))
+            using (var workspace = CreateWorkspace(markup, options))
             {
                 WpfTestCase.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
 
                 var provider = new BraceHighlightingViewTaggerProvider(
-                    workspace.GetService<IBraceMatchingService>(),
+                    GetBraceMatchingService(workspace),
                     workspace.GetService<IForegroundNotificationService>(),
                     AggregateAsynchronousOperationListener.EmptyListeners);
 
@@ -43,6 +42,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             }
         }
 
-        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string markup, ParseOptions options);
+        internal virtual IBraceMatchingService GetBraceMatchingService(TestWorkspace workspace)
+            => workspace.GetService<IBraceMatchingService>();
+
+        protected abstract TestWorkspace CreateWorkspace(string markup, ParseOptions options);
     }
 }

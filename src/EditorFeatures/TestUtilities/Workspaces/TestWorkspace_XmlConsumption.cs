@@ -9,13 +9,11 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Windows.Threading;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -29,7 +27,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
-    using System.Threading.Tasks;
     using RelativePathResolver = WORKSPACES::Microsoft.CodeAnalysis.RelativePathResolver;
 
     public partial class TestWorkspace
@@ -59,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             }
         }
 
-        public static Task<TestWorkspace> CreateAsync(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
+        public static TestWorkspace Create(string xmlDefinition, bool completed = true, bool openDocuments = true, ExportProvider exportProvider = null)
         {
-            return CreateAsync(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
+            return Create(XElement.Parse(xmlDefinition), completed, openDocuments, exportProvider);
         }
 
         public static TestWorkspace CreateWorkspace(
@@ -71,10 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             ExportProvider exportProvider = null,
             string workspaceKind = null)
         {
-            return CreateAsync(workspaceElement, completed, openDocuments, exportProvider, workspaceKind).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
+            return Create(workspaceElement, completed, openDocuments, exportProvider, workspaceKind);
         }
 
-        public static Task<TestWorkspace> CreateAsync(
+        public static TestWorkspace Create(
             XElement workspaceElement,
             bool completed = true,
             bool openDocuments = true,
@@ -179,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 }
             }
 
-            return Task.FromResult(workspace);
+            return workspace;
         }
 
         private static IList<TestHostProject> CreateSubmissions(
@@ -198,10 +195,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The document
                 var markupCode = submissionElement.NormalizedValue();
-                string code;
-                int? cursorPosition;
-                IDictionary<string, IList<TextSpan>> spans;
-                MarkupTestFile.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+                MarkupTestFile.GetPositionAndSpans(markupCode, 
+                    out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var languageServices = workspace.Services.GetLanguageServices(languageName);
                 var contentTypeLanguageService = languageServices.GetService<IContentTypeLanguageService>();
@@ -619,10 +614,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var contentTypeLanguageService = languageServiceProvider.GetService<IContentTypeLanguageService>();
             var contentType = contentTypeLanguageService.GetDefaultContentType();
 
-            string code;
-            int? cursorPosition;
-            IDictionary<string, IList<TextSpan>> spans;
-            MarkupTestFile.GetPositionAndSpans(markupCode, out code, out cursorPosition, out spans);
+            MarkupTestFile.GetPositionAndSpans(markupCode,
+                out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
             // For linked files, use the same ITextBuffer for all linked documents
             ITextBuffer textBuffer;
@@ -672,7 +665,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             var compilation = CreateCompilation(workspace, referencedSource);
 
-            var aliasElement = referencedSource.Attribute("Aliases") != null ? referencedSource.Attribute("Aliases").Value : null;
+            var aliasElement = referencedSource.Attribute("Aliases")?.Value;
             var aliases = aliasElement != null ? aliasElement.Split(',').Select(s => s.Trim()).ToImmutableArray() : default(ImmutableArray<string>);
 
             bool includeXmlDocComments = false;
@@ -784,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 ((bool?)commonReferencesAttribute).HasValue &&
                 ((bool?)commonReferencesAttribute).Value)
             {
-                references = new List<MetadataReference> { TestBase.MscorlibRef_v4_0_30316_17626, TestBase.SystemRef_v4_0_30319_17929, TestBase.SystemCoreRef_v4_0_30319_17929 };
+                references = new List<MetadataReference> { TestBase.MscorlibRef_v46, TestBase.SystemRef_v46, TestBase.SystemCoreRef_v46 };
                 if (GetLanguage(workspace, element) == LanguageNames.VisualBasic)
                 {
                     references.Add(TestBase.MsvbRef_v4_0_30319_17929);

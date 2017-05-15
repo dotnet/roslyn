@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return reusableSyntax;
             }
 
-            bool hasNoBody = !options.GenerateMethodBodies;
+            var hasNoBody = !options.GenerateMethodBodies;
 
             var declaration = SyntaxFactory.ConstructorDeclaration(
                 attributeLists: AttributeGenerator.GenerateAttributeLists(constructor.GetAttributes(), options),
@@ -73,16 +73,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (declaration.ExpressionBody == null)
             {
-                var preferExpressionBody = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
-                if (preferExpressionBody)
+                var expressionBodyPreference = workspace.Options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedConstructors).Value;
+                if (declaration.Body.TryConvertToExpressionBody(
+                        options, expressionBodyPreference, out var expressionBody, out var semicolonToken))
                 {
-                    var expressionBody = declaration.Body.TryConvertToExpressionBody(options);
-                    if (expressionBody != null)
-                    {
-                        return declaration.WithBody(null)
-                                          .WithExpressionBody(expressionBody)
-                                          .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-                    }
+                    return declaration.WithBody(null)
+                                      .WithExpressionBody(expressionBody)
+                                      .WithSemicolonToken(semicolonToken);
                 }
             }
 
@@ -92,7 +89,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static ConstructorInitializerSyntax GenerateConstructorInitializer(
             IMethodSymbol constructor)
         {
-            var arguments = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor) ?? CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(constructor);
+            var thisArguments = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor);
+
+            var arguments = !thisArguments.IsDefault ? thisArguments : CodeGenerationConstructorInfo.GetBaseConstructorArgumentsOpt(constructor);
             var kind = CodeGenerationConstructorInfo.GetThisConstructorArgumentsOpt(constructor) != null
                 ? SyntaxKind.ThisConstructorInitializer
                 : SyntaxKind.BaseConstructorInitializer;

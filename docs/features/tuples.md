@@ -1,13 +1,13 @@
 
-Quickstart guide for tuples (C# 7.0)
+Quickstart guide for tuples (C# 7.0 and Visual Basic 15)
 ------------------------------------
-1. Install dev15 preview 4
-2. Start a C# project
-3. Add a reference to the `System.ValueTuple` package from NuGet (pre-release)
+1. Install VS2017
+2. Start a C# or VB project
+3. Add a reference to the `System.ValueTuple` package from NuGet
 ![Install the ValueTuple package](img/install-valuetuple.png)
-4. Use tuples:
+4. Use tuples in C#:
 
-    ```C#
+```C#
 public class C
 {
         public static (int code, string message) Method((int, string) x) 
@@ -18,14 +18,36 @@ public class C
         public static void Main()
         {
                 var pair1 = (42, "hello");
-                Console.Write(Method(pair1).message);
+                System.Console.Write(Method(pair1).message);
         
                 var pair2 = (code: 43, message: "world");
-                Console.Write(pair2.message);
+                System.Console.Write(pair2.message);
         }
 }
-    ```
-5. Use deconstructions: see the [deconstruction page](deconstruction.md)
+```
+    
+5. Or use tuples in VB:
+
+```VB
+Public Class C
+        Public Shared Function Method(x As (Integer, String)) As (code As Integer, message As String)
+                Return x
+        End Function
+
+        Public Shared Sub Main()
+                Dim x = (42, "hello")
+                System.Console.Write(C.Method(x).message)
+        
+                Dim pair2 = (code:=43, message:="world")
+                System.Console.Write(pair2.message)
+        End Sub
+End Class
+```
+
+6. Use deconstructions (C# only): see the [deconstruction page](deconstruction.md)
+
+Without the `System.ValueTuple` package from NuGet, the compiler will produce an error:
+``error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported``
 
 Design
 ------
@@ -205,7 +227,7 @@ var t = (null, 5);    						//   Error: tuple expression doesn't have a type bec
 ((1,2, null), 5).ToString();    	    	//   Error: tuple expression doesn't have a type
 
 ImmutableArray.Create((()=>1, 1));        	//   Error: tuple expression doesn't have a type because lambda does not have a type
-ImmutableArray.Create((Func<int>)()=>1, 1); //   ok
+ImmutableArray.Create(((Func<int>)(()=>1), 1)); //   ok
 ```
 
 A tuple literal may include names, in which case they become part of the natural type:
@@ -252,6 +274,16 @@ void M1((int x, Func<(int, byte)>) arg){...};
 M1((1, ()=>(2, 3)));         // the first overload is used due to "exact match" rule
 
 ``` 
+
+Conversions
+--------------
+
+Tuple types and expressions support a variety of conversions by "lifting" conversions of the elements into overal _tuple conversion_.
+For the classification purpose, all element conversions are considered recursively. For example: To have an implicit conversion, all element expressions/types must have implicit conversions to the corresponding element types.
+
+Typele conversions are *Standard Conversions* and therefore can stack with user-defined operators to form user-defined conversions.
+
+A tuple conversion can be classified as a valid instance conversion for an extension method invocation as long as all element conversions are applicable as instance conversions.
 
 Language grammar changes
 ---------------------

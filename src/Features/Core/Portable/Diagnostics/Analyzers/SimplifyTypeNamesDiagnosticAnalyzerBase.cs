@@ -88,6 +88,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
         public sealed override void Initialize(AnalysisContext context)
         {
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            context.EnableConcurrentExecution();
+
             context.RegisterSyntaxNodeAction(AnalyzeNode, _kindsOfInterest);
         }
 
@@ -147,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     break;
 
                 default:
-                    throw ExceptionUtilities.Unreachable;
+                    throw ExceptionUtilities.UnexpectedValue(diagnosticId);
             }
 
             if (descriptor == null)

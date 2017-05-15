@@ -50,6 +50,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.RemoveUnnecessaryCast
         private bool TryRemoveCastExpression(
             SemanticModel model, SyntaxNode node, out Diagnostic diagnostic, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             diagnostic = default(Diagnostic);
 
             if (!IsUnnecessaryCast(model, node, cancellationToken))

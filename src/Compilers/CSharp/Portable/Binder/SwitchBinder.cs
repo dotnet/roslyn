@@ -438,8 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // time, so it doesn't really matter.
                     if (switchGoverningType.SpecialType == SpecialType.System_Boolean)
                     {
-                        // GetLocation() so that it also works in speculative contexts.
-                        CheckFeatureAvailability(node.GetLocation(), MessageID.IDS_FeatureSwitchOnBool, diagnostics);
+                        CheckFeatureAvailability(node, MessageID.IDS_FeatureSwitchOnBool, diagnostics);
                     }
 
                     return switchExpression;
@@ -482,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_SwitchExpressionValueExpected, node.Location, switchExpression.Display);
             }
 
-            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(switchExpression), switchGoverningType ?? CreateErrorType());
+            return new BoundBadExpression(node, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray.Create(switchExpression), switchGoverningType ?? CreateErrorType());
         }
 
         private LabelSymbol BindConstantJumpTarget(ConstantValue constantValue, CSharpSyntaxNode syntax)
@@ -607,6 +606,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, labelExpressionConstant?.GetValueToDisplay() ?? label.Name);
                         hasErrors = true;
+                    }
+
+                    if (caseLabelSyntax.Value.Kind() == SyntaxKind.DefaultLiteralExpression)
+                    {
+                        diagnostics.Add(ErrorCode.WRN_DefaultInSwitch, caseLabelSyntax.Value.Location);
                     }
 
                     // LabelSymbols for all the switch case labels are created by BuildLabels().

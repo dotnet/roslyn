@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis
         RemoveAdditionalDocument = 12,
         ChangeAdditionalDocument = 13,
         ChangeCompilationOptions = 14,
-        ChangeParseOptions = 15
+        ChangeParseOptions = 15,
+        ChangeDocumentInfo = 16
     }
 }

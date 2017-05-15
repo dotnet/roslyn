@@ -888,7 +888,7 @@ class C
         [Fact]
         public void AutoPropInitializersClass()
         {
-            var comp = CreateCompilationWithMscorlib(@"using System;
+            var comp = CreateStandardCompilation(@"using System;
 class C
 {
     public int P { get; set; } = 1;
@@ -944,7 +944,7 @@ class C
         [Fact]
         public void AutoPropInitializersStruct()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 struct S
 {
@@ -1371,7 +1371,7 @@ class C : B<string>
                 var module = new PEAssemblyBuilder((SourceAssemblySymbol)sourceType.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                     GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-                var context = new EmitContext(module, null, new DiagnosticBag());
+                var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
                 var typeDefinition = (Microsoft.Cci.ITypeDefinition)type;
                 var fieldDefinition = typeDefinition.GetFields(context).First();
@@ -2164,7 +2164,7 @@ class Program
         [Fact]
         public void EmitWithNoResourcesAllPlatforms()
         {
-            var comp = CreateCompilationWithMscorlib("class Test { static void Main() { } }");
+            var comp = CreateStandardCompilation("class Test { static void Main() { } }");
 
             VerifyEmitWithNoResources(comp, Platform.AnyCpu);
             VerifyEmitWithNoResources(comp, Platform.AnyCpu32BitPreferred);
@@ -2186,7 +2186,7 @@ class Program
             var options = EmitOptions.Default.WithFileAlignment(0x2000);
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
-            var peStream = CreateCompilationWithMscorlib(
+            var peStream = CreateStandardCompilation(
                 syntax,
                 options: TestOptions.ReleaseDll.WithDeterministic(true),
                 assemblyName: "46B9C2B2-B7A0-45C5-9EF9-28DDF739FD9E").EmitToStream(options);
@@ -2375,7 +2375,7 @@ class Program
 
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C { static void Main() { } }", TestOptions.Regular);
 
-            var peStream = CreateCompilationWithMscorlib(
+            var peStream = CreateStandardCompilation(
                 syntax,
                 options: TestOptions.DebugExe.WithPlatform(Platform.X64).WithDeterministic(true),
                 assemblyName: "B37A4FCD-ED76-4924-A2AD-298836056E00").EmitToStream(options);

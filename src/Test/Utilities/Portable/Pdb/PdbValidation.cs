@@ -10,11 +10,15 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.DiaSymReader;
+using Microsoft.DiaSymReader.Tools;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
@@ -47,13 +51,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             [CallerLineNumber]int expectedValueSourceLine = 0,
             [CallerFilePath]string expectedValueSourcePath = null)
         {
-            var expectedPdbXml = XElement.Parse(string.IsNullOrWhiteSpace(expectedPdb) ? "<symbols></symbols>" : expectedPdb);
-
             VerifyPdbImpl(
                 compilation,
                 debugEntryPoint,
                 qualifiedMethodName,
-                expectedPdbXml,
+                string.IsNullOrWhiteSpace(expectedPdb) ? "<symbols></symbols>" : expectedPdb,
                 format,
                 options,
                 expectedValueSourceLine,
@@ -87,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 compilation,
                 debugEntryPoint,
                 qualifiedMethodName,
-                expectedPdb,
+                expectedPdb.ToString(),
                 format,
                 options,
                 expectedValueSourceLine,
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this Compilation compilation,
             IMethodSymbol debugEntryPoint,
             string qualifiedMethodName,
-            XElement expectedPdb,
+            string expectedPdb,
             DebugInformationFormat format,
             PdbToXmlOptions options,
             int expectedValueSourceLine,
@@ -110,134 +112,125 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (format == 0 || format == DebugInformationFormat.Pdb)
             {
-                var actualNativePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false));
-                AssertXml.Equal(expectedPdb, actualNativePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                var actualPdb = GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: false);
+                var (actualXml, expectedXml) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: false);
+
+                AssertXml.Equal(expectedXml, actualXml, $"PDB format: Windows{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
 
             if (format == 0 || format == DebugInformationFormat.PortablePdb)
             {
-                var actualPortablePdb = XElement.Parse(GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true));
+                string actualPdb = GetPdbXml(compilation, debugEntryPoint, options, qualifiedMethodName, portable: true);
+                var (actualXml, expectedXml) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: true);
 
-                // If format is not specified, we share expected output between portable and non-portable.
-                // The output is then non-portable since it contains more information (such as cdi).
-                AdjustToPdbFormat(
-                    actualPdb: actualPortablePdb, 
-                    actualIsPortable: true, 
-                    expectedPdb: expectedPdb, 
-                    expectedIsPortable: format == DebugInformationFormat.PortablePdb);
-
-                AssertXml.Equal(expectedPdb, actualPortablePdb, expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+                AssertXml.Equal(expectedXml, actualXml, $"PDB format: Portable{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
             }
         }
 
-        internal static void AdjustToPdbFormat(
-            XElement actualPdb,
-            bool actualIsPortable,
-            XElement expectedPdb,
-            bool expectedIsPortable)
+        internal static (XElement Actual, XElement Expected) AdjustToPdbFormat(string actualPdb, string expectedPdb, bool actualIsPortable)
         {
-            if (actualIsPortable == expectedIsPortable)
+            var actualXml = XElement.Parse(actualPdb);
+            var expectedXml = XElement.Parse(expectedPdb);
+
+            if (actualIsPortable)
             {
-                return;
+                // Windows SymWriter doesn't serialize empty scopes.
+                // In Portable PDB each method with a body (even with no locals) has a scope that points to the imports. Such scope appears as empty
+                // in the current XML representation. 
+                RemoveEmptyScopes(actualXml);
+
+                RemoveWindowsSpecificElements(expectedXml);
+            }
+            else
+            {
+                RemovePortableSpecificElements(expectedXml);
             }
 
-            // The test doesn't specify portable as expected PDB unless it's testing portable only in which case actual is also portable.
-            Assert.False(expectedIsPortable);
-            Assert.True(actualIsPortable);
+            RemoveEmptySequencePoints(expectedXml);
+            RemoveEmptyScopes(expectedXml);
+            RemoveEmptyCustomDebugInfo(expectedXml);
+            RemoveEmptyMethods(expectedXml);
+            RemoveFormatAttributes(expectedXml);
 
-            // SymWriter doesn't create empty scopes. When the C# compiler uses forwarding CDI instead of a NamespaceScope
-            // the scope is actually not empty - it logically contains the imports. Portable PDB does not use forwarding and thus
-            // creates the scope. When generating PDB XML for testing the Portable DiaSymReader returns empty namespaces.
-            RemoveEmptyScopes(actualPdb);
-
-            // if the actual format is portable and the expected is not, remove native-only artifacts:
-            RemoveNonPortablePdb(expectedPdb);
-
-            RemoveEmptySequencePoints(expectedPdb);
-
-            // remove scopes that only contained non-portable elements (namespace scopes)
-            RemoveEmptyScopes(expectedPdb);
-            RemoveMethodsWithNoSequencePoints(expectedPdb);
-            RemoveEmptyMethods(expectedPdb);
+            return (actualXml, expectedXml);
         }
 
-        private static void RemoveMethodsWithNoSequencePoints(XElement pdb)
+        private static bool RemoveElements(IEnumerable<XElement> elements)
         {
-            var methods = (from e in pdb.DescendantsAndSelf()
-                              where e.Name == "method" 
-                              select e).ToArray();
-            foreach(var method in methods)
+            var array = elements.ToArray();
+
+            foreach (var e in array)
             {
-                bool hasNoSequencePoints = method.DescendantsAndSelf().Where(node => node.Name == "entry").IsEmpty();
-                if (hasNoSequencePoints)
-                {
-                    method.Remove();
-                }  
+                e.Remove();
             }
+
+            return array.Length > 0;
+        }
+
+        private static void RemoveEmptyCustomDebugInfo(XElement pdb)
+        {
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name == "customDebugInfo" && !e.HasElements
+                           select e);
         }
 
         private static void RemoveEmptyScopes(XElement pdb)
         {
-            XElement[] emptyScopes;
-
-            do
-            {
-                emptyScopes = (from e in pdb.DescendantsAndSelf()
-                               where e.Name == "scope" && !e.HasElements
-                               select e).ToArray();
-
-                foreach (var e in emptyScopes)
-                {
-                    e.Remove();
-                }
-            }
-            while (emptyScopes.Any());
+            while (RemoveElements(from e in pdb.DescendantsAndSelf()
+                                  where e.Name == "scope" && !e.HasElements
+                                  select e));
         }
 
         private static void RemoveEmptySequencePoints(XElement pdb)
         {
-            var emptyScopes = from e in pdb.DescendantsAndSelf()
-                              where e.Name == "sequencePoints" && !e.HasElements
-                              select e;
-
-            foreach (var e in emptyScopes.ToArray())
-            {
-                e.Remove();
-            }
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name == "sequencePoints" && !e.HasElements
+                           select e);
         }
 
         private static void RemoveEmptyMethods(XElement pdb)
         {
-            var emptyScopes = from e in pdb.DescendantsAndSelf()
-                              where e.Name == "method" && !e.HasElements
-                              select e;
-
-            foreach (var e in emptyScopes.ToArray())
-            {
-                e.Remove();
-            }
+            RemoveElements(from e in pdb.DescendantsAndSelf()
+                           where e.Name == "method" && !e.HasElements
+                           select e);
         }
 
-        private static void RemoveNonPortablePdb(XElement expectedNativePdb)
+        private static void RemoveWindowsSpecificElements(XElement expectedNativePdb)
         {
-            var nonPortableElements = from e in expectedNativePdb.DescendantsAndSelf()
-                                      where e.Name == "customDebugInfo" ||
-                                            e.Name == "currentnamespace" ||
-                                            e.Name == "defaultnamespace" ||
-                                            e.Name == "importsforward" ||
-                                            e.Name == "xmlnamespace" ||
-                                            e.Name == "alias" ||
-                                            e.Name == "namespace" ||
-                                            e.Name == "type" ||
-                                            e.Name == "defunct" ||
-                                            e.Name == "extern" ||
-                                            e.Name == "externinfo" ||
-                                            e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_"))
-                                      select e;
+            RemoveElements(from e in expectedNativePdb.DescendantsAndSelf()
+                           where e.Name == "forwardIterator" ||
+                                 e.Name == "forwardToModule" ||
+                                 e.Name == "forward" ||
+                                 e.Name == "tupleElementNames" ||
+                                 e.Name == "dynamicLocals" ||
+                                 e.Name == "using" ||
+                                 e.Name == "currentnamespace" ||
+                                 e.Name == "defaultnamespace" ||
+                                 e.Name == "importsforward" ||
+                                 e.Name == "xmlnamespace" ||
+                                 e.Name == "alias" ||
+                                 e.Name == "namespace" ||
+                                 e.Name == "type" ||
+                                 e.Name == "defunct" ||
+                                 e.Name == "extern" ||
+                                 e.Name == "externinfo" ||
+                                 e.Name == "local" && e.Attributes().Any(a => a.Name.LocalName == "name" && a.Value.StartsWith("$VB$ResumableLocal_")) ||
+                                 e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "windows")
+                           select e);
+        }
 
-            foreach (var e in nonPortableElements.ToArray())
+        private static void RemovePortableSpecificElements(XElement expectedNativePdb)
+        {
+            RemoveElements(from e in expectedNativePdb.DescendantsAndSelf()
+                           where e.Attributes().Any(a => a.Name.LocalName == "format" && a.Value == "portable")
+                           select e);
+        }
+
+        private static void RemoveFormatAttributes(XElement pdb)
+        {
+            foreach (var element in pdb.DescendantsAndSelf())
             {
-                e.Remove();
+                element.Attributes().FirstOrDefault(a => a.Name.LocalName == "format")?.Remove();
             }
         }
 
@@ -274,11 +267,34 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return actual;
         }
 
+        public unsafe static byte[] GetSourceLinkData(Stream pdbStream)
+        {
+            pdbStream.Position = 0;
+
+            var symReader = SymReaderFactory.CreateReader(pdbStream);
+            try
+            {
+                Marshal.ThrowExceptionForHR(symReader.GetSourceServerData(out byte* data, out int size));
+                if (size == 0)
+                {
+                    return Array.Empty<byte>();
+                }
+
+                var result = new byte[size];
+                Marshal.Copy((IntPtr)data, result, 0, result.Length);
+                return result;
+            }
+            finally
+            {
+                ((ISymUnmanagedDispose)symReader).Destroy();
+            }
+        }
+
         public static void ValidateDebugDirectory(Stream peStream, Stream portablePdbStreamOpt, string pdbPath, bool isDeterministic)
         {
-            peStream.Seek(0, SeekOrigin.Begin);
-            PEReader peReader = new PEReader(peStream);
+            peStream.Position = 0;
 
+            var peReader = new PEReader(peStream);
             var debugDirectory = peReader.PEHeaders.PEHeader.DebugTableDirectory;
 
             int position;
@@ -424,59 +440,129 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public static Dictionary<int, string> GetMarkers(string pdbXml)
+        public static Dictionary<int, string> GetMarkers(string pdbXml, string source = null)
         {
-            return ToDictionary<int, string, string>(EnumerateMarkers(pdbXml), (markers, marker) => markers + marker);
-        }
+            string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
+            var doc = new XmlDocument();
+            doc.LoadXml(pdbXml);
+            var result = new Dictionary<int, string>();
 
-        private static Dictionary<K, V> ToDictionary<K, V, I>(IEnumerable<KeyValuePair<K, I>> pairs, Func<V, I, V> aggregator)
-        {
-            var result = new Dictionary<K, V>();
-            foreach (var pair in pairs)
+            if (source == null)
             {
-                V existing;
-                if (result.TryGetValue(pair.Key, out existing))
+                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
                 {
-                    result[pair.Key] = aggregator(existing, pair.Value);
+                    foreach (XmlElement item in entry.ChildNodes)
+                    {
+                        Add(result,
+                            Convert.ToInt32(item.GetAttribute("offset"), 16),
+                            (item.GetAttribute("hidden") == "true") ? "~" : "-");
+                    }
                 }
-                else
+
+                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
                 {
-                    result.Add(pair.Key, aggregator(default(V), pair.Value));
+                    foreach (XmlElement item in entry.ChildNodes)
+                    {
+                        if (item.Name == "await")
+                        {
+                            Add(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
+                            Add(result, Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
+                        }
+                        else if (item.Name == "catchHandler")
+                        {
+                            Add(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
+                        }
+                    }
+                }
+            }
+            else
+            {
+                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
+                {
+                    foreach (XmlElement item in entry.ChildNodes)
+                    {
+                        if (item.Name == "await")
+                        {
+                            AddTextual(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "async: yield");
+                            AddTextual(result, Convert.ToInt32(item.GetAttribute("resume"), 16), "async: resume");
+                        }
+                        else if (item.Name == "catchHandler")
+                        {
+                            AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "async: catch handler");
+                        }
+                    }
+                }
+
+                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+                {
+                    foreach (XmlElement item in entry.ChildNodes)
+                    {
+                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(lines, item));
+                    }
                 }
             }
 
             return result;
-        }
 
-        public static IEnumerable<KeyValuePair<int, string>> EnumerateMarkers(string pdbXml)
-        {
-            var doc = new XmlDocument();
-            doc.LoadXml(pdbXml);
-
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
+            void Add(Dictionary<int, string> dict, int key, string value)
             {
-                foreach (XmlElement item in entry.ChildNodes)
+                if (dict.TryGetValue(key, out string found))
                 {
-                    yield return KeyValuePair.Create(
-                        Convert.ToInt32(item.GetAttribute("offset"), 16),
-                        (item.GetAttribute("hidden") == "true") ? "~" : "-");
+                    dict[key] = found + value;
+                }
+                else
+                {
+                    dict[key] = value;
                 }
             }
 
-            foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
+            void AddTextual(Dictionary<int, string> dict, int key, string value)
             {
-                foreach (XmlElement item in entry.ChildNodes)
+                if (dict.TryGetValue(key, out string found))
                 {
-                    if (item.Name == "await")
-                    {
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
-                    }
-                    else if (item.Name == "catchHandler")
-                    {
-                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
-                    }
+                    dict[key] = found + ", " + value;
                 }
+                else
+                {
+                    dict[key] = "// " + value;
+                }
+            }
+        }
+
+        private static string SnippetFromSpan(string[] lines, XmlElement span)
+        {
+            if (span.GetAttribute("hidden") != "true")
+            {
+                var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
+                var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
+                var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
+                var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
+                if (startLine == endLine)
+                {
+                    return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
+                }
+                else
+                {
+                    var start = lines[startLine - 1].Substring(startColumn - 1);
+                    var end = lines[endLine - 1].Substring(0, endColumn - 1);
+                    return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
+                }
+            }
+            else
+            {
+                return "<hidden>";
+            }
+
+            string TruncateStart(string text, int maxLength)
+            {
+                if (text.Length < maxLength) { return text; }
+                return text.Substring(0, maxLength);
+            }
+
+            string TruncateEnd(string text, int maxLength)
+            {
+                if (text.Length < maxLength) { return text; }
+                return text.Substring(text.Length - maxLength - 1, maxLength);
             }
         }
     }
