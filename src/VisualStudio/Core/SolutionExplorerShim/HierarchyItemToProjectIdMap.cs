@@ -62,7 +62,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                         // project files are in the same folder--they both use the full path to the _folder_ as the canonical
                         // name. To distinguish them we also examine the "regular" name, which will necessarily be different
                         // if the two projects are in the same folder.
-                        if (p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
+                        if (p.Hierarchy != null
+                            && p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
                             && p.Hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
                             && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
                             && projectName.Equals(nestedName))
