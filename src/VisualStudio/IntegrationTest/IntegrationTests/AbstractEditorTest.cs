@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Linq;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
@@ -65,6 +67,15 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
         {
             return VisualStudio.Editor.GetLightbulbPreviewClassification(menuText);
+        }
+
+        protected string PrependLines(string input, string toAdd)
+        {
+            MarkupTestFile.GetPosition(input, out var text, out int _);
+            var lines = text.Split(new[] { "\r\n" }, StringSplitOptions.None)
+                              .Select(s => s.Length > 0 ? toAdd + s : s);
+            return string.Join("\r\n", lines);
+
         }
     }
 }

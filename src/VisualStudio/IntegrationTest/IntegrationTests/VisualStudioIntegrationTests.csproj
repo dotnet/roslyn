@@ -21,6 +21,7 @@
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
     <Compile Include="CSharp\CSharpReferenceHighlighting.cs" />
+    <Compile Include="CSharp\CSharpEditing.cs" />
     <Compile Include="CSharp\CSharpEncapsulateField.cs" />
     <Compile Include="CSharp\CSharpF1Help.cs" />
     <Compile Include="CSharp\CSharpInteractiveBoxSelection.cs" />
@@ -66,6 +67,7 @@
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicEditAndContinue.cs" />
     <Compile Include="VisualBasic\BasicEndConstruct.cs" />
+    <Compile Include="VisualBasic\BasicEditing.cs" />
     <Compile Include="VisualBasic\BasicReferenceHighlighting.cs" />
     <Compile Include="VisualBasic\BasicKeywordHighlighting.cs" />
     <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
