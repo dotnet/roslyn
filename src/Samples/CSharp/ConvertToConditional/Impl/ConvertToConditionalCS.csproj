@@ -67,8 +67,8 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
+    <PackageReference Include="System.Composition">
+      <Version>$(SystemCompositionVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

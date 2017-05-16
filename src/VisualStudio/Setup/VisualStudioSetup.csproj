@@ -210,8 +210,8 @@
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
-    <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
-    <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
+    <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
+    <NuGetPackageToIncludeInVsix Include="System.Composition" />
   </ItemGroup>
   <ItemGroup>
     <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />

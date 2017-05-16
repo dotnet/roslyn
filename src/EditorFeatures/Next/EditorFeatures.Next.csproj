@@ -97,8 +97,8 @@
     <PackageReference Include="System.Collections.Immutable">
       <Version>$(SystemCollectionsImmutableVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Tpl.Dataflow">
-      <Version>$(MicrosoftTplDataflowVersion)</Version>
+    <PackageReference Include="System.Threading.Tasks.Dataflow">
+      <Version>$(SystemThreadingTasksDataflowVersion)</Version>
     </PackageReference>
     <PackageReference Include="VS.ExternalAPIs.CodingConventions">
       <Version>$(VSExternalAPIsCodingConventionsVersion)</Version>
@@ -109,6 +109,9 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NavigableSymbols\NavigableSymbolService.cs" />
+    <Compile Include="NavigableSymbols\NavigableSymbolService.NavigableSymbolSource.cs" />
+    <Compile Include="NavigableSymbols\NavigableSymbolService.NavigableSymbol.cs" />
     <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.cs" />
     <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.Dev15ItemDisplayFactory.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
@@ -122,6 +125,9 @@
     <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
     <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>
