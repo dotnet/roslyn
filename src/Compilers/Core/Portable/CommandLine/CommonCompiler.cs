@@ -135,8 +135,13 @@ namespace Microsoft.CodeAnalysis
         internal static string GetAssemblyFileVersion(Assembly assembly)
         {
             string assemblyVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
-            string hash = ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
+            string hash = ExtractShortCommitHash(GetCommitHash(assembly));
             return $"{assemblyVersion} ({hash})";
+        }
+
+        internal static string GetCommitHash(Assembly assembly)
+        {
+            return assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash ?? string.Empty;;
         }
 
         internal static string ExtractShortCommitHash(string hash)

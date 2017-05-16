@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
         private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
         private static readonly string s_compilerShortCommitHash =
-            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
+            CommonCompiler.ExtractShortCommitHash(CommonCompiler.GetCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly));
 
         private readonly string _baseDirectory = TempRoot.Root;
 
