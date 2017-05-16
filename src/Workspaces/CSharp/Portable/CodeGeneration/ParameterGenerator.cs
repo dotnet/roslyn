@@ -53,12 +53,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameters: SyntaxFactory.SeparatedList(parameters));
         }
 
-        internal static List<ParameterSyntax> GetParameters(
+        internal static ImmutableArray<ParameterSyntax> GetParameters(
             IEnumerable<IParameterSymbol> parameterDefinitions,
             bool isExplicit,
             CodeGenerationOptions options)
         {
-            var result = new List<ParameterSyntax>();
+            var result = ArrayBuilder<ParameterSyntax>.GetInstance();
             var seenOptional = false;
             var isFirstParam = true;
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 isFirstParam = false;
             }
 
-            return result;
+            return result.ToImmutableAndFree();
         }
 
         internal static ParameterSyntax GetParameter(IParameterSymbol p, CodeGenerationOptions options, bool isExplicit, bool isFirstParam, bool seenOptional)

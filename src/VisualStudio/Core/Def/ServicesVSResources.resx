@@ -906,10 +906,13 @@ Additional information: {1}</value>
   <data name="prefer_throwing_properties" xml:space="preserve">
     <value>prefer throwing properties</value>
   </data>
-    <data name="When_generating_properties" xml:space="preserve">
+  <data name="When_generating_properties" xml:space="preserve">
     <value>When generating properties:</value>
-    </data>
+  </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
+  </data>
+  <data name="Prefer_simple_default_expression" xml:space="preserve">
+    <value>Prefer simple 'default' expression</value>
   </data>
 </root>

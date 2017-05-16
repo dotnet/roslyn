@@ -580,7 +580,8 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
                         Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
                         ' Not always available.
                         Continue For
                 End Select
@@ -660,7 +661,8 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
                         Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
+                         WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
                         ' Not always available.
                         Continue For
                 End Select

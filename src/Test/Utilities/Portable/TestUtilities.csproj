@@ -138,7 +138,8 @@
     <Compile Include="FX\EncodingUtilities.cs" />
     <Compile Include="FX\EnsureEnglishUICulture.cs" />
     <Compile Include="FX\EnsureInvariantCulture.cs" />
-    <Compile Include="FX\EventWaiter.cs" />
+    <Compile Include="FX\EventWaiter.cs" />    
+    <Compile Include="FX\HResult.cs" />
     <Compile Include="FX\ImmutableArrayTestExtensions.cs" />
     <Compile Include="FX\MonoHelpers.cs" />
     <Compile Include="FX\PinnedBlob.cs" />
