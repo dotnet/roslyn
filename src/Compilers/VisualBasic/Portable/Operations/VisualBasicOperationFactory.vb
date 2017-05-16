@@ -79,8 +79,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundPropertyAccessOperation(DirectCast(boundNode, BoundPropertyAccess))
                 Case BoundKind.EventAccess
                     Return CreateBoundEventAccessOperation(DirectCast(boundNode, BoundEventAccess))
-                Case BoundKind.DelegateCreationExpression
-                    Return CreateBoundDelegateCreationExpressionOperation(DirectCast(boundNode, BoundDelegateCreationExpression))
                 Case BoundKind.FieldAccess
                     Return CreateBoundFieldAccessOperation(DirectCast(boundNode, BoundFieldAccess))
                 Case BoundKind.ConditionalAccess
@@ -471,7 +469,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim constructor As IMethodSymbol = boundObjectCreationExpression.ConstructorOpt
             Dim memberInitializers As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
                 Function()
-                    Return GetObjectCreationMemberInitializers(boundObjectCreationExpression)
+                    Return GetObjectCreationInitializers(boundObjectCreationExpression)
                 End Function)
 
             Debug.Assert(boundObjectCreationExpression.ConstructorOpt IsNot Nothing OrElse boundObjectCreationExpression.Arguments.IsEmpty())
@@ -556,26 +554,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundEventAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundEventAccess.ConstantValueOpt)
             Return New LazyEventReferenceExpression([event], instance, member, isInvalid, syntax, type, constantValue)
-        End Function
-
-        Private Shared Function CreateBoundDelegateCreationExpressionOperation(boundDelegateCreationExpression As BoundDelegateCreationExpression) As IMethodBindingExpression
-            Dim method As IMethodSymbol = boundDelegateCreationExpression.Method
-            Dim isVirtual As Boolean = boundDelegateCreationExpression.Method IsNot Nothing AndAlso (boundDelegateCreationExpression.Method.IsOverridable OrElse boundDelegateCreationExpression.Method.IsOverrides OrElse boundDelegateCreationExpression.Method.IsMustOverride) AndAlso Not boundDelegateCreationExpression.SuppressVirtualCalls
-            Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
-                Function()
-                    If boundDelegateCreationExpression.Method.IsShared Then
-                        Return Nothing
-                    Else
-                        Return Create(boundDelegateCreationExpression.ReceiverOpt)
-                    End If
-                End Function)
-
-            Dim member As ISymbol = boundDelegateCreationExpression.Method
-            Dim isInvalid As Boolean = boundDelegateCreationExpression.HasErrors
-            Dim syntax As SyntaxNode = boundDelegateCreationExpression.Syntax
-            Dim type As ITypeSymbol = boundDelegateCreationExpression.Type
-            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundDelegateCreationExpression.ConstantValueOpt)
-            Return New LazyMethodBindingExpression(method, isVirtual, instance, member, isInvalid, syntax, type, constantValue)
         End Function
 
         Private Shared Function CreateBoundFieldAccessOperation(boundFieldAccess As BoundFieldAccess) As IFieldReferenceExpression

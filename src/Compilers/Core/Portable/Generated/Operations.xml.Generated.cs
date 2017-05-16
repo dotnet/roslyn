@@ -2827,18 +2827,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class LazyObjectCreationExpression : BaseObjectCreationExpression, IHasArgumentsExpression, IObjectCreationExpression
     {
-        private readonly Lazy<ImmutableArray<IOperation>> _lazyMemberInitializers;
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyInitializers;
         private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
 
-        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<ImmutableArray<IOperation>> memberInitializers, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, isInvalid, syntax, type, constantValue)
+        public LazyObjectCreationExpression(IMethodSymbol constructor, Lazy<ImmutableArray<IOperation>> initializers, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(constructor, isInvalid, syntax, type, constantValue)
         {
-            _lazyMemberInitializers = memberInitializers;
+            _lazyInitializers = initializers;
             _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
         }
         /// <summary>
         /// Explicitly-specified member initializers.
         /// </summary>
-        public override ImmutableArray<IOperation> Initializers => _lazyMemberInitializers.Value;
+        public override ImmutableArray<IOperation> Initializers => _lazyInitializers.Value;
 
         /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.

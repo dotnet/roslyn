@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Shared Function GetObjectCreationMemberInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
+        Private Shared Function GetObjectCreationInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
             Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 

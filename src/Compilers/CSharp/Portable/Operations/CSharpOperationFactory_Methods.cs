@@ -191,17 +191,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return OperationFactory.CreateInvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
         }
 
-        private static IOperation GetDelegateCreationInstance(BoundDelegateCreationExpression expression)
-        {
-            BoundMethodGroup methodGroup = expression.Argument as BoundMethodGroup;
-            if (methodGroup != null)
-            {
-                return Create(methodGroup.InstanceOpt);
-            }
-
-            return null;
-        }
-
         private static ImmutableArray<IOperation> GetObjectCreationMemberInitializers(BoundObjectCreationExpression expression)
         {
             return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
