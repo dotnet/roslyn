@@ -63,7 +63,7 @@ this[1]
         [Fact]
         public void Submission_TypeDisambiguationBasedUponAssemblyName()
         {
-            var compilation = CreateCompilationWithMscorlib("namespace System { public struct Int32 { } }");
+            var compilation = CreateStandardCompilation("namespace System { public struct Int32 { } }");
 
             compilation.VerifyDiagnostics();
         }

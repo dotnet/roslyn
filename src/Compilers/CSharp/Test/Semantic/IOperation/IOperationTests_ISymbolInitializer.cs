@@ -22,7 +22,7 @@ class C
     int P1 { get; }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular);
 
             var tree = compilation.SyntaxTrees.Single();
             var nodes = tree.GetRoot().DescendantNodes().Where(n => n is VariableDeclarationSyntax || n is PropertyDeclarationSyntax).ToArray();
@@ -303,7 +303,7 @@ class C
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Action C.e) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(1)')
   IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(1)')
-    Arguments(1): IArgument (Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+    Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -325,101 +325,12 @@ class C
             string expectedOperationTree = @"
 IFieldInitializer (Field: System.Action C.f) (OperationKind.FieldInitializerAtDeclaration) (Syntax: '= MakeAction(2)')
   IInvocationExpression (static System.Action C.MakeAction(System.Int32 x)) (OperationKind.InvocationExpression, Type: System.Action) (Syntax: 'MakeAction(2)')
-    Arguments(1): IArgument (Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
+    Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '2')
         ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        [Fact, WorkItem(17595, "https://github.com/dotnet/roslyn/issues/17595")]
-        public void MemberInitializerCSharp()
-        {
-            string source = @"
-struct B
-{
-    public bool Field;
-}
-
-class F
-{
-    public int Field;
-    public string Property1 { set; get; }
-    public B Property2 { set; get; }
-}
-
-class C
-{
-    public void M1()
-    /*<bind>*/{
-        var x1 = new F();
-        var x2 = new F() { Field = 2 };
-        var x3 = new F() { Property1 = """" };
-        var x4 = new F() { Property1 = """", Field = 2 };
-        var x5 = new F() { Property2 = new B { Field = true } };
-
-        var e1 = new F() { Property2 = 1 };
-        var e2 = new F() { """" };
-    }/*</bind>*/
-}
-";
-            string expectedOperationTree = @"
-IBlockStatement (7 statements, 7 locals) (OperationKind.BlockStatement, IsInvalid) (Syntax: '{ ... }')
-  Locals: Local_1: F x1
-    Local_2: F x2
-    Local_3: F x3
-    Local_4: F x4
-    Local_5: F x5
-    Local_6: F e1
-    Local_7: F e2
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x1 = new F();')
-    IVariableDeclaration: F x1 (OperationKind.VariableDeclaration) (Syntax: 'var x1 = new F();')
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'new F()')
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x2 = ne ... ield = 2 };')
-    IVariableDeclaration: F x2 (OperationKind.VariableDeclaration) (Syntax: 'var x2 = ne ... ield = 2 };')
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'new F() { Field = 2 }')
-          Member Initializers(1): IFieldInitializer (Field: System.Int32 F.Field) (OperationKind.FieldInitializerInCreation) (Syntax: 'Field = 2')
-              ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x3 = ne ... ty1 = """" };')
-    IVariableDeclaration: F x3 (OperationKind.VariableDeclaration) (Syntax: 'var x3 = ne ... ty1 = """" };')
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'new F() { P ... rty1 = """" }')
-          Member Initializers(1): IPropertyInitializer (Property: System.String F.Property1 { get; set; }) (OperationKind.PropertyInitializerInCreation) (Syntax: 'Property1 = """"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x4 = ne ... ield = 2 };')
-    IVariableDeclaration: F x4 (OperationKind.VariableDeclaration) (Syntax: 'var x4 = ne ... ield = 2 };')
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'new F() { P ... Field = 2 }')
-          Member Initializers(2): IPropertyInitializer (Property: System.String F.Property1 { get; set; }) (OperationKind.PropertyInitializerInCreation) (Syntax: 'Property1 = """"')
-              ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
-            IFieldInitializer (Field: System.Int32 F.Field) (OperationKind.FieldInitializerInCreation) (Syntax: 'Field = 2')
-              ILiteralExpression (Text: 2) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: '2')
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement) (Syntax: 'var x5 = ne ... = true } };')
-    IVariableDeclaration: F x5 (OperationKind.VariableDeclaration) (Syntax: 'var x5 = ne ... = true } };')
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F) (Syntax: 'new F() { P ...  = true } }')
-          Member Initializers(1): IPropertyInitializer (Property: B F.Property2 { get; set; }) (OperationKind.PropertyInitializerInCreation) (Syntax: 'Property2 = ... ld = true }')
-              IObjectCreationExpression (Constructor: B..ctor()) (OperationKind.ObjectCreationExpression, Type: B) (Syntax: 'new B { Field = true }')
-                Member Initializers(1): IFieldInitializer (Field: System.Boolean B.Field) (OperationKind.FieldInitializerInCreation) (Syntax: 'Field = true')
-                    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var e1 = ne ... rty2 = 1 };')
-    IVariableDeclaration: F e1 (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var e1 = ne ... rty2 = 1 };')
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid) (Syntax: 'new F() { P ... erty2 = 1 }')
-          Member Initializers(1): IPropertyInitializer (Property: B F.Property2 { get; set; }) (OperationKind.PropertyInitializerInCreation, IsInvalid) (Syntax: 'Property2 = 1')
-              IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: B, IsInvalid) (Syntax: '1')
-                ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
-  IVariableDeclarationStatement (1 variables) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'var e2 = new F() { """" };')
-    IVariableDeclaration: F e2 (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'var e2 = new F() { """" };')
-      Initializer: IObjectCreationExpression (Constructor: F..ctor()) (OperationKind.ObjectCreationExpression, Type: F, IsInvalid) (Syntax: 'new F() { """" }')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0029: Cannot implicitly convert type 'int' to 'B'
-                //         var e1 = new F() { Property2 = 1 };
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "B").WithLocation(24, 40),
-                // CS1922: Cannot initialize type 'F' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
-                //         var e2 = new F() { "" };
-                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, @"{ """" }").WithArguments("F").WithLocation(25, 26)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
     }
 }

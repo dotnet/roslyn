@@ -20,5 +20,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         ReadonlyReferences,
         OutVar,
         Patterns,
+        DefaultLiteral,
+        AsyncMain,
     }
 }

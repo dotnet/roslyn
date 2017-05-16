@@ -210,6 +210,24 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
+            string itemSeparator = null, Func<T, string> itemInspector = null)
+        {
+            if (ReferenceEquals(expected, actual))
+            {
+                Fail("expected and actual references are identical\r\n" + message);
+            }
+
+            if (expected == null || actual == null)
+            {
+                return;
+            }
+            else if (SequenceEqual(expected, actual, comparer))
+            {
+                Fail("expected and actual sequences match\r\n" + message);
+            }
+        }
+
         private static bool SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null)
         {
             var enumerator1 = expected.GetEnumerator();

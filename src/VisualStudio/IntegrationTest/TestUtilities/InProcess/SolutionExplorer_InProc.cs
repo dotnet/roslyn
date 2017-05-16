@@ -414,6 +414,37 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             }
         }
 
+        /// <summary>
+        /// Adds a new standalone file to the Miscellaneous Files workspace.
+        /// </summary>
+        /// <param name="fileName">The name of the file to add.</param>
+        public void AddStandaloneFile(string fileName)
+        {
+            string itemTemplate;
+
+            var extension = Path.GetExtension(fileName).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".cs":
+                    itemTemplate = @"General\Visual C# Class";
+                    break;
+                case ".csx":
+                    itemTemplate = @"Script\Visual C# Script";
+                    break;
+                case ".vb":
+                    itemTemplate = @"General\Visual Basic Class";
+                    break;
+                case ".txt":
+                    itemTemplate = @"General\Text File";
+                    break;
+                default:
+                    throw new NotSupportedException($"File type '{extension}' is not yet supported.");
+            }
+
+            GetDTE().ItemOperations.NewFile(itemTemplate, fileName);
+        }
+            
+
         public void SetFileContents(string projectName, string relativeFilePath, string contents)
         {
             var project = GetProject(projectName);

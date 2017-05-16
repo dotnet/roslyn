@@ -10,5 +10,5 @@ THISDIR=$(dirname $0)
 ulimit -s 8192
 
 chmod +x $THISDIR/corerun 2>/dev/null
-$THISDIR/corerun $THISDIR/vbc.exe "$@"
+$THISDIR/corerun $THISDIR/vbc.dll "$@"
 

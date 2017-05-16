@@ -464,7 +464,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IPropertyDefinition propertyDefinition)
         {
-            this.Visit(propertyDefinition.Accessors);
+            this.Visit(propertyDefinition.GetAccessors(Context));
             this.Visit(propertyDefinition.Parameters);
         }
 

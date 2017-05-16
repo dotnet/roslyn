@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
@@ -59,6 +60,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
             {
                 VisualStudio.Workspace.SetPrettyListing(LanguageName, originalValue);
             }
+        }
+
+        protected ClassifiedToken[] GetLightbulbPreviewClassification(string menuText)
+        {
+            return VisualStudio.Editor.GetLightbulbPreviewClassification(menuText);
         }
     }
 }

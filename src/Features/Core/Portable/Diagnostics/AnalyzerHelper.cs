@@ -120,28 +120,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeInfo.Assembly.GetName().Name;
         }
 
-        public static async Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        public static Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            var workspace = (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace;
-            if (workspace == null)
+            var workspaceAnalyzerOptions = analyzerOptions as WorkspaceAnalyzerOptions;
+            if (workspaceAnalyzerOptions == null)
             {
-                return null;
+                return SpecializedTasks.Default<OptionSet>();
             }
 
-            var documentId = workspace.CurrentSolution.GetDocumentId(syntaxTree);
-            if (documentId == null)
-            {
-                return workspace.Options;
-            }
-
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            if (document == null)
-            {
-                return workspace.Options;
-            }
-
-            var documentOptionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return documentOptionSet ?? workspace.Options;
+            return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(

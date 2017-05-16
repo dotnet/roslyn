@@ -251,5 +251,22 @@ $$"));
 @"class C {
      void M1(out $$");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestVarPatternInSwitch()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"switch(o)
+    {
+        case $$
+    }
+"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestVarPatternInIs()
+        {
+            await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
+        }
     }
 }

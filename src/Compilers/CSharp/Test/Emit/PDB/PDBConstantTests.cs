@@ -202,8 +202,8 @@ public class C<S>
           <namespace usingCount=""2"" />
         </using>
         <dynamicLocals>
-          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""NullDynamic"" />
-          <bucket flagCount=""9"" flags=""000001000"" slotId=""0"" localName=""NullTypeSpec"" />
+          <bucket flags=""1"" slotId=""0"" localName=""NullDynamic"" />
+          <bucket flags=""000001000"" slotId=""0"" localName=""NullTypeSpec"" />
         </dynamicLocals>
       </customDebugInfo>
       <sequencePoints>
@@ -498,7 +498,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();

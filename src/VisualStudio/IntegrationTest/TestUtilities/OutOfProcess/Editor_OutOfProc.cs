@@ -1,15 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
 using System.Windows.Automation;
 using System.Collections.Generic;
+using System.Threading;
+using System.Windows;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
-using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 {
@@ -57,6 +59,24 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void MoveCaret(int position)
             => _editorInProc.MoveCaret(position);
+
+        public ImmutableArray<TextSpan> GetTagSpans(string tagId)
+        {
+            var tagInfo = _editorInProc.GetTagSpans(tagId).ToList();
+
+            // The spans are returned in an array:
+            //    [s1.Start, s1.Length, s2.Start, s2.Length, ...]
+            // Reconstruct the spans from their component parts
+
+            var builder = ArrayBuilder<TextSpan>.GetInstance();
+
+            for (int i = 0; i < tagInfo.Count; i += 2)
+            {
+                builder.Add(new TextSpan(tagInfo[i], tagInfo[i + 1]));
+            }
+
+            return builder.ToImmutableAndFree();
+        }
 
         public string GetCurrentCompletionItem()
         {
@@ -107,11 +127,18 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             PlaceCaret(text, charsOffset: 0, occurrence: 0, extendSelection: true, selectBlock: false);
         }
 
+        public int GetLine() => _editorInProc.GetLine();
+
+        public int GetColumn() => _editorInProc.GetColumn();
+
         public void DeleteText(string text)
         {
             SelectTextInCurrentDocument(text);
             SendKeys(VirtualKey.Delete);
         }
+
+        public void ReplaceText(string oldText, string newText)
+            => _editorInProc.ReplaceText(oldText, newText);
 
         public bool IsCaretOnScreen()
             => _editorInProc.IsCaretOnScreen();
@@ -160,14 +187,34 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void DialogSendKeys(string dialogAutomationName, string keys)
             => _editorInProc.DialogSendKeys(dialogAutomationName, keys);
 
+        public void FormatDocument() {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.D, ShiftState.Ctrl));
+        }
+
+        public void FormatSelection() {
+            VisualStudioInstance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
+            SendKeys(new KeyPress(VirtualKey.K, ShiftState.Ctrl), new KeyPress(VirtualKey.F, ShiftState.Ctrl));
+        }
+
+        public void Paste(string text)
+        {
+            var thread = new Thread(() => Clipboard.SetText(text));
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            VisualStudioInstance.Dte.ExecuteCommand("Edit.Paste");
+        }
+
         public void Undo()
             => _editorInProc.Undo();
 
-        public void GoToDefinition()
-            => _editorInProc.GoToDefinition();
-
         public void NavigateToSendKeys(string keys)
             => _editorInProc.SendKeysToNavigateTo(keys);
+            
+        public ClassifiedToken[] GetLightbulbPreviewClassification(string menuText) =>
+            _editorInProc.GetLightbulbPreviewClassifications(menuText);
 
         public void WaitForActiveView(string viewName)
             => _editorInProc.WaitForActiveView(viewName);
@@ -259,6 +306,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public TextSpan[] GetKeywordHighlightTags()
             => Deserialize(_editorInProc.GetHighlightTags());
 
+        public TextSpan[] GetOutliningSpans()
+        {
+            _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Outlining);
+            return Deserialize(_editorInProc.GetOutliningSpans());
+        }
+
         private TextSpan[] Deserialize(string[] v)
         {
             // returned tag looks something like 'text'[12-13]
@@ -272,5 +325,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                 return TextSpan.FromBounds(int.Parse(start), int.Parse(end));
             }).ToArray();
         }
+
+        public void GoToDefinition()
+            => _editorInProc.GoToDefinition();
+
+        public void GoToImplementation()
+            => _editorInProc.GoToImplementation();
+
+        public void SendExplicitFocus()
+            => _editorInProc.SendExplicitFocus();
     }
 }

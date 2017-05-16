@@ -45,7 +45,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // needed.
                 var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
 
-                return await info.FindAsync(searchQuery, lazyAssembly, filter, CancellationToken).ConfigureAwait(false);
+                var declarations = await info.FindAsync(
+                    searchQuery, lazyAssembly, _project.Id,
+                    filter, CancellationToken).ConfigureAwait(false);
+
+                return declarations.SelectAsArray(d => d.Symbol);
             }
 
             private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)

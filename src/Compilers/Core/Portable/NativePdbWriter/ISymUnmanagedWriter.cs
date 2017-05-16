@@ -109,8 +109,8 @@ namespace Microsoft.Cci
     /// <summary>
     /// The highest version of the interface available in Microsoft.DiaSymReader.Native.
     /// </summary>
-    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("22DAEAF2-70F6-4EF1-B0C3-984F0BF27BFD"), SuppressUnmanagedCodeSecurity]
-    internal interface ISymUnmanagedWriter7 : ISymUnmanagedWriter5
+    [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("5ba52f3b-6bf8-40fc-b476-d39c529b331e"), SuppressUnmanagedCodeSecurity]
+    internal interface ISymUnmanagedWriter8 : ISymUnmanagedWriter5
     {
         //  ISymUnmanagedWriter, ISymUnmanagedWriter2, ISymUnmanagedWriter3, ISymUnmanagedWriter4, ISymUnmanagedWriter5
         void _VtblGap1_33();
@@ -120,6 +120,11 @@ namespace Microsoft.Cci
 
         // ISymUnmanagedWriter7
         unsafe void UpdateSignatureByHashingContent([In]byte* buffer, int size);
+
+        // ISymUnmanagedWriter8
+        void UpdateSignature(Guid pdbId, uint stamp, int age);
+        unsafe void SetSourceServerData([In]byte* data, int size);
+        unsafe void SetSourceLinkData([In]byte* data, int size);
     }
 
     [ComImport, InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid("98ECEE1E-752D-11d3-8D56-00C04F680B2B"), SuppressUnmanagedCodeSecurity]

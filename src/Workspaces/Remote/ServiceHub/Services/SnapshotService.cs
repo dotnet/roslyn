@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public override void Initialize(int sessionId, byte[] solutionChecksum)
+        public override void Initialize(int sessionId, bool primary, Checksum solutionChecksum)
         {
-            base.Initialize(sessionId, solutionChecksum);
+            base.Initialize(sessionId, primary, solutionChecksum);
 
             lock (_gate)
             {

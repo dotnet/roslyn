@@ -14,14 +14,14 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19091"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySyntaxErrorSquiggles()
         {
             base.VerifySyntaxErrorSquiggles();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19091"), Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
         [Trait(Traits.Feature, Traits.Features.NetCore)]
         public override void VerifySemanticErrorSquiggles()
         {

@@ -283,5 +283,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/optionstrict:custom /debug:portable /out:test.exe test.vb", vbc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void RefOut()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.OutputRefAssembly = MSBuildUtil.CreateTaskItem("ref\\test.dll");
+            Assert.Equal("/optionstrict:custom /out:test.exe /refout:ref\\test.dll test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void RefOnly()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.RefOnly = true;
+            Assert.Equal("/optionstrict:custom /out:test.exe /refonly test.vb", vbc.GenerateResponseFileContents());
+        }
     }
 }

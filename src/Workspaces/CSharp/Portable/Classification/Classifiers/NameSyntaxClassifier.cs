@@ -180,8 +180,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             return
                 name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
-                name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
                 name.CheckParent<ForEachStatementSyntax>(f => f.Type == name) ||
+                name.CheckParent<DeclarationPatternSyntax>(v => v.Type == name) ||
+                name.CheckParent<VariableDeclarationSyntax>(v => v.Type == name) ||
                 name.CheckParent<DeclarationExpressionSyntax>(f => f.Type == name);
         }
 
@@ -218,6 +219,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         // If a constructor wasn't accessible, still classify the type if it's accessible.
                         if (firstSymbol.IsConstructor() && semanticModel.IsAccessible(name.SpanStart, firstSymbol.ContainingType))
                         {
+                            return firstSymbol;
+                        }
+
+                        break;
+
+                    case CandidateReason.WrongArity:
+                        if (name.GetRightmostName().Arity == 0)
+                        {
+                            // When the user writes something like "IList" we don't want to *not* classify 
+                            // just because the type bound to "IList<T>".  This is also important for use
+                            // cases like "Add-using" where it can be confusing when the using is added for
+                            // "using System.Collection.Generic" but then the type name still does not classify.
                             return firstSymbol;
                         }
 

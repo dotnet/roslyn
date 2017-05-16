@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             End Get
         End Property
 
-        Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IList(Of ArgumentSyntax)) As IList(Of ParameterName)
-            Return semanticModel.GenerateParameterNames(arguments)
+        Protected Overrides Function GenerateParameterNames(semanticModel As SemanticModel, arguments As IList(Of ArgumentSyntax), cancellationToken As CancellationToken) As IList(Of ParameterName)
+            Return semanticModel.GenerateParameterNames(arguments, reservedNames:=Nothing, cancellationToken:=cancellationToken)
         End Function
 
         Protected Overrides Function GetLeftSideOfDot(simpleName As SimpleNameSyntax) As ExpressionSyntax
