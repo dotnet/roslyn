@@ -60,13 +60,13 @@
     <MicrosoftNetSdkVersion>2.0.0-alpha-20170405-2</MicrosoftNetSdkVersion>
     <MicrosoftNuGetBuildTasksVersion>0.1.0</MicrosoftNuGetBuildTasksVersion>
     <MicrosoftPortableTargetsVersion>0.1.2-dev</MicrosoftPortableTargetsVersion>
-    <MicrosoftServiceHubClientVersion>1.1.31-rc</MicrosoftServiceHubClientVersion>
-    <SystemThreadingTasksDataflowVersion>4.5.24</SystemThreadingTasksDataflowVersion>
+    <MicrosoftServiceHubClientVersion>1.1.18-rc-g92b2150dd1</MicrosoftServiceHubClientVersion>
+    <MicrosoftTplDataflowVersion>4.5.24</MicrosoftTplDataflowVersion>
     <MicrosoftVisualBasicVersion>10.1.0</MicrosoftVisualBasicVersion>
     <MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>15.0.26507-alpha</MicrosoftVisualStudioCallHierarchyPackageDefinitionsVersion>
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.0.26507-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26507-alpha</MicrosoftVisualStudioComponentModelHostVersion>
-    <MicrosoftVisualStudioCompositionVersion>15.3.38</MicrosoftVisualStudioCompositionVersion>
+    <MicrosoftVisualStudioCompositionVersion>15.0.66-rc</MicrosoftVisualStudioCompositionVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>15.0.26507-alpha</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26201-gamma</MicrosoftVisualStudioDebuggerEngineVersion>
     <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.26201-gamma</MicrosoftVisualStudioDebuggerMetadataVersion>
@@ -144,7 +144,7 @@
     <RoslynToolsMicrosoftVSIXExpInstallerVersion>0.2.4-beta</RoslynToolsMicrosoftVSIXExpInstallerVersion>
     <RoslynToolsReferenceAssembliesVersion>0.1.1</RoslynToolsReferenceAssembliesVersion>
     <RoslynMicrosoftVisualStudioExtensionManagerVersion>0.0.4</RoslynMicrosoftVisualStudioExtensionManagerVersion>
-    <StreamJsonRpcVersion>1.1.68</StreamJsonRpcVersion>
+    <StreamJsonRpcVersion>1.0.2-rc</StreamJsonRpcVersion>
     <SystemAppContextVersion>4.3.0</SystemAppContextVersion>
     <SystemCollectionsVersion>4.3.0</SystemCollectionsVersion>
     <SystemCollectionsConcurrentVersion>4.3.0</SystemCollectionsConcurrentVersion>
