@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
 {
     internal partial class NavigableSymbolService : INavigableSymbolSourceProvider
     {
-        private partial class NavigableSymbolSource : INavigableSymbolSource
+        private partial class NavigableSymbolSource : ForegroundThreadAffinitizedObject, INavigableSymbolSource
         {
             private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _presenters;
             private readonly IWaitIndicator _waitIndicator;
@@ -67,7 +68,10 @@ namespace Microsoft.CodeAnalysis.Editor.NavigableSymbols
                     return null;
                 }
 
-                if (!definitions.Any(d => d.CanNavigateTo(document.Project.Solution.Workspace)))
+                if (!await Task.Factory.StartNew(() => definitions.Any(d => d.CanNavigateTo(document.Project.Solution.Workspace)),
+                    cancellationToken,
+                    TaskCreationOptions.None,
+                    ForegroundTaskScheduler).ConfigureAwait(false))
                 {
                     return null;
                 }
