@@ -19,13 +19,13 @@
     <file src="$additionalFilesPath$/Microsoft.NETCore.Compilers.props" target="build" />
     <file src="Dlls/CodeAnalysis/Microsoft.CodeAnalysis.dll" target="tools" />
     <file src="Dlls/CSharpCodeAnalysis/Microsoft.CodeAnalysis.CSharp.dll" target="tools" />
-    <file src="Exes/CscCore/csc.exe" target="tools" />
+    <file src="Exes/CscCore/csc.dll" target="tools" />
     <file src="Exes/CscCore/csc.deps.json" target="tools" />
     <file src="Exes/CscCore/csc.runtimeconfig.json" target="tools" />
     <file src="$additionalFilesPath$/RunCsc" target="tools/RunCsc" />
     <file src="$additionalFilesPath$/RunCsc.cmd" target="tools" />
     <file src="Dlls/BasicCodeAnalysis/Microsoft.CodeAnalysis.VisualBasic.dll" target="tools" />
-    <file src="Exes/VbcCore/vbc.exe" target="tools" />
+    <file src="Exes/VbcCore/vbc.dll" target="tools" />
     <file src="Exes/VbcCore/vbc.deps.json" target="tools" />
     <file src="Exes/VbcCore/vbc.runtimeconfig.json" target="tools" />
     <file src="$additionalFilesPath$/RunVbc" target="tools/RunVbc" />

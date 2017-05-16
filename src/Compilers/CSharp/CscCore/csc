@@ -10,4 +10,4 @@ THISDIR=$(dirname $0)
 ulimit -s 8192
 
 chmod +x $THISDIR/corerun 2>/dev/null
-$THISDIR/corerun $THISDIR/csc.exe "$@"
+$THISDIR/corerun $THISDIR/csc.dll "$@"
