@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         /// <summary>
         /// Tracks when the bar is shown so we don't show to the user more than once per session
         /// </summary>
-        private bool _infoBarShown = false;
+        private bool _infoBarChecked = false;
 
         /// <summary>
         /// This service is initialzed by <see cref="OnSuggestedActionExecuted(SuggestedAction)"/>
@@ -60,8 +60,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             // Only show if the VSIX is not installed, the info bar hasn't been shown this session,
             // and the user is an A/B test candidate
-            if (!IsVsixInstalled() &&
-                !_infoBarShown &&
+            if (!_infoBarChecked
+                !IsVsixInstalled() &&
                 IsCandidate())
             {
                 ShowInfoBarIfNecessary();
@@ -138,6 +138,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
         private void ShowInfoBarIfNecessary()
         {
+            // Only check for whether we should show an info bar once per session.
+            _infoBarChecked = true;
             if (_experimentationService.IsExperimentEnabled(AnalyzerEnabledFlight))
             {
                 // If we got true from the experimentation service, then we're in the treatment
@@ -149,7 +151,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
                 if (timeSinceLastShown.TotalDays >= 1)
                 {
-                    _infoBarShown = true;
                     _workspace.Options = _workspace.Options.WithChangedOption(AnalyzerABTestOptions.LastDateTimeInfoBarShown, utcNow.ToBinary());
 
                     var infoBarService = _workspace.Services.GetRequiredService<IInfoBarService>();
