@@ -159,7 +159,7 @@ class Program
         this.i = i;
     }
 
-    public Program(int i, string s, bool b = default(bool)) : this(i)
+    public Program(int i, string s, bool b = false) : this(i)
     {
         this.s = s;
         this.b = b;
