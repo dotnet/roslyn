@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
 
             // Only show if the VSIX is not installed, the info bar hasn't been shown this session,
             // and the user is an A/B test candidate
-            if (!_infoBarChecked
+            if (!_infoBarChecked &&
                 !IsVsixInstalled() &&
                 IsCandidate())
             {
