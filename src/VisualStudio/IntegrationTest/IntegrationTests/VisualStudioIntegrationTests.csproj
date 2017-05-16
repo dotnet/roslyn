@@ -66,6 +66,7 @@
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
     <Compile Include="VisualBasic\BasicEditAndContinue.cs" />
     <Compile Include="VisualBasic\BasicEndConstruct.cs" />
+    <Compile Include="VisualBasic\BasicExpressionEvaluator.cs" />
     <Compile Include="VisualBasic\BasicReferenceHighlighting.cs" />
     <Compile Include="VisualBasic\BasicKeywordHighlighting.cs" />
     <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
