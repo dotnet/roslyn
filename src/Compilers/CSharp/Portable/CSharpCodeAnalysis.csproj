@@ -353,6 +353,7 @@
     <Compile Include="FlowAnalysis\UnassignedAddressTakenVariablesWalker.cs" />
     <Compile Include="FlowAnalysis\UnassignedVariablesWalker.cs" />
     <Compile Include="FlowAnalysis\VariablesDeclaredWalker.cs" />
+    <Compile Include="FlowAnalysis\VariableUsePass.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LanguageVersion.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncConstructor.cs" />

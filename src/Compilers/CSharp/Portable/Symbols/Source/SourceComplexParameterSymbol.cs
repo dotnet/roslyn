@@ -154,6 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // before the thread which won the race finishes adding
                     // them. https://github.com/dotnet/roslyn/issues/17243
                     AddDeclarationDiagnostics(diagnostics);
+
+                    if (boundExpressionOpt != null && (this.ContainingSymbol as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+                    {
+                        this.DeclaringCompilation.VariableUsePass.Visit(boundExpressionOpt);
+                    }
                 }
 
                 diagnostics.Free();

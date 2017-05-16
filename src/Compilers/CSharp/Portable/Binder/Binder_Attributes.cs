@@ -330,6 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
+                        this.Compilation.VariableUsePass.Visit(boundNamedArgument);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }

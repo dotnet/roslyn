@@ -3090,21 +3090,14 @@ class Test : System.Attribute
         [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
         public void LocalFunctionReportedUsedForNameofDefaultParameter()
         {
-            // TODO (ashauck): Unskip Abstract.FuncVar
             var source = @"
-/*
 internal abstract class Abstract
 {
     static int FuncVar = 2;
     protected abstract void Func(string a = nameof(FuncVar));
 }
-*/
 class Program
 {
-    static void Main()
-    {
-    }
-
     static int F1var = 2;
     static void F1(string a = nameof(F1var)) { }
 
@@ -3112,7 +3105,7 @@ class Program
     int this[int dummy, string a = nameof(F2var)] { set { } }
 
     const int ClassConstant = 10;
-    static void LocFuncs()
+    static void Main()
     {
         int LocalVariable;
         void LocalVariableFunc(string s = nameof(LocalVariable)) => System.Console.WriteLine(s);
