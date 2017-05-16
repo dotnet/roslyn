@@ -328,7 +328,7 @@
     <Compile Include="CodeRefactorings\CodeRefactoringService.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertPlaceholderToInterpolatedStringRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\AbstractExtractMethodCodeRefactoringProvider.cs" />
-    <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
+    <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsCodeRefactoringProvider.cs" />
     <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersCodeRefactoringProvider.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider.cs" />
