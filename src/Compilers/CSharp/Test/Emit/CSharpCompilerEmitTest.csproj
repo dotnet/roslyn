@@ -12,6 +12,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Emit.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -56,6 +57,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <Compile Include="..\..\..\Core\MSBuildTask\MvidReader.cs">
+      <Link>Emit\MvidReader.cs</Link>
+    </Compile>
     <Compile Include="Attributes\AttributeTests.cs" />
     <Compile Include="Attributes\AttributeTests_Assembly.cs" />
     <Compile Include="Attributes\AttributeTests_CallerInfoAttributes.cs" />
@@ -69,6 +73,7 @@
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
     <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
+    <Compile Include="CodeGen\CodeGenAsyncMainTests.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
     <Compile Include="CodeGen\PatternTests.cs" />
     <Compile Include="Emit\BinaryCompatibility.cs" />
@@ -158,6 +163,7 @@
     <Compile Include="PDB\CSharpPDBTestBase.cs" />
     <Compile Include="PDB\PDBIteratorTests.cs" />
     <Compile Include="PDB\PDBLambdaTests.cs" />
+    <Compile Include="PDB\PDBSourceLinkTests.cs" />
     <Compile Include="PDB\PDBTests.cs" />
     <Compile Include="PDB\PDBTupleTests.cs" />
     <Compile Include="PDB\PDBUsingTests.cs" />

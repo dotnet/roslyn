@@ -215,11 +215,6 @@
       <DependentUpon>VSPackage.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
-      <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
-    </Compile>
-  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -744,6 +739,7 @@
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.NoOpUndoPrimitive.cs" />
     <Compile Include="Implementation\Workspace\GlobalUndoServiceFactory.WorkspaceGlobalUndoTransaction.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="Implementation\Workspace\VisualStudioSymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioFormattingRuleFactoryServiceFactory.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationService.cs" />
     <Compile Include="Implementation\Workspace\VisualStudioDocumentNavigationServiceFactory.cs" />

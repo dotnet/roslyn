@@ -65,11 +65,19 @@ namespace Microsoft.Cci
         private readonly int _numTypeDefsEstimate;
         private readonly bool _deterministic;
 
-        // If true, it is allowed to have methods not have bodies (for emitting metadata-only assembly)
-        internal readonly bool allowMissingMethodBodies;
+        internal readonly bool MetadataOnly;
+        internal readonly bool EmitTestCoverageData;
 
         // A map of method body before token translation to RVA. Used for deduplication of small bodies.
         private readonly Dictionary<ImmutableArray<byte>, int> _smallMethodBodies;
+
+        private const byte TinyFormat = 2;
+        private const int ThrowNullCodeSize = 2;
+        private static readonly ImmutableArray<byte> ThrowNullEncodedBody =
+            ImmutableArray.Create(
+                (byte)((ThrowNullCodeSize << 2) | TinyFormat),
+                (byte)ILOpCode.Ldnull,
+                (byte)ILOpCode.Throw);
 
         protected MetadataWriter(
             MetadataBuilder metadata,
@@ -77,13 +85,15 @@ namespace Microsoft.Cci
             DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
-            bool allowMissingMethodBodies,
+            bool metadataOnly,
             bool deterministic,
+            bool emitTestCoverageData,
             CancellationToken cancellationToken)
         {
             this.module = context.Module;
             _deterministic = deterministic;
-            this.allowMissingMethodBodies = allowMissingMethodBodies;
+            this.MetadataOnly = metadataOnly;
+            this.EmitTestCoverageData = emitTestCoverageData;
 
             // EDMAURER provide some reasonable size estimates for these that will avoid
             // much of the reallocation that would occur when growing these from empty.
@@ -499,7 +509,7 @@ namespace Microsoft.Cci
 
         private void CreateIndicesForModule()
         {
-            var nestedTypes = new Queue<ITypeDefinition>();
+            var nestedTypes = new Queue<INestedTypeDefinition>();
 
             foreach (INamespaceTypeDefinition typeDef in this.GetTopLevelTypes(this.module))
             {
@@ -508,7 +518,8 @@ namespace Microsoft.Cci
 
             while (nestedTypes.Count > 0)
             {
-                this.CreateIndicesFor(nestedTypes.Dequeue(), nestedTypes);
+                var nestedType = nestedTypes.Dequeue();
+                this.CreateIndicesFor(nestedType, nestedTypes);
             }
         }
 
@@ -516,7 +527,7 @@ namespace Microsoft.Cci
         {
         }
 
-        private void CreateIndicesFor(ITypeDefinition typeDef, Queue<ITypeDefinition> nestedTypes)
+        private void CreateIndicesFor(ITypeDefinition typeDef, Queue<INestedTypeDefinition> nestedTypes)
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -1783,7 +1794,16 @@ namespace Microsoft.Cci
                 }
             }
 
-            int[] methodBodyOffsets = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt, out mvidStringFixup);
+            int[] methodBodyOffsets;
+            if (MetadataOnly)
+            {
+                methodBodyOffsets = SerializeThrowNullMethodBodies(ilBuilder);
+                mvidStringFixup = default(Blob);
+            }
+            else
+            {
+                methodBodyOffsets = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt, out mvidStringFixup);
+            }
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -1826,7 +1846,7 @@ namespace Microsoft.Cci
 
         internal void GetEntryPoints(out MethodDefinitionHandle entryPointHandle, out MethodDefinitionHandle debugEntryPointHandle)
         {
-            if (IsFullMetadata)
+            if (IsFullMetadata && !MetadataOnly)
             {
                 // PE entry point is set for executable programs
                 IMethodReference entryPoint = module.PEEntryPoint;
@@ -2002,7 +2022,7 @@ namespace Microsoft.Cci
             }
 
             AddAssemblyAttributesToTable(
-                this.module.GetSourceAssemblyAttributes(),
+                this.module.GetSourceAssemblyAttributes(Context.IsRefAssembly),
                 needsDummyParent: writingNetModule,
                 isSecurity: false);
         }
@@ -2559,7 +2579,7 @@ namespace Microsoft.Cci
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
             {
                 var association = GetPropertyDefIndex(propertyDef);
-                foreach (IMethodReference accessorMethod in propertyDef.Accessors)
+                foreach (IMethodReference accessorMethod in propertyDef.GetAccessors(Context))
                 {
                     MethodSemanticsAttributes semantics;
                     if (accessorMethod == propertyDef.Setter)
@@ -2806,6 +2826,35 @@ namespace Microsoft.Cci
             }
         }
 
+        private int[] SerializeThrowNullMethodBodies(BlobBuilder ilBuilder)
+        {
+            Debug.Assert(MetadataOnly);
+            var methods = this.GetMethodDefs();
+            int[] bodyOffsets = new int[methods.Count];
+
+            int bodyOffsetCache = -1;
+            int methodRid = 0;
+            foreach (IMethodDefinition method in methods)
+            {
+                if (method.HasBody())
+                {
+                    if (bodyOffsetCache == -1)
+                    {
+                        bodyOffsetCache = ilBuilder.Count;
+                        ilBuilder.WriteBytes(ThrowNullEncodedBody);
+                    }
+                    bodyOffsets[methodRid] = bodyOffsetCache;
+                }
+                else
+                {
+                    bodyOffsets[methodRid] = -1;
+                }
+                methodRid++;
+            }
+
+            return bodyOffsets;
+        }
+
         private int[] SerializeMethodBodies(BlobBuilder ilBuilder, PdbWriter nativePdbWriterOpt, out Blob mvidStringFixup)
         {
             CustomDebugInfoWriter customDebugInfoWriter = (nativePdbWriterOpt != null) ? new CustomDebugInfoWriter(nativePdbWriterOpt) : null;
@@ -2832,7 +2881,6 @@ namespace Microsoft.Cci
                 if (method.HasBody())
                 {
                     body = method.GetBody(Context);
-                    Debug.Assert(body != null || allowMissingMethodBodies);
 
                     if (body != null)
                     {
@@ -2878,7 +2926,7 @@ namespace Microsoft.Cci
             var exceptionRegions = methodBody.ExceptionRegions;
             bool isSmallBody = ilLength < 64 && methodBody.MaxStack <= 8 && localSignatureHandleOpt.IsNil && exceptionRegions.Length == 0;
 
-            // Check if an identical method body has already been serialized. 
+            // Check if an identical method body has already been serialized.
             // If so, use the RVA of the already serialized one.
             // Note that we don't need to rewrite the fake tokens in the body before looking it up.
 

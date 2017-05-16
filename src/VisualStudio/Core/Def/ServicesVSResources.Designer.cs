@@ -1566,6 +1566,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer simple &apos;default&apos; expression.
+        /// </summary>
+        internal static string Prefer_simple_default_expression {
+            get {
+                return ResourceManager.GetString("Prefer_simple_default_expression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to prefer throwing properties.
         /// </summary>
         internal static string prefer_throwing_properties {

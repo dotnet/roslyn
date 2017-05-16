@@ -253,6 +253,7 @@ namespace Roslyn.Test.Utilities
                 {
                     result = compilation.Emit(
                         executableStream,
+                        metadataPEStream: null,
                         pdbStream: pdbStream,
                         xmlDocumentationStream: null,
                         win32Resources: null,
@@ -367,7 +368,7 @@ namespace Roslyn.Test.Utilities
     public interface IRuntimeEnvironment : IDisposable
     {
         void Emit(Compilation mainCompilation, IEnumerable<ResourceDescription> manifestResources, EmitOptions emitOptions, bool usePdbForDebugging = false);
-        int Execute(string moduleName, string expectedOutput);
+        int Execute(string moduleName, string[] args, string expectedOutput);
         ImmutableArray<byte> GetMainImage();
         ImmutableArray<byte> GetMainPdb();
         ImmutableArray<Diagnostic> GetDiagnostics();

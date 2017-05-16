@@ -369,7 +369,7 @@
     <Compile Include="Execution\CustomAsset.cs" />
     <Compile Include="Execution\CustomAssetBuilder.cs" />
     <Compile Include="Execution\SolutionAsset.cs" />
-    <Compile Include="Execution\WellKnownSynchronizationKinds.cs" />
+    <Compile Include="Execution\WellKnownSynchronizationKind.cs" />
     <Compile Include="Experiments\IExperimentationService.cs" />
     <Compile Include="FindSymbols\Declarations\DeclarationFinder.cs" />
     <Compile Include="FindSymbols\Declarations\DeclarationFinder_AllDeclarations.cs" />

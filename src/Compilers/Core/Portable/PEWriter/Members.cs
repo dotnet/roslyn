@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -653,7 +652,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// A list of methods that are associated with the property.
         /// </summary>
-        IEnumerable<IMethodReference> Accessors { get; }
+        IEnumerable<IMethodReference> GetAccessors(EmitContext context);
 
         /// <summary>
         /// A compile time constant value that provides the default value for the property. (Who uses this and why?)
@@ -917,6 +916,33 @@ namespace Microsoft.Cci
 
             return !methodDef.IsAbstract && !methodDef.IsExternal &&
                 (methodDef.ContainingTypeDefinition == null || !methodDef.ContainingTypeDefinition.IsComObject);
+        }
+
+        /// <summary>
+        /// When emitting ref assemblies, some members will not be included.
+        /// </summary>
+        public static bool ShouldInclude(this ITypeDefinitionMember member, EmitContext context)
+        {
+            if (context.IncludePrivateMembers)
+            {
+                return true;
+            }
+
+            var method = member as IMethodDefinition;
+            if (method != null && method.IsVirtual)
+            {
+                return true;
+            }
+
+            switch (member.Visibility)
+            {
+                case TypeMemberVisibility.Private:
+                    return context.IncludePrivateMembers;
+                case TypeMemberVisibility.Assembly:
+                case TypeMemberVisibility.FamilyAndAssembly:
+                    return context.IncludePrivateMembers || context.Module.SourceAssemblyOpt?.InternalsAreVisible == true;
+            }
+            return true;
         }
     }
 }

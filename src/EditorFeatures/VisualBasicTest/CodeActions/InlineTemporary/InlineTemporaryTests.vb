@@ -4401,5 +4401,28 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
+        <Fact(Skip:="InvalidCastException"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <WorkItem(16697, "https://github.com/dotnet/roslyn/issues/16697")>
+        Public Async Function TupleElementNameIsNotReplaced() As Task
+            ' The name of the named element has bad symbol info and gets replaced with (1 + 2)
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = (i, i:=3)
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (1 + 2, i:=3)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
     End Class
 End Namespace

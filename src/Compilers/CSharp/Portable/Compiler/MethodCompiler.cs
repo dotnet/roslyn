@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly CSharpCompilation _compilation;
         private readonly bool _emittingPdb;
+        private readonly bool _emitTestCoverageData;
         private readonly CancellationToken _cancellationToken;
         private readonly DiagnosticBag _diagnostics;
         private readonly bool _hasDeclarationErrors;
@@ -74,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Internal for testing only.
-        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool hasDeclarationErrors,
+        internal MethodCompiler(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuiltOpt, bool emittingPdb, bool emitTestCoverageData, bool hasDeclarationErrors,
             DiagnosticBag diagnostics, Predicate<Symbol> filterOpt, CancellationToken cancellationToken)
         {
             Debug.Assert(compilation != null);
@@ -90,16 +91,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
-            if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData == true)
+            if (emittingPdb || emitTestCoverageData)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.DebugDocumentsBuilder.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
+
+            _emitTestCoverageData = emitTestCoverageData;
         }
 
         public static void CompileMethodBodies(
             CSharpCompilation compilation,
             PEModuleBuilder moduleBeingBuiltOpt,
-            bool generateDebugInfo,
+            bool emittingPdb,
+            bool emitTestCoverageData,
             bool hasDeclarationErrors,
             DiagnosticBag diagnostics,
             Predicate<Symbol> filterOpt,
@@ -122,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodCompiler methodCompiler = new MethodCompiler(
                 compilation,
                 moduleBeingBuiltOpt,
-                generateDebugInfo,
+                emittingPdb,
+                emitTestCoverageData,
                 hasDeclarationErrors,
                 diagnostics,
                 filterOpt,
@@ -184,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // Returns the MethodSymbol for the assembly entrypoint.  If the user has a Task returning main,
+        // this function returns the synthesized Main MethodSymbol.
         private static MethodSymbol GetEntryPoint(CSharpCompilation compilation, PEModuleBuilder moduleBeingBuilt, bool hasDeclarationErrors, DiagnosticBag diagnostics, CancellationToken cancellationToken)
         {
             var entryPointAndDiagnostics = compilation.GetEntryPointAndDiagnostics(cancellationToken);
@@ -194,21 +201,69 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(!entryPointAndDiagnostics.Diagnostics.IsDefault);
             diagnostics.AddRange(entryPointAndDiagnostics.Diagnostics);
-
             var entryPoint = entryPointAndDiagnostics.MethodSymbol;
-            var synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+
+            if ((object)entryPoint == null)
+            {
+                Debug.Assert(entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
+                return null;
+            }
+
+            // entryPoint can be a SynthesizedEntryPointSymbol if a script is being compiled.
+            SynthesizedEntryPointSymbol synthesizedEntryPoint = entryPoint as SynthesizedEntryPointSymbol;
+            if ((object)synthesizedEntryPoint == null && (entryPoint.ReturnType.IsGenericTaskType(compilation) || entryPoint.ReturnType.IsNonGenericTaskType(compilation)))
+            {
+                synthesizedEntryPoint = new SynthesizedEntryPointSymbol.AsyncForwardEntryPoint(compilation, entryPoint.ContainingType, entryPoint);
+                entryPoint = synthesizedEntryPoint;
+                if ((object)moduleBeingBuilt != null)
+                {
+                    moduleBeingBuilt.AddSynthesizedDefinition(entryPoint.ContainingType, synthesizedEntryPoint);
+                }
+            }
+
             if (((object)synthesizedEntryPoint != null) &&
                 (moduleBeingBuilt != null) &&
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
             {
-                var body = synthesizedEntryPoint.CreateBody();
+                BoundStatement body = synthesizedEntryPoint.CreateBody();
+
+                var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+                VariableSlotAllocator lazyVariableSlotAllocator = null;
+                var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+                var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
+                StateMachineTypeSymbol stateMachineTypeOpt = null;
                 const int methodOrdinal = -1;
+
+                var loweredBody = LowerBodyOrInitializer(
+                    synthesizedEntryPoint,
+                    methodOrdinal,
+                    body,
+                    null,
+                    new TypeCompilationState(synthesizedEntryPoint.ContainingType, compilation, moduleBeingBuilt),
+                    false,
+                    null,
+                    ref dynamicAnalysisSpans,
+                    diagnostics,
+                    ref lazyVariableSlotAllocator,
+                    lambdaDebugInfoBuilder,
+                    closureDebugInfoBuilder,
+                    out stateMachineTypeOpt);
+
+                Debug.Assert((object)lazyVariableSlotAllocator == null);
+                Debug.Assert((object)stateMachineTypeOpt == null);
+                Debug.Assert(dynamicAnalysisSpans.IsEmpty);
+                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
+                Debug.Assert(closureDebugInfoBuilder.IsEmpty());
+
+                lambdaDebugInfoBuilder.Free();
+                closureDebugInfoBuilder.Free();
+
                 var emittedBody = GenerateMethodBody(
                     moduleBeingBuilt,
                     synthesizedEntryPoint,
                     methodOrdinal,
-                    body,
+                    loweredBody,
                     ImmutableArray<LambdaDebugInfo>.Empty,
                     ImmutableArray<ClosureDebugInfo>.Empty,
                     stateMachineTypeOpt: null,
@@ -217,11 +272,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     debugDocumentProvider: null,
                     importChainOpt: null,
                     emittingPdb: false,
+                    emitTestCoverageData: false,
                     dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
-            Debug.Assert((object)entryPoint != null || entryPointAndDiagnostics.Diagnostics.HasAnyErrors() || !compilation.Options.Errors.IsDefaultOrEmpty);
             return entryPoint;
         }
 
@@ -546,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(_moduleBeingBuiltOpt != null);
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
-            foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics)))
+            foreach (MethodSymbol method in privateImplClass.GetMethods(new EmitContext(_moduleBeingBuiltOpt, null, diagnostics, metadataOnly: false, includePrivateMembers: true)))
             {
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
                 method.GenerateMethodBody(compilationState, diagnostics);
@@ -640,8 +695,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             variableSlotAllocatorOpt,
                             diagnosticsThisMethod,
                             _debugDocumentProvider,
-                                method.GenerateDebugInfo ? importChain : null,
+                            method.GenerateDebugInfo ? importChain : null,
                             emittingPdb: _emittingPdb,
+                            emitTestCoverageData: _emitTestCoverageData,
                             dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                     }
                 }
@@ -747,6 +803,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         debugDocumentProvider: _debugDocumentProvider,
                         importChainOpt: null,
                         emittingPdb: false,
+                        emitTestCoverageData: _emitTestCoverageData,
                         dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
 
                     _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
@@ -818,7 +875,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImportChain oldImportChain = compilationState.CurrentImportChain;
-            bool instrumentForDynamicAnalysis = _moduleBeingBuiltOpt?.EmitOptions.EmitTestCoverageData == true;
 
             // In order to avoid generating code for methods with errors, we create a diagnostic bag just for this method.
             DiagnosticBag diagsForCurrentMethod = DiagnosticBag.GetInstance();
@@ -887,9 +943,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         analyzedInitializers = InitializerRewriter.RewriteConstructor(processedInitializers.BoundInitializers, methodSymbol);
                         processedInitializers.HasErrors = processedInitializers.HasErrors || analyzedInitializers.HasAnyErrors;
 
-                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || instrumentForDynamicAnalysis))
+                        if (body != null && ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) || _emitTestCoverageData))
                         {
-                            if (instrumentForDynamicAnalysis && methodSymbol.IsImplicitConstructor)
+                            if (_emitTestCoverageData && methodSymbol.IsImplicitConstructor)
                             {
                                 // Flow analysis over the initializers is necessary in order to find assignments to fields.
                                 // Bodies of implicit constructors do not get flow analysis later, so the initializers
@@ -1004,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             flowAnalyzedBody,
                             previousSubmissionFields,
                             compilationState,
-                            instrumentForDynamicAnalysis,
+                            _emitTestCoverageData,
                             _debugDocumentProvider,
                             ref dynamicAnalysisSpans,
                             diagsForCurrentMethod,
@@ -1046,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 // For dynamic analysis, field initializers are instrumented as part of constructors,
                                 // and so are never instrumented here.
-                                Debug.Assert(!instrumentForDynamicAnalysis);
+                                Debug.Assert(!_emitTestCoverageData);
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
                                 BoundStatement lowered = LowerBodyOrInitializer(
@@ -1055,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     analyzedInitializers,
                                     previousSubmissionFields,
                                     compilationState,
-                                    instrumentForDynamicAnalysis,
+                                    _emitTestCoverageData,
                                     _debugDocumentProvider,
                                     ref dynamicAnalysisSpans,
                                     diagsForCurrentMethod,
@@ -1119,6 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             _debugDocumentProvider,
                             importChain,
                             _emittingPdb,
+                            _emitTestCoverageData,
                             dynamicAnalysisSpans);
 
                         _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
@@ -1275,6 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DebugDocumentProvider debugDocumentProvider,
             ImportChain importChainOpt,
             bool emittingPdb,
+            bool emitTestCoverageData,
             ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
@@ -1383,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt = null;
-                if (moduleBuilder.EmitOptions.EmitTestCoverageData)
+                if (emitTestCoverageData)
                 {
                     Debug.Assert(debugDocumentProvider != null);
                     dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(dynamicAnalysisSpans);

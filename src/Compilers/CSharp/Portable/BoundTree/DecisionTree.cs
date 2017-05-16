@@ -79,36 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Create a fresh decision tree for the given input expression of the given type.
-        /// </summary>
-        public static DecisionTree Create(BoundExpression expression, TypeSymbol type, Symbol enclosingSymbol)
-        {
-            Debug.Assert(expression.Type == type);
-            LocalSymbol temp = null;
-            if (expression.ConstantValue == null)
-            {
-                // Unless it is a constant, the decision tree acts on a copy of the input expression.
-                // We create a temp to represent that copy. Lowering will assign into this temp.
-                temp = new SynthesizedLocal(enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, expression.Syntax, false, RefKind.None);
-                expression = new BoundLocal(expression.Syntax, temp, null, type);
-            }
-
-            if (type.CanContainNull() || type.SpecialType == SpecialType.None)
-            {
-                // We need the ByType decision tree to separate null from non-null values.
-                // Note that, for the purpose of the decision tree (and subsumption), we
-                // ignore the fact that the input may be a constant, and therefore always
-                // or never null.
-                return new ByType(expression, type, temp);
-            }
-            else
-            {
-                // If it is a (e.g. builtin) value type, we can switch on its (constant) values.
-                return new ByValue(expression, type, temp);
-            }
-        }
-
-        /// <summary>
         /// A decision tree node that branches based on (1) whether the input value is null, (2) the runtime
         /// type of the input expression, and finally (3) a default decision tree if nothing in the previous
         /// cases handles the input.

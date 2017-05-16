@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,11 +13,10 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using System.Composition;
-using Microsoft.VisualStudio.Composition;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Workspaces
 {
@@ -1001,6 +1002,52 @@ class D { }
                 Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).Documents.Count());
                 Assert.Equal(1, workspace.CurrentSolution.GetProject(project1.Id).AdditionalDocuments.Count());
                 Assert.Equal("original.config", workspace.CurrentSolution.GetProject(project1.Id).AdditionalDocuments.Single().Name);
+            }
+        }
+
+        [Fact, WorkItem(209299, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209299")]
+        public async Task TestLinkedFilesStayInSync()
+        {
+            var originalText = "class Program1 { }";
+            var updatedText = "class Program2 { }";
+
+            var input = $@"
+<Workspace>
+    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
+        <Document FilePath=""Test.cs"">{ originalText }</Document>
+    </Project>
+    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
+        <Document IsLinkFile=""true"" LinkAssemblyName=""Assembly1"" LinkFilePath=""Test.cs"" />
+    </Project>
+</Workspace>";
+
+            using (var workspace = TestWorkspace.Create(input, exportProvider: s_exportProvider.Value))
+            {
+                var eventArgs = new List<WorkspaceChangeEventArgs>();
+
+                workspace.WorkspaceChanged += (s, e) =>
+                {
+                    Assert.Equal(WorkspaceChangeKind.DocumentChanged, e.Kind);
+                    eventArgs.Add(e);
+                };
+
+                var originalDocumentId = workspace.GetOpenDocumentIds().Single(id => !workspace.GetTestDocument(id).IsLinkFile);
+                var linkedDocumentId = workspace.GetOpenDocumentIds().Single(id => workspace.GetTestDocument(id).IsLinkFile);
+
+                workspace.GetTestDocument(originalDocumentId).Update(SourceText.From("class Program2 { }"));
+                await WaitForWorkspaceOperationsToComplete(workspace);
+
+                Assert.Equal(2, eventArgs.Count);
+                AssertEx.SetEqual(workspace.Projects.SelectMany(p => p.Documents).Select(d => d.Id), eventArgs.Select(e => e.DocumentId));
+
+                Assert.Equal(eventArgs[0].OldSolution, eventArgs[1].OldSolution);
+                Assert.Equal(eventArgs[0].NewSolution, eventArgs[1].NewSolution);
+
+                Assert.Equal(originalText, (await eventArgs[0].OldSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
+                Assert.Equal(originalText, (await eventArgs[1].OldSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
+
+                Assert.Equal(updatedText, (await eventArgs[0].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
+                Assert.Equal(updatedText, (await eventArgs[1].NewSolution.GetDocument(originalDocumentId).GetTextAsync().ConfigureAwait(false)).ToString());
             }
         }
     }

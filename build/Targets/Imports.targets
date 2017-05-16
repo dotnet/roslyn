@@ -41,6 +41,11 @@
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
+
+      <!-- Add the UnitTestContainer project capability -->
+      <ItemGroup>
+        <ProjectCapability Include="UnitTestContainer" />
+      </ItemGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
       <PropertyGroup>

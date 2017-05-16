@@ -99,6 +99,7 @@
     <Compile Include="DiagnosticItem\CpsDiagnosticItemProvider.cs" />
     <Compile Include="DiagnosticItem\CpsDiagnosticItemSource.cs" />
     <Compile Include="DiagnosticItem\BaseDiagnosticItem.BrowseObject.cs" />
+    <Compile Include="DiagnosticItem\CpsUtilities.cs" />
     <Compile Include="DiagnosticItem\LegacyDiagnosticItemProvider.cs" />
     <Compile Include="AnalyzerReferenceManager.cs" />
     <Compile Include="ContextMenuController.cs" />

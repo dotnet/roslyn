@@ -90,7 +90,7 @@
     <Compile Include="CodeFixes\GenerateEvent\GenerateEventCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.vb" />
+    <Compile Include="GenerateVariable\VisualBasicGenerateVariableCodeFixProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\VisualBasicRemoveUnusedVariableCodeFixProvider.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.Pattern.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.vb" />
@@ -110,7 +110,6 @@
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="InitializeParameter\VisualBasicInitializeMemberFromParameterCodeRefactoringProvider.vb" />
-    <Compile Include="ReplacePropertyWithMethods\ConvertValueToReturnsRewriter.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
@@ -396,6 +395,8 @@
     <Compile Include="Structure\VisualBasicBlockStructureProvider.vb" />
     <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="RemoveUnnecessaryImports\AbstractVisualBasicRemoveUnnecessaryImportsService.vb" />
+    <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.ConvertValueToParamRewriter.vb" />
+    <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.ConvertValueToReturnsRewriter.vb" />
     <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.vb" />
     <Compile Include="SignatureHelp\AbstractIntrinsicOperatorSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.vb" />
