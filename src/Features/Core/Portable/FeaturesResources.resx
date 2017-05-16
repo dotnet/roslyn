@@ -1241,4 +1241,10 @@ This version used in: {2}</value>
   <data name="Implement_0" xml:space="preserve">
     <value>Implement {0}</value>
   </data>
+  <data name="Simplify_default_expression" xml:space="preserve">
+    <value>Simplify 'default' expression</value>
+  </data>
+  <data name="default_expression_can_be_simplified" xml:space="preserve">
+    <value>'default' expression can be simplified</value>
+  </data>
 </root>
