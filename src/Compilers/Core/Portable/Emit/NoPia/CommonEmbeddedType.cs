@@ -232,31 +232,28 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 return GetBaseClass((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, context.Diagnostics);
             }
 
-            IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.Events
+            IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
             {
-                get
+                if (_lazyEvents.IsDefault)
                 {
-                    if (_lazyEvents.IsDefault)
+                    Debug.Assert(TypeManager.IsFrozen);
+
+                    var builder = ArrayBuilder<Cci.IEventDefinition>.GetInstance();
+
+                    foreach (var e in GetEventsToEmit())
                     {
-                        Debug.Assert(TypeManager.IsFrozen);
+                        TEmbeddedEvent embedded;
 
-                        var builder = ArrayBuilder<Cci.IEventDefinition>.GetInstance();
-
-                        foreach (var e in GetEventsToEmit())
+                        if (TypeManager.EmbeddedEventsMap.TryGetValue(e, out embedded))
                         {
-                            TEmbeddedEvent embedded;
-
-                            if (TypeManager.EmbeddedEventsMap.TryGetValue(e, out embedded))
-                            {
-                                builder.Add(embedded);
-                            }
+                            builder.Add(embedded);
                         }
-
-                        ImmutableInterlocked.InterlockedInitialize(ref _lazyEvents, builder.ToImmutableAndFree());
                     }
 
-                    return _lazyEvents;
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyEvents, builder.ToImmutableAndFree());
                 }
+
+                return _lazyEvents;
             }
 
             IEnumerable<Cci.MethodImplementation> Cci.ITypeDefinition.GetExplicitImplementationOverrides(EmitContext context)

@@ -11,6 +11,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.CSharp.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -72,9 +74,15 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

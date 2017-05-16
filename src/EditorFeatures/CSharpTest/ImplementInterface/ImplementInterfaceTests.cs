@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementInterface;
@@ -2348,6 +2347,56 @@ class C : I, I2
     }
 }",
 index: 1);
+        }
+
+        [WorkItem(18556, "https://github.com/dotnet/roslyn/issues/18556")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementInterfaceThroughExplicitProperty()
+        {
+            await TestActionCountAsync(
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+}",
+count: 3);
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+}",
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+
+    public int M()
+    {
+        return ((IA)this).B.M();
+    }
+}", index: 1);
         }
 
         [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
@@ -6704,6 +6753,41 @@ class C : I
         throw new NotImplementedException();
     }
 }");
+        }
+
+        [WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")]
+        [WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestAutoProperties()
+        {
+            await TestInRegularAndScript1Async(
+@"interface IInterface
+{
+    int ReadOnlyProp { get; }
+    int ReadWriteProp { get; set; }
+    int WriteOnlyProp { set; }
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"interface IInterface
+{
+    int ReadOnlyProp { get; }
+    int ReadWriteProp { get; set; }
+    int WriteOnlyProp { set; }
+}
+
+class Class : IInterface
+{
+    public int ReadOnlyProp { get; }
+
+    public int ReadWriteProp { get; set; }
+
+    public int WriteOnlyProp { set => throw new System.NotImplementedException(); }
+}", parameters: new TestParameters(options: Option(
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
         }
     }
 }

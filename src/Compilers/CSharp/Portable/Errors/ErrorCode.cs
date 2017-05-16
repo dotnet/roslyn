@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        ERR_SourceLinkRequiresPortablePdb = 2044,
+        ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
         // unused 2046-2999
         WRN_CLS_NoVarArgs = 3000,
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarargsAsync = 4006,
         ERR_ByRefTypeAndAwait = 4007,
         ERR_BadAwaitArgVoidCall = 4008,
-        ERR_MainCantBeAsync = 4009,
+        ERR_NonTaskMainCantBeAsync = 4009,
         ERR_CantConvAsyncAnonFuncReturns = 4010,
         ERR_BadAwaiterPattern = 4011,
         ERR_BadSpecialByRefLocal = 4012,
@@ -1465,6 +1465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionTreeContainsDiscard = 8207,
         ERR_PatternDynamicType = 8208,
         ERR_VoidAssignment = 8209,
+        ERR_VoidInTuple = 8210,
         #endregion more stragglers for C# 7
 
         ERR_Merge_conflict_marker_encountered = 8300,
@@ -1472,6 +1473,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
         ERR_LanguageVersionCannotHaveLeadingZeroes = 8303,
         ERR_CompilerAndLanguageVersion = 8304,
+        WRN_Experimental = 8305,
+        ERR_TupleInferredNamesNotAvailable = 8306,
+        ERR_TypelessTupleInAs = 8307,
+
+        #region diagnostics for C# 7.1
+
+        ERR_NoRefOutWhenRefOnly = 8308,
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
+        // Available = 8310,
+        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        ERR_DefaultLiteralNotValid = 8312,
+        WRN_DefaultInSwitch = 8313,
+        ERR_PatternWrongGenericTypeInVersion = 8314,
+
+        #endregion diagnostics for C# 7.1
 
         //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
         //                         For now it is more convenient to have a gap to avoid conflicts with other added errors

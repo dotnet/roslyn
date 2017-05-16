@@ -236,13 +236,22 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
         }
 
-        public int Execute(string moduleName, int expectedOutputLength, out string processOutput)
+        public int Execute(string moduleName, string[] args, string expectedOutput)
         {
             try
             {
                 var emitData = GetEmitData();
                 emitData.RuntimeData.ExecuteRequested = true;
-                return emitData.Manager.Execute(moduleName, expectedOutputLength, out processOutput);
+                var resultCode = emitData.Manager.Execute(moduleName, args, expectedOutput?.Length, out var output);
+
+                if (expectedOutput != null && expectedOutput.Trim() != output.Trim())
+                {
+                    string dumpDir;
+                    GetEmitData().Manager.DumpAssemblyData(out dumpDir);
+                    throw new ExecutionException(expectedOutput, output, dumpDir);
+                }
+
+                return resultCode;
             }
             catch (TargetInvocationException tie)
             {
@@ -255,21 +264,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
                 _emitData.Manager.DumpAssemblyData(out dumpDir);
                 throw new ExecutionException(tie.InnerException, dumpDir);
             }
-        }
-
-        public int Execute(string moduleName, string expectedOutput)
-        {
-            string actualOutput;
-            int exitCode = Execute(moduleName, expectedOutput.Length, out actualOutput);
-
-            if (expectedOutput.Trim() != actualOutput.Trim())
-            {
-                string dumpDir;
-                GetEmitData().Manager.DumpAssemblyData(out dumpDir);
-                throw new ExecutionException(expectedOutput, actualOutput, dumpDir);
-            }
-
-            return exitCode;
         }
 
         private EmitData GetEmitData()
@@ -374,5 +368,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.CodeRuntime
             }
             return _testData;
         }
+
+        private static readonly object s_consoleGuard = new object();
+
+        internal static void Capture(Action action, int expectedLength, out string output, out string errorOutput)
+        {
+            TextWriter errorOutputWriter = new CappedStringWriter(expectedLength);
+            TextWriter outputWriter = new CappedStringWriter(expectedLength);
+
+            lock (s_consoleGuard)
+            {
+                TextWriter originalOut = Console.Out;
+                TextWriter originalError = Console.Error;
+                try
+                {
+                    Console.SetOut(outputWriter);
+                    Console.SetError(errorOutputWriter);
+                    action();
+                }
+                finally
+                {
+                    Console.SetOut(originalOut);
+                    Console.SetError(originalError);
+                }
+            }
+
+            output = outputWriter.ToString();
+            errorOutput = errorOutputWriter.ToString();
+        }
+
+        public void CaptureOutput(Action action, int expectedLength, out string output, out string errorOutput) =>
+            Capture(action, expectedLength, out output, out errorOutput);
     }
 }

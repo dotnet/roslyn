@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(14243, "https://github.com/dotnet/roslyn/issues/14243")]
         public void AssignInsideCallToLocalFunc()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public void M()
@@ -43,7 +43,7 @@ class C
         [WorkItem(14046, "https://github.com/dotnet/roslyn/issues/14046")]
         public void UnreachableAfterThrow()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
   public void M3()
@@ -71,7 +71,7 @@ class C
         [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void UnreachableRecursion()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public void M()
@@ -93,7 +93,7 @@ class C
         [Fact]
         public void ReadBeforeUnreachable()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public void M()
@@ -118,7 +118,7 @@ class C
         [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void MutualRecursiveUnreachable()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void M()
@@ -150,7 +150,7 @@ class C
         [WorkItem(13739, "https://github.com/dotnet/roslyn/issues/13739")]
         public void AssignedInDeadBranch()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 
 class Program
@@ -181,7 +181,7 @@ class Program
         [Fact]
         public void InvalidBranchOutOfLocalFunc()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void M()
@@ -310,7 +310,7 @@ class C
         [Fact]
         public void SimpleForwardCall()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -325,7 +325,7 @@ class C
         [Fact]
         public void DefinedWhenCalled()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -342,7 +342,7 @@ class C
         [Fact]
         public void NotDefinedWhenCalled()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -362,7 +362,7 @@ class C
         [Fact]
         public void ChainedDef()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -383,7 +383,7 @@ class C
         [Fact]
         public void SetInLocalFunc()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -405,7 +405,7 @@ class C
         [Fact]
         public void SetInLocalFuncMutual()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -431,7 +431,7 @@ class C
         [Fact]
         public void LongWriteChain()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public void M()
@@ -465,7 +465,7 @@ class C
         [Fact]
         public void ConvertBeforeDefined()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -486,7 +486,7 @@ class C
         [Fact]
         public void NestedCapture()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -509,7 +509,7 @@ class C
         [Fact]
         public void UnusedLocalFunc()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public static void Main()
@@ -527,7 +527,7 @@ class C
         [Fact]
         public void UnassignedInStruct()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S
 {
     int _x;
@@ -559,7 +559,7 @@ struct S
         [Fact]
         public void AssignWithStruct()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S
 {
     public int x;
@@ -629,7 +629,7 @@ class C
         [Fact]
         public void NestedStructProperty()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct A
 {
     public int x;
@@ -722,7 +722,7 @@ class C
         [Fact]
         public void WriteAndReadInLocalFunc()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     public void M()
@@ -747,7 +747,7 @@ class C
         [Fact]
         public void EventReadAndWrite()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 using System;
 
 struct S
@@ -819,7 +819,7 @@ class C
         [Fact]
         public void CaptureForeachVar()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -844,7 +844,7 @@ class C
         [Fact]
         public void CapturePattern()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -882,7 +882,7 @@ class C
         [Fact]
         public void NotAssignedControlFlow()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void FullyAssigned()
@@ -931,7 +931,7 @@ class C
         [Fact]
         public void UseConsts()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S
 {
     public const int z = 0;
@@ -958,7 +958,7 @@ class C
         [Fact]
         public void NotAssignedAtAllReturns()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -988,7 +988,7 @@ class C
         [Fact]
         public void NotAssignedAtThrow()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -1026,7 +1026,7 @@ class C
         [Fact]
         public void DeadCode()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -1063,7 +1063,7 @@ class C
         [Fact]
         public void LocalFunctionFromOtherSwitch()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -1099,7 +1099,7 @@ class C
         [WorkItem(15298, "https://github.com/dotnet/roslyn/issues/15298")]
         public void UnassignedUndefinedVariable()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class C
 {
     void M()
@@ -1129,7 +1129,7 @@ class C
         [WorkItem(15322, "https://github.com/dotnet/roslyn/issues/15322")]
         public void UseBeforeDeclarationInSwitch()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 class Program
 {
     static void Main(object[] args)
@@ -1155,7 +1155,7 @@ class Program
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S { public int X, Y; }
 
 class C
@@ -1179,7 +1179,7 @@ class C
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign2()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S
 {
     public int X;
@@ -1205,7 +1205,7 @@ struct S
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssign3()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S { }
 struct S2
 { 
@@ -1261,7 +1261,7 @@ class C
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssignmentInConstructor()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S
 {
     public int _x;
@@ -1293,7 +1293,7 @@ struct S
         [WorkItem(14097, "https://github.com/dotnet/roslyn/issues/14097")]
         public void PiecewiseStructAssignmentInConstructor2()
         {
-            var comp = CreateCompilationWithMscorlib(@"
+            var comp = CreateStandardCompilation(@"
 struct S
 {
     public int _x;

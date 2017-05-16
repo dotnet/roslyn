@@ -140,7 +140,9 @@ class C
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "Bexley").WithLocation(7, 17),
                 Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "M1(y + d)").WithLocation(10, 9),
                 Diagnostic(BadStuffTestAnalyzer.InvalidStatementDescriptor.Id, "goto;").WithLocation(11, 9),
-                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "goto;").WithLocation(11, 9)
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "goto;").WithLocation(11, 9),
+                Diagnostic(BadStuffTestAnalyzer.InvalidExpressionDescriptor.Id, "").WithLocation(11, 13),
+                Diagnostic(BadStuffTestAnalyzer.IsInvalidDescriptor.Id, "").WithLocation(11, 13)
                 );
         }
 
@@ -278,7 +280,7 @@ class C
                 Diagnostic(SwitchTestAnalyzer.NoDefaultSwitchDescriptor.Id, "y").WithLocation(40, 17));
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void InvocationCSharp()
         {
             const string source = @"
@@ -751,7 +753,7 @@ interface IDerived : IMiddle, IBase2
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void ValueContextsCSharp()
         {
             const string source = @"
@@ -833,7 +835,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19300")]
         public void MemberInitializerCSharp()
         {
             const string source = @"
@@ -1119,7 +1121,7 @@ class D : C
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18839")]
         public void EventAndMethodReferencesCSharp()
         {
             const string source = @"
@@ -1165,7 +1167,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void ParamsArraysCSharp()
         {
             const string source = @"
@@ -1438,8 +1440,7 @@ class C
                 Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => input++").WithLocation(9, 31),
                 Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "input => { input++; input++; if (input > 0) return true; return false; }").WithLocation(10, 32),
                 Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "input => { input++; input++; if (input > 0) return true; return false; }").WithLocation(10, 32),
-                // Bug: missing a Lambda expression in delegate creation https://github.com/dotnet/roslyn/issues/8347
-                //Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { }").WithLocation(22, 42),
+                Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { }").WithLocation(22, 42),
                 Diagnostic(LambdaTestAnalyzer.LambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19),
                 Diagnostic(LambdaTestAnalyzer.TooManyStatementsInLambdaExpressionDescriptor.Id, "(s, e) => { int i = 0; i++; i++; i++; }").WithLocation(23, 19));
         }
@@ -1625,7 +1626,7 @@ class C
         }
 
         [WorkItem(8520, "https://github.com/dotnet/roslyn/issues/8520")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void NullOperationSyntaxCSharp()
         {
             const string source = @"
@@ -1722,9 +1723,8 @@ public class A
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidUnaryDescriptor.Id, "-f").WithLocation(11, 16),
                 Diagnostic(InvalidOperatorExpressionTestAnalyzer.InvalidIncrementDescriptor.Id, "f++").WithLocation(16, 9));
         }
-
-        [WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
-        [Fact]
+        
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549"), WorkItem(9114, "https://github.com/dotnet/roslyn/issues/9114")]
         public void InvalidArgumentCSharp()
         {
             const string source = @"
@@ -1813,7 +1813,7 @@ class C
         }
 
         [WorkItem(9116, "https://github.com/dotnet/roslyn/issues/9116")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18549")]
         public void LiteralCSharp()
         {
             const string source = @"

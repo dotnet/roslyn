@@ -145,7 +145,7 @@ Class C
 End Class
 "
 
-            Dim ilRef = CompileIL(il, appendDefaultHeader:=False)
+            Dim ilRef = CompileIL(il, prependDefaultHeader:=False)
             Dim comp = CreateCompilationWithMscorlib({vb}, {ilRef}, TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
@@ -595,7 +595,7 @@ End Class"
         End Sub
 
         <Fact>
-        Public Sub TupleNoSystemRuntime()
+        Public Sub TupleNoSystemRuntimeWithVB15()
             Const source =
 "Class C
     Shared Sub M()
@@ -612,11 +612,36 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (Integer, Integer) V_1, //y
+                (x As Integer, Integer) V_1, //y
                 (Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.1
   IL_0001:  ret
 }")
+        End Sub
+
+        <Fact>
+        Public Sub TupleNoSystemRuntimeWithVB15_3()
+            Const source =
+"Class C
+    Shared Sub M()
+        Dim x = 1
+        Dim y = (x, 2)
+        Dim z = (3, 4, (5, 6))
+    End Sub
+End Class"
+            TupleContextNoSystemRuntime(
+                source,
+                "C.M",
+                "y",
+"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (Integer V_0, //x
+                (x As Integer, Integer) V_1, //y
+                (Integer, Integer, (Integer, Integer)) V_2) //z
+  IL_0000:  ldloc.1
+  IL_0001:  ret
+}", LanguageVersion.VisualBasic15_3)
         End Sub
 
         <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
@@ -638,15 +663,17 @@ End Class"
   // Code size        2 (0x2)
   .maxstack  1
   .locals init (Integer V_0, //x
-                (Integer, Integer) V_1, //y
+                (x As Integer, Integer) V_1, //y
                 (Integer, Integer, (Integer, Integer)) V_2) //z
   IL_0000:  ldloc.0
   IL_0001:  ret
 }")
         End Sub
 
-        Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String)
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+        Private Shared Sub TupleContextNoSystemRuntime(source As String, methodName As String, expression As String, expectedIL As String,
+                                                       Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic15)
+            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll,
+                                                     parseOptions:=TestOptions.Regular.WithLanguageVersion(languageVersion))
             Using systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance()
                 WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef},
                     Sub(runtime)

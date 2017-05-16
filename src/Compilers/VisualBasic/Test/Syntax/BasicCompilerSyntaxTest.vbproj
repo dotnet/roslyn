@@ -10,6 +10,8 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.Syntax.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -60,6 +62,15 @@
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Generated\Syntax.Test.xml.Generated.vb" />
@@ -118,7 +129,6 @@
     <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
-    <None Include="project.json" />
     <None Include="Resources\VBAllInOne.vb" />
   </ItemGroup>
   <ItemGroup>

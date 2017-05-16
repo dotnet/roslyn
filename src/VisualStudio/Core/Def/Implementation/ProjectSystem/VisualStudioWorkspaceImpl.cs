@@ -187,7 +187,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         }
 
         internal override bool CanRenameFilesDuringCodeActions(CodeAnalysis.Project project)
+            => !IsCPSProject(project);
+
+        internal bool IsCPSProject(CodeAnalysis.Project project)
         {
+            _foregroundObject.Value.AssertIsForeground();
+
             if (this.TryGetHierarchy(project.Id, out var hierarchy))
             {
                 // Currently renaming files in CPS projects (i.e. .Net Core) doesn't work proprey.
@@ -195,10 +200,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // (despite the DTE interfaces being synchronous).  So Roslyn calls the methods
                 // expecting the changes to happen immediately.  Because they are deferred in CPS
                 // this causes problems. 
-                return !hierarchy.IsCapabilityMatch("CPS");
+                return hierarchy.IsCapabilityMatch("CPS");
             }
 
-            return true;
+            return false;
         }
 
         protected override bool CanApplyParseOptionChange(ParseOptions oldOptions, ParseOptions newOptions, CodeAnalysis.Project project)

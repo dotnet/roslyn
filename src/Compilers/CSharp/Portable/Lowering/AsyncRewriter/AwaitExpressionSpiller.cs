@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.ToDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type);
                 }
 
                 _locals.Add(local);

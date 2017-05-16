@@ -92,7 +92,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -340,7 +340,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -447,7 +447,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -539,7 +539,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 public delegate ref readonly int D(ref readonly int x);
@@ -656,7 +656,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 public class Test
@@ -789,7 +789,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 delegate ref readonly int D(ref readonly int x);
@@ -831,7 +831,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -858,7 +858,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -884,7 +884,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -913,7 +913,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -942,7 +942,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -979,7 +979,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilationWithMscorlib(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;

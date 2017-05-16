@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an assembly built by compiler.
     /// </summary>
-    internal sealed class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, ISourceAssemblySymbolInternal, IAttributeTargetSymbol
+    internal sealed partial class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, ISourceAssemblySymbolInternal, IAttributeTargetSymbol
     {
         /// <summary>
         /// A Compilation the assembly is created for.
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Forces binding and decoding of attributes.
         /// This property shouldn't be accessed during binding as it can lead to attribute binding cycle.
         /// </remarks>
-        private bool InternalsAreVisible
+        public bool InternalsAreVisible
         {
             get
             {
@@ -1696,6 +1696,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool HasReferenceAssemblyAttribute
+        {
+            get
+            {
+                CommonAssemblyWellKnownAttributeData assemblyData = this.GetSourceDecodedWellKnownAttributeData();
+                return assemblyData != null && assemblyData.HasReferenceAssemblyAttribute;
+            }
+        }
+
         internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
@@ -2263,6 +2272,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CompilationRelaxationsAttribute))
             {
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasCompilationRelaxationsAttribute = true;
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.ReferenceAssemblyAttribute))
+            {
+                arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().HasReferenceAssemblyAttribute = true;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.RuntimeCompatibilityAttribute))
             {

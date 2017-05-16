@@ -31,15 +31,35 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
         public static async Task<JsonRpcSession> CreateAsync(
-            PinnedRemotableDataScope snapshot,
+            Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync,
             object callbackTarget,
             Stream serviceStream,
             Stream snapshotStreamOpt,
             CancellationToken cancellationToken)
         {
-            var session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt, cancellationToken);
+            var snapshot = getSnapshotAsync.Value == null ? null : await getSnapshotAsync.Value(cancellationToken).ConfigureAwait(false);
 
-            await session.InitializeAsync().ConfigureAwait(false);
+            JsonRpcSession session;
+            try
+            {
+                session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt, cancellationToken);
+            }
+            catch
+            {
+                snapshot?.Dispose();
+                throw;
+            }
+
+            try
+            {
+                await session.InitializeAsync().ConfigureAwait(false);
+            }
+            catch when (!cancellationToken.IsCancellationRequested)
+            {
+                // The session disposes of itself when cancellation is requested.
+                session.Dispose();
+                throw;
+            }
 
             return session;
         }
@@ -52,6 +72,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             CancellationToken cancellationToken) :
             base(snapshot, cancellationToken)
         {
+            Contract.Requires((snapshot == null) == (snapshotStreamOpt == null));
+
             // get session id
             _currentSessionId = Interlocked.Increment(ref s_sessionId);
 
@@ -64,13 +86,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         private async Task InitializeAsync()
         {
-            // all roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
+            // All roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
+            // This will set this session's solution and whether that solution is for primary branch or not
+            var primaryBranch = PinnedScopeOpt?.ForPrimaryBranch ?? false;
+            var solutionChecksum = PinnedScopeOpt?.SolutionChecksum;
+
             if (_snapshotClientOpt != null)
             {
-                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt.SolutionChecksum).ConfigureAwait(false);
+                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, primaryBranch, solutionChecksum).ConfigureAwait(false);
             }
 
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, PinnedScopeOpt?.SolutionChecksum).ConfigureAwait(false);
+            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, primaryBranch, solutionChecksum).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)
@@ -214,7 +240,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 writer.WriteInt32(1);
 
                 checksum.WriteTo(writer);
-                writer.WriteString(remotableData.Kind);
+                writer.WriteInt32((int)remotableData.Kind);
 
                 await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
             }
@@ -230,7 +256,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     var remotableData = kv.Value;
 
                     checksum.WriteTo(writer);
-                    writer.WriteString(remotableData.Kind);
+                    writer.WriteInt32((int)remotableData.Kind);
 
                     await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
                 }

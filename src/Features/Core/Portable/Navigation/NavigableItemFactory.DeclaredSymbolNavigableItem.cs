@@ -2,12 +2,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Navigation
 {
@@ -15,19 +12,20 @@ namespace Microsoft.CodeAnalysis.Navigation
     {
         internal class DeclaredSymbolNavigableItem : INavigableItem
         {
-            public ImmutableArray<TaggedText> DisplayTaggedParts => _lazyDisplayTaggedParts.Value; 
+            private readonly DeclaredSymbolInfo _declaredSymbolInfo;
 
             public Document Document { get; }
-            public Glyph Glyph => this.SymbolOpt?.GetGlyph() ?? Glyph.Error;
+
+            public ImmutableArray<TaggedText> DisplayTaggedParts
+                => ImmutableArray.Create(new TaggedText(
+                    TextTags.Text, _declaredSymbolInfo.Name + _declaredSymbolInfo.NameSuffix));
+
+            public Glyph Glyph => GetGlyph(_declaredSymbolInfo.Kind, _declaredSymbolInfo.Accessibility);
+
             public TextSpan SourceSpan => _declaredSymbolInfo.Span;
-            public ISymbol SymbolOpt => _lazySymbolOpt.Value;
+
             public ImmutableArray<INavigableItem> ChildItems => ImmutableArray<INavigableItem>.Empty;
-
             public bool DisplayFileLocation => false;
-
-            private readonly DeclaredSymbolInfo _declaredSymbolInfo;
-            private readonly Lazy<ImmutableArray<TaggedText>> _lazyDisplayTaggedParts;
-            private readonly Lazy<ISymbol> _lazySymbolOpt;
 
             /// <summary>
             /// DeclaredSymbolInfos always come from some actual declaration in source.  So they're
@@ -35,43 +33,62 @@ namespace Microsoft.CodeAnalysis.Navigation
             /// </summary>
             public bool IsImplicitlyDeclared => false;
 
-            public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo)
+            public DeclaredSymbolNavigableItem(
+                Document document, DeclaredSymbolInfo declaredSymbolInfo)
             {
                 Document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
-
-                _lazySymbolOpt = new Lazy<ISymbol>(TryFindSymbol);
-
-                _lazyDisplayTaggedParts = new Lazy<ImmutableArray<TaggedText>>(() =>
-                {
-                    try
-                    {
-                        if (this.SymbolOpt == null)
-                        {
-                            return default(ImmutableArray<TaggedText>);
-                        }
-
-                        return GetSymbolDisplayTaggedParts(Document.Project, this.SymbolOpt);
-                    }
-                    catch (Exception e) when (FatalError.Report(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
-                });
             }
 
-            private ISymbol TryFindSymbol()
+            private static Glyph GetPublicGlyph(DeclaredSymbolInfoKind kind)
             {
-                // Here, we will use partial semantics. We are going to use this symbol to get a glyph, display string,
-                // and potentially documentation comments. The first two should work fine even if we don't have full
-                // references, and the latter will probably be fine. (It wouldn't be if you have a partial type
-                // and we didn't get all the trees parsed yet to know that. In other words, an edge case we don't care about.)
+                switch (kind)
+                {
+                    case DeclaredSymbolInfoKind.Class: return Glyph.ClassPublic;
+                    case DeclaredSymbolInfoKind.Constant: return Glyph.ConstantPublic;
+                    case DeclaredSymbolInfoKind.Constructor: return Glyph.MethodPublic;
+                    case DeclaredSymbolInfoKind.Delegate: return Glyph.DelegatePublic;
+                    case DeclaredSymbolInfoKind.Enum: return Glyph.EnumPublic;
+                    case DeclaredSymbolInfoKind.EnumMember: return Glyph.EnumMemberPublic;
+                    case DeclaredSymbolInfoKind.Event: return Glyph.EventPublic;
+                    case DeclaredSymbolInfoKind.ExtensionMethod: return Glyph.ExtensionMethodPublic;
+                    case DeclaredSymbolInfoKind.Field: return Glyph.FieldPublic;
+                    case DeclaredSymbolInfoKind.Indexer: return Glyph.PropertyPublic;
+                    case DeclaredSymbolInfoKind.Interface: return Glyph.InterfacePublic;
+                    case DeclaredSymbolInfoKind.Method: return Glyph.MethodPublic;
+                    case DeclaredSymbolInfoKind.Module: return Glyph.ModulePublic;
+                    case DeclaredSymbolInfoKind.Property: return Glyph.PropertyPublic;
+                    case DeclaredSymbolInfoKind.Struct: return Glyph.StructurePublic;
+                    default: return Glyph.ClassPublic;
+                }
+            }
 
-                // Cancellation isn't supported when computing the various properties that depend on the symbol, hence
-                // CancellationToken.None.
-                var semanticModel = Document.GetPartialSemanticModelAsync(CancellationToken.None).GetAwaiter().GetResult();
+            private static Glyph GetGlyph(DeclaredSymbolInfoKind kind, Accessibility accessibility)
+            {
+                // Glyphs are stored in this order:
+                //  ClassPublic,
+                //  ClassProtected,
+                //  ClassPrivate,
+                //  ClassInternal,
 
-                return _declaredSymbolInfo.TryResolve(semanticModel, CancellationToken.None);
+                var rawGlyph = GetPublicGlyph(kind);
+
+                switch (accessibility)
+                {
+                    case Accessibility.Private:
+                        rawGlyph += (Glyph.ClassPrivate - Glyph.ClassPublic);
+                        break;
+                    case Accessibility.Internal:
+                        rawGlyph += (Glyph.ClassInternal - Glyph.ClassPublic);
+                        break;
+                    case Accessibility.Protected:
+                    case Accessibility.ProtectedOrInternal:
+                    case Accessibility.ProtectedAndInternal:
+                        rawGlyph += (Glyph.ClassProtected - Glyph.ClassPublic);
+                        break;
+                }
+
+                return rawGlyph;
             }
         }
     }

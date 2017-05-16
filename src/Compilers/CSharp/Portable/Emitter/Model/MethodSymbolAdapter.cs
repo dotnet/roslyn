@@ -574,10 +574,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            ImmutableArray<CSharpAttributeData> userDefined;
+            ImmutableArray<CSharpAttributeData> userDefined = this.GetReturnTypeAttributes();
             ArrayBuilder<SynthesizedAttributeData> synthesized = null;
-
-            userDefined = this.GetReturnTypeAttributes();
             this.AddSynthesizedReturnTypeAttributes((PEModuleBuilder)context.Module, ref synthesized);
 
             // Note that callers of this method (CCI and ReflectionEmitter) have to enumerate 
