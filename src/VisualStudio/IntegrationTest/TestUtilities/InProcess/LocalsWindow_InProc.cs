@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using EnvDTE80;
 
@@ -45,23 +46,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         private EnvDTE.Expression GetEntryInternal(string entryName, EnvDTE.Expressions expressions)
         {
-            // Need to collect nested expressions separately because Expressions cannot be converted to IEnumerable<Expresssion>.
-            string[] nestedExpressionNames = new string[expressions.Count];
-            int i = 0;
-            foreach(EnvDTE.Expression expression in expressions)
+            var expressionCollection = expressions.Cast<EnvDTE.Expression>();
+            var expressionMatched = expressionCollection.FirstOrDefault(e => e.Name == entryName);
+            if (expressionMatched != null)
             {
-                if (expression.Name == entryName)
-                {
-                    return expression;
-                }
-                else
-                {
-                    nestedExpressionNames[i] = expression.Name;
-                    i++;
-                }
+                return expressionMatched;
             }
 
-            string nestedExpressionNamesString = string.Join(",", nestedExpressionNames);
+            string nestedExpressionNamesString = string.Join(",", expressionCollection.Select(e => e.Name));
             throw new Exception($"Could not find the local named {entryName}. Available locals are {nestedExpressionNamesString}.");
         }
 
