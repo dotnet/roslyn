@@ -49,7 +49,13 @@ namespace Microsoft.CodeAnalysis.Host
 
             protected override bool ReleaseHandle()
             {
-                _viewHandle.ReleasePointer();
+                // The operating system will release these handles when the process terminates, so do not spend time
+                // releasing them manually in that case. Doing so causes unnecessary delays during application shutdown.
+                if (!Environment.HasShutdownStarted)
+                {
+                    _viewHandle.ReleasePointer();
+                }
+
                 return true;
             }
         }
