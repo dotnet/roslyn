@@ -274,5 +274,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateStandardCompilation(testSrc, references, sourceFileName: "file.cs", options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
         }
+
+        protected void VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc, string ilSource, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null, MetadataReference[] additionalReferences = null)
+   where TSyntaxNode : SyntaxNode
+        {
+            CompileWithCustomILSource(testSrc, ilSource, compilation =>
+            {
+                VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
+            });
+        }  
     }
 }

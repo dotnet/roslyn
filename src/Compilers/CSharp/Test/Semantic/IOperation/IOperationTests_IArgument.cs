@@ -2,6 +2,7 @@
                                                                 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -133,7 +134,7 @@ IInvocationExpression (static void P.M2(System.Int32 x, [System.Double y = 0])) 
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-        
+
         public void NamedArgumentInParameterOrderWithDefaultValue()
         {
             string source = @"
@@ -160,7 +161,7 @@ IInvocationExpression (static void P.M2([System.Int32 x = 1], [System.Int32 y = 
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
-        
+
         [Fact]
         public void NamedArgumentOutOfParameterOrderWithDefaultValue()
         {
@@ -978,7 +979,7 @@ IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExp
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
       ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            var expectedDiagnostics = new DiagnosticDescription[] 
+            var expectedDiagnostics = new DiagnosticDescription[]
             {
                 // file.cs(6,22): error CS1503: Argument 1: cannot convert from 'int' to 'string'
                 //         /*<bind>*/M2(1)/*</bind>*/;
@@ -989,7 +990,7 @@ IInvocationExpression ( void P.M2(System.String x)) (OperationKind.InvocationExp
         }
 
         [Fact]
-        public void InvalidConversionForDefaultArgument()
+        public void InvalidConversionForDefaultArgument_InSource()
         {
             string source = @"
 class P
@@ -1020,7 +1021,7 @@ IInvocationExpression ( void P.M2([System.Int32 x = default(System.Int32)])) (Op
 
         [Fact]
         public void AssigningToIndexer()
-        {                      
+        {
             string source = @"
 class P
 {
@@ -1080,7 +1081,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
 
         [Fact]
         public void DefaultArgumentForIndexerGetter()
-        {                     
+        {
             string source = @"
 class P
 {
@@ -1175,6 +1176,316 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void AssigningToIndexer_UsingDefaultArgumentFromSetter()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit P
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) 
+           = {string('Item')}
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method P::.ctor
+
+  .method public hidebysig specialname instance int32 
+          get_Item([opt] int32 i,
+                   [opt] int32 j) cil managed
+  {
+    .param [1] = int32(0x00000001)
+    .param [2] = int32(0x00000002)
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init ([0] int32 V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.0
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method P::get_Item
+  
+  .method public hidebysig specialname instance void 
+          set_Item([opt] int32 i,
+                   [opt] int32 j,
+                   int32 'value') cil managed
+  {
+    .param [1] = int32(0x00000003)
+    .param [2] = int32(0x00000004)
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method P::set_Item
+
+
+  .property instance int32 Item(int32,
+                                int32)
+  {
+    .get instance int32 P::get_Item(int32,
+                                    int32)
+    .set instance void P::set_Item(int32,
+                                   int32,
+                                   int32)
+  } // end of property P::Item
+} // end of class P
+"; 
+
+            var csharp = @"
+class C
+{
+    public void M1()
+    {
+         P p = new P();
+         /*<bind>*/p[10]/*</bind>*/ = 9;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'p[10]')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: 'p[10]')";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void ReadFromIndexer_UsingDefaultArgumentFromGetter()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit P
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) 
+           = {string('Item')}
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method P::.ctor
+
+  .method public hidebysig specialname instance int32 
+          get_Item([opt] int32 i,
+                   [opt] int32 j) cil managed
+  {
+    .param [1] = int32(0x00000001)
+    .param [2] = int32(0x00000002)
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init ([0] int32 V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.0
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method P::get_Item
+  
+  .method public hidebysig specialname instance void 
+          set_Item([opt] int32 i,
+                   [opt] int32 j,
+                   int32 'value') cil managed
+  {
+    .param [1] = int32(0x00000003)
+    .param [2] = int32(0x00000004)
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method P::set_Item
+
+
+  .property instance int32 Item(int32,
+                                int32)
+  {
+    .get instance int32 P::get_Item(int32,
+                                    int32)
+    .set instance void P::set_Item(int32,
+                                   int32,
+                                   int32)
+  } // end of property P::Item
+} // end of class P
+";
+
+            var csharp = @"
+class C
+{
+    public void M1()
+    {
+         P p = new P();
+         var x = /*<bind>*/p[10]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'p[10]')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void IndexerAccess_LHSOfCompoundAssignment()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit P
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) 
+           = {string('Item')}
+
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method P::.ctor
+
+  .method public hidebysig specialname instance int32 
+          get_Item([opt] int32 i,
+                   [opt] int32 j) cil managed
+  {
+    .param [1] = int32(0x00000001)
+    .param [2] = int32(0x00000002)
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init ([0] int32 V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.0
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method P::get_Item
+  
+  .method public hidebysig specialname instance void 
+          set_Item([opt] int32 i,
+                   [opt] int32 j,
+                   int32 'value') cil managed
+  {
+    .param [1] = int32(0x00000003)
+    .param [2] = int32(0x00000004)
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method P::set_Item
+
+
+  .property instance int32 Item(int32,
+                                int32)
+  {
+    .get instance int32 P::get_Item(int32,
+                                    int32)
+    .set instance void P::set_Item(int32,
+                                   int32,
+                                   int32)
+  } // end of property P::Item
+} // end of class P
+";
+
+            var csharp = @"
+class C
+{
+    public void M1()
+    {
+         P p = new P();
+         /*<bind>*/p[10]/*</bind>*/ += 99;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
+      ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'p[10]')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [ClrOnlyFact(ClrOnlyReason.Ilasm)]
+        public void InvalidConversionForDefaultArgument_InIL()
+        {
+            var il = @"
+.class public auto ansi beforefieldinit P
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method P::.ctor
+
+  .method public hidebysig instance void  M1([opt] int32 s) cil managed
+  {
+    .param [1] = ""abc""
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000: nop
+    IL_0001:  ret
+  } // end of method P::M1
+} // end of class P 
+";
+
+            var csharp = @"
+class C
+{
+    public void M2()
+    {
+         P p = new P();
+         /*<bind>*/p.M1()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'p.M1()')
+  Instance Receiver: ILocalReferenceExpression: p(OperationKind.LocalReferenceExpression, Type: P)(Syntax: 'p')
+  Arguments(1): IArgument(ArgumentKind.DefaultValue, Matching Parameter: s)(OperationKind.Argument, IsInvalid)(Syntax: 'p.M1()')
+      IConversionExpression(ConversionKind.Invalid, Implicit)(OperationKind.ConversionExpression, Type: System.Int32, IsInvalid)(Syntax: 'p.M1()')
+        ILiteralExpression(OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"")(Syntax: 'p.M1()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTestWithIL<InvocationExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
         }
     }
 }
