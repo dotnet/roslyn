@@ -34,13 +34,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     return;
                 }
 
-                var token = root.FindToken(context.Span.Start);
-                if (token.ValueText == ")" || token.ValueText == ",")
+                var position = context.Span.Start;
+                var token = root.FindToken(position);
+                if (token.Span.Start == position &&
+                    IsCloseParenOrComma(token))
                 {
                     token = token.GetPreviousToken();
+                    if (token.Span.End != position)
+                    {
+                        return;
+                    }
                 }
 
-                var argument = root.FindNode(token.Span).FirstAncestorOrSelf<TBaseArgumentSyntax>() as TArgumentSyntax;
+                var argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TArgumentSyntax;
                 if (argument == null)
                 {
                     return;
@@ -57,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
-                var caretLine = sourceText.Lines.GetLineFromPosition(context.Span.Start).LineNumber;
+                var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
 
                 if (argumentStartLine != caretLine)
                 {
@@ -147,6 +153,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
             protected abstract TArgumentListSyntax WithArguments(
                 TArgumentListSyntax argumentList, IEnumerable<TBaseArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators);
 
+            protected abstract bool IsCloseParenOrComma(SyntaxToken token);
             protected abstract bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount);
             protected abstract TArgumentSyntax WithName(TArgumentSyntax argument, string name);
             protected abstract bool IsPositionalArgument(TArgumentSyntax argument);

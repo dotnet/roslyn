@@ -751,5 +751,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return node is IStructuredTriviaSyntax trivia ? trivia.ParentTrivia.Token.Parent : node.Parent;
         }
+
+        public static TNode FirstAncestorOrSelfUntil<TNode>(this SyntaxNode node, Func<SyntaxNode, bool> predicate)
+            where TNode : SyntaxNode
+        {
+            for (var current = node; current != null; current = current.GetParent())
+            {
+                if (current is TNode tnode)
+                {
+                    return tnode;
+                }
+
+                if (predicate(current))
+                {
+                    break;
+                }
+            }
+
+            return default(TNode);
+        }
     }
 }
