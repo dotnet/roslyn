@@ -14,6 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
     }
 
+    internal partial class BoundDelegateCreationExpression
+    {
+        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Argument);
+    }
+
     internal partial class BoundObjectCreationExpression
     {
         internal static ImmutableArray<BoundExpression> GetChildInitializers(BoundExpression objectOrCollectionInitializer)
@@ -42,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundBadExpression
     {
         protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.ChildBoundNodes);
-   }
+    }
 
     internal partial class BoundDynamicIndexerAccess
     {

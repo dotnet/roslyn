@@ -251,10 +251,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     FatalError.ReportWithoutCrash(new Exception("Connection to remote host closed"));
 
                     // use info bar to show warning to users
-                    var infoBarUIs = new List<ErrorReportingUI>();
+                    var infoBarUIs = new List<InfoBarUI>();
 
                     infoBarUIs.Add(
-                        new ErrorReportingUI(ServicesVSResources.Learn_more, ErrorReportingUI.UIKind.HyperLink, () =>
+                        new InfoBarUI(ServicesVSResources.Learn_more, InfoBarUI.UIKind.HyperLink, () =>
                             BrowserHelper.StartBrowser(new Uri(OOPKilledMoreInfoLink)), closeAfterAction: false));
 
                     var allowRestarting = _workspace.Options.GetOption(RemoteHostOptions.RestartRemoteHostAllowed);
@@ -263,7 +263,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         // this is hidden restart option. by default, user can't restart remote host that got killed
                         // by users
                         infoBarUIs.Add(
-                            new ErrorReportingUI("Restart external process", ErrorReportingUI.UIKind.Button, () =>
+                            new InfoBarUI("Restart external process", InfoBarUI.UIKind.Button, () =>
                             {
                                 // start off new remote host
                                 var unused = RequestNewRemoteHostAsync(CancellationToken.None);

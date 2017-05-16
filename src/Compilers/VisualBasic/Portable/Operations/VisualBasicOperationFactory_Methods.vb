@@ -164,53 +164,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Shared ReadOnly s_memberInitializersMappings As New ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
-
-        Private Shared Function GetObjectCreationMemberInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of ISymbolInitializer)
-            Dim initializer = s_memberInitializersMappings.GetValue(expression,
-                Function(objectCreationStatement)
-                    Dim objectInitializerExpression As BoundObjectInitializerExpressionBase = objectCreationStatement.InitializerOpt
-                    If objectInitializerExpression IsNot Nothing Then
-                        Dim builder = ArrayBuilder(Of ISymbolInitializer).GetInstance(objectInitializerExpression.Initializers.Length)
-                        For Each memberAssignment In objectInitializerExpression.Initializers
-                            Dim assignment = TryCast(memberAssignment, BoundAssignmentOperator)
-                            Dim left = assignment?.Left
-                            If left Is Nothing Then
-                                Continue For
-                            End If
-
-                            Select Case left.Kind
-                                Case BoundKind.FieldAccess
-                                    Dim field = DirectCast(left, BoundFieldAccess).FieldSymbol
-                                    Dim value = Create(assignment.Right)
-                                    builder.Add(New FieldInitializer(
-                                        ImmutableArray.Create(Of IFieldSymbol)(field),
-                                        value,
-                                        OperationKind.FieldInitializerInCreation,
-                                        field Is Nothing OrElse value.IsInvalid,
-                                        assignment.Syntax,
-                                        type:=Nothing,
-                                        constantValue:=Nothing))
-                                Case BoundKind.PropertyAccess
-                                    Dim [property] = DirectCast(left, BoundPropertyAccess).PropertySymbol
-                                    Dim value = Create(assignment.Right)
-                                    builder.Add(New PropertyInitializer(
-                                        [property],
-                                        value,
-                                        OperationKind.PropertyInitializerInCreation,
-                                        [property] Is Nothing OrElse [property].SetMethod Is Nothing OrElse value.IsInvalid,
-                                        assignment.Syntax,
-                                        type:=Nothing,
-                                        constantValue:=Nothing))
-                            End Select
-                        Next
-                        Return builder.ToImmutableAndFree()
-                    End If
-
-                    Return ImmutableArray(Of ISymbolInitializer).Empty
-                End Function)
-
-            Return DirectCast(initializer, ImmutableArray(Of ISymbolInitializer))
+        Private Shared Function GetObjectCreationInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
+            Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 
         Private Shared ReadOnly s_caseBlocksMappings As New ConditionalWeakTable(Of BoundSelectStatement, Object)

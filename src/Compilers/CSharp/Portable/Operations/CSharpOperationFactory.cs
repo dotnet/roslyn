@@ -43,8 +43,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundEventAccessOperation((BoundEventAccess)boundNode);
                 case BoundKind.EventAssignmentOperator:
                     return CreateBoundEventAssignmentOperatorOperation((BoundEventAssignmentOperator)boundNode);
-                case BoundKind.DelegateCreationExpression:
-                    return CreateBoundDelegateCreationExpressionOperation((BoundDelegateCreationExpression)boundNode);
                 case BoundKind.Parameter:
                     return CreateBoundParameterOperation((BoundParameter)boundNode);
                 case BoundKind.Literal:
@@ -288,21 +286,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyEventAssignmentExpression(@event, eventInstance, handlerValue, adds, isInvalid, syntax, type, constantValue);
         }
 
-        private static IMethodBindingExpression CreateBoundDelegateCreationExpressionOperation(BoundDelegateCreationExpression boundDelegateCreationExpression)
-        {
-            IMethodSymbol method = boundDelegateCreationExpression.MethodOpt;
-            bool isVirtual = (object)boundDelegateCreationExpression.MethodOpt != null &&
-                        (boundDelegateCreationExpression.MethodOpt.IsVirtual || boundDelegateCreationExpression.MethodOpt.IsAbstract || boundDelegateCreationExpression.MethodOpt.IsOverride) &&
-                        !boundDelegateCreationExpression.SuppressVirtualCalls;
-            Lazy<IOperation> instance = new Lazy<IOperation>(() => GetDelegateCreationInstance(boundDelegateCreationExpression));
-            ISymbol member = boundDelegateCreationExpression.MethodOpt;
-            bool isInvalid = boundDelegateCreationExpression.HasErrors;
-            SyntaxNode syntax = boundDelegateCreationExpression.Argument.Syntax;
-            ITypeSymbol type = boundDelegateCreationExpression.Type;
-            Optional<object> constantValue = ConvertToOptional(boundDelegateCreationExpression.ConstantValue);
-            return new LazyMethodBindingExpression(method, isVirtual, instance, member, isInvalid, syntax, type, constantValue);
-        }
-
         private static IParameterReferenceExpression CreateBoundParameterOperation(BoundParameter boundParameter)
         {
             IParameterSymbol parameter = boundParameter.ParameterSymbol;
@@ -326,7 +309,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private static IObjectCreationExpression CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
         {
             IMethodSymbol constructor = boundObjectCreationExpression.Constructor;
-            Lazy<ImmutableArray<ISymbolInitializer>> memberInitializers = new Lazy<ImmutableArray<ISymbolInitializer>>(() => GetObjectCreationMemberInitializers(boundObjectCreationExpression));
+            Lazy<ImmutableArray<IOperation>> memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetObjectCreationInitializers(boundObjectCreationExpression));
             Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => DeriveArguments(boundObjectCreationExpression.Arguments, boundObjectCreationExpression.ArgumentNamesOpt, boundObjectCreationExpression.ArgsToParamsOpt, boundObjectCreationExpression.ArgumentRefKindsOpt, boundObjectCreationExpression.Constructor.Parameters, boundObjectCreationExpression.Syntax));
             bool isInvalid = boundObjectCreationExpression.HasErrors;
             SyntaxNode syntax = boundObjectCreationExpression.Syntax;

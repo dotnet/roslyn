@@ -1434,7 +1434,7 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (7,14): error CS9000: Cannot use a default literal as an argument to a dynamically dispatched operation.
+                // (7,14): error CS8310: Cannot use a default literal as an argument to a dynamically dispatched operation.
                 //         d.M2(default);
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgDefaultLiteral, "default").WithLocation(7, 14)
                 );
@@ -1524,7 +1524,7 @@ class C
 
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,27): error CS9001: Use of default literal is not valid in this context
+                // (6,27): error CS8311: Use of default literal is not valid in this context
                 //         foreach (int x in default) { }
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "default").WithLocation(6, 27),
                 // (7,27): error CS0186: Use of null is not valid in this context
@@ -1549,7 +1549,7 @@ static class C
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source, parseOptions: TestOptions.Regular7_1, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
-                // (6,35): error CS9001: Use of default literal is not valid in this context
+                // (6,35): error CS8311: Use of default literal is not valid in this context
                 //         var q = from x in default select x;
                 Diagnostic(ErrorCode.ERR_DefaultLiteralNotValid, "select x").WithLocation(6, 35),
                 // (7,43): error CS1942: The type of the expression in the select clause is incorrect.  Type inference failed in the call to 'Select'.
@@ -1898,7 +1898,7 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS9002: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
                 //             case default:
                 Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
                 );
@@ -1931,7 +1931,7 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (12,18): warning CS9002: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
+                // (12,18): warning CS8312: Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate.
                 //             case default:
                 Diagnostic(ErrorCode.WRN_DefaultInSwitch, "default").WithLocation(12, 18)
                 );

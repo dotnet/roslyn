@@ -255,14 +255,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     using (var stream = new MemoryStream())
                     {
                         Cci.PeWriter.WritePeToStream(
-                            new EmitContext(moduleBuilder, null, diagnostics),
+                            new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                             context.MessageProvider,
                             () => stream,
                             getPortablePdbStreamOpt: null,
                             nativePdbWriterOpt: null,
                             pdbPathOpt: null,
-                            allowMissingMethodBodies: false,
+                            metadataOnly: false,
                             isDeterministic: false,
+                            emitTestCoverageData: false,
                             cancellationToken: default(CancellationToken));
                         if (!diagnostics.HasAnyErrors())
                         {
@@ -316,14 +317,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
-                    allowMissingMethodBodies: false,
+                    metadataOnly: false,
                     isDeterministic: false,
+                    emitTestCoverageData: false,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -400,14 +402,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             using (var stream = new MemoryStream())
             {
                 Cci.PeWriter.WritePeToStream(
-                    new EmitContext(moduleBuilder, null, diagnostics),
+                    new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                     context.MessageProvider,
                     () => stream,
                     getPortablePdbStreamOpt: null,
                     nativePdbWriterOpt: null,
                     pdbPathOpt: null,
-                    allowMissingMethodBodies: false,
+                    metadataOnly: false,
                     isDeterministic: false,
+                    emitTestCoverageData: false,
                     cancellationToken: default(CancellationToken));
 
                 if (diagnostics.HasAnyErrors())
@@ -447,14 +450,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 using (var stream = new MemoryStream())
                 {
                     Cci.PeWriter.WritePeToStream(
-                        new EmitContext(moduleBuilder, null, diagnostics),
+                        new EmitContext(moduleBuilder, null, diagnostics, metadataOnly: false, includePrivateMembers: true),
                         context.MessageProvider,
                         () => stream,
                         getPortablePdbStreamOpt: null,
                         nativePdbWriterOpt: null,
                         pdbPathOpt: null,
-                        allowMissingMethodBodies: false,
+                        metadataOnly: false,
                         isDeterministic: false,
+                        emitTestCoverageData: false,
                         cancellationToken: default(CancellationToken));
 
                     if (!diagnostics.HasAnyErrors())
