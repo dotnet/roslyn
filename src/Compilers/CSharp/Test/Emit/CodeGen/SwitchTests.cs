@@ -9433,7 +9433,7 @@ public class Program
         <forward declaringType=""Program"" methodName=""Main"" />
         <encLocalSlotMap>
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""0"" offset=""55"" />
           <slot kind=""0"" offset=""133"" />
           <slot kind=""0"" offset=""211"" />
