@@ -10,11 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This pass is used for things like attribute arguments and default parameter expressions,
     /// which are otherwise not analyzed for use references.
     /// </summary>
-    /// <remarks>
-    /// An instance of this class is cached on CSharpCompilation, as it is stateless (other than the SoruceAssembly).
-    /// Be careful adding new state (either avoid state that cannot be shared across the compilation, or do not cache an instance on the compilation).
-    /// </remarks>
-    internal class VariableUsePass : BoundTreeWalkerWithStackGuard
+    internal sealed class VariableUsePass : BoundTreeWalkerWithStackGuard
     {
         /// <summary>
         /// The current source assembly.
@@ -33,16 +29,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly HashSet<LocalFunctionSymbol> _usedLocalFunctionsOpt;
 
+        /// <summary>
+        /// Create a stateless visitor (except for the SourceAssembly).
+        /// </summary>
+        /// <remarks>
+        /// An instance of this class is cached on CSharpCompilation, so be careful adding new state.
+        /// (Either avoid state that cannot be shared across the compilation, or do not cache an instance on the compilation)
+        /// </remarks>
         public VariableUsePass(SourceAssemblySymbol sourceAssembly)
             : this(sourceAssembly, null, null)
         {
         }
 
-        public VariableUsePass(SourceAssemblySymbol sourceAssembly, HashSet<LocalSymbol> usedVariablesOpt, HashSet<LocalFunctionSymbol> usedLocalFunctionsOpt)
+        /// <summary>
+        /// Create a visitor for use within a method (e.g. local functions).
+        /// Keep track of what local variables are referenced, by placing them in the HashSets.
+        /// </summary>
+        public VariableUsePass(SourceAssemblySymbol sourceAssembly, HashSet<LocalSymbol> usedVariables, HashSet<LocalFunctionSymbol> usedLocalFunctions)
         {
             _sourceAssembly = sourceAssembly;
-            _usedVariablesOpt = usedVariablesOpt;
-            _usedLocalFunctionsOpt = usedLocalFunctionsOpt;
+            _usedVariablesOpt = usedVariables;
+            _usedLocalFunctionsOpt = usedLocalFunctions;
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
@@ -81,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localFunc = (LocalFunctionSymbol)node.SymbolOpt.OriginalDefinition;
                 VisitLocalFunctionReference(localFunc);
             }
+
             return base.VisitConversion(node);
         }
 
@@ -91,6 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var localFunc = (LocalFunctionSymbol)node.MethodOpt.OriginalDefinition;
                 VisitLocalFunctionReference(localFunc);
             }
+
             return base.VisitDelegateCreationExpression(node);
         }
 
@@ -103,6 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     VisitLocalFunctionReference((LocalFunctionSymbol)method);
                 }
             }
+
             return base.VisitMethodGroup(node);
         }
     }

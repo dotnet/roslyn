@@ -1409,6 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _variableUsePass.Visit(parameter.ExplicitDefaultExpression);
             }
+
             if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
             {
                 int slot = GetOrCreateSlot(parameter);
