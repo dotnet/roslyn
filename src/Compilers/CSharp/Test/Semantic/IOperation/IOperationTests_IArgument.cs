@@ -1478,10 +1478,10 @@ class C
 ";
             string expectedOperationTree = @"
 IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'p.M1()')
-  Instance Receiver: ILocalReferenceExpression: p(OperationKind.LocalReferenceExpression, Type: P)(Syntax: 'p')
-  Arguments(1): IArgument(ArgumentKind.DefaultValue, Matching Parameter: s)(OperationKind.Argument, IsInvalid)(Syntax: 'p.M1()')
-      IConversionExpression(ConversionKind.Invalid, Implicit)(OperationKind.ConversionExpression, Type: System.Int32, IsInvalid)(Syntax: 'p.M1()')
-        ILiteralExpression(OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"")(Syntax: 'p.M1()')
+  Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
+  Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument, IsInvalid) (Syntax: 'p.M1()')
+      IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: 'p.M1()')
+        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""abc"") (Syntax: 'p.M1()')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

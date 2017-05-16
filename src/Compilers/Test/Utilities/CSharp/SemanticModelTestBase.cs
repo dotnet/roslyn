@@ -278,10 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected void VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc, string ilSource, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null, MetadataReference[] additionalReferences = null)
    where TSyntaxNode : SyntaxNode
         {
-            CompileWithCustomILSource(testSrc, ilSource, compilation =>
-            {
-                VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics);
-            });
+            var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
+            VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference });
         }  
     }
 }
