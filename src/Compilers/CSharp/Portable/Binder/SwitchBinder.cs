@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // for all operations; we use it to enhance test coverage.
                 (parseOptions?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false ||
                  parseOptions?.Features.ContainsKey("testV7SwitchBinder") != false ||
-                 HasPatternSwitchSyntax(switchSyntax))
+                 switchSyntax.HasErrors && HasPatternSwitchSyntax(switchSyntax))
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }
