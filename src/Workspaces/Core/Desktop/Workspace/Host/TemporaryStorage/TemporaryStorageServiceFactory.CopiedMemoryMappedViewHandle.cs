@@ -18,6 +18,9 @@ namespace Microsoft.CodeAnalysis.Host
         /// <para><see cref="CriticalHandle"/> types are not reference counted, and are thus somewhat limited in their
         /// usefulness. However, this handle class has tightly restricted accessibility and is only used by managed
         /// code which does not rely on it counting references.</para>
+        ///
+        /// <para>This is a supporting class for <see cref="MemoryMappedInfo"/>. See additional comments on that
+        /// class.</para>
         /// </remarks>
         private unsafe sealed class CopiedMemoryMappedViewHandle : CriticalHandleZeroOrMinusOneIsInvalid
         {

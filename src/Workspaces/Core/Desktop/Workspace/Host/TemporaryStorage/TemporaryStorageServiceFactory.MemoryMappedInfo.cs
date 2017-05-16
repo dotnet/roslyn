@@ -18,6 +18,19 @@ namespace Microsoft.CodeAnalysis.Host
         /// most of our view will have short lifetime, but there are cases where view might live a bit longer such as
         /// metadata dll shadow copy. shared view will help those cases.
         /// </summary>
+        /// <remarks>
+        /// <para>Instances of this class should be disposed when they are no longer needed. After disposing this
+        /// instance, it should no longer be used. However, streams obtained through <see cref="CreateReadableStream"/>
+        /// or <see cref="CreateWritableStream"/> will not be invalidated until they are disposed independently (which
+        /// may occur before or after the <see cref="MemoryMappedInfo"/> is disposed.</para>
+        ///
+        /// <para>This class and its nested types have familiar APIs and predictable behavior when used in other code,
+        /// but are non-trivial to work on. The implementations of <see cref="IDisposable"/> adhere to the best
+        /// practices described in
+        /// <see href="http://joeduffyblog.com/2005/04/08/dg-update-dispose-finalization-and-resource-management/">DG
+        /// Update: Dispose, Finalization, and Resource Management</see>. Additional notes regarding operating system
+        /// behavior leveraged for efficiency are given in comments.</para>
+        /// </remarks>
         internal sealed class MemoryMappedInfo : IDisposable
         {
             private readonly string _name;
