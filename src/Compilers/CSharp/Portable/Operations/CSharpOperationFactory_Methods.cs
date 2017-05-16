@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return OperationFactory.CreateInvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
         }
 
-        private static ImmutableArray<IOperation> GetObjectCreationMemberInitializers(BoundObjectCreationExpression expression)
+        private static ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
         {
             return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
         }
