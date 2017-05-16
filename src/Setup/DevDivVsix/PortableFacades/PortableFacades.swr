@@ -6,7 +6,7 @@ package name=PortableFacades
 folder InstallDir:\Common7\IDE\PrivateAssemblies
     file source="$(NuGetPackageRoot)\System.AppContext\4.3.0\lib\net46\System.AppContext.dll" vs.file.ngen=yes
     file source="$(NuGetPackageRoot)\System.Console\4.3.0\lib\net46\System.Console.dll" vs.file.ngen=yes
-    file source="$(NuGetPackageRoot)\System.Diagnostics.FileVersionInfo\4.0.0\runtimes\win\lib\net46\System.Diagnostics.FileVersionInfo.dll" vs.file.ngen=yes
+    file source="$(NuGetPackageRoot)\System.Diagnostics.FileVersionInfo\4.3.0\runtimes\win\lib\net46\System.Diagnostics.FileVersionInfo.dll" vs.file.ngen=yes
     file source="$(NuGetPackageRoot)\System.Diagnostics.Process\4.3.0\runtimes\win\lib\net46\System.Diagnostics.Process.dll" vs.file.ngen=yes
     file source="$(NuGetPackageRoot)\System.Diagnostics.StackTrace\4.3.0\lib\net46\System.Diagnostics.StackTrace.dll" vs.file.ngen=yes
     file source="$(NuGetPackageRoot)\System.IO.Compression\4.3.0\runtimes\win\lib\net46\System.IO.Compression.dll" vs.file.ngen=yes
