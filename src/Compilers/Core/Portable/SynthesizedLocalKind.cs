@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis
         /// Temp created for pattern matching by type. This holds the value of an input value provisionally
         /// converted to the type against which it is being matched.
         /// </summary>
-        PatternMatching = 35,
+        SwitchCasePatternMatching = 35,
 
         /// <summary>
         /// All values have to be less than or equal to <see cref="MaxValidValueForLocalVariableSerializedToDebugInformation"/> 

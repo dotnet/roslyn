@@ -2852,8 +2852,8 @@ class Student : Person { public double GPA; }
         <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap>
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
-          <slot kind=""35"" offset=""237"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""0"" offset=""59"" />
           <slot kind=""0"" offset=""163"" />
           <slot kind=""0"" offset=""250"" />
@@ -2943,8 +2943,8 @@ class Student : Person { public double GPA; }
           <slot kind=""30"" offset=""0"" />
           <slot kind=""30"" offset=""383"" />
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
-          <slot kind=""35"" offset=""249"" />
+          <slot kind=""35"" offset=""11"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""21"" offset=""0"" />
         </encLocalSlotMap>
@@ -6885,11 +6885,11 @@ partial class C
         </using>
         <encLocalSlotMap>
           <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""46"" />
+          <slot kind=""35"" offset=""11"" />
           <slot kind=""1"" offset=""11"" />
           <slot kind=""temp"" />
           <slot kind=""35"" offset=""378"" />
-          <slot kind=""35"" offset=""413"" />
+          <slot kind=""35"" offset=""378"" />
           <slot kind=""1"" offset=""378"" />
           <slot kind=""35"" offset=""511"" />
           <slot kind=""1"" offset=""511"" />
