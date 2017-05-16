@@ -1589,7 +1589,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
                 // (6,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         ref int rl = ref (new int[1])[0];
@@ -1613,7 +1613,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1646,7 +1646,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1680,7 +1680,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees.Single();
@@ -1722,7 +1722,7 @@ public class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(source);
+            var c = CreateStandardCompilation(source);
 
             c.VerifyDiagnostics(
                 // (8,27): error CS1510: A ref or out value must be an assignable variable

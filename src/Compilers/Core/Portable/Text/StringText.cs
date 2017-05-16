@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Text
             Encoding encodingOpt,
             ImmutableArray<byte> checksum = default(ImmutableArray<byte>),
             SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1,
-            ImmutableArray<byte> embeddedTextBlob = default(ImmutableArray<byte>)) 
+            ImmutableArray<byte> embeddedTextBlob = default(ImmutableArray<byte>))
             : base(checksum, checksumAlgorithm, embeddedTextBlob)
         {
             Debug.Assert(source != null);

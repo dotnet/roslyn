@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim boundAttribute As VisualBasicAttributeData = Nothing
             Dim obsoleteData As ObsoleteAttributeData = Nothing
 
-            If EarlyDecodeDeprecatedOrObsoleteAttribute(arguments, boundAttribute, obsoleteData) Then
+            If EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(arguments, boundAttribute, obsoleteData) Then
                 If obsoleteData IsNot Nothing Then
                     arguments.GetOrCreateData(Of CommonPropertyEarlyWellKnownAttributeData)().ObsoleteAttributeData = obsoleteData
                 End If

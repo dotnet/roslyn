@@ -8,10 +8,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateEvent
     Public Class GenerateEventCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                Nothing,
-                New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent.GenerateEventCodeFixProvider())
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
+            Return (Nothing, New Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEvent.GenerateEventCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEvent)>

@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                              type:=elementType)
                 Else
                     boundCurrent = New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
-                                                          ImmutableArray.Create(Of BoundNode)(boundIndex.MakeRValue()), elementType, hasErrors:=True)
+                                                          ImmutableArray.Create(Of BoundExpression)(boundIndex.MakeRValue()), elementType, hasErrors:=True)
                 End If
             End If
             ' now we know the bound node for the current value; add it to the replacement map to get inserted into the
@@ -713,8 +713,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not TryGetSpecialMember(disposeMethod, SpecialMember.System_IDisposable__Dispose, syntaxNode) Then
                 Return New BoundBadExpression(syntaxNode, LookupResultKind.NotReferencable, ImmutableArray(Of Symbol).Empty,
                                               If(rewrittenCondition IsNot Nothing,
-                                                 ImmutableArray.Create(Of BoundNode)(rewrittenBoundLocal, rewrittenCondition),
-                                                 ImmutableArray.Create(Of BoundNode)(rewrittenBoundLocal)),
+                                                 ImmutableArray.Create(rewrittenBoundLocal, rewrittenCondition),
+                                                 ImmutableArray.Create(Of BoundExpression)(rewrittenBoundLocal)),
                                               ErrorTypeSymbol.UnknownResultType, hasErrors:=True).ToStatement()
             End If
 

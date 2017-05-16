@@ -6,7 +6,7 @@
     <VsixUploadConfigs Include="myget_org-extensions.config" />
   </ItemGroup>
   <Target Name="Build">
-    <Copy SourceFiles="@(VsixUploadConfigs)" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(VsixUploadConfigs)" DestinationFolder="$(OutputPath)" SkipUnchangedFiles="true" />
   </Target>
   <Target Name="Clean" />
 </Project>

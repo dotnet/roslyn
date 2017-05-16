@@ -62,10 +62,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var method = compilerFailFast.GetMethod(nameof(FailFast.OnFatalException), BindingFlags.Static | BindingFlags.NonPublic);
             property.SetValue(null, Delegate.CreateDelegate(property.PropertyType, method));
 
-            RegisterFindResultsLibraryManager();
-
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
+
+            RegisterFindResultsLibraryManager();
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             componentModel.GetExtensions<IOptionPersister>();
@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var objectManager = this.GetService(typeof(SVsObjectManager)) as IVsObjectManager2;
             if (objectManager != null)
             {
-                _libraryManager = new LibraryManager(this);
+                _libraryManager = new LibraryManager(_workspace, this);
 
                 if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
                 {

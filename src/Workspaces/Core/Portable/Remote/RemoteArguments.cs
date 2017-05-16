@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Remote
             };
         }
 
-        public async Task<SymbolAndProjectId> RehydrateAsync(
+        public async Task<SymbolAndProjectId?> TryRehydrateAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
@@ -57,7 +58,20 @@ namespace Microsoft.CodeAnalysis.Remote
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
             var symbol = SymbolKey.Resolve(
                 SymbolKeyData, compilation, resolveLocations: true, cancellationToken: cancellationToken).GetAnySymbol();
-            Debug.Assert(symbol != null, "We should always be able to resolve a symbol back on the host side.");
+
+            if (symbol == null)
+            {
+                try
+                {
+                    throw new InvalidOperationException(
+                        $"We should always be able to resolve a symbol back on the host side:\r\n{SymbolKeyData}");
+                }
+                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                {
+                    return null;
+                }
+            }
+
             return new SymbolAndProjectId(symbol, projectId);
         }
     }
@@ -113,8 +127,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            var symbolAndProjectId = await Alias.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
-            return symbolAndProjectId.Symbol as IAliasSymbol;
+            var symbolAndProjectId = await Alias.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            return symbolAndProjectId.GetValueOrDefault().Symbol as IAliasSymbol;
         }
     }
 

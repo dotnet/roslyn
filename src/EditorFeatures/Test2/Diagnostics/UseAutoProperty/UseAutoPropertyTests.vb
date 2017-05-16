@@ -7,11 +7,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.UseAutoProperty
     Public Class UseAutoPropertyTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
-                Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New CSharp.UseAutoProperty.UseAutoPropertyAnalyzer(), New CSharp.UseAutoProperty.UseAutoPropertyCodeFixProvider())
-            ElseIf language = LanguageNames.VisualBasic
-                Return New Tuple(Of DiagnosticAnalyzer, CodeFixProvider)(New VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer(), New VisualBasic.UseAutoProperty.UseAutoPropertyCodeFixProvider())
+                Return (New CSharp.UseAutoProperty.UseAutoPropertyAnalyzer(), New CSharp.UseAutoProperty.UseAutoPropertyCodeFixProvider())
+            ElseIf language = LanguageNames.VisualBasic Then
+                Return (New VisualBasic.UseAutoProperty.UseAutoPropertyAnalyzer(), New VisualBasic.UseAutoProperty.UseAutoPropertyCodeFixProvider())
             Else
                 Throw New Exception()
             End If

@@ -72,6 +72,40 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp5ToCSharp6()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        var x = [|nameof(A)|];
+    }
+}",
+                LanguageVersion.CSharp6,
+                new CSharpParseOptions(LanguageVersion.CSharp5),
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp4ToCSharp5()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        Func<int, Task<int>> f = [|async|] x => x;
+    }
+}",
+                LanguageVersion.CSharp5,
+                new CSharpParseOptions(LanguageVersion.CSharp4),
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
         public async Task UpgradeProjectFromCSharp7ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -80,6 +114,40 @@ class Program
 {
 #error version:[|7.1|]
 }",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp7ToLatest_TriggeredByInferredTupleNames()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void M()
+    {
+        int b = 2;
+        var t = (1, b);
+        System.Console.Write(t.[|b|]);
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+",
                 LanguageVersion.Latest,
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
@@ -106,6 +174,25 @@ class Program
 {
 #error [|version:7.1|]
 }",
+                LanguageVersion.CSharp7_1,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        public async Task UpgradeProjectFromCSharp7ToCSharp7_1_B()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void M<T>(T x) where T: Base
+    {
+        System.Console.Write(x is [|Derived|] b0);
+    }
+}
+",
                 LanguageVersion.CSharp7_1,
                 new CSharpParseOptions(LanguageVersion.CSharp7),
                 index: 1);

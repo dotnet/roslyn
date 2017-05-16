@@ -617,7 +617,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If staticLocals IsNot Nothing Then
-                    For Each array In staticLocals.Values
+                    For Each nameToArray In staticLocals
+                        Dim array = nameToArray.Value
                         If array.Count > 1 Then
                             Dim lexicallyFirst As LocalSymbol = array(0)
 
@@ -3563,7 +3564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 controlVariable = New BoundBadExpression(controlVariableSyntax,
                                                          LookupResultKind.NotAVariable,
                                                          ImmutableArray(Of Symbol).Empty,
-                                                         ImmutableArray.Create(Of BoundNode)(controlVariable),
+                                                         ImmutableArray.Create(controlVariable),
                                                          controlVariable.Type,
                                                          hasErrors:=True)
                 Return False
@@ -3766,7 +3767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return New BoundBadExpression(collectionSyntax,
                                                       LookupResultKind.Empty,
                                                       ImmutableArray(Of Symbol).Empty,
-                                                      ImmutableArray.Create(Of BoundNode)(collection),
+                                                      ImmutableArray.Create(collection),
                                                       collectionType,
                                                       hasErrors:=True)
                     End If
@@ -3819,7 +3820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return New BoundBadExpression(collectionSyntax,
                                                       LookupResultKind.Empty,
                                                       ImmutableArray(Of Symbol).Empty,
-                                                      ImmutableArray.Create(Of BoundNode)(collection),
+                                                      ImmutableArray.Create(collection),
                                                       collectionType,
                                                       hasErrors:=True)
                     End If

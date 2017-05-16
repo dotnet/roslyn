@@ -12,10 +12,11 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// checksum scope that one can use to pin assets in memory while working on remote host
     /// </summary>
-    internal class PinnedRemotableDataScope : IDisposable
+    internal sealed class PinnedRemotableDataScope : IDisposable
     {
         private readonly AssetStorages _storages;
         private readonly AssetStorages.Storage _storage;
+        private bool _disposed;
 
         public readonly Checksum SolutionChecksum;
 
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.Execution
             AssetStorages.Storage storage,
             Checksum solutionChecksum)
         {
+            Contract.ThrowIfNull(solutionChecksum);
+
             _storages = storages;
             _storage = storage;
 
@@ -31,6 +34,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
             _storages.RegisterSnapshot(this, storage);
         }
+
+        /// <summary>
+        /// This indicates whether this scope is for primary branch or not (not forked solution)
+        /// 
+        /// Features like OOP will use this flag to see whether caching information related to this solution
+        /// can benefit other requests or not
+        /// </summary>
+        public bool ForPrimaryBranch => _storage.SolutionState.BranchId == Workspace.PrimaryBranchId;
 
         public Workspace Workspace => _storage.SolutionState.Workspace;
 
@@ -63,7 +74,12 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public void Dispose()
         {
-            _storages.UnregisterSnapshot(this);
+            if (!_disposed)
+            {
+                _disposed = true;
+                _storages.UnregisterSnapshot(this);
+            }
+
             GC.SuppressFinalize(this);
         }
 

@@ -12,7 +12,9 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     public sealed class EmitOptions : IEquatable<EmitOptions>
     {
-        internal static readonly EmitOptions Default = new EmitOptions();
+        internal static readonly EmitOptions Default = PlatformInformation.IsWindows
+            ? new EmitOptions()
+            : new EmitOptions().WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
 
         /// <summary>
         /// True to emit an assembly excluding executable code such as method bodies.
@@ -26,11 +28,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// Unless set (private) members that don't affect the language semantics of the resulting assembly will be excluded
-        /// when emitting with <see cref="EmitMetadataOnly"/> on. 
+        /// when emitting metadata-only assemblies as primary output (with <see cref="EmitMetadataOnly"/> on).
+        /// If emitting a secondary output, this flag is required to be false.
         /// </summary>
-        /// <remarks>
-        /// Has no effect when <see cref="EmitMetadataOnly"/> is false.
-        /// </remarks>
         public bool IncludePrivateMembers { get; private set; }
 
         /// <summary>
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SubsystemVersion subsystemVersion = default(SubsystemVersion),
             string runtimeMetadataVersion = null,
             bool tolerateErrors = false,
-            bool includePrivateMembers = false,
+            bool includePrivateMembers = true,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default(ImmutableArray<InstrumentationKind>))
         {
             this.EmitMetadataOnly = metadataOnly;

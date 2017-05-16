@@ -2,9 +2,11 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -61,22 +63,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected virtual Solution GetUpdatedSolution(Document newDocument)
                 => newDocument.Project.Solution;
 
-            private Task<Document> UpdateDocumentAsync(
+            private async Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, 
                 bool placeSystemNamespaceFirst, bool hasExistingImport,
                 CancellationToken cancellationToken)
             {
-                ReplaceNameNode(ref contextNode, ref document, cancellationToken);
-
                 // Defer to the language to add the actual import/using.
                 if (hasExistingImport)
                 {
-                    return Task.FromResult(document);
+                    return document;
                 }
 
-                return provider.AddImportAsync(contextNode,
-                    this.SymbolResult.Symbol, document,
-                    placeSystemNamespaceFirst, cancellationToken);
+                (var newContextNode, var newDocument) = await ReplaceNameNodeAsync(
+                    contextNode, document, cancellationToken).ConfigureAwait(false);
+
+                return await provider.AddImportAsync(
+                    newContextNode, this.SymbolResult.Symbol, newDocument, 
+                    placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
             }
 
             public override async Task<CodeAction> CreateCodeActionAsync(

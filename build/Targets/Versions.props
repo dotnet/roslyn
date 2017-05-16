@@ -4,7 +4,8 @@
 
   <!-- This controls the version numbers of the build that we are producing -->
 
-  <Import Project="Dependencies.props" />
+  <Import Project="Packages.props" />
+  <Import Project="FixedPackages.props" />
 
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
@@ -46,8 +47,8 @@
     <NuGetReleaseVersion>$(RoslynFileVersionBase)</NuGetReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberFiveDigitDateStamp)-$(BuildNumberBuildOfTheDayPadded)</NuGetPerBuildPreReleaseVersion>
     <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == ''">$(NUGET_PACKAGES)</NuGetPackageRoot> <!-- Respect environment variable if set -->
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(UserProfile)\.nuget\packages</NuGetPackageRoot>
-    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)\.nuget\packages</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' == 'Windows_NT'">$(UserProfile)/.nuget/packages/</NuGetPackageRoot>
+    <NuGetPackageRoot Condition="'$(NuGetPackageRoot)' == '' AND '$(OS)' != 'Windows_NT'">$(HOME)/.nuget/packages/</NuGetPackageRoot>
     <NuGetPackagesDirectory>$(NuGetPackageRoot)</NuGetPackagesDirectory>
   </PropertyGroup>
 

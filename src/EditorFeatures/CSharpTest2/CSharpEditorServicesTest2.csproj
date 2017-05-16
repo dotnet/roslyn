@@ -5,6 +5,7 @@
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -141,6 +142,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.CSharp2.UnitTests</AssemblyName>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -288,9 +290,7 @@
     <Compile Include="Recommendations\WhereKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\WhileKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\YieldKeywordRecommenderTests.cs" />
-    <None Include="project.json" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

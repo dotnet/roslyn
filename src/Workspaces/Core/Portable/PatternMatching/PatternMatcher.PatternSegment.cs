@@ -25,11 +25,10 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             // respectively.
             public readonly TextChunk[] SubWordTextChunks;
 
-            public PatternSegment(string text, bool verbatimIdentifierPrefixIsWordCharacter, bool allowFuzzyMatching)
+            public PatternSegment(string text, bool allowFuzzyMatching)
             {
                 this.TotalTextChunk = new TextChunk(text, allowFuzzyMatching);
-                this.SubWordTextChunks = BreakPatternIntoSubWords(
-                    text, verbatimIdentifierPrefixIsWordCharacter, allowFuzzyMatching);
+                this.SubWordTextChunks = BreakPatternIntoSubWords(text, allowFuzzyMatching);
             }
 
             public void Dispose()
@@ -43,14 +42,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public bool IsInvalid => this.SubWordTextChunks.Length == 0;
 
-            private static int CountTextChunks(string pattern, bool verbatimIdentifierPrefixIsWordCharacter)
+            private static int CountTextChunks(string pattern)
             {
                 int count = 0;
                 int wordLength = 0;
 
                 for (int i = 0; i < pattern.Length; i++)
                 {
-                    if (IsWordChar(pattern[i], verbatimIdentifierPrefixIsWordCharacter))
+                    if (IsWordChar(pattern[i]))
                     {
                         wordLength++;
                     }
@@ -72,10 +71,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 return count;
             }
 
-            private static TextChunk[] BreakPatternIntoSubWords(
-                string pattern, bool verbatimIdentifierPrefixIsWordCharacter, bool allowFuzzyMatching)
+            private static TextChunk[] BreakPatternIntoSubWords(string pattern, bool allowFuzzyMatching)
             {
-                int partCount = CountTextChunks(pattern, verbatimIdentifierPrefixIsWordCharacter);
+                int partCount = CountTextChunks(pattern);
 
                 if (partCount == 0)
                 {
@@ -90,7 +88,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 for (int i = 0; i < pattern.Length; i++)
                 {
                     var ch = pattern[i];
-                    if (IsWordChar(ch, verbatimIdentifierPrefixIsWordCharacter))
+                    if (IsWordChar(ch))
                     {
                         if (wordLength++ == 0)
                         {

@@ -2,8 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -14,6 +17,7 @@ using Microsoft.CodeAnalysis.Remote.Telemetry;
 using Microsoft.CodeAnalysis.Storage;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
+using Roslyn.Utilities;
 using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -41,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Remote
             // this should let us to freely try to use all resources possible without worrying about affecting
             // host's work such as responsiveness or build.
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
+
+            SetNativeDllSearchDirectories();
         }
 
         public RemoteHostService(Stream stream, IServiceProvider serviceProvider) :
@@ -75,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    await RoslynServices.SolutionService.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
+                    var solutionController = (ISolutionController)RoslynServices.SolutionService;
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
                 }
                 catch (IOException)
                 {
@@ -218,6 +225,30 @@ namespace Microsoft.CodeAnalysis.Remote
             var workspace = new AdhocWorkspace(RoslynServices.HostServices);
             var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
             return persistentStorageService;
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        private static extern IntPtr AddDllDirectory(string directory);
+
+        private static void SetNativeDllSearchDirectories()
+        {
+            if (PlatformInformation.IsWindows)
+            {
+                // Set LoadLibrary search directory to %VSINSTALLDIR%\Common7\IDE so that the compiler
+                // can P/Invoke to Microsoft.DiaSymReader.Native when emitting Windows PDBs.
+                //
+                // The AppDomain base directory is specified in VisualStudio\Setup.Next\codeAnalysisService.servicehub.service.json
+                // to be the directory where devenv.exe is -- which is exactly the directory we need to add to the search paths:
+                //
+                //   "appBasePath": "%VSAPPIDDIR%"
+                //
+
+                var cookie = AddDllDirectory(AppDomain.CurrentDomain.BaseDirectory);
+                if (cookie == IntPtr.Zero)
+                {
+                    throw new Win32Exception();
+                }
+            }
         }
     }
 }

@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot assign {0} to anonymous type property.
+        ///   Looks up a localized string similar to Cannot assign &apos;{0}&apos; to anonymous type property.
         /// </summary>
         internal static string ERR_AnonymousTypePropertyAssignedBadValue {
             get {
@@ -1372,6 +1372,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadDynamicMethodArg {
             get {
                 return ResourceManager.GetString("ERR_BadDynamicMethodArg", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot use a default literal as an argument to a dynamically dispatched operation..
+        /// </summary>
+        internal static string ERR_BadDynamicMethodArgDefaultLiteral {
+            get {
+                return ResourceManager.GetString("ERR_BadDynamicMethodArgDefaultLiteral", resourceCulture);
             }
         }
         
@@ -3212,6 +3221,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use of default literal is not valid in this context.
+        /// </summary>
+        internal static string ERR_DefaultLiteralNotValid {
+            get {
+                return ResourceManager.GetString("ERR_DefaultLiteralNotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify the DefaultMember attribute on a type containing an indexer.
         /// </summary>
         internal static string ERR_DefaultMemberOnIndexedType {
@@ -4175,7 +4193,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null literal left-hand side.
+        ///   Looks up a localized string similar to An expression tree lambda may not contain a coalescing operator with a null or default literal left-hand side.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsBadCoalesce {
             get {
@@ -5948,15 +5966,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an entry point cannot be marked with the &apos;async&apos; modifier.
-        /// </summary>
-        internal static string ERR_MainCantBeAsync {
-            get {
-                return ResourceManager.GetString("ERR_MainCantBeAsync", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; for Main method because it is imported.
         /// </summary>
         internal static string ERR_MainClassIsImport {
@@ -6839,6 +6848,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot compile net modules when using /refout or /refonly..
+        /// </summary>
+        internal static string ERR_NoNetModuleOutputWhenRefOutOrRefOnly {
+            get {
+                return ResourceManager.GetString("ERR_NoNetModuleOutputWhenRefOutOrRefOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot create an instance of the abstract class or interface &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_NoNewAbstract {
@@ -6875,6 +6893,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
+        /// </summary>
+        internal static string ERR_NonTaskMainCantBeAsync {
+            get {
+                return ResourceManager.GetString("ERR_NonTaskMainCantBeAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
         internal static string ERR_NoPIAAssemblyMissingAttribute {
@@ -6898,6 +6925,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoPIANestedType {
             get {
                 return ResourceManager.GetString("ERR_NoPIANestedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use refout when using refonly..
+        /// </summary>
+        internal static string ERR_NoRefOutWhenRefOnly {
+            get {
+                return ResourceManager.GetString("ERR_NoRefOutWhenRefOnly", resourceCulture);
             }
         }
         
@@ -7586,7 +7622,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression of type {0} cannot be handled by a pattern of type {1}..
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; cannot be handled by a pattern of type &apos;{1}&apos; in C# {2}. Please use language version {3} or greater..
+        /// </summary>
+        internal static string ERR_PatternWrongGenericTypeInVersion {
+            get {
+                return ResourceManager.GetString("ERR_PatternWrongGenericTypeInVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; cannot be handled by a pattern of type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_PatternWrongType {
             get {
@@ -8711,11 +8756,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         /// </summary>
-        internal static string ERR_SourceLinkRequiresPortablePdb {
+        internal static string ERR_SourceLinkRequiresPdb {
             get {
-                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture);
             }
         }
         
@@ -8900,7 +8945,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
+        ///   Looks up a localized string similar to The switch expression must be a value; found &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_SwitchExpressionValueExpected {
             get {
@@ -9107,6 +9152,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is inferred. Please use language version {1} or greater to access an element by its inferred name..
+        /// </summary>
+        internal static string ERR_TupleInferredNamesNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_TupleInferredNamesNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is only allowed at position {1}..
         /// </summary>
         internal static string ERR_TupleReservedElementName {
@@ -9175,6 +9229,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
             get {
                 return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedOutVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a tuple literal without a natural type..
+        /// </summary>
+        internal static string ERR_TypelessTupleInAs {
+            get {
+                return ResourceManager.GetString("ERR_TypelessTupleInAs", resourceCulture);
             }
         }
         
@@ -9665,6 +9728,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A tuple may not contain a value of type &apos;void&apos;..
+        /// </summary>
+        internal static string ERR_VoidInTuple {
+            get {
+                return ResourceManager.GetString("ERR_VoidInTuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: a field cannot be both volatile and readonly.
         /// </summary>
         internal static string ERR_VolatileAndReadonly {
@@ -9885,13 +9957,13 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                              Visual C# Compiler Options
         ///
         ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of 
+        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
         ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short 
+        /// /target:exe                   Build a console executable (default) (Short
         ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form: 
+        /// /target:winexe                Build a Windows executable (Short form:
         ///                               /t:winexe)
-        /// /target:library     [rest of string was truncated]&quot;;.
+        /// /target:library        [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
@@ -9945,6 +10017,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to async main.
+        /// </summary>
+        internal static string IDS_FeatureAsyncMain {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAsyncMain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to automatically implemented properties.
         /// </summary>
         internal static string IDS_FeatureAutoImplementedProperties {
@@ -9986,6 +10067,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureDefault {
             get {
                 return ResourceManager.GetString("IDS_FeatureDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to default literal.
+        /// </summary>
+        internal static string IDS_FeatureDefaultLiteral {
+            get {
+                return ResourceManager.GetString("IDS_FeatureDefaultLiteral", resourceCulture);
             }
         }
         
@@ -12249,6 +12339,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        /// </summary>
+        internal static string WRN_DefaultInSwitch {
+            get {
+                return ResourceManager.GetString("WRN_DefaultInSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Did you mean to use the default switch label (`default:`) rather than `case default:`? If you really mean to use the default literal, consider `case (default):` or another literal (`case 0:` or `case null:`) as appropriate..
+        /// </summary>
+        internal static string WRN_DefaultInSwitch_Title {
+            get {
+                return ResourceManager.GetString("WRN_DefaultInSwitch_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The default value specified for parameter &apos;{0}&apos; will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
         /// </summary>
         internal static string WRN_DefaultValueForUnconsumedLocation {
@@ -12578,6 +12686,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ErrorOverride_Title {
             get {
                 return ResourceManager.GetString("WRN_ErrorOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental {
+            get {
+                return ResourceManager.GetString("WRN_Experimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental_Title {
+            get {
+                return ResourceManager.GetString("WRN_Experimental_Title", resourceCulture);
             }
         }
         

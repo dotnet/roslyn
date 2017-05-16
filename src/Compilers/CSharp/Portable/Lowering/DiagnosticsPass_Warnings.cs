@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -857,6 +858,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
             return false;
+        }
+
+        private void CheckForDeconstructionAssignmentToSelf(BoundTupleLiteral leftTuple, BoundExpression right)
+        {
+            while (right.Kind == BoundKind.Conversion)
+            {
+                var conversion = (BoundConversion)right;
+                switch(conversion.ConversionKind)
+                {
+                    case ConversionKind.Deconstruction:
+                    case ConversionKind.ImplicitTupleLiteral:
+                    case ConversionKind.Identity:
+                        right = conversion.Operand;
+                        break;
+                    default:
+                        return;
+                }
+            }
+
+            if (right.Kind != BoundKind.ConvertedTupleLiteral && right.Kind != BoundKind.TupleLiteral)
+            {
+                return;
+            }
+
+            var rightTuple = (BoundTupleExpression)right;
+            var leftArguments = leftTuple.Arguments;
+            int length = leftArguments.Length;
+            Debug.Assert(length == rightTuple.Arguments.Length);
+
+            for (int i = 0; i < length; i++)
+            {
+                var leftArgument = leftArguments[i];
+                var rightArgument = rightTuple.Arguments[i];
+
+                if (leftArgument.Kind == BoundKind.TupleLiteral)
+                {
+                    CheckForDeconstructionAssignmentToSelf((BoundTupleLiteral)leftArgument, rightArgument);
+                }
+                else if (IsSameLocalOrField(leftArgument, rightArgument))
+                {
+                    Error(ErrorCode.WRN_AssignmentToSelf, leftArgument);
+                }
+            }
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)

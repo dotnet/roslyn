@@ -8,10 +8,12 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.FindUsages;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -39,10 +41,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket,
                 DocumentSpan documentSpan,
                 HighlightSpanKind spanKind,
+                string documentName,
                 Guid projectGuid,
                 SourceText sourceText,
                 ClassifiedSpansAndHighlightSpan classifiedSpans)
-                : base(context, definitionBucket, documentSpan, projectGuid, sourceText)
+                : base(context, definitionBucket, documentSpan, documentName, projectGuid, sourceText)
             {
                 _spanKind = spanKind;
                 _classifiedSpansAndHighlights = classifiedSpans;

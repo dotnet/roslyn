@@ -4207,5 +4207,222 @@ End Class
             Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitTupleNameAdded() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = (i, 3)
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (i:=1 + 2, 3)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitTupleNameAdded_Trivia() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = (
+            i, 'comment
+            3 'comment
+            )
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (
+            i:=1 + 2, 'comment
+            3 'comment
+            )
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitTupleNameAdded_NoDuplicateNames() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = (i, i)
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (1 + 2, 1 + 2)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitTupleNameAdded_NoReservedNames() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]rest = 1 + 2
+        Dim t = (rest, 3)
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (1 + 2, 3)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitTupleNameAdded_NoReservedNames2() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]item1 = 1 + 2
+        Dim t = (item1, 3)
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (1 + 2, 3)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitTupleNameAdded_EscapeKeywords() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||][Integer] = 1 + 2
+        Dim t = ([Integer], 3)
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = ([Integer]:=1 + 2, 3)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitAnonymousTypeMemberNameAdded_DuplicateNames() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = New With {i, i} ' Error already
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = New With {.i = 1 + 2, .i = 1 + 2} ' Error already
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitAnonymousTypeMemberNameAdded_AssignmentEpression() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim j = 0
+        Dim [||]i = j = 1
+        Dim t = New With {i, .k = 3}
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim j = 0
+        Dim t = New With {.i = j = 1, .k = 3}
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        Public Async Function ExplicitAnonymousTypeMemberNameAdded_Comment() As Task
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = New With {
+            i, 'comment
+            .k = 3 'comment
+            }
+    End Sub
+End Class
+"
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = New With {
+            .i = 1 + 2, 'comment
+            .k = 3 'comment
+            }
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
+        <Fact(Skip:="InvalidCastException"), Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)>
+        <WorkItem(16697, "https://github.com/dotnet/roslyn/issues/16697")>
+        Public Async Function TupleElementNameIsNotReplaced() As Task
+            ' The name of the named element has bad symbol info and gets replaced with (1 + 2)
+            Dim code = "
+Class C
+    Sub M()
+        Dim [||]i = 1 + 2
+        Dim t = (i, i:=3)
+    End Sub
+End Class
+"
+
+            Dim expected = "
+Class C
+    Sub M()
+        Dim t = (1 + 2, i:=3)
+    End Sub
+End Class
+"
+            Await TestInRegularAndScriptAsync(code, expected, ignoreTrivia:=False)
+        End Function
+
     End Class
 End Namespace

@@ -11,6 +11,8 @@
     <RootNamespace>Roslyn.InteractiveHost.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.InteractiveHost.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -155,15 +157,15 @@
     <Reference Include="System.Runtime.Remoting" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="Microsoft.ServiceHub.Client">
+      <Version>$(MicrosoftServiceHubClientVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractInteractiveHostTests.cs" />
     <Compile Include="InteractiveHostTests.cs" />
     <Compile Include="StressTests.cs" />
     <Compile Include="SynchronizedTextWriter.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
