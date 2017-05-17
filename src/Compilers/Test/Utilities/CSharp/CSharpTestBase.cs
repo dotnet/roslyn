@@ -24,8 +24,6 @@ using System.Text;
 using System.Threading;
 using Xunit;
 using static TestReferences;
-using Roslyn.Test.Utilities;
-using System.Globalization;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
