@@ -152,8 +152,8 @@
     <PackageReference Include="xunit.runner.visualstudio">
       <Version>$(xunitrunnervisualstudioVersion)</Version>
     </PackageReference>
-    <PackageReference Include="System.Threading.Tasks.Dataflow">
-      <Version>$(SystemThreadingTasksDataflowVersion)</Version>
+    <PackageReference Include="Microsoft.Tpl.Dataflow">
+      <Version>$(MicrosoftTplDataflowVersion)</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Runtime">
       <Version>$(MicrosoftBuildRuntimeVersion)</Version>
