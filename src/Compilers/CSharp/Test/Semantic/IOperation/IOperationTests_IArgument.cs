@@ -1673,11 +1673,16 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
         }
 
         private class IndexerAccessArgumentVerifier : OperationWalker
-        {        
-            public static void Verify(IOperation operation)
+        {
+            public static readonly IndexerAccessArgumentVerifier Instance = new IndexerAccessArgumentVerifier();
+
+            private IndexerAccessArgumentVerifier()
             {
-                var walker = new IndexerAccessArgumentVerifier();
-                walker.Visit(operation);             
+            }
+
+            public static void Verify(IOperation operation)
+            {                                                   
+                Instance.Visit(operation);             
             }
 
             public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
@@ -1693,7 +1698,7 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
                 {
                     if (!argument.IsInvalid)
                     {
-                        Assert.True(argument.Parameter.ContainingSymbol == indexerSymbol);
+                        Assert.Same(indexerSymbol, argument.Parameter.ContainingSymbol);
                     }
                 }
             }
