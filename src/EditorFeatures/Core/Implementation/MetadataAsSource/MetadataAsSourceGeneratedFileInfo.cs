@@ -19,9 +19,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
         public readonly string TemporaryFilePath;
 
+        private readonly ParseOptions _parseOptions;
+
         public MetadataAsSourceGeneratedFileInfo(string rootPath, Project sourceProject, INamedTypeSymbol topLevelNamedType)
         {
             this.SourceProjectId = sourceProject.Id;
+            _parseOptions = sourceProject.ParseOptions;
             this.Workspace = sourceProject.Solution.Workspace;
             this.LanguageName = sourceProject.Language;
             this.References = sourceProject.MetadataReferences.ToImmutableArray();
@@ -79,6 +82,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 assemblyName: AssemblyIdentity.Name,
                 language: LanguageName,
                 compilationOptions: compilationOptions,
+                parseOptions: _parseOptions,
                 documents: new[] { assemblyInfoDocument, generatedDocument },
                 metadataReferences: References);
 
