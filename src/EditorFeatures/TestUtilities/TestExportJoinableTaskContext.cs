@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Threading;
 
@@ -16,6 +17,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     internal class TestExportJoinableTaskContext
     {
         [Export]
-        private static JoinableTaskContext _joinableTaskContext = new JoinableTaskContext();
+        private JoinableTaskContext _joinableTaskContext = new JoinableTaskContext();
     }
 }
