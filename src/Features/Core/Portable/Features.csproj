@@ -133,6 +133,9 @@
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
+    <Compile Include="Experimentation\AnalyzerABTestLogger.cs" />
+    <Compile Include="Experimentation\AnalyzerABTestOptions.cs" />
+    <Compile Include="Experimentation\LiveCodeAnalysisInstallStatus.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
