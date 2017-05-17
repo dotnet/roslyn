@@ -80,6 +80,34 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         }
 
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+        public void InterpolatedStringExpression_EmptyInterpolationPart()
+        {
+            string source = @"
+using System;
+
+internal class Class
+{
+    public void M()
+    {
+        Console.WriteLine(/*<bind>*/$""{}""/*</bind>*/);
+    }
+}
+";
+            string expectedOperationTree = @"
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$""{}""')
+  Parts(1): IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1733: Expected expression
+                //         Console.WriteLine(/*<bind>*/$"{}"/*</bind>*/);
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(8, 40)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_TextAndInterpolationParts()
         {
             string source = @"

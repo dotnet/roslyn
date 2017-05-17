@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case BoundKind.InterpolatedString:
                     return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
-                    throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
+                    return CreateBoundInterpolationOperation((BoundStringInsert)boundNode);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
@@ -1003,26 +1003,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private static IInterpolatedStringContent CreateBoundInterpolatedStringContentOperation(BoundNode boundNode)
         {
-            if (boundNode == null)
+            if (boundNode.Kind == BoundKind.Literal)
             {
-                return null;
+                return CreateBoundInterpolatedStringTextOperation((BoundLiteral)boundNode);
             }
-
-            return (IInterpolatedStringContent)s_cache.GetValue(boundNode, n => CreateBoundInterpolatedStringContentCore(n));
-        }
-
-        private static IInterpolatedStringContent CreateBoundInterpolatedStringContentCore(BoundNode boundInterpolatedStringContent)
-        {
-            switch (boundInterpolatedStringContent.Kind)
+            else
             {
-                case BoundKind.StringInsert:
-                    return CreateBoundInterpolationOperation((BoundStringInsert)boundInterpolatedStringContent);
-
-                case BoundKind.Literal:
-                    return CreateBoundInterpolatedStringTextOperation((BoundLiteral)boundInterpolatedStringContent);
-
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(boundInterpolatedStringContent.Kind);
+                return (IInterpolatedStringContent)Create(boundNode);
             }
         }
 
@@ -1040,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private static IInterpolatedStringText CreateBoundInterpolatedStringTextOperation(BoundLiteral boundLiteral)
         {
-            Lazy<IOperation> text = new Lazy<IOperation>(() => CreateInternal(boundLiteral));
+            Lazy<IOperation> text = new Lazy<IOperation>(() => Create(boundLiteral));
             bool isInvalid = boundLiteral.HasErrors;
             SyntaxNode syntax = boundLiteral.Syntax;
             ITypeSymbol type = null;

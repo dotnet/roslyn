@@ -73,6 +73,32 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         End Sub
 
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        Public Sub InterpolatedStringExpression_EmptyInterpolationPart()
+            Dim source = <![CDATA[
+Imports System
+
+Friend Class [Class]
+    Public Sub M()
+        Console.WriteLine($"{}")'BIND:"$"{}""
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String, IsInvalid) (Syntax: '$"{}"')
+  Parts(1): IInterpolation (OperationKind.Interpolation, IsInvalid) (Syntax: '{}')
+      Expression: IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC30201: Expression expected.
+        Console.WriteLine($"{}")'BIND:"$"{}""
+                             ~
+]]>.Value
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_TextAndInterpolationParts()
             Dim source = <![CDATA[
 Imports System

@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Case BoundKind.InterpolatedStringExpression
                     Return CreateBoundInterpolatedStringExpressionOperation(DirectCast(boundNode, BoundInterpolatedStringExpression))
                 Case BoundKind.Interpolation
-                    Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
+                    Return CreateBoundInterpolationOperation(DirectCast(boundNode, BoundInterpolation))
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
@@ -1031,24 +1031,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Shared Function CreateBoundInterpolatedStringContentOperation(boundNode As BoundNode) As IInterpolatedStringContent
-            If boundNode Is Nothing Then
-                Return Nothing
+            If boundNode.Kind = BoundKind.Literal Then
+                Return CreateBoundInterpolatedStringTextOperation(DirectCast(boundNode, BoundLiteral))
+            Else
+                Return DirectCast(Create(boundNode), IInterpolatedStringContent)
             End If
-
-            Return DirectCast(s_cache.GetValue(boundNode, Function(n) CreateBoundInterpolatedStringContentOperationCore(n)), IInterpolatedStringContent)
-        End Function
-
-        Private Shared Function CreateBoundInterpolatedStringContentOperationCore(boundInterpolatedStringContent As BoundNode) As IInterpolatedStringContent
-            Select Case boundInterpolatedStringContent.Kind
-                Case BoundKind.Interpolation
-                    Return CreateBoundInterpolationOperation(DirectCast(boundInterpolatedStringContent, BoundInterpolation))
-
-                Case BoundKind.Literal
-                    Return CreateBoundInterpolatedStringTextOperation(DirectCast(boundInterpolatedStringContent, BoundLiteral))
-                Case Else
-
-                    Throw ExceptionUtilities.UnexpectedValue(boundInterpolatedStringContent.Kind)
-            End Select
         End Function
 
         Private Shared Function CreateBoundInterpolationOperation(boundInterpolation As BoundInterpolation) As IInterpolation
@@ -1063,7 +1050,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Shared Function CreateBoundInterpolatedStringTextOperation(boundLiteral As BoundLiteral) As IInterpolatedStringText
-            Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateInternal(boundLiteral))
+            Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLiteral))
             Dim isInvalid As Boolean = boundLiteral.HasErrors
             Dim syntax As SyntaxNode = boundLiteral.Syntax
             Dim type As ITypeSymbol = Nothing
