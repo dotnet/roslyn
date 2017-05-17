@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                @checked = @checked && NeedsCheckedInExpressionTree(rewrittenOperand.Type, rewrittenType);
+                @checked = @checked && NeedsCheckedConversionInExpressionTree(rewrittenOperand.Type, rewrittenType);
             }
 
             switch (conversion.Kind)
@@ -376,19 +376,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Determine if the conversion can actually overflow at runtime.  If not, no need to generate a checked instruction.
-        private static bool NeedsCheckedInExpressionTree(TypeSymbol source, TypeSymbol target)
+        private static bool NeedsCheckedConversionInExpressionTree(TypeSymbol source, TypeSymbol target)
         {
             Debug.Assert((object)target != null);
 
             if ((object)source == null)
             {
                 return false;
-            }
-
-            if (source.IsTupleType)
-            {
-                // Assume the conversion can overflow.
-                return true;
             }
 
             // integral to double or float is never checked, but float/double to integral 

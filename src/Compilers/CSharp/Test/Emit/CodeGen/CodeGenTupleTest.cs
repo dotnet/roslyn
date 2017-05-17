@@ -22872,7 +22872,6 @@ class C
                 );
         }
 
-
         [Fact]
         public void CheckedConstantConversions()
         {
@@ -22915,6 +22914,10 @@ class C
 @"using System;
 class C
 {
+    static (long, byte) Default((int, int) t)
+    {
+        return ((long, byte))t;
+    }
     static (long, byte) Unchecked((int, int) t)
     {
         unchecked
@@ -22931,16 +22934,18 @@ class C
     }
     static void Main()
     {
+        var d = Default((-1, -1));
+        Console.Write(d);
+        var u = Unchecked((-1, -1));
+        Console.Write(u);
         try
         {
-            var u = Unchecked((-1, -1));
-            Console.WriteLine(u);
             var c = Checked((-1, -1));
-            Console.WriteLine(c);
+            Console.Write(c);
         }
         catch (OverflowException)
         {
-            Console.WriteLine(""overflow"");
+            Console.Write(""overflow"");
         }
     }
 }";
@@ -22948,9 +22953,23 @@ class C
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"(-1, 255)
-overflow");
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(-1, 255)(-1, 255)overflow");
+            verifier.VerifyIL("C.Default",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
             verifier.VerifyIL("C.Unchecked",
 @"{
   // Code size       22 (0x16)
@@ -22982,63 +23001,6 @@ overflow");
   IL_000f:  conv.ovf.u1
   IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
   IL_0015:  ret
-}");
-        }
-
-        [Fact(Skip = "19398")]
-        [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
-        [WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
-        public void CheckedDeconstructionConversions()
-        {
-            var source =
-@"using System;
-class C
-{
-    static void Unchecked((int, int) t, out long a, out byte b)
-    {
-        unchecked
-        {
-            (a, b) = ((long, byte))t;
-        }
-    }
-    static void Checked((int, int) t, out long a, out byte b)
-    {
-        checked
-        {
-            (a, b) = ((long, byte))t;
-        }
-    }
-    static void Main()
-    {
-        try
-        {
-            long a;
-            byte b;
-            Unchecked((-1, -1), out a, out b);
-            Console.WriteLine((a, b));
-            Checked((-1, -1), out a, out b);
-            Console.WriteLine((a, b));
-        }
-        catch (OverflowException)
-        {
-            Console.WriteLine(""overflow"");
-        }
-    }
-}";
-            var comp = CreateStandardCompilation(
-                source,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
-                options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput:
-@"(-1, 255)
-overflow");
-            verifier.VerifyIL("C.Unchecked",
-@"{
- ...
-}");
-            verifier.VerifyIL("C.Checked",
-@"{
- ...
 }");
         }
 
