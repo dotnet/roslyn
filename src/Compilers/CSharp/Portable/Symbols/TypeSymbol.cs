@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// CONSIDER: we could probably do less work in the metadata and retargeting cases - we won't use the diagnostics.
         /// </remarks>
-        /// <param name="interfaceMember">A non-null property on an interface type.</param>
+        /// <param name="interfaceMember">A non-null implementable member on an interface type.</param>
         /// <param name="implementingType">The type implementing the interface property (usually "this").</param>
         /// <param name="diagnostics">Bag to which to add diagnostics.</param>
         /// <returns>The implementing property or null, if there isn't one.</returns>
