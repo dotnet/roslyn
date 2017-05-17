@@ -23293,14 +23293,14 @@ class Program
 }
 ";
             var compilation = CreateStandardCompilation(text);
-            compilation.GetParseDiagnostics().Verify(
-                // (6,41): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //         if (((string)obj).Length == 0)  value: new Program();
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41));
+            compilation.GetParseDiagnostics().Verify();
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 
             // queried via an API (command line compile would exit after parse errors were reported). 
             compilation.GetMethodBodyDiagnostics().Verify(
+                // (6,41): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         if (((string)obj).Length == 0)  value: new Program();
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "value: new Program();").WithLocation(6, 41),
                 // (6,41): warning CS0164: This label has not been referenced
                 //         if (((string)obj).Length == 0)  value: new Program();
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "value").WithLocation(6, 41),
