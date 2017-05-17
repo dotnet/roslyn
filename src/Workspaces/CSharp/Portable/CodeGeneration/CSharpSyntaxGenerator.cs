@@ -3524,9 +3524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private BlockSyntax CreateBlock(IEnumerable<SyntaxNode> statements)
-        {
-            return SyntaxFactory.Block(AsStatementList(statements));
-        }
+            => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
 
         private SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode> nodes)
         {
@@ -3667,9 +3665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.Literal(text, value);
 
         public override SyntaxNode DefaultExpression(SyntaxNode type)
-        {
-            return SyntaxFactory.DefaultExpression((TypeSyntax)type);
-        }
+            => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations(Simplifier.Annotation);
 
         public override SyntaxNode DefaultExpression(ITypeSymbol type)
         {
@@ -3703,7 +3699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             // Default to a "default(<typename>)" expression.
-            return SyntaxFactory.DefaultExpression(type.GenerateTypeSyntax());
+            return DefaultExpression(type.GenerateTypeSyntax());
         }
 
         private ExpressionSyntax Parenthesize(SyntaxNode expression)

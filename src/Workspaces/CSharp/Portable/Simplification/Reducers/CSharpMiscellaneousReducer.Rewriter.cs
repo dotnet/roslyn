@@ -31,6 +31,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     parentNode: node.Parent,
                     simplifier: s_simplifyParenthesizedLambdaExpression);
             }
+
+            public override SyntaxNode VisitBlock(BlockSyntax node)
+            {
+                return SimplifyNode(
+                    node,
+                    newNode: base.VisitBlock(node),
+                    parentNode: node.Parent,
+                    simplifier: s_simplifyBlock);
+            }
         }
     }
 }

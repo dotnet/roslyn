@@ -6,8 +6,9 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.Debugging;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -48,6 +49,11 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
+        internal const int S_OK = 0x0;
+        internal const int E_FAIL = unchecked((int)0x80004005);
+        internal const int E_NOTIMPL = unchecked((int)0x80004001);
+        private static readonly IntPtr s_ignoreIErrorInfo = new IntPtr(-1);
+
         public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
             ISymUnmanagedReader3 symReader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProviderOpt, // TODO: only null in DTEE case where we looking for default namesapace
@@ -65,9 +71,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             if (symReader is ISymUnmanagedReader5 symReader5)
             {
                 int hr = symReader5.GetPortableDebugMetadataByVersion(methodVersion, out byte* metadata, out int size);
-                SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+                ThrowExceptionForHR(hr);
 
-                if (hr == 0)
+                if (hr == S_OK)
                 {
                     var mdReader = new MetadataReader(metadata, size);
                     try
@@ -133,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 ImmutableDictionary<int, ImmutableArray<string>> tupleLocalMap = null;
                 ImmutableDictionary<LocalNameAndScope, ImmutableArray<string>> tupleLocalConstantMap = null;
 
-                byte[] customDebugInfo = symReader.GetCustomDebugInfoBytes(methodToken, methodVersion);
+                byte[] customDebugInfo = GetCustomDebugInfoBytes(symReader, methodToken, methodVersion);
                 if (customDebugInfo != null)
                 {
                     if (!isVisualBasicMethod)
@@ -186,6 +192,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 allScopes.Free();
                 containingScopes.Free();
+            }
+        }
+
+        private static void ThrowExceptionForHR(int hr)
+        {
+            // E_FAIL indicates "no info".
+            // E_NOTIMPL indicates a lack of ISymUnmanagedReader support (in a particular implementation).
+            if (hr < 0 && hr != E_FAIL && hr != E_NOTIMPL)
+            {
+                Marshal.ThrowExceptionForHR(hr, s_ignoreIErrorInfo);
+            }
+        }
+
+        /// <summary>
+        /// Get the blob of binary custom debug info for a given method.
+        /// </summary>
+        private static byte[] GetCustomDebugInfoBytes(ISymUnmanagedReader3 reader, int methodToken, int methodVersion)
+        {
+            try
+            {
+                return reader.GetCustomDebugInfo(methodToken, methodVersion);
+            }
+            catch (ArgumentOutOfRangeException)
+            {
+                // Sometimes the debugger returns the HRESULT for ArgumentOutOfRangeException, rather than E_FAIL,
+                // for methods without custom debug info (https://github.com/dotnet/roslyn/issues/4138).
+                return null;
             }
         }
 
@@ -255,7 +288,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var importStringGroups = CustomDebugInfoReader.GetCSharpGroupedImportStrings(
                 methodToken,
                 KeyValuePair.Create(reader, methodVersion),
-                getMethodCustomDebugInfo: (token, arg) => arg.Key.GetCustomDebugInfoBytes(token, arg.Value),
+                getMethodCustomDebugInfo: (token, arg) => GetCustomDebugInfoBytes(arg.Key, token, arg.Value),
                 getMethodImportStrings: (token, arg) => GetImportStrings(arg.Key, token, arg.Value),
                 externAliasStrings: out externAliasStrings);
 

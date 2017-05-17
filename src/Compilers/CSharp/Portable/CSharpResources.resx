@@ -2297,6 +2297,12 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_Merge_conflict_marker_encountered" xml:space="preserve">
     <value>Merge conflict marker encountered</value>
   </data>
+  <data name="ERR_NoRefOutWhenRefOnly" xml:space="preserve">
+    <value>Do not use refout when using refonly.</value>
+  </data>
+  <data name="ERR_NoNetModuleOutputWhenRefOutOrRefOnly" xml:space="preserve">
+    <value>Cannot compile net modules when using /refout or /refonly.</value>
+  </data>
   <data name="ERR_OvlOperatorExpected" xml:space="preserve">
     <value>Overloadable operator expected</value>
   </data>
@@ -4402,6 +4408,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /target:winmdobj              Build a Windows Runtime intermediate file that
                                is consumed by WinMDExp (Short form: /t:winmdobj)
  /doc:&lt;file&gt;                   XML Documentation file to generate
+ /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
                                Itanium, x64, arm, anycpu32bitpreferred, or
                                anycpu. The default is anycpu.
@@ -4445,6 +4452,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
                                (including module version GUID and timestamp)
+ /refonly                      Produce a reference assembly in place of the main output
  /instrument:TestCoverage      Produce an assembly instrumented to collect
                                coverage information
  /sourcelink:&lt;file&gt;            Source link info to embed into PDB.

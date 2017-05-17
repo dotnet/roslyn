@@ -169,7 +169,9 @@
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\LinkedFileDiscrepancyException.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
+    <Compile Include="ReferenceHighlighting\IDocumentHighlightsService.cs" />
     <Compile Include="Implementation\Structure\BlockTagState.cs" />
+    <Compile Include="Implementation\Suggestions\ISuggestedActionCallback.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionSetComparer.cs" />
     <Compile Include="Implementation\Suggestions\SuggestedActionsSource.cs" />
     <Compile Include="ReferenceHighlighting\NagivateToHighlightReferenceCommandHandler.cs" />

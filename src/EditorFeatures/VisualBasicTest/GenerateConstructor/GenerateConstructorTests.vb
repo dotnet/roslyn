@@ -2,10 +2,11 @@
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     Public Class GenerateConstructorTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -1527,98 +1528,6 @@ Class C
 End Class")
             End Function
         End Class
-
-        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Async Function TestGenerateInDerivedType1() As Task
-            Await TestInRegularAndScriptAsync(
-"
-Public Class Base
-    Public Sub New(a As String)
-
-    End Sub
-End Class
-
-Public Class [||]Derived
-    Inherits Base
-
-End Class",
-"
-Public Class Base
-    Public Sub New(a As String)
-
-    End Sub
-End Class
-
-Public Class Derived
-    Inherits Base
-
-    Public Sub New(a As String)
-        MyBase.New(a)
-    End Sub
-End Class")
-        End Function
-
-        <WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Async Function TestGenerateInDerivedType2() As Task
-            Await TestInRegularAndScriptAsync(
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public Class [||]Derived
-    Inherits Base
-
-End Class",
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public Class Derived
-    Inherits Base
-
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-        MyBase.New(a, b)
-    End Sub
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Async Function TestGenerateInDerivedType_InvalidClassStatement() As Task
-            Await TestInRegularAndScriptAsync(
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public Class [|;;|]Derived
-    Inherits Base
-
-End Class",
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public Class ;;Derived
-    Inherits Base
-
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-        MyBase.New(a, b)
-    End Sub
-End Class")
-        End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         Public Async Function TestGenerateConstructorNotOfferedForDuplicate() As Task

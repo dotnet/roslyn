@@ -143,10 +143,6 @@
       <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
       <Name>InteractiveHost</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Scripting\Core\Scripting.csproj">
       <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
       <Name>Scripting</Name>
