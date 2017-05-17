@@ -196,9 +196,6 @@ partial class C
                 // (12,12): error CS1004: Duplicate 'public' modifier
                 //     public public public static int operator & (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public"),
-                // (4,40): error CS0753: Only methods, classes, structs, or interfaces may be partial
-                //     partial public static int operator + (C c1, C c2) { return 0; }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "+"),
                 // (5,34): error CS0106: The modifier 'abstract' is not valid for this item
                 //     abstract public int operator - (C c1, C c2) { return 0; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "-").WithArguments("abstract"),

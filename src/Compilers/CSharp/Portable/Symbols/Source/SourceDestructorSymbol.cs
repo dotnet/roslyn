@@ -108,11 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
+        private DeclarationModifiers MakeModifiers(
+            SyntaxTokenList modifiers, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.Extern | DeclarationModifiers.Unsafe;
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                modifiers, DeclarationModifiers.None, allowedModifiers, location, diagnostics,
+                out modifierErrors, allowPartial: false);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 

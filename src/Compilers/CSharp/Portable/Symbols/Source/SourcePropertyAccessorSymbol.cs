@@ -414,7 +414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // Check that the set of modifiers is allowed
             const DeclarationModifiers allowedModifiers = DeclarationModifiers.AccessibilityMask;
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                syntax.Modifiers, defaultAccess, allowedModifiers, location, diagnostics,
+                out modifierErrors, allowPartial: false);
 
             // For interface, check there are no accessibility modifiers.
             // (This check is handled outside of MakeAndCheckModifiers

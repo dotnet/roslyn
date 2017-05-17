@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             _name = declaratorSyntax.Identifier.ValueText;
 
-
             var declaratorDiagnostics = DiagnosticBag.GetInstance();
             var declarationSyntax = (VariableDeclarationSyntax)declaratorSyntax.Parent;
             _type = BindEventType(binder, declarationSyntax.Type, declaratorDiagnostics);

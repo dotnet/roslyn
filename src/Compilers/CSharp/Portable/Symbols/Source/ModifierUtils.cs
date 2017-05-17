@@ -13,9 +13,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers allowedModifiers,
             Location errorLocation,
             DiagnosticBag diagnostics,
-            out bool modifierErrors)
+            out bool modifierErrors,
+            bool allowPartial)
         {
-            var result = modifiers.ToDeclarationModifiers();
+            var result = modifiers.ToDeclarationModifiers(allowPartial, diagnostics);
             result = CheckModifiers(result, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
 
             if ((result & DeclarationModifiers.AccessibilityMask) == 0)
@@ -44,7 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (oneError)
                 {
                     case DeclarationModifiers.Partial:
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyMethods, errorLocation);
+                        // Errors about 'partial' are reported in ToDeclarationModifiers.  So no need to report
+                        // any issues here.
                         break;
 
                     default:
@@ -154,13 +156,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public static DeclarationModifiers ToDeclarationModifiers(this SyntaxTokenList modifiers)
+        public static DeclarationModifiers ToDeclarationModifiers(
+            this SyntaxTokenList modifiers, bool allowPartial, DiagnosticBag diagnostics)
         {
             var result = DeclarationModifiers.None;
-
+            bool seenNoDuplicates = true;
+            bool seenNoAccessibilityDuplicates = true;
+ 
             foreach (var modifier in modifiers)
             {
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
+
+                if (one == DeclarationModifiers.Partial && !allowPartial)
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialMisplaced, modifier.GetLocation());
+                }
+
+                ReportDuplicateModifiers(
+                    modifier, one, result,
+                    ref seenNoDuplicates, ref seenNoAccessibilityDuplicates,
+                    diagnostics);
+
                 result |= one;
             }
 
@@ -172,6 +188,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return result;
+        }
+
+        private static void ReportDuplicateModifiers(
+            SyntaxToken modifierToken,
+            DeclarationModifiers modifierKind,
+            DeclarationModifiers allModifiers,
+            ref bool seenNoDuplicates,
+            ref bool seenNoAccessibilityDuplicates,
+            DiagnosticBag diagnostics)
+        {
+            if ((allModifiers & modifierKind) != 0)
+            {
+                if (seenNoDuplicates)
+                {
+                    diagnostics.Add(
+                        ErrorCode.ERR_DuplicateModifier,
+                        modifierToken.GetLocation(),
+                        SyntaxFacts.GetText(modifierToken.Kind()));
+                    seenNoDuplicates = false;
+                }
+            }
+            else
+            {
+                if ((allModifiers & DeclarationModifiers.AccessibilityMask) != 0 && (modifierKind & DeclarationModifiers.AccessibilityMask) != 0)
+                {
+                    // Can't have two different access modifiers.
+                    // Exception: "internal protected" or "protected internal" is allowed.
+                    if (!(((modifierKind == DeclarationModifiers.Protected) && (allModifiers & DeclarationModifiers.Internal) != 0) ||
+                          ((modifierKind == DeclarationModifiers.Internal) && (allModifiers & DeclarationModifiers.Protected) != 0)))
+                    {
+                        if (seenNoAccessibilityDuplicates)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadMemberProtection, modifierToken.GetLocation());
+                        }
+
+                        seenNoAccessibilityDuplicates = false;
+                    }
+                }
+            }
         }
 
         internal static CSDiagnosticInfo CheckAccessibility(DeclarationModifiers modifiers)

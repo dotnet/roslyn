@@ -178,6 +178,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeKind typeKind = declaration.Kind.ToTypeKind();
             var modifiers = MakeModifiers(typeKind, diagnostics);
 
+            foreach (var singleDeclaration in declaration.Declarations)
+            {
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
+            }
+
             int access = (int)(modifiers & DeclarationModifiers.AccessibilityMask);
             if ((access & (access - 1)) != 0)
             {   // more than one access modifier
@@ -310,7 +315,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (var i = 0; i < partCount; i++)
             {
-                var mods = declaration.Declarations[i].Modifiers;
+                var singleTypeDeclaration = declaration.Declarations[i];
+                var mods = singleTypeDeclaration.Modifiers;
 
                 if (partCount > 1 && (mods & DeclarationModifiers.Partial) == 0)
                 {

@@ -790,7 +790,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     DeclarationModifiers.Async;
             }
 
-            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
+            var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
+                modifiers, defaultAccess, allowedModifiers, location, diagnostics, 
+                out modifierErrors, allowPartial: true);
 
             this.CheckUnsafeModifier(mods, diagnostics);
 

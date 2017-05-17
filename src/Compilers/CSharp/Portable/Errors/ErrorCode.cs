@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodInvalidModifier = 750,
         ERR_PartialMethodOnlyInPartialClass = 751,
         ERR_PartialMethodCannotHaveOutParameters = 752,
-        ERR_PartialMethodOnlyMethods = 753,
+        // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
         ERR_PartialMethodNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
