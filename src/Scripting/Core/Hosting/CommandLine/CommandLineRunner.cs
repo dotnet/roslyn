@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var script = Script.CreateInitialScript<int>(_scriptCompiler, code, options, globals.GetType(), assemblyLoaderOpt: null);
             try
             {
-                return script.RunAsync(globals, cancellationToken).Result.ReturnValue;
+                return script.RunAsync(globals, cancellationToken).GetAwaiter().GetResult().ReturnValue;
             }
             catch (CompilationErrorException e)
             {
