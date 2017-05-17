@@ -414,7 +414,9 @@ namespace Microsoft.CodeAnalysis
 
         System_String__Format_IFormatProvider,
 
-        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload,
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
+        Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
+
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
 
         Count
