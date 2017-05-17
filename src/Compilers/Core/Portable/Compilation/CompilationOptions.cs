@@ -227,9 +227,9 @@ namespace Microsoft.CodeAnalysis
         public StrongNameProvider StrongNameProvider { get; protected set; }
 
         /// <summary>
-        /// Provides options for analyzer consumption that apply to specific syntax trees. Null if no syntax tree specific options exist.
+        /// Provides options for analyzer consumption that apply to specific files. Null if no file-specific options exist.
         /// </summary>
-        public SyntaxTreeOptionsProvider SyntaxTreeOptionsProvider { get; protected set; }
+        public FileOptionsProvider FileOptionsProvider { get; protected set; }
 
         /// <summary>
         /// Used to compare assembly identities. May implement unification and portability policies specific to the target platform.
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis
             StrongNameProvider strongNameProvider,
             MetadataImportOptions metadataImportOptions,
             bool referencesSupersedeLowerVersions,
-            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider)
+            FileOptionsProvider fileOptionsProvider)
         {
             this.OutputKind = outputKind;
             this.ModuleName = moduleName;
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis
             this.AssemblyIdentityComparer = assemblyIdentityComparer ?? AssemblyIdentityComparer.Default;
             this.MetadataImportOptions = metadataImportOptions;
             this.ReferencesSupersedeLowerVersions = referencesSupersedeLowerVersions;
-            this.SyntaxTreeOptionsProvider = syntaxTreeOptionsProvider;
+            this.FileOptionsProvider = fileOptionsProvider;
 
             _lazyErrors = new Lazy<ImmutableArray<Diagnostic>>(() =>
             {
@@ -470,9 +470,9 @@ namespace Microsoft.CodeAnalysis
             return CommonWithStrongNameProvider(provider);
         }
 
-        public CompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        public CompilationOptions WithFileOptionsProvider(FileOptionsProvider provider)
         {
-            return CommonWithSyntaxTreeOptionsProvider(provider);
+            return CommonWithFileOptionsProvider(provider);
         }
 
         public CompilationOptions WithModuleName(string moduleName)
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract CompilationOptions CommonWithMetadataReferenceResolver(MetadataReferenceResolver resolver);
         protected abstract CompilationOptions CommonWithAssemblyIdentityComparer(AssemblyIdentityComparer comparer);
         protected abstract CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider);
-        protected abstract CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider);
+        protected abstract CompilationOptions CommonWithFileOptionsProvider(FileOptionsProvider provider);
         protected abstract CompilationOptions CommonWithGeneralDiagnosticOption(ReportDiagnostic generalDiagnosticOption);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions);
         protected abstract CompilationOptions CommonWithSpecificDiagnosticOptions(IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions);
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis
                    object.Equals(this.XmlReferenceResolver, other.XmlReferenceResolver) &&
                    object.Equals(this.SourceReferenceResolver, other.SourceReferenceResolver) &&
                    object.Equals(this.StrongNameProvider, other.StrongNameProvider) &&
-                   object.Equals(this.SyntaxTreeOptionsProvider, other.SyntaxTreeOptionsProvider) &&
+                   object.Equals(this.FileOptionsProvider, other.FileOptionsProvider) &&
                    object.Equals(this.AssemblyIdentityComparer, other.AssemblyIdentityComparer) &&
                    this.PublicSign == other.PublicSign;
 
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.XmlReferenceResolver,
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
-                   Hash.Combine(this.SyntaxTreeOptionsProvider,
+                   Hash.Combine(this.FileOptionsProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
                    Hash.Combine(this.PublicSign, 0)))))))))))))))))))))))))));
         }

@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToImmutable();
         }
 
-        protected SyntaxTreeOptionsProvider CreateSyntaxTreeOptionsProvider()
+        protected FileOptionsProvider CreateFileOptionsProvider()
         {
             // If we don't have any editor config files, we can opt out entirely
             if (Arguments.EditorConfigFiles.IsDefaultOrEmpty)
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis
                 builder.Add(new AdditionalTextFile(file, this));
             }
 
-            return new EditorConfigSyntaxTreeOptionsProvider(builder.MoveToImmutable());
+            return new EditorConfigFileOptionsProvider(builder.MoveToImmutable());
         }
 
         private static void ReportAnalyzerExecutionTime(TextWriter consoleOutput, AnalyzerDriver analyzerDriver, CultureInfo culture, bool isConcurrentBuild)

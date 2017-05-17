@@ -112,11 +112,18 @@ namespace Microsoft.CodeAnalysis
         public abstract string Language { get; }
 
         /// <summary>
-        /// Fetches an <see cref="OptionSet"/> which contains syntax-tree specific configuration for diagnostics and analyzers.
+        /// Fetches an <see cref="OptionSet"/> which contains file specific configuration for diagnostics and analyzers.
         /// </summary>
-        /// <param name="tree">The tree to fetch for. Must be non-null and exist in the compilation.</param>
+        /// <param name="tree">The <see cref="SyntaxTree"/> to fetch for. Must be non-null and exist in the compilation.</param>
         /// <returns>A non-null <see cref="OptionSet"/>.</returns>
         public abstract OptionSet GetOptionsForSyntaxTree(SyntaxTree tree);
+
+        /// <summary>
+        /// Fetches an <see cref="OptionSet"/> which contains file specific configuration for diagnostics and analyzers.
+        /// </summary>
+        /// <param name="additionalText">The <see cref="AdditionalText"/> to fetch for. Must be non-null.</param>
+        /// <returns>A non-null <see cref="OptionSet"/>.</returns>
+        public abstract OptionSet GetOptionsForAdditionalText(AdditionalText additionalText);
 
         internal static void ValidateScriptCompilationParameters(Compilation previousScriptCompilation, Type returnType, ref Type globalsType)
         {

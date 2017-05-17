@@ -146,7 +146,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      WithStrongNameProvider(strongNameProvider).
                      WithXmlReferenceResolver(xmlFileResolver).
                      WithSourceReferenceResolver(sourceFileResolver).
-                     WithSyntaxTreeOptionsProvider(CreateSyntaxTreeOptionsProvider()))
+                     WithFileOptionsProvider(CreateFileOptionsProvider()))
 
             Return result
         End Function

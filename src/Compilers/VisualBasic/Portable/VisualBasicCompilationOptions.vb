@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=MetadataImportOptions.Public,
                 referencesSupersedeLowerVersions:=False,
                 ignoreCorLibraryDuplicatedTypes:=False,
-                syntaxTreeOptionsProvider:=Nothing)
+                fileOptionsProvider:=Nothing)
 
         End Sub
 
@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             metadataImportOptions As MetadataImportOptions,
             referencesSupersedeLowerVersions As Boolean,
             ignoreCorLibraryDuplicatedTypes As Boolean,
-            syntaxTreeOptionsProvider As SyntaxTreeOptionsProvider)
+            fileOptionsProvider As FileOptionsProvider)
 
             MyBase.New(
                 outputKind:=outputKind,
@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 strongNameProvider:=strongNameProvider,
                 metadataImportOptions:=metadataImportOptions,
                 referencesSupersedeLowerVersions:=referencesSupersedeLowerVersions,
-                syntaxTreeOptionsProvider:=syntaxTreeOptionsProvider)
+                fileOptionsProvider:=fileOptionsProvider)
 
             _globalImports = globalImports.AsImmutableOrEmpty()
             _rootNamespace = If(rootNamespace, String.Empty)
@@ -254,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 referencesSupersedeLowerVersions:=other.ReferencesSupersedeLowerVersions,
                 publicSign:=other.PublicSign,
                 ignoreCorLibraryDuplicatedTypes:=other.IgnoreCorLibraryDuplicatedTypes,
-                syntaxTreeOptionsProvider:=other.SyntaxTreeOptionsProvider)
+                fileOptionsProvider:=other.FileOptionsProvider)
         End Sub
 
         Public Overrides ReadOnly Property Language As String
@@ -883,12 +883,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.StrongNameProvider = provider}
         End Function
 
-        Public Shadows Function WithSyntaxTreeOptionsProvider(provider As SyntaxTreeOptionsProvider) As VisualBasicCompilationOptions
-            If provider Is Me.SyntaxTreeOptionsProvider Then
+        Public Shadows Function WithFileOptionsProvider(provider As FileOptionsProvider) As VisualBasicCompilationOptions
+            If provider Is Me.FileOptionsProvider Then
                 Return Me
             End If
 
-            Return New VisualBasicCompilationOptions(Me) With {.SyntaxTreeOptionsProvider = provider}
+            Return New VisualBasicCompilationOptions(Me) With {.FileOptionsProvider = provider}
         End Function
 
         Protected Overrides Function CommonWithOutputKind(kind As OutputKind) As CompilationOptions
@@ -927,8 +927,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return WithStrongNameProvider(provider)
         End Function
 
-        Protected Overrides Function CommonWithSyntaxTreeOptionsProvider(provider As SyntaxTreeOptionsProvider) As CompilationOptions
-            Return WithSyntaxTreeOptionsProvider(provider)
+        Protected Overrides Function CommonWithFileOptionsProvider(provider As FileOptionsProvider) As CompilationOptions
+            Return WithFileOptionsProvider(provider)
         End Function
 
         Friend Overrides Sub ValidateOptions(builder As ArrayBuilder(Of Diagnostic))
@@ -1238,7 +1238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 metadataImportOptions:=MetadataImportOptions.Public,
                 referencesSupersedeLowerVersions:=False,
                 ignoreCorLibraryDuplicatedTypes:=False,
-                syntaxTreeOptionsProvider:=Nothing)
+                fileOptionsProvider:=Nothing)
 
         End Sub
 

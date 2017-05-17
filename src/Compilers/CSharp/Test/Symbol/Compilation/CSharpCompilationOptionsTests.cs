@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssemblyIdentityComparer assemblyIdentityComparer = AssemblyIdentityComparer.Default;           // Currently uses reference equality
             StrongNameProvider strongNameProvider = new DesktopStrongNameProvider();
             MetadataImportOptions metadataImportOptions = 0;
-            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider = null;
+            FileOptionsProvider fileOptionsProvider = null;
             bool referencesSupersedeLowerVersions = false;
             bool reportSuppressedDiagnostics = false;
             var topLevelBinderFlags = BinderFlags.None;
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign,
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,
                 concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
-                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, syntaxTreeOptionsProvider);
+                assemblyIdentityComparer, strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, publicSign, topLevelBinderFlags, fileOptionsProvider);
         }
 
         private sealed class MetadataReferenceResolverWithEquality : MetadataReferenceResolver

@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: publicSign,
                    topLevelBinderFlags: BinderFlags.None,
-                   syntaxTreeOptionsProvider: null)
+                   fileOptionsProvider: null)
         {
         }
 
@@ -115,13 +115,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool referencesSupersedeLowerVersions,
             bool publicSign,
             BinderFlags topLevelBinderFlags,
-            SyntaxTreeOptionsProvider syntaxTreeOptionsProvider)
+            FileOptionsProvider fileOptionsProvider)
             : base(outputKind, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName,
                    cryptoKeyContainer, cryptoKeyFile, cryptoPublicKey, delaySign, publicSign, optimizationLevel, checkOverflow,
                    platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions.ToImmutableDictionaryOrEmpty(),
                    concurrentBuild, deterministic, currentLocalTime, debugPlusMode, xmlReferenceResolver,
                    sourceReferenceResolver, metadataReferenceResolver, assemblyIdentityComparer,
-                   strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, syntaxTreeOptionsProvider)
+                   strongNameProvider, metadataImportOptions, referencesSupersedeLowerVersions, fileOptionsProvider)
         {
             this.Usings = usings.AsImmutableOrEmpty();
             this.AllowUnsafe = allowUnsafe;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             metadataReferenceResolver: other.MetadataReferenceResolver,
             assemblyIdentityComparer: other.AssemblyIdentityComparer,
             strongNameProvider: other.StrongNameProvider,
-            syntaxTreeOptionsProvider: other.SyntaxTreeOptionsProvider,
+            fileOptionsProvider: other.FileOptionsProvider,
             metadataImportOptions: other.MetadataImportOptions,
             referencesSupersedeLowerVersions: other.ReferencesSupersedeLowerVersions,
             reportSuppressedDiagnostics: other.ReportSuppressedDiagnostics,
@@ -498,14 +498,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSharpCompilationOptions(this) { StrongNameProvider = provider };
         }
 
-        public new CSharpCompilationOptions WithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider)
+        public new CSharpCompilationOptions WithFileOptionsProvider(FileOptionsProvider provider)
         {
-            if (ReferenceEquals(provider, this.SyntaxTreeOptionsProvider))
+            if (ReferenceEquals(provider, this.FileOptionsProvider))
             {
                 return this;
             }
 
-            return new CSharpCompilationOptions(this) { SyntaxTreeOptionsProvider = provider };
+            return new CSharpCompilationOptions(this) { FileOptionsProvider = provider };
         }
 
         protected override CompilationOptions CommonWithConcurrentBuild(bool concurrent) => WithConcurrentBuild(concurrent);
@@ -534,8 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override CompilationOptions CommonWithStrongNameProvider(StrongNameProvider provider) =>
             WithStrongNameProvider(provider);
 
-        protected override CompilationOptions CommonWithSyntaxTreeOptionsProvider(SyntaxTreeOptionsProvider provider) =>
-            WithSyntaxTreeOptionsProvider(provider);
+        protected override CompilationOptions CommonWithFileOptionsProvider(FileOptionsProvider provider) =>
+            WithFileOptionsProvider(provider);
 
         [Obsolete]
         protected override CompilationOptions CommonWithFeatures(ImmutableArray<string> features)
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                    referencesSupersedeLowerVersions: false,
                    publicSign: false,
                    topLevelBinderFlags: BinderFlags.None,
-                   syntaxTreeOptionsProvider: null)
+                   fileOptionsProvider: null)
         {
         }
     }

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     WithStrongNameProvider(strongNameProvider).
                     WithXmlReferenceResolver(xmlFileResolver).
                     WithSourceReferenceResolver(sourceFileResolver).
-                    WithSyntaxTreeOptionsProvider(CreateSyntaxTreeOptionsProvider()));
+                    WithFileOptionsProvider(CreateFileOptionsProvider()));
 
             return compilation;
         }

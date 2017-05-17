@@ -1,8 +1,9 @@
-Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithSyntaxTreeOptionsProvider(Microsoft.CodeAnalysis.Options.SyntaxTreeOptionsProvider provider) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
+Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.WithFileOptionsProvider(Microsoft.CodeAnalysis.Options.FileOptionsProvider provider) -> Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1 = 701 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.ConflictMarkerTrivia = 8564 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.DefaultLiteralExpression = 8755 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetOptionsForAdditionalText(Microsoft.CodeAnalysis.AdditionalText additionalText) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetOptionsForSyntaxTree(Microsoft.CodeAnalysis.SyntaxTree tree) -> Microsoft.CodeAnalysis.Options.OptionSet
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 static Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts.ToDisplayString(this Microsoft.CodeAnalysis.CSharp.LanguageVersion version) -> string

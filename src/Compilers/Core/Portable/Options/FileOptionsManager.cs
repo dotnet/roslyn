@@ -11,25 +11,25 @@ namespace Microsoft.CodeAnalysis.Options
     /// Type that caches syntax tree options coming from a given provider. May be shared between multiple
     /// <see cref="Compilation"/>s if they are using the same provider and thus have the same data.
     /// </summary>
-    internal sealed class SyntaxTreeOptionsManager
+    internal sealed class FileOptionsManager
     {
-        private readonly SyntaxTreeOptionsProvider _provider;
+        private readonly FileOptionsProvider _provider;
 
-        public SyntaxTreeOptionsManager(SyntaxTreeOptionsProvider provider)
+        public FileOptionsManager(FileOptionsProvider provider)
         {
             _provider = provider;
         }
 
-        public OptionSet GetOptionsForSyntaxTree(SyntaxTree tree)
+        public OptionSet GetOptionsForFile(string filePath)
         {
-            // TODO: actually implement a cache
-            return _provider.GetOptionsForSyntaxTreePath(tree.FilePath);
+            // PROTOTYPE: actually implement a cache
+            return _provider.GetOptionsForSyntaxTreePath(filePath);
         }
 
         [Conditional("DEBUG")]
         internal void AssertCanReuseForCompilation(Compilation compilation)
         {
-            Debug.Assert(object.Equals(_provider, compilation.Options.SyntaxTreeOptionsProvider));
+            Debug.Assert(object.Equals(_provider, compilation.Options.FileOptionsProvider));
         }
     }
 }

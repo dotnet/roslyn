@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// immutable; that is two implementations that are Equal according to <see cref="Object.Equals(object)"/> should return
     /// the same options for the same path.
     /// </summary>
-    public abstract class SyntaxTreeOptionsProvider
+    public abstract class FileOptionsProvider
     {
         /// <summary>
         /// Provides an <see cref="OptionSet"/> for options that apply to the given tree.

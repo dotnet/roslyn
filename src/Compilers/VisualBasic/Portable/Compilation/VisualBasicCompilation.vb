@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private _referenceManager As ReferenceManager
 
-        Private ReadOnly _syntaxTreeOptionsManager As SyntaxTreeOptionsManager
+        Private ReadOnly _fileOptionsManager As FileOptionsManager
 
         ''' <summary>
         ''' The options passed to the constructor of the Compilation
@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 isSubmission,
                 referenceManager:=Nothing,
                 reuseReferenceManager:=False,
-                syntaxTreeOptionsManagerToReuse:=Nothing)
+                fileOptionsManagerToReuse:=Nothing)
 
             If syntaxTrees IsNot Nothing Then
                 c = c.AddSyntaxTrees(syntaxTrees)
@@ -417,7 +417,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             isSubmission As Boolean,
             referenceManager As ReferenceManager,
             reuseReferenceManager As Boolean,
-            syntaxTreeOptionsManagerToReuse As SyntaxTreeOptionsManager,
+            fileOptionsManagerToReuse As FileOptionsManager,
             Optional eventQueue As AsyncQueue(Of CompilationEvent) = Nothing
         )
             MyBase.New(assemblyName, references, SyntaxTreeCommonFeatures(syntaxTrees), isSubmission, eventQueue)
@@ -456,11 +456,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               If(referenceManager IsNot Nothing, referenceManager.ObservedMetadata, Nothing))
             End If
 
-            If syntaxTreeOptionsManagerToReuse IsNot Nothing Then
-                _syntaxTreeOptionsManager = syntaxTreeOptionsManagerToReuse
-                _syntaxTreeOptionsManager.AssertCanReuseForCompilation(Me)
+            If fileOptionsManagerToReuse IsNot Nothing Then
+                _fileOptionsManager = fileOptionsManagerToReuse
+                _fileOptionsManager.AssertCanReuseForCompilation(Me)
             Else
-                _syntaxTreeOptionsManager = New SyntaxTreeOptionsManager(_options.SyntaxTreeOptionsProvider)
+                _fileOptionsManager = New FileOptionsManager(_options.FileOptionsProvider)
             End If
 
             Debug.Assert(_lazyAssemblySymbol Is Nothing)
@@ -504,7 +504,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(CodeAnalysisResources.InvalidTree)
             End If
 
-            Return _syntaxTreeOptionsManager.GetOptionsForSyntaxTree(tree)
+            Return _fileOptionsManager.GetOptionsForFile(tree.FilePath)
+        End Function
+
+        Public Overrides Function GetOptionsForAdditionalText(additionalText As AdditionalText) As OptionSet
+            If additionalText Is Nothing Then
+                Throw New ArgumentNullException(NameOf(additionalText))
+            End If
+
+            Return _fileOptionsManager.GetOptionsForFile(additionalText.Path)
         End Function
 
         ''' <summary>
@@ -526,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
-                syntaxTreeOptionsManagerToReuse:=_syntaxTreeOptionsManager,
+                fileOptionsManagerToReuse:=_fileOptionsManager,
                 eventQueue:=Nothing) ' no event queue when cloning
         End Function
 
@@ -552,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=Not referenceDirectivesChanged,
-                syntaxTreeOptionsManagerToReuse:=_syntaxTreeOptionsManager)
+                fileOptionsManagerToReuse:=_fileOptionsManager)
         End Function
 
         ''' <summary>
@@ -578,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=String.Equals(assemblyName, Me.AssemblyName, StringComparison.Ordinal),
-                syntaxTreeOptionsManagerToReuse:=_syntaxTreeOptionsManager)
+                fileOptionsManagerToReuse:=_fileOptionsManager)
         End Function
 
         Public Shadows Function WithReferences(ParamArray newReferences As MetadataReference()) As VisualBasicCompilation
@@ -620,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 referenceManager:=Nothing,
                 reuseReferenceManager:=False,
-                syntaxTreeOptionsManagerToReuse:=_syntaxTreeOptionsManager)
+                fileOptionsManagerToReuse:=_fileOptionsManager)
             Return c
         End Function
 
@@ -659,7 +667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 declTable = AddEmbeddedTrees(declTable, embeddedTrees)
             End If
 
-            Dim reuseSyntaxTreeOptionsManager = Object.Equals(Me.Options.SyntaxTreeOptionsProvider, newOptions.SyntaxTreeOptionsProvider)
+            Dim reuseFileOptionsManager = Object.Equals(Me.Options.FileOptionsProvider, newOptions.FileOptionsProvider)
 
             c = New VisualBasicCompilation(
                 Me.AssemblyName,
@@ -676,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=_options.CanReuseCompilationReferenceManager(newOptions),
-                syntaxTreeOptionsManagerToReuse:=If(reuseSyntaxTreeOptionsManager, _syntaxTreeOptionsManager, Nothing))
+                fileOptionsManagerToReuse:=If(reuseFileOptionsManager, _fileOptionsManager, Nothing))
             Return c
         End Function
 
@@ -705,7 +713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 info IsNot Nothing,
                 _referenceManager,
                 reuseReferenceManager:=True,
-                syntaxTreeOptionsManagerToReuse:=_syntaxTreeOptionsManager)
+                fileOptionsManagerToReuse:=_fileOptionsManager)
         End Function
 
         ''' <summary>
@@ -727,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.IsSubmission,
                 _referenceManager,
                 reuseReferenceManager:=True,
-                syntaxTreeOptionsManagerToReuse:=_syntaxTreeOptionsManager,
+                fileOptionsManagerToReuse:=_fileOptionsManager,
                 eventQueue:=eventQueue)
         End Function
 

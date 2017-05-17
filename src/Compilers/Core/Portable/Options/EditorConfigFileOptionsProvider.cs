@@ -7,23 +7,23 @@ using System.Text;
 
 namespace Microsoft.CodeAnalysis.Options
 {
-    public sealed class EditorConfigSyntaxTreeOptionsProvider : SyntaxTreeOptionsProvider
+    public sealed class EditorConfigFileOptionsProvider : FileOptionsProvider
     {
         public ImmutableArray<AdditionalText> EditorConfigFiles { get; }
 
-        public EditorConfigSyntaxTreeOptionsProvider(ImmutableArray<AdditionalText> editorConfigFiles)
+        public EditorConfigFileOptionsProvider(ImmutableArray<AdditionalText> editorConfigFiles)
         {
             EditorConfigFiles = editorConfigFiles.NullToEmpty();
         }
 
-        public EditorConfigSyntaxTreeOptionsProvider AddEditorConfigFiles(IEnumerable<AdditionalText> editorConfigFiles)
+        public EditorConfigFileOptionsProvider AddEditorConfigFiles(IEnumerable<AdditionalText> editorConfigFiles)
         {
-            return new EditorConfigSyntaxTreeOptionsProvider(this.EditorConfigFiles.AddRange(editorConfigFiles));
+            return new EditorConfigFileOptionsProvider(this.EditorConfigFiles.AddRange(editorConfigFiles));
         }
 
-        public EditorConfigSyntaxTreeOptionsProvider RemoveEditorConfigFiles(IEnumerable<AdditionalText> editorConfigFiles)
+        public EditorConfigFileOptionsProvider RemoveEditorConfigFiles(IEnumerable<AdditionalText> editorConfigFiles)
         {
-            return new EditorConfigSyntaxTreeOptionsProvider(this.EditorConfigFiles.RemoveRange(editorConfigFiles));
+            return new EditorConfigFileOptionsProvider(this.EditorConfigFiles.RemoveRange(editorConfigFiles));
         }
 
         public override OptionSet GetOptionsForSyntaxTreePath(string path)
