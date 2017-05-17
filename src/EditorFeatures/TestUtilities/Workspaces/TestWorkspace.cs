@@ -20,6 +20,7 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
@@ -120,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void Dispose(bool finalize)
         {
+            Contract.ThrowIfNull(ExportProvider, nameof(ExportProvider));
             var metadataAsSourceService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
             if (metadataAsSourceService != null)
             {
@@ -128,20 +130,28 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.ClearSolutionData();
 
+            Contract.ThrowIfNull(Documents, nameof(Documents));
+
             foreach (var document in Documents)
             {
                 document.CloseTextView();
             }
+
+            Contract.ThrowIfNull(AdditionalDocuments, nameof(AdditionalDocuments));
 
             foreach (var document in AdditionalDocuments)
             {
                 document.CloseTextView();
             }
 
+            Contract.ThrowIfNull(ProjectionDocuments, nameof(ProjectionDocuments));
+
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
             }
+
+            Contract.ThrowIfNull(ExportProvider, nameof(Export) + "2");
 
             var exceptions = ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions();
 
@@ -156,6 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (SynchronizationContext.Current != null)
             {
+                Contract.ThrowIfNull(Dispatcher.CurrentDispatcher, nameof(Dispatcher.CurrentDispatcher));
                 Dispatcher.CurrentDispatcher.DoEvents();
             }
 
