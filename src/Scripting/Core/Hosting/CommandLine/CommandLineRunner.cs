@@ -121,7 +121,6 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return CommonCompiler.Failed;
             }
 
-
             var cancellationToken = new CancellationToken();
 
             if (_compiler.Arguments.InteractiveMode)
