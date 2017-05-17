@@ -952,7 +952,7 @@ comp => comp.VerifyDiagnostics());
         }
 
         [Fact]
-        public void RefAssemblyClient_EmitVariance()
+        public void RefAssemblyClient_EmitVariance_OutError()
         {
             VerifyRefAssemblyClient(@"
 public interface I<out T>
@@ -975,6 +975,67 @@ comp => comp.VerifyDiagnostics(
         }
 
         [Fact]
+        public void RefAssemblyClient_EmitVariance_OutSuccess()
+        {
+            VerifyRefAssemblyClient(@"
+public interface I<out T>
+{
+}",
+@"
+class Base { }
+class Derived : Base
+{
+    I<Base> M(I<Derived> x)
+    {
+        return x;
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitVariance_InSuccess()
+        {
+            VerifyRefAssemblyClient(@"
+public interface I<in T>
+{
+}",
+@"
+class Base { }
+class Derived : Base
+{
+    I<Derived> M(I<Base> x)
+    {
+        return x;
+    }
+}",
+comp => comp.VerifyDiagnostics());
+        }
+
+        [Fact]
+        public void RefAssemblyClient_EmitVariance_InError()
+        {
+            VerifyRefAssemblyClient(@"
+public interface I<in T>
+{
+}",
+@"
+class Base { }
+class Derived : Base
+{
+    I<Base> M(I<Derived> x)
+    {
+        return x;
+    }
+}",
+comp => comp.VerifyDiagnostics(
+                // (7,16): error CS0266: Cannot implicitly convert type 'I<Derived>' to 'I<Base>'. An explicit conversion exists (are you missing a cast?)
+                //         return x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "x").WithArguments("I<Derived>", "I<Base>").WithLocation(7, 16)
+                ));
+        }
+
+        [Fact]
         public void RefAssemblyClient_EmitOptionalArguments()
         {
             VerifyRefAssemblyClient(@"
@@ -990,7 +1051,22 @@ class C
         a.M();
     }
 }",
-comp => comp.VerifyDiagnostics());
+comp =>
+{
+    comp.VerifyDiagnostics();
+    var verifier = CompileAndVerify(comp);
+    verifier.VerifyIL("C.M2", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.1
+  IL_0002:  ldc.i4.s   42
+  IL_0004:  callvirt   ""void A.M(int)""
+  IL_0009:  nop
+  IL_000a:  ret
+}");
+});
         }
 
         [Fact]
@@ -1052,7 +1128,21 @@ class C
         System.Console.Write(A.number);
     }
 }",
-comp => comp.VerifyDiagnostics());
+comp =>
+{
+    comp.VerifyDiagnostics();
+    var verifier = CompileAndVerify(comp);
+    verifier.VerifyIL("C.M2", @"
+{
+  // Code size       10 (0xa)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  call       ""void System.Console.Write(int)""
+  IL_0008:  nop
+  IL_0009:  ret
+}");
+    });
         }
 
         [Fact]
