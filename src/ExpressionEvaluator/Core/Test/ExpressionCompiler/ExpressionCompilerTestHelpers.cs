@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Roslyn.Test.Utilities;
 using Xunit;
-using PDB::Roslyn.Test.MetadataUtilities;
 using PDB::Roslyn.Test.PdbUtilities;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests

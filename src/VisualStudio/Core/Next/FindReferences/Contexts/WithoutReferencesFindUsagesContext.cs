@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Roslyn.Utilities;
