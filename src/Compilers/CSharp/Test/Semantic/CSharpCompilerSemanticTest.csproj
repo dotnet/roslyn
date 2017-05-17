@@ -62,6 +62,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.cs" />
     <Compile Include="IOperation\IOperationTests_IArgument.cs" />
+    <Compile Include="IOperation\IOperationTests_ITupleExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.cs" />

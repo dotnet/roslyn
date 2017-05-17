@@ -420,5 +420,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             VisitArray(operation.Children);
         }
+
+        public override void VisitTupleExpression(ITupleExpression operation)
+        {
+            VisitArray(operation.Elements);
+        }
     }
 }

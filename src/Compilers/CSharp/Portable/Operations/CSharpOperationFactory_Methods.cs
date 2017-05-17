@@ -340,6 +340,15 @@ namespace Microsoft.CodeAnalysis.Semantics
                         OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
         }
 
+        private static readonly ConditionalWeakTable<BoundTupleExpression, object> s_tupleElementsMappings =
+            new ConditionalWeakTable<BoundTupleExpression, object>();
+
+        private static ImmutableArray<IOperation> GetTupleElements(BoundTupleExpression boundTupleExpression)
+        {
+            return (ImmutableArray<IOperation>)s_tupleElementsMappings.GetValue(boundTupleExpression,
+                tupleExpr => tupleExpr.Arguments.SelectAsArray(element => Create(element)));
+        }
+
         // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
         //       Also. this implementation here was for the (now removed) API `ArgumentsInParameter`, which doesn't fulfill
         //       the contract of `ArgumentsInEvaluationOrder` plus it doesn't handle various scenarios correctly even for parameter order, 

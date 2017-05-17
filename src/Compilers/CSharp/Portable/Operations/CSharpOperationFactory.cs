@@ -165,6 +165,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundLabeledStatementOperation((BoundLabeledStatement)boundNode);
                 case BoundKind.ExpressionStatement:
                     return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
+                case BoundKind.TupleLiteral:
+                case BoundKind.ConvertedTupleLiteral:
+                    return CreateBoundTupleExpressionOperation((BoundTupleExpression)boundNode);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
@@ -984,6 +987,16 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             return new LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue);
+        }
+
+        private static ITupleExpression CreateBoundTupleExpressionOperation(BoundTupleExpression boundTupleExpression)
+        {
+            Lazy<ImmutableArray<IOperation>> elements = new Lazy<ImmutableArray<IOperation>>(() => GetTupleElements(boundTupleExpression));
+            bool isInvalid = boundTupleExpression.HasErrors;
+            SyntaxNode syntax = boundTupleExpression.Syntax;
+            ITypeSymbol type = boundTupleExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundTupleExpression.ConstantValue);
+            return new LazyTupleExpression(elements, isInvalid, syntax, type, constantValue);
         }
     }
 }

@@ -109,6 +109,7 @@
     <Compile Include="Diagnostics\GetDiagnosticsTests.vb" />
     <Compile Include="IOperation\IOperationTests_IArgument.vb" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.vb" />
+    <Compile Include="IOperation\IOperationTests_ITupleExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.vb" />
     <Compile Include="IOperation\IOperationTests_InvalidStatement.vb" />

@@ -1,19 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal partial class BoundTupleExpression
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.Arguments);
-    }
-
     internal partial class BoundDelegateCreationExpression
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Argument);
