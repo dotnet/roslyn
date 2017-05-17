@@ -515,36 +515,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If neither of those are the case then we can just take an early out.
 
-            ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters(); 
-
-            ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
 
             if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
-            {
+            {                                                                                  
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
-                // So we just return list of arguments as is.   
-                for (int i = 0; i < arguments.Length; i++)
-                {                                                 
-                    argumentsInEvaluationBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
-                } 
-                return argumentsInEvaluationBuilder.ToImmutableAndFree();
+                // So we just return list of arguments as is.
+                return arguments.ZipAsArray(methodOrIndexer.GetParameters(), (a, p) => BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, p, a));
             }                                                                                                                   
 
-            ArrayBuilder<ParameterSymbol> missingParametersBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
-
-            BuildExplicitArgumentsInEvaluationOrder(syntax, 
-                methodOrIndexer, 
+            return BuildArgumentsInEvaluationOrder(syntax, 
+                methodOrIndexer,
+                optionalParametersMethod,
                 expanded, 
                 argsToParamsOpt, 
                 arguments, 
-                binder, 
-                argumentsInEvaluationBuilder, 
-                missingParametersBuilder);
-
-            AppendMissingOptionalArguments(syntax, methodOrIndexer, optionalParametersMethod, expanded, binder, missingParametersBuilder, argumentsInEvaluationBuilder);
-            missingParametersBuilder.Free();
-
-            return argumentsInEvaluationBuilder.ToImmutableAndFree();
+                binder); 
         }
 
         // temporariesBuilder will be null when factory is null.
@@ -657,19 +642,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // This fills in the arguments and parameters arrays in evaluation order.
-        private static void BuildExplicitArgumentsInEvaluationOrder(
+        private static ImmutableArray<IArgument> BuildArgumentsInEvaluationOrder(
             SyntaxNode syntax,
             Symbol methodOrIndexer,
+            MethodSymbol optionalParametersMethod,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<BoundExpression> arguments,
-            Binder binder,
-            /* out */ ArrayBuilder<IArgument> argumentsBuilder,
-            /* out */ ArrayBuilder<ParameterSymbol> missingParametersBuilder)
+            Binder binder)
         {
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+
+            ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
+
             PooledHashSet<int> processedParameters = PooledHashSet<int>.GetInstance();
 
+            // First, fill in all the explicitly provided arguments.
             for (int a = 0; a < arguments.Length; ++a)
             {
                 BoundExpression argument = arguments[a];
@@ -700,12 +688,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     a = firstNonParamArrayArgumentIndex - 1;
 
                     argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), null, binder);
-                }  
+                }
 
-                argumentsBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument)); 
-            }
+                argumentsInEvaluationBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument)); 
+            }    
 
-            // Fill in parameters with missing arguments.
+            // Collect parameters with missing arguments.   
+            ArrayBuilder<ParameterSymbol> missingParametersBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
             for (int i = 0; i < parameters.Length; ++i)
             {
                 if (!processedParameters.Contains(i))
@@ -713,7 +702,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     missingParametersBuilder.Add(parameters[i]);
                 }
             }
+
             processedParameters.Free();
+
+            // Finally, append default value as arguments.
+            AppendMissingOptionalArguments(syntax, methodOrIndexer, optionalParametersMethod, expanded, binder, missingParametersBuilder, argumentsInEvaluationBuilder);
+
+            missingParametersBuilder.Free();
+
+            return argumentsInEvaluationBuilder.ToImmutableAndFree();
         }
 
         /// <summary>
