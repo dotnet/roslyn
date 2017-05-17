@@ -32,6 +32,7 @@
     <Compile Include="Logger.cs" />
     <Compile Include="PerfTestBase.cs" />
     <Compile Include="RelativeDirectory.cs" />
+    <Compile Include="VsPerfTest.cs" />
     <Compile Include="ScenarioGenerator.cs" />
     <Compile Include="TestUtilities.cs" />
     <Compile Include="TraceManager.cs" />

@@ -1260,6 +1260,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Never show this again.
+        /// </summary>
+        internal static string Never_show_this_again {
+            get {
+                return ResourceManager.GetString("Never_show_this_again", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to New _file name:.
         /// </summary>
         internal static string New_file_name_colon {
@@ -2146,6 +2155,16 @@ namespace Microsoft.VisualStudio.LanguageServices {
             get {
                 return ResourceManager.GetString("To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragrap" +
                         "h_follows", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Try the preview version of our live code analysis extension, which provides more fixes for common API design, naming, performance, and reliability issues.
+        /// </summary>
+        internal static string Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_fixes_for_common_API_design_naming_performance_and_reliability_issues {
+            get {
+                return ResourceManager.GetString("Try_the_preview_version_of_our_live_code_analysis_extension_which_provides_more_f" +
+                        "ixes_for_common_API_design_naming_performance_and_reliability_issues", resourceCulture);
             }
         }
         

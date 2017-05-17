@@ -6,15 +6,23 @@ using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 
 namespace Roslyn.Test.Utilities
 {
-    internal static class PdbTestUtilities
+    public static class PdbTestUtilities
     {
+        public static ISymUnmanagedReader3 CreateSymReader(this CompilationVerifier verifier)
+        {
+            var pdbStream = new ImmutableMemoryStream(verifier.EmittedAssemblyPdb);
+            return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);
+        }
+
         public unsafe static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
         {
             const int S_OK = 0;
