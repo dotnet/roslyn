@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.Typescript
             VisualStudio.SolutionExplorer.OpenFile(project, "File1.ts");
 
             // Wait for current file to become part of the typescript project
-            // and not miscellaneous files. Otherwise intellisense will not work.
+            // and not miscellaneous files. Otherwise code will not be formatted.
             VisualStudio.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 

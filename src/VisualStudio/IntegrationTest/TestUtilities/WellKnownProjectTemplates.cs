@@ -10,7 +10,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public const string WinFormsApplication = nameof(WinFormsApplication);
         public const string WpfApplication = nameof(WpfApplication);
         public const string WebApplication = nameof(WebApplication);
-        public const string TypescriptNodeConsoleApp = nameof(TypescriptNodeConsoleApp);
         public const string CSharpNetCoreClassLibrary = "Microsoft.CSharp.NETCore.ClassLibrary";
         public const string VisualBasicNetCoreClassLibrary = "Microsoft.VisualBasic.NETCore.ClassLibrary";
         public const string CSharpNetCoreConsoleApplication = "Microsoft.CSharp.NETCore.ConsoleApplication";
