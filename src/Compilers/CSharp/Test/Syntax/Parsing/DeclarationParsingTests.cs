@@ -5263,7 +5263,7 @@ partial class PartialPartial
 }
 ";
             // These errors aren't great.  Ideally we can improve things in the future.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (5,13): error CS1525: Invalid expression term 'partial'
                 //     partial partial void PM();
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "partial").WithArguments("partial").WithLocation(5, 13),

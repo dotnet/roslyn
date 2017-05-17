@@ -124,7 +124,7 @@ public class C
     }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,13): error CS0107: More than one protection modifier
                 //     private internal void f() {}
                 Diagnostic(ErrorCode.ERR_BadMemberProtection, "internal").WithLocation(4, 13),
@@ -373,7 +373,7 @@ public class Test
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics();
+            CreateStandardCompilation(test).VerifyDiagnostics();
         }
 
         [Fact]
@@ -383,7 +383,7 @@ public class Test
 partial enum E { }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial enum E { }
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
@@ -397,7 +397,7 @@ partial delegate E { }
 ";
 
             // Extra errors
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,20): error CS1001: Identifier expected
                 // partial delegate E { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(2, 20),
@@ -432,7 +432,7 @@ partial delegate void E();
 ";
 
             // Extra errors
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,1): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 // partial delegate void E();
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(2, 1));
@@ -1416,7 +1416,7 @@ namespace x {
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,16): error CS1004: Duplicate 'public' modifier
                 //         public public static int Main()    // CS1004, two public keywords
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(6, 16),
@@ -1436,7 +1436,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS1004: Duplicate 'public' modifier
                 //     public public C()
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
@@ -1453,7 +1453,7 @@ class C
     }
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS1004: Duplicate 'public' modifier
                 //     public public ~C()
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
@@ -1471,7 +1471,7 @@ class C
     public public int x;
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS1004: Duplicate 'public' modifier
                 //     public public int x;
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12),
@@ -1489,7 +1489,7 @@ class C
     public public int P { get; }
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS1004: Duplicate 'public' modifier
                 //     public public int P { get; }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
@@ -1504,7 +1504,7 @@ class C
     public public static implicit operator int(C c) => 0;
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS1004: Duplicate 'public' modifier
                 //     public public static implicit operator int(C c) => 0;
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
@@ -1519,7 +1519,7 @@ class C
     public public static int operator +(C c1, C c2) => 0;
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS1004: Duplicate 'public' modifier
                 //     public public static int operator +(C c1, C c2) => 0;
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
@@ -1534,7 +1534,7 @@ class C
     public int P { get; private private set; }
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,33): error CS1004: Duplicate 'private' modifier
                 //     public int P { get; private private set; }
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "private").WithArguments("private").WithLocation(4, 33));
@@ -1549,7 +1549,7 @@ class C
     public public int this[int i] => 0;
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (4,12): error CS1004: Duplicate 'public' modifier
                 //     public public int this[int i] => 0;
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(4, 12));
@@ -1563,7 +1563,7 @@ public public class C
 {
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,8): error CS1004: Duplicate 'public' modifier
                 // public public class C 
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
@@ -1577,7 +1577,7 @@ public public interface I
 {
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,8): error CS1004: Duplicate 'public' modifier
                 // public public interface I
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
@@ -1591,7 +1591,7 @@ public public enum E
 {
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,8): error CS1004: Duplicate 'public' modifier
                 // public public enum E
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
@@ -1605,7 +1605,7 @@ public public struct S
 {
 }";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,8): error CS1004: Duplicate 'public' modifier
                 // public public struct S
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
@@ -1617,7 +1617,7 @@ public public struct S
             var test = @"
 public public delegate void D();";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (2,8): error CS1004: Duplicate 'public' modifier
                 // public public delegate void D();
                 Diagnostic(ErrorCode.ERR_DuplicateModifier, "public").WithArguments("public").WithLocation(2, 8));
