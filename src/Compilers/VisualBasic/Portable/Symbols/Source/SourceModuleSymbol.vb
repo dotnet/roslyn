@@ -327,6 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             checker.AddName("ExtensionAttribute", QuickAttributes.Extension)
             checker.AddName("ObsoleteAttribute", QuickAttributes.Obsolete)
             checker.AddName("DeprecatedAttribute", QuickAttributes.Obsolete)
+            checker.AddName("ExperimentalAttribute", QuickAttributes.Obsolete)
             checker.AddName("MyGroupCollectionAttribute", QuickAttributes.MyGroupCollection)
 
             ' Now process alias imports

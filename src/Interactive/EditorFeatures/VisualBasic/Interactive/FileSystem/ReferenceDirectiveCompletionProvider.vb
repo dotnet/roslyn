@@ -12,18 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProvide
     <TextViewRole(PredefinedInteractiveTextViewRoles.InteractiveTextViewRole)>
     Friend Class ReferenceDirectiveCompletionProvider : Inherits AbstractReferenceDirectiveCompletionProvider
         Protected Overrides Function TryGetStringLiteralToken(tree As SyntaxTree, position As Integer, ByRef stringLiteral As SyntaxToken, cancellationToken As CancellationToken) As Boolean
-            If tree.IsEntirelyWithinStringLiteral(position, cancellationToken) Then
-                Dim token = tree.FindTokenOnLeftOfPosition(position, cancellationToken, includeDirectives:=True, includeDocumentationComments:=True)
-
-                ' Verifies that the string literal under caret is the path token.
-                If token.IsKind(SyntaxKind.StringLiteralToken) AndAlso token.Parent.IsKind(SyntaxKind.ReferenceDirectiveTrivia) Then
-                    stringLiteral = token
-                    Return True
-                End If
-            End If
-
-            stringLiteral = Nothing
-            Return False
+            Return DirectiveCompletionProviderUtilities.TryGetStringLiteralToken(tree, position, SyntaxKind.ReferenceDirectiveTrivia, stringLiteral, cancellationToken)
         End Function
     End Class
 

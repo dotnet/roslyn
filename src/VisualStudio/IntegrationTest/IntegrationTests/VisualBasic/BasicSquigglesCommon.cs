@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Roslyn.VisualStudio.IntegrationTests.Extensions.Editor;
 
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
@@ -17,21 +16,21 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 
         public virtual void VerifySyntaxErrorSquiggles()
         {
-            Editor.SetText(@"Class A
+            VisualStudio.Editor.SetText(@"Class A
       Sub S()
         Dim x = 1 +
       End Sub
 End Class");
-            this.VerifyErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[43-44]");
+            VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'\r'[43-44]");
         }
 
         public virtual void VerifySemanticErrorSquiggles()
         {
-            Editor.SetText(@"Class A
+            VisualStudio.Editor.SetText(@"Class A
       Sub S(b as Bar)
       End Sub
 End Class");
-            this.VerifyErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[26-29]");
+            VisualStudio.Editor.Verify.ErrorTags("Microsoft.VisualStudio.Text.Tagging.ErrorTag:'Bar'[26-29]");
         }
     }
 }

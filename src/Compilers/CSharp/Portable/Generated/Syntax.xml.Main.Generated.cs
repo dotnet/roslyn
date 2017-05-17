@@ -5152,6 +5152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.TrueLiteralExpression:
         case SyntaxKind.FalseLiteralExpression:
         case SyntaxKind.NullLiteralExpression:
+        case SyntaxKind.DefaultLiteralExpression:
           break;
         default:
           throw new ArgumentException("kind");
@@ -5165,6 +5166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         case SyntaxKind.TrueKeyword:
         case SyntaxKind.FalseKeyword:
         case SyntaxKind.NullKeyword:
+        case SyntaxKind.DefaultKeyword:
           break;
         default:
           throw new ArgumentException("token");
@@ -5197,6 +5199,8 @@ namespace Microsoft.CodeAnalysis.CSharp
           return SyntaxKind.FalseKeyword;
         case SyntaxKind.NullLiteralExpression:
           return SyntaxKind.NullKeyword;
+        case SyntaxKind.DefaultLiteralExpression:
+          return SyntaxKind.DefaultKeyword;
         default:
           throw new ArgumentOutOfRangeException();
       }

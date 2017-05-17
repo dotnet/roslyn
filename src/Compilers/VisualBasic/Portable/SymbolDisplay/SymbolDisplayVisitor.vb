@@ -239,7 +239,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitLocal(symbol As ILocalSymbol)
-            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name, False))
+            ' Locals can be synthesized by the compiler in many cases (for example the implicit 
+            ' local in a function that has the same name as the containing function).  In some 
+            ' cases the locals are anonymous (for example, a similar local in an operator).  
+            '
+            ' These anonymous locals should not be exposed through public APIs.  However, for
+            ' testing purposes we occasionally may print them out.  In this case, give them 
+            ' a reasonable name so that tests can clearly describe what these are.
+            Dim name = If(symbol.Name, "<anonymous local>")
+            builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, name, noEscaping:=False))
 
             If format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeType) Then
                 AddSpace()

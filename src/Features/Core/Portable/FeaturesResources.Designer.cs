@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -162,6 +162,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add null check.
+        /// </summary>
+        internal static string Add_null_check {
+            get {
+                return ResourceManager.GetString("Add_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add null checks.
         /// </summary>
         internal static string Add_null_checks {
@@ -212,6 +221,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string Add_reference_to_0 {
             get {
                 return ResourceManager.GetString("Add_reference_to_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrEmpty&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrEmpty_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrEmpty_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add &apos;string.IsNullOrWhiteSpace&apos; check.
+        /// </summary>
+        internal static string Add_string_IsNullOrWhiteSpace_check {
+            get {
+                return ResourceManager.GetString("Add_string_IsNullOrWhiteSpace_check", resourceCulture);
             }
         }
         
@@ -815,6 +842,33 @@ namespace Microsoft.CodeAnalysis {
             get {
                 return ResourceManager.GetString("Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_b" +
                         "e_extracted_to_an_interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create and initialize field &apos;{0}&apos;.
+        /// </summary>
+        internal static string Create_and_initialize_field_0 {
+            get {
+                return ResourceManager.GetString("Create_and_initialize_field_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Create and initialize property &apos;{0}&apos;.
+        /// </summary>
+        internal static string Create_and_initialize_property_0 {
+            get {
+                return ResourceManager.GetString("Create_and_initialize_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; expression can be simplified.
+        /// </summary>
+        internal static string default_expression_can_be_simplified {
+            get {
+                return ResourceManager.GetString("default_expression_can_be_simplified", resourceCulture);
             }
         }
         
@@ -1545,6 +1599,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string in_Suppression_File {
             get {
                 return ResourceManager.GetString("in_Suppression_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize field &apos;{0}&apos;.
+        /// </summary>
+        internal static string Initialize_field_0 {
+            get {
+                return ResourceManager.GetString("Initialize_field_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Initialize property &apos;{0}&apos;.
+        /// </summary>
+        internal static string Initialize_property_0 {
+            get {
+                return ResourceManager.GetString("Initialize_property_0", resourceCulture);
             }
         }
         
@@ -2598,6 +2670,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_collection_initialization {
             get {
                 return ResourceManager.GetString("Simplify_collection_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify &apos;default&apos; expression.
+        /// </summary>
+        internal static string Simplify_default_expression {
+            get {
+                return ResourceManager.GetString("Simplify_default_expression", resourceCulture);
             }
         }
         

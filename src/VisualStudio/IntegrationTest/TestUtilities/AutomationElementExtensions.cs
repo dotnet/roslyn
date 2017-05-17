@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     public static class AutomationElementExtensions
     {
         /// <summary>
-        /// Given an <see cref="AutomationElement"/>, returns a descendent with the automation ID specified by <paramref name="automationId"/>.
+        /// Given an <see cref="AutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="automationId"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
         /// </summary>
         public static AutomationElement FindDescendantByAutomationId(this AutomationElement parent, string automationId)
@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
-        /// Given an <see cref="AutomationElement"/>, returns a descendent with the automation ID specified by <paramref name="name"/>.
+        /// Given an <see cref="AutomationElement"/>, returns a descendant with the automation ID specified by <paramref name="name"/>.
         /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
         /// </summary>
         public static AutomationElement FindDescendantByName(this AutomationElement parent, string name)
@@ -47,6 +47,28 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (child == null)
             {
                 throw new InvalidOperationException($"Could not find item with name '{name}' under '{parent.GetNameForExceptionMessage()}'.");
+            }
+
+            return child;
+        }
+
+        /// <summary>
+        /// Given an <see cref="AutomationElement"/>, returns a descendant with the className specified by <paramref name="className"/>.
+        /// Throws an <see cref="InvalidOperationException"/> if no such descendant is found.
+        /// </summary>
+        public static AutomationElement FindDescendantByClass(this AutomationElement parent, string className)
+        {
+            if (parent == null)
+            {
+                throw new ArgumentNullException(nameof(parent));
+            }
+
+            var condition = new PropertyCondition(AutomationElement.ClassNameProperty, className);
+            var child = parent.FindFirst(TreeScope.Descendants, condition);
+
+            if (child == null)
+            {
+                throw new InvalidOperationException($"Could not find item with class '{className}' under '{parent.GetNameForExceptionMessage()}'.");
             }
 
             return child;
@@ -137,6 +159,23 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         }
 
         /// <summary>
+        /// Gets the value of the given <see cref="AutomationElement"/>.
+        /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
+        /// support the <see cref="ValuePattern"/>.
+        /// </summary>
+        public static string GetValue(this AutomationElement element)
+        {
+            if (element.TryGetCurrentPattern(ValuePattern.Pattern, out var valuePattern))
+            {
+                return (valuePattern as ValuePattern).Current.Value;
+            }
+            else
+            {
+                throw new InvalidOperationException($"The element '{element.GetNameForExceptionMessage()}' does not support the ValuePattern.");
+            }
+        }
+
+        /// <summary>
         /// Sets the value of the given <see cref="AutomationElement"/>.
         /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
         /// support the <see cref="ValuePattern"/>.
@@ -207,6 +246,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             ControlType type = element.GetCurrentPropertyValue(AutomationElement.ControlTypeProperty, true) as ControlType;
             return type == null ? null : type.LocalizedControlType;
+        }
+
+        /// <summary>
+        /// Returns true if the given <see cref="AutomationElement"/> is in the <see cref="ToggleState.On"/> state.
+        /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
+        /// support the <see cref="TogglePattern"/>.
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static bool IsToggledOn(this AutomationElement element)
+        {
+            if (element.TryGetCurrentPattern(TogglePattern.Pattern, out var togglePattern))
+            {
+                return (togglePattern as TogglePattern).Current.ToggleState == ToggleState.On;
+            }
+            else
+            {
+                throw new InvalidOperationException($"The element '{element.GetNameForExceptionMessage()}' does not support the TogglePattern.");
+            }
+        }
+
+        /// <summary>
+        /// Cycles through the <see cref="ToggleState"/>s of the given <see cref="AutomationElement"/>.
+        /// </summary>
+        /// Throws an <see cref="InvalidOperationException"/> if <paramref name="element"/> does not
+        /// support the <see cref="TogglePattern"/>.
+        public static void Toggle(this AutomationElement element)
+        {
+            if (element.TryGetCurrentPattern(TogglePattern.Pattern, out var togglePattern))
+            {
+                (togglePattern as TogglePattern).Toggle();
+            }
+            else
+            {
+                throw new InvalidOperationException($"The element '{element.GetNameForExceptionMessage()}' does not support the TogglePattern.");
+            }
         }
 
         /// <summary>

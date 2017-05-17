@@ -27,16 +27,15 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 try
                 {
-                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, CancellationToken).ConfigureAwait(false);
-
                     // entry point for diagnostic service
-                    var solution = await GetSolutionWithSpecificOptionsAsync(optionSet).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync().ConfigureAwait(false);
 
+                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, CancellationToken).ConfigureAwait(false);
                     var projectId = arguments.ProjectId;
                     var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken);
 
                     var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
-                        analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
+                        analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
 
                     await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
                 }
