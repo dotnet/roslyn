@@ -614,6 +614,29 @@ null";
         }
 
         [Fact]
+        public void Subsumption04b()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch ((string)null)
+        {
+            case object o:
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
         public void Subsumption05()
         {
             var source =

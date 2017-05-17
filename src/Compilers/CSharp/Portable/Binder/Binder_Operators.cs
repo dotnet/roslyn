@@ -2793,7 +2793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             operandCouldBeNull =
                 operandCouldBeNull &&
-                operandType.CanContainNull() && // a value type is never null
+                operandType.CanContainNull() && // a non-nullable value type is never null
                 (operandConstantValue == null || operandConstantValue == ConstantValue.Null); // a non-null constant is never null
 
             switch (conversionKind)

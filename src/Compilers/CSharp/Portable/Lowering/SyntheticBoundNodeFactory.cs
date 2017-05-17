@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
                     right.Type.IsErrorType() || left.Type.IsErrorType());
 
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.Kind == ConversionKind.ExplicitNullable &&
                 arg.Type.IsNullableType() &&
-                arg.Type.GetNullableUnderlyingType().Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
+                arg.Type.GetNullableUnderlyingType().Equals(type, TypeCompareKind.AllIgnoreOptions))
             {
                 // A conversion to unbox a nullable value is produced when binding a pattern-matching
                 // operation from an operand of type T? to a pattern of type T.

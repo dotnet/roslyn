@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
 
-                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.IgnoreDynamicAndTupleNames));
+                Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.AllIgnoreOptions));
 
                 var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);

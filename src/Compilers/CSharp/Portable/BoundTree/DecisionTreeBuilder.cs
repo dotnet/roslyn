@@ -251,8 +251,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (decision.MatchIsComplete)
                         {
                             // Subsumed case have been eliminated by semantic analysis.
-                            throw ExceptionUtilities.Unreachable;
-                            // return null;
+                            Debug.Assert(false);
+                            return null;
                         }
 
                         continue;
@@ -284,8 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (decision.MatchIsComplete)
                         {
                             // we should have reported this case as subsumed already.
-                            throw ExceptionUtilities.Unreachable;
-                            // return null;
+                            Debug.Assert(false);
+                            return null;
                         }
                         else
                         {
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal bool? ExpressionOfTypeMatchesPatternType(TypeSymbol expressionType, TypeSymbol patternType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            return Binder.ExpressionOfTypeMatchesPatternType(this._conversions, expressionType, patternType, ref _useSiteDiagnostics, out var conversion, null, false);
+            return Binder.ExpressionOfTypeMatchesPatternType(this._conversions, expressionType, patternType, ref _useSiteDiagnostics, out Conversion conversion, null, false);
         }
 
         private DecisionTree AddByType(DecisionTree decision, TypeSymbol type, DecisionMaker makeDecision)

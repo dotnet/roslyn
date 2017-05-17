@@ -171,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var matchPossible = ExpressionOfTypeMatchesPatternType(Conversions, operandType, patternType, ref useSiteDiagnostics, out var conversion, operand.ConstantValue, operandCouldBeNull: true);
+                var matchPossible = ExpressionOfTypeMatchesPatternType(Conversions, operandType, patternType, ref useSiteDiagnostics, out Conversion conversion, operandConstantValue: null, operandCouldBeNull: true);
                 diagnostics.Add(typeSyntax, useSiteDiagnostics);
                 if (matchPossible != false)
                 {
-                    if (conversion.Kind == ConversionKind.NoConversion && (operandType.ContainsTypeParameter() || patternType.ContainsTypeParameter()))
+                    if (!conversion.Exists && (operandType.ContainsTypeParameter() || patternType.ContainsTypeParameter()))
                     {
                         // permit pattern-matching when one of the types is an open type in C# 7.1.
                         LanguageVersion requiredVersion = MessageID.IDS_FeatureGenericPatternMatching.RequiredVersion();
@@ -215,16 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool operandCouldBeNull = false)
         {
             Debug.Assert((object)expressionType != null);
-            if (expressionType.TypeKind == TypeKind.Dynamic)
+            if (expressionType.IsDynamic())
             {
                 // if operand is the dynamic type, we do the same thing as though it were object
                 expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
-            }
-
-            if ((object)expressionType == (object)patternType)
-            {
-                conversion = Conversion.Identity;
-                return true;
             }
 
             conversion = conversions.ClassifyConversionFromType(expressionType, patternType, ref useSiteDiagnostics);
