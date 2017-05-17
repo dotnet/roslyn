@@ -43,14 +43,7 @@ try
         "dev15.3-preview1" { } 
         "master" { } 
         "post-dev15" { } 
-        default
-        {
-            if (-not $test)
-            {
-                Write-Host "Branch $branchName is not supported for publishing"
-                exit 1
-            }
-        }
+        default { } 
     }
 
     # MAIN BODY
