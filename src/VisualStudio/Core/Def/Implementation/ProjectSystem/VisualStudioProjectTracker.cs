@@ -695,39 +695,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var solution7 = (IVsSolution7)_vsSolution;
-            if (!solution7.IsDeferredProjectLoadAllowed(projectFilename))
-            {
-                return null;
-            }
+            var solution5 = (IVsSolution5)_vsSolution;
 
-            var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
-            var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
-            var commandLineArguments = commandLineParser.Parse(
-                projectInfo.CommandLineArguments,
-                projectDirectory,
-                isInteractive: false,
-                sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
-
-            // TODO: Should come from .sln file?
-            var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
-
-            // `AbstractProject` only sets the filename if it actually exists.  Since we want 
-            // our ids to match, mimic that behavior here.
-            var projectId = File.Exists(projectFilename)
-                ? GetOrCreateProjectIdForPath(projectFilename, projectName)
-                : GetOrCreateProjectIdForPath(projectName, projectName);
-            // See if we've already created this project and we're now in a recursive call to
-            // hook up a P2P ref.
-            if (_projectMap.TryGetValue(projectId, out var project))
-            {
-                return project;
-            }
-
-            OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
-            var solution5 = _serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution5;
-
-            // If the index is stale, it might give us a path that doesn't exist anymore that the 
+            // If the index is stale, it might give us a path that doesn't exist anymore that the
             // solution doesn't know about - be resilient to that case.
             Guid projectGuid;
             try
@@ -742,14 +712,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectGuid = Guid.NewGuid();
             }
 
-            // NOTE: If the indexing service fails for a project, it will give us an *empty*
-            // target path, which we aren't prepared to handle.  Instead, convert it to a *null*
-            // value, which we do handle.
-            var outputPath = projectInfo.TargetPath;
-            if (outputPath == string.Empty)
+            // TODO: Should come from .sln file?
+            var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
+
+            // `AbstractProject` only sets the filename if it actually exists.  Since we want
+            // our ids to match, mimic that behavior here.
+            var projectId = File.Exists(projectFilename)
+                ? GetOrCreateProjectIdForPath(projectFilename, projectName)
+                : GetOrCreateProjectIdForPath(projectName, projectName);
+
+            // See if something has already created this project - it's not deferred, the AnyCode design time build
+            // failed so we force loaded it, or we already created a deferred project and we're in a recursive call
+            // to find a ProjectReference
+            if (_projectMap.TryGetValue(projectId, out var project))
             {
-                outputPath = null;
+                return project;
             }
+
+            var solution7 = (IVsSolution7)_vsSolution;
+            if (projectInfo.CommandLineArguments.IsDefaultOrEmpty || string.IsNullOrEmpty(projectInfo.TargetPath) || !solution7.IsDeferredProjectLoadAllowed(projectFilename))
+            {
+                // If AnyCode was unable to run a design time build for this project, let's trigger it to load fully, so that IDE features will work as expected.
+                // CONSIDER: Would we get performance benefits from using "EnsureProjectsAreLoaded" on all of these at once? Should we avoid forcing this for the deferred case
+                // unless we need it to satisfy a P2P reference?
+                var solution4 = (IVsSolution4)_vsSolution;
+                solution4.EnsureProjectIsLoaded(projectGuid, (int)__VSBSLFLAGS.VSBSLFLAGS_None);
+
+                // If that worked, our ProjectId should be in _projectMap now.
+                return _projectMap.TryGetValue(projectId, out project)
+                    ? project
+                    : null;
+            }
+
+            var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
+            var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
+            var commandLineArguments = commandLineParser.Parse(
+                projectInfo.CommandLineArguments,
+                projectDirectory,
+                isInteractive: false,
+                sdkDirectory: RuntimeEnvironment.GetRuntimeDirectory());
+
+            OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
 
             var projectContext = workspaceProjectContextFactory.CreateProjectContext(
                 languageName,
@@ -757,7 +760,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 projectFilename,
                 projectGuid: projectGuid,
                 hierarchy: null,
-                binOutputPath: outputPath);
+                binOutputPath: projectInfo.TargetPath);
 
             project = (AbstractProject)projectContext;
             projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
