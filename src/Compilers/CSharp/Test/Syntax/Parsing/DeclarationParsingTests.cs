@@ -5225,7 +5225,7 @@ class Class1<T>{
         public void TestNamespaceDeclarationsBadNames1()
         {
             var text = @"namespace A::B { }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,11): error CS7000: Unexpected use of an aliased name
                 // namespace A::B { }
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "A::B").WithLocation(1, 11));
@@ -5235,7 +5235,7 @@ class Class1<T>{
         public void TestNamespaceDeclarationsBadNames2()
         {
             var text = @"namespace A<B> { }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,11): error CS7002: Unexpected use of a generic name
                 // namespace A<B> { }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<B>").WithLocation(1, 11));
@@ -5245,7 +5245,7 @@ class Class1<T>{
         public void TestNamespaceDeclarationsBadNames3()
         {
             var text = @"namespace A<,> { }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (1,11): error CS7002: Unexpected use of a generic name
                 // namespace A<,> { }
                 Diagnostic(ErrorCode.ERR_UnexpectedGenericName, "A<,>").WithLocation(1, 11));

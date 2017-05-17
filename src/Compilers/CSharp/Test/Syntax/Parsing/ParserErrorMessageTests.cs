@@ -4665,7 +4665,7 @@ namespace N1
 ";
 
             // Native compiler : CS1003
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (12,22): error CS7000: Unexpected use of an aliased name
                 //             N1.global::Test.M1();
                 Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "::").WithLocation(12, 22),
