@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -165,6 +166,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundLabeledStatementOperation((BoundLabeledStatement)boundNode);
                 case BoundKind.ExpressionStatement:
                     return CreateBoundExpressionStatementOperation((BoundExpressionStatement)boundNode);
+                case BoundKind.InterpolatedString:
+                    return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
+                case BoundKind.StringInsert:
+                    throw ExceptionUtilities.UnexpectedValue(boundNode.Kind);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
@@ -984,6 +989,63 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             return new LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue);
+        }
+
+        private static IInterpolatedStringExpression CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
+        {
+            Lazy<ImmutableArray<IInterpolatedStringContent>> parts = new Lazy<ImmutableArray<IInterpolatedStringContent>>(() => GetInterpolatedStringExpressionParts(boundInterpolatedString));
+            bool isInvalid = boundInterpolatedString.HasErrors;
+            SyntaxNode syntax = boundInterpolatedString.Syntax;
+            ITypeSymbol type = boundInterpolatedString.Type;
+            Optional<object> constantValue = ConvertToOptional(boundInterpolatedString.ConstantValue);
+            return new LazyInterpolatedStringExpression(parts, isInvalid, syntax, type, constantValue);
+        }
+
+        private static IInterpolatedStringContent CreateBoundInterpolatedStringContentOperation(BoundNode boundNode)
+        {
+            if (boundNode == null)
+            {
+                return null;
+            }
+
+            return (IInterpolatedStringContent)s_cache.GetValue(boundNode, n => CreateBoundInterpolatedStringContentCore(n));
+        }
+
+        private static IInterpolatedStringContent CreateBoundInterpolatedStringContentCore(BoundNode boundInterpolatedStringContent)
+        {
+            switch (boundInterpolatedStringContent.Kind)
+            {
+                case BoundKind.StringInsert:
+                    return CreateBoundInterpolationOperation((BoundStringInsert)boundInterpolatedStringContent);
+
+                case BoundKind.Literal:
+                    return CreateBoundInterpolatedStringTextOperation((BoundLiteral)boundInterpolatedStringContent);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(boundInterpolatedStringContent.Kind);
+            }
+        }
+
+        private static IInterpolation CreateBoundInterpolationOperation(BoundStringInsert boundStringInsert)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundStringInsert.Value));
+            Lazy<IOperation> alignment = new Lazy<IOperation>(() => Create(boundStringInsert.Alignment));
+            Lazy<IOperation> format = new Lazy<IOperation>(() => Create(boundStringInsert.Format));
+            bool isInvalid = boundStringInsert.HasErrors;
+            SyntaxNode syntax = boundStringInsert.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            return new LazyInterpolation(expression, alignment, format, isInvalid, syntax, type, constantValue);
+        }
+
+        private static IInterpolatedStringText CreateBoundInterpolatedStringTextOperation(BoundLiteral boundLiteral)
+        {
+            Lazy<IOperation> text = new Lazy<IOperation>(() => CreateInternal(boundLiteral));
+            bool isInvalid = boundLiteral.HasErrors;
+            SyntaxNode syntax = boundLiteral.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            return new LazyInterpolatedStringText(text, isInvalid, syntax, type, constantValue);
         }
     }
 }

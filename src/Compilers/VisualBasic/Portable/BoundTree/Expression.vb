@@ -199,26 +199,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
     End Class
 
-    Friend Partial Class BoundNameOfOperator
+    Partial Friend Class BoundNameOfOperator
         Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
                 Return ImmutableArray.Create(Of BoundNode)(Me.Argument)
-            End Get
-        End Property
-    End Class
-
-    Friend Partial Class BoundInterpolatedStringExpression
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return Me.Contents
-            End Get
-        End Property
-    End Class
-
-    Friend Partial Class BoundInterpolation
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
-            Get
-                Return ImmutableArray.Create(Of BoundNode)(Me.Expression, Me.AlignmentOpt, Me.FormatStringOpt)
             End Get
         End Property
     End Class

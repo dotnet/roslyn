@@ -340,6 +340,16 @@ namespace Microsoft.CodeAnalysis.Semantics
                         OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
         }
 
+        private static readonly ConditionalWeakTable<BoundInterpolatedString, object> s_interpolatedStringExpressionMappings =
+            new ConditionalWeakTable<BoundInterpolatedString, object>();
+
+        private static ImmutableArray<IInterpolatedStringContent> GetInterpolatedStringExpressionParts(BoundInterpolatedString boundInterpolatedString)
+        {
+            return (ImmutableArray<IInterpolatedStringContent>)s_interpolatedStringExpressionMappings.GetValue(boundInterpolatedString,
+                interpolatedString =>
+                    interpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
+        }
+
         // TODO: We need to reuse the logic in `LocalRewriter.MakeArguments` instead of using private implementation. 
         //       Also. this implementation here was for the (now removed) API `ArgumentsInParameter`, which doesn't fulfill
         //       the contract of `ArgumentsInEvaluationOrder` plus it doesn't handle various scenarios correctly even for parameter order, 

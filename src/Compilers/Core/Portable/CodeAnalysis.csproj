@@ -54,6 +54,10 @@
     <Compile Include="Operations\IBranchStatement.cs" />
     <Compile Include="Operations\ICaseClause.cs" />
     <Compile Include="Operations\ICatchClause.cs" />
+    <Compile Include="Operations\IInterpolatedStringText.cs" />
+    <Compile Include="Operations\IInterpolation.cs" />
+    <Compile Include="Operations\IInterpolatedStringContent.cs" />
+    <Compile Include="Operations\IInterpolatedStringExpression.cs" />
     <Compile Include="Operations\ICompoundAssignmentExpression.cs" />
     <Compile Include="Operations\IConditionalAccessExpression.cs" />
     <Compile Include="Operations\IConditionalAccessInstanceExpression.cs" />
@@ -96,7 +100,7 @@
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
     <Compile Include="Operations\IOperationWithChildren.cs" />
     <Compile Include="Operations\Operation.cs" />
-    <Compile Include="Operations\IOperationKind.cs" />
+    <Compile Include="Operations\OperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
     <Compile Include="Operations\IParameterReferenceExpression.cs" />
     <Compile Include="Operations\IParenthesizedExpression.cs" />

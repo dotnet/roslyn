@@ -161,6 +161,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return CreateBoundAddHandlerStatementOperation(DirectCast(boundNode, BoundAddHandlerStatement))
                 Case BoundKind.RemoveHandlerStatement
                     Return CreateBoundRemoveHandlerStatementOperation(DirectCast(boundNode, BoundRemoveHandlerStatement))
+                Case BoundKind.InterpolatedStringExpression
+                    Return CreateBoundInterpolatedStringExpressionOperation(DirectCast(boundNode, BoundInterpolatedStringExpression))
+                Case BoundKind.Interpolation
+                    Throw ExceptionUtilities.UnexpectedValue(boundNode.Kind)
                 Case Else
                     Dim constantValue = ConvertToOptional(TryCast(boundNode, BoundExpression)?.ConstantValueOpt)
                     Return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, Function() GetIOperationChildren(boundNode))
@@ -1015,6 +1019,56 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
             Return New LazyExpressionStatement(expression, isInvalid, syntax, type, constantValue)
+        End Function
+
+        Private Shared Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringExpression
+            Dim parts As New Lazy(Of ImmutableArray(Of IInterpolatedStringContent))(Function() GetInterpolatedStringExpressionParts(boundInterpolatedString))
+            Dim isInvalid As Boolean = boundInterpolatedString.HasErrors
+            Dim syntax As SyntaxNode = boundInterpolatedString.Syntax
+            Dim type As ITypeSymbol = boundInterpolatedString.Type
+            Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundInterpolatedString.ConstantValueOpt)
+            Return New LazyInterpolatedStringExpression(parts, isInvalid, syntax, type, constantValue)
+        End Function
+
+        Private Shared Function CreateBoundInterpolatedStringContentOperation(boundNode As BoundNode) As IInterpolatedStringContent
+            If boundNode Is Nothing Then
+                Return Nothing
+            End If
+
+            Return DirectCast(s_cache.GetValue(boundNode, Function(n) CreateBoundInterpolatedStringContentOperationCore(n)), IInterpolatedStringContent)
+        End Function
+
+        Private Shared Function CreateBoundInterpolatedStringContentOperationCore(boundInterpolatedStringContent As BoundNode) As IInterpolatedStringContent
+            Select Case boundInterpolatedStringContent.Kind
+                Case BoundKind.Interpolation
+                    Return CreateBoundInterpolationOperation(DirectCast(boundInterpolatedStringContent, BoundInterpolation))
+
+                Case BoundKind.Literal
+                    Return CreateBoundInterpolatedStringTextOperation(DirectCast(boundInterpolatedStringContent, BoundLiteral))
+                Case Else
+
+                    Throw ExceptionUtilities.UnexpectedValue(boundInterpolatedStringContent.Kind)
+            End Select
+        End Function
+
+        Private Shared Function CreateBoundInterpolationOperation(boundInterpolation As BoundInterpolation) As IInterpolation
+            Dim expression As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundInterpolation.Expression))
+            Dim alignment As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundInterpolation.AlignmentOpt))
+            Dim format As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundInterpolation.FormatStringOpt))
+            Dim isInvalid As Boolean = boundInterpolation.HasErrors
+            Dim syntax As SyntaxNode = boundInterpolation.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Return New LazyInterpolation(expression, alignment, format, isInvalid, syntax, type, constantValue)
+        End Function
+
+        Private Shared Function CreateBoundInterpolatedStringTextOperation(boundLiteral As BoundLiteral) As IInterpolatedStringText
+            Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() CreateInternal(boundLiteral))
+            Dim isInvalid As Boolean = boundLiteral.HasErrors
+            Dim syntax As SyntaxNode = boundLiteral.Syntax
+            Dim type As ITypeSymbol = Nothing
+            Dim constantValue As [Optional](Of Object) = Nothing
+            Return New LazyInterpolatedStringText(text, isInvalid, syntax, type, constantValue)
         End Function
     End Class
 End Namespace

@@ -2004,6 +2004,205 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <remarks>
+    /// Represents an interpolated string expression.
+    /// </remarks>
+    internal abstract partial class BaseInterpolatedStringExpression : Operation, IInterpolatedStringExpression
+    {
+        protected BaseInterpolatedStringExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.InterpolatedStringExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
+        /// </summary>
+        public abstract ImmutableArray<IInterpolatedStringContent> Parts { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInterpolatedStringExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInterpolatedStringExpression(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class InterpolatedStringExpression : BaseInterpolatedStringExpression, IInterpolatedStringExpression
+    {
+        public InterpolatedStringExpression(ImmutableArray<IInterpolatedStringContent> parts, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Parts = parts;
+        }
+        /// <summary>
+        /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
+        /// </summary>
+        public override ImmutableArray<IInterpolatedStringContent> Parts { get; }
+    }
+
+    /// <remarks>
+    /// Represents an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class LazyInterpolatedStringExpression : BaseInterpolatedStringExpression, IInterpolatedStringExpression
+    {
+        private readonly Lazy<ImmutableArray<IInterpolatedStringContent>> _lazyParts;
+
+        public LazyInterpolatedStringExpression(Lazy<ImmutableArray<IInterpolatedStringContent>> parts, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyParts = parts;
+        }
+        /// <summary>
+        /// Constituent parts of interpolated string, each of which is an <see cref="IInterpolatedStringContent"/>.
+        /// </summary>
+        public override ImmutableArray<IInterpolatedStringContent> Parts => _lazyParts.Value;
+    }
+
+    /// <remarks>
+    /// Represents a constituent string literal part of an interpolated string expression.
+    /// </remarks>
+    internal abstract partial class BaseInterpolatedStringText : Operation, IInterpolatedStringText
+    {
+        protected BaseInterpolatedStringText(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.InterpolatedStringText, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Text content.
+        /// </summary>
+        public abstract IOperation Text { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInterpolatedStringText(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInterpolatedStringText(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents a constituent string literal part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class InterpolatedStringText : BaseInterpolatedStringText, IInterpolatedStringText
+    {
+        public InterpolatedStringText(IOperation text, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Text = text;
+        }
+        /// <summary>
+        /// Text content.
+        /// </summary>
+        public override IOperation Text { get; }
+    }
+
+    /// <remarks>
+    /// Represents a constituent string literal part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class LazyInterpolatedStringText : BaseInterpolatedStringText, IInterpolatedStringText
+    {
+        private readonly Lazy<IOperation> _lazyText;
+
+        public LazyInterpolatedStringText(Lazy<IOperation> text, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyText = text;
+        }
+        /// <summary>
+        /// Text content.
+        /// </summary>
+        public override IOperation Text => _lazyText.Value;
+    }
+
+    /// <remarks>
+    /// Represents a constituent interpolation part of an interpolated string expression.
+    /// </remarks>
+    internal abstract partial class BaseInterpolation : Operation, IInterpolation
+    {
+        protected BaseInterpolation(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.Interpolation, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Expression of the interpolation.
+        /// </summary>
+        public abstract IOperation Expression { get; }
+        /// <summary>
+        /// Optional alignment of the interpolation.
+        /// </summary>
+        public abstract IOperation Alignment { get; }
+        /// <summary>
+        /// Optional format string of the interpolation.
+        /// </summary>
+        public abstract IOperation FormatString { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitInterpolation(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitInterpolation(this, argument);
+        }
+    }
+
+    /// <remarks>
+    /// Represents a constituent interpolation part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class Interpolation : BaseInterpolation, IInterpolation
+    {
+        public Interpolation(IOperation expression, IOperation alignment, IOperation formatString, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Expression = expression;
+            Alignment = alignment;
+            FormatString = formatString;
+        }
+        /// <summary>
+        /// Expression of the interpolation.
+        /// </summary>
+        public override IOperation Expression { get; }
+        /// <summary>
+        /// Optional alignment of the interpolation.
+        /// </summary>
+        public override IOperation Alignment { get; }
+        /// <summary>
+        /// Optional format string of the interpolation.
+        /// </summary>
+        public override IOperation FormatString { get; }
+    }
+
+    /// <remarks>
+    /// Represents a constituent interpolation part of an interpolated string expression.
+    /// </remarks>
+    internal sealed partial class LazyInterpolation : BaseInterpolation, IInterpolation
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<IOperation> _lazyAlignment;
+        private readonly Lazy<IOperation> _lazyFormatString;
+
+        public LazyInterpolation(Lazy<IOperation> expression, Lazy<IOperation> alignment, Lazy<IOperation> formatString, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyExpression = expression;
+            _lazyAlignment = alignment;
+            _lazyFormatString = formatString;
+        }
+        /// <summary>
+        /// Expression of the interpolation.
+        /// </summary>
+        public override IOperation Expression => _lazyExpression.Value;
+        /// <summary>
+        /// Optional alignment of the interpolation.
+        /// </summary>
+        public override IOperation Alignment => _lazyAlignment.Value;
+        /// <summary>
+        /// Optional format string of the interpolation.
+        /// </summary>
+        public override IOperation FormatString => _lazyFormatString.Value;
+    }
+
+    /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>

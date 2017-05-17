@@ -489,6 +489,16 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Function)
         End Function
 
+        Private Shared ReadOnly s_interpolatedStringExpressionMappings As New ConditionalWeakTable(Of BoundInterpolatedStringExpression, Object)()
+
+        Private Shared Function GetInterpolatedStringExpressionParts(boundInterpolatedString As BoundInterpolatedStringExpression) As ImmutableArray(Of IInterpolatedStringContent)
+            Return DirectCast(s_interpolatedStringExpressionMappings.GetValue(
+                boundInterpolatedString,
+                Function(interpolatedString)
+                    Return interpolatedString.Contents.SelectAsArray(Function(interpolatedStringContent) CreateBoundInterpolatedStringContentOperation(interpolatedStringContent))
+                End Function), ImmutableArray(Of IInterpolatedStringContent))
+        End Function
+
         Friend Class Helper
             Friend Shared Function DeriveUnaryOperationKind(operatorKind As UnaryOperatorKind) As UnaryOperationKind
                 Select Case operatorKind And UnaryOperatorKind.OpMask

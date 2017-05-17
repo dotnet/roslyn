@@ -61,6 +61,7 @@
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.AllInOne.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerTests.cs" />
     <Compile Include="Diagnostics\GetDiagnosticsTests.cs" />
+    <Compile Include="IOperation\IOperationTests_IInterpolatedStringExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IArgument.cs" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.cs" />
