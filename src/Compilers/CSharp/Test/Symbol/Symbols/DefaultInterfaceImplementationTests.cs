@@ -20044,15 +20044,6 @@ class Test2 : I1
             compilation5.VerifyDiagnostics(expected2);
 
             ValidateEventNotImplemented_11(compilation5, "Test2");
-            void ValidateEventNotImplemented_11(CSharpCompilation compilation, string className)
-            {
-                var test2 = compilation5.GetTypeByMetadataName("Test2");
-                var i1 = compilation5.GetTypeByMetadataName("I1");
-                var p1 = GetSingleEvent(i1);
-                Assert.Null(test2.FindImplementationForInterfaceMember(p1));
-                Assert.Null(test2.FindImplementationForInterfaceMember(p1.AddMethod));
-                Assert.Null(test2.FindImplementationForInterfaceMember(p1.RemoveMethod));
-            }
 
             var compilation6 = CreateStandardCompilation(source3, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
