@@ -35,11 +35,11 @@
     <file src="Dlls/MSbuildTask/Microsoft.VisualBasic.Core.targets" target="tools" />
 
     <!-- References that are either not in the target framework or are a higher version -->
-    <file src="Exes/CscCore/System.Collections.Immutable.dll" target="tools" />
-    <file src="Exes/CscCore/System.Reflection.Metadata.dll" target="tools" />
-    <file src="Exes/CscCore/System.ValueTuple.dll" target="tools" />
-    <file src="Exes/CscCore/System.Xml.XmlDocument.dll" target="tools" />
-    <file src="Exes/CscCore/System.Xml.XPath.dll" target="tools" />
-    <file src="Exes/CscCore/System.Xml.XPath.XDocument.dll" target="tools" />
+    <file src="Exes/Toolset/System.Collections.Immutable.dll" target="tools" />
+    <file src="Exes/Toolset/System.Reflection.Metadata.dll" target="tools" />
+    <file src="Exes/Toolset/System.ValueTuple.dll" target="tools" />
+    <file src="Exes/Toolset/System.Xml.XmlDocument.dll" target="tools" />
+    <file src="Exes/Toolset/System.Xml.XPath.dll" target="tools" />
+    <file src="Exes/Toolset/System.Xml.XPath.XDocument.dll" target="tools" />
   </files>
 </package>
