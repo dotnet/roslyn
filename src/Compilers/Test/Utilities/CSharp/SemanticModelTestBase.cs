@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CSharpParseOptions parseOptions = null, 
             MetadataReference[] additionalReferences = null,
             Action<IOperation> AdditionalOperationTreeVerifier = null)
-   where TSyntaxNode : SyntaxNode
+            where TSyntaxNode : SyntaxNode
         {
             var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(testSrc, expectedOperationTree, expectedDiagnostics, compilationOptions, parseOptions, new[] { ilReference }, AdditionalOperationTreeVerifier);

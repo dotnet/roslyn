@@ -850,7 +850,7 @@ IInvocationExpression ( System.Boolean P.M2([System.String memberName = null], [
         }
 
         [Fact]
-        public void CallerInfoAttributesInvokedInFieldInitilizer()
+        public void CallerInfoAttributesInvokedInFieldInitializer()
         {
             string source = @"
 using System.Runtime.CompilerServices;

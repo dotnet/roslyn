@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
 
-            if (CanSkipRewriting(ref rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
+            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
             {
                 temps = temporariesBuilder.ToImmutableAndFree();
                 return rewrittenArguments;
@@ -519,9 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ArrayBuilder<IArgument> argumentsInEvaluationBuilder = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
 
-            bool canSkipRewriting = CanSkipRewriting(ref arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver); 
-
-            if (canSkipRewriting)
+            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
             {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.   
@@ -529,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {                                                 
                     argumentsInEvaluationBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
                 } 
-                return argumentsInEvaluationBuilder.ToImmutableAndFree(); ;
+                return argumentsInEvaluationBuilder.ToImmutableAndFree();
             }                                                                                                                   
 
             ArrayBuilder<ParameterSymbol> missingParametersBuilder = ArrayBuilder<ParameterSymbol>.GetInstance(parameters.Length);
@@ -551,7 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // temporariesBuilder will be null when factory is null.
         private static bool CanSkipRewriting(
-            ref ImmutableArray<BoundExpression> rewrittenArguments,
+            ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
@@ -701,10 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set loop variable so the value for next iteration will be the index of the first non param-array argument after param-array argument(s).
                     a = firstNonParamArrayArgumentIndex - 1;
 
-                    var paramArrayType = parameters[p].Type;
-                    var arrayArgs = paramArray.ToImmutableAndFree();
-
-                    argument = CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, null, binder);
+                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), null, binder);
                 }  
 
                 argumentsBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument)); 

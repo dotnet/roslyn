@@ -119,16 +119,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //TODO: https://github.com/dotnet/roslyn/issues/18722
                     //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
                     //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
-                    if (n.HasErrors || optionalParametersMethod == null)
+                    if (n.HasErrors || (object)optionalParametersMethod == null)
                     {
                         // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
                         // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                        ArrayBuilder<IArgument> argumentsWithErrors = ArrayBuilder<IArgument>.GetInstance(boundArguments.Length);
-                        for (int a = 0; a < boundArguments.Length; ++a)
-                        {
-                            argumentsWithErrors.Add(CreateArgumentOperation(ArgumentKind.Explicit, null, boundArguments[a]));
-                        }
-                        return argumentsWithErrors.ToImmutableAndFree();
+                        return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, arg));
                     }                                                                                           
 
                    return LocalRewriter.MakeArgumentsInEvaluationOrder(
