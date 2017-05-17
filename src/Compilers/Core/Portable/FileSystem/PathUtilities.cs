@@ -25,12 +25,14 @@ namespace Roslyn.Utilities
         internal static bool IsUnixLikePlatform => PlatformInformation.IsUnix;
 
         /// <summary>
-        /// True if the character is a directory separator character.
+        /// True if the character is the platform directory separator character or the alternate directory separator.
         /// </summary>
-        public static bool IsDirectorySeparator(char c)
-        {
-            return c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
-        }
+        public static bool IsDirectorySeparator(char c) => c == DirectorySeparatorChar || c == AltDirectorySeparatorChar;
+
+        /// <summary>
+        /// True if the character is any recognized directory separator character.
+        /// </summary>
+        public static bool IsAnyDirectorySeparator(char c) => c == '\\' || c == '/';
 
         /// <summary>
         /// Removes trailing directory separator characters
@@ -630,7 +632,7 @@ namespace Roslyn.Utilities
                 var oldPrefix = kv.Key;
                 if (!(oldPrefix?.Length > 0)) continue;
 
-                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && PathUtilities.IsDirectorySeparator(filePath[oldPrefix.Length]))
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && IsAnyDirectorySeparator(filePath[oldPrefix.Length]))
                 {
                     var replacementPrefix = kv.Value;
 
