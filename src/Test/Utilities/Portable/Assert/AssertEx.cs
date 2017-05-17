@@ -392,6 +392,13 @@ namespace Roslyn.Test.Utilities
             Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
         }
 
+        public static void AssertStartsWithToleratingWhitespaceDifferences(string expectedSubString, string actualString)
+        {
+            expectedSubString = NormalizeWhitespace(expectedSubString);
+            actualString = NormalizeWhitespace(actualString);
+            Assert.StartsWith(expectedSubString, actualString, StringComparison.Ordinal);
+        }
+
         internal static string NormalizeWhitespace(string input)
         {
             var output = new StringBuilder();
