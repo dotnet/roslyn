@@ -1958,7 +1958,7 @@ public class a {
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         for (int i=0; i < 3; i++) MyLabel: {}
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}").WithLocation(6, 35),
@@ -1980,7 +1980,7 @@ public class a {
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         for (int i=0; i < 3; i++) int j;
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int j;").WithLocation(6, 35),
@@ -2002,7 +2002,7 @@ public class a {
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         for (int i=0; i < 3; i++) void j() { }
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "void j() { }").WithLocation(6, 35),
@@ -5127,7 +5127,7 @@ class MyClass
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (10,17): warning CS0642: Possible mistaken empty statement
                 //         if(true);else;
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 17),
