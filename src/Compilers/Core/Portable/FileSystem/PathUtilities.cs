@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -614,6 +615,41 @@ namespace Roslyn.Utilities
 
             return hc;
         }
+
+        public static string NormalizePathPrefix(string filePath, ImmutableArray<KeyValuePair<string, string>> pathMap)
+        {
+            if (pathMap.IsDefaultOrEmpty)
+            {
+                return filePath;
+            }
+
+            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
+            // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
+            foreach (var kv in pathMap)
+            {
+                var oldPrefix = kv.Key;
+                if (!(oldPrefix?.Length > 0)) continue;
+
+                if (filePath.StartsWith(oldPrefix, StringComparison.Ordinal) && filePath.Length > oldPrefix.Length && PathUtilities.IsDirectorySeparator(filePath[oldPrefix.Length]))
+                {
+                    var replacementPrefix = kv.Value;
+
+                    // Replace that prefix.
+                    var replacement = replacementPrefix + filePath.Substring(oldPrefix.Length);
+
+                    // Normalize the path separators if used uniformly in the replacement
+                    bool hasSlash = replacementPrefix.IndexOf('/') >= 0;
+                    bool hasBackslash = replacementPrefix.IndexOf('\\') >= 0;
+                    return
+                        (hasSlash && !hasBackslash) ? replacement.Replace('\\', '/') :
+                        (hasBackslash && !hasSlash) ? replacement.Replace('/', '\\') :
+                        replacement;
+                }
+            }
+
+            return filePath;
+        }
+
 
         public static readonly IEqualityComparer<string> Comparer = new PathComparer();
 
