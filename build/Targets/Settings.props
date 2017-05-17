@@ -124,7 +124,7 @@
     <When Condition="'$(MSBuildProjectExtension)' == '.vbproj' OR '$(Language)' == 'VB' OR '$(ProjectLanguage)' == 'VB'">
       <PropertyGroup>
         <ProjectLanguage>VB</ProjectLanguage>
-        <LangVersion>Latest</LangVersion>
+        <LangVersion>15.3</LangVersion>
         <MyType>Empty</MyType>
         <OptionCompare>Binary</OptionCompare>
         <OptionExplicit>On</OptionExplicit>
@@ -163,7 +163,7 @@
     <When Condition="'$(MSBuildProjectExtension)' == '.csproj' OR '$(Language)' == 'C#' OR '$(ProjectLanguage)' == 'CSharp'">
       <PropertyGroup>
         <ProjectLanguage>CSharp</ProjectLanguage>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>7.1</LangVersion>
         <WarningLevel>4</WarningLevel>
         <ErrorReport>prompt</ErrorReport>
 
