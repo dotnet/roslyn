@@ -14,7 +14,7 @@
     <Node Id="Microsoft.CodeAnalysis.VisualBasic"/>
     <Node Id="Microsoft.CodeAnalysis.VisualBasic.Workspaces"/>
     <Node Id="Microsoft.CodeAnalysis.Workspaces.Common"/>
-    <Node Id="Microsoft.Composition"/>
+    <Node Id="System.Composition"/>
     <Node Id="Microsoft.Net.Compilers"/>
     <Node Id="Microsoft.Net.RoslynDiagnostics"/>
     <Node Id="Microsoft.Net.ToolsetCompilers"/>
@@ -37,7 +37,7 @@
     <Link Source="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Target="Microsoft.CodeAnalysis.VisualBasic"/>
     <Link Source="Microsoft.CodeAnalysis.VisualBasic.Workspaces" Target="Microsoft.CodeAnalysis.Workspaces.Common"/>
     <Link Source="Microsoft.CodeAnalysis.Workspaces.Common" Target="Microsoft.CodeAnalysis.Common"/>
-    <Link Source="Microsoft.CodeAnalysis.Workspaces.Common" Target="Microsoft.Composition"/>
+    <Link Source="Microsoft.CodeAnalysis.Workspaces.Common" Target="System.Composition"/>
     <Link Source="Microsoft.Net.RoslynDiagnostics" Target="Microsoft.Net.ToolsetCompilers"/>
     <Link Source="Microsoft.VisualStudio.LanguageServices" Target="Microsoft.CodeAnalysis.CodeActions"/>
   </Links>

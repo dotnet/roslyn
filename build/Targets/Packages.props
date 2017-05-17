@@ -31,7 +31,7 @@
     <MicrosoftCodeAnalysisVisualBasicVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonVersion>1.0.1</MicrosoftCodeAnalysisWorkspacesCommonVersion>
-    <MicrosoftCompositionVersion>1.0.27</MicrosoftCompositionVersion>
+    <SystemCompositionVersion>1.0.31</SystemCompositionVersion>
     <MicrosoftCSharpVersion>4.3.0</MicrosoftCSharpVersion>
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>

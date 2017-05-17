@@ -40,7 +40,7 @@
       <package id="Microsoft.CodeAnalysis.Workspaces.Common" version="1.0.1" skipAssemblyReferences="false"/>
       <package id="System.Collections.Immutable" version="1.1.36" skipAssemblyReferences="false" />
       <package id="System.Reflection.Metadata" version="1.0.21" skipAssemblyReferences="false" />
-      <package id="Microsoft.Composition" version="1.0.27" skipAssemblyReferences="false" />
+      <package id="System.Composition" version="1.0.31" skipAssemblyReferences="false" />
     </packages>
   </WizardData>
 </VSTemplate>
