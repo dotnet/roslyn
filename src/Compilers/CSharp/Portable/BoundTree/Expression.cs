@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                MethodSymbol accessor = this.IsLeftOfAssignment && !this.Indexer.ReturnsByRef 
+                MethodSymbol accessor = this.UseSetterForDefaultArgumentGeneration 
                     ? this.Indexer.GetOwnOrInheritedSetMethod() 
                     : this.Indexer.GetOwnOrInheritedGetMethod(); 
 
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         bool IOperation.IsInvalid
              => this.HasErrors 
-            || (this.Indexer.IsReadOnly && this.IsLeftOfAssignment) 
-            || (this.Indexer.IsWriteOnly && !this.IsLeftOfAssignment);
+            || (this.Indexer.IsReadOnly && this.UseSetterForDefaultArgumentGeneration) 
+            || (this.Indexer.IsWriteOnly && !this.UseSetterForDefaultArgumentGeneration);
 
         protected override OperationKind ExpressionKind => OperationKind.IndexedPropertyReferenceExpression;
 

@@ -511,6 +511,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return operand;
             }
 
+            // TODO: Consider doing constant folding for default parameter value conversion.
+            //       https://github.com/dotnet/roslyn/issues/19591
             return new BoundConversion(
                             syntax,
                             operand,

@@ -1933,21 +1933,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetNonMethodMemberType(otherSymbol));
                 }
             }
-            else if (expr.Kind == BoundKind.IndexerAccess && valueKind == BindValueKind.Assignment)
+            else if (expr.Kind == BoundKind.IndexerAccess)
             {
-                // Assigning to an indexer access, need to set 'isLeftOfAssignment' to true.
+                // Assigning to an non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
                 // This is for IOperation purpose.
                 var indexerAccess = (BoundIndexerAccess)expr;
-                expr = indexerAccess.Update(indexerAccess.ReceiverOpt,
-                    indexerAccess.Indexer,
-                    indexerAccess.Arguments,
-                    indexerAccess.ArgumentNamesOpt,
-                    indexerAccess.ArgumentRefKindsOpt,
-                    indexerAccess.Expanded,
-                    indexerAccess.ArgsToParamsOpt,
-                    indexerAccess.BinderOpt,
-                    isLeftOfAssignment: true,
-                    type: indexerAccess.Type);
+                if (valueKind == BindValueKind.Assignment && !indexerAccess.Indexer.ReturnsByRef)
+                {
+                    expr = indexerAccess.Update(indexerAccess.ReceiverOpt,
+                       indexerAccess.Indexer,
+                       indexerAccess.Arguments,
+                       indexerAccess.ArgumentNamesOpt,
+                       indexerAccess.ArgumentRefKindsOpt,
+                       indexerAccess.Expanded,
+                       indexerAccess.ArgsToParamsOpt,
+                       indexerAccess.BinderOpt,
+                       useSetterForDefaultArgumentGeneration: true,
+                       type: indexerAccess.Type);
+                }                
             }
 
             if (!hasResolutionErrors && CheckValueKind(expr, valueKind, diagnostics) ||

@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 false,
                 default(ImmutableArray<int>),
                 null,
-                indexerAccess.IsLeftOfAssignment,
+                indexerAccess.UseSetterForDefaultArgumentGeneration,
                 indexerAccess.Type);
         }
 

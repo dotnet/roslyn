@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 binderOpt: null,
-                isLeftOfAssignment: false,
+                useSetterForDefaultArgumentGeneration: false,
                 type: indexer.Type,
                 hasErrors: true)
             {

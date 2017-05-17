@@ -615,44 +615,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 RefKind refKind = argumentRefKinds.RefKinds(a);
                 Debug.Assert(arguments[p] == null);
 
-                if (expanded && p == arguments.Length - 1)
+                // Unfortunately, we violate the specification and allow:
+                // M(int q, params int[] x) ... M(x : X(), q : Q());
+                // which means that we cannot bail out just because
+                // an argument of an expanded-form call corresponds to
+                // the parameter array. We need to make sure that the
+                // side effects of X() and Q() continue to happen in the right
+                // order here.
+                //
+                // Fortunately, we do disallow M(x : 123, x : 345, x : 456).
+                // 
+                // Here's what we'll do. If all the remaining arguments
+                // correspond to elements in the parameter array then 
+                // we can bail out here without creating any temporaries.
+                // The next step in the call rewriter will deal with gathering
+                // up the elements. 
+                //
+                // However, if there are other elements after this one
+                // that do not correspond to elements in the parameter array
+                // then we need to create a temporary as usual. The step that
+                // produces the parameter array will need to deal with that
+                // eventuality.
+                                                                                                          
+                if (IsBeginningOfParamArray(p, a, expanded, arguments.Length, rewrittenArguments, argsToParamsOpt, out int paramArrayArgumentCount) 
+                    && a + paramArrayArgumentCount == rewrittenArguments.Length)
                 {
-                    // Unfortunately, we violate the specification and allow:
-                    // M(int q, params int[] x) ... M(x : X(), q : Q());
-                    // which means that we cannot bail out just because
-                    // an argument of an expanded-form call corresponds to
-                    // the parameter array. We need to make sure that the
-                    // side effects of X() and Q() continue to happen in the right
-                    // order here.
-                    //
-                    // Fortunately, we do disallow M(x : 123, x : 345, x : 456).
-                    // 
-                    // Here's what we'll do. If all the remaining arguments
-                    // correspond to elements in the parameter array then 
-                    // we can bail out here without creating any temporaries.
-                    // The next step in the call rewriter will deal with gathering
-                    // up the elements. 
-                    //
-                    // However, if there are other elements after this one
-                    // that do not correspond to elements in the parameter array
-                    // then we need to create a temporary as usual. The step that
-                    // produces the parameter array will need to deal with that
-                    // eventuality.
-
-                    bool canBail = true;
-                    for (int remainingArgument = a + 1; remainingArgument < rewrittenArguments.Length; ++remainingArgument)
-                    {
-                        int remainingParameter = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[remainingArgument] : remainingArgument;
-                        if (remainingParameter != arguments.Length - 1)
-                        {
-                            canBail = false;
-                            break;
-                        }
-                    }
-                    if (canBail)
-                    {
-                        return;
-                    }
+                    return;
                 }
 
                 if (IsSafeForReordering(argument, refKind))
@@ -693,39 +681,33 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert(!processedParameters.Contains(p));
 
-                processedParameters.Add(p); 
+                processedParameters.Add(p);
 
-                bool isParamArray = false;
-                if (expanded && p == parameters.Length - 1)
+                ArgumentKind kind = ArgumentKind.Explicit;
+
+                if (IsBeginningOfParamArray(p, a, expanded, parameters.Length, arguments, argsToParamsOpt, out int paramArrayArgumentCount))
                 {
-                    isParamArray = true;
+                    int firstNonParamArrayArgumentIndex = a + paramArrayArgumentCount;
+                    Debug.Assert(firstNonParamArrayArgumentIndex <= arguments.Length);
 
-                    ArrayBuilder<BoundExpression> paramArray = ArrayBuilder<BoundExpression>.GetInstance();
-                    paramArray.Add(argument);
+                    kind = ArgumentKind.ParamArray;
+                    ArrayBuilder<BoundExpression> paramArray = ArrayBuilder<BoundExpression>.GetInstance(paramArrayArgumentCount);
 
-                    int remainingArgument = a + 1;
-                    for (; remainingArgument < arguments.Length; ++remainingArgument)
+                    for (int i = a; i < firstNonParamArrayArgumentIndex; ++i)
                     {
-                        int remainingParameter = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[remainingArgument] : remainingArgument;
-                        if (remainingParameter != parameters.Length - 1)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            paramArray.Add(arguments[remainingArgument]);
-                        }
+                        paramArray.Add(arguments[i]);
                     }
-                    // Set loop variable to index of the last processed argument.
-                    a = remainingArgument - 1;
+
+                    // Set loop variable so the value for next iteration will be the index of the first non param-array argument after param-array argument(s).
+                    a = firstNonParamArrayArgumentIndex - 1;
 
                     var paramArrayType = parameters[p].Type;
                     var arrayArgs = paramArray.ToImmutableAndFree();
 
                     argument = CreateParamArrayArgument(syntax, paramArrayType, arrayArgs, null, binder);
-                }
+                }  
 
-                argumentsBuilder.Add(BoundCall.CreateArgumentOperation(isParamArray ? ArgumentKind.ParamArray : ArgumentKind.Explicit, parameter, argument)); 
+                argumentsBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument)); 
             }
 
             // Fill in parameters with missing arguments.
@@ -737,6 +719,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
             processedParameters.Free();
+        }
+
+        /// <summary>
+        /// Returns true if the given argument is the begining of a list of param array arguments (could be empty), otherwise returns false.
+        /// When returns true, numberOfParamArrayArguments is set to the number of param array arguments.
+        /// </summary>
+        private static bool IsBeginningOfParamArray(
+            int parameterIndex,
+            int argumentIndex,
+            bool expanded,
+            int parameterCount,
+            ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<int> argsToParamsOpt,
+            out int numberOfParamArrayArguments)
+        {
+            numberOfParamArrayArguments = 0;
+
+            if (expanded && parameterIndex == parameterCount - 1)
+            {                       
+                int remainingArgument = argumentIndex + 1;
+                for (; remainingArgument < arguments.Length; ++remainingArgument)
+                {
+                    int remainingParameter = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[remainingArgument] : remainingArgument;
+                    if (remainingParameter != parameterCount - 1)
+                    {                     
+                        break;
+                    }
+                }
+                numberOfParamArrayArguments = remainingArgument - argumentIndex;
+                return true;
+            }
+
+            return false;
         }
 
         private BoundExpression BuildParamsArray(

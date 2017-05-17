@@ -1277,7 +1277,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[0]')
+IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
