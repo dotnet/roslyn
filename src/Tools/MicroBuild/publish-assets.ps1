@@ -42,6 +42,7 @@ try
         "dev15.2.x" { } 
         "dev15.3-preview1" { } 
         "master" { } 
+        "dev15.6" { }
         "post-dev15" { } 
         default
         {
