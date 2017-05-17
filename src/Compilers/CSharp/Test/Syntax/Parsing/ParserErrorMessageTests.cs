@@ -1016,7 +1016,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateStandardCompilation(test).VerifyDiagnostics(
                 // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
                 //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
                 Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
