@@ -291,8 +291,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             var currentTokenParentParent = currentToken.Parent.Parent;
 
-            // * { - in the member declaration context
-            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent is MemberDeclarationSyntax)
+            // * { - in the member declaration or local function context
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null &&
+                (currentTokenParentParent is MemberDeclarationSyntax || currentTokenParentParent.IsKind(SyntaxKind.LocalFunctionStatement)))
             {
                 var option = currentTokenParentParent is BasePropertyDeclarationSyntax
                     ? CSharpFormattingOptions.NewLinesForBracesInProperties

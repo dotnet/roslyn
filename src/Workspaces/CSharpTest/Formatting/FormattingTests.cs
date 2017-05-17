@@ -4494,6 +4494,61 @@ var(x,y)=(1,2);
 
         [Fact]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LocalFunctionWithNewLinesForBraces()
+        {
+            var code = @"class C
+{
+    void M1()
+    {
+        void M2()     {
+            throw null;
+                }
+    }
+}";
+            var expectedCode = @"class C
+{
+    void M1()
+    {
+        void M2()
+        {
+            throw null;
+        }
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task LocalFunctionWithoutNewLinesForBraces()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>();
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInTypes, false);
+            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInMethods, false);
+
+            var code =
+@"class C {
+    void M1()    {
+        void M2()     {
+            throw null;
+        }
+    }
+}";
+            var expectedCode =
+@"class C {
+    void M1() {
+        void M2() {
+            throw null;
+        }
+    }
+}";
+
+            await AssertFormatAsync(expectedCode, code, changedOptionSet: changingOptions);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task SpacingInTupleExtension()
         {
             var code = @"static class Class5
