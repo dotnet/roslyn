@@ -215,7 +215,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                MethodSymbol accessor = this.IsLeftOfAssignment ? this.Indexer.SetMethod : this.Indexer.GetMethod; 
+                MethodSymbol accessor = this.IsLeftOfAssignment && !this.Indexer.ReturnsByRef 
+                    ? this.Indexer.GetOwnOrInheritedSetMethod() 
+                    : this.Indexer.GetOwnOrInheritedGetMethod(); 
+
                 return BoundCall.DeriveArguments(this, 
                     this.BinderOpt, 
                     this.Indexer, 

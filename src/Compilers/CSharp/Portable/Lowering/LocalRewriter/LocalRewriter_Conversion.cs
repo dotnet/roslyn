@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Conversion conversion = MakeConversion(operand, type, compilation, diagnostics, acceptFailingConversion);
 
-            if (conversion.Kind == ConversionKind.Identity)
+            if (conversion.IsIdentity)
             {
                 return operand;
             }

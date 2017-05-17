@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
                                                                 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1046,7 +1047,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [Fact]
@@ -1076,7 +1077,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [Fact]
@@ -1109,7 +1110,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [
 
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [Fact]
@@ -1141,7 +1142,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { s
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "this[10]").WithArguments("P.this[int]").WithLocation(12, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
 
         [Fact]
@@ -1175,8 +1176,116 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "this[10]").WithArguments("P.this[int]").WithLocation(12, 19)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
         }
+
+        [Fact]
+        public void OverridingIndexerWithDefaultArgument()
+        {
+            string source = @"
+class Base
+{
+    public virtual int this[int x = 0, int y = 1]
+    {
+        set { }
+        get { System.Console.Write(y); return 0; }
+    }
+}
+
+class Derived : Base
+{
+    public override int this[int x = 8, int y = 9]
+    {
+        set { }
+    }
+}
+
+internal class P
+{
+    static void Main()
+    {
+        var d = new Derived();
+        var x = /*<bind>*/d[0]/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
+  Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
+      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'd[0]')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: 'd[0]')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedOutput = @"1";
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);                                      
+
+            CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void OmittedParamArrayArgumentInIndexerAccess()
+        {
+            string source = @"
+class P
+{
+    public int this[int x, params int[] y]
+    {
+        set { }
+        get { return 0; }
+    }
+
+    public void M()
+    {
+        /*<bind>*/this[0]/*</bind>*/ = 0;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
+      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+    IArgument (ArgumentKind.ParamArray, Matching Parameter: y) (OperationKind.Argument) (Syntax: 'this[0]')
+      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32[]) (Syntax: 'this[0]')
+        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: 'this[0]')
+        Initializer: IArrayInitializer (0 elements) (OperationKind.ArrayInitializer) (Syntax: 'this[0]')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+        }
+
+        [Fact]
+        public void AssigningToReturnsByRefIndexer()
+        {
+            string source = @"
+class P
+{
+    ref int this[int x]
+    {
+        get => throw null;
+    }
+
+    public void M()
+    {
+        /*<bind>*/this[0]/*</bind>*/ = 0;
+    }
+}
+";
+            string expectedOperationTree = @"
+IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[0]')
+  Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
+      ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+        } 
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void AssigningToIndexer_UsingDefaultArgumentFromSetter()
@@ -1205,15 +1314,25 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
   {
     .param [1] = int32(0x00000001)
     .param [2] = int32(0x00000002)
-    // Code size       7 (0x7)
-    .maxstack  1
+    // Code size       35 (0x23)
+    .maxstack  3
     .locals init ([0] int32 V_0)
     IL_0000:  nop
-    IL_0001:  ldc.i4.0
-    IL_0002:  stloc.0
-    IL_0003:  br.s       IL_0005
-    IL_0005:  ldloc.0
-    IL_0006:  ret
+    IL_0001:  ldstr      ""{0} {1}""
+    IL_0006:  ldarg.1
+    IL_0007:  box        [mscorlib]System.Int32
+    IL_000c:  ldarg.2
+    IL_000d:  box        [mscorlib]System.Int32
+    IL_0012:  call       string [mscorlib]System.String::Format(string,
+                                                                object,
+                                                                object)
+    IL_0017:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_001c:  nop
+    IL_001d:  ldc.i4.0
+    IL_001e:  stloc.0
+    IL_001f:  br.s       IL_0021
+    IL_0021:  ldloc.0
+    IL_0022:  ret
   } // end of method P::get_Item
   
   .method public hidebysig specialname instance void 
@@ -1223,10 +1342,20 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
   {
     .param [1] = int32(0x00000003)
     .param [2] = int32(0x00000004)
-    // Code size       2 (0x2)
+    // Code size       30 (0x1e)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ret
+    IL_0001:  ldstr      ""{0} {1}""
+    IL_0006:  ldarg.1
+    IL_0007:  box        [mscorlib]System.Int32
+    IL_000c:  ldarg.2
+    IL_000d:  box        [mscorlib]System.Int32
+    IL_0012:  call       string [mscorlib]System.String::Format(string,
+                                                                object,
+                                                                object)
+    IL_0017:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_001c:  nop
+    IL_001d:  ret
   } // end of method P::set_Item
 
 
@@ -1245,7 +1374,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
             var csharp = @"
 class C
 {
-    public void M1()
+    public static void Main(string[] args)
     {
          P p = new P();
          /*<bind>*/p[10]/*</bind>*/ = 9;
@@ -1260,8 +1389,12 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
     IArgument (ArgumentKind.DefaultValue, Matching Parameter: j) (OperationKind.Argument) (Syntax: 'p[10]')
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 4) (Syntax: 'p[10]')";
             var expectedDiagnostics = DiagnosticDescription.None;
+            var expectedOutput = @"10 4
+";
 
-            VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
+            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+
+            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1291,28 +1424,48 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
   {
     .param [1] = int32(0x00000001)
     .param [2] = int32(0x00000002)
-    // Code size       7 (0x7)
-    .maxstack  1
+    // Code size       35 (0x23)
+    .maxstack  3
     .locals init ([0] int32 V_0)
     IL_0000:  nop
-    IL_0001:  ldc.i4.0
-    IL_0002:  stloc.0
-    IL_0003:  br.s       IL_0005
-    IL_0005:  ldloc.0
-    IL_0006:  ret
+    IL_0001:  ldstr      ""{0} {1}""
+    IL_0006:  ldarg.1
+    IL_0007:  box        [mscorlib]System.Int32
+    IL_000c:  ldarg.2
+    IL_000d:  box        [mscorlib]System.Int32
+    IL_0012:  call       string [mscorlib]System.String::Format(string,
+                                                                object,
+                                                                object)
+    IL_0017:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_001c:  nop
+    IL_001d:  ldc.i4.0
+    IL_001e:  stloc.0
+    IL_001f:  br.s       IL_0021
+    IL_0021:  ldloc.0
+    IL_0022:  ret
   } // end of method P::get_Item
   
   .method public hidebysig specialname instance void 
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
-  {
+  {    
     .param [1] = int32(0x00000003)
     .param [2] = int32(0x00000004)
-    // Code size       2 (0x2)
+    // Code size       30 (0x1e)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ret
+    IL_0001:  ldstr      ""{0} {1}""
+    IL_0006:  ldarg.1
+    IL_0007:  box        [mscorlib]System.Int32
+    IL_000c:  ldarg.2
+    IL_000d:  box        [mscorlib]System.Int32
+    IL_0012:  call       string [mscorlib]System.String::Format(string,
+                                                                object,
+                                                                object)
+    IL_0017:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_001c:  nop
+    IL_001d:  ret
   } // end of method P::set_Item
 
 
@@ -1331,7 +1484,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
             var csharp = @"
 class C
 {
-    public void M1()
+    public static void Main(string[] args)
     {
          P p = new P();
          var x = /*<bind>*/p[10]/*</bind>*/;
@@ -1348,7 +1501,12 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
+            var expectedOutput = @"10 2
+";
+
+            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+
+            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1378,28 +1536,48 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
   {
     .param [1] = int32(0x00000001)
     .param [2] = int32(0x00000002)
-    // Code size       7 (0x7)
-    .maxstack  1
+    // Code size       35 (0x23)
+    .maxstack  3
     .locals init ([0] int32 V_0)
     IL_0000:  nop
-    IL_0001:  ldc.i4.0
-    IL_0002:  stloc.0
-    IL_0003:  br.s       IL_0005
-    IL_0005:  ldloc.0
-    IL_0006:  ret
+    IL_0001:  ldstr      ""{0} {1}""
+    IL_0006:  ldarg.1
+    IL_0007:  box        [mscorlib]System.Int32
+    IL_000c:  ldarg.2
+    IL_000d:  box        [mscorlib]System.Int32
+    IL_0012:  call       string [mscorlib]System.String::Format(string,
+                                                                object,
+                                                                object)
+    IL_0017:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_001c:  nop
+    IL_001d:  ldc.i4.0
+    IL_001e:  stloc.0
+    IL_001f:  br.s       IL_0021
+    IL_0021:  ldloc.0
+    IL_0022:  ret
   } // end of method P::get_Item
   
   .method public hidebysig specialname instance void 
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
-  {
+  { 
     .param [1] = int32(0x00000003)
     .param [2] = int32(0x00000004)
-    // Code size       2 (0x2)
+    // Code size       30 (0x1e)
     .maxstack  8
     IL_0000:  nop
-    IL_0001:  ret
+    IL_0001:  ldstr      ""{0} {1}""
+    IL_0006:  ldarg.1
+    IL_0007:  box        [mscorlib]System.Int32
+    IL_000c:  ldarg.2
+    IL_000d:  box        [mscorlib]System.Int32
+    IL_0012:  call       string [mscorlib]System.String::Format(string,
+                                                                object,
+                                                                object)
+    IL_0017:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_001c:  nop
+    IL_001d:  ret
   } // end of method P::set_Item
 
 
@@ -1418,7 +1596,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
             var csharp = @"
 class C
 {
-    public void M1()
+    public static void Main(string[] args)
     {
          P p = new P();
          /*<bind>*/p[10]/*</bind>*/ += 99;
@@ -1434,7 +1612,13 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
       ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 2) (Syntax: 'p[10]')";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
+            var expectedOutput = @"10 2
+10 2
+";
+
+            var ilReference = VerifyOperationTreeAndDiagnosticsForTestWithIL<ElementAccessExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+
+            CompileAndVerify(new[] { csharp }, new[] { SystemRef, ilReference }, expectedOutput: expectedOutput);
         }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
@@ -1487,5 +1671,32 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
 
             VerifyOperationTreeAndDiagnosticsForTestWithIL<InvocationExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
         }
-    }
+
+        private class IndexerAccessArgumentVerifier : OperationWalker
+        {        
+            public static void Verify(IOperation operation)
+            {
+                var walker = new IndexerAccessArgumentVerifier();
+                walker.Visit(operation);             
+            }
+
+            public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+            {
+                if (operation.IsInvalid)
+                {
+                    return;
+                }
+
+                // Check if the parameter symbol for argument is corresponding to indexer instead of accessor.
+                var indexerSymbol = operation.Property;
+                foreach (var argument in operation.ArgumentsInEvaluationOrder)
+                {
+                    if (!argument.IsInvalid)
+                    {
+                        Assert.True(argument.Parameter.ContainingSymbol == indexerSymbol);
+                    }
+                }
+            }
+        }
+    }             
 }
