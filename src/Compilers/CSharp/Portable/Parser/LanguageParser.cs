@@ -3305,7 +3305,6 @@ parse_member_name:;
             var expression = this.ParseExpressionCore();
             if (refKeyword != default(SyntaxToken))
             {
-                expression = CheckValidLvalue(expression);
                 expression = _syntaxFactory.RefExpression(refKeyword, expression);
             }
 
@@ -4596,7 +4595,6 @@ tryAgain:
                     var init = this.ParseVariableInitializer();
                     if (refKeyword != null)
                     {
-                        init = CheckValidLvalue(init);
                         init = _syntaxFactory.RefExpression(refKeyword, init);
                     }
 
@@ -8952,11 +8950,6 @@ tryAgain:
                 newPrecedence = GetPrecedence(opKind);
                 var opToken = this.EatToken();
                 var operand = this.ParseSubExpression(newPrecedence);
-                if (SyntaxFacts.IsIncrementOrDecrementOperator(opToken.Kind))
-                {
-                    operand = CheckValidLvalue(operand);
-                }
-
                 leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
             }
             else if (IsAwaitExpression())
@@ -9086,7 +9079,6 @@ tryAgain:
                             opToken = AddTrailingSkippedSyntax(opToken, refToken);
                         }
 
-                        leftOperand = CheckValidLvalue(leftOperand);
                         leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
                     }
                     else
@@ -9377,7 +9369,6 @@ tryAgain:
 
                     case SyntaxKind.PlusPlusToken:
                     case SyntaxKind.MinusMinusToken:
-                        expr = CheckValidLvalue(expr);
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
                         break;
 
@@ -9693,43 +9684,9 @@ tryAgain:
                 expression = (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword)
                     ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
-
-                if (refOrOutKeyword != null && expression.Kind != SyntaxKind.DeclarationExpression)
-                {
-                    expression = CheckValidLvalue(expression);
-                }
             }
 
             return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
-        }
-
-        private ExpressionSyntax CheckValidLvalue(ExpressionSyntax expression)
-        {
-            return IsDeconstructionCompatibleArgument(expression)
-                ? this.AddError(expression, ErrorCode.ERR_VarInvocationLvalueReserved)
-                : expression;
-        }
-
-        /// <summary>
-        /// See if the expression is an invocation of a method named 'var',
-        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
-        /// We report an error when such an invocation is used in a certain syntactic contexts that
-        /// will require an lvalue because we may elect to support deconstruction
-        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
-        /// ref-returning method named var.
-        /// </summary>
-        private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
-        {
-            if (expression.Kind == SyntaxKind.InvocationExpression)
-            {
-                var invocation = (InvocationExpressionSyntax)expression;
-                ExpressionSyntax invocationTarget = invocation.Expression;
-
-                return invocationTarget.Kind == SyntaxKind.IdentifierName &&
-                    ((IdentifierNameSyntax)invocationTarget).Identifier.IsVar();
-            }
-
-            return false;
         }
 
         private bool IsPossibleOutVarDeclaration()
