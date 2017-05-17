@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Experimentation
         private static bool s_reportErrors = false;
         private static readonly ConcurrentDictionary<object, object> s_reported = new ConcurrentDictionary<object, object>(concurrencyLevel: 2, capacity: 10);
 
-        private const string Name = "AnalyzerVsix";
+        private const string Name = "LiveCodeAnalysisVsix";
 
         public static void Log(string action)
         {
@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis.Experimentation
                 return;
             }
 
+            // logs count of errors for this project. this won't log anything if FSA off since
+            // we don't collect any diagnostics for a project if FSA is off.
             var map = new Dictionary<string, int>();
             foreach (var documentId in result.DocumentIdsOrEmpty)
             {
@@ -88,6 +90,10 @@ namespace Microsoft.CodeAnalysis.Experimentation
                 return;
             }
 
+            // logs count of errors for this document. this only logs errors for 
+            // this particular document. we do this since when FSA is off, this is
+            // only errors we get. otherwise, we don't get any info when FSA is off and
+            // that is default for C#.
             var map = new Dictionary<string, int>();
             CountErrors(map, syntax);
             CountErrors(map, semantic);
