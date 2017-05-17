@@ -3177,6 +3177,8 @@ class Program
                 .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
                 .Single();
             var type = model.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
     }
 }
