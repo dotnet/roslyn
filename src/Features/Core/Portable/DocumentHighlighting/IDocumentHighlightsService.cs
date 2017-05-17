@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
- namespace Microsoft.CodeAnalysis.DocumentHighlighting
- {
+namespace Microsoft.CodeAnalysis.DocumentHighlighting
+{
      internal enum HighlightSpanKind
      {
          None,
@@ -49,4 +49,4 @@ using Microsoft.CodeAnalysis.Text;
          Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsAsync(
              Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken);
      }
- }
+}
