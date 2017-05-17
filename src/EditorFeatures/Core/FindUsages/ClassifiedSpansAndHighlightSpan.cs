@@ -43,7 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // If the document span is providing us with the classified spans up front, then we
             // can just use that.  Otherwise, go back and actually classify the text for the line
             // the document span is on.
-            if (documentSpan.Properties.TryGetValue(Key, out var value))
+            if (documentSpan.Properties != null &&
+                documentSpan.Properties.TryGetValue(Key, out var value))
             {
                 return (ClassifiedSpansAndHighlightSpan)value;
             }

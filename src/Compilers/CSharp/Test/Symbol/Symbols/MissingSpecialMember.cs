@@ -858,7 +858,8 @@ namespace System
                     case WellKnownMember.System_Array__Empty:
                         // Not yet in the platform.
                         continue;
-                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles:
                         // Not always available.
                         continue;
                 }
