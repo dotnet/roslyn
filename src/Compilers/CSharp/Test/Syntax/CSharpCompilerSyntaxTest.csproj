@@ -84,6 +84,7 @@
     <Compile Include="Parsing\DeclarationExpressionTests.cs" />
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
     <Compile Include="Parsing\DeconstructionTests.cs" />
+    <Compile Include="Parsing\TypeArgumentListParsingTests.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
     <Compile Include="Parsing\LocalFunctionParsingTests.cs" />
     <Compile Include="Parsing\ParserRegressionTests.cs" />
