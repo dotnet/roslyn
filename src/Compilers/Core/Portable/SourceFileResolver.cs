@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                         throw new ArgumentException(CodeAnalysisResources.NullValueInPathMap, nameof(pathMap));
                     }
 
-                    if (PathUtilities.IsDirectorySeparator(key[key.Length - 1]))
+                    if (PathUtilities.IsAnyDirectorySeparator(key[key.Length - 1]))
                     {
                         throw new ArgumentException(CodeAnalysisResources.KeyInPathMapEndsWithSeparator, nameof(pathMap));
                     }
