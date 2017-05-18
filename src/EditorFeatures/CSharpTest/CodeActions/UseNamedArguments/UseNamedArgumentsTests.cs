@@ -328,5 +328,35 @@ class C
         => M([|1 + 2|], 3);
 }");
         }
+
+        [WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestCaretPositionAtTheEnd1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int arg1) => M(arg1[||]);
+}",
+@"class C
+{
+    void M(int arg1) => M(arg1: arg1);
+}");
+        }
+
+        [WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)]
+        public async Task TestCaretPositionAtTheEnd2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M(int arg1, int arg2) => M(arg1[||], arg2);
+}",
+@"class C
+{
+    void M(int arg1, int arg2) => M(arg1: arg1, arg2: arg2);
+}");
+        }
     }
 }

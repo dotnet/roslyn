@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     internal partial class NavigateToHighlightReferenceCommandHandler
     {

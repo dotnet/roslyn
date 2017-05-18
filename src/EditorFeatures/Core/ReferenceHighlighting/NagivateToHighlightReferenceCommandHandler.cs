@@ -14,7 +14,7 @@ using Microsoft.VisualStudio.Text.Outlining;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     [ExportCommandHandler(PredefinedCommandHandlerNames.NavigateToHighlightedReference,
        ContentTypeNames.RoslynContentType)]
