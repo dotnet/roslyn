@@ -62,6 +62,9 @@
     <Compile Include="Implementation\EditAndContinue\Interop\NativeMethods.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IIgnorableAssemblyList.cs" />
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
+    <Compile Include="Implementation\Experimentation\AnalyzerVsixSuggestedActionCallback.cs" />
+    <Compile Include="Implementation\Experimentation\AnalyzerABTestOptions.cs" />
+    <Compile Include="Implementation\Experimentation\LiveCodeAnalysisInstallStatus.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="ID.InteractiveCommands.cs" />
     <Compile Include="Implementation\FindReferences\VisualStudioDefinitionsAndReferencesFactory.cs" />
@@ -210,11 +213,6 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>VSPackage.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
-      <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Project References">

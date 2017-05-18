@@ -251,6 +251,7 @@ string.Format(@"<symbols>
         <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
         <entry offset=""0x22"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""15"" />
         <entry offset=""0x2c"" hidden=""true"" />
+        <entry offset=""0x36"" hidden=""true"" />
         <entry offset=""0x37"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x38"">

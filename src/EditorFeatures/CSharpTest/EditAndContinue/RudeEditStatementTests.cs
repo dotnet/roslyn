@@ -1483,7 +1483,6 @@ var x = $""Hello{123:N2}"";
             edits.VerifyEdits("Update [x = $\"Hello{123:N1}\"]@8 -> [x = $\"Hello{123:N2}\"]@8");
         }
 
-        [WorkItem(18970, "https://github.com/dotnet/roslyn/issues/18970")]
         [Fact]
         public void MatchCasePattern_UpdateDelete()
         {
@@ -1507,9 +1506,9 @@ switch(shape)
 
             var expected = new MatchingPairs {
                 { "switch(shape) {     case Point p: return 0;     case Circle c: return 1; }", "switch(shape) {     case Circle circle: return 1; }" },
-                { "p", "circle" },
                 { "case Circle c: return 1;", "case Circle circle: return 1;" },
                 { "case Circle c:", "case Circle circle:" },
+                { "c", "circle" },
                 { "return 1;", "return 1;" }
             };
 
@@ -1716,7 +1715,6 @@ var (a1, a3) = (1, () => { return 8; });
                 "Update [case 1: f(); break;]@18 -> [case 2: f(); break;]@18");
         }
 
-        [WorkItem(18970, "https://github.com/dotnet/roslyn/issues/18970")]
         [Fact]
         public void CasePatternLabel_UpdateDelete()
         {
@@ -1739,12 +1737,11 @@ switch(shape)
 
             edits.VerifyEdits(
                 "Update [case Circle c: return 1;]@55 -> [case Circle circle: return 1;]@26",
-                "Update [p]@37 -> [circle]@38",
-                "Move [p]@37 -> @38",
+                "Update [c]@67 -> [circle]@38",
                 "Delete [case Point p: return 0;]@26",
                 "Delete [case Point p:]@26",
-                "Delete [return 0;]@40",
-                "Delete [c]@67");
+                "Delete [p]@37",
+                "Delete [return 0;]@40");
         }
 
         #endregion
@@ -8423,12 +8420,11 @@ switch(shape)
             edits.VerifyEdits(
                 "Update [case Circle c: A(c); break;]@55 -> [case Circle c1: A(c1); break;]@26",
                 "Update [A(c);]@70 -> [A(c1);]@42",
-                "Update [p]@37 -> [c1]@38",
-                "Move [p]@37 -> @38",
+                "Update [c]@67 -> [c1]@38",
                 "Delete [case Point p: return 0;]@26",
                 "Delete [case Point p:]@26",
-                "Delete [return 0;]@40",
-                "Delete [c]@67");
+                "Delete [p]@37",
+                "Delete [return 0;]@40");
         }
 
         [Fact]

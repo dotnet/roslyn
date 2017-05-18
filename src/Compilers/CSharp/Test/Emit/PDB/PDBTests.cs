@@ -2649,6 +2649,7 @@ class Program
         <entry offset=""0x3c"" startLine=""26"" startColumn=""13"" endLine=""26"" endColumn=""14"" />
         <entry offset=""0x3d"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""30"" />
         <entry offset=""0x47"" hidden=""true"" />
+        <entry offset=""0x51"" hidden=""true"" />
         <entry offset=""0x52"" startLine=""27"" startColumn=""9"" endLine=""27"" endColumn=""10"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x53"">
@@ -4486,16 +4487,20 @@ class C
         <entry offset=""0xc"" startLine=""22"" startColumn=""62"" endLine=""22"" endColumn=""90"" />
         <entry offset=""0x17"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""47"" />
         <entry offset=""0x24"" hidden=""true"" />
+        <entry offset=""0x2e"" hidden=""true"" />
         <entry offset=""0x2f"" hidden=""true"" />
         <entry offset=""0x31"" hidden=""true"" />
+        <entry offset=""0x3b"" hidden=""true"" />
         <entry offset=""0x3c"" startLine=""25"" startColumn=""16"" endLine=""25"" endColumn=""60"" />
         <entry offset=""0x47"" startLine=""25"" startColumn=""62"" endLine=""25"" endColumn=""90"" />
         <entry offset=""0x52"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" />
         <entry offset=""0x53"" startLine=""27"" startColumn=""13"" endLine=""27"" endColumn=""48"" />
         <entry offset=""0x5e"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" />
         <entry offset=""0x61"" hidden=""true"" />
+        <entry offset=""0x6b"" hidden=""true"" />
         <entry offset=""0x6c"" hidden=""true"" />
         <entry offset=""0x6e"" hidden=""true"" />
+        <entry offset=""0x78"" hidden=""true"" />
         <entry offset=""0x79"" startLine=""31"" startColumn=""9"" endLine=""31"" endColumn=""10"" />
         <entry offset=""0x7a"" startLine=""33"" startColumn=""9"" endLine=""33"" endColumn=""10"" />
         <entry offset=""0x7b"" startLine=""34"" startColumn=""5"" endLine=""34"" endColumn=""6"" />
@@ -4515,8 +4520,8 @@ class C
 </symbols>");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18844"), WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
-        public void UsingStatement_Embedded()
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedConditional()
         {
             var source = @"
 class C
@@ -4590,6 +4595,7 @@ class C
     IL_001d:  ldloc.2
     IL_001e:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0023:  nop
+    // sequence point: <hidden>
     IL_0024:  endfinally
   }
   // sequence point: return value;
@@ -4599,6 +4605,302 @@ class C
   // sequence point: }
   IL_002a:  ldloc.s    V_4
   IL_002c:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedConditional2()
+        {
+            var source = @"
+class C
+{
+    bool F()
+    {
+        bool x = true;
+        bool value = false;
+        using (var stream = new System.IO.MemoryStream())
+            if (x)
+            {
+                value = true;
+            }
+            else
+            {
+                value = false;
+            }
+
+        return value;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       47 (0x2f)
+  .maxstack  1
+  .locals init (bool V_0, //x
+                bool V_1, //value
+                System.IO.MemoryStream V_2, //stream
+                bool V_3,
+                bool V_4)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: bool x = true;
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  // sequence point: bool value = false;
+  IL_0003:  ldc.i4.0
+  IL_0004:  stloc.1
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0005:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_000a:  stloc.2
+  .try
+  {
+    // sequence point: if (x)
+    IL_000b:  ldloc.0
+    IL_000c:  stloc.3
+    // sequence point: <hidden>
+    IL_000d:  ldloc.3
+    IL_000e:  brfalse.s  IL_0016
+    // sequence point: {
+    IL_0010:  nop
+    // sequence point: value = true;
+    IL_0011:  ldc.i4.1
+    IL_0012:  stloc.1
+    // sequence point: }
+    IL_0013:  nop
+    IL_0014:  br.s       IL_001a
+    // sequence point: {
+    IL_0016:  nop
+    // sequence point: value = false;
+    IL_0017:  ldc.i4.0
+    IL_0018:  stloc.1
+    // sequence point: }
+    IL_0019:  nop
+    // sequence point: <hidden>
+    IL_001a:  leave.s    IL_0027
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_001c:  ldloc.2
+    IL_001d:  brfalse.s  IL_0026
+    IL_001f:  ldloc.2
+    IL_0020:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0025:  nop
+    // sequence point: <hidden>
+    IL_0026:  endfinally
+  }
+  // sequence point: return value;
+  IL_0027:  ldloc.1
+  IL_0028:  stloc.s    V_4
+  IL_002a:  br.s       IL_002c
+  // sequence point: }
+  IL_002c:  ldloc.s    V_4
+  IL_002e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedWhile()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        using (var stream = new System.IO.MemoryStream())
+            while (x)
+                x = false;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //stream
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  br.s       IL_000c
+    // sequence point: x = false;
+    IL_0009:  ldc.i4.0
+    IL_000a:  starg.s    V_1
+    // sequence point: while (x)
+    IL_000c:  ldarg.1
+    IL_000d:  stloc.1
+    // sequence point: <hidden>
+    IL_000e:  ldloc.1
+    IL_000f:  brtrue.s   IL_0009
+    IL_0011:  leave.s    IL_001e
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0013:  ldloc.0
+    IL_0014:  brfalse.s  IL_001d
+    IL_0016:  ldloc.0
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001c:  nop
+    // sequence point: <hidden>
+    IL_001d:  endfinally
+  }
+  // sequence point: }
+  IL_001e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void UsingStatement_EmbeddedFor()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        using (var stream = new System.IO.MemoryStream())
+            for ( ; x == true; )
+                x = false;
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (System.IO.MemoryStream V_0, //stream
+                bool V_1)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var stream = new System.IO.MemoryStream()
+  IL_0001:  newobj     ""System.IO.MemoryStream..ctor()""
+  IL_0006:  stloc.0
+  .try
+  {
+    // sequence point: <hidden>
+    IL_0007:  br.s       IL_000c
+    // sequence point: x = false;
+    IL_0009:  ldc.i4.0
+    IL_000a:  starg.s    V_1
+    // sequence point: x == true
+    IL_000c:  ldarg.1
+    IL_000d:  stloc.1
+    // sequence point: <hidden>
+    IL_000e:  ldloc.1
+    IL_000f:  brtrue.s   IL_0009
+    IL_0011:  leave.s    IL_001e
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0013:  ldloc.0
+    IL_0014:  brfalse.s  IL_001d
+    IL_0016:  ldloc.0
+    IL_0017:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_001c:  nop
+    // sequence point: <hidden>
+    IL_001d:  endfinally
+  }
+  // sequence point: }
+  IL_001e:  ret
+}
+", sequencePoints: "C.F", source: source);
+        }
+
+        [Fact, WorkItem(18844, "https://github.com/dotnet/roslyn/issues/18844")]
+        public void LockStatement_EmbeddedIf()
+        {
+            var source = @"
+class C
+{
+    void F(bool x)
+    {
+        string y = """";
+        lock (y)
+            if (!x)
+                System.Console.Write(1);
+            else
+                System.Console.Write(2);
+    }
+}
+";
+
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+            var v = CompileAndVerify(c);
+            v.VerifyIL("C.F", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  2
+  .locals init (string V_0, //y
+                string V_1,
+                bool V_2,
+                bool V_3)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: string y = """";
+  IL_0001:  ldstr      """"
+  IL_0006:  stloc.0
+  // sequence point: lock (y)
+  IL_0007:  ldloc.0
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.0
+  IL_000a:  stloc.2
+  .try
+  {
+    IL_000b:  ldloc.1
+    IL_000c:  ldloca.s   V_2
+    IL_000e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0013:  nop
+    // sequence point: if (!x)
+    IL_0014:  ldarg.1
+    IL_0015:  ldc.i4.0
+    IL_0016:  ceq
+    IL_0018:  stloc.3
+    // sequence point: <hidden>
+    IL_0019:  ldloc.3
+    IL_001a:  brfalse.s  IL_0025
+    // sequence point: System.Console.Write(1);
+    IL_001c:  ldc.i4.1
+    IL_001d:  call       ""void System.Console.Write(int)""
+    IL_0022:  nop
+    IL_0023:  br.s       IL_002c
+    // sequence point: System.Console.Write(2);
+    IL_0025:  ldc.i4.2
+    IL_0026:  call       ""void System.Console.Write(int)""
+    IL_002b:  nop
+    // sequence point: <hidden>
+    IL_002c:  leave.s    IL_0039
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_002e:  ldloc.2
+    IL_002f:  brfalse.s  IL_0038
+    IL_0031:  ldloc.1
+    IL_0032:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0037:  nop
+    // sequence point: <hidden>
+    IL_0038:  endfinally
+  }
+  // sequence point: }
+  IL_0039:  ret
 }
 ", sequencePoints: "C.F", source: source);
         }
@@ -5986,7 +6288,6 @@ class C
         <entry offset=""0x7"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" />
         <entry offset=""0x8"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""35"" />
         <entry offset=""0x1f"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" />
-        <entry offset=""0x4a"" hidden=""true"" />
         <entry offset=""0x4c"" hidden=""true"" />
         <entry offset=""0x64"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" />
         <entry offset=""0x6c"" hidden=""true"" />
@@ -6049,7 +6350,6 @@ class C
         <entry offset=""0x7"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" />
         <entry offset=""0x8"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""39"" />
         <entry offset=""0x1f"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""30"" />
-        <entry offset=""0x4a"" hidden=""true"" />
         <entry offset=""0x4c"" hidden=""true"" />
         <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" />
         <entry offset=""0x6c"" hidden=""true"" />
@@ -6367,7 +6667,6 @@ public class C
       <sequencePoints>
         <entry offset=""0x0"" hidden=""true"" document=""1"" />
         <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
-        <entry offset=""0x8"" hidden=""true"" document=""1"" />
         <entry offset=""0xa"" hidden=""true"" document=""1"" />
         <entry offset=""0x22"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
         <entry offset=""0x2a"" hidden=""true"" document=""1"" />
@@ -6751,7 +7050,6 @@ class Program
     IL_001a:  br.s       IL_001e
     // sequence point: break;
     IL_001c:  br.s       IL_001e
-    // sequence point: <hidden>
     IL_001e:  leave.s    IL_0038
   }
   catch System.Exception
@@ -6834,7 +7132,6 @@ class Program
     // sequence point: <hidden>
     IL_0021:  ldloc.1
     IL_0022:  brtrue.s   IL_0011
-    // sequence point: <hidden>
     IL_0024:  leave.s    IL_003e
   }
   catch System.Exception
@@ -6926,7 +7223,6 @@ class Program
     // sequence point: <hidden>
     IL_0031:  ldloc.2
     IL_0032:  brtrue.s   IL_0011
-    // sequence point: <hidden>
     IL_0034:  leave.s    IL_004e
   }
   catch System.Exception
@@ -7021,7 +7317,6 @@ class Program
     // sequence point: <hidden>
     IL_003b:  ldloc.2
     IL_003c:  brtrue.s   IL_001b
-    // sequence point: <hidden>
     IL_003e:  leave.s    IL_0058
   }
   catch System.Exception
