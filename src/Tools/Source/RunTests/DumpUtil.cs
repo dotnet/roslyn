@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Win32.SafeHandles;
 
 namespace RunTests
 {
@@ -40,7 +41,7 @@ namespace RunTests
         private static extern bool MiniDumpWriteDump(
           IntPtr hProcess,
           uint processId,
-          IntPtr hFile,
+          SafeFileHandle hFile,
           uint dumpType,
           IntPtr exceptionParam,
           IntPtr userStreamParam,
@@ -53,14 +54,14 @@ namespace RunTests
                 var success = MiniDumpWriteDump(
                     process.Handle,
                     (uint)process.Id,
-                    stream.SafeFileHandle.DangerousGetHandle(),
+                    stream.SafeFileHandle,
                     (uint)(DumpType.MiniDumpNormal | DumpType.MiniDumpWithFullMemory | DumpType.MiniDumpWithFullMemoryInfo),
                     IntPtr.Zero,
                     IntPtr.Zero,
                     IntPtr.Zero);
                 if (!success)
                 {
-                    throw new Exception("Could not create dump");
+                    throw new Exception($"Creating the minidump failed with error code {Marshal.GetLastWin32Error()}");
                 }
             }
         }
