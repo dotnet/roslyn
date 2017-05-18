@@ -32913,6 +32913,43 @@ public class C
             Assert.Equal("System.Collections.Generic.IEnumerator<System.Object> System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
         }
+
+        [Fact]
+        [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
+        public void DiscardAndArgList()
+        {
+            var text = @"
+using System;
+public class C
+{
+    static void Main()
+    {
+        M(out _, __arglist(2, 3, true));
+    }
+    
+    static void M(out int x, __arglist)
+    {    
+        x = 0;
+        DumpArgs(new ArgIterator(__arglist));
+    }
+
+    static void DumpArgs(ArgIterator args)
+    {
+        while(args.GetRemainingCount() > 0)
+        {
+            TypedReference tr = args.GetNextArg();
+            object arg = TypedReference.ToObject(tr);
+            Console.Write(arg);
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "23True");
+        }
     }
 
     internal static class OutVarTestsExtensions
