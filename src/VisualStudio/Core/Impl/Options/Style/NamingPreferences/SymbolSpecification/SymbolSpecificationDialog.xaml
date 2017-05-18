@@ -30,10 +30,10 @@
         <DataTemplate x:Key="listViewDataTemplate">
             <StackPanel Orientation="Horizontal">
                 <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False"
-                                          Content="{Binding Name}">
+                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                          Width="Auto"
+                          Focusable="False"
+                          Content="{Binding Name}">
                 </CheckBox>
             </StackPanel>
         </DataTemplate>
