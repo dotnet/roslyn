@@ -36,6 +36,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             InitializeComponent();
             DataContext = viewModel;
 
+            // AutomationDelegatingListView is defined in ServicesVisualStudio, which has
+            // InternalsVisibleTo this project. But, the markup compiler doesn't consider the IVT 
+            // relationship, so declaring the AutomationDelegatingListView in XAML would require 
+            // duplicating that type in this project. Declaring and setting it here avoids the 
+            // markup compiler completely, allowing us to reference the internal 
+            // AutomationDelegatingListView without issue.
+
             symbolKindsListView = CreateAutomationDelegatingListView(nameof(SymbolSpecificationViewModel.SymbolKindList));
             symbolKindsContentControl.Content = symbolKindsListView;
 
