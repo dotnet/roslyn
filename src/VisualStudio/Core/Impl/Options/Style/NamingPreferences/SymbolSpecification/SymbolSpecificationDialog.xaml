@@ -27,6 +27,16 @@
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="textboxPadding">2</Thickness>
+        <DataTemplate x:Key="listViewDataTemplate">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox x:Uid="SelectableMemberCheckBox" 
+                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                                          Width="Auto"
+                                          Focusable="False"
+                                          Content="{Binding Name}">
+                </CheckBox>
+            </StackPanel>
+        </DataTemplate>
     </Window.Resources>
     <Grid Margin="5,6,11,11">
         <Grid.RowDefinitions>
@@ -62,20 +72,8 @@
                           Margin="8 4 8 7"
                           SelectionMode="Extended"
                           ItemsSource="{Binding SymbolKindList, Mode=TwoWay}"
-                          AutomationProperties.LabeledBy="{Binding ElementName=symbolKindsLabel}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItem">
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False"
-                                          Content="{Binding Name}">
-                                </CheckBox>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                          AutomationProperties.LabeledBy="{Binding ElementName=symbolKindsLabel}"
+                          ItemTemplate="{StaticResource listViewDataTemplate}" />
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllSymbolKinds"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}" Click="DeselectAllSymbolKinds"></vs:DialogButton>
@@ -97,20 +95,8 @@
                           MinWidth="70"
                           SelectionMode="Extended"
                           ItemsSource="{Binding AccessibilityList, Mode=TwoWay}"
-                          AutomationProperties.LabeledBy="{Binding ElementName=accessibilitiesLabel}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItem">
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False"
-                                          Content="{Binding Name}">
-                                </CheckBox>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                          AutomationProperties.LabeledBy="{Binding ElementName=accessibilitiesLabel}"
+                          ItemTemplate="{StaticResource listViewDataTemplate}"/>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllAccessibilities"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}" Click="DeselectAllAccessibilities"></vs:DialogButton>
@@ -122,20 +108,8 @@
                           Margin="8 4 8 7"
                           MinWidth="70"
                           ItemsSource="{Binding ModifierList, Mode=TwoWay}"
-                          AutomationProperties.LabeledBy="{Binding ElementName=modifiersLabel}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItem">
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False"
-                                          Content="{Binding Name}">
-                                </CheckBox>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                          AutomationProperties.LabeledBy="{Binding ElementName=modifiersLabel}"
+                          ItemTemplate="{StaticResource listViewDataTemplate}" />
                 <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllModifiers"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}"  Click="DeselectAllModifiers"></vs:DialogButton>
