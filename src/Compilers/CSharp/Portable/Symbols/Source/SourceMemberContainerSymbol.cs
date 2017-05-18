@@ -315,8 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (var i = 0; i < partCount; i++)
             {
-                var singleTypeDeclaration = declaration.Declarations[i];
-                var mods = singleTypeDeclaration.Modifiers;
+                var mods = declaration.Declarations[i].Modifiers;
 
                 if (partCount > 1 && (mods & DeclarationModifiers.Partial) == 0)
                 {
