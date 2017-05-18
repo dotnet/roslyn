@@ -32,14 +32,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode CompilationUnit(IEnumerable<SyntaxNode> declarations)
         {
             return SyntaxFactory.CompilationUnit()
-                .WithUsings(AsUsingDirectives(declarations))
+                .WithUsings(this.AsUsingDirectives(declarations))
                 .WithMembers(AsNamespaceMembers(declarations));
         }
 
         private SyntaxList<UsingDirectiveSyntax> AsUsingDirectives(IEnumerable<SyntaxNode> declarations)
         {
             return declarations != null
-                ? SyntaxFactory.List(declarations.Select(AsUsingDirective).OfType<UsingDirectiveSyntax>())
+                ? SyntaxFactory.List(declarations.Select(this.AsUsingDirective).OfType<UsingDirectiveSyntax>())
                 : default(SyntaxList<UsingDirectiveSyntax>);
         }
 
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var name = node as NameSyntax;
             if (name != null)
             {
-                return NamespaceImportDeclaration(name);
+                return this.NamespaceImportDeclaration(name);
             }
 
             return node as UsingDirectiveSyntax;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.NamespaceDeclaration(
                 (NameSyntax)name,
                 default(SyntaxList<ExternAliasDirectiveSyntax>),
-                AsUsingDirectives(declarations),
+                this.AsUsingDirectives(declarations),
                 AsNamespaceMembers(declarations));
         }
 
@@ -428,11 +428,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // C# interface implementations are implicit/not-specified -- so they are just named the name as the interface member
             return PreserveTrivia(declaration, d =>
             {
-                d = AsImplementation(d, Accessibility.Public);
+                d = this.AsImplementation(d, Accessibility.Public);
 
                 if (interfaceMemberName != null)
                 {
-                    d = WithName(d, interfaceMemberName);
+                    d = this.WithName(d, interfaceMemberName);
                 }
 
                 return WithInterfaceSpecifier(d, null);
@@ -443,12 +443,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             return PreserveTrivia(declaration, d =>
             {
-                d = AsImplementation(d, Accessibility.NotApplicable);
-                d = WithoutConstraints(d);
+                d = this.AsImplementation(d, Accessibility.NotApplicable);
+                d = this.WithoutConstraints(d);
 
                 if (interfaceMemberName != null)
                 {
-                    d = WithName(d, interfaceMemberName);
+                    d = this.WithName(d, interfaceMemberName);
                 }
 
                 return WithInterfaceSpecifier(d, SyntaxFactory.ExplicitInterfaceSpecifier((NameSyntax)interfaceTypeName));
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var method = (MethodDeclarationSyntax)declaration;
                 if (method.ConstraintClauses.Count > 0)
                 {
-                    return RemoveNodes(method, method.ConstraintClauses);
+                    return this.RemoveNodes(method, method.ConstraintClauses);
                 }
             }
 
@@ -488,8 +488,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode AsImplementation(SyntaxNode declaration, Accessibility requiredAccess)
         {
-            declaration = WithAccessibility(declaration, requiredAccess);
-            declaration = WithModifiers(declaration, GetModifiers(declaration) - DeclarationModifiers.Abstract);
+            declaration = this.WithAccessibility(declaration, requiredAccess);
+            declaration = this.WithModifiers(declaration, this.GetModifiers(declaration) - DeclarationModifiers.Abstract);
             declaration = WithBodies(declaration);
             return declaration;
         }
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static AccessorListSyntax WithBodies(AccessorListSyntax accessorList)
         {
-            return accessorList.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(WithBody)));
+            return accessorList.WithAccessors(SyntaxFactory.List(accessorList.Accessors.Select(x => WithBody(x))));
         }
 
         private static AccessorDeclarationSyntax WithBody(AccessorDeclarationSyntax accessor)
@@ -585,13 +585,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsTypeParameterList(typeParameters),
                 baseTypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(baseTypes)) : null,
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                AsClassMembers(name, members));
+                this.AsClassMembers(name, members));
         }
 
         private SyntaxList<MemberDeclarationSyntax> AsClassMembers(string className, IEnumerable<SyntaxNode> members)
         {
             return members != null
-                ? SyntaxFactory.List(members.Select(m => AsClassMember(m, className)).Where(m => m != null))
+                ? SyntaxFactory.List(members.Select(m => this.AsClassMember(m, className)).Where(m => m != null))
                 : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
-                    node = AsIsolatedDeclaration(node);
+                    node = this.AsIsolatedDeclaration(node);
                     break;
             }
 
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsTypeParameterList(typeParameters),
                 itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                AsClassMembers(name, members));
+                this.AsClassMembers(name, members));
         }
 
         public override SyntaxNode InterfaceDeclaration(
@@ -656,19 +656,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsTypeParameterList(typeParameters),
                 itypes != null ? SyntaxFactory.BaseList(SyntaxFactory.SeparatedList(itypes)) : null,
                 default(SyntaxList<TypeParameterConstraintClauseSyntax>),
-                AsInterfaceMembers(members));
+                this.AsInterfaceMembers(members));
         }
 
         private SyntaxList<MemberDeclarationSyntax> AsInterfaceMembers(IEnumerable<SyntaxNode> members)
         {
             return members != null
-                ? SyntaxFactory.List(members.Select(AsInterfaceMember).OfType<MemberDeclarationSyntax>())
+                ? SyntaxFactory.List(members.Select(this.AsInterfaceMember).OfType<MemberDeclarationSyntax>())
                 : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
         internal override SyntaxNode AsInterfaceMember(SyntaxNode m)
         {
-            return Isolate(m, member =>
+            return this.Isolate(m, member =>
             {
                 Accessibility acc;
                 DeclarationModifiers modifiers;
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     // convert event into field event
                     case SyntaxKind.EventDeclaration:
                         var ev = (EventDeclarationSyntax)member;
-                        return EventDeclaration(
+                        return this.EventDeclaration(
                             ev.Identifier.ValueText,
                             ev.Type,
                             Accessibility.NotApplicable,
@@ -710,8 +710,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     case SyntaxKind.FieldDeclaration:
                         var f = (FieldDeclarationSyntax)member;
                         GetAccessibilityAndModifiers(f.Modifiers, out acc, out modifiers);
-                        return AsInterfaceMember(
-                            PropertyDeclaration(GetName(f), ClearTrivia(GetType(f)), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
+                        return this.AsInterfaceMember(
+                            this.PropertyDeclaration(this.GetName(f), this.ClearTrivia(this.GetType(f)), acc, modifiers, getAccessorStatements: null, setAccessorStatements: null));
 
                     default:
                         return null;
@@ -730,7 +730,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 AsModifierList(accessibility, modifiers, SyntaxKind.EnumDeclaration),
                 name.ToIdentifierToken(),
                 default(BaseListSyntax),
-                AsEnumMembers(members));
+                this.AsEnumMembers(members));
         }
 
         public override SyntaxNode EnumMember(string name, SyntaxNode expression)
@@ -747,14 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.IdentifierName:
                     var id = (IdentifierNameSyntax)node;
-                    return (EnumMemberDeclarationSyntax)EnumMember(id.Identifier.ToString(), null);
+                    return (EnumMemberDeclarationSyntax) this.EnumMember(id.Identifier.ToString(), null);
 
                 case SyntaxKind.FieldDeclaration:
                     var fd = (FieldDeclarationSyntax)node;
                     if (fd.Declaration.Variables.Count == 1)
                     {
                         var vd = fd.Declaration.Variables[0];
-                        return (EnumMemberDeclarationSyntax)EnumMember(vd.Identifier.ToString(), vd.Initializer);
+                        return (EnumMemberDeclarationSyntax) this.EnumMember(vd.Identifier.ToString(), vd.Initializer);
                     }
                     break;
             }
@@ -764,7 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SeparatedSyntaxList<EnumMemberDeclarationSyntax> AsEnumMembers(IEnumerable<SyntaxNode> members)
         {
-            return members != null ? SyntaxFactory.SeparatedList(members.Select(AsEnumMember)) : default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
+            return members != null ? SyntaxFactory.SeparatedList(members.Select(this.AsEnumMember)) : default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>);
         }
 
         public override SyntaxNode DelegateDeclaration(
@@ -899,21 +899,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertAttributes(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes)
         {
-            return Isolate(declaration, d => InsertAttributesInternal(d, index, attributes));
+            return this.Isolate(declaration, d => this.InsertAttributesInternal(d, index, attributes));
         }
 
         private SyntaxNode InsertAttributesInternal(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes)
         {
             var newAttributes = AsAttributeLists(attributes);
 
-            var existingAttributes = GetAttributes(declaration);
+            var existingAttributes = this.GetAttributes(declaration);
             if (index >= 0 && index < existingAttributes.Count)
             {
-                return InsertNodesBefore(declaration, existingAttributes[index], newAttributes);
+                return this.InsertNodesBefore(declaration, existingAttributes[index], newAttributes);
             }
             else if (existingAttributes.Count > 0)
             {
-                return InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], newAttributes);
+                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], newAttributes);
             }
             else
             {
@@ -931,7 +931,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.DelegateDeclaration:
-                    return Isolate(declaration, d => InsertReturnAttributesInternal(d, index, attributes));
+                    return this.Isolate(declaration, d => this.InsertReturnAttributesInternal(d, index, attributes));
                 default:
                     return declaration;
             }
@@ -941,14 +941,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             var newAttributes = AsReturnAttributes(attributes);
 
-            var existingAttributes = GetReturnAttributes(d);
+            var existingAttributes = this.GetReturnAttributes(d);
             if (index >= 0 && index < existingAttributes.Count)
             {
-                return InsertNodesBefore(d, existingAttributes[index], newAttributes);
+                return this.InsertNodesBefore(d, existingAttributes[index], newAttributes);
             }
             else if (existingAttributes.Count > 0)
             {
-                return InsertNodesAfter(d, existingAttributes[existingAttributes.Count - 1], newAttributes);
+                return this.InsertNodesAfter(d, existingAttributes[existingAttributes.Count - 1], newAttributes);
             }
             else
             {
@@ -978,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var list = (AttributeListSyntax)attributeDeclaration;
                     if (list.Attributes.Count == 1)
                     {
-                        return GetAttributeArguments(list.Attributes[0]);
+                        return this.GetAttributeArguments(list.Attributes[0]);
                     }
                     break;
                 case SyntaxKind.Attribute:
@@ -995,7 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertAttributeArguments(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributeArguments)
         {
-            return Isolate(declaration, d => InsertAttributeArgumentsInternal(d, index, attributeArguments));
+            return this.Isolate(declaration, d => InsertAttributeArgumentsInternal(d, index, attributeArguments));
         }
 
         private static SyntaxNode InsertAttributeArgumentsInternal(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributeArguments)
@@ -1170,12 +1170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
         {
-            return PreserveTrivia(declaration, d => InsertNamespaceImportsInternal(d, index, imports));
+            return PreserveTrivia(declaration, d => this.InsertNamespaceImportsInternal(d, index, imports));
         }
 
         private SyntaxNode InsertNamespaceImportsInternal(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
         {
-            SyntaxList<UsingDirectiveSyntax> usingsToInsert = AsUsingDirectives(imports);
+            SyntaxList<UsingDirectiveSyntax> usingsToInsert = this.AsUsingDirectives(imports);
 
             switch (declaration.Kind())
             {
@@ -1294,16 +1294,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
         {
-            var newMembers = AsMembersOf(declaration, members);
+            var newMembers = this.AsMembersOf(declaration, members);
 
-            var existingMembers = GetMembers(declaration);
+            var existingMembers = this.GetMembers(declaration);
             if (index >= 0 && index < existingMembers.Count)
             {
-                return InsertNodesBefore(declaration, existingMembers[index], newMembers);
+                return this.InsertNodesBefore(declaration, existingMembers[index], newMembers);
             }
             else if (existingMembers.Count > 0)
             {
-                return InsertNodesAfter(declaration, existingMembers[existingMembers.Count - 1], newMembers);
+                return this.InsertNodesAfter(declaration, existingMembers[existingMembers.Count - 1], newMembers);
             }
             else
             {
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private IEnumerable<MemberDeclarationSyntax> AsMembersOf(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
         {
-            return members?.Select(m => AsMemberOf(declaration, m)).OfType<MemberDeclarationSyntax>();
+            return members?.Select(m => this.AsMemberOf(declaration, m)).OfType<MemberDeclarationSyntax>();
         }
 
         private SyntaxNode AsMemberOf(SyntaxNode declaration, SyntaxNode member)
@@ -1344,14 +1344,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.ClassDeclaration:
                     var cd = (ClassDeclarationSyntax)declaration;
-                    return AsClassMember(member, cd.Identifier.Text);
+                    return this.AsClassMember(member, cd.Identifier.Text);
                 case SyntaxKind.StructDeclaration:
                     var sd = (StructDeclarationSyntax)declaration;
-                    return AsClassMember(member, sd.Identifier.Text);
+                    return this.AsClassMember(member, sd.Identifier.Text);
                 case SyntaxKind.InterfaceDeclaration:
-                    return AsInterfaceMember(member);
+                    return this.AsInterfaceMember(member);
                 case SyntaxKind.EnumDeclaration:
-                    return AsEnumMember(member);
+                    return this.AsEnumMember(member);
                 case SyntaxKind.NamespaceDeclaration:
                     return AsNamespaceMember(member);
                 case SyntaxKind.CompilationUnit:
@@ -1386,7 +1386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     return true;
                 case SyntaxKind.VariableDeclaration:
                 case SyntaxKind.VariableDeclarator:
-                    return GetDeclarationKind(declaration) == DeclarationKind.Field;
+                    return this.GetDeclarationKind(declaration) == DeclarationKind.Field;
                 case SyntaxKind.EnumMemberDeclaration:
                 case SyntaxKind.Parameter:
                 case SyntaxKind.LocalDeclarationStatement:
@@ -1398,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override Accessibility GetAccessibility(SyntaxNode declaration)
         {
-            if (!CanHaveAccessibility(declaration))
+            if (!this.CanHaveAccessibility(declaration))
             {
                 return Accessibility.NotApplicable;
             }
@@ -1410,12 +1410,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility)
         {
-            if (!CanHaveAccessibility(declaration))
+            if (!this.CanHaveAccessibility(declaration))
             {
                 return declaration;
             }
 
-            return Isolate(declaration, d =>
+            return this.Isolate(declaration, d =>
             {
                 var tokens = GetModifierTokens(d);
                 GetAccessibilityAndModifiers(tokens, out var tmp, out var modifiers);
@@ -1502,17 +1502,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers)
         {
-            return Isolate(declaration, d => WithModifiersInternal(d, modifiers));
+            return this.Isolate(declaration, d => this.WithModifiersInternal(d, modifiers));
         }
 
         private SyntaxNode WithModifiersInternal(SyntaxNode declaration, DeclarationModifiers modifiers)
         {
             modifiers = modifiers & GetAllowedModifiers(declaration.Kind());
-            var existingModifiers = GetModifiers(declaration);
+            var existingModifiers = this.GetModifiers(declaration);
 
             if (modifiers != existingModifiers)
             {
-                return Isolate(declaration, d =>
+                return this.Isolate(declaration, d =>
                 {
                     var tokens = GetModifierTokens(d);
                     GetAccessibilityAndModifiers(tokens, out var accessibility, out var tmp);
@@ -2105,13 +2105,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.MethodDeclaration:
                     return ((MethodDeclarationSyntax)declaration).Identifier.ValueText;
                 case SyntaxKind.FieldDeclaration:
-                    return GetName(((FieldDeclarationSyntax)declaration).Declaration);
+                    return this.GetName(((FieldDeclarationSyntax)declaration).Declaration);
                 case SyntaxKind.PropertyDeclaration:
                     return ((PropertyDeclarationSyntax)declaration).Identifier.ValueText;
                 case SyntaxKind.EnumMemberDeclaration:
                     return ((EnumMemberDeclarationSyntax)declaration).Identifier.ValueText;
                 case SyntaxKind.EventFieldDeclaration:
-                    return GetName(((EventFieldDeclarationSyntax)declaration).Declaration);
+                    return this.GetName(((EventFieldDeclarationSyntax)declaration).Declaration);
                 case SyntaxKind.EventDeclaration:
                     return ((EventDeclarationSyntax)declaration).Identifier.ValueText;
                 case SyntaxKind.NamespaceDeclaration:
@@ -2121,7 +2121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.Parameter:
                     return ((ParameterSyntax)declaration).Identifier.ValueText;
                 case SyntaxKind.LocalDeclarationStatement:
-                    return GetName(((LocalDeclarationStatementSyntax)declaration).Declaration);
+                    return this.GetName(((LocalDeclarationStatementSyntax)declaration).Declaration);
                 case SyntaxKind.VariableDeclaration:
                     var vd = (VariableDeclarationSyntax)declaration;
                     if (vd.Variables.Count == 1)
@@ -2149,7 +2149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithName(SyntaxNode declaration, string name)
         {
-            return Isolate(declaration, d => WithNameInternal(d, name));
+            return this.Isolate(declaration, d => this.WithNameInternal(d, name));
         }
 
         private SyntaxNode WithNameInternal(SyntaxNode declaration, string name)
@@ -2191,9 +2191,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.EventDeclaration:
                     return ReplaceWithTrivia(declaration, ((EventDeclarationSyntax)declaration).Identifier, id);
                 case SyntaxKind.NamespaceDeclaration:
-                    return ReplaceWithTrivia(declaration, ((NamespaceDeclarationSyntax)declaration).Name, DottedName(name));
+                    return ReplaceWithTrivia(declaration, ((NamespaceDeclarationSyntax)declaration).Name, this.DottedName(name));
                 case SyntaxKind.UsingDirective:
-                    return ReplaceWithTrivia(declaration, ((UsingDirectiveSyntax)declaration).Name, DottedName(name));
+                    return ReplaceWithTrivia(declaration, ((UsingDirectiveSyntax)declaration).Name, this.DottedName(name));
                 case SyntaxKind.Parameter:
                     return ReplaceWithTrivia(declaration, ((ParameterSyntax)declaration).Identifier, id);
                 case SyntaxKind.LocalDeclarationStatement:
@@ -2209,11 +2209,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var al = (AttributeListSyntax)declaration;
                     if (al.Attributes.Count == 1)
                     {
-                        return ReplaceWithTrivia(declaration, al.Attributes[0].Name, DottedName(name));
+                        return ReplaceWithTrivia(declaration, al.Attributes[0].Name, this.DottedName(name));
                     }
                     break;
                 case SyntaxKind.Attribute:
-                    return ReplaceWithTrivia(declaration, ((AttributeSyntax)declaration).Name, DottedName(name));
+                    return ReplaceWithTrivia(declaration, ((AttributeSyntax)declaration).Name, this.DottedName(name));
                 case SyntaxKind.VariableDeclaration:
                     var vd = (VariableDeclarationSyntax)declaration;
                     if (vd.Variables.Count == 1)
@@ -2255,7 +2255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case SyntaxKind.VariableDeclarator:
                     if (declaration.Parent != null)
                     {
-                        return GetType(declaration.Parent);
+                        return this.GetType(declaration.Parent);
                     }
                     break;
             }
@@ -2271,7 +2271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithType(SyntaxNode declaration, SyntaxNode type)
         {
-            return Isolate(declaration, d => WithTypeInternal(d, type));
+            return this.Isolate(declaration, d => WithTypeInternal(d, type));
         }
 
         private static SyntaxNode WithTypeInternal(SyntaxNode declaration, SyntaxNode type)
@@ -2305,7 +2305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode Isolate(SyntaxNode declaration, Func<SyntaxNode, SyntaxNode> editor)
         {
-            var isolated = AsIsolatedDeclaration(declaration);
+            var isolated = this.AsIsolatedDeclaration(declaration);
 
             return PreserveTrivia(isolated, editor);
         }
@@ -2320,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         var vd = (VariableDeclarationSyntax)declaration;
                         if (vd.Parent != null && vd.Variables.Count == 1)
                         {
-                            return AsIsolatedDeclaration(vd.Parent);
+                            return this.AsIsolatedDeclaration(vd.Parent);
                         }
                         break;
 
@@ -2328,7 +2328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         var v = (VariableDeclaratorSyntax)declaration;
                         if (v.Parent != null && v.Parent.Parent != null)
                         {
-                            return ClearTrivia(WithVariable(v.Parent.Parent, v));
+                            return this.ClearTrivia(WithVariable(v.Parent.Parent, v));
                         }
                         break;
 
@@ -2418,7 +2418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode AsNodeLike(SyntaxNode existingNode, SyntaxNode newNode)
         {
-            switch (GetDeclarationKind(existingNode))
+            switch (this.GetDeclarationKind(existingNode))
             {
                 case DeclarationKind.Class:
                 case DeclarationKind.Interface:
@@ -2426,10 +2426,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 case DeclarationKind.Enum:
                 case DeclarationKind.Namespace:
                 case DeclarationKind.CompilationUnit:
-                    var container = GetDeclaration(existingNode.Parent);
+                    var container = this.GetDeclaration(existingNode.Parent);
                     if (container != null)
                     {
-                        return AsMemberOf(container, newNode);
+                        return this.AsMemberOf(container, newNode);
                     }
                     break;
 
@@ -2501,17 +2501,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             public AddMissingTokensRewriter(bool recurse)
             {
-                _recurse = recurse;
+                this._recurse = recurse;
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (!_recurse && !_firstVisit)
+                if (!this._recurse && !this._firstVisit)
                 {
                     return node;
                 }
 
-                _firstVisit = false;
+                this._firstVisit = false;
                 return base.Visit(node);
             }
 
@@ -2624,7 +2624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithExpression(SyntaxNode declaration, SyntaxNode expression)
         {
-            return Isolate(declaration, d => WithExpressionInternal(d, expression));
+            return this.Isolate(declaration, d => WithExpressionInternal(d, expression));
         }
 
         private static SyntaxNode WithExpressionInternal(SyntaxNode declaration, SyntaxNode expression)
@@ -2928,7 +2928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode WithAccessor(SyntaxNode declaration, SyntaxKind kind, AccessorDeclarationSyntax accessor)
         {
-            return WithAccessor(declaration, GetAccessorList(declaration), kind, accessor);
+            return this.WithAccessor(declaration, GetAccessorList(declaration), kind, accessor);
         }
 
         private SyntaxNode WithAccessor(SyntaxNode declaration, AccessorListSyntax accessorList, SyntaxKind kind, AccessorDeclarationSyntax accessor)
@@ -2938,11 +2938,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 var acc = accessorList.Accessors.FirstOrDefault(a => a.IsKind(kind));
                 if (acc != null)
                 {
-                    return ReplaceNode(declaration, acc, accessor);
+                    return this.ReplaceNode(declaration, acc, accessor);
                 }
                 else if (accessor != null)
                 {
-                    return ReplaceNode(declaration, accessorList, accessorList.AddAccessors(accessor));
+                    return this.ReplaceNode(declaration, accessorList, accessorList.AddAccessors(accessor));
                 }
             }
 
@@ -2963,12 +2963,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode WithGetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
-            return WithAccessorStatements(declaration, SyntaxKind.GetAccessorDeclaration, statements);
+            return this.WithAccessorStatements(declaration, SyntaxKind.GetAccessorDeclaration, statements);
         }
 
         public override SyntaxNode WithSetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
-            return WithAccessorStatements(declaration, SyntaxKind.SetAccessorDeclaration, statements);
+            return this.WithAccessorStatements(declaration, SyntaxKind.SetAccessorDeclaration, statements);
         }
 
         private SyntaxNode WithAccessorStatements(SyntaxNode declaration, SyntaxKind kind, IEnumerable<SyntaxNode> statements)
@@ -2977,11 +2977,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (accessor == null)
             {
                 accessor = AccessorDeclaration(kind, statements);
-                return WithAccessor(declaration, kind, accessor);
+                return this.WithAccessor(declaration, kind, accessor);
             }
             else
             {
-                return WithAccessor(declaration, kind, (AccessorDeclarationSyntax)WithStatements(accessor, statements));
+                return this.WithAccessor(declaration, kind, (AccessorDeclarationSyntax) this.WithStatements(accessor, statements));
             }
         }
 
@@ -3070,16 +3070,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
         {
-            newDeclaration = AsNodeLike(declaration, newDeclaration);
+            newDeclaration = this.AsNodeLike(declaration, newDeclaration);
 
             if (newDeclaration == null)
             {
-                return RemoveNode(root, declaration);
+                return this.RemoveNode(root, declaration);
             }
 
             if (root.Span.Contains(declaration.Span))
             {
-                var newFullDecl = AsIsolatedDeclaration(newDeclaration);
+                var newFullDecl = this.AsIsolatedDeclaration(newDeclaration);
                 var fullDecl = GetFullDeclaration(declaration);
 
                 // special handling for replacing at location of sub-declaration
@@ -3096,10 +3096,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
 
                     // replace sub declaration by splitting full declaration and inserting between
-                    var index = IndexOf(GetSubDeclarations(fullDecl), declaration);
+                    var index = this.IndexOf(GetSubDeclarations(fullDecl), declaration);
 
                     // replace declaration with multiple declarations
-                    return ReplaceRange(root, fullDecl, SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
+                    return ReplaceRange(root, fullDecl, this.SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
                 }
 
                 // attempt normal replace
@@ -3188,7 +3188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (index > 0)
                 {
                     // make a single declaration with only sub-declarations before the sub-declaration being replaced
-                    newNodes.Add(WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
                 }
 
                 newNodes.AddRange(newDeclarations);
@@ -3196,7 +3196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (index < count - 1)
                 {
                     // make a single declaration with only the sub-declarations after the sub-declaration being replaced
-                    newNodes.Add(WithSubDeclarationsRemoved(multiPartDeclaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
                 }
 
                 return newNodes;
@@ -3211,7 +3211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (root.Span.Contains(declaration.Span))
             {
-                return Isolate(root.TrackNodes(declaration), r => InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+                return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
             }
             else
             {
@@ -3228,12 +3228,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             var subDecls = GetSubDeclarations(fullDecl);
-            var index = IndexOf(subDecls, declaration);
+            var index = this.IndexOf(subDecls, declaration);
 
             // insert new declaration between full declaration split into two
             if (index > 0)
             {
-                return ReplaceRange(root, fullDecl, SplitAndInsert(fullDecl, index, newDeclarations));
+                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index, newDeclarations));
             }
 
             return base.InsertNodesBefore(root, fullDecl, newDeclarations);
@@ -3243,7 +3243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (root.Span.Contains(declaration.Span))
             {
-                return Isolate(root.TrackNodes(declaration), r => InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+                return this.Isolate(root.TrackNodes(declaration), r => this.InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
             }
             else
             {
@@ -3261,12 +3261,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var subDecls = GetSubDeclarations(fullDecl);
             var count = subDecls.Count;
-            var index = IndexOf(subDecls, declaration);
+            var index = this.IndexOf(subDecls, declaration);
 
             // insert new declaration between full declaration split into two
             if (index >= 0 && index < count - 1)
             {
-                return ReplaceRange(root, fullDecl, SplitAndInsert(fullDecl, index + 1, newDeclarations));
+                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index + 1, newDeclarations));
             }
 
             return base.InsertNodesAfter(root, fullDecl, newDeclarations);
@@ -3276,15 +3276,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             int count = GetDeclarationCount(multiPartDeclaration);
             var newNodes = new List<SyntaxNode>();
-            newNodes.Add(WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
             newNodes.AddRange(newDeclarations);
-            newNodes.Add(WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
             return newNodes;
         }
 
         private SyntaxNode WithSubDeclarationsRemoved(SyntaxNode declaration, int index, int count)
         {
-            return RemoveNodes(declaration, GetSubDeclarations(declaration).Skip(index).Take(count));
+            return this.RemoveNodes(declaration, GetSubDeclarations(declaration).Skip(index).Take(count));
         }
 
         private static IReadOnlyList<SyntaxNode> GetSubDeclarations(SyntaxNode declaration)
@@ -3308,7 +3308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
         {
-            return RemoveNode(root, node, DefaultRemoveOptions);
+            return this.RemoveNode(root, node, DefaultRemoveOptions);
         }
 
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
@@ -3316,11 +3316,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             if (root.Span.Contains(node.Span))
             {
                 // node exists within normal span of the root (not in trivia)
-                return Isolate(root.TrackNodes(node), r => RemoveNodeInternal(r, r.GetCurrentNode(node), options));
+                return this.Isolate(root.TrackNodes(node), r => this.RemoveNodeInternal(r, r.GetCurrentNode(node), options));
             }
             else
             {
-                return RemoveNodeInternal(root, node, options);
+                return this.RemoveNodeInternal(root, node, options);
             }
         }
 
@@ -3334,7 +3334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (attrList != null && attrList.Attributes.Count == 1)
                     {
                         // remove entire list if only one attribute
-                        return RemoveNodeInternal(root, attrList, options);
+                        return this.RemoveNodeInternal(root, attrList, options);
                     }
                     break;
 
@@ -3342,7 +3342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (declaration.Parent != null && ((AttributeArgumentListSyntax)declaration.Parent).Arguments.Count == 1)
                     {
                         // remove entire argument list if only one argument
-                        return RemoveNodeInternal(root, declaration.Parent, options);
+                        return this.RemoveNodeInternal(root, declaration.Parent, options);
                     }
                     break;
 
@@ -3351,7 +3351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (full != declaration && GetDeclarationCount(full) == 1)
                     {
                         // remove full declaration if only one declarator
-                        return RemoveNodeInternal(root, full, options);
+                        return this.RemoveNodeInternal(root, full, options);
                     }
                     break;
 
@@ -3360,7 +3360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (baseList != null && baseList.Types.Count == 1)
                     {
                         // remove entire base list if this is the only base type.
-                        return RemoveNodeInternal(root, baseList, options);
+                        return this.RemoveNodeInternal(root, baseList, options);
                     }
                     break;
 
@@ -3371,7 +3371,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                         switch (parent.Kind())
                         {
                             case SyntaxKind.SimpleBaseType:
-                                return RemoveNodeInternal(root, parent, options);
+                                return this.RemoveNodeInternal(root, parent, options);
                         }
                     }
                     break;
@@ -3424,8 +3424,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode NameOfExpression(SyntaxNode expression)
         {
-            return InvocationExpression(
-                IdentifierName(SyntaxFacts.GetText(SyntaxKind.NameOfKeyword)),
+            return this.InvocationExpression(
+                this.IdentifierName(SyntaxFacts.GetText(SyntaxKind.NameOfKeyword)),
                 expression);
         }
 
@@ -3825,16 +3825,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.QualifiedName:
                     var qname = (QualifiedNameSyntax)expression;
-                    return qname.WithRight((SimpleNameSyntax)WithTypeArguments(qname.Right, typeArguments));
+                    return qname.WithRight((SimpleNameSyntax) this.WithTypeArguments(qname.Right, typeArguments));
 
                 case SyntaxKind.AliasQualifiedName:
                     var aname = (AliasQualifiedNameSyntax)expression;
-                    return aname.WithName((SimpleNameSyntax)WithTypeArguments(aname.Name, typeArguments));
+                    return aname.WithName((SimpleNameSyntax) this.WithTypeArguments(aname.Name, typeArguments));
 
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     var sma = (MemberAccessExpressionSyntax)expression;
-                    return sma.WithName((SimpleNameSyntax)WithTypeArguments(sma.Name, typeArguments));
+                    return sma.WithName((SimpleNameSyntax) this.WithTypeArguments(sma.Name, typeArguments));
 
                 default:
                     return expression;
@@ -3993,7 +3993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         internal override SyntaxNode SwitchSectionFromLabels(IEnumerable<SyntaxNode> labels, IEnumerable<SyntaxNode> statements)
         {
             return SyntaxFactory.SwitchSection(
-                labels.Cast<SwitchLabelSyntax>().ToSyntaxList(), 
+                labels.Cast<SwitchLabelSyntax>().ToSyntaxList(),
                 AsStatementList(statements));
         }
 
@@ -4041,22 +4041,22 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode> lambdaParameters, SyntaxNode expression)
         {
-            return ValueReturningLambdaExpression(lambdaParameters, expression);
+            return this.ValueReturningLambdaExpression(lambdaParameters, expression);
         }
 
         public override SyntaxNode ValueReturningLambdaExpression(IEnumerable<SyntaxNode> parameterDeclarations, IEnumerable<SyntaxNode> statements)
         {
-            return ValueReturningLambdaExpression(parameterDeclarations, CreateBlock(statements));
+            return this.ValueReturningLambdaExpression(parameterDeclarations, CreateBlock(statements));
         }
 
         public override SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode> lambdaParameters, IEnumerable<SyntaxNode> statements)
         {
-            return ValueReturningLambdaExpression(lambdaParameters, statements);
+            return this.ValueReturningLambdaExpression(lambdaParameters, statements);
         }
 
         public override SyntaxNode LambdaParameter(string identifier, SyntaxNode type = null)
         {
-            return ParameterDeclaration(identifier, type, null, RefKind.None);
+            return this.ParameterDeclaration(identifier, type, null, RefKind.None);
         }
 
         private static IReadOnlyList<T> AsReadOnlyList<T>(IEnumerable<T> sequence)
