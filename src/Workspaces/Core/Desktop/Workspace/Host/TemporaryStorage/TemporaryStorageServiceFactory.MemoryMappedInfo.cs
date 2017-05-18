@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Host
             public string Name => _name;
             public long Size => _size;
 
-            private void ForceCompactingGC()
+            private static void ForceCompactingGC()
             {
                 // repeated GC.Collect / WaitForPendingFinalizers till memory freed delta is super small, ignore the return value
                 GC.GetTotalMemory(forceFullCollection: true);
@@ -96,23 +96,12 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             public Stream CreateReadableStream()
             {
-                // CreateViewStream is not guaranteed to be thread-safe
+                // CreateViewAccessor is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
                     if (_accessor == null)
                     {
-                        try
-                        {
-                            _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
-                        }
-                        catch (IOException)
-                        {
-                            // CreateViewAccessor will use a native memory map - which can't trigger a GC.
-                            // In this case, we'd otherwise crash with OOM, so we don't care about creating a UI delay with a full forced compacting GC.
-                            // If it crashes the second try, it means we're legitimately out of resources.
-                            this.ForceCompactingGC();
-                            _accessor = _memoryMappedFile.CreateViewAccessor(0, _size, MemoryMappedFileAccess.Read);
-                        }
+                        _accessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.CreateViewAccessor(0, info._size, MemoryMappedFileAccess.Read), this);
                     }
 
                     Contract.Assert(_accessor.CanRead);
@@ -129,7 +118,37 @@ namespace Microsoft.CodeAnalysis.Host
                 // CreateViewStream is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
-                    return _memoryMappedFile.CreateViewStream(0, _size, MemoryMappedFileAccess.Write);
+                    return RunWithCompactingGCFallback(info => info._memoryMappedFile.CreateViewStream(0, info._size, MemoryMappedFileAccess.Write), this);
+                }
+            }
+
+            /// <summary>
+            /// Run a function which may fail with an <see cref="IOException"/> if not enough memory is available to
+            /// satisfy the request. In this case, a full compacting GC pass is forced and the function is attempted
+            /// again.
+            /// </summary>
+            /// <remarks>
+            /// <para><see cref="MemoryMappedFile.CreateViewAccessor(long, long, MemoryMappedFileAccess)"/> and
+            /// <see cref="MemoryMappedFile.CreateViewStream(long, long, MemoryMappedFileAccess)"/> will use a native
+            /// memory map, which can't trigger a GC. In this case, we'd otherwise crash with OOM, so we don't care
+            /// about creating a UI delay with a full forced compacting GC. If it crashes the second try, it means we're
+            /// legitimately out of resources.</para>
+            /// </remarks>
+            /// <typeparam name="TArg">The type of argument to pass to the callback.</typeparam>
+            /// <typeparam name="T">The type returned by the function.</typeparam>
+            /// <param name="function">The function to execute.</param>
+            /// <param name="argument">The argument to pass to the function.</param>
+            /// <returns>The value returned by <paramref name="function"/>.</returns>
+            private static T RunWithCompactingGCFallback<TArg, T>(Func<TArg, T> function, TArg argument)
+            {
+                try
+                {
+                    return function(argument);
+                }
+                catch (IOException)
+                {
+                    ForceCompactingGC();
+                    return function(argument);
                 }
             }
 
