@@ -161,43 +161,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //
             // Foo((object)null);
 
-            if (cast.Expression.WalkDownParentheses().IsKind(SyntaxKind.NullLiteralExpression))
+            var argument = cast.WalkUpParentheses().Parent as ArgumentSyntax;
+            if (argument != null)
             {
-                var argument = cast.WalkUpParentheses().Parent as ArgumentSyntax;
-                if (argument != null)
+                // If there are any arguments to the right, we can assume that this is not a
+                // *single* argument passed to a params parameter.
+                var argumentList = argument.Parent as BaseArgumentListSyntax;
+                if (argumentList != null)
                 {
-                    // If there are any arguments to the right, we can assume that this is not a
-                    // *single* argument passed to a params parameter.
-                    var argumentList = argument.Parent as BaseArgumentListSyntax;
-                    if (argumentList != null)
+                    var argumentIndex = argumentList.Arguments.IndexOf(argument);
+                    if (argumentIndex < argumentList.Arguments.Count - 1)
                     {
-                        var argumentIndex = argumentList.Arguments.IndexOf(argument);
-                        if (argumentIndex < argumentList.Arguments.Count - 1)
-                        {
-                            return false;
-                        }
+                        return false;
+                    }
+                }
+
+                var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
+                if (parameter != null && parameter.IsParams)
+                {
+                    Debug.Assert(parameter.Type is IArrayTypeSymbol);
+
+                    var parameterType = (IArrayTypeSymbol)parameter.Type;
+
+                    var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
+                    if (conversion.Exists &&
+                        conversion.IsImplicit)
+                    {
+                        return false;
                     }
 
-                    var parameter = argument.DetermineParameter(semanticModel, cancellationToken: cancellationToken);
-                    if (parameter != null && parameter.IsParams)
+                    var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
+                    if (conversionElementType.Exists &&
+                        conversionElementType.IsImplicit)
                     {
-                        Debug.Assert(parameter.Type is IArrayTypeSymbol);
-
-                        var parameterType = (IArrayTypeSymbol)parameter.Type;
-
-                        var conversion = semanticModel.Compilation.ClassifyConversion(castType, parameterType);
-                        if (conversion.Exists &&
-                            conversion.IsImplicit)
-                        {
-                            return false;
-                        }
-
-                        var conversionElementType = semanticModel.Compilation.ClassifyConversion(castType, parameterType.ElementType);
-                        if (conversionElementType.Exists &&
-                            conversionElementType.IsImplicit)
-                        {
-                            return true;
-                        }
+                        return true;
                     }
                 }
             }

@@ -3913,5 +3913,28 @@ class Program
     }
 }");
         }
+
+        [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastCallToMethodWithParamsArgs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var takesArgs = new[] { ""Hello"", ""World"" };
+        TakesParams(takesArgs);
+        TakesParams([|(object)takesArgs|]);
+    }
+
+    private static void TakesParams(params object[] foo)
+    {
+        Console.WriteLine(foo.Length);
+    }
+}");
+        }
+        
     }
 }
