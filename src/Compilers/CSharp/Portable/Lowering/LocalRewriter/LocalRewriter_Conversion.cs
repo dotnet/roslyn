@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_inExpressionLambda)
             {
-                @checked = @checked && NeedsCheckedConversionInExpressionTree(rewrittenOperand.Type, rewrittenType);
+                @checked = @checked && NeedsCheckedConversionInExpressionTree(rewrittenOperand.Type, rewrittenType, explicitCastInCode);
             }
 
             switch (conversion.Kind)
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Determine if the conversion can actually overflow at runtime.  If not, no need to generate a checked instruction.
-        private static bool NeedsCheckedConversionInExpressionTree(TypeSymbol source, TypeSymbol target)
+        private static bool NeedsCheckedConversionInExpressionTree(TypeSymbol source, TypeSymbol target, bool explicitCastInCode)
         {
             Debug.Assert((object)target != null);
 
@@ -385,16 +385,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
+            SpecialType GetUnderlyingSpecialType(TypeSymbol type) =>
+                type.StrippedType().EnumUnderlyingType().SpecialType;
+
+            bool IsInRange(SpecialType type, SpecialType low, SpecialType high) =>
+                low <= type && type <= high;
+
+            SpecialType sourceST = GetUnderlyingSpecialType(source);
+            SpecialType targetST = GetUnderlyingSpecialType(target);
+
             // integral to double or float is never checked, but float/double to integral 
             // may be checked.
-            return IsUnderlyingTypeInRange(source, SpecialType.System_Char, SpecialType.System_Double) &&
-                IsUnderlyingTypeInRange(target, SpecialType.System_Char, SpecialType.System_UInt64);
-        }
-
-        private static bool IsUnderlyingTypeInRange(TypeSymbol type, SpecialType low, SpecialType high)
-        {
-            var specialType = type.StrippedType().EnumUnderlyingType().SpecialType;
-            return low <= specialType && specialType <= high;
+            return (explicitCastInCode || sourceST != targetST) &&
+                IsInRange(sourceST, SpecialType.System_Char, SpecialType.System_Double) &&
+                IsInRange(targetST, SpecialType.System_Char, SpecialType.System_UInt64);
         }
 
         /// <summary>

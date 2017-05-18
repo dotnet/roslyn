@@ -2461,27 +2461,17 @@ class Derived2 : Base1
             // object
             CheckedConversionInExpressionTree_Implicit("int", "object", ConvertMethod.Convert);
             CheckedConversionInExpressionTree_Implicit("string", "object", ConvertMethod.None);
+
+            // Nullable<>
+            CheckedConversionInExpressionTree_Implicit("int", "int?", "arg => F(Convert(arg))");
+            CheckedConversionInExpressionTree_Implicit("int", "long?", "arg => F(ConvertChecked(ConvertChecked(arg)))");
         }
 
         [Fact]
         [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversionsInExpressionTrees_ImplicitTuple()
         {
-            var source =
-@"using System;
-using System.Linq.Expressions;
-class C
-{
-    static (int, int)? F((int, int)? arg) => arg;
-    static void Main()
-    {
-        Expression<Func<(int, int), (int, int)?>> e = arg => checked(F(arg));
-        Console.WriteLine(e);
-    }
-}";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
-            var verifier = CompileAndVerify(compilation, expectedOutput: "arg => F(ConvertChecked(arg))");
-            VerifyConversionInExpressionTreeIL(verifier.TestData.GetMethodData("C.Main").GetMethodIL(), ConvertMethod.ConvertChecked);
+            CheckedConversionInExpressionTree_Implicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
         }
 
         [Fact]
@@ -2666,6 +2656,17 @@ class C
             CheckedConversionInExpressionTree_Explicit("object", "int", ConvertMethod.Convert);
             CheckedConversionInExpressionTree_Explicit("string", "object", ConvertMethod.Convert);
             CheckedConversionInExpressionTree_Explicit("object", "string", ConvertMethod.Convert);
+
+            // Nullable<>
+            CheckedConversionInExpressionTree_Explicit("int", "byte?", "arg => ConvertChecked(arg)");
+            CheckedConversionInExpressionTree_Explicit("int", "int?", "arg => ConvertChecked(arg)");
+            CheckedConversionInExpressionTree_Explicit("int", "long?", "arg => ConvertChecked(ConvertChecked(arg))");
+        }
+
+        [Fact]
+        public void CheckedConversionsInExpressionTrees_ExplicitTuple()
+        {
+            CheckedConversionInExpressionTree_Explicit("(int, int)", "(int, int)?", ConvertMethod.Convert);
         }
 
         private enum ConvertMethod
@@ -2677,20 +2678,8 @@ class C
 
         private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
         {
-            var source =
-$@"using System;
-using System.Linq.Expressions;
-{additionalTypes}
-class C
-{{
-    static {toType} F({toType} arg) => arg;
-    static void Main()
-    {{
-        Expression<Func<{fromType}, {toType}>> e = arg => checked(F(arg));
-        Console.WriteLine(e);
-    }}
-}}";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2710,21 +2699,34 @@ class C
             VerifyConversionInExpressionTreeIL(verifier.TestData.GetMethodData("C.Main").GetMethodIL(), expectedMethod);
         }
 
-        private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
+        private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, string expectedOutput)
         {
-            var source =
+            var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes: "");
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        private static string CheckedConversionInExpressionTree_ImplicitSource(string fromType, string toType, string additionalTypes)
+        {
+            return
 $@"using System;
 using System.Linq.Expressions;
 {additionalTypes}
 class C
 {{
+    static {toType} F({toType} arg) => arg;
     static void Main()
     {{
-        Expression<Func<{fromType}, {toType}>> e = arg => checked(({toType})arg);
+        Expression<Func<{fromType}, {toType}>> e = arg => checked(F(arg));
         Console.WriteLine(e);
     }}
 }}";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+        }
+
+        private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
+        {
+            var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes);
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2742,6 +2744,29 @@ class C
             // Since Expression.ConvertChecked can generate a Checked result
             // (rather than ConvertChecked), verify the correct method was called.
             VerifyConversionInExpressionTreeIL(verifier.TestData.GetMethodData("C.Main").GetMethodIL(), expectedMethod);
+        }
+
+        private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, string expectedOutput)
+        {
+            var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes: "");
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        private static string CheckedConversionInExpressionTree_ExplicitSource(string fromType, string toType, string additionalTypes)
+        {
+            return
+$@"using System;
+using System.Linq.Expressions;
+{additionalTypes}
+class C
+{{
+    static void Main()
+    {{
+        Expression<Func<{fromType}, {toType}>> e = arg => checked(({toType})arg);
+        Console.WriteLine(e);
+    }}
+}}";
         }
 
         private static void VerifyConversionInExpressionTreeIL(string actualIL, ConvertMethod expectedMethod)
