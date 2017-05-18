@@ -59,6 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, afterif));
                 builder.Add(rewrittenConsequence);
+                builder.Add(new BoundSequencePoint(null, null));
                 builder.Add(new BoundLabelStatement(syntax, afterif));
                 var statements = builder.ToImmutableAndFree();
                 return new BoundStatementList(syntax, statements, hasErrors);
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(new BoundGotoStatement(syntax, afterif));
                 builder.Add(new BoundLabelStatement(syntax, alt));
                 builder.Add(rewrittenAlternativeOpt);
+                builder.Add(new BoundSequencePoint(null, null));
                 builder.Add(new BoundLabelStatement(syntax, afterif));
                 return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
             }
