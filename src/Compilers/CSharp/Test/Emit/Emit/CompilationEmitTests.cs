@@ -1661,6 +1661,35 @@ internal struct InternalStruct
         }
 
         [Fact]
+        public void RefAssembly_VerifyTypesAndMembersOnPrivateStruct()
+        {
+            string source = @"
+struct S
+{
+    private class PrivateType { }
+    private PrivateType field;
+}
+";
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { MscorlibRef },
+                options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // verify metadata (types, members, attributes) of the ref assembly
+            var emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            CompileAndVerify(comp, emitOptions: emitRefOnly, verify: true);
+
+            var refImage = comp.EmitToImageReference(emitRefOnly);
+            var compWithRef = CreateCompilation("", references: new[] { MscorlibRef, refImage },
+                options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            AssertEx.Equal(
+                new[] { "<Module>", "S" },
+                compWithRef.SourceModule.GetReferencedAssemblySymbols().Last().GlobalNamespace.GetMembers().Select(m => m.ToDisplayString()));
+
+            AssertEx.Equal(
+                new[] { "S.PrivateType S.field", "S..ctor()", "S.PrivateType" },
+                compWithRef.GetMember<NamedTypeSymbol>("S").GetMembers().Select(m => m.ToTestDisplayString()));
+        }
+
+        [Fact]
         public void EmitMetadataOnly_DisallowPdbs()
         {
             CSharpCompilation comp = CreateCompilation("", references: new[] { MscorlibRef },
