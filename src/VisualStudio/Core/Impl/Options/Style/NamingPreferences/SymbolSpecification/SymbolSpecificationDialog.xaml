@@ -66,14 +66,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Label Name="symbolKindsLabel" Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=SymbolKindsLabelText}"/>
-                <ListView Grid.Row="1" Grid.Column="0" x:Uid="SymbolKinds"
-                          x:Name="SymbolKinds"
-                          MinWidth="70"
-                          Margin="8 4 8 7"
-                          SelectionMode="Extended"
-                          ItemsSource="{Binding SymbolKindList, Mode=TwoWay}"
-                          AutomationProperties.LabeledBy="{Binding ElementName=symbolKindsLabel}"
-                          ItemTemplate="{StaticResource listViewDataTemplate}" />
+                <ContentControl Name="symbolKindsContentControl" Grid.Row="1" MinWidth="70" Margin="8 4 8 7" Focusable="False"/>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllSymbolKinds"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}" Click="DeselectAllSymbolKinds"></vs:DialogButton>
@@ -89,27 +82,13 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <Label Name="accessibilitiesLabel" Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=AccessibilitiesLabelText}"/>
-                <ListView Grid.Row="1" x:Uid="MemberSelectionList2"
-                          x:Name="Accessibilities"
-                          Margin="8 4 8 7"
-                          MinWidth="70"
-                          SelectionMode="Extended"
-                          ItemsSource="{Binding AccessibilityList, Mode=TwoWay}"
-                          AutomationProperties.LabeledBy="{Binding ElementName=accessibilitiesLabel}"
-                          ItemTemplate="{StaticResource listViewDataTemplate}"/>
+                <ContentControl Name="accessibilitiesContentControl" Grid.Row="1" MinWidth="70" Margin="8 4 8 7" Focusable="False"/>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllAccessibilities"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}" Click="DeselectAllAccessibilities"></vs:DialogButton>
                 </StackPanel>
                 <Label Name="modifiersLabel" Grid.Row="3" Margin="0 4 0 0" Content="{Binding ElementName=dialog, Path=ModifiersLabelText}"/>
-                <ListView Grid.Row="4" x:Uid="MemberSelectionList2"
-                          x:Name="Modifiers"
-                          SelectionMode="Extended"
-                          Margin="8 4 8 7"
-                          MinWidth="70"
-                          ItemsSource="{Binding ModifierList, Mode=TwoWay}"
-                          AutomationProperties.LabeledBy="{Binding ElementName=modifiersLabel}"
-                          ItemTemplate="{StaticResource listViewDataTemplate}" />
+                <ContentControl Name="modifiersContentControl" Grid.Row="4" MinWidth="70" Margin="8 4 8 7" Focusable="False"/>
                 <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllModifiers"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}"  Click="DeselectAllModifiers"></vs:DialogButton>
