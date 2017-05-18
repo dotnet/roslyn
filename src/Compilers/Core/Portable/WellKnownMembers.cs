@@ -3289,7 +3289,6 @@ namespace Microsoft.CodeAnalysis
                 case WellKnownMember.System_STAThreadAttribute__ctor:
                 case WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor:
                 case WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachineAttribute__ctor:
-                case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                     return true;
 
                 default:

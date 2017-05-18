@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the type may contain embedded references
         /// </summary>
-        internal virtual bool IsByRefLikeType => false;
+        internal abstract bool IsByRefLikeType { get; }
 
         #region ITypeSymbol Members
 
