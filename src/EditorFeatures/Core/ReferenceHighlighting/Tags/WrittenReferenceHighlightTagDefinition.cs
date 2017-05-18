@@ -5,20 +5,18 @@ using System.Windows.Media;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     [Export(typeof(EditorFormatDefinition))]
-    [Name(DefinitionHighlightTag.TagId)]
+    [Name(WrittenReferenceHighlightTag.TagId)]
     [UserVisible(true)]
-    internal class DefinitionHighlightTagDefinition : MarkerFormatDefinition
+    internal class WrittenReferenceHighlightTagDefinition : MarkerFormatDefinition
     {
-        public DefinitionHighlightTagDefinition()
+        public WrittenReferenceHighlightTagDefinition()
         {
             // NOTE: This is the same color used by the editor for reference highlighting
             this.BackgroundColor = Color.FromRgb(219, 224, 204);
-            this.Border = new Pen(new SolidColorBrush(Colors.Gray), 0.5);
-            this.Border.Freeze();
-            this.DisplayName = EditorFeaturesResources.Highlighted_Definition;
+            this.DisplayName = EditorFeaturesResources.Highlighted_Written_Reference;
         }
     }
 }
