@@ -103,6 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        internal sealed override bool IsByRefLikeType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         /// <summary>
         /// Collection of names of members declared within this type.
         /// </summary>

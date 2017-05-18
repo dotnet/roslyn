@@ -194,6 +194,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        internal sealed override bool IsByRefLikeType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         public override bool IsAbstract
         {
             get

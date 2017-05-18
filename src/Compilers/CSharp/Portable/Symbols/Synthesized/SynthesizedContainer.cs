@@ -162,6 +162,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsStatic => false;
 
+        internal sealed override bool IsByRefLikeType => false;
+
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit() => CalculateInterfacesToEmit();
