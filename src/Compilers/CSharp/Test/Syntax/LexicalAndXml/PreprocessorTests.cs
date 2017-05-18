@@ -3975,7 +3975,7 @@ class A
         {
             Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
             string fileVersion = assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
-            string hash = CommonCompiler.ExtractShortCommitHash(assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
+            string hash = CommonCompiler.ExtractShortCommitHash(CommonCompiler.GetCommitHash(assembly));
             return $"{fileVersion} ({hash})";
         }
     }
