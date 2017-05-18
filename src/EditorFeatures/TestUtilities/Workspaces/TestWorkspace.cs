@@ -121,7 +121,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void Dispose(bool finalize)
         {
-            Contract.ThrowIfNull(ExportProvider, nameof(ExportProvider));
+            if (ExportProvider == null)
+            {
+                throw new Exception(nameof(ExportProvider));
+            }
+
             var metadataAsSourceService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
             if (metadataAsSourceService != null)
             {
@@ -130,28 +134,37 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.ClearSolutionData();
 
-            Contract.ThrowIfNull(Documents, nameof(Documents));
+            if (Documents == null)
+            {
+                throw new Exception(nameof(Documents));
+            }
 
             foreach (var document in Documents)
             {
                 document.CloseTextView();
             }
 
-            Contract.ThrowIfNull(AdditionalDocuments, nameof(AdditionalDocuments));
+            if (AdditionalDocuments == null)
+            {
+                throw new Exception(nameof(AdditionalDocuments));
+            }
 
             foreach (var document in AdditionalDocuments)
             {
                 document.CloseTextView();
             }
 
-            Contract.ThrowIfNull(ProjectionDocuments, nameof(ProjectionDocuments));
+            if (ProjectionDocuments == null)
+            {
+                throw new Exception(nameof(ProjectionDocuments));
+            }
 
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
             }
 
-            Contract.ThrowIfNull(ExportProvider, nameof(Export) + "2");
+            Contract.ThrowIfNull(ExportProvider, nameof(ExportProvider) + "2");
 
             var exceptions = ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions();
 
