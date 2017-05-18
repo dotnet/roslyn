@@ -2113,7 +2113,7 @@ class Program
             Assert.True(attribute.IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
 
             // Not emitted.
-            Assert.Equal(0, indexer.GetCustomAttributesToEmit(new ModuleCompilationState()).Count());
+            Assert.Equal(0, indexer.GetCustomAttributesToEmit(GetDefaultPEBuilder(compilation)).Count());
         }
 
         [WorkItem(545884, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545884")]

@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public abstract bool HasInitializer { get; }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             var compilation = this.DeclaringCompilation;
             var value = this.GetConstantValue(ConstantFieldsInProgress.Empty, earlyDecodingWellKnownAttributes: false);

@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
             public override ImmutableArray<CustomModifier> GetTypeArgumentCustomModifiers(int ordinal)
             {
                 return GetEmptyTypeArgumentCustomModifiers(ordinal);

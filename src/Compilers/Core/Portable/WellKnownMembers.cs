@@ -2886,9 +2886,9 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                              // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                 // System_Runtime_CompilerServices_ReadOnlyAttribute__ctor
+                 // System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
                  (byte)(MemberFlags.Constructor),                                                                                                               // Flags
-                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ReadOnlyAttribute - WellKnownType.ExtSentinel),          // DeclaringTypeId
+                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute - WellKnownType.ExtSentinel),        // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
@@ -3259,7 +3259,7 @@ namespace Microsoft.CodeAnalysis
                 "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
 
                 ".ctor",                                    // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
-                ".ctor",                                    // System_Runtime_CompilerServices_ReadOnlyAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
             };
 

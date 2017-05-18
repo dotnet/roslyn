@@ -282,6 +282,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // so we will keep them the same.
                 return new LexicalSortKey(this.syntaxReferenceOpt.GetLocation(), this.DeclaringCompilation);
             }
+
+            internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+            {
+                base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+                if (refKind == RefKind.RefReadOnly)
+                {
+                    var syntax = (DelegateDeclarationSyntax)SyntaxRef.GetSyntax();
+                    DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, syntax.ReturnType.GetLocation(), modifyCompilationForRefReadOnly: true);
+                }
+
+                ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+            }
         }
 
         private sealed class BeginInvokeMethod : SourceDelegateMethodSymbol

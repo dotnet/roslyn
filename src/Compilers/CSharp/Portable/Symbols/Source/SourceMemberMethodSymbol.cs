@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -979,9 +980,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.IsExtensionMethod)
             {
@@ -1030,6 +1031,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 PartialMethodChecks(this, implementingPart, diagnostics);
             }
+
+            if (_refKind == RefKind.RefReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, GetSyntax().ReturnType.Location, modifyCompilationForRefReadOnly: true);
+            }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
 
         /// <summary>

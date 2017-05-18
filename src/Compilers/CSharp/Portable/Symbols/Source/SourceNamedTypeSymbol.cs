@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -540,6 +541,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
+            if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.CodeAnalysisEmbeddedAttribute))
+            {
+                boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
+                if (!boundAttribute.HasErrors)
+                {
+                    arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>().HasCodeAnalysisEmbeddedAttribute = true;
+                    if (!hasAnyDiagnostics)
+                    {
+                        return boundAttribute;
+                    }
+                }
+
+                return null;
+            }
+
             if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.ConditionalAttribute))
             {
                 boundAttribute = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, out hasAnyDiagnostics);
@@ -710,9 +726,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ReadOnlyAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
-                // ReadOnlyAttribute should not be set explicitly.
+                // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
@@ -861,6 +877,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
+            }
+        }
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute
+        {
+            get
+            {
+                var data = GetEarlyDecodedWellKnownAttributeData();
+                return data != null && data.HasCodeAnalysisEmbeddedAttribute;
             }
         }
 
@@ -1084,9 +1109,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// These won't be returned by GetAttributes on source methods, but they
         /// will be returned by GetAttributes on metadata symbols.
         /// </remarks>
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 

@@ -189,6 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLambda(BoundLambda node)
         {
             _sawLambdas = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -204,6 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
             _sawLocalFunctions = true;
+            CheckRefReadOnlySymbols(node.Symbol);
+
             var oldContainingSymbol = _factory.CurrentMethod;
             try
             {
@@ -554,6 +558,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        private void CheckRefReadOnlySymbols(MethodSymbol symbol)
+        {
+            var foundRefReadOnly = false;
+
+            if (symbol.ReturnsByRefReadonly)
+            {
+                foundRefReadOnly = true;
+            }
+            else
+            {
+                foreach (var parameter in symbol.Parameters)
+                {
+                    if (parameter.RefKind == RefKind.RefReadOnly)
+                    {
+                        foundRefReadOnly = true;
+                        break;
+                    }
+                }
+            }
+
+            if (foundRefReadOnly)
+            {
+                _factory.CompilationState.ModuleBuilderOpt?.EnsureIsReadOnlyAttributeExists();
+            }
         }
     }
 }

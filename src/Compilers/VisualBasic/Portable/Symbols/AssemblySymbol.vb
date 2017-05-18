@@ -519,7 +519,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         candidate = Nothing
                     End If
 
-                    If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso Not candidate.IsHiddenByEmbeddedAttribute() AndAlso candidate <> result Then
+                    If IsAcceptableMatchForGetTypeByNameAndArity(candidate) AndAlso
+                        Not candidate.IsHiddenByVisualBasicEmbeddedAttribute() AndAlso
+                        Not candidate.IsHiddenByCodeAnalysisEmbeddedAttribute() AndAlso
+                        candidate <> result Then
                         If (result IsNot Nothing) Then
                             ' Ambiguity
                             If ignoreCorLibraryDuplicatedTypes Then

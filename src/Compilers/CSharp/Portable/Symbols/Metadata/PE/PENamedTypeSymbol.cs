@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal ThreeState lazyIsByRefLike;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
+            internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
 
             internal bool IsDefaultValue()
             {
@@ -143,7 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     lazyAttributeUsageInfo.IsNull &&
                     !lazyContainsExtensionMethods.HasValue() &&
                     lazyDefaultMemberName == null &&
-                    (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType;
+                    (object)lazyComImportCoClassType == (object)ErrorTypeSymbol.UnknownResultType &&
+                    !lazyHasEmbeddedAttribute.HasValue();
             }
         }
 
@@ -372,6 +374,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+
+        internal override bool HasCodeAnalysisEmbeddedAttribute
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyHasEmbeddedAttribute.HasValue())
+                {
+                    uncommon.lazyHasEmbeddedAttribute = ContainingPEModule.Module.HasCodeAnalysisEmbeddedAttribute(_handle).ToThreeState();
+                }
+
+                return uncommon.lazyHasEmbeddedAttribute.Value();
+            }
+        }
+
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
             get
@@ -592,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return uncommon.lazyCustomAttributes;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             return GetAttributes();
         }

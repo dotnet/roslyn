@@ -5115,6 +5115,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.</value>
   </data>
   <data name="ERR_ExplicitReadOnlyAttr" xml:space="preserve">
-    <value>Do not use 'System.Runtime.CompilerServices.ReadOnlyAttribute'. This is reserved for compiler usage.</value>
+    <value>Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.</value>
+  </data>
+  <data name="ERR_TypeReserved" xml:space="preserve">
+    <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
 </root>

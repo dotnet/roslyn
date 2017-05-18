@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfSerializableAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfInAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfOutAttribute = { s_signature_HasThis_Void };
-        private static readonly byte[][] s_signaturesOfReadOnlyAttribute = { s_signature_HasThis_Void };
+        private static readonly byte[][] s_signaturesOfIsReadOnlyAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfFixedBufferAttribute = { s_signature_HasThis_Void_Type_Int32 };
         private static readonly byte[][] s_signaturesOfSuppressUnmanagedCodeSecurityAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfPrincipalPermissionAttribute = { s_signature_HasThis_Void_SecurityAction };
@@ -296,6 +296,8 @@ namespace Microsoft.CodeAnalysis
         };
 
         private static readonly byte[][] s_signaturesOfVisualBasicEmbedded = { s_signature_HasThis_Void };
+
+        private static readonly byte[][] s_signaturesOfCodeAnalysisEmbedded = { s_signature_HasThis_Void };
 
         private static readonly byte[][] s_signaturesOfVisualBasicComClassAttribute =
         {
@@ -450,7 +452,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription MarshalAsAttribute = new AttributeDescription("System.Runtime.InteropServices", "MarshalAsAttribute", s_signaturesOfMarshalAsAttribute);
         internal static readonly AttributeDescription InAttribute = new AttributeDescription("System.Runtime.InteropServices", "InAttribute", s_signaturesOfInAttribute);
         internal static readonly AttributeDescription OutAttribute = new AttributeDescription("System.Runtime.InteropServices", "OutAttribute", s_signaturesOfOutAttribute);
-        internal static readonly AttributeDescription ReadOnlyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ReadOnlyAttribute", s_signaturesOfReadOnlyAttribute);
+        internal static readonly AttributeDescription IsReadOnlyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IsReadOnlyAttribute", s_signaturesOfIsReadOnlyAttribute);
         internal static readonly AttributeDescription CoClassAttribute = new AttributeDescription("System.Runtime.InteropServices", "CoClassAttribute", s_signaturesOfCoClassAttribute);
         internal static readonly AttributeDescription GuidAttribute = new AttributeDescription("System.Runtime.InteropServices", "GuidAttribute", s_signaturesOfGuidAttribute);
         internal static readonly AttributeDescription CLSCompliantAttribute = new AttributeDescription("System", "CLSCompliantAttribute", s_signaturesOfCLSCompliantAttribute);
@@ -460,6 +462,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription PermissionSetAttribute = new AttributeDescription("System.Security.Permissions", "PermissionSetAttribute", s_signaturesOfPermissionSetAttribute);
         internal static readonly AttributeDescription TypeIdentifierAttribute = new AttributeDescription("System.Runtime.InteropServices", "TypeIdentifierAttribute", s_signaturesOfTypeIdentifierAttribute);
         internal static readonly AttributeDescription VisualBasicEmbeddedAttribute = new AttributeDescription("Microsoft.VisualBasic", "Embedded", s_signaturesOfVisualBasicEmbedded);
+        internal static readonly AttributeDescription CodeAnalysisEmbeddedAttribute = new AttributeDescription("Microsoft.CodeAnalysis", "EmbeddedAttribute", s_signaturesOfCodeAnalysisEmbedded);
         internal static readonly AttributeDescription VisualBasicComClassAttribute = new AttributeDescription("Microsoft.VisualBasic", "ComClassAttribute", s_signaturesOfVisualBasicComClassAttribute);
         internal static readonly AttributeDescription StandardModuleAttribute = new AttributeDescription("Microsoft.VisualBasic.CompilerServices", "StandardModuleAttribute", s_signaturesOfStandardModuleAttribute);
         internal static readonly AttributeDescription OptionCompareAttribute = new AttributeDescription("Microsoft.VisualBasic.CompilerServices", "OptionCompareAttribute", s_signaturesOfOptionCompareAttribute);

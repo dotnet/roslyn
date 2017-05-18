@@ -649,6 +649,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 parameter.Type.CheckAllConstraints(conversions, parameter.Locations[0], diagnostics);
             }
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
         }
     }
 }

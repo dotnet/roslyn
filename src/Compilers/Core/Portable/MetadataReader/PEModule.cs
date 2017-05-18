@@ -938,9 +938,9 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.ParamArrayAttribute).HasValue;
         }
 
-        internal bool HasReadOnlyAttribute(EntityHandle token)
+        internal bool HasIsReadOnlyAttribute(EntityHandle token)
         {
-            return FindTargetAttribute(token, AttributeDescription.ReadOnlyAttribute).HasValue;
+            return FindTargetAttribute(token, AttributeDescription.IsReadOnlyAttribute).HasValue;
         }
 
         internal bool HasExtensionAttribute(EntityHandle token, bool ignoreCase)
@@ -951,6 +951,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasVisualBasicEmbeddedAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.VisualBasicEmbeddedAttribute).HasValue;
+        }
+
+        internal bool HasCodeAnalysisEmbeddedAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.CodeAnalysisEmbeddedAttribute).HasValue;
         }
 
         internal bool HasDefaultMemberAttribute(EntityHandle token, out string memberName)

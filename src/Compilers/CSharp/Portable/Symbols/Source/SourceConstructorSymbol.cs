@@ -102,6 +102,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override void AfterAddingTypeMembersChecks(ConversionsBase conversions, DiagnosticBag diagnostics)
+        {
+            base.AfterAddingTypeMembersChecks(conversions, diagnostics);
+
+            ParameterHelpers.EnsureIsReadOnlyAttributeExists(Parameters, diagnostics, modifyCompilationForRefReadOnly: true);
+        }
+
         internal ConstructorDeclarationSyntax GetSyntax()
         {
             Debug.Assert(syntaxReferenceOpt != null);

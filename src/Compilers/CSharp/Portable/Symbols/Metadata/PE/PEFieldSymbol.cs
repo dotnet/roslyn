@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                    value.Discriminator == ConstantValueTypeDiscriminator.Decimal;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             foreach (CSharpAttributeData attribute in GetAttributes())
             {

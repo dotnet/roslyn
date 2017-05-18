@@ -354,9 +354,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ReadOnlyAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
-                // ReadOnlyAttribute should not be set explicitly.
+                // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.DateTimeConstantAttribute))
@@ -460,9 +460,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
         }
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.Type.ContainsDynamic())
             {

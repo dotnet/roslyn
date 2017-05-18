@@ -346,6 +346,7 @@ static class Program {
             var corAssembly = @"
 namespace System {
     public class Object {}
+    public class Void {}
     public abstract class ValueType{}
     public struct Int32{}
 }";

@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
@@ -754,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState) => GetAttributes();
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder) => GetAttributes();
 
         public override ImmutableArray<CSharpAttributeData> GetReturnTypeAttributes() => Signature.ReturnParam.GetAttributes();
 

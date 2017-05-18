@@ -4112,7 +4112,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.ReadOnlyAttribute&apos;. This is reserved for compiler usage..
+        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.IsReadOnlyAttribute&apos;. This is reserved for compiler usage..
         /// </summary>
         internal static string ERR_ExplicitReadOnlyAttr {
             get {
@@ -9258,6 +9258,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeParamMustBeIdentifier {
             get {
                 return ResourceManager.GetString("ERR_TypeParamMustBeIdentifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type name &apos;{0}&apos; is reserved to be used by the compiler..
+        /// </summary>
+        internal static string ERR_TypeReserved {
+            get {
+                return ResourceManager.GetString("ERR_TypeReserved", resourceCulture);
             }
         }
         

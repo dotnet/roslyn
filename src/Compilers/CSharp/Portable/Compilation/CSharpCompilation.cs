@@ -1988,6 +1988,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private IEnumerable<Diagnostic> FreezeDeclarationDiagnostics()
         {
             _declarationDiagnosticsFrozen = true;
+
+            // Also freeze that flag, as symbols bound after getting the declaration diagnostics shouldn't need to modify it
+            _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
+
             var result = _lazyDeclarationDiagnostics?.AsEnumerable() ?? Enumerable.Empty<Diagnostic>();
             return result;
         }

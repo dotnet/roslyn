@@ -512,6 +512,7 @@
     <Compile Include="Symbols\DiscardSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
     <Compile Include="Symbols\Source\GlobalExpressionVariable.cs" />
+    <Compile Include="Symbols\Synthesized\SynthesizedEmbeddedAttributeSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />

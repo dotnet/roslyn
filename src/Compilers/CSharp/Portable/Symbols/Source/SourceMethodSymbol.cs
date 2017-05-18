@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -962,9 +963,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return this.GetReturnTypeAttributesBag().Attributes;
         }
 
-        internal override void AddSynthesizedReturnTypeAttributes(ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedReturnTypeAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedReturnTypeAttributes(ref attributes);
+            base.AddSynthesizedReturnTypeAttributes(moduleBuilder, ref attributes);
 
             if (this.ReturnType.ContainsDynamic())
             {
@@ -1120,9 +1121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (VerifyObsoleteAttributeAppliedToMethod(ref arguments, AttributeDescription.DeprecatedAttribute))
             {
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ReadOnlyAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
-                // ReadOnlyAttribute should not be set explicitly.
+                // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
@@ -1245,9 +1246,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
             }
-            else if (attribute.IsTargetAttribute(this, AttributeDescription.ReadOnlyAttribute))
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
-                // ReadOnlyAttribute should not be set explicitly.
+                // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
@@ -1531,9 +1532,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
-        internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)
+        internal override void AddSynthesizedAttributes(PEModuleBuilder moduleBuilder, ref ArrayBuilder<SynthesizedAttributeData> attributes)
         {
-            base.AddSynthesizedAttributes(compilationState, ref attributes);
+            base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
             if (this.IsAsync || this.IsIterator)
             {
@@ -1543,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // only emitting metadata the method body will not have been rewritten, and the async state machine
                 // type will not have been created. In this case, omit the attribute.
                 NamedTypeSymbol stateMachineType;
-                if (compilationState.TryGetStateMachineType(this, out stateMachineType))
+                if (moduleBuilder.CompilationState.TryGetStateMachineType(this, out stateMachineType))
                 {
                     WellKnownMember ctor = this.IsAsync ?
                         WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor :

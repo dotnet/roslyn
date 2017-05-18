@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     {
                         refKind = RefKind.Out;
                     }
-                    else if (moduleSymbol.Module.HasReadOnlyAttribute(handle))
+                    else if (moduleSymbol.Module.HasIsReadOnlyAttribute(handle))
                     {
                         refKind = RefKind.RefReadOnly;
                     }
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return _lazyCustomAttributes;
         }
 
-        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(PEModuleBuilder moduleBuilder)
         {
             foreach (CSharpAttributeData attribute in GetAttributes())
             {

@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 
         internal static SynthesizedAttributeData GetAttributeIfAny(IMethodSymbol method, string typeName)
         {
-            return method.GetSynthesizedAttributes(forReturnType: true).
+            return ((MethodSymbol)method).GetSynthesizedAttributes(forReturnType: true).
                 Where(a => a.AttributeClass.ToTestDisplayString() == typeName).
                 SingleOrDefault();
         }
