@@ -597,7 +597,7 @@ class C
             public async Task AddDefaultParameterWithDefaultValueToMethod()
             {
                 var input = "class C { public void [|M|]() { } }";
-                var expected = "class C { public void M(double number = default(double)) { } }";
+                var expected = "class C { public void M(double number = 0) { } }";
                 await TestAddParametersAsync(input, expected,
                     Parameters(Parameter(typeof(double), "number", true)));
             }

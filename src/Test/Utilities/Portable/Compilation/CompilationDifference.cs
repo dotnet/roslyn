@@ -3,35 +3,29 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
-using Roslyn.Test.MetadataUtilities;
-using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
-    internal sealed class CompilationDifference
+    public sealed class CompilationDifference
     {
         public readonly ImmutableArray<byte> MetadataDelta;
         public readonly ImmutableArray<byte> ILDelta;
         public readonly ImmutableArray<byte> PdbDelta;
-        public readonly CompilationTestData TestData;
+        internal readonly CompilationTestData TestData;
         public readonly EmitDifferenceResult EmitResult;
         public readonly ImmutableArray<MethodDefinitionHandle> UpdatedMethods;
 
-        public CompilationDifference(
+        internal CompilationDifference(
             ImmutableArray<byte> metadata,
             ImmutableArray<byte> il,
             ImmutableArray<byte> pdb,
@@ -55,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public PinnedMetadata GetMetadata()
+        internal PinnedMetadata GetMetadata()
         {
             return new PinnedMetadata(MetadataDelta);
         }
@@ -80,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedSignature, actualSignature, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
-        public void VerifyIL(
+        internal void VerifyIL(
             string qualifiedMethodName,
             string expectedIL,
             Func<Cci.ILocalDefinition, ILVisualizer.LocalInfo> mapLocal = null,
@@ -94,58 +88,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (!methodToken.IsNil)
             {
                 string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), new[] { MetadataTokens.GetToken(methodToken) });
-                sequencePointMarkers = PdbValidation.GetMarkers(actualPdb);
+                sequencePointMarkers = ILValidation.GetSequencePointMarkers(actualPdb);
             }
 
             string actualIL = ILBuilderVisualizer.ILBuilderToString(ilBuilder, mapLocal ?? ToLocalInfo, sequencePointMarkers);
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
-        }
-
-        public void VerifyPdb(IEnumerable<MethodDefinitionHandle> methodHandles, string expectedPdb)
-        {
-            VerifyPdb(methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
-        }
-
-        public void VerifyPdb(IEnumerable<MethodDefinitionHandle> methodHandles, XElement expectedPdb)
-        {
-            VerifyPdb(methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
-        }
-
-        public void VerifyPdb(
-            IEnumerable<int> methodTokens,
-            string expectedPdb,
-            DebugInformationFormat format = DebugInformationFormat.Pdb,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
-        {
-            VerifyPdb(methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: false);
-        }
-
-        public void VerifyPdb(
-            IEnumerable<int> methodTokens,
-            XElement expectedPdb,
-            DebugInformationFormat format = DebugInformationFormat.Pdb,
-            [CallerLineNumber]int expectedValueSourceLine = 0,
-            [CallerFilePath]string expectedValueSourcePath = null)
-        {
-            VerifyPdb(methodTokens, expectedPdb.ToString(), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: true);
-        }
-
-        private void VerifyPdb(
-            IEnumerable<int> methodTokens,
-            string expectedPdb,
-            DebugInformationFormat format,
-            int expectedValueSourceLine,
-            string expectedValueSourcePath,
-            bool expectedIsXmlLiteral)
-        {
-            Assert.NotEqual(default(DebugInformationFormat), format);
-            Assert.NotEqual(DebugInformationFormat.Embedded, format);
-
-            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(PdbDelta), methodTokens);
-            var (actualXml, expectedXml) = PdbValidation.AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: NextGeneration.InitialBaseline.HasPortablePdb);
-
-            AssertXml.Equal(expectedXml, actualXml, $"Format: {format}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
         }
 
         internal string GetMethodIL(string qualifiedMethodName)

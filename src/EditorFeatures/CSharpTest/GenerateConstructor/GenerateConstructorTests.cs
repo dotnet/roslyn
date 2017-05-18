@@ -2316,66 +2316,6 @@ class C
 }");
         }
 
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestGenerateFromDerivedClass()
-        {
-            await TestInRegularAndScriptAsync(
-@"class Base
-{
-    public Base(string value)
-    {
-    }
-}
-
-class [||]Derived : Base
-{
-}",
-@"class Base
-{
-    public Base(string value)
-    {
-    }
-}
-
-class Derived : Base
-{
-    public Derived(string value) : base(value)
-    {
-    }
-}");
-        }
-
-        [WorkItem(6541, "https://github.com/dotnet/Roslyn/issues/6541")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
-        public async Task TestGenerateFromDerivedClass2()
-        {
-            await TestInRegularAndScriptAsync(
-@"class Base
-{
-    public Base(int a, string value = null)
-    {
-    }
-}
-
-class [||]Derived : Base
-{
-}",
-@"class Base
-{
-    public Base(int a, string value = null)
-    {
-    }
-}
-
-class Derived : Base
-{
-    public Derived(int a, string value = null) : base(a, value)
-    {
-    }
-}");
-        }
-
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
         public async Task TestGenerateWithIncorrectConstructorArguments_Crash()
         {
