@@ -1372,22 +1372,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private enum NumericType
-        {
-            SByte,
-            Byte,
-            Short,
-            UShort,
-            Int,
-            UInt,
-            Long,
-            ULong,
-            Char,
-            Float,
-            Double,
-            Decimal
-        }
-
         private const bool F = false;
         private const bool T = true;
 

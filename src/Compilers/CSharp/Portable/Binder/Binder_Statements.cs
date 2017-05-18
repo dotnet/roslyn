@@ -960,11 +960,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer);
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(SingleVariableDesignationSyntax designation, TypeSyntax typeSyntax)
-        {
-            return LocateDeclaredVariableSymbol(designation.Identifier, typeSyntax, null);
-        }
-
         private SourceLocalSymbol LocateDeclaredVariableSymbol(SyntaxToken identifier, TypeSyntax typeSyntax, EqualsValueClauseSyntax equalsValue)
         {
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);

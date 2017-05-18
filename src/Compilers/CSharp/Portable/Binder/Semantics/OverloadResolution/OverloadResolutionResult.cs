@@ -90,16 +90,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool HasBestResult
-        {
-            get
-            {
-                EnsureBestResultLoaded();
-
-                return _bestResultState.Value();
-            }
-        }
-
         /// <summary>
         /// Returns information about each method that was considered during overload resolution,
         /// and what the results of overload resolution were for that method.

@@ -1560,18 +1560,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
         }
 
-        private void CreateSlots(BoundPattern pattern)
-        {
-            if (pattern.Kind == BoundKind.DeclarationPattern)
-            {
-                var local = ((BoundDeclarationPattern)pattern).Variable as LocalSymbol;
-                if ((object)local != null)
-                {
-                    int slot = GetOrCreateSlot(local);
-                }
-            }
-        }
-
         public override BoundNode VisitForStatement(BoundForStatement node)
         {
             DeclareVariables(node.OuterLocals);
