@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 !hasDeclarationErrors &&
                 !diagnostics.HasAnyErrors())
             {
-                BoundStatement body = synthesizedEntryPoint.CreateBody();
+                BoundStatement body = synthesizedEntryPoint.CreateBody(diagnostics);
 
                 var dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
