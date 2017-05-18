@@ -457,9 +457,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundExpression MakeConversionNode(BoundExpression rewrittenOperand, TypeSymbol rewrittenType, bool @checked, bool acceptFailingConversion = false)
         {
+            Conversion conversion = MakeConversion(rewrittenOperand, rewrittenType, _compilation, _diagnostics, acceptFailingConversion);
+            if (!conversion.IsValid)
+            {
+                return _factory.NullOrDefault(rewrittenType);
+            }
+
+            return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked);
+        }
+
+        private static Conversion MakeConversion(
+            BoundExpression rewrittenOperand,
+            TypeSymbol rewrittenType,
+            CSharpCompilation compilation,
+            DiagnosticBag diagnostics,
+            bool acceptFailingConversion)
+        {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Conversion conversion = _compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
-            _diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
+            Conversion conversion = compilation.Conversions.ClassifyConversionFromType(rewrittenOperand.Type, rewrittenType, ref useSiteDiagnostics);
+            diagnostics.Add(rewrittenOperand.Syntax, useSiteDiagnostics);
 
             if (!conversion.IsValid)
             {
@@ -468,17 +484,44 @@ namespace Microsoft.CodeAnalysis.CSharp
                      rewrittenOperand.Type.SpecialType != SpecialType.System_DateTime)
                 {
                     // error CS0029: Cannot implicitly convert type '{0}' to '{1}'
-                    _diagnostics.Add(
+                    diagnostics.Add(
                         ErrorCode.ERR_NoImplicitConv,
                         rewrittenOperand.Syntax.Location,
                         rewrittenOperand.Type,
                         rewrittenType);
                 }
-
-                return _factory.NullOrDefault(rewrittenType);
             }
 
-            return MakeConversionNode(rewrittenOperand.Syntax, rewrittenOperand, conversion, rewrittenType, @checked);
+            return conversion;
+        } 
+
+        private static BoundExpression MakeConversionForIOperation(
+            BoundExpression operand, 
+            TypeSymbol type, 
+            SyntaxNode syntax, 
+            CSharpCompilation compilation, 
+            DiagnosticBag diagnostics, 
+            bool @checked, 
+            bool acceptFailingConversion = false)
+        {
+            Conversion conversion = MakeConversion(operand, type, compilation, diagnostics, acceptFailingConversion);
+
+            if (conversion.IsIdentity)
+            {
+                return operand;
+            }
+
+            // TODO: Consider doing constant folding for default parameter value conversion.
+            //       https://github.com/dotnet/roslyn/issues/19591
+            return new BoundConversion(
+                            syntax,
+                            operand,
+                            conversion,             
+                            @checked: @checked,
+                            explicitCastInCode: false,
+                            constantValueOpt: default(ConstantValue),
+                            type: type,
+                            hasErrors: !conversion.IsValid);
         }
 
         /// <summary>
@@ -745,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 BoundExpression rewrittenConversion = MakeConversionNode(syntax, rewrittenOperand, conversion.UnderlyingConversions[0], rewrittenType.GetNullableUnderlyingType(), @checked);
                 MethodSymbol ctor = UnsafeGetNullableMethod(syntax, rewrittenType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(syntax, ctor, rewrittenConversion);
+                return new BoundObjectCreationExpression(syntax, ctor, null, rewrittenConversion);
             }
             else
             {
@@ -851,6 +894,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression consequence = new BoundObjectCreationExpression(
                 syntax,
                 UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                null,
                 MakeConversionNode(
                     syntax,
                     BoundCall.Synthesized(syntax, boundTemp, getValueOrDefault),
@@ -926,6 +970,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundObjectCreationExpression(
                     syntax,
                     UnsafeGetNullableMethod(syntax, type, SpecialMember.System_Nullable_T__ctor),
+                    null,
                     MakeConversionNode(
                         syntax,
                         nonNullValue,
@@ -1031,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(resultType.IsNullableType() && resultType.GetNullableUnderlyingType() == call.Method.ReturnType);
                 MethodSymbol ctor = UnsafeGetNullableMethod(call.Syntax, resultType, SpecialMember.System_Nullable_T__ctor);
-                return new BoundObjectCreationExpression(call.Syntax, ctor, call);
+                return new BoundObjectCreationExpression(call.Syntax, ctor, null, call);
             }
 
             return call;

@@ -1869,6 +1869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: ImmutableArray<int>.Empty,
                 resultKind: resultKind,
+                binderOpt: null,
                 type: objectType,
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };

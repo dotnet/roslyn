@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectCreationExpression New(MethodSymbol ctor, params BoundExpression[] args)
         {
             // TODO: add diagnostics for when things fall apart
-            return new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
+            return new BoundObjectCreationExpression(Syntax, ctor, null, args) { WasCompilerGenerated = true };
         }
 
         public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
-                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType,
+                default(ImmutableArray<int>), LookupResultKind.Viable, null, method.ReturnType,
                 hasErrors:method.OriginalDefinition is ErrorMethodSymbol)
             { WasCompilerGenerated = true };
         }
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, refKinds, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType)
+                ImmutableArray<int>.Empty, LookupResultKind.Viable, null, method.ReturnType)
             { WasCompilerGenerated = true };
         }
 
@@ -954,9 +954,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Null(TypeSymbol type)
         {
-            BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
+            return Null(type, Syntax);
+        }
+
+        public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)
+        {
+            BoundExpression nullLiteral = new BoundLiteral(syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
             return type.IsPointerType()
-                ? BoundConversion.SynthesizedNonUserDefined(Syntax, nullLiteral, Conversion.NullToPointer, type)
+                ? BoundConversion.SynthesizedNonUserDefined(syntax, nullLiteral, Conversion.NullToPointer, type)
                 : nullLiteral;
         }
 
@@ -1180,7 +1185,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression Default(TypeSymbol type)
         {
-            return new BoundDefaultExpression(Syntax, type) { WasCompilerGenerated = true };
+            return Default(type, Syntax);
+        }
+
+        internal static BoundExpression Default(TypeSymbol type, SyntaxNode syntax)
+        {
+            return new BoundDefaultExpression(syntax, type) { WasCompilerGenerated = true };
         }
 
         internal BoundStatement Try(
@@ -1219,7 +1229,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression NullOrDefault(TypeSymbol typeSymbol)
         {
-            return typeSymbol.IsValueType ? Default(typeSymbol) : Null(typeSymbol);
+            return NullOrDefault(typeSymbol, this.Syntax);
+        }
+
+        internal static BoundExpression NullOrDefault(TypeSymbol typeSymbol, SyntaxNode syntax)
+        {
+            return typeSymbol.IsValueType ? Default(typeSymbol, syntax) : Null(typeSymbol, syntax);
         }
 
         internal BoundExpression Not(
