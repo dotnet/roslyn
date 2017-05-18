@@ -108,12 +108,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // perf optimization. check whether we want to analyze this project or not.
-                        if (!await FullAnalysisEnabledAsync(project, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false))
+                        if (!FullAnalysisEnabled(project, ignoreFullAnalysisOptions))
                         {
                             return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
 
                         var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
+
+                        // if project is not loaded successfully, get rid of any semantic errors from compiler analyzer
+                        // * NOTE * previously when project is not loaded successfully, we actually dropped doing anything on the project, but now
+                        //          we do everything but filter out some information. so on such projects, there will be some perf degradation.
+                        result = await FilterOutCompilerSemanticErrorsIfNeccessaryAsync(project, result, cancellationToken).ConfigureAwait(false);
 
                         return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
                     }
@@ -122,6 +127,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         throw ExceptionUtilities.Unreachable;
                     }
                 }
+            }
+
+            private async Task<ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>> FilterOutCompilerSemanticErrorsIfNeccessaryAsync(
+                Project project, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> result, CancellationToken cancellationToken)
+            {
+                // see whether solution is loaded successfully
+                var projectLoadedSuccessfully = await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                if (projectLoadedSuccessfully)
+                {
+                    return result;
+                }
+
+                var compilerAnalyzer = _owner.HostAnalyzerManager.GetCompilerDiagnosticAnalyzer(project.Language);
+                if (compilerAnalyzer == null)
+                {
+                    // this language doesn't support compiler analyzer
+                    return result;
+                }
+
+                DiagnosticAnalysisResult analysisResult;
+                if (!result.TryGetValue(compilerAnalyzer, out analysisResult))
+                {
+                    // no result from compiler analyzer
+                    return result;
+                }
+
+                // get rid of any result except syntax from compiler analyzer result
+                var newCompilerAnalysisResult = new DiagnosticAnalysisResult(
+                    analysisResult.ProjectId,
+                    analysisResult.Version,
+                    analysisResult.SyntaxLocals,
+                    semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                    nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
+                    others: ImmutableArray<DiagnosticData>.Empty,
+                    documentIds: null,
+                    fromBuild: false);
+
+                // return new result
+                return result.SetItem(compilerAnalyzer, newCompilerAnalysisResult);
             }
 
             /// <summary>
@@ -187,8 +231,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
                         // since we might have up to date results for analyzers from compiler but not for 
                         // workspace analyzers.
-                        var analyzerDriverWithReducedSet = 
-                            analyzersToRun.Length == 0 ? 
+                        var analyzerDriverWithReducedSet =
+                            analyzersToRun.Length == 0 ?
                                 null : await _owner._compilationManager.CreateAnalyzerDriverAsync(
                                         project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
@@ -393,6 +437,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return ImmutableArray<Diagnostic>.Empty;
                 }
 
+                if (!await SemanticAnalysisEnabled(document, analyzer, kind, cancellationToken).ConfigureAwait(false))
+                {
+                    return ImmutableArray<Diagnostic>.Empty;
+                }
+
                 // REVIEW: more unnecessary allocations just to get diagnostics per analyzer
                 var oneAnalyzers = ImmutableArray.Create(analyzer);
 
@@ -415,6 +464,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
+            private async Task<bool> SemanticAnalysisEnabled(Document document, DiagnosticAnalyzer analyzer, AnalysisKind kind, CancellationToken cancellationToken)
+            {
+                // if project is not loaded successfully then, we disable semantic errors for compiler analyzers
+                var disabled = kind != AnalysisKind.Syntax &&
+                               _owner.HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(document.Project.Language, analyzer) &&
+                               !await document.Project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+                return !disabled;
+            }
+
             private void UpdateAnalyzerTelemetryData(
                 DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult> analysisResults, Project project, CancellationToken cancellationToken)
             {
@@ -424,11 +483,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static async Task<bool> FullAnalysisEnabledAsync(Project project, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
+            private static bool FullAnalysisEnabled(Project project, bool ignoreFullAnalysisOptions)
             {
                 if (ignoreFullAnalysisOptions)
                 {
-                    return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                    // asked to ignore any checks.
+                    return true;
                 }
 
                 if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) ||
@@ -437,7 +497,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return false;
                 }
 
-                return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                return true;
             }
 
             private static bool IsCanceled(Exception ex, CancellationToken cancellationToken)
