@@ -69,10 +69,9 @@
                                 <CheckBox x:Uid="SelectableMemberCheckBox" 
                                           IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                           Width="Auto"
-                                          Focusable="False">
+                                          Focusable="False"
+                                          Content="{Binding Name}">
                                 </CheckBox>
-                                <TextBlock x:Uid="SelectableMemberName" Margin="4 0 0 0"
-                                                   Text="{Binding Name}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -105,10 +104,9 @@
                                 <CheckBox x:Uid="SelectableMemberCheckBox" 
                                           IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                           Width="Auto"
-                                          Focusable="False">
+                                          Focusable="False"
+                                          Content="{Binding Name}">
                                 </CheckBox>
-                                <TextBlock x:Uid="SelectableMemberName" Margin="4 0 0 0"
-                                                   Text="{Binding Name}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
@@ -131,10 +129,9 @@
                                 <CheckBox x:Uid="SelectableMemberCheckBox" 
                                           IsChecked="{Binding IsChecked, Mode=TwoWay}" 
                                           Width="Auto"
-                                          Focusable="False">
+                                          Focusable="False"
+                                          Content="{Binding Name}">
                                 </CheckBox>
-                                <TextBlock x:Uid="SelectableMemberName" Margin="4 0 0 0"
-                                                   Text="{Binding Name}"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
