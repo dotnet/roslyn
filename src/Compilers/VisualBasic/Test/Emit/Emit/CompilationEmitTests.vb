@@ -596,20 +596,21 @@ End Class
             Dim [module] = DirectCast(referencedAssembly.Modules(0), PEModuleSymbol)
 
             Dim itest1 = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("ITest1")
-            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).First())
+            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
 
             Dim method = DirectCast(itest1.GetMember("M"), PEMethodSymbol)
             Assert.Equal("Function ITest1.M() As S", method.ToTestDisplayString())
 
             Dim s = DirectCast(method.ReturnType, NamedTypeSymbol)
             Assert.Equal("S", s.ToTestDisplayString())
-            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).First())
+            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
 
             Dim field = s.GetMember("field")
             Assert.Equal("S.field As System.Int32", field.ToTestDisplayString())
         End Sub
 
-        Private Sub RefAssemblyNoPiaReferenceFromMethodBody()
+        <Fact()>
+        Public Sub RefAssemblyNoPiaReferenceFromMethodBody()
 
             Dim piaSource = <compilation name="Pia"><file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -650,20 +651,20 @@ End Class
         Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source As Xml.Linq.XElement, reference As MetadataReference)
             Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
             Dim refOnlyImage = EmitRefOnly(comp)
-            RefAssemblyNoPiaReferenceFromMethodBody_verifyNoPia(refOnlyImage, expectMissing:=True)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(refOnlyImage, expectMissing:=True)
         End Sub
 
         Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source As Xml.Linq.XElement, reference As MetadataReference)
             Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
             Dim pair = EmitRefOut(comp)
-            RefAssemblyNoPiaReferenceFromMethodBody_verifyNoPia(pair.image, expectMissing:=False)
-            RefAssemblyNoPiaReferenceFromMethodBody_verifyNoPia(pair.refImage, expectMissing:=False)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.image, expectMissing:=False)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.refImage, expectMissing:=False)
         End Sub
 
         ' The ref assembly produced by refout has more types than that produced by refonly,
         ' because refout will bind the method bodies (and therefore populate more referenced types).
         ' This will be refined in the future. Follow-up issue: https://github.com/dotnet/roslyn/issues/19403
-        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_verifyNoPia(image As ImmutableArray(Of Byte), expectMissing As Boolean)
+        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(image As ImmutableArray(Of Byte), expectMissing As Boolean)
             Dim reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary)
             Dim comp = CreateCompilationWithMscorlib("", references:={reference})
             Dim referencedAssembly = comp.GetReferencedAssemblySymbol(reference)
@@ -677,14 +678,14 @@ End Class
             End If
 
             Dim itest1 = DirectCast(itest1Array.Single(), PENamedTypeSymbol)
-            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).First())
+            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
 
             Dim method = DirectCast(itest1.GetMembers("M").Single(), PEMethodSymbol)
             Assert.Equal("Function ITest1.M() As S", method.ToTestDisplayString())
 
             Dim s = DirectCast(method.ReturnType, NamedTypeSymbol)
             Assert.Equal("S", s.ToTestDisplayString())
-            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).First())
+            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
 
             Dim field = s.GetMember("field")
             Assert.Equal("S.field As System.Int32", field.ToTestDisplayString())
