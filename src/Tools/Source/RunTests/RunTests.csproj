@@ -20,6 +20,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Management" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
     <PackageReference Include="Newtonsoft.Json">
@@ -48,7 +49,7 @@
     <Compile Include="Cache\WebDataStorage.Json.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="CrashDumps.cs" />
+    <Compile Include="DumpUtil.cs" />
     <Compile Include="FileUtil.cs" />
     <Compile Include="Cache\IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="Options.cs" />
     <Compile Include="ProcessRunner.cs" />
     <Compile Include="ProcessTestExecutor.cs" />
+    <Compile Include="ProcessUtil.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="ConsoleUtil.cs" />

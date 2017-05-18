@@ -14,6 +14,7 @@ using RestSharp;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace RunTests
 {
@@ -41,7 +42,46 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            return RunCore(options, cts.Token).GetAwaiter().GetResult();
+            return Run(options, cts.Token).GetAwaiter().GetResult();
+        }
+
+        private static async Task<int> Run(Options options, CancellationToken cancellationToken)
+        {
+            if (options.Timeout == null)
+            {
+                return await RunCore(options, cancellationToken);
+            }
+
+            var timeoutTask = Task.Delay(options.Timeout.Value);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var runTask = RunCore(options, cts.Token);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return ExitFailure;
+            }
+
+            var finishedTask = await Task.WhenAny(timeoutTask, runTask);
+            if (finishedTask == timeoutTask)
+            {
+                HandleTimeout(options);
+                cts.Cancel();
+
+                try
+                {
+                    // Need to await here to ensure that all of the child processes are properly 
+                    // killed before we exit.
+                    await runTask;
+                }
+                catch
+                {
+                    // Cancellation exceptions expected here. 
+                }
+
+                return ExitFailure;
+            }
+
+            return await runTask;
         }
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
@@ -104,6 +144,29 @@ namespace RunTests
             }
 
             Logger.Clear();
+        }
+
+        /// <summary>
+        /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
+        /// the runnner.
+        /// </summary>
+        private static void HandleTimeout(Options options)
+        {
+            Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+            var dumpDir = options.LogFilePath != null
+                ? Path.GetDirectoryName(options.LogFilePath)
+                : Directory.GetCurrentDirectory();
+
+            var counter = 0;
+            foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+            {
+                var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
+                counter++;
+                Console.WriteLine($"Dumping {proc.ProcessName} {proc.Id} to {dumpFilePath}");
+                DumpUtil.WriteDump(proc, dumpFilePath);
+            }
+
+            WriteLogFile(options);
         }
 
         /// <summary>
