@@ -103,6 +103,45 @@ static class C {
                 );
         }
 
+        [Fact]
+        public void MissingNullable_04()
+        {
+            var source = @"namespace System {
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Nullable<T> where T : struct { public T GetValueOrDefault() => default(T); }
+}
+static class C {
+    static void M1(int? x)
+    {
+        switch (x)
+        {
+            case int i: break;
+        }
+    }
+    static bool M2(int? x) => x is int i;
+}
+";
+            var compilation = CreateCompilation(source, options: TestOptions.UnsafeReleaseDll);
+            compilation.GetDiagnostics().Verify();
+            compilation.GetEmitDiagnostics().Verify(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (12,9): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //         switch (x)
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"switch (x)
+        {
+            case int i: break;
+        }").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(12, 9),
+                // (17,36): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
+                //     static bool M2(int? x) => x is int i;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "int i").WithArguments("System.Nullable`1", "get_HasValue").WithLocation(17, 36)
+                );
+        }
+
         [Fact, WorkItem(17266, "https://github.com/dotnet/roslyn/issues/17266")]
         public void DoubleEvaluation01()
         {
