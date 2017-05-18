@@ -307,8 +307,24 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
-                        .ContinueWith(t => t.Result.Compilation, cancellationToken, TaskContinuationOptions.ExecuteSynchronously | TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+                    var taskCompletionSource = new TaskCompletionSource<Compilation>();
+                    GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
+                        .ContinueWith(t =>
+                        {
+                            if (t.IsCanceled || cancellationToken.IsCancellationRequested)
+                            {
+                                taskCompletionSource.SetCanceled();
+                            }
+                            else if (t.IsFaulted)
+                            {
+                                taskCompletionSource.SetException(t.Exception.InnerExceptions);
+                            }
+                            else
+                            {
+                                taskCompletionSource.SetResult(t.Result.Compilation);
+                            }
+                        }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    return taskCompletionSource.Task;
                 }
             }
 
