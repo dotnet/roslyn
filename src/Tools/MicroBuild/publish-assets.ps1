@@ -39,7 +39,11 @@ try
     {
         "dev15.0.x" { } 
         "dev15.1.x" { } 
+        "dev15.2.x" { } 
+        "dev15.3-preview1" { } 
         "master" { } 
+        "dev15.6" { }
+        "post-dev15" { } 
         default
         {
             if (-not $test)

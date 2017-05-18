@@ -2541,6 +2541,127 @@ class Program
         }
 
         [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchAwaitGenericsAndOptimization()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SendMessageAsync<string>(""a"").Result);
+        System.Console.WriteLine(SendMessageAsync<string>('a').Result);
+    }
+
+    public static async Task<string> SendMessageAsync<T>(object response)
+    {
+        switch (response)
+        {
+            case T expected:
+                return ""T"";
+            default:
+                return ""default"";
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,38): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     public static async Task<string> SendMessageAsync<T>(object response)
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "SendMessageAsync").WithLocation(12, 38)
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchLambdaGenericsAndOptimization()
+        {
+            var source =
+@"
+class Test
+{
+    static void Main()
+    {
+        System.Console.WriteLine(SendMessage<string>(""a""));
+        System.Console.WriteLine(SendMessage<string>('a'));
+    }
+
+    public static string SendMessage<T>(object input)
+    {
+        System.Func<object, string> f = (response) =>
+        {
+            switch (response)
+            {
+                case T expected:
+                    return ""T"";
+                default:
+                    return ""default"";
+            }
+        };
+
+        return f(input);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
+        [WorkItem(16066, "https://github.com/dotnet/roslyn/issues/16066")]
+        [WorkItem(401335, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401335")]
+        public void SwitchIteratorGenericsAndOptimization()
+        {
+            var source =
+@"
+class Test
+{
+    static void Main()
+    {
+        foreach (var s in SendMessage<string>(""a""))
+        {
+            System.Console.WriteLine(s);
+        }
+        foreach (var s in SendMessage<string>('a'))
+        {
+            System.Console.WriteLine(s);
+        }
+    }
+
+    public static System.Collections.Generic.IEnumerable<string> SendMessage<T>(object response)
+    {
+        switch (response)
+        {
+            case T expected:
+                yield return ""T"";
+                yield break;
+            default:
+                yield return ""default"";
+                yield break;
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput:
+@"T
+default");
+        }
+
+        [Fact]
         [WorkItem(17088, "https://github.com/dotnet/roslyn/issues/17088")]
         public void TupleNameDifferences_01()
         {
@@ -2865,6 +2986,121 @@ class Program
                 //             case (string)null: // error: subsumed
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
                 );
+        }
+
+        [Fact]
+        public void SubsumedCasesAreUnreachable_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 1:
+                break;
+            case System.IComparable c:
+                break;
+            case 2: // error: subsumed
+                break; // unreachable
+            case int n: // error: subsumed
+                break; // unreachable
+            case var i: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 2: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(12, 13),
+                // (14,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int n: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int n").WithLocation(14, 18),
+                // (16,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var i: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
+                // (17,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                );
+        }
+
+        [Fact]
+        public void SwitchTuple()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch ((x: 1, y: 2))
+        {
+            case System.IComparable c:
+                break;
+            case System.ValueTuple<int, int> x: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case System.ValueTuple<int, int> x: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void ByValueThenByTypeTwice()
+        {
+            var source =
+@"
+class Program
+{
+    static bool b = false;
+    static int i = 2;
+    static void Main(string[] args)
+    {
+        switch (i)
+        {
+            case 1:
+                break;
+            case System.IComparable c when b:
+                break;
+            case System.IFormattable f when b:
+                break;
+            default:
+                System.Console.WriteLine(nameof(Main));
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "Main");
         }
     }
 }

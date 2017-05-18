@@ -20,11 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly DecisionTree _subsumptionTree;
 
         internal SubsumptionDiagnosticBuilder(Symbol enclosingSymbol,
-                                               Conversions conversions,
-                                               BoundExpression expression)
-            : base(enclosingSymbol, conversions)
+                                              SyntaxNode syntax,
+                                              Conversions conversions,
+                                              BoundExpression expression)
+            : base(enclosingSymbol, syntax, conversions)
         {
-            _subsumptionTree = DecisionTree.Create(expression, expression.Type, enclosingSymbol);
+            _subsumptionTree = CreateEmptyDecisionTree(expression);
         }
 
         /// <summary>
@@ -52,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For purposes of subsumption, we do not take into consideration the value
                 // of the input expression. Therefore we consider null possible if the type permits.
                 Syntax = label.Syntax;
-                var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: true);
+                var inputCouldBeNull = _subsumptionTree.Type.CanContainNull();
+                var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: inputCouldBeNull);
                 if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                 {
                     if (!label.HasErrors)

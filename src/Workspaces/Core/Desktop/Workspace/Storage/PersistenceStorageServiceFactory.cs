@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionSize;
+using Microsoft.CodeAnalysis.SQLite;
 
 namespace Microsoft.CodeAnalysis.Storage
 {
@@ -44,6 +45,8 @@ namespace Microsoft.CodeAnalysis.Storage
             var database = optionService.GetOption(StorageOptions.Database);
             switch (database)
             {
+                case StorageDatabase.SQLite:
+                    return new SQLitePersistentStorageService(optionService, _solutionSizeTracker);
                 case StorageDatabase.Esent:
                     return new EsentPersistentStorageService(optionService, _solutionSizeTracker);
                 case StorageDatabase.None:

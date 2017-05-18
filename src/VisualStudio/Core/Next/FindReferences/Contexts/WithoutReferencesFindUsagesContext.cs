@@ -3,7 +3,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.Shell.FindAllReferences;
 using Roslyn.Utilities;
@@ -81,9 +81,9 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 RoslynDefinitionBucket definitionBucket, DefinitionItem definition)
             {
                 var documentSpan = definition.SourceSpans[0];
-                var (guid, sourceText) = await GetGuidAndSourceTextAsync(documentSpan.Document).ConfigureAwait(false);
+                var (guid, projectName, sourceText) = await GetGuidAndProjectNameAndSourceTextAsync(documentSpan.Document).ConfigureAwait(false);
 
-                return new DefinitionItemEntry(this, definitionBucket, documentSpan, guid, sourceText);
+                return new DefinitionItemEntry(this, definitionBucket, documentSpan, projectName, guid, sourceText);
             }
         }
     }

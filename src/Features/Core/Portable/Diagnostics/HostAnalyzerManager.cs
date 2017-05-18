@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var analyzer in analyzers)
             {
-                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalyzerPackageNameMap, analyzer, _ => name);
+                ImmutableInterlocked.GetOrAdd(ref _hostDiagnosticAnalyzerPackageNameMap, analyzer, name);
             }
         }
 
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 if (analyzer.IsCompilerAnalyzer())
                 {
                     ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerDescriptorMap, analyzer, a => new HashSet<string>(GetDiagnosticDescriptors(a).Select(d => d.Id)));
-                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, _ => analyzer);
+                    ImmutableInterlocked.GetOrAdd(ref _compilerDiagnosticAnalyzerMap, language, analyzer);
                     return;
                 }
             }

@@ -310,6 +310,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return InferTypeInElementAccessExpression(elementAccess, index, argument);
                     }
+
+                    if (argument.IsParentKind(SyntaxKind.TupleExpression))
+                    {
+                        return InferTypeInTupleExpression((TupleExpressionSyntax)argument.Parent, argument);
+                    }
                 }
 
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
@@ -329,6 +334,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInTupleExpression(
+                TupleExpressionSyntax tupleExpression, ArgumentSyntax argument)
+            {
+                var index = tupleExpression.Arguments.IndexOf(argument);
+                var parentTypes = InferTypes(tupleExpression);
+
+                return parentTypes.Select(typeInfo => typeInfo.InferredType)
+                                  .OfType<INamedTypeSymbol>()
+                                  .Where(namedType => namedType.IsTupleType && index < namedType.TupleElements.Length)
+                                  .Select(tupleType => new TypeInferenceInfo(tupleType.TupleElements[index].Type));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(AttributeArgumentSyntax argument, SyntaxToken? previousToken = null, ArgumentSyntax argumentOpt = null)

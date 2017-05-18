@@ -170,6 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override object VisitNamedType(NamedTypeSymbol symbol, StringBuilder builder)
             {
+                if (symbol.IsTupleType)
+                {
+                    return VisitNamedType(((TupleTypeSymbol)symbol).UnderlyingNamedType, builder);
+                }
+
                 if ((object)symbol.ContainingSymbol != null && symbol.ContainingSymbol.Name.Length != 0)
                 {
                     Visit(symbol.ContainingSymbol, builder);

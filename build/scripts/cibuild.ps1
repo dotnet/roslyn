@@ -1,12 +1,15 @@
 [CmdletBinding(PositionalBinding=$false)]
 param (
+    [switch]$test32 = $false,
     [switch]$test64 = $false,
     [switch]$testDeterminism = $false,
     [switch]$testBuildCorrectness = $false,
     [switch]$testPerfCorrectness = $false,
     [switch]$testPerfRun = $false,
     [switch]$testVsi = $false,
-    [switch]$skipTest = $false,
+    [switch]$testVsiNetCore = $false,
+    [switch]$testDesktop = $false,
+    [switch]$testCoreClr = $false,
     [switch]$skipRestore = $false,
     [switch]$skipCommitPrinting = $false,
     [switch]$release = $false,
@@ -17,10 +20,14 @@ $ErrorActionPreference = "Stop"
 
 function Print-Usage() {
     Write-Host "Usage: cibuild.cmd [-debug^|-release] [-test32^|-test64] [-restore]"
-    Write-Host "  -debug   Perform debug build.  This is the default."
-    Write-Host "  -release Perform release build."
-    Write-Host "  -test32  Run unit tests in the 32-bit runner.  This is the default."
-    Write-Host "  -test64  Run units tests in the 64-bit runner."
+    Write-Host "  -debug            Perform debug build.  This is the default."
+    Write-Host "  -release          Perform release build."
+    Write-Host "  -test32           Run unit tests in the 32-bit runner.  This is the default."
+    Write-Host "  -test64           Run units tests in the 64-bit runner."
+    Write-Host "  -testDesktop      Run desktop unit tests"
+    Write-Host "  -testCoreClr      Run CoreClr unit tests"
+    Write-Host "  -testVsi          Run all integration tests."
+    Write-Host "  -testVsiNetCore   Run just dotnet core integration tests."
 }
 
 function Run-MSBuild() {
@@ -28,10 +35,12 @@ function Run-MSBuild() {
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    & $msbuild /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal @args
-    if (-not $?) {
-        throw "Build failed"
+    $buildArgs = "/warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal"
+    foreach ($arg in $args) { 
+        $buildArgs += " $arg"
     }
+    
+    Exec-Command $msbuild $buildArgs
 }
 
 # Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
@@ -41,6 +50,17 @@ function Run-MSBuild() {
 function Terminate-BuildProcesses() {
     Get-Process msbuild -ErrorAction SilentlyContinue | kill 
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
+}
+
+# The Jenkins images used to execute our tests can live for a very long time.  Over the course
+# of hundreds of runs this can cause the %TEMP% folder to fill up.  To avoid this we redirect
+# %TEMP% into the binaries folder which is deleted at the end of every run as a part of cleaning
+# up the workspace.
+function Redirect-Temp() {
+    $temp = Join-Path $binariesDir "Temp"
+    Create-Directory $temp
+    ${env:TEMP} = $temp
+    ${env:TMP} = $temp
 }
 
 try {
@@ -70,16 +90,17 @@ try {
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
     Create-Directory $binariesDir
+    Redirect-Temp
 
     if ($testBuildCorrectness) {
-        Exec { & ".\build\scripts\test-build-correctness.ps1" $repoDir $configDir }
+        Exec-Block { & ".\build\scripts\test-build-correctness.ps1" -config $buildConfiguration } | Out-Host
         exit 0
     }
 
     # Output the commit that we're building, for reference in Jenkins logs
     if (-not $skipCommitPrinting) {
         Write-Host "Building this commit:"
-        Exec { & git show --no-patch --pretty=raw HEAD }
+        Exec-Block { & git show --no-patch --pretty=raw HEAD } | Out-Host
     }
 
     # Build with the real assembly version, since that's what's contained in the bootstrap compiler redirects
@@ -93,14 +114,14 @@ try {
     Terminate-BuildProcesses
 
     if ($testDeterminism) {
-        Exec { & ".\build\scripts\test-determinism.ps1" $bootstrapDir }
+        Exec-Block { & ".\build\scripts\test-determinism.ps1" -bootstrapDir $bootstrapDir } | Out-Host
         Terminate-BuildProcesses
         exit 0
     }
 
     if ($testPerfCorrectness) {
         Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
-        Exec { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test }
+        Exec-Block { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test } | Out-Host
         exit 0
     }
 
@@ -125,7 +146,7 @@ try {
 
             Create-Directory ".\Binaries\$buildConfiguration\tools\"
             # Get the benchview tools - Place alongside Roslyn.Test.Performance.Runner.exe
-            Exec { & ".\build\scripts\install_benchview_tools.cmd" ".\Binaries\$buildConfiguration\tools\" }
+            Exec-Block { & ".\build\scripts\install_benchview_tools.cmd" ".\Binaries\$buildConfiguration\tools\" } | Out-Host
         }
 
         Terminate-BuildProcesses
@@ -136,12 +157,23 @@ try {
         exit 0
     }
 
-    $target = if ($skipTest) { "Build" } else { "BuildAndTest" }
-    $test64Arg = if ($test64) { "true" } else { "false" }
+    $test64Arg = if ($test64 -and (-not $test32)) { "true" } else { "false" }
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
+    $testVsiNetCoreArg = if ($testVsiNetCore) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
 
-    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /t:$target /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false
+    # To help the VS SDK team track down their issues around install via build temporarily 
+    # re-enabling the build based deployment
+    # 
+    # https://github.com/dotnet/roslyn/issues/17456
+    $deployExtensionViaBuild = $false
+
+    if ($testVsiNetCore -and ($test32 -or $test64 -or $testVsi)) {
+        Write-Host "The testVsiNetCore option can't be combined with other test arguments"
+    }
+
+    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:TestVsiNetCore=$testVsiNetCoreArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64 /p:DeployExtensionViaBuild=$deployExtensionViaBuild /p:TreatWarningsAsErrors=true
+
     exit 0
 }
 catch {

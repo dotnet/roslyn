@@ -2067,7 +2067,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (6,18): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         int (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 13)
@@ -2097,7 +2097,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, x2)").WithLocation(7, 9),
@@ -2128,7 +2128,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateStandardCompilation(source).VerifyDiagnostics(
                 );
         }
 
@@ -2144,42 +2144,232 @@ class C
         var (x, y) = e; // ok, deconstruction declaration
         var(x, y); // ok, invocation
         int x = var(x, y); // ok, invocation
+    }
+}";
+            ParseAndValidate(source);
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_1()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         var(x, y) += e;            // error 1
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
+                // (6,9): error CS0103: The name 'var' does not exist in the current context
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
+                // (6,13): error CS0103: The name 'x' does not exist in the current context
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,16): error CS0103: The name 'y' does not exist in the current context
+                //         var(x, y) += e;            // error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_2()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         var(x, y)++;               // error 2
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
+                // (6,9): error CS0103: The name 'var' does not exist in the current context
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
+                // (6,13): error CS0103: The name 'x' does not exist in the current context
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 13),
+                // (6,16): error CS0103: The name 'y' does not exist in the current context
+                //         var(x, y)++;               // error 2
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 16));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_3()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         ++var(x, y);               // error 3
-        M(out var(x, y));          // error 4
-        M(ref var(x, y));          // error 5
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,11): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 11),
+                // (6,11): error CS0103: The name 'var' does not exist in the current context
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 11),
+                // (6,15): error CS0103: The name 'x' does not exist in the current context
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 15),
+                // (6,18): error CS0103: The name 'y' does not exist in the current context
+                //         ++var(x, y);               // error 3
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 18));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_4()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
+        X(out var(x, y));          // error 4
+    }
+
+    void X(out object x) { x = null; }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS0103: The name 'var' does not exist in the current context
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
+                // (6,19): error CS0103: The name 'x' does not exist in the current context
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 19),
+                // (6,22): error CS0103: The name 'y' does not exist in the current context
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 22),
+                // (6,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         X(out var(x, y));          // error 4
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_5()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
+        X(ref var(x, y));          // error 5
+    }
+
+    void X(ref object x) { x = null; }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,15): error CS0103: The name 'var' does not exist in the current context
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
+                // (6,19): error CS0103: The name 'x' does not exist in the current context
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 19),
+                // (6,22): error CS0103: The name 'y' does not exist in the current context
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 22),
+                // (6,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         X(ref var(x, y));          // error 5
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 15));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_6()
+        {
+            var source =
+@"
+class C
+{
+    ref object M(string e)
+    {
         return ref var(x, y);      // error 6
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,20): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 20),
+                // (6,20): error CS0103: The name 'var' does not exist in the current context
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 20),
+                // (6,24): error CS0103: The name 'x' does not exist in the current context
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 24),
+                // (6,27): error CS0103: The name 'y' does not exist in the current context
+                //         return ref var(x, y);      // error 6
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 27));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_7()
+        {
+            var source =
+@"
+class C
+{
+    void M(string e)
+    {
         ref int x = ref var(x, y); // error 7
+    }
+}";
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (6,25): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 25),
+                // (6,25): error CS0103: The name 'var' does not exist in the current context
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 25),
+                // (6,32): error CS0103: The name 'y' does not exist in the current context
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(6, 32),
+                // (6,29): error CS0165: Use of unassigned local variable 'x'
+                //         ref int x = ref var(x, y); // error 7
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(6, 29));
+        }
+
+        [Fact]
+        public void NoDeconstructionAsLvalue_8()
+        {
+            var source =
+@"
+class C
+{
+    void object M(string e)
+    {
         var (x, 1) = e;            // error 8
     }
 }";
-            ParseAndValidate(source,
-                    // (9,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         var(x, y) += e;            // error 1
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(9, 9),
-                    // (10,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         var(x, y)++;               // error 2
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(10, 9),
-                    // (11,11): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         ++var(x, y);               // error 3
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(11, 11),
-                    // (12,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         M(out var(x, y));          // error 4
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(12, 15),
-                    // (13,15): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         M(ref var(x, y));          // error 5
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(13, 15),
-                    // (14,20): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         return ref var(x, y);      // error 6
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(14, 20),
-                    // (15,25): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         ref int x = ref var(x, y); // error 7
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(15, 25),
-                    // (16,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
-                    //         var (x, 1) = e;            // error 8
-                    Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x, 1)").WithLocation(16, 9)
-                );
+            CreateStandardCompilation(source).VerifyDiagnostics(
+                // (4,10): error CS1519: Invalid token 'object' in class, struct, or interface member declaration
+                //     void object M(string e)
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "object").WithArguments("object").WithLocation(4, 10),
+                // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
+                //         var (x, 1) = e;            // error 8
+                Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var (x, 1)").WithLocation(6, 9),
+                // (6,9): error CS0103: The name 'var' does not exist in the current context
+                //         var (x, 1) = e;            // error 8
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 9),
+                // (6,14): error CS0103: The name 'x' does not exist in the current context
+                //         var (x, 1) = e;            // error 8
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x").WithArguments("x").WithLocation(6, 14),
+                // (4,17): error CS0161: 'C.M(string)': not all code paths return a value
+                //     void object M(string e)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "M").WithArguments("C.M(string)").WithLocation(4, 17));
         }
 
         [Fact]

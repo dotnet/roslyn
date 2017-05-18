@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' <summary>
@@ -14,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic12 = 12
         VisualBasic14 = 14
         VisualBasic15 = 15
+        VisualBasic15_3 = 1503
         Latest = Integer.MaxValue
     End Enum
 
@@ -27,7 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic11,
                     LanguageVersion.VisualBasic12,
                     LanguageVersion.VisualBasic14,
-                    LanguageVersion.VisualBasic15
+                    LanguageVersion.VisualBasic15,
+                    LanguageVersion.VisualBasic15_3
 
                     Return True
             End Select
@@ -51,6 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "14.0"
                 Case LanguageVersion.VisualBasic15
                     Return "15.0"
+                Case LanguageVersion.VisualBasic15_3
+                    Return "15.3"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select
@@ -66,7 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         <Extension>
         Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
-                Case LanguageVersion.Latest, LanguageVersion.Default
+                Case LanguageVersion.Latest
+                    Return LanguageVersion.VisualBasic15_3
+                Case LanguageVersion.Default
                     Return LanguageVersion.VisualBasic15
                 Case Else
                     Return version
@@ -92,6 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "14"
                 Case LanguageVersion.VisualBasic15
                     Return "15"
+                Case LanguageVersion.VisualBasic15_3
+                    Return "15.3"
                 Case LanguageVersion.Default
                     Return "default"
                 Case LanguageVersion.Latest
@@ -124,6 +133,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = LanguageVersion.VisualBasic14
                 Case "15", "15.0"
                     result = LanguageVersion.VisualBasic15
+                Case "15.3"
+                    result = LanguageVersion.VisualBasic15_3
                 Case "default"
                     result = LanguageVersion.Default
                 Case "latest"
@@ -135,6 +146,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        ''' <summary>Inference of tuple element names was added in VB 15.3</summary>
+        <Extension>
+        Friend Function DisallowInferredTupleElementNames(self As LanguageVersion) As Boolean
+            Return self < Feature.InferredTupleNames.GetLanguageVersion()
+        End Function
     End Module
 
     Friend Class VisualBasicRequiredLanguageVersion

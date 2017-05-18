@@ -6,64 +6,48 @@ using System.Collections.Generic;
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// A <see cref="ObjectBinder"/> that records runtime types and object readers during object writing so they
-    /// can be used to read back objects later.
+    /// <see cref="ObjectBinder"/> is a registry that maps between arbitrary <see cref="Type"/>s and 
+    /// the 'reader' function used to deserialize serialized instances of those types.  Registration
+    /// must happen ahead of time using the <see cref="RegisterTypeReader"/> method.
     /// </summary>
-    /// <remarks>
-    /// This binder records runtime types an object readers as a way to avoid needing to describe all serialization types up front
-    /// or using reflection to determine them on demand.
-    /// </remarks>
     internal static class ObjectBinder
     {
+        /// <summary>
+        /// Lock for all data in this type.
+        /// </summary>
         private static object s_gate = new object();
-        private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
 
+        /// <summary>
+        /// Last created snapshot of our data.  We hand this out instead of exposing our raw
+        /// data so that <see cref="ObjectReader"/> and <see cref="ObjectWriter"/> do not need to
+        /// take any locks while processing.
+        /// </summary>
+        private static ObjectBinderSnapshot? s_lastSnapshot = null;
+
+        /// <summary>
+        /// Map from a <see cref="Type"/> to the corresponding index in <see cref="s_types"/> and
+        /// <see cref="s_typeReaders"/>.  <see cref="ObjectWriter"/> will write out the index into
+        /// the stream, and <see cref="ObjectReader"/> will use that index to get the reader used
+        /// for deserialization.
+        /// </summary>
+        private static readonly Dictionary<Type, int> s_typeToIndex = new Dictionary<Type, int>();
         private static readonly List<Type> s_types = new List<Type>();
         private static readonly List<Func<ObjectReader, object>> s_typeReaders = new List<Func<ObjectReader, object>>();
 
-        public static int GetTypeId(Type type)
+        /// <summary>
+        /// Gets an immutable copy of the state of this binder.  This copy does not need to be
+        /// locked while it is used.
+        /// </summary>
+        public static ObjectBinderSnapshot GetSnapshot()
         {
             lock (s_gate)
             {
-                return s_typeToIndex[type];
-            }
-        }
-
-        public static int GetOrAddTypeId(Type type)
-        {
-            lock (s_gate)
-            {
-                if (!s_typeToIndex.TryGetValue(type, out var index))
+                if (s_lastSnapshot == null)
                 {
-                    RegisterTypeReader(type, typeReader: null);
-                    index = s_typeToIndex[type];
+                    s_lastSnapshot = new ObjectBinderSnapshot(s_typeToIndex, s_types, s_typeReaders);
                 }
 
-                return index;
-            }
-        }
-
-        public static Type GetTypeFromId(int typeId)
-        {
-            lock (s_gate)
-            {
-                return s_types[typeId];
-            }
-        }
-
-        public static (Type, Func<ObjectReader, object>) GetTypeAndReaderFromId(int typeId)
-        {
-            lock (s_gate)
-            {
-                return (s_types[typeId], s_typeReaders[typeId]);
-            }
-        }
-
-        public static Func<ObjectReader, object> GetTypeReader(int index)
-        {
-            lock (s_gate)
-            {
-                return s_typeReaders[index];
+                return s_lastSnapshot.Value;
             }
         }
 
@@ -71,10 +55,20 @@ namespace Roslyn.Utilities
         {
             lock (s_gate)
             {
+                if (s_typeToIndex.ContainsKey(type))
+                {
+                    // We already knew about this type, nothing to register.
+                    return;
+                }
+
                 int index = s_typeReaders.Count;
                 s_types.Add(type);
                 s_typeReaders.Add(typeReader);
                 s_typeToIndex.Add(type, index);
+
+                // Registering this type mutated state, clear the cached last snapshot as it
+                // is no longer valid.
+                s_lastSnapshot = null;
             }
         }
     }

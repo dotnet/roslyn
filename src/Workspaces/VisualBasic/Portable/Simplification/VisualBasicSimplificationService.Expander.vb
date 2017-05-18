@@ -295,6 +295,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Dim newSimpleArgument = DirectCast(MyBase.VisitSimpleArgument(node), SimpleArgumentSyntax)
 
+                If node.NameColonEquals Is Nothing Then
+                    Dim tuple = TryCast(node.Parent, TupleExpressionSyntax)
+                    If tuple IsNot Nothing Then
+                        Dim inferredName = node.Expression.TryGetInferredMemberName()
+                        If CanMakeNameExplicitInTuple(tuple, inferredName) Then
+                            Dim identifier = SyntaxFactory.Identifier(inferredName)
+                            identifier = TryEscapeIdentifierToken(identifier, _semanticModel)
+
+                            newSimpleArgument = newSimpleArgument.
+                                WithLeadingTrivia().
+                                WithNameColonEquals(SyntaxFactory.NameColonEquals(SyntaxFactory.IdentifierName(identifier))).
+                                WithAdditionalAnnotations(Simplifier.Annotation).
+                                WithLeadingTrivia(node.GetLeadingTrivia())
+                        End If
+                    End If
+                End If
+
                 ' We need to be careful here. if this is a local, field or property passed to a ByRef argument, we shouldn't
                 ' parenthesize to avoid breaking copy-back semantics.
                 Dim symbol = _semanticModel.GetSymbolInfo(node.Expression, _cancellationToken).Symbol
@@ -324,6 +341,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     .WithAdditionalAnnotations(Simplifier.Annotation)
 
                 Return newSimpleArgument
+            End Function
+
+            Private Function CanMakeNameExplicitInTuple(tuple As TupleExpressionSyntax, name As String) As Boolean
+                If name Is Nothing OrElse SyntaxFacts.IsReservedTupleElementName(name) Then
+                    Return False
+                End If
+
+                Dim found = False
+
+                For Each argument In tuple.Arguments
+                    Dim elementName = Nothing
+                    If argument.NameColonEquals IsNot Nothing Then
+                        elementName = argument.NameColonEquals.Name.Identifier.ValueText
+                    Else
+                        elementName = argument.Expression?.TryGetInferredMemberName()
+                    End If
+
+                    If CaseInsensitiveComparison.Equals(elementName, name) Then
+                        If found Then
+                            ' No duplicate names allowed
+                            Return False
+                        End If
+                        found = True
+                    End If
+                Next
+
+                Return True
+            End Function
+
+            Public Overrides Function VisitInferredFieldInitializer(node As InferredFieldInitializerSyntax) As SyntaxNode
+                Dim newInitializer = TryCast(MyBase.VisitInferredFieldInitializer(node), InferredFieldInitializerSyntax)
+                If newInitializer IsNot Nothing Then
+                    Dim inferredName = node.Expression.TryGetInferredMemberName()
+                    If inferredName IsNot Nothing Then
+                        Dim identifier = SyntaxFactory.Identifier(inferredName)
+                        identifier = TryEscapeIdentifierToken(identifier, _semanticModel)
+
+                        Return SyntaxFactory.NamedFieldInitializer(SyntaxFactory.IdentifierName(identifier), newInitializer.Expression.WithoutLeadingTrivia()).
+                            WithLeadingTrivia(node.GetLeadingTrivia()).
+                            WithAdditionalAnnotations(Simplifier.Annotation)
+                    End If
+                End If
+
+                Return newInitializer
             End Function
 
             Public Overrides Function VisitGenericName(node As GenericNameSyntax) As SyntaxNode

@@ -21,25 +21,39 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
-        public SendKeys SendKeys { get; }
-
         public ChangeSignatureDialog_OutOfProc ChangeSignatureDialog { get; }
 
-        public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
+        public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
+
+        public Debugger_OutOfProc Debugger { get; }
+
+        public Dialog_OutOfProc Dialog { get; }
 
         public Editor_OutOfProc Editor { get; }
+
+        public EncapsulateField_OutOfProc EncapsulateField { get; }
+
+        public ErrorList_OutOfProc ErrorList { get; }
+
+        public ExtractInterfaceDialog_OutOfProc ExtractInterfaceDialog { get; }
 
         public FindReferencesWindow_OutOfProc FindReferencesWindow { get; }
 
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
+        public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
+
+        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
+
+        public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
+
+        public SendKeys SendKeys { get; }
+
         public Shell_OutOfProc Shell { get; }
 
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
 
-        public ErrorList_OutOfProc ErrorList { get; }
-
-        public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
+        public VisualStudioWorkspace_OutOfProc Workspace { get; }
 
         internal DTE Dte { get; }
 
@@ -82,14 +96,21 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             _inProc.WaitForSystemIdle();
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
-            CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            Debugger = new Debugger_OutOfProc(this);
+            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
+            EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
+            ExtractInterfaceDialog = new ExtractInterfaceDialog_OutOfProc(this);
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
+            InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            LocalsWindow = new LocalsWindow_OutOfProc(this);
+            PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
-            VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
+            Workspace = new VisualStudioWorkspace_OutOfProc(this);
 
             SendKeys = new SendKeys(this);
 
@@ -113,8 +134,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow()
-            => _inProc.ActivateMainWindow();
+        public void ActivateMainWindow(bool skipAttachingThreads = false)
+            => _inProc.ActivateMainWindow(skipAttachingThreads);
 
         public void WaitForApplicationIdle()
             => _inProc.WaitForApplicationIdle();
@@ -138,10 +159,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public void CleanUp()
         {
-            VisualStudioWorkspace.CleanUpWaitingService();
-            VisualStudioWorkspace.CleanUpWorkspace();
+            Workspace.CleanUpWaitingService();
+            Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
-            CSharpInteractiveWindow.CloseInteractiveWindow();
+            InteractiveWindow.CloseInteractiveWindow();
         }
 
         public void Close(bool exitHostProcess = true)
@@ -222,7 +243,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             var result = default(T);
 
-            RetryRpcCall(() => {
+            RetryRpcCall(() =>
+            {
                 result = action();
             });
 

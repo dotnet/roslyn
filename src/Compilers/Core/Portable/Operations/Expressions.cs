@@ -108,8 +108,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
     internal partial class InvalidExpression : IInvalidExpression
     {
-        public InvalidExpression(SyntaxNode syntax) :
-            this(isInvalid: true, syntax: syntax, type: null, constantValue: default(Optional<object>))
+        public InvalidExpression(SyntaxNode syntax, ImmutableArray<IOperation> children) :
+            this(children: children, isInvalid: true, syntax: syntax, type: null, constantValue: default(Optional<object>))
         {
         }
     }

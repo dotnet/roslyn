@@ -10,6 +10,7 @@ using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 
         private static CSharpCompilation CreateDummyCompilation(string assemblyName)
         {
-            return CreateCompilationWithMscorlib(
+            return CreateStandardCompilation(
                 "public class C { }",
                 assemblyName: assemblyName,
                 options: TestOptions.DebugDll);
@@ -364,7 +365,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -452,14 +453,14 @@ namespace X
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
 
             string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-            var compilation2 = CreateCompilationWithMscorlib(
+            var compilation2 = CreateStandardCompilation(
                 source2,
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -500,14 +501,14 @@ class A { void M() {  } }
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
 
             string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-            var compilation2 = CreateCompilationWithMscorlib(
+            var compilation2 = CreateStandardCompilation(
                 source2,
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -549,7 +550,7 @@ namespace N
 {
     public class C { }
 }";
-            var dummyCompilation = CreateCompilationWithMscorlib(src1, assemblyName: "A", options: TestOptions.DebugDll);
+            var dummyCompilation = CreateStandardCompilation(src1, assemblyName: "A", options: TestOptions.DebugDll);
 
             var src2 = @"
 namespace M
@@ -566,7 +567,7 @@ namespace M
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(src2,
+            var compilation = CreateStandardCompilation(src2,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -588,8 +589,8 @@ namespace N
 }
 ";
 
-            CSharpCompilation dummyCompilation1 = CreateCompilationWithMscorlib(dummySource, assemblyName: "A", options: TestOptions.DebugDll);
-            CSharpCompilation dummyCompilation2 = CreateCompilationWithMscorlib(dummySource, assemblyName: "B", options: TestOptions.DebugDll);
+            CSharpCompilation dummyCompilation1 = CreateStandardCompilation(dummySource, assemblyName: "A", options: TestOptions.DebugDll);
+            CSharpCompilation dummyCompilation2 = CreateStandardCompilation(dummySource, assemblyName: "B", options: TestOptions.DebugDll);
 
             var text = @"
 extern alias A;
@@ -600,7 +601,7 @@ using Z = global::N;
 
 class C { void M() { } }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -650,7 +651,7 @@ class C { void M() { } }
         [Fact]
         public void TestExternAliasesInUsing()
         {
-            CSharpCompilation libComp = CreateCompilationWithMscorlib(@"
+            CSharpCompilation libComp = CreateStandardCompilation(@"
 namespace N
 {
     public class A { }
@@ -670,7 +671,7 @@ namespace N
     class B { void M() { } }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                 assemblyName: "Test",
                 options: TestOptions.DebugDll,
                 references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
@@ -741,7 +742,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(text,
+            var compilation = CreateStandardCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -873,7 +874,7 @@ namespace X
 namespace N { public class D { } }
 namespace M { public class E { } }
 ";
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -895,7 +896,7 @@ public class C
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2,
+            var compilation2 = CreateStandardCompilation(source2,
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -942,7 +943,7 @@ public class C
             var source1 = @"
 namespace N { public class D { } }
 ";
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -958,7 +959,7 @@ public class C
     }
 }";
 
-            var compilation2 = CreateCompilationWithMscorlib(source2,
+            var compilation2 = CreateStandardCompilation(source2,
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -1035,7 +1036,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 text1,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
@@ -1210,7 +1211,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib(
+            var compilation = CreateStandardCompilation(
                 new string[] { text1, text2 },
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
@@ -1733,7 +1734,7 @@ public class Test : IDisposable
     IL_000e:  ldloc.0
     IL_000f:  callvirt   ""void System.IDisposable.Dispose()""
     IL_0014:  nop
-    IL_0015:  endfinally
+   ~IL_0015:  endfinally
   }
  -IL_0016:  ret
 }", sequencePoints: "Test.Main");
@@ -1751,7 +1752,7 @@ public class Outer
 }
 ";
 
-            var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib").EmitToImageReference();
+            var libRef = CreateStandardCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
 
             var source = @"
 using I = Outer.Inner;
@@ -1809,7 +1810,7 @@ namespace @namespace
 
 class Test { static void Main() { } }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
 
             // As in dev12, we drop all '@'s.
             comp.VerifyPdb("Test.Main", @"
@@ -1839,7 +1840,7 @@ class Test { static void Main() { } }
         public void UsingExternAlias()
         {
             var libSource = "public class C { }";
-            var lib = CreateCompilationWithMscorlib(libSource, assemblyName: "Lib");
+            var lib = CreateStandardCompilation(libSource, assemblyName: "Lib");
             var libRef = lib.EmitToImageReference(aliases: ImmutableArray.Create("Q"));
 
             var source = @"
@@ -1858,7 +1859,7 @@ namespace N
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
+            var comp = CreateStandardCompilation(source, new[] { libRef });
             comp.VerifyPdb("N.D.Main", @"
 <symbols>
   <methods>
@@ -1897,7 +1898,7 @@ class D
     static void Main() { }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyPdb("D.Main", @"
 <symbols>
   <methods>
@@ -1974,7 +1975,7 @@ public class Y<T>
   public class Z<U> {}
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
+            var comp1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
 
             var source2 = @"
 using t1 = Y<W[]>;
@@ -1991,7 +1992,7 @@ public class C1
     }
 }
 ";
-            var comp2 = CreateCompilationWithMscorlib(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
+            var comp2 = CreateStandardCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
 
             comp2.VerifyPdb(@"
 <symbols>
@@ -2042,7 +2043,7 @@ namespace foo
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe);
+            var compilation = CreateStandardCompilation(text, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();
@@ -2067,7 +2068,7 @@ class D
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyPdb("D.Main", @"
 <symbols>
     <methods>
@@ -2107,7 +2108,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            var comp = CreateStandardCompilation(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
             var v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
                 var reader = peAssembly.ManifestModule.MetadataReader;
@@ -2152,7 +2153,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (6,11): error CS0246: The type or namespace name 'F<>' could not be found (are you missing a using directive or an assembly reference?)
@@ -2204,7 +2205,7 @@ class C
 }
 ";
 
-            var c = CreateCompilationWithMscorlib(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
+            var c = CreateStandardCompilation(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
 
             var peStream1 = new MemoryStream();
             var peStream2 = new MemoryStream();
@@ -2213,7 +2214,7 @@ class C
             var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
             var emitResult2 = c.Emit(peStream: peStream2);
 
-            PdbValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
+            MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
 
         [Fact]
@@ -2287,8 +2288,8 @@ class C
     }
 }
 ";
-            var libRef = CreateCompilationWithMscorlib(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
-            var compilation = CreateCompilationWithMscorlib(source, new[] { libRef });
+            var libRef = CreateStandardCompilation(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
+            var compilation = CreateStandardCompilation(source, new[] { libRef });
             var v = CompileAndVerify(compilation);
 
             v.Diagnostics.Verify(
@@ -2356,9 +2357,9 @@ class C
     }
 }
 ";
-            var libRef1 = CreateCompilationWithMscorlib(sourceLib1).EmitToImageReference();
-            var libRef2 = CreateCompilationWithMscorlib(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
-            var compilation = CreateCompilationWithMscorlib(source, new[] { libRef2 });
+            var libRef1 = CreateStandardCompilation(sourceLib1).EmitToImageReference();
+            var libRef2 = CreateStandardCompilation(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
+            var compilation = CreateStandardCompilation(source, new[] { libRef2 });
             var v = CompileAndVerify(compilation);
 
             v.Diagnostics.Verify(
@@ -2445,7 +2446,7 @@ using System;
 class C6 { void F() {} }
 " };
 
-            var c = CreateCompilationWithMscorlib(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            var c = CreateStandardCompilation(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
             var pdbImage = pdbStream.ToImmutable();
