@@ -162,8 +162,17 @@ namespace RunTests
             {
                 var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
                 counter++;
-                Console.WriteLine($"Dumping {proc.ProcessName} {proc.Id} to {dumpFilePath}");
-                DumpUtil.WriteDump(proc, dumpFilePath);
+                Console.Write($"Dumping {proc.ProcessName} {proc.Id} to {dumpFilePath} ... ");
+                try
+                {
+                    DumpUtil.WriteDump(proc, dumpFilePath);
+                    Console.WriteLine("succeeded");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("FAILED");
+                    Console.WriteLine(ex.Message);
+                }
             }
 
             WriteLogFile(options);
