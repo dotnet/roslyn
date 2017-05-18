@@ -5731,9 +5731,9 @@ partial class C
 ";
             var edits = GetTopEdits(src1, src2);
             edits.VerifySemanticDiagnostics(
-                // (4,17): error CS0753: Only methods, classes, structs, or interfaces may be partial
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 //     partial int P => 1;
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyMethods, "P").WithLocation(4, 17));
+                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5));
         }
 
         #endregion
