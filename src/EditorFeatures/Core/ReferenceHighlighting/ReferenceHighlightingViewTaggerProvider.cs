@@ -5,13 +5,17 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -21,7 +25,7 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
+namespace Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 {
     [Export(typeof(IViewTaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
@@ -110,13 +114,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             }
 
             // Otherwise, we need to go produce all tags.
-            return ProduceTagsAsync(context, caretPosition, workspace, document);
+            return ProduceTagsAsync(context, caretPosition, document);
         }
 
         internal async Task ProduceTagsAsync(
             TaggerContext<NavigableHighlightTag> context,
             SnapshotPoint position,
-            Workspace workspace,
             Document document)
         {
             var cancellationToken = context.CancellationToken;
@@ -127,24 +130,72 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             {
                 if (document != null)
                 {
-                    var documentHighlightsService = document.Project.LanguageServices.GetService<IDocumentHighlightsService>();
-                    if (documentHighlightsService != null)
+                    // As we transition to the new API (defined at the Features layer) we support
+                    // calling into both it and the old API (defined at the EditorFeatures layer).
+                    //
+                    // Once TypeScript and F# can move over, then we can remove the calls to the old
+                    // API.
+                    await TryNewServiceAsync(context, position, document).ConfigureAwait(false);
+                    await TryOldServiceAsync(context, position, document).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private Task TryOldServiceAsync(TaggerContext<NavigableHighlightTag> context, SnapshotPoint position, Document document)
+        {
+            return TryServiceAsync<IDocumentHighlightsService>(
+                context, position, document, 
+                (s, d, p, ds, c) => s.GetDocumentHighlightsAsync(d, p, ds, c));
+        }
+
+        private Task TryNewServiceAsync(
+            TaggerContext<NavigableHighlightTag> context, SnapshotPoint position, Document document)
+        {
+            return TryServiceAsync<DocumentHighlighting.IDocumentHighlightsService>(
+                context, position, document,
+                async (service, doc, point, documents, cancellation) =>
+                {
+                    // Call into the new service.
+                    var newHighlights = await service.GetDocumentHighlightsAsync(doc, point, documents, cancellation).ConfigureAwait(false);
+
+                    // then convert the result to the form the old service would return.
+                    return ConvertHighlights(newHighlights);
+                });
+        }
+
+        private async Task TryServiceAsync<T>(
+            TaggerContext<NavigableHighlightTag> context, SnapshotPoint position, Document document,
+            Func<T, Document, SnapshotPoint, ImmutableHashSet<Document>, CancellationToken, Task<ImmutableArray<DocumentHighlights>>> getDocumentHighlightsAsync)
+            where T : class, ILanguageService
+        {
+            var cancellationToken = context.CancellationToken;
+            var documentHighlightsService = document.GetLanguageService<T>();
+            if (documentHighlightsService != null)
+            {
+                // We only want to search inside documents that correspond to the snapshots
+                // we're looking at
+                var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
+                var documentHighlightsList = await getDocumentHighlightsAsync(
+                    documentHighlightsService, document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
+                if (documentHighlightsList != null)
+                {
+                    foreach (var documentHighlights in documentHighlightsList)
                     {
-                        // We only want to search inside documents that correspond to the snapshots
-                        // we're looking at
-                        var documentsToSearch = ImmutableHashSet.CreateRange(context.SpansToTag.Select(vt => vt.Document).WhereNotNull());
-                        var documentHighlightsList = await documentHighlightsService.GetDocumentHighlightsAsync(document, position, documentsToSearch, cancellationToken).ConfigureAwait(false);
-                        if (documentHighlightsList != null)
-                        {
-                            foreach (var documentHighlights in documentHighlightsList)
-                            {
-                                await AddTagSpansAsync(context, solution, documentHighlights).ConfigureAwait(false);
-                            }
-                        }
+                        await AddTagSpansAsync(
+                            context, document.Project.Solution, documentHighlights).ConfigureAwait(false);
                     }
                 }
             }
         }
+
+        private ImmutableArray<DocumentHighlights> ConvertHighlights(ImmutableArray<DocumentHighlighting.DocumentHighlights> newHighlights)
+            => newHighlights.SelectAsArray(
+                documentHighlights => new DocumentHighlights(
+                    documentHighlights.Document,
+                    documentHighlights.HighlightSpans.SelectAsArray(
+                        highlightSpan => new HighlightSpan(
+                            highlightSpan.TextSpan,
+                            (HighlightSpanKind)highlightSpan.Kind))));
 
         private async Task AddTagSpansAsync(
             TaggerContext<NavigableHighlightTag> context,
