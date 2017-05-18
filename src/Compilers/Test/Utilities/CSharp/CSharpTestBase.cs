@@ -39,11 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return (CSharpCompilation)base.GetCompilationForEmit(source, additionalRefs, options, parseOptions);
         }
 
-        internal new IEnumerable<ModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
-        {
-            return base.ReferencesToModuleSymbols(references, importOptions).Cast<ModuleSymbol>();
-        }
-
         private Action<IModuleSymbol> Translate2(Action<ModuleSymbol> action)
         {
             if (action != null)
@@ -678,16 +673,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return CompileAndVerify(c, expectedOutput: expectedOutput);
             }
 
-            MetadataReference reference = null;
-            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
-            {
-                reference = MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
-            }
+            MetadataReference reference = CreateMetadataReferenceFromIlSource(ilSource);
 
             var compilation = CreateStandardCompilation(cSharpSource, new[] { reference }, compilationOptions);
             compilationVerifier?.Invoke(compilation);
 
             return CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
+
+        public static MetadataReference CreateMetadataReferenceFromIlSource(string ilSource)
+        {                                        
+            using (var tempAssembly = IlasmUtilities.CreateTempAssembly(ilSource))
+            {
+                return MetadataReference.CreateFromImage(ReadFromFile(tempAssembly.Path));
+            }
         }
 
         protected override Compilation GetCompilationForEmit(

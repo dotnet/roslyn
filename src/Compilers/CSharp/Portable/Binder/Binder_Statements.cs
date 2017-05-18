@@ -1158,7 +1158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
-        {
+        {                      
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1187,7 +1187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            }
+            } 
             else
             {
                 type = op1.Type;

@@ -256,6 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 node.InvokedAsExtensionMethod,
                 node.ArgsToParamsOpt,
                 node.ResultKind,
+                node.BinderOpt,
                 rewrittenType);
         }
 
@@ -472,6 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     rewritten.ArgsToParamsOpt,
                     rewritten.ConstantValueOpt,
                     rewritten.InitializerExpressionOpt,
+                    rewritten.BinderOpt,
                     rewritten.Type);
             }
 
