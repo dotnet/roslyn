@@ -512,5 +512,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             base.VisitInvalidExpression(operation);
         }
+
+        public override void VisitTupleExpression(ITupleExpression operation)
+        {
+            base.VisitTupleExpression(operation);
+        }
     }
 }

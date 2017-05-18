@@ -489,6 +489,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Function)
         End Function
 
+        Private Shared ReadOnly s_tupleElementsMappings As New ConditionalWeakTable(Of BoundTupleExpression, Object)()
+
+        Private Shared Function GetTupleElements(boundTupleExpression As BoundTupleExpression) As ImmutableArray(Of IOperation)
+            Return DirectCast(s_tupleElementsMappings.GetValue(
+                boundTupleExpression,
+                Function(tupleExpr) tupleExpr.Arguments.SelectAsArray(Function(element) Create(element))), ImmutableArray(Of IOperation))
+        End Function
+
         Friend Class Helper
             Friend Shared Function DeriveUnaryOperationKind(operatorKind As UnaryOperatorKind) As UnaryOperationKind
                 Select Case operatorKind And UnaryOperatorKind.OpMask

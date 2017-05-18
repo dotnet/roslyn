@@ -116,6 +116,7 @@
     <Compile Include="Operations\ISyntheticLocalReferenceExpression.cs" />
     <Compile Include="Operations\IThrowStatement.cs" />
     <Compile Include="Operations\ITryStatement.cs" />
+    <Compile Include="Operations\ITupleExpression.cs" />
     <Compile Include="Operations\ITypeOfExpression.cs" />
     <Compile Include="Operations\ITypeOperationExpression.cs" />
     <Compile Include="Operations\ITypeParameterObjectCreationExpression.cs" />

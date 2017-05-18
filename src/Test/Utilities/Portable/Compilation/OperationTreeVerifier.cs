@@ -1100,6 +1100,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.MaximumValue, "Max");
         }
 
+        public override void VisitTupleExpression(ITupleExpression operation)
+        {
+            LogString(nameof(ITupleExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Elements, "Elements", logElementCount: true);
+        }
+
         #endregion
     }
 }
