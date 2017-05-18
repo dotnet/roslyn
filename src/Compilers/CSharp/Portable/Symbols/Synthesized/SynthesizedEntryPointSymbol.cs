@@ -35,12 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var taskType = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
-#if DEBUG
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                Debug.Assert(taskType.IsErrorType() || initializerMethod.ReturnType.IsDerivedFrom(taskType, TypeCompareKind.IgnoreDynamicAndTupleNames, useSiteDiagnostics: ref useSiteDiagnostics));
-#endif
-                ReportUseSiteDiagnostics(taskType, diagnostics);
                 return new ScriptEntryPoint(containingType, compilation.GetSpecialType(SpecialType.System_Void));
             }
         }
