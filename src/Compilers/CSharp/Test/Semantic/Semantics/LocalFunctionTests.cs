@@ -3091,19 +3091,8 @@ class Test : System.Attribute
         public void LocalFunctionReportedUsedForNameofDefaultParameter()
         {
             var source = @"
-internal abstract class Abstract
-{
-    static int FuncVar = 2;
-    protected abstract void Func(string a = nameof(FuncVar));
-}
 class Program
 {
-    static int F1var = 2;
-    static void F1(string a = nameof(F1var)) { }
-
-    static int F2var = 2;
-    int this[int dummy, string a = nameof(F2var)] { set { } }
-
     const int ClassConstant = 10;
     static void Main()
     {
@@ -3136,6 +3125,11 @@ class Program
         const bool ConstBoolTrue = true;
         void LogicalExpr(bool x = ConstBoolFalse || ConstBoolTrue) => System.Console.WriteLine(x);
         LogicalExpr();
+
+        void GenericLocal<T>() => System.Console.WriteLine(typeof(T).Name);
+
+        void GenericLocalFunc(string s = nameof(GenericLocal)) => System.Console.WriteLine(s);
+        GenericLocalFunc();
     }
 }
 ";
@@ -3149,7 +3143,67 @@ LocalFunction
 StrAdd1StrAdd2
 10
 True
+GenericLocal
 ");
+        }
+
+        [Fact]
+        [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void MethodReportsDefaultParametersAsUsed()
+        {
+            var source = @"
+using System;
+internal abstract class Abstract
+{
+    static int FuncVar = 2;
+    protected abstract void Func(string a = nameof(FuncVar));
+}
+class AttributeArgument : Attribute
+{
+    static int Field = 0;
+    public string Instance;
+    [AttributeArgument(nameof(Field))]
+    public AttributeArgument(string param)
+    { }
+}
+class AttributeNamedArgument : Attribute
+{
+    static int Field = 0;
+    public string Instance;
+    [AttributeNamedArgument("""", Instance = nameof(Field))]
+    AttributeNamedArgument(string param)
+    { }
+}
+class GenericClass<T>
+{
+    public static T Field = default(T);
+}
+class Program
+{
+    static void RefGenericField(string param1 = nameof(GenericClass<int>.Field))
+    { }
+
+    static int F1var = 2;
+    static void F1(string a = nameof(F1var)) { }
+
+    static int F2var = 2;
+    int this[int dummy, string a = nameof(F2var)] { set { } }
+
+    static int F3var = 2;
+    static void AttributeInParam([AttributeArgument(nameof(F3var))] string s) { }
+    static int F4var = 2;
+    static void NamedAttributeInParam([AttributeArgument(param: nameof(F4var))] string s) { }
+    static int F5var = 2;
+    static void NamedAttributeInParam2([AttributeArgument(""2"", Instance = nameof(F5var))] string s) { }
+
+    static void Main()
+    {
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CompileAndVerify(comp.VerifyDiagnostics(), expectedOutput: "");
         }
     }
 }

@@ -284,6 +284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var shouldHaveName = false;
 
+                var variableUsePass = new VariableUsePass(this.Compilation.SourceAssembly);
+
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
                     if (argument.NameEquals == null)
@@ -294,12 +296,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Constructor argument
+                        var boundArgumentExpression = BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false);
+                        variableUsePass.Visit(boundArgumentExpression);
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
                             hadError,
                             argument,
-                            BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
+                            boundArgumentExpression,
                             argument.NameColon,
                             refKind: RefKind.None);
 
@@ -330,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
-                        this.Compilation.VariableUsePass.Visit(boundNamedArgument);
+                        variableUsePass.Visit(boundNamedArgument);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }
@@ -379,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var containingAssembly = fieldSymbol.ContainingAssembly as SourceAssemblySymbol;
 
                 // We do not want to generate any unassigned field or unreferenced field diagnostics.
-                containingAssembly?.NoteFieldAccess(fieldSymbol, read: true, write: true);
+                containingAssembly?.NoteFieldAccess(fieldSymbol.OriginalDefinition, read: true, write: true);
 
                 lvalue = new BoundFieldAccess(nameSyntax, null, fieldSymbol, ConstantValue.NotAvailable, resultKind, fieldSymbol.Type);
             }

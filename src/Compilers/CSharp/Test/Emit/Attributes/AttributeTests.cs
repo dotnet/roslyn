@@ -4106,13 +4106,13 @@ class F
             compilation.VerifyDiagnostics(
                 // (16,6): error CS0120: An object reference is required for the non-static field, method, or property 'F.ProtectionLevel'
                 //   [A(ProtectionLevel.Privacy)]
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "ProtectionLevel").WithArguments("F.ProtectionLevel"),
-                // (14,7): warning CS0169: The field 'F.ProtectionLevel' is never used
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "ProtectionLevel").WithArguments("F.ProtectionLevel").WithLocation(16, 6),
+                // (14,7): warning CS0649: Field 'F.ProtectionLevel' is never assigned to, and will always have its default value 0
                 //   int ProtectionLevel;
-                Diagnostic(ErrorCode.WRN_UnreferencedField, "ProtectionLevel").WithArguments("F.ProtectionLevel"),
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ProtectionLevel").WithArguments("F.ProtectionLevel", "0").WithLocation(14, 7),
                 // (17,14): warning CS0649: Field 'F.test' is never assigned to, and will always have its default value 0
                 //   public int test;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "test").WithArguments("F.test", "0")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "test").WithArguments("F.test", "0").WithLocation(17, 14)
                 );
         }
 

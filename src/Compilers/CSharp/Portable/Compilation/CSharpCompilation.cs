@@ -111,8 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private HashSet<SyntaxTree> _lazyCompilationUnitCompletedTrees;
 
-        private VariableUsePass _lazyVariableUsePass;
-
         public override string Language
         {
             get
@@ -1063,18 +1061,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Assembly.Modules[0];
-            }
-        }
-
-        internal VariableUsePass VariableUsePass
-        {
-            get
-            {
-                if (_lazyVariableUsePass == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyVariableUsePass, new VariableUsePass(this.SourceAssembly), null);
-                }
-                return _lazyVariableUsePass;
             }
         }
 

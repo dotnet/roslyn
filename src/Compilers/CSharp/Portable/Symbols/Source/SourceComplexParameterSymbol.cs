@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (boundExpressionOpt != null && (this.ContainingSymbol as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
                     {
-                        this.DeclaringCompilation.VariableUsePass.Visit(boundExpressionOpt);
+                        new VariableUsePass(this.DeclaringCompilation.SourceAssembly).Visit(boundExpressionOpt);
                     }
                 }
 

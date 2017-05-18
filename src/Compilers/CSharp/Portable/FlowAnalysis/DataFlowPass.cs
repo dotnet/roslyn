@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly PooledHashSet<LocalFunctionSymbol> _usedLocalFunctions = PooledHashSet<LocalFunctionSymbol>.GetInstance();
 
-        private readonly VariableUsePass _variableUsePass;
+        private readonly LocalVariableUsePass _variableUsePass;
 
         /// <summary>
         /// Variables that were initialized or written anywhere.
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = requireOutParamsAssigned;
             this.topLevelMethod = member as MethodSymbol;
-            _variableUsePass = new VariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
+            _variableUsePass = new LocalVariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
         }
 
         internal DataFlowPass(
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = emptyStructs ?? new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
-            _variableUsePass = new VariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
+            _variableUsePass = new LocalVariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.currentMethodOrLambda = member as MethodSymbol;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _emptyStructTypeCache = new NeverEmptyStructTypeCache();
-            _variableUsePass = new VariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
+            _variableUsePass = new LocalVariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
         }
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)expression;
-                            var fieldSymbol = fieldAccess.FieldSymbol;
+                            var fieldSymbol = fieldAccess.FieldSymbol.OriginalDefinition;
                             if ((object)_sourceAssembly != null) _sourceAssembly.NoteFieldAccess(fieldSymbol, true, true);
                             if (fieldSymbol.ContainingType.IsReferenceType || fieldSymbol.IsStatic) return null;
                             expression = fieldAccess.ReceiverOpt;
@@ -2022,7 +2022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            FieldSymbol field = (FieldSymbol)symbol;
+                            FieldSymbol field = (FieldSymbol)symbol.OriginalDefinition;
                             assembly.NoteFieldAccess(field, read: true, write: true);
                             MarkFieldsUsed(field.Type);
                         }
