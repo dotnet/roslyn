@@ -1286,7 +1286,7 @@ Sum: 10, Count: 4")
 
         <Fact>
         <WorkItem(18762, "https://github.com/dotnet/roslyn/issues/18762")>
-        Public Sub UnnamedTempShouldNotCrashPbdEncoding()
+        Public Sub UnnamedTempShouldNotCrashPdbEncoding()
 
             Dim verifier = CompileAndVerify(
 <compilation>
@@ -1295,7 +1295,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Module Module1
-    Private Async Function DoAllWorkAsync() As Task(Of (FistValue As String, SecondValue As String))
+    Private Async Function DoAllWorkAsync() As Task(Of (FirstValue As String, SecondValue As String))
         Return (Nothing, Nothing)
     End Function
 End Module
