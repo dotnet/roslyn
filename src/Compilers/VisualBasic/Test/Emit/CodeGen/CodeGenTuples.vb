@@ -14803,7 +14803,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         Private Shared Sub AssertTestDisplayString(symbols As ImmutableArray(Of Symbol), ParamArray baseLine As String())
-            ' Re-ordering arguments because expected Is usually goes first.
+            ' Re-ordering arguments because expected is usually first.
             AssertEx.Equal(baseLine, symbols.Select(Function(s) s.ToTestDisplayString()))
         End Sub
 

@@ -569,12 +569,79 @@ Class C
             Dim member = compilation1.GetMember(Of FieldSymbol)("C.x")
             Dim other = matcher.MapDefinition(member)
             ' Types must match because just an element name was changed.
-            Assert.NotNull(other)
+            Dim otherSymbol = DirectCast(other, SourceFieldSymbol)
+            Assert.NotNull(otherSymbol)
+            Assert.Equal("C.x As (a As System.Int32, b As System.Int32)", otherSymbol.ToTestDisplayString())
+        End Sub
+
+        <Fact>
+        Public Sub TupleMethod_TypeToNoTupleChange()
+            Dim source0 = "
+Class C
+    Public Function X() As (a As Integer, b As Integer)
+        Return Nothing
+    End Function
+End Class
+"
+            Dim source1 = "
+Class C
+    Public Function X() As Integer()
+        Return Nothing
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim matcher = New VisualBasicSymbolMatcher(
+                Nothing,
+                compilation1.SourceAssembly,
+                New EmitContext(),
+                compilation0.SourceAssembly,
+                New EmitContext(),
+                Nothing)
+
+            Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
+            Dim other = matcher.MapDefinition(member)
+            ' Types should not match: one is tuple and another is not.
+            Assert.Null(other)
+        End Sub
+
+        <Fact>
+        Public Sub TupleMethod_TypeFromNoTupleChange()
+            Dim source0 = "
+Class C
+    Public Function X() As Integer()
+        Return Nothing
+    End Function
+End Class
+"
+            Dim source1 = "
+Class C
+    Public Function X() As (a As Integer, b As Boolean)
+        Return Nothing
+    End Function
+End Class
+"
+            Dim compilation0 = CreateCompilationWithMscorlib(source0, options:=TestOptions.DebugDll, references:=ValueTupleRefs)
+            Dim compilation1 = compilation0.WithSource(source1)
+
+            Dim matcher = New VisualBasicSymbolMatcher(
+                Nothing,
+                compilation1.SourceAssembly,
+                New EmitContext(),
+                compilation0.SourceAssembly,
+                New EmitContext(),
+                Nothing)
+
+            Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
+            Dim other = matcher.MapDefinition(member)
+            ' Types should not match: one is tuple and another is not.
+            Assert.Null(other)
         End Sub
 
         <Fact>
         Public Sub TupleMethod_TypeChange()
-
             Dim source0 = "
 Class C
     Public Function X() As (a As Integer, b As Integer)
@@ -608,7 +675,6 @@ End Class
 
         <Fact>
         Public Sub TupleMethod_NameChange()
-
             Dim source0 = "
 Class C
     Public Function X() As (a As Integer, b As Integer)
@@ -637,12 +703,13 @@ End Class
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.X")
             Dim other = matcher.MapDefinition(member)
             ' Types must match because just an element name was changed.
-            Assert.NotNull(other)
+            Dim otherSymbol = DirectCast(other, SourceMemberMethodSymbol)
+            Assert.NotNull(otherSymbol)
+            Assert.Equal("Function C.X() As (a As System.Int32, b As System.Int32)", otherSymbol.ToTestDisplayString())
         End Sub
 
         <Fact>
         Public Sub TupleProperty_TypeChange()
-
             Dim source0 = "
 Class C
     Public ReadOnly Property X As (a As Integer, b As Integer)
@@ -680,7 +747,6 @@ End Class
 
         <Fact>
         Public Sub TupleProperty_NameChange()
-
             Dim source0 = "
 Class C
     Public ReadOnly Property X As (a As Integer, b As Integer)
@@ -713,12 +779,13 @@ End Class
             Dim member = compilation1.GetMember(Of PropertySymbol)("C.X")
             Dim other = matcher.MapDefinition(member)
             ' Types must match because just an element name was changed.
-            Assert.NotNull(other)
+            Dim otherSymbol = DirectCast(other, SourcePropertySymbol)
+            Assert.NotNull(otherSymbol)
+            Assert.Equal("ReadOnly Property C.X As (a As System.Int32, b As System.Int32)", otherSymbol.ToTestDisplayString())
         End Sub
 
         <Fact>
         Public Sub TupleStructField_TypeChange()
-
             Dim source0 = "
 Public Structure Vector
     Public Coordinates As (x As Integer, y As Integer)
@@ -748,7 +815,6 @@ End Structure
 
         <Fact>
         Public Sub TupleStructField_NameChange()
-
             Dim source0 = "
 Public Structure Vector
     Public Coordinates As (x As Integer, y As Integer)
@@ -773,12 +839,13 @@ End Structure
             Dim member = compilation1.GetMember(Of FieldSymbol)("Vector.Coordinates")
             Dim other = matcher.MapDefinition(member)
             ' Types must match because just an element name was changed.
-            Assert.NotNull(other)
+            Dim otherSymbol = DirectCast(other, SourceFieldSymbol)
+            Assert.NotNull(otherSymbol)
+            Assert.Equal("Vector.Coordinates As (x As System.Int32, y As System.Int32)", otherSymbol.ToTestDisplayString())
         End Sub
 
         <Fact>
         Public Sub TupleDelegate_TypeChange()
-
             Dim source0 = "
 Public Class C
     Public Delegate Function F() As (Integer, Integer)
@@ -803,12 +870,13 @@ End Class
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")
             Dim other = matcher.MapDefinition(member)
             ' Tuple delegate defines a type. We should be able to match old and new types by name.
-            Assert.NotNull(other)
+            Dim otherSymbol = DirectCast(other, SourceNamedTypeSymbol)
+            Assert.NotNull(otherSymbol)
+            Assert.Equal("C.F", otherSymbol.ToTestDisplayString())
         End Sub
 
         <Fact>
         Public Sub TupleDeletagate_NameChange()
-
             Dim source0 = "
 Public Class C
     Public Delegate Function F() As (x as Integer, y as Integer)
@@ -832,7 +900,9 @@ End Class"
             Dim member = compilation1.GetMember(Of SourceNamedTypeSymbol)("C.F")
             Dim other = matcher.MapDefinition(member)
             ' Types must match because just an element name was changed.
-            Assert.NotNull(other)
+            Dim otherSymbol = DirectCast(other, SourceNamedTypeSymbol)
+            Assert.NotNull(otherSymbol)
+            Assert.Equal("C.F", otherSymbol.ToTestDisplayString())
         End Sub
     End Class
 End Namespace
