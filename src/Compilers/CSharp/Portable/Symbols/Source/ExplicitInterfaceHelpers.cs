@@ -275,16 +275,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         case SymbolKind.Property:
                             var propertySymbol = (PropertySymbol)implementedMember;
-
-                            void CheckAccessorAccessible(MethodSymbol acessor)
-                            {
-                                if ((object)acessor != null &&
-                                    !AccessCheck.IsSymbolAccessible(acessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: acessor.ContainingType))
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, acessor);
-                                }
-                            }
-
                             CheckAccessorAccessible(propertySymbol.GetMethod);
                             CheckAccessorAccessible(propertySymbol.SetMethod);
                             break;
@@ -294,6 +284,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             CheckAccessorAccessible(eventSymbol.AddMethod);
                             CheckAccessorAccessible(eventSymbol.RemoveMethod);
                             break;
+                    }
+
+                    void CheckAccessorAccessible(MethodSymbol accessor)
+                    {
+                        if ((object)accessor != null &&
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: accessor.ContainingType))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
+                        }
                     }
                 }
 

@@ -1331,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // If we haven't found a match, do a weaker comparison that ignores static-ness, accessibility, and return type.
                     // But do this only if interface member is public because language doesn't allow implicit implementations for
-                    // such members and, since candidate's signature doesn't match, runtime will never pick it up either. 
+                    // non-public members and, since candidate's signature doesn't match, runtime will never pick it up either. 
                     else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation &&
                              interfaceMember.DeclaredAccessibility == Accessibility.Public &&
                              !interfaceMember.IsEventOrPropertyWithNonPublicAccessor())

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -5048,7 +5048,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;. &apos;{2}&apos; cannot implicitly implement &apos;{1}&apos; because &apos;{1}&apos; is not public..
+        ///   Looks up a localized string similar to &apos;{0}&apos; does not implement interface member &apos;{1}&apos;. &apos;{2}&apos; cannot implicitly implement a non-public member..
         /// </summary>
         internal static string ERR_ImplicitImplementationOfNonPublicInterfaceMember {
             get {

@@ -6084,7 +6084,7 @@ class Test1 : I1
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (9,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (9,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(9, 15)
                 );
@@ -6102,7 +6102,7 @@ class Test1 : I1
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
                 );
@@ -6113,7 +6113,7 @@ class Test1 : I1
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
                 );
@@ -6242,7 +6242,7 @@ class Test1 : I1
 ";
 
             ValidateMethodModifiers_10_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 15)
                 );
@@ -6388,7 +6388,7 @@ class Test1 : Test2, I1
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
                 );
@@ -6434,7 +6434,7 @@ class Test1 : Test2, I1
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
                 );
@@ -6485,7 +6485,7 @@ class Test3 : Test1
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
                 );
@@ -6536,7 +6536,7 @@ public interface I2
 }
 ";
             ValidateMethodModifiers_10_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.M1()", "Test1.M1()").WithLocation(2, 22)
                 );
@@ -6711,7 +6711,7 @@ class Test1 : Test2, I1
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
-                // (7,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (7,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()").WithLocation(7, 15)
                 );
@@ -6729,7 +6729,7 @@ class Test1 : Test2, I1
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()")
                 );
@@ -6740,7 +6740,7 @@ class Test1 : Test2, I1
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation4.VerifyDiagnostics(
-                // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (2,15): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()")
                 );
@@ -6778,7 +6778,7 @@ class Test1 : Test2, I1
                                                          assemblyName: "MethodModifiers_10_11");
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
-                // (7,22): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement 'I1.M1()' because 'I1.M1()' is not public.
+                // (7,22): error CS8504: 'Test2' does not implement interface member 'I1.M1()'. 'Test2.M1()' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.M1()", "Test2.M1()").WithLocation(7, 22)
                 );
@@ -9593,10 +9593,10 @@ class Test1 : I1
 
             ValidatePropertyModifiers_11_01(source1, source2, 
                 new DiagnosticDescription[] {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
                 },
@@ -9761,10 +9761,10 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
                 );
@@ -9968,10 +9968,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -10035,10 +10035,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -10107,10 +10107,10 @@ class Test3 : Test1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -10179,10 +10179,10 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -10390,10 +10390,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(2, 22)
                 );
@@ -10459,10 +10459,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(6, 22),
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(6, 22)
                 );
@@ -12714,7 +12714,7 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Internal, Accessibility.Public,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
                 );
@@ -12802,7 +12802,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 15)
                 );
@@ -12913,7 +12913,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -12977,7 +12977,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -13046,7 +13046,7 @@ class Test3 : Test1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -13115,7 +13115,7 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.get'. 'Test1.P1.get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.get", "Test1.P1.get").WithLocation(2, 22)
                 );
@@ -13258,7 +13258,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(2, 22)
                 );
@@ -13294,7 +13294,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement 'I1.P1.get' because 'I1.P1.get' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.get'. 'Test2.P1.get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.get", "Test2.P1.get").WithLocation(6, 22)
                 );
@@ -13339,7 +13339,7 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Public, Accessibility.Internal,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
                 );
@@ -13386,7 +13386,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 15)
                 );
@@ -13497,7 +13497,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
                 );
@@ -13561,7 +13561,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
                 );
@@ -13630,7 +13630,7 @@ class Test3 : Test1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
                 );
@@ -13699,7 +13699,7 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.set'. 'Test1.P1.set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1, I2
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.set", "Test1.P1.set").WithLocation(2, 22)
                 );
@@ -13842,7 +13842,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(2, 22)
                 );
@@ -13878,7 +13878,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement 'I1.P1.set' because 'I1.P1.set' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.set'. 'Test2.P1.set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.set", "Test2.P1.set").WithLocation(6, 22)
                 );
@@ -15254,10 +15254,10 @@ class Test1 : I1
 
             ValidatePropertyModifiers_11_01(source1, source2,
                 new DiagnosticDescription[] {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15)
                 },
@@ -15308,10 +15308,10 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15)
                 );
@@ -15422,10 +15422,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -15489,10 +15489,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -15561,10 +15561,10 @@ class Test3 : Test1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -15633,10 +15633,10 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1, I2
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1, I2
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -15779,10 +15779,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(2, 22)
                 );
@@ -15818,10 +15818,10 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(6, 22),
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(6, 22)
                 );
@@ -17104,7 +17104,7 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Internal, Accessibility.Public, 
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15)
                 );
@@ -17151,7 +17151,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 15)
                 );
@@ -17262,7 +17262,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -17326,7 +17326,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -17395,7 +17395,7 @@ class Test3 : Test1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -17464,7 +17464,7 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].get'. 'Test1.this[int].get' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1, I2
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].get", "Test1.this[int].get").WithLocation(2, 22)
                 );
@@ -17607,7 +17607,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(2, 22)
                 );
@@ -17643,7 +17643,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement 'I1.this[int].get' because 'I1.this[int].get' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].get'. 'Test2.this[int].get' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].get", "Test2.this[int].get").WithLocation(6, 22)
                 );
@@ -17688,7 +17688,7 @@ class Test1 : I1
 }
 ";
             ValidatePropertyModifiers_23(source1, source2, Accessibility.Public, Accessibility.Internal,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15)
                 );
@@ -17735,7 +17735,7 @@ class Test1 : I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 15)
                 );
@@ -17846,7 +17846,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
                 );
@@ -17910,7 +17910,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
                 );
@@ -17979,7 +17979,7 @@ class Test3 : Test1
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
                 );
@@ -18048,7 +18048,7 @@ public interface I2
 ";
 
             ValidatePropertyModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.this[int].set'. 'Test1.this[int].set' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1, I2
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.this[int].set", "Test1.this[int].set").WithLocation(2, 22)
                 );
@@ -18191,7 +18191,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(2, 22)
                 );
@@ -18227,7 +18227,7 @@ class Test1 : Test2, I1
 ";
 
             ValidatePropertyModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement 'I1.this[int].set' because 'I1.this[int].set' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.this[int].set'. 'Test2.this[int].set' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.this[int].set", "Test2.this[int].set").WithLocation(6, 22)
                 );
@@ -19941,10 +19941,10 @@ class Test1 : I1
             ValidateEventModifiers_11(source1, source2,
                 new DiagnosticDescription[] 
                 {
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
                 },
@@ -20107,10 +20107,10 @@ class Test1 : I1
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 15),
-                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (2,15): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
                 // class Test1 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 15)
                 );
@@ -20318,10 +20318,10 @@ class Test1 : Test2, I1
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
                 );
@@ -20386,10 +20386,10 @@ class Test1 : Test2, I1
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
                 );
@@ -20460,10 +20460,10 @@ class Test3 : Test1
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
                 );
@@ -20533,10 +20533,10 @@ public interface I2
 ";
 
             ValidateEventModifiers_11_02(source1, source2,
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.remove'. 'Test1.P1.remove' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.remove", "Test1.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (2,22): error CS8504: 'Test1' does not implement interface member 'I1.P1.add'. 'Test1.P1.add' cannot implicitly implement a non-public member.
                 // class Test1 : Test2, I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test1", "I1.P1.add", "Test1.P1.add").WithLocation(2, 22)
                 );
@@ -20745,10 +20745,10 @@ class Test1 : Test2, I1
 ";
 
             ValidateEventModifiers_11_10(source1, source2,
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove").WithLocation(2, 22),
-                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (2,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.add", "Test2.P1.add").WithLocation(2, 22)
                 );
@@ -20811,10 +20811,10 @@ class Test1 : Test2, I1
 ";
 
             ValidateEventModifiers_11_11(source1, source2,
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement 'I1.P1.remove' because 'I1.P1.remove' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.remove'. 'Test2.P1.remove' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.remove", "Test2.P1.remove").WithLocation(6, 22),
-                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement 'I1.P1.add' because 'I1.P1.add' is not public.
+                // (6,22): error CS8504: 'Test2' does not implement interface member 'I1.P1.add'. 'Test2.P1.add' cannot implicitly implement a non-public member.
                 // public class Test2 : I1
                 Diagnostic(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, "I1").WithArguments("Test2", "I1.P1.add", "Test2.P1.add").WithLocation(6, 22)
                 );

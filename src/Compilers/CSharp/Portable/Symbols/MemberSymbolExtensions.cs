@@ -125,12 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case SymbolKind.Property:
                     var propertySymbol = (PropertySymbol)symbol;
-
-                    bool AccessorIsNotPublic(MethodSymbol accessor)
-                    {
-                        return (object)accessor != null && accessor.DeclaredAccessibility != Accessibility.Public;
-                    }
-
                     return AccessorIsNotPublic(propertySymbol.GetMethod) || AccessorIsNotPublic(propertySymbol.SetMethod);
 
                 case SymbolKind.Event:
@@ -139,6 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+
+            bool AccessorIsNotPublic(MethodSymbol accessor)
+            {
+                return (object)accessor != null && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
         }
 
         public static bool IsAccessor(this MethodSymbol methodSymbol)
