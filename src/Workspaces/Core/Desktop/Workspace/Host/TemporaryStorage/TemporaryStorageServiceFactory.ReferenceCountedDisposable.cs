@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Host
             /// <remarks>
             /// <para>This value is only cleared in order to support cases where one or more references is garbage
             /// collected without having <see cref="Dispose"/> called. It is cleared <em>after</em> the
-            /// <see cref="_referenceCount"/> field is cleared, which is leveraged to ensure that concurrent calls to
-            /// <see cref="Dispose"/> and <see cref="TryAddReference"/> cannot result in a "valid" reference pointing to
-            /// a disposed underlying object.</para>
+            /// <see cref="_boxedReferenceCount"/> field is cleared, which is leveraged to ensure that concurrent calls
+            /// to <see cref="Dispose"/> and <see cref="TryAddReference"/> cannot result in a "valid" reference pointing
+            /// to a disposed underlying object.</para>
             /// </remarks>
             private T _instance;
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// This occurs prior to clearing the <see cref="_instance"/> field in order to support concurrent
             /// code.</para>
             /// </remarks>
-            private StrongBox<int> _referenceCount;
+            private StrongBox<int> _boxedReferenceCount;
 
             /// <summary>
             /// Initializes a new reference counting wrapper around an <see cref="IDisposable"/> object.
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
             public ReferenceCountedDisposable(T instance)
             {
                 _instance = instance;
-                _referenceCount = new StrongBox<int>(1);
+                _boxedReferenceCount = new StrongBox<int>(1);
             }
 
             private ReferenceCountedDisposable(T instance, StrongBox<int> referenceCount)
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Host
                 _instance = instance;
 
                 // The reference count has already been incremented for this instance
-                _referenceCount = referenceCount;
+                _boxedReferenceCount = referenceCount;
             }
 
             /// <summary>
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Host
             }
 
             /// <summary>
-            /// Performs an read of <see cref="_instance"/> and <see cref="_referenceCount"/>, where the mutation
+            /// Performs an read of <see cref="_instance"/> and <see cref="_boxedReferenceCount"/>, where the mutation
             /// performed by <see cref="Dispose"/> behaves as an atomic operation.
             /// </summary>
             /// <returns>
@@ -145,11 +145,11 @@ namespace Microsoft.CodeAnalysis.Host
             /// </returns>
             private (T target, StrongBox<int> referenceCount) AtomicReadState()
             {
-                // This value can be set in Dispose. A memory barrier is used to ensure _referenceCount is read after
-                // _instance (a stale read of _instance is not an error).
+                // This value can be set in Dispose. A memory barrier is used to ensure _boxedReferenceCount is read
+                // after _instance (a stale read of _instance is not an error).
                 var target = _instance;
                 Interlocked.MemoryBarrier();
-                var referenceCount = Volatile.Read(ref _referenceCount);
+                var referenceCount = Volatile.Read(ref _boxedReferenceCount);
                 if (referenceCount == null)
                 {
                     return (null, null);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// </remarks>
             public void Dispose()
             {
-                var referenceCount = Interlocked.Exchange(ref _referenceCount, null);
+                var referenceCount = Interlocked.Exchange(ref _boxedReferenceCount, null);
                 if (referenceCount == null)
                 {
                     // Already disposed; allow multiple without error.
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Host
                 /// DO NOT DISPOSE OF THE TARGET.
                 /// </summary>
                 private readonly WeakReference<T> _instance;
-                private readonly StrongBox<int> _referenceCount;
+                private readonly StrongBox<int> _boxedReferenceCount;
 
                 public WeakReference(ReferenceCountedDisposable<T> reference)
                     : this()
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Host
                     }
 
                     _instance = new WeakReference<T>(instance);
-                    _referenceCount = referenceCount;
+                    _boxedReferenceCount = referenceCount;
                 }
 
                 /// <summary>
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Host
                         return null;
                     }
 
-                    var referenceCount = _referenceCount;
+                    var referenceCount = _boxedReferenceCount;
                     if (referenceCount == null)
                     {
                         return null;
