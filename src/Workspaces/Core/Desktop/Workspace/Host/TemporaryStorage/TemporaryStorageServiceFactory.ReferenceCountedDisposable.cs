@@ -12,10 +12,50 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal partial class TemporaryStorageServiceFactory
     {
+        /// <summary>
+        /// A reference-counting wrapper which allows multiple uses of a single disposable object in code, which is
+        /// deterministically released (by calling <see cref="IDisposable.Dispose"/>) when the last reference is
+        /// disposed.
+        /// </summary>
+        /// <remarks>
+        /// <para>While each instance of <see cref="ReferenceCountedDisposable{T}"/> should be explicitly disposed when
+        /// the object is no longer needed by the code owning the reference, this implementation will not leak resources
+        /// in the event one or more callers fail to do so. The underlying object will be deterministically released
+        /// when the last reference to it is disposed. However, the underlying object is eligible for non-deterministic
+        /// release (should it have a finalizer) when each reference to it is <em>either</em> disposed <em>or</em>
+        /// eligible for garbage collection itself.</para>
+        ///
+        /// <para>All public methods on this type adhere to their pre- and post-conditions and will not invalidate state
+        /// even in concurrent execution. The implementation of <see cref="TryAddReference"/> is lock-free; all other
+        /// methods are wait-free, with the exception of the specific call to <see cref="Dispose"/> which results in the
+        /// underlying object getting disposed. For that case, the implementation will not hold any locks and will
+        /// return when the call to <see cref="Dispose"/> completes.</para>
+        /// </remarks>
+        /// <typeparam name="T">The type of disposable object.</typeparam>
         private sealed class ReferenceCountedDisposable<T> : IDisposable
-            where T : IDisposable
+            where T : class, IDisposable
         {
+            /// <summary>
+            /// The target of this reference. This value is initialized to a non-<see langword="null"/> value in the
+            /// constructor, and set to <see langword="null"/> when the current reference is disposed.
+            /// </summary>
+            /// <remarks>
+            /// <para>This value is only cleared in order to support cases where one or more references is garbage
+            /// collected without having <see cref="Dispose"/> called. It is cleared <em>after</em> the
+            /// <see cref="_referenceCount"/> field is cleared, which is leveraged to ensure that concurrent calls to
+            /// <see cref="Dispose"/> and <see cref="TryAddReference"/> cannot result in a "valid" reference pointing to
+            /// a disposed underlying object.</para>
+            /// </remarks>
             private T _instance;
+
+            /// <summary>
+            /// The boxed reference count, which is shared by all references with the same <see cref="Target"/> object.
+            /// </summary>
+            /// <remarks>
+            /// <para>This field is set to <see langword="null"/> at the point in time when this reference is disposed.
+            /// This occurs prior to clearing the <see cref="_instance"/> field in order to support concurrent
+            /// code.</para>
+            /// </remarks>
             private StrongBox<int> _referenceCount;
 
             /// <summary>
@@ -59,15 +99,20 @@ namespace Microsoft.CodeAnalysis.Host
             /// has already been disposed.</returns>
             public ReferenceCountedDisposable<T> TryAddReference()
             {
-                // This value can be set in Dispose. However, even if we have a race condition with Dispose where it's
-                // set to null in the middle of the call, the reference count will be incremented by this method if and
-                // only if a valid new reference was created. This is because the validity of this instance for creating
-                // new references is determined by _referenceCount.
-                var target = _instance;
-                Interlocked.MemoryBarrier();
-                var referenceCount = Volatile.Read(ref _referenceCount);
+                var (target, referenceCount) = AtomicReadState();
+                return TryAddReferenceImpl(target, referenceCount);
+            }
 
-                // Cannot use Interlocked.Increment because we need to latch the reference count when it reaches 0.
+            /// <summary>
+            /// Provides the implementation for <see cref="TryAddReference"/> and
+            /// <see cref="WeakReference.TryAddReference"/>.
+            /// </summary>
+            private static ReferenceCountedDisposable<T> TryAddReferenceImpl(T target, StrongBox<int> referenceCount)
+            {
+                // Cannot use Interlocked.Increment because we need to latch the reference count when it reaches 0 (i.e.
+                // once it reaches zero, it is no longer allowed to ever be non-zero).
+                //
+                // Note: This block can execute concurrently with Dispose().
                 while (true)
                 {
                     var currentValue = Volatile.Read(ref referenceCount.Value);
@@ -79,11 +124,51 @@ namespace Microsoft.CodeAnalysis.Host
 
                     if (Interlocked.CompareExchange(ref referenceCount.Value, currentValue + 1, currentValue) == currentValue)
                     {
+                        // Must return a new instance, in order for the Dispose operation on each individual instance to
+                        // be idempotent.
                         return new ReferenceCountedDisposable<T>(target, referenceCount);
                     }
                 }
             }
 
+            /// <summary>
+            /// Performs an read of <see cref="_instance"/> and <see cref="_referenceCount"/>, where the mutation
+            /// performed by <see cref="Dispose"/> behaves as an atomic operation.
+            /// </summary>
+            /// <returns>
+            /// <para>If the returned reference count box is non-<see langword="null"/>, then the target will be set to
+            /// the object this reference was initialized with. However, the target will only be valid prior to the
+            /// reference count being set to zero.</para>
+            ///
+            /// <para>If the returned reference count box is <see langword="null"/>, then the target will also be
+            /// <see langword="null"/>.</para>
+            /// </returns>
+            private (T target, StrongBox<int> referenceCount) AtomicReadState()
+            {
+                // This value can be set in Dispose. A memory barrier is used to ensure _referenceCount is read after
+                // _instance (a stale read of _instance is not an error).
+                var target = _instance;
+                Interlocked.MemoryBarrier();
+                var referenceCount = Volatile.Read(ref _referenceCount);
+                if (referenceCount == null)
+                {
+                    return (null, null);
+                }
+                else
+                {
+                    return (target, referenceCount);
+                }
+            }
+
+            /// <summary>
+            /// Releases the current reference, causing the underlying object to be disposed if this was the last
+            /// reference.
+            /// </summary>
+            /// <remarks>
+            /// <para>After this instance is disposed, the <see cref="TryAddReference"/> method can no longer be used to
+            /// object a new reference to the target, even if other references to the target object are still in
+            /// use.</para>
+            /// </remarks>
             public void Dispose()
             {
                 var referenceCount = Interlocked.Exchange(ref _referenceCount, null);
@@ -94,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Host
                 }
 
                 // This is the thread which will write to _instance, so this will act as an atomic read
-                var instance = _instance;
+                var instance = Interlocked.Exchange(ref _instance, null);
 
                 // Set the instance back to its default value, so in case someone forgets to dispose of one of the
                 // counted references the finalizer of the underlying disposable object will have a chance to clean up
@@ -137,14 +222,13 @@ namespace Microsoft.CodeAnalysis.Host
                 /// <summary>
                 /// DO NOT DISPOSE OF THE TARGET.
                 /// </summary>
-                private readonly WeakReference<ReferenceCountedDisposable<T>> _instance;
+                private readonly WeakReference<T> _instance;
+                private readonly StrongBox<int> _referenceCount;
 
                 public WeakReference(ReferenceCountedDisposable<T> reference)
                     : this()
                 {
-                    var instance = reference._instance;
-                    Interlocked.MemoryBarrier();
-                    var referenceCount = Volatile.Read(ref reference._referenceCount);
+                    var (instance, referenceCount) = reference.AtomicReadState();
                     if (referenceCount == null)
                     {
                         // The specified reference is already not valid.
@@ -157,8 +241,8 @@ namespace Microsoft.CodeAnalysis.Host
                         return;
                     }
 
-                    var innerReference = new ReferenceCountedDisposable<T>(instance, referenceCount);
-                    _instance = new WeakReference<ReferenceCountedDisposable<T>>(innerReference);
+                    _instance = new WeakReference<T>(instance);
+                    _referenceCount = referenceCount;
                 }
 
                 /// <summary>
@@ -179,17 +263,18 @@ namespace Microsoft.CodeAnalysis.Host
                 public ReferenceCountedDisposable<T> TryAddReference()
                 {
                     var instance = _instance;
-                    if (instance == null)
+                    if (instance == null || !_instance.TryGetTarget(out var target))
                     {
                         return null;
                     }
 
-                    if (!_instance.TryGetTarget(out var target))
+                    var referenceCount = _referenceCount;
+                    if (referenceCount == null)
                     {
                         return null;
                     }
 
-                    return target.TryAddReference();
+                    return TryAddReferenceImpl(target, referenceCount);
                 }
             }
         }

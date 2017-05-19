@@ -50,11 +50,12 @@ namespace Microsoft.CodeAnalysis.Host
             /// actual memory accessor that owns the VM
             /// </summary>
             /// <remarks>
-            /// <para>This holds a weak reference to current <see cref="MemoryMappedViewAccessor"/>, which allows
-            /// additional accessors for the same address space to be obtained up until the point when no external code
-            /// is using it. When the memory is no longer being used by any <see cref="SharedReadableStream"/> objects,
-            /// it is unmapped automatically and a new accessor is created for the memory mapped file the next time it's
-            /// needed.</para>
+            /// <para>This holds a weak counted reference to current <see cref="MemoryMappedViewAccessor"/>, which
+            /// allows additional accessors for the same address space to be obtained up until the point when no
+            /// external code is using it. When the memory is no longer being used by any
+            /// <see cref="SharedReadableStream"/> objects, the view of the memory mapped file is automatically
+            /// unmapped, making the process address space it previously claimed available for other purposes. If/when
+            /// it is needed again, a new view is created.</para>
             /// </remarks>
             private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _accessor;
 
@@ -99,6 +100,8 @@ namespace Microsoft.CodeAnalysis.Host
                 // CreateViewAccessor is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
+                    // Note: TryAddReference will not return a non-null but invalid reference, even if the current
+                    // object has been disposed (see comments on _memoryMappedFile and TryAddReference).
                     var streamAccessor = _accessor.TryAddReference();
                     if (streamAccessor == null)
                     {
@@ -165,7 +168,9 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 if (disposing)
                 {
-                    // (see remarks on accessor for relation between _memoryMappedFile and the views/streams)
+                    // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
+                    // need to write _accessor here since the types involved adhere to their contracts even in
+                    // concurrent code.
                     _memoryMappedFile.Dispose();
                 }
             }
