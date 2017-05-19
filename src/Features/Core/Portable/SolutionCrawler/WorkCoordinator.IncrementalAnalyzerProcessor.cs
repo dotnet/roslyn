@@ -226,7 +226,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 {
                     try
                     {
-                        return await funcAsync(value, cancellationToken).ConfigureAwait(false);
+                        var result = await funcAsync(value, cancellationToken).ConfigureAwait(false);
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            // The result might not be valid
+                            return default;
+                        }
+
+                        return result;
                     }
                     catch (OperationCanceledException)
                     {

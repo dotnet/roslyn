@@ -468,6 +468,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.AddRange(items, length);
         }
 
+        public void AddRange<TSource>(TSource[] items, Func<TSource, T> selector)
+        {
+            var start = _builder.Count;
+            _builder.Count += items.Length;
+            for (int i = 0; i < items.Length; i++)
+            {
+                _builder[start + i] = selector(items[i]);
+            }
+        }
+
         public void Clip(int limit)
         {
             Debug.Assert(limit <= Count);

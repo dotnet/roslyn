@@ -180,6 +180,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
             }
 
+            /// <remarks>
+            /// <para>In the event cancellation is requested, this operation may complete in the
+            /// <see cref="TaskStatus.Canceled"/> or <see cref="TaskStatus.RanToCompletion"/> state. In the latter case,
+            /// the result of this method is not guaranteed to be complete or valid; callers are expected to check the
+            /// status of the <paramref name="cancellationToken"/> prior to using the results.</para>
+            /// </remarks>
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
@@ -218,6 +224,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
+            /// <remarks>
+            /// <para>In the event cancellation is requested, this operation may complete in the
+            /// <see cref="TaskStatus.Canceled"/> or <see cref="TaskStatus.RanToCompletion"/> state. In the latter case,
+            /// the result of this method is not guaranteed to be complete or valid; callers are expected to check the
+            /// status of the <paramref name="cancellationToken"/> prior to using the results.</para>
+            /// </remarks>
             private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
             {
                 // Process all metadata references in parallel.
@@ -228,9 +240,21 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return Task.WhenAll(tasks);
             }
 
+            /// <remarks>
+            /// <para>In the event cancellation is requested, this operation may complete in the
+            /// <see cref="TaskStatus.Canceled"/> or <see cref="TaskStatus.RanToCompletion"/> state. In the latter case,
+            /// the result of this method is not guaranteed to be complete or valid; callers are expected to check the
+            /// status of the <paramref name="cancellationToken"/> prior to using the results.</para>
+            /// </remarks>
             private async Task UpdateReferenceAsync(
                 Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
             {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    // Avoid throwing more exceptions than necessary
+                    return;
+                }
+
                 var key = GetReferenceKey(reference);
                 if (key == null)
                 {
