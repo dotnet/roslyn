@@ -5076,4 +5076,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DefaultInterfaceImplementationModifier" xml:space="preserve">
     <value>The modifier '{0}' is not valid for this item in C# {1}. Please use language version {2} or greater.</value>
   </data>
+  <data name="ERR_ImplicitImplementationOfNonPublicInterfaceMember" xml:space="preserve">
+    <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</value>
+  </data>
 </root>

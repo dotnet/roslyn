@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
@@ -219,8 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // At this point, we know that explicitInterfaceNamedType is an interface.
                 // However, metadata interface members can be static - we ignore them, as does Dev10.
-                // PROTOTYPE(DefaultInterfaceImplementation): We might want to check accessibility of the members as well, since  
-                //                                            they don't have to be public any more.
                 if (interfaceMember.Kind != implementingMember.Kind || !interfaceMember.IsImplementableInterfaceMember())
                 {
                     continue;
@@ -259,6 +258,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // CONSIDER: we may wish to suppress this error in the event that another error
                 // has been reported about the signature.
                 diagnostics.Add(ErrorCode.ERR_InterfaceMemberNotFound, memberLocation, implementingMember);
+            }
+
+            // Make sure implemented member is accessible
+            if ((object)implementedMember != null)
+            {
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+
+                if (!AccessCheck.IsSymbolAccessible(implementedMember, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: implementedMember.ContainingType))
+                {
+                    diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, implementedMember);
+                }
+                else
+                {
+                    switch (implementedMember.Kind)
+                    {
+                        case SymbolKind.Property:
+                            var propertySymbol = (PropertySymbol)implementedMember;
+                            CheckAccessorAccessible(propertySymbol.GetMethod);
+                            CheckAccessorAccessible(propertySymbol.SetMethod);
+                            break;
+
+                        case SymbolKind.Event:
+                            var eventSymbol = (EventSymbol)implementedMember;
+                            CheckAccessorAccessible(eventSymbol.AddMethod);
+                            CheckAccessorAccessible(eventSymbol.RemoveMethod);
+                            break;
+                    }
+
+                    void CheckAccessorAccessible(MethodSymbol accessor)
+                    {
+                        if ((object)accessor != null &&
+                            !AccessCheck.IsSymbolAccessible(accessor, implementingMember.ContainingType, ref useSiteDiagnostics, throughTypeOpt: accessor.ContainingType))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_BadAccess, memberLocation, accessor);
+                        }
+                    }
+                }
+
+                diagnostics.Add(memberLocation, useSiteDiagnostics);
             }
 
             if (MemberSignatureComparer.ConsideringTupleNamesCreatesDifference(implementingMember, implementedMember))

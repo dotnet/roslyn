@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// CONSIDER: we could probably do less work in the metadata and retargeting cases - we won't use the diagnostics.
         /// </remarks>
-        /// <param name="interfaceMember">A non-null property on an interface type.</param>
+        /// <param name="interfaceMember">A non-null implementable member on an interface type.</param>
         /// <param name="implementingType">The type implementing the interface property (usually "this").</param>
         /// <param name="diagnostics">Bag to which to add diagnostics.</param>
         /// <returns>The implementing property or null, if there isn't one.</returns>
@@ -807,6 +807,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Symbol implicitImpl = null;
             Symbol closestMismatch = null;
+            bool canBeImplementedImplicitly = interfaceMember.DeclaredAccessibility == Accessibility.Public && !interfaceMember.IsEventOrPropertyWithNonPublicAccessor();
+            TypeSymbol implementingBaseOpt = null; // Calculated only if canBeImplementedImplicitly == true
 
             for (TypeSymbol currType = implementingType; (object)currType != null; currType = currType.BaseTypeNoUseSiteDiagnostics)
             {
@@ -829,7 +831,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return currTypeExplicitImpl;
                 }
 
-                seenTypeDeclaringInterface = seenTypeDeclaringInterface || currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(interfaceType);
+                if (!seenTypeDeclaringInterface || 
+                    (!canBeImplementedImplicitly && (object)implementingBaseOpt == null))
+                {
+                    if (currType.InterfacesAndTheirBaseInterfacesNoUseSiteDiagnostics.Contains(interfaceType))
+                    {
+                        seenTypeDeclaringInterface = true;
+
+                        if (!canBeImplementedImplicitly && (object)implementingBaseOpt == null && (object)currType != implementingType)
+                        {
+                            implementingBaseOpt = currType;
+                        }
+                    }
+                }
+
 
                 // We want the implementation from the most derived type at or above the first one to
                 // include the interface (or a subinterface) in its interface list
@@ -859,11 +874,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            Debug.Assert(!canBeImplementedImplicitly || (object)implementingBaseOpt == null);
+
             // Dev10 has some extra restrictions and extra wiggle room when finding implicit
             // implementations for interface accessors.  Perform some extra checks and possibly
             // update the result (i.e. implicitImpl).
             if (interfaceMember.IsAccessor())
             {
+                // PROTOTYPE(DefaultInterfaceImplementation): Do we need to adjust behavior of this function in any way?
                 CheckForImplementationOfCorrespondingPropertyOrEvent((MethodSymbol)interfaceMember, implementingType, implementingTypeIsFromSomeCompilation, ref implicitImpl);
             }
 
@@ -878,10 +896,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)implicitImpl != null)
             {
-                ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                if (!canBeImplementedImplicitly && !implicitImpl.ContainingType.IsInterface)
+                {
+                    if (interfaceMember.Kind == SymbolKind.Method && 
+                        (object)implementingBaseOpt == null) // Otherwise any approprite errors are going to be reported for the base.
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ImplicitImplementationOfNonPublicInterfaceMember, GetInterfaceLocation(interfaceMember, implementingType),
+                                        implementingType, interfaceMember, implicitImpl);
+                    }
+                }
+                else
+                {
+                    ReportImplicitImplementationMatchDiagnostics(interfaceMember, implementingType, implicitImpl, diagnostics);
+                }
             }
             else if ((object)closestMismatch != null)
             {
+                Debug.Assert(interfaceMember.DeclaredAccessibility == Accessibility.Public);
+                Debug.Assert(!interfaceMember.IsEventOrPropertyWithNonPublicAccessor());
                 ReportImplicitImplementationMismatchDiagnostics(interfaceMember, implementingType, closestMismatch, diagnostics);
             }
 
@@ -1297,8 +1329,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return;
                     }
 
-                    //if we haven't found a match, do a weaker comparison that ignores static-ness, accessibility, and return type
-                    if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation)
+                    // If we haven't found a match, do a weaker comparison that ignores static-ness, accessibility, and return type.
+                    // But do this only if interface member is public because language doesn't allow implicit implementations for
+                    // non-public members and, since candidate's signature doesn't match, runtime will never pick it up either. 
+                    else if ((object)closeMismatch == null && implementingTypeIsFromSomeCompilation &&
+                             interfaceMember.DeclaredAccessibility == Accessibility.Public &&
+                             !interfaceMember.IsEventOrPropertyWithNonPublicAccessor())
                     {
                         // We can ignore custom modifiers here, because our goal is to improve the helpfulness
                         // of an error we're already giving, rather than to generate a new error.

@@ -119,6 +119,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        public static bool IsEventOrPropertyWithNonPublicAccessor(this Symbol symbol)
+        {
+            switch (symbol.Kind)
+            {
+                case SymbolKind.Property:
+                    var propertySymbol = (PropertySymbol)symbol;
+                    return AccessorIsNotPublic(propertySymbol.GetMethod) || AccessorIsNotPublic(propertySymbol.SetMethod);
+
+                case SymbolKind.Event:
+                    var eventSymbol = (EventSymbol)symbol;
+                    return AccessorIsNotPublic(eventSymbol.AddMethod) || AccessorIsNotPublic(eventSymbol.RemoveMethod);
+            }
+
+            return false;
+
+            bool AccessorIsNotPublic(MethodSymbol accessor)
+            {
+                return (object)accessor != null && accessor.DeclaredAccessibility != Accessibility.Public;
+            }
+        }
+
         public static bool IsAccessor(this MethodSymbol methodSymbol)
         {
             return (object)methodSymbol.AssociatedSymbol != null;
