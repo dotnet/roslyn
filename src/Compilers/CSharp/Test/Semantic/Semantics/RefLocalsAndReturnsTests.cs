@@ -632,9 +632,10 @@ public class Test
                 // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
                 //             return ref Foo(ref M2).x;
                 Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
-                // (58,24): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                // (58,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
                 //             return ref this;
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(58, 24));
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(58, 24)
+                );
         }
 
         [Fact]
