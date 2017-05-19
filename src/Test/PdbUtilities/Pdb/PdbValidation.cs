@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
@@ -14,12 +13,11 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
-using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -29,7 +27,111 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public static class PdbValidation
     {
-        internal static void VerifyPdb(
+        public static CompilationVerifier VerifyPdb(
+            this CompilationVerifier verifier,
+            XElement expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            verifier.Compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return verifier;
+        }
+
+        public static CompilationVerifier VerifyPdb(
+            this CompilationVerifier verifier,
+            string expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            verifier.Compilation.VerifyPdb(expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return verifier;
+        }
+
+        public static CompilationVerifier VerifyPdb(
+            this CompilationVerifier verifier,
+            string qualifiedMethodName,
+            string expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            verifier.Compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return verifier;
+        }
+
+        public static CompilationVerifier VerifyPdb(
+            this CompilationVerifier verifier,
+            string qualifiedMethodName,
+            XElement expectedPdb,
+            IMethodSymbol debugEntryPoint = null,
+            DebugInformationFormat format = 0,
+            PdbToXmlOptions options = 0,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            verifier.Compilation.VerifyPdb(qualifiedMethodName, expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
+            return verifier;
+        }
+
+        public static void VerifyPdb(this CompilationDifference diff, IEnumerable<MethodDefinitionHandle> methodHandles, string expectedPdb)
+        {
+            VerifyPdb(diff, methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
+        }
+
+        public static void VerifyPdb(this CompilationDifference diff, IEnumerable<MethodDefinitionHandle> methodHandles, XElement expectedPdb)
+        {
+            VerifyPdb(diff, methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
+        }
+
+        public static void VerifyPdb(
+            this CompilationDifference diff,
+            IEnumerable<int> methodTokens,
+            string expectedPdb,
+            DebugInformationFormat format = DebugInformationFormat.Pdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            VerifyPdb(diff, methodTokens, expectedPdb, format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: false);
+        }
+
+        public static void VerifyPdb(
+            this CompilationDifference diff,
+            IEnumerable<int> methodTokens,
+            XElement expectedPdb,
+            DebugInformationFormat format = DebugInformationFormat.Pdb,
+            [CallerLineNumber]int expectedValueSourceLine = 0,
+            [CallerFilePath]string expectedValueSourcePath = null)
+        {
+            VerifyPdb(diff, methodTokens, expectedPdb.ToString(), format, expectedValueSourceLine, expectedValueSourcePath, expectedIsXmlLiteral: true);
+        }
+
+        private static void VerifyPdb(
+            this CompilationDifference diff,
+            IEnumerable<int> methodTokens,
+            string expectedPdb,
+            DebugInformationFormat format,
+            int expectedValueSourceLine,
+            string expectedValueSourcePath,
+            bool expectedIsXmlLiteral)
+        {
+            Assert.NotEqual(default(DebugInformationFormat), format);
+            Assert.NotEqual(DebugInformationFormat.Embedded, format);
+
+            string actualPdb = PdbToXmlConverter.DeltaPdbToXml(new ImmutableMemoryStream(diff.PdbDelta), methodTokens);
+            var (actualXml, expectedXml) = AdjustToPdbFormat(actualPdb, expectedPdb, actualIsPortable: diff.NextGeneration.InitialBaseline.HasPortablePdb);
+
+            AssertXml.Equal(expectedXml, actualXml, $"Format: {format}{Environment.NewLine}", expectedValueSourcePath, expectedValueSourceLine, expectedIsXmlLiteral);
+        }
+
+        public static void VerifyPdb(
             this Compilation compilation,
             string expectedPdb,
             IMethodSymbol debugEntryPoint = null,
@@ -41,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VerifyPdb(compilation, "", expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
-        internal static void VerifyPdb(
+        public static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             string expectedPdb,
@@ -63,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedIsXmlLiteral: false);
         }
 
-        internal static void VerifyPdb(
+        public static void VerifyPdb(
             this Compilation compilation,
             XElement expectedPdb,
             IMethodSymbol debugEntryPoint = null,
@@ -75,7 +177,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VerifyPdb(compilation, "", expectedPdb, debugEntryPoint, format, options, expectedValueSourceLine, expectedValueSourcePath);
         }
 
-        internal static void VerifyPdb(
+        public static void VerifyPdb(
             this Compilation compilation,
             string qualifiedMethodName,
             XElement expectedPdb,
@@ -404,165 +506,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var id = new MetadataReader(bufferPtr, buffer.Length).DebugMetadataHeader.Id;
                 Assert.Equal(id.ToArray(), expectedId);
-            }
-        }
-
-        public static void VerifyMetadataEqualModuloMvid(Stream peStream1, Stream peStream2)
-        {
-            peStream1.Position = 0;
-            peStream2.Position = 0;
-
-            var peReader1 = new PEReader(peStream1);
-            var peReader2 = new PEReader(peStream2);
-
-            var md1 = peReader1.GetMetadata().GetContent();
-            var md2 = peReader2.GetMetadata().GetContent();
-
-            var mdReader1 = peReader1.GetMetadataReader();
-            var mdReader2 = peReader2.GetMetadataReader();
-
-            var mvidIndex1 = mdReader1.GetModuleDefinition().Mvid;
-            var mvidIndex2 = mdReader2.GetModuleDefinition().Mvid;
-
-            var mvidOffset1 = mdReader1.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex1) - 1);
-            var mvidOffset2 = mdReader2.GetHeapMetadataOffset(HeapIndex.Guid) + 16 * (MetadataTokens.GetHeapOffset(mvidIndex2) - 1);
-
-            if (!md1.RemoveRange(mvidOffset1, 16).SequenceEqual(md1.RemoveRange(mvidOffset2, 16)))
-            {
-                var mdw1 = new StringWriter();
-                var mdw2 = new StringWriter();
-                new MetadataVisualizer(mdReader1, mdw1).Visualize();
-                new MetadataVisualizer(mdReader2, mdw2).Visualize();
-                mdw1.Flush();
-                mdw2.Flush();
-
-                AssertEx.AssertResultsEqual(mdw1.ToString(), mdw2.ToString());
-            }
-        }
-
-        public static Dictionary<int, string> GetMarkers(string pdbXml, string source = null)
-        {
-            string[] lines = source?.Split(new[] { "\r\n" }, StringSplitOptions.None);
-            var doc = new XmlDocument();
-            doc.LoadXml(pdbXml);
-            var result = new Dictionary<int, string>();
-
-            if (source == null)
-            {
-                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
-                {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        Add(result,
-                            Convert.ToInt32(item.GetAttribute("offset"), 16),
-                            (item.GetAttribute("hidden") == "true") ? "~" : "-");
-                    }
-                }
-
-                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
-                {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        if (item.Name == "await")
-                        {
-                            Add(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
-                            Add(result, Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
-                        }
-                        else if (item.Name == "catchHandler")
-                        {
-                            Add(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
-                        }
-                    }
-                }
-            }
-            else
-            {
-                foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
-                {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        if (item.Name == "await")
-                        {
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("yield"), 16), "async: yield");
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("resume"), 16), "async: resume");
-                        }
-                        else if (item.Name == "catchHandler")
-                        {
-                            AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "async: catch handler");
-                        }
-                    }
-                }
-
-                foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
-                {
-                    foreach (XmlElement item in entry.ChildNodes)
-                    {
-                        AddTextual(result, Convert.ToInt32(item.GetAttribute("offset"), 16), "sequence point: " + SnippetFromSpan(lines, item));
-                    }
-                }
-            }
-
-            return result;
-
-            void Add(Dictionary<int, string> dict, int key, string value)
-            {
-                if (dict.TryGetValue(key, out string found))
-                {
-                    dict[key] = found + value;
-                }
-                else
-                {
-                    dict[key] = value;
-                }
-            }
-
-            void AddTextual(Dictionary<int, string> dict, int key, string value)
-            {
-                if (dict.TryGetValue(key, out string found))
-                {
-                    dict[key] = found + ", " + value;
-                }
-                else
-                {
-                    dict[key] = "// " + value;
-                }
-            }
-        }
-
-        private static string SnippetFromSpan(string[] lines, XmlElement span)
-        {
-            if (span.GetAttribute("hidden") != "true")
-            {
-                var startLine = Convert.ToInt32(span.GetAttribute("startLine"));
-                var startColumn = Convert.ToInt32(span.GetAttribute("startColumn"));
-                var endLine = Convert.ToInt32(span.GetAttribute("endLine"));
-                var endColumn = Convert.ToInt32(span.GetAttribute("endColumn"));
-                if (startLine == endLine)
-                {
-                    return lines[startLine - 1].Substring(startColumn - 1, endColumn - startColumn);
-                }
-                else
-                {
-                    var start = lines[startLine - 1].Substring(startColumn - 1);
-                    var end = lines[endLine - 1].Substring(0, endColumn - 1);
-                    return TruncateStart(start, 12) + " ... " + TruncateEnd(end, 12);
-                }
-            }
-            else
-            {
-                return "<hidden>";
-            }
-
-            string TruncateStart(string text, int maxLength)
-            {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(0, maxLength);
-            }
-
-            string TruncateEnd(string text, int maxLength)
-            {
-                if (text.Length < maxLength) { return text; }
-                return text.Substring(text.Length - maxLength - 1, maxLength);
             }
         }
     }

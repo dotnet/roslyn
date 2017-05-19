@@ -7454,36 +7454,39 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
-  // Code size       43 (0x2b)
-  .maxstack  1
+  // Code size       40 (0x28)
+  .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
-                int? V_2,
+                object V_2,
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.2
-  IL_000d:  ldloca.s   V_2
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  stloc.0
-  IL_0015:  ldloca.s   V_2
-  IL_0017:  call       ""bool int?.HasValue.get""
-  IL_001c:  stloc.1
-  IL_001d:  ldloc.1
-  IL_001e:  brfalse.s  IL_0025
-  IL_0020:  nop
-  IL_0021:  ldloc.0
-  IL_0022:  stloc.3
-  IL_0023:  br.s       IL_0029
-  IL_0025:  ldc.i4.0
-  IL_0026:  stloc.3
-  IL_0027:  br.s       IL_0029
-  IL_0029:  ldloc.3
-  IL_002a:  ret
-}
-");
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  isinst     ""int""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldc.i4.0
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldloc.2
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  stloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0022
+  IL_001d:  nop
+  IL_001e:  ldloc.0
+  IL_001f:  stloc.3
+  IL_0020:  br.s       IL_0026
+  IL_0022:  ldc.i4.0
+  IL_0023:  stloc.3
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.3
+  IL_0027:  ret
+}");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -7495,44 +7498,47 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       57 (0x39)
-  .maxstack  1
+  // Code size       56 (0x38)
+  .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 bool V_4, //i
                 bool V_5,
-                bool? V_6,
+                object V_6,
                 int V_7)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""bool?""
-  IL_0007:  unbox.any  ""bool?""
-  IL_000c:  stloc.s    V_6
-  IL_000e:  ldloca.s   V_6
-  IL_0010:  call       ""bool bool?.GetValueOrDefault()""
-  IL_0015:  stloc.s    V_4
-  IL_0017:  ldloca.s   V_6
-  IL_0019:  call       ""bool bool?.HasValue.get""
-  IL_001e:  stloc.s    V_5
-  IL_0020:  ldloc.s    V_5
-  IL_0022:  brfalse.s  IL_0031
-  IL_0024:  nop
-  IL_0025:  ldloc.s    V_4
-  IL_0027:  brtrue.s   IL_002c
-  IL_0029:  ldc.i4.0
-  IL_002a:  br.s       IL_002d
-  IL_002c:  ldc.i4.1
-  IL_002d:  stloc.s    V_7
-  IL_002f:  br.s       IL_0036
-  IL_0031:  ldc.i4.0
-  IL_0032:  stloc.s    V_7
-  IL_0034:  br.s       IL_0036
-  IL_0036:  ldloc.s    V_7
-  IL_0038:  ret
-}
-");
+  IL_0002:  stloc.s    V_6
+  IL_0004:  ldloc.s    V_6
+  IL_0006:  isinst     ""bool""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_6
+  IL_0016:  unbox.any  ""bool""
+  IL_001b:  stloc.s    V_4
+  IL_001d:  stloc.s    V_5
+  IL_001f:  ldloc.s    V_5
+  IL_0021:  brfalse.s  IL_0030
+  IL_0023:  nop
+  IL_0024:  ldloc.s    V_4
+  IL_0026:  brtrue.s   IL_002b
+  IL_0028:  ldc.i4.0
+  IL_0029:  br.s       IL_002c
+  IL_002b:  ldc.i4.1
+  IL_002c:  stloc.s    V_7
+  IL_002e:  br.s       IL_0035
+  IL_0030:  ldc.i4.0
+  IL_0031:  stloc.s    V_7
+  IL_0033:  br.s       IL_0035
+  IL_0035:  ldloc.s    V_7
+  IL_0037:  ret
+}");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
@@ -7541,44 +7547,47 @@ class C
 
             diff2.VerifyIL("C.F", @"
 {
-  // Code size       51 (0x33)
-  .maxstack  1
+  // Code size       50 (0x32)
+  .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 [bool] V_4,
                 [bool] V_5,
-                [unchanged] V_6,
+                [object] V_6,
                 [int] V_7,
                 int V_8, //j
                 bool V_9,
-                int? V_10,
+                object V_10,
                 int V_11)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_10
-  IL_000e:  ldloca.s   V_10
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.s    V_8
-  IL_0017:  ldloca.s   V_10
-  IL_0019:  call       ""bool int?.HasValue.get""
-  IL_001e:  stloc.s    V_9
-  IL_0020:  ldloc.s    V_9
-  IL_0022:  brfalse.s  IL_002b
-  IL_0024:  nop
-  IL_0025:  ldloc.s    V_8
-  IL_0027:  stloc.s    V_11
-  IL_0029:  br.s       IL_0030
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.s    V_11
-  IL_002e:  br.s       IL_0030
-  IL_0030:  ldloc.s    V_11
-  IL_0032:  ret
-}
-");
+  IL_0002:  stloc.s    V_10
+  IL_0004:  ldloc.s    V_10
+  IL_0006:  isinst     ""int""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_10
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.s    V_8
+  IL_001d:  stloc.s    V_9
+  IL_001f:  ldloc.s    V_9
+  IL_0021:  brfalse.s  IL_002a
+  IL_0023:  nop
+  IL_0024:  ldloc.s    V_8
+  IL_0026:  stloc.s    V_11
+  IL_0028:  br.s       IL_002f
+  IL_002a:  ldc.i4.0
+  IL_002b:  stloc.s    V_11
+  IL_002d:  br.s       IL_002f
+  IL_002f:  ldloc.s    V_11
+  IL_0031:  ret
+}");
         }
 
         [Fact]
@@ -7612,36 +7621,39 @@ class C
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.F", @"
 {
-  // Code size       43 (0x2b)
-  .maxstack  1
+  // Code size       40 (0x28)
+  .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
-                int? V_2,
+                object V_2,
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.2
-  IL_000d:  ldloca.s   V_2
-  IL_000f:  call       ""int int?.GetValueOrDefault()""
-  IL_0014:  stloc.0
-  IL_0015:  ldloca.s   V_2
-  IL_0017:  call       ""bool int?.HasValue.get""
-  IL_001c:  stloc.1
-  IL_001d:  ldloc.1
-  IL_001e:  brfalse.s  IL_0025
-  IL_0020:  nop
-  IL_0021:  ldloc.0
-  IL_0022:  stloc.3
-  IL_0023:  br.s       IL_0029
-  IL_0025:  ldc.i4.0
-  IL_0026:  stloc.3
-  IL_0027:  br.s       IL_0029
-  IL_0029:  ldloc.3
-  IL_002a:  ret
-}
-");
+  IL_0002:  stloc.2
+  IL_0003:  ldloc.2
+  IL_0004:  isinst     ""int""
+  IL_0009:  ldnull
+  IL_000a:  cgt.un
+  IL_000c:  dup
+  IL_000d:  brtrue.s   IL_0012
+  IL_000f:  ldc.i4.0
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldloc.2
+  IL_0013:  unbox.any  ""int""
+  IL_0018:  stloc.0
+  IL_0019:  stloc.1
+  IL_001a:  ldloc.1
+  IL_001b:  brfalse.s  IL_0022
+  IL_001d:  nop
+  IL_001e:  ldloc.0
+  IL_001f:  stloc.3
+  IL_0020:  br.s       IL_0026
+  IL_0022:  ldc.i4.0
+  IL_0023:  stloc.3
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.3
+  IL_0027:  ret
+}");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -7657,7 +7669,7 @@ class C
   .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 bool V_4,
                 int V_5)
@@ -7688,42 +7700,45 @@ class C
 
             diff2.VerifyIL("C.F", @"
 {
-  // Code size       51 (0x33)
-  .maxstack  1
+  // Code size       50 (0x32)
+  .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
                 [bool] V_4,
                 [int] V_5,
                 int V_6, //i
                 bool V_7,
-                int? V_8,
+                object V_8,
                 int V_9)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_8
-  IL_000e:  ldloca.s   V_8
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.s    V_6
-  IL_0017:  ldloca.s   V_8
-  IL_0019:  call       ""bool int?.HasValue.get""
-  IL_001e:  stloc.s    V_7
-  IL_0020:  ldloc.s    V_7
-  IL_0022:  brfalse.s  IL_002b
-  IL_0024:  nop
-  IL_0025:  ldloc.s    V_6
-  IL_0027:  stloc.s    V_9
-  IL_0029:  br.s       IL_0030
-  IL_002b:  ldc.i4.0
-  IL_002c:  stloc.s    V_9
-  IL_002e:  br.s       IL_0030
-  IL_0030:  ldloc.s    V_9
-  IL_0032:  ret
-}
-");
+  IL_0002:  stloc.s    V_8
+  IL_0004:  ldloc.s    V_8
+  IL_0006:  isinst     ""int""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_8
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.s    V_6
+  IL_001d:  stloc.s    V_7
+  IL_001f:  ldloc.s    V_7
+  IL_0021:  brfalse.s  IL_002a
+  IL_0023:  nop
+  IL_0024:  ldloc.s    V_6
+  IL_0026:  stloc.s    V_9
+  IL_0028:  br.s       IL_002f
+  IL_002a:  ldc.i4.0
+  IL_002b:  stloc.s    V_9
+  IL_002d:  br.s       IL_002f
+  IL_002f:  ldloc.s    V_9
+  IL_0031:  ret
+}");
         }
 
         [Fact]
