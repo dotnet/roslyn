@@ -152,27 +152,65 @@ namespace RunTests
         /// </summary>
         private static void HandleTimeout(Options options)
         {
-            Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-            var dumpDir = options.LogFilePath != null
-                ? Path.GetDirectoryName(options.LogFilePath)
-                : Directory.GetCurrentDirectory();
+            string GetProcDumpFilePath(Process proc) => ProcessUtil.Is64Bit(proc)
+                ? Path.Combine(options.ProcDumpPath, "procdump64.exe")
+                : Path.Combine(options.ProcDumpPath, "procdump.exe");
 
-            var counter = 0;
-            foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+            void DumpProcess(Process targetProcess, string dumpFilePath)
             {
-                var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                counter++;
-                Console.Write($"Dumping {proc.ProcessName} {proc.Id} to {dumpFilePath} ... ");
+                Console.Write($"Dumping {targetProcess.ProcessName} {targetProcess.Id} to {dumpFilePath} ... ");
                 try
                 {
-                    DumpUtil.WriteDump(proc, dumpFilePath);
-                    Console.WriteLine("succeeded");
+                    var processStartInfo = new ProcessStartInfo();
+                    processStartInfo.FileName = GetProcDumpFilePath(targetProcess);
+                    processStartInfo.Arguments = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
+                    processStartInfo.CreateNoWindow = true;
+                    processStartInfo.UseShellExecute = false;
+                    processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                    processStartInfo.RedirectStandardOutput = true;
+                    var process = Process.Start(processStartInfo);
+                    process.WaitForExit();
+
+                    // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
+                    // for succesful cases (possibly returning the count of dumps that were written).  Best 
+                    // backup is to test for the dump file being present.
+                    if (File.Exists(dumpFilePath))
+                    {
+                        Console.WriteLine("succeeded");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"FAILED with {process.ExitCode}");
+                        Console.WriteLine($"{processStartInfo.FileName} {processStartInfo.Arguments}");
+                        Console.WriteLine(process.StandardOutput.ReadToEnd());
+                    }
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine("FAILED");
                     Console.WriteLine(ex.Message);
                 }
+            }
+
+            Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+
+            if (!string.IsNullOrEmpty(options.ProcDumpPath))
+            {
+                var dumpDir = options.LogFilePath != null
+                    ? Path.GetDirectoryName(options.LogFilePath)
+                    : Directory.GetCurrentDirectory();
+
+                var counter = 0;
+                foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+                {
+                    var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
+                    DumpProcess(proc, dumpFilePath);
+                    counter++;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Could not locate procdump");
             }
 
             WriteLogFile(options);
