@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task FindDeclarationsAsync_Test_Cancellation()
         {
-            await Assert.ThrowsAnyAsync<TaskCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 cts.Cancel();
@@ -278,7 +278,7 @@ Inner i;
         [Fact]
         public async Task FindSourceDeclarationsAsync_Project_Test_Cancellation()
         {
-            await Assert.ThrowsAnyAsync<TaskCanceledException>(async () =>
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () =>
             {
                 var cts = new CancellationTokenSource();
                 var project = GetProject(WorkspaceKind.SingleClass);
