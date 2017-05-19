@@ -853,7 +853,7 @@ class C
         }
 
         [Fact]
-        public void PEVerifyErrorWithFalse()
+        public void PEVerifyWithUnreachableCatch1()
         {
             string source = @"
 class C
@@ -864,7 +864,7 @@ class C
         {
             throw new System.Exception();
         }
-        catch (System.Exception) when (false)
+        catch (System.Exception) when (default)
         {
             System.Console.Write(""catch"");
         }
@@ -875,12 +875,58 @@ class C
             comp.VerifyDiagnostics(
                 // (10,40): warning CS7095: Filter expression is a constant, consider removing the filter
                 //         catch (System.Exception) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(10, 40),
                 // (12,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 13)
                 );
-            //CompileAndVerify(comp); // PEVerify failed with Branch out of the method. Follow-up issue: https://github.com/dotnet/roslyn/issues/18678
+            CompileAndVerify(comp);
+        }
+
+        [Fact]
+        public void PEVerifyWithUnreachableCatch2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        try
+        {
+            SomeAction();
+        }
+        catch (System.NullReferenceException)
+        {
+            System.Console.Write(""NullReferenceException"");
+        }
+        catch
+        {
+            System.Console.Write(""OtherExceptions"");
+        }
+    }
+
+    private static void SomeAction()
+    {
+        try
+        {
+            throw new System.NullReferenceException();
+        }
+        catch (System.Exception) when (default)
+        {
+            System.Console.Write(""Unreachable"");
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (26,40): warning CS7095: Filter expression is a constant, consider removing the filter
+                //         catch (System.Exception) when (false)
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(26, 40),
+                // (28,13): warning CS0162: Unreachable code detected
+                //             System.Console.Write("catch");
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(28, 13)
+                );
+            CompileAndVerify(comp, expectedOutput: "NullReferenceException");
         }
 
         [Fact]

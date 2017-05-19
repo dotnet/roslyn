@@ -328,6 +328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKinds,
                 false,
                 default(ImmutableArray<int>),
+                null,
+                indexerAccess.UseSetterForDefaultArgumentGeneration,
                 indexerAccess.Type);
         }
 
