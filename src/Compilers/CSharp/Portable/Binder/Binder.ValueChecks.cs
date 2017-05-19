@@ -175,6 +175,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DiscardExpression:
                     Debug.Assert(valueKind == BindValueKind.Assignable || valueKind == BindValueKind.RefOrOut || diagnostics.HasAnyResolvedErrors());
                     return expr;
+
+                case BoundKind.IndexerAccess:
+                    {
+                        // Assigning to an non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
+                        // This is for IOperation purpose.
+                        var indexerAccess = (BoundIndexerAccess)expr;
+                        if (valueKind == BindValueKind.Assignable && !indexerAccess.Indexer.ReturnsByRef)
+                        {
+                            expr = indexerAccess.Update(indexerAccess.ReceiverOpt,
+                               indexerAccess.Indexer,
+                               indexerAccess.Arguments,
+                               indexerAccess.ArgumentNamesOpt,
+                               indexerAccess.ArgumentRefKindsOpt,
+                               indexerAccess.Expanded,
+                               indexerAccess.ArgsToParamsOpt,
+                               indexerAccess.BinderOpt,
+                               useSetterForDefaultArgumentGeneration: true,
+                               type: indexerAccess.Type);
+                        }
+                    }
+                    break;
             }
 
             bool hasResolutionErrors = false;

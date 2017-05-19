@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
         private static readonly string s_defaultSdkDirectory = RuntimeEnvironment.GetRuntimeDirectory();
         private static readonly string s_compilerVersion = typeof(Csc).GetTypeInfo().Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>().Version;
         private static readonly string s_compilerShortCommitHash =
-            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>().Hash);
+            CommonCompiler.ExtractShortCommitHash(typeof(CSharpCompiler).GetTypeInfo().Assembly.GetCustomAttribute<CommitHashAttribute>()?.Hash);
 
         private readonly string _baseDirectory = TempRoot.Root;
 
@@ -9030,6 +9030,7 @@ class C {
                 paths);
         }
 
+        [CompilerTrait(CompilerFeature.Determinism)]
         [Fact]
         public void PathMapParser()
         {
@@ -9061,6 +9062,82 @@ class C {
             parsedArgs = DefaultParse(new[] { "/pathmap:k=v=bad", "a.cs" }, _baseDirectory);
             Assert.Equal(1, parsedArgs.Errors.Count());
             Assert.Equal((int)ErrorCode.ERR_InvalidPathMap, parsedArgs.Errors[0].Code);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Determinism)]
+        public void PathMapPdbParser()
+        {
+            var dir = Path.Combine(_baseDirectory, "a");
+            var parsedArgs = DefaultParse(new[] { $@"/pathmap:{dir}=b:\", "a.cs", @"/pdb:a\data.pdb", "/debug:full" }, _baseDirectory);
+            parsedArgs.Errors.Verify();
+            Assert.Equal(Path.Combine(dir, @"data.pdb"), parsedArgs.PdbPath);
+
+            // This value is calculate during Emit phases and should be null even in the face of a pathmap targeting it.
+            Assert.Null(parsedArgs.EmitOptions.PdbFilePath);
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.Determinism)]
+        public void PathMapPdbEmit()
+        {
+            void AssertPdbEmit(TempDirectory dir, string pdbPath, string pePdbPath, params string[] extraArgs)
+            {
+                var source = @"class Program { static void Main() { } }";
+                var src = dir.CreateFile("a.cs").WriteAllText(source);
+                var defaultArgs = new[] { "/nologo", "a.cs", "/out:a.exe", "/debug:full", $"/pdb:{pdbPath}" };
+                var isDeterministic = extraArgs.Contains("/deterministic");
+                var args = defaultArgs.Concat(extraArgs).ToArray();
+                var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+
+                var csc = new MockCSharpCompiler(null, dir.Path, args);
+                int exitCode = csc.Run(outWriter);
+                Assert.Equal(0, exitCode);
+
+                var exePath = Path.Combine(dir.Path, "a.exe");
+                Assert.True(File.Exists(exePath));
+                Assert.True(File.Exists(pdbPath));
+                using (var peStream = File.OpenRead(exePath))
+                {
+                    PdbValidation.ValidateDebugDirectory(peStream, null, pePdbPath, isDeterministic);
+                }
+            }
+
+            // Case with no mappings
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, pdbPath);
+            }
+
+            // Simple mapping
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+            }
+
+            // Simple mapping deterministic
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"q:\a.pdb", $@"/pathmap:{dir.Path}=q:\", "/deterministic");
+            }
+
+            // Partial mapping
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                dir.CreateDirectory("pdb");
+                var pdbPath = Path.Combine(dir.Path, @"pdb\a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"q:\pdb\a.pdb", $@"/pathmap:{dir.Path}=q:\");
+            }
+
+            // Legacy feature flag
+            using (var dir = new DisposableDirectory(Temp))
+            {
+                var pdbPath = Path.Combine(dir.Path, "a.pdb");
+                AssertPdbEmit(dir, pdbPath, @"a.pdb", $@"/features:pdb-path-determinism");
+            }
         }
 
         [WorkItem(7588, "https://github.com/dotnet/roslyn/issues/7588")]

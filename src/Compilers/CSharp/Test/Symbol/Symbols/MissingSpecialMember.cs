@@ -860,7 +860,8 @@ namespace System
                     case WellKnownMember.System_Array__Empty:
                         // Not yet in the platform.
                         continue;
-                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile:
+                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles:
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
                         // Not always available.

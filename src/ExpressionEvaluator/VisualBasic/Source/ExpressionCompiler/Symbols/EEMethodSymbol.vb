@@ -471,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 originalLocalsSet.Add(local)
             Next
             For Each local In Me.Locals
-                If Not originalLocalsSet.Contains(local) Then
+                If originalLocalsSet.Add(local) Then
                     originalLocalsBuilder.Add(local)
                 End If
             Next
@@ -555,10 +555,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                 ' Rewrite references to "Me" to refer to this method's "Me" parameter.
                 ' Rewrite variables within body to reference existing display classes.
                 newBody = DirectCast(CapturedVariableRewriter.Rewrite(
-                If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
-                displayClassVariables,
-                newBody,
-                diagnostics), BoundBlock)
+                    If(Me.SubstitutedSourceMethod.IsShared, Nothing, Me.Parameters(0)),
+                    displayClassVariables,
+                    newBody,
+                    diagnostics), BoundBlock)
 
                 If diagnostics.HasAnyErrors() Then
                     Return newBody

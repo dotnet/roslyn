@@ -159,7 +159,7 @@ class Driver
    -IL_00e5:  ldsfld     ""System.Threading.AutoResetEvent Driver.CompletedSignal""
     IL_00ea:  callvirt   ""bool System.Threading.EventWaitHandle.Set()""
     IL_00ef:  pop
-   ~IL_00f0:  leave.s    IL_010c
+    IL_00f0:  leave.s    IL_010c
   }
   catch System.Exception
   {
@@ -288,7 +288,6 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
         <entry offset=""0xcd"" startLine=""18"" startColumn=""24"" endLine=""18"" endColumn=""32"" />
         <entry offset=""0xd9"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""44"" />
         <entry offset=""0xe5"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""38"" />
-        <entry offset=""0xf0"" hidden=""true"" />
         <entry offset=""0xf2"" hidden=""true"" />
         <entry offset=""0x10c"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" />
         <entry offset=""0x114"" hidden=""true"" />
@@ -444,7 +443,6 @@ namespace ConsoleApplication1
         <entry offset=""0xe"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" />
         <entry offset=""0xf"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""26"" />
         <entry offset=""0x20"" hidden=""true"" />
-        <entry offset=""0x71"" hidden=""true"" />
         <entry offset=""0x73"" hidden=""true"" />
         <entry offset=""0x8b"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""10"" />
         <entry offset=""0x93"" hidden=""true"" />
@@ -558,7 +556,6 @@ class TestCase
         <entry offset=""0x11"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" />
         <entry offset=""0x12"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""27"" />
         <entry offset=""0xae"" hidden=""true"" />
-        <entry offset=""0x22c"" hidden=""true"" />
         <entry offset=""0x22e"" hidden=""true"" />
         <entry offset=""0x248"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" />
         <entry offset=""0x250"" hidden=""true"" />
@@ -756,7 +753,6 @@ class C
         <entry offset=""0x25"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" />
         <entry offset=""0x36"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" />
         <entry offset=""0x55"" hidden=""true"" />
-        <entry offset=""0xa1"" hidden=""true"" />
         <entry offset=""0xa3"" hidden=""true"" />
         <entry offset=""0xba"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" />
         <entry offset=""0xc2"" hidden=""true"" />
@@ -850,7 +846,6 @@ class C
         <entry offset=""0x41"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""47"" />
         <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""31"" />
         <entry offset=""0x86"" hidden=""true"" />
-        <entry offset=""0xd7"" hidden=""true"" />
         <entry offset=""0xd9"" hidden=""true"" />
         <entry offset=""0xf1"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" />
         <entry offset=""0xf9"" hidden=""true"" />
@@ -939,7 +934,6 @@ class C
         <entry offset=""0x4f"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" />
         <entry offset=""0x5b"" hidden=""true"" />
         <entry offset=""0xa7"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" />
-        <entry offset=""0xb7"" hidden=""true"" />
         <entry offset=""0xb9"" hidden=""true"" />
         <entry offset=""0xd0"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
         <entry offset=""0xd8"" hidden=""true"" />
@@ -1028,7 +1022,6 @@ class C
         <entry offset=""0x58"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""29"" />
         <entry offset=""0x64"" hidden=""true"" />
         <entry offset=""0xb5"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""31"" />
-        <entry offset=""0xc6"" hidden=""true"" />
         <entry offset=""0xc8"" hidden=""true"" />
         <entry offset=""0xe0"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" />
         <entry offset=""0xe8"" hidden=""true"" />
@@ -1117,7 +1110,6 @@ class C
         <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""29"" />
         <entry offset=""0x27"" hidden=""true"" />
         <entry offset=""0x7b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""22"" />
-        <entry offset=""0xd3"" hidden=""true"" />
         <entry offset=""0xd5"" hidden=""true"" />
         <entry offset=""0xed"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
         <entry offset=""0xf5"" hidden=""true"" />
@@ -1196,7 +1188,6 @@ class C
         <entry offset=""0x14"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" />
         <entry offset=""0x64"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""29"" />
         <entry offset=""0x70"" hidden=""true"" />
-        <entry offset=""0xbc"" hidden=""true"" />
         <entry offset=""0xbe"" hidden=""true"" />
         <entry offset=""0xd5"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" />
         <entry offset=""0xdd"" hidden=""true"" />
@@ -1284,7 +1275,6 @@ class C
         <entry offset=""0x1e"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""22"" />
         <entry offset=""0x76"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""29"" />
         <entry offset=""0x82"" hidden=""true"" />
-        <entry offset=""0xd3"" hidden=""true"" />
         <entry offset=""0xd5"" hidden=""true"" />
         <entry offset=""0xed"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" />
         <entry offset=""0xf5"" hidden=""true"" />
@@ -1731,7 +1721,6 @@ MethodDebugInformation (index: 0x31, size: 20):
   Document: #1
   IL_0000: <hidden>
   IL_0007: (5, 28) - (5, 29)
-  IL_0008: <hidden>
   IL_000A: <hidden>
   IL_0022: (5, 29) - (5, 30)
   IL_002A: <hidden>
