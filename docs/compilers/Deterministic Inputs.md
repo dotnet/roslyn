@@ -5,7 +5,7 @@ We are aiming to make the compilers ultimately deterministic (https://github.com
 
 The following are considered inputs to the compiler for the purpose of determinism:
 
-- The sequence of command-line flags
+- The sequence of command-line parameters
 - The contents of the compiler's `.rsp` response file.
 - The precise version of the compiler used, and its referenced assemblies
 - Current full directory path (you can reduce this to a relative path; see https://github.com/dotnet/roslyn/issues/949)
