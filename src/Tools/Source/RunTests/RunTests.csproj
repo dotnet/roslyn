@@ -49,7 +49,6 @@
     <Compile Include="Cache\WebDataStorage.Json.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
-    <Compile Include="DumpUtil.cs" />
     <Compile Include="FileUtil.cs" />
     <Compile Include="Cache\IDataStorage.cs" />
     <Compile Include="ITestExecutor.cs" />

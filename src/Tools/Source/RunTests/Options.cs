@@ -63,6 +63,8 @@ namespace RunTests
         /// </summary>
         public TimeSpan? Timeout { get; set; }
 
+        public string ProcDumpPath { get; set; }
+
         public string XunitPath { get; set; }
 
         /// <summary>
@@ -161,6 +163,11 @@ namespace RunTests
                         allGood = false;
                     }
 
+                    index++;
+                }
+                else if (isOption(current, "-procdumpPath", out value))
+                {
+                    opt.ProcDumpPath = value;
                     index++;
                 }
                 else
