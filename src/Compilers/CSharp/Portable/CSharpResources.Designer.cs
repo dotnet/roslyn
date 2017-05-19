@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -1462,15 +1462,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadExtensionAgg {
             get {
                 return ResourceManager.GetString("ERR_BadExtensionAgg", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and the best extension method overload &apos;{2}&apos; has some invalid arguments.
-        /// </summary>
-        internal static string ERR_BadExtensionArgTypes {
-            get {
-                return ResourceManager.GetString("ERR_BadExtensionArgTypes", resourceCulture);
             }
         }
         

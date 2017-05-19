@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -26,30 +27,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly Symbol _enclosingSymbol;
         protected readonly Conversions _conversions;
         protected HashSet<DiagnosticInfo> _useSiteDiagnostics = new HashSet<DiagnosticInfo>();
+        protected readonly SwitchStatementSyntax _switchSyntax;
         private Dictionary<TypeSymbol, LocalSymbol> localByType = new Dictionary<TypeSymbol, LocalSymbol>();
 
         protected DecisionTreeBuilder(
             Symbol enclosingSymbol,
-            SyntaxNode syntax,
+            SwitchStatementSyntax switchSyntax,
             Conversions conversions)
         {
-            this._enclosingSymbol = enclosingSymbol;
-            this.Syntax = syntax;
-            this._conversions = conversions;
+            _enclosingSymbol = enclosingSymbol;
+            _switchSyntax = switchSyntax;
+            _conversions = conversions;
         }
 
-        protected SyntaxNode Syntax { private get; set; }
-
-        private LocalSymbol PatternMatchingTemp(TypeSymbol type)
+        private BoundLocal GetBoundPatternMatchingLocal(TypeSymbol type)
         {
-            LocalSymbol temp;
-            if (!localByType.TryGetValue(type, out temp))
+            // All synthesized pattern matching locals are associated with the Switch statement syntax node.
+            // Their ordinals are zero.
+            // EnC local slot variable matching logic find the right slot based on the type of the local.
+
+            if (!localByType.TryGetValue(type, out var localSymbol))
             {
-                temp = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatching, Syntax);
-                localByType.Add(type, temp);
+                localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
+                localByType.Add(type, localSymbol);
             }
 
-            return temp;
+            return new BoundLocal(_switchSyntax, localSymbol, null, type);
         }
 
         /// <summary>
@@ -59,13 +62,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var type = expression.Type;
 
-            LocalSymbol temp = null;
+            LocalSymbol localSymbol = null;
             if (expression.ConstantValue == null)
             {
                 // Unless it is a constant, the decision tree acts on a copy of the input expression.
                 // We create a temp to represent that copy. Lowering will assign into this temp.
-                temp = PatternMatchingTemp(type);
-                expression = new BoundLocal(expression.Syntax, temp, null, type);
+                var local = GetBoundPatternMatchingLocal(type);
+                expression = local;
+                localSymbol = local.LocalSymbol;
             }
 
             if (type.CanContainNull() || type.SpecialType == SpecialType.None)
@@ -74,12 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Note that, for the purpose of the decision tree (and subsumption), we
                 // ignore the fact that the input may be a constant, and therefore always
                 // or never null.
-                return new DecisionTree.ByType(expression, type, temp);
+                return new DecisionTree.ByType(expression, type, localSymbol);
             }
             else
             {
                 // If it is a (e.g. builtin) value type, we can switch on its (constant) values.
-                return new DecisionTree.ByValue(expression, type, temp);
+                return new DecisionTree.ByValue(expression, type, localSymbol);
             }
         }
 
@@ -283,10 +287,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (forType == null)
             {
                 var type = value.Value.Type;
-                var localSymbol = PatternMatchingTemp(type);
-                var narrowedExpression = new BoundLocal(Syntax, localSymbol, null, type);
-                forType = new DecisionTree.ByValue(narrowedExpression, value.Value.Type.TupleUnderlyingTypeOrSelf(), localSymbol);
-                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Value.Type, forType));
+                var narrowedExpression = GetBoundPatternMatchingLocal(type);
+                forType = new DecisionTree.ByValue(narrowedExpression, type.TupleUnderlyingTypeOrSelf(), narrowedExpression.LocalSymbol);
+                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, forType));
             }
 
             return AddByValue(forType, value, makeDecision);
@@ -384,11 +387,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result == null)
             {
-                var localSymbol = PatternMatchingTemp(type);
-                var expression = new BoundLocal(Syntax, localSymbol, null, type);
+                var expression = GetBoundPatternMatchingLocal(type);
                 result = makeDecision(expression, type);
                 Debug.Assert(result.Temp == null);
-                result.Temp = localSymbol;
+                result.Temp = expression.LocalSymbol;
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
             }
 

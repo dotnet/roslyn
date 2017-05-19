@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ExpressionSyntax value)
         {
             RefKind expressionRefKind = RefKind.None;
-            value = initializer?.Value.SkipRef(out expressionRefKind);
+            value = initializer?.Value.CheckAndUnwrapRefExpression(diagnostics, out expressionRefKind);
             if (variableRefKind == RefKind.None)
             {
                 valueKind = BindValueKind.RValue;
@@ -1190,8 +1190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ErrorCode.ERR_AddrOnReadOnlyLocal;
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
-                case BindValueKind.RefReturn:
-                    return ErrorCode.ERR_RefReturnStructThis;
             }
         }
 
@@ -1615,9 +1613,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var thisref = expr as BoundThisReference;
             if (thisref != null)
             {
+                if (kind == BindValueKind.RefReturn)
+                {
+                    Error(diagnostics, thisref.Type.IsValueType ? ErrorCode.ERR_RefReturnStructThis : ErrorCode.ERR_RefReadonlyLocal, node, ThisParameterSymbol.SymbolName);
+                    return false;
+                }
+
                 // We will already have given an error for "this" used outside of a constructor, 
                 // instance method, or instance accessor. Assume that "this" is a variable if it is in a struct.
-                if (!thisref.Type.IsValueType || kind == BindValueKind.RefReturn)
+                if (!thisref.Type.IsValueType)
                 {
                     // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                     Error(diagnostics, GetThisLvalueError(kind), node, ThisParameterSymbol.SymbolName);
@@ -1748,6 +1752,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Left != null);
             Debug.Assert(node.Right != null);
 
+            node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
+
             if (node.Left.Kind() == SyntaxKind.TupleExpression || node.Left.Kind() == SyntaxKind.DeclarationExpression)
             {
                 return BindDeconstruction(node, diagnostics);
@@ -1781,7 +1787,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
-        {
+        {                      
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
 
@@ -1810,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
                 type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            }
+            } 
             else
             {
                 type = op1.Type;
@@ -1969,6 +1975,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         receiver == null ? ImmutableArray<BoundExpression>.Empty : ImmutableArray.Create(receiver),
                         GetNonMethodMemberType(otherSymbol));
                 }
+            }
+            else if (expr.Kind == BoundKind.IndexerAccess)
+            {
+                // Assigning to an non ref return indexer needs to set 'useSetterForDefaultArgumentGeneration' to true. 
+                // This is for IOperation purpose.
+                var indexerAccess = (BoundIndexerAccess)expr;
+                if (valueKind == BindValueKind.Assignment && !indexerAccess.Indexer.ReturnsByRef)
+                {
+                    expr = indexerAccess.Update(indexerAccess.ReceiverOpt,
+                       indexerAccess.Indexer,
+                       indexerAccess.Arguments,
+                       indexerAccess.ArgumentNamesOpt,
+                       indexerAccess.ArgumentRefKindsOpt,
+                       indexerAccess.Expanded,
+                       indexerAccess.ArgsToParamsOpt,
+                       indexerAccess.BinderOpt,
+                       useSetterForDefaultArgumentGeneration: true,
+                       type: indexerAccess.Type);
+                }                
             }
 
             if (!hasResolutionErrors && CheckValueKind(expr, valueKind, diagnostics) ||
@@ -3237,7 +3262,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
         {
             var refKind = RefKind.None;
-            var expressionSyntax = syntax.Expression?.SkipRef(out refKind);
+            var expressionSyntax = syntax.Expression?.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BoundExpression arg = null;
             if (expressionSyntax != null)
             {
@@ -3713,7 +3738,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(bodyBinder != null);
 
             RefKind refKind = RefKind.None;
-            ExpressionSyntax expressionSyntax = expressionBody.Expression.SkipRef(out refKind);
+            ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(
+                diagnostics, out refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
         }
@@ -3727,7 +3753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(bodyBinder != null);
 
             RefKind refKind;
-            var expressionSyntax = ((ExpressionSyntax)body).SkipRef(out refKind);
+            var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }

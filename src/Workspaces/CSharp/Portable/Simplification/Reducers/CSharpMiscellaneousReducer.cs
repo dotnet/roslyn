@@ -100,6 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             return parenthesizedLambda;
         }
+
         private static readonly Func<BlockSyntax, SemanticModel, OptionSet, CancellationToken, SyntaxNode> s_simplifyBlock = SimplifyBlock;
 
         private static SyntaxNode SimplifyBlock(
