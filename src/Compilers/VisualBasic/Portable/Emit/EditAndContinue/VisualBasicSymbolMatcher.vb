@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                             typesByName.Add(type.Name, type)
                         End If
                     Next
-                    Interlocked.CompareExchange(Of IReadOnlyDictionary(Of String, Cci.INamespaceTypeDefinition))(Me._lazyTopLevelTypes, typesByName, Nothing)
+                    Interlocked.CompareExchange(Me._lazyTopLevelTypes, typesByName, Nothing)
                 End If
                 Return Me._lazyTopLevelTypes
             End Function

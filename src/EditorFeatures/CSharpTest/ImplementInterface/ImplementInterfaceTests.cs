@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
+        private static readonly ParseOptions CSharp7_1 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
+
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool ignoreTrivia = true,
@@ -6886,6 +6888,38 @@ class Class : IInterface
 }", parameters: new TestParameters(options: Option(
     ImplementTypeOptions.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestOptionalParameterWithDefaultLiteral()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+using System.Threading;
+
+interface IInterface
+{
+    void Method1(CancellationToken cancellationToken = default(CancellationToken));
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"
+using System.Threading;
+
+interface IInterface
+{
+    void Method1(CancellationToken cancellationToken = default(CancellationToken));
+}
+
+class Class : IInterface
+{
+    public void Method1(CancellationToken cancellationToken = default)
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: CSharp7_1);
         }
     }
 }

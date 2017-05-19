@@ -66,6 +66,7 @@
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
+    <Compile Include="DocumentHighlighting\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.vb" />
     <Compile Include="InitializeParameter\VisualBasicAddParameterCheckCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
@@ -90,7 +91,7 @@
     <Compile Include="CodeFixes\GenerateEvent\GenerateEventCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.vb" />
+    <Compile Include="GenerateVariable\VisualBasicGenerateVariableCodeFixProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\VisualBasicRemoveUnusedVariableCodeFixProvider.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.Pattern.vb" />
     <Compile Include="ConvertIfToSwitch\VisualBasicConvertIfToSwitchCodeRefactoringProvider.vb" />

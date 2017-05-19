@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -88,7 +89,7 @@ class C
         {
             var source = @"
 class C {
-    async public C() { } 
+    async public C() { }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("async"));
@@ -215,7 +216,7 @@ using System.Threading.Tasks;
 class C
 {
     static void InferTask(Func<Task> x) { }
-    
+
     static void InferTaskOrTaskT(Func<Task> x) { }
     static void InferTaskOrTaskT(Func<Task<int>> x) { }
 
@@ -939,7 +940,7 @@ using System.Threading.Tasks;
 
 class Test
 {
-    async static Task M1() 
+    async static Task M1()
     {
         try
         {
@@ -1067,7 +1068,7 @@ class Driver
         object o = new object();
         lock(await Task.Factory.StartNew(() => o))
         {
-            
+
         }
     }
 
@@ -1188,7 +1189,7 @@ using System.Threading.Tasks;
 
 interface IInterface
 {
-    void F(); 
+    void F();
 }
 
 class C : IInterface
@@ -1200,7 +1201,7 @@ class C : IInterface
 
     static void Main()
     {
-        
+
     }
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
@@ -1212,7 +1213,7 @@ class C : IInterface
             var source = @"
 interface IInterface
 {
-    async void F(); 
+    async void F();
 }";
             CreateCompilationWithMscorlib45(source, parseOptions:TestOptions.Regular7).VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 7.1 or greater.
@@ -1225,88 +1226,7 @@ interface IInterface
         }
 
         [Fact]
-        public void MainCantBeAsync()
-        {
-            var source = @"
-using System.Threading.Tasks;
 
-class A
-{
-    async static void Main()
-    {
-        await Task.Factory.StartNew(() => { });
-    }
-}";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (4,23): error CS4009: 'A.Main()': an entry point cannot be marked with the 'async' modifier
-                //     async static void Main()
-                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("A.Main()"));
-        }
-
-        [Fact]
-        public void MainCantBeAsync_AndGeneric()
-        {
-            var source = @"
-using System.Threading.Tasks;
-
-class A
-{
-    async static void Main<T>()
-    {
-        await Task.Factory.StartNew(() => { });
-    }
-}";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (4,23): warning CS0402: 'A.Main<T>()': an entry point cannot be generic or in a generic type
-                //     async static void Main<T>()
-                Diagnostic(ErrorCode.WRN_MainCantBeGeneric, "Main").WithArguments("A.Main<T>()"),
-                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
-        }
-
-        [Fact]
-        public void MainCantBeAsync_AndBadSig()
-        {
-            var source = @"
-using System.Threading.Tasks;
-
-class A
-{
-    async static void Main(bool truth)
-    {
-        await Task.Factory.StartNew(() => { });
-    }
-}";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (4,23): warning CS0028: 'A.Main(bool)' has the wrong signature to be an entry point
-                //     async static void Main(bool truth)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main(bool)"),
-                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
-        }
-
-        [Fact]
-        public void MainCantBeAsync_AndGeneric_AndBadSig()
-        {
-            var source = @"
-using System.Threading.Tasks;
-
-class A
-{
-    async static void Main<T>(bool truth)
-    {
-        await Task.Factory.StartNew(() => { });
-    }
-}";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (4,23): warning CS0028: 'A.Main<T>(bool)' has the wrong signature to be an entry point
-                //     async static void Main<T>(bool truth)
-                Diagnostic(ErrorCode.WRN_InvalidMainSig, "Main").WithArguments("A.Main<T>(bool)"),
-                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
-                Diagnostic(ErrorCode.ERR_NoEntryPoint));
-        }
-
-        [Fact]
         public void AwaitInQuery_FirstCollectionExpressionOfInitialFrom()
         {
             var source = @"
@@ -1833,7 +1753,7 @@ class Test
     {
         return Task.Run(async () => { return t; });
     }
-    
+
     static int Main()
     {
         return 0;
@@ -1869,7 +1789,7 @@ class Test
     static async Task<dynamic> Meth1()
     {
         throw new EntryPointNotFoundException();
-        Foo();       
+        Foo();
         return """";
     }
 
@@ -1895,10 +1815,10 @@ class Test
                 //     static async Task<dynamic> Meth1()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Meth1"),
                 // (23,9): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
-                //         Foo();       
+                //         Foo();
                 Diagnostic(ErrorCode.WRN_UnobservedAwaitableExpression, "Foo()"),
                 // (23,9): warning CS0162: Unreachable code detected
-                //         Foo();       
+                //         Foo();
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "Foo"),
                 // (27,33): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async Task<decimal?> Meth2()
@@ -2912,7 +2832,7 @@ class Test
                                 Foo();
                             });
                     };
-            });      
+            });
     }
 
     static int Main()
@@ -2954,7 +2874,7 @@ class Test
                     return """";
                 };
             del3();
-            
+
         };
     }
 
@@ -2985,7 +2905,7 @@ static class Extension
         return (Task<int>) Foo();
     }
 }
-class Test 
+class Test
 {
     public static int amount=0;
     static int Main()
@@ -3070,7 +2990,7 @@ class Testcase
         return Task.Run(() => { });
     }
 }
-class Test 
+class Test
 {
     static int Main()
     {
@@ -3101,7 +3021,7 @@ class Test : IDisposable
     {
         await Task.Delay(10);
     }
-    public void Dispose() 
+    public void Dispose()
     {
         Foo();
     }
@@ -3487,22 +3407,42 @@ class Test
         }
 
         [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
-        public void Repro_17885()
+        public void Repro_17885_CSharp_71()
         {
             var source = @"
+using System.Threading.Tasks;
 class Test
 {
-    async public static void Main()
+    async public static Task Main()
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (4,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
-                //     async public static void Main()
-                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main"),
-                // (4,30): error CS4009: 'Test.Main()': an entry point cannot be marked with the 'async' modifier
-                //     async public static void Main()
-                Diagnostic(ErrorCode.ERR_MainCantBeAsync, "Main").WithArguments("Test.Main()"));
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async public static Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(5, 30));
+        }
+
+        [Fact, WorkItem(547081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547081")]
+        public void Repro_17885_CSharp7()
+        {
+            var source = @"
+using System.Threading.Tasks;
+class Test
+{
+    async public static Task Main()
+    {
+    }
+}";
+            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+                // (5,30): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async public static Task Main()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Main").WithLocation(5, 30),
+                // (5,25): error CS8107: Feature 'async main' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async public static Task Main()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Task").WithArguments("async main", "7.1").WithLocation(5, 25),
+                // error CS5001: Program does not contain a static 'Main' method suitable for an entry point
+                Diagnostic(ErrorCode.ERR_NoEntryPoint).WithLocation(1, 1));
         }
 
         [Fact, WorkItem(547088, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547088")]
@@ -3515,7 +3455,7 @@ class Driver
     {
         return 1;
     }
- 
+
     public async void Foo(ref int x)
     { }
 }";
@@ -3586,7 +3526,7 @@ public class C
             var source =
 @"using System;
 using A;
- 
+
 namespace A
 {
     public class IAS<T>
@@ -3720,7 +3660,7 @@ public class C
         {
             string source = @"
 using System.Threading.Tasks;
- 
+
 class Program
 {
     static async Task<T> Foo<T>()
@@ -3743,9 +3683,9 @@ class Program
             string source = @"
 using System;
 using System.Threading.Tasks;
- 
+
 delegate Task D(ref int x);
- 
+
 class C
 {
     static void Main()
@@ -3755,7 +3695,7 @@ class C
             await Task.Delay(500);
             Console.WriteLine(i++);
         };
- 
+
         int x = 5;
         d(ref x).Wait();
         Console.WriteLine(x);
@@ -3832,7 +3772,7 @@ public class Program
 @".class public auto ansi sealed D`1<T>
        extends [mscorlib]System.MulticastDelegate
 {
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor(object 'object',
                                native int 'method') runtime managed
   {

@@ -978,7 +978,7 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error);
         }
 
         [WorkItem(15325, "https://github.com/dotnet/roslyn/issues/15325")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18839"), Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task QualifyInstanceMethodInDelegateCreation()
         {
             await TestAsyncWithOption(

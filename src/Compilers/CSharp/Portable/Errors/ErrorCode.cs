@@ -1060,7 +1060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidOutputName = 2041,
         ERR_InvalidDebugInformationFormat = 2042,
         ERR_LegacyObjectIdSyntax = 2043,
-        ERR_SourceLinkRequiresPortablePdb = 2044,
+        ERR_SourceLinkRequiresPdb = 2044,
         ERR_CannotEmbedWithoutPdb = 2045,
         // unused 2046-2999
         WRN_CLS_NoVarArgs = 3000,
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VarargsAsync = 4006,
         ERR_ByRefTypeAndAwait = 4007,
         ERR_BadAwaitArgVoidCall = 4008,
-        ERR_MainCantBeAsync = 4009,
+        ERR_NonTaskMainCantBeAsync = 4009,
         ERR_CantConvAsyncAnonFuncReturns = 4010,
         ERR_BadAwaiterPattern = 4011,
         ERR_BadSpecialByRefLocal = 4012,
@@ -1479,6 +1479,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics for C# 7.1
 
+        ERR_NoRefOutWhenRefOnly = 8308,
+        ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
+        // Available = 8310,
+        ERR_BadDynamicMethodArgDefaultLiteral = 8311,
+        ERR_DefaultLiteralNotValid = 8312,
+        WRN_DefaultInSwitch = 8313,
+        ERR_PatternWrongGenericTypeInVersion = 8314,
+
+        #endregion diagnostics for C# 7.1
+
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation = 8501,
         ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember = 8502,
 
@@ -1487,11 +1497,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultInterfaceImplementationModifier = 8503,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8504,
 
-        ERR_BadDynamicMethodArgDefaultLiteral = 9000,
-        ERR_DefaultLiteralNotValid = 9001,
-        WRN_DefaultInSwitch = 9002,
-        ERR_PatternWrongGenericTypeInVersion = 9003,
-
-        #endregion diagnostics for C# 7.1
     }
 }

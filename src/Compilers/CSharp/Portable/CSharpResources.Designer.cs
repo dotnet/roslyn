@@ -6839,6 +6839,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot compile net modules when using /refout or /refonly..
+        /// </summary>
+        internal static string ERR_NoNetModuleOutputWhenRefOutOrRefOnly {
+            get {
+                return ResourceManager.GetString("ERR_NoNetModuleOutputWhenRefOutOrRefOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot create an instance of the abstract class or interface &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_NoNewAbstract {
@@ -6873,7 +6882,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_NonInvocableMemberCalled", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Async Main methods must return Task or Task&lt;int&gt;.
+        /// </summary>
+        internal static string ERR_NonTaskMainCantBeAsync
+        {
+            get
+            {
+                return ResourceManager.GetString("ERR_NonTaskMainCantBeAsync", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
@@ -6898,6 +6918,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoPIANestedType {
             get {
                 return ResourceManager.GetString("ERR_NoPIANestedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use refout when using refonly..
+        /// </summary>
+        internal static string ERR_NoRefOutWhenRefOnly {
+            get {
+                return ResourceManager.GetString("ERR_NoRefOutWhenRefOnly", resourceCulture);
             }
         }
         
@@ -8675,11 +8704,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         /// </summary>
-        internal static string ERR_SourceLinkRequiresPortablePdb {
+        internal static string ERR_SourceLinkRequiresPdb {
             get {
-                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture);
             }
         }
         
@@ -9870,22 +9899,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("IDS_Covariantly", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to 
         ///                              Visual C# Compiler Options
         ///
         ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of 
+        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
         ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short 
+        /// /target:exe                   Build a console executable (default) (Short
         ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form: 
+        /// /target:winexe                Build a Windows executable (Short form:
         ///                               /t:winexe)
-        /// /target:library     [rest of string was truncated]&quot;;.
+        /// /target:library        [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string IDS_CSCHelp {
-            get {
+        internal static string IDS_CSCHelp
+        {
+            get
+            {
                 return ResourceManager.GetString("IDS_CSCHelp", resourceCulture);
             }
         }
@@ -9941,6 +9972,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureAsync {
             get {
                 return ResourceManager.GetString("IDS_FeatureAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to async main.
+        /// </summary>
+        internal static string IDS_FeatureAsyncMain {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAsyncMain", resourceCulture);
             }
         }
         

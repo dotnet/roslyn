@@ -70,6 +70,7 @@
     <Compile Include="Services\AssetStorage.cs" />
     <Compile Include="Services\ChecksumSynchronizer.cs" />
     <Compile Include="Services\CompilationService.cs" />
+    <Compile Include="Services\ISolutionController.cs" />
     <Compile Include="Services\ProjectCacheHostServiceFactory.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionCreator.cs" />
@@ -78,6 +79,7 @@
     <Compile Include="Services\TemporaryWorkspace.cs" />
     <Compile Include="Services\TemporaryWorkspaceOptionsServiceFactory.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
+    <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

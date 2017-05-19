@@ -263,6 +263,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_TupleElementNamesAttribute,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
+        System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         NextAvailable,
     }
@@ -519,7 +520,9 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.CompilerServices.TupleElementNamesAttribute",
 
-            "Microsoft.CodeAnalysis.Runtime.Instrumentation"
+            "Microsoft.CodeAnalysis.Runtime.Instrumentation",
+
+            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

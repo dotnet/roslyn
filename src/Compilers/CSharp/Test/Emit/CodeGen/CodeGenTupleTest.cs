@@ -20470,7 +20470,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -20479,7 +20479,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                    Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }
@@ -20510,7 +20510,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -20519,7 +20519,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                    Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }
@@ -22751,7 +22751,6 @@ static class C
                 //         System.Console.WriteLine(notAliteral.M());
                 Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int A, int B)", "M", "C.M((int x, long y))").WithLocation(23, 46)
                 );
-
         }
 
         [Fact]
@@ -22871,6 +22870,211 @@ class C
                 //         var x = (0, null) as (int, T)?;
                 Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(0, null) as (int, T)?").WithLocation(6, 17)
                 );
+        }
+
+        [Fact]
+        public void CheckedConstantConversions()
+        {
+            var source =
+@"#pragma warning disable 219
+class C
+{
+    static void Main()
+    {
+        unchecked
+        {
+            var u = ((byte, byte))(0, -1);
+            var (a, b) = ((byte, byte))(0, -2);
+        }
+        checked
+        {
+            var c = ((byte, byte))(0, -1);
+            var (a, b) = ((byte, byte))(0, -2);
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (13,39): error CS0221: Constant value '-1' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //             var c = ((byte, byte))(0, -1);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "-1").WithArguments("-1", "byte").WithLocation(13, 39),
+                // (14,44): error CS0221: Constant value '-2' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //             var (a, b) = ((byte, byte))(0, -2);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "-2").WithArguments("-2", "byte").WithLocation(14, 44));
+        }
+
+        [Fact]
+        [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
+        public void CheckedConversions()
+        {
+            var source =
+@"using System;
+class C
+{
+    static (long, byte) Default((int, int) t)
+    {
+        return ((long, byte))t;
+    }
+    static (long, byte) Unchecked((int, int) t)
+    {
+        unchecked
+        {
+            return ((long, byte))t;
+        }
+    }
+    static (long, byte) Checked((int, int) t)
+    {
+        checked
+        {
+            return ((long, byte))t;
+        }
+    }
+    static void Main()
+    {
+        var d = Default((-1, -1));
+        Console.Write(d);
+        var u = Unchecked((-1, -1));
+        Console.Write(u);
+        try
+        {
+            var c = Checked((-1, -1));
+            Console.Write(c);
+        }
+        catch (OverflowException)
+        {
+            Console.Write(""overflow"");
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(-1, 255)(-1, 255)overflow");
+            verifier.VerifyIL("C.Default",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("C.Unchecked",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("C.Checked",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.ovf.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(19434, "https://github.com/dotnet/roslyn/issues/19434")]
+        public void ExplicitTupleLiteralConversionWithNullable01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 1;
+        var y = ((byte, byte)?)(x, x);
+        System.Console.WriteLine(y.Value);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs, options: TestOptions.DebugExe, expectedOutput:
+@"(1, 1)");
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (int V_0, //x
+                (byte, byte)? V_1) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldloc.0
+  IL_0006:  conv.u1
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u1
+  IL_0009:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_000e:  call       ""(byte, byte)?..ctor((byte, byte))""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       ""(byte, byte) (byte, byte)?.Value.get""
+  IL_001a:  box        ""System.ValueTuple<byte, byte>""
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+
+            comp = CompileAndVerify(source,
+    additionalRefs: s_valueTupleRefs, options: TestOptions.ReleaseExe, expectedOutput:
+@"(1, 1)");
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int V_0, //x
+                (byte, byte)? V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldloc.0
+  IL_0005:  conv.u1
+  IL_0006:  ldloc.0
+  IL_0007:  conv.u1
+  IL_0008:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_000d:  call       ""(byte, byte)?..ctor((byte, byte))""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  call       ""(byte, byte) (byte, byte)?.Value.get""
+  IL_0019:  box        ""System.ValueTuple<byte, byte>""
+  IL_001e:  call       ""void System.Console.WriteLine(object)""
+  IL_0023:  ret
+}
+");
         }
     }
 }
