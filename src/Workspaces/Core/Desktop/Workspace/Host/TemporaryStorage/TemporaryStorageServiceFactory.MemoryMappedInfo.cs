@@ -33,7 +33,21 @@ namespace Microsoft.CodeAnalysis.Host
         /// </remarks>
         internal sealed class MemoryMappedInfo : IDisposable
         {
+            /// <summary>
+            /// The name of the memory mapped file.
+            /// </summary>
             private readonly string _name;
+
+            /// <summary>
+            /// The offset into the memory mapped file of the region described by the current
+            /// <see cref="MemoryMappedInfo"/>.
+            /// </summary>
+            private readonly long _offset;
+
+            /// <summary>
+            /// The size of the region of the memory mapped file described by the current
+            /// <see cref="MemoryMappedInfo"/>.
+            /// </summary>
             private readonly long _size;
 
             /// <summary>
@@ -44,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// However, the operating system does not actually close the views which are in use until the view handles
             /// are closed as well, even if the <see cref="MemoryMappedFile"/> is disposed first.</para>
             /// </remarks>
-            private readonly MemoryMappedFile _memoryMappedFile;
+            private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
 
             /// <summary>
             /// actual memory accessor that owns the VM
@@ -59,26 +73,28 @@ namespace Microsoft.CodeAnalysis.Host
             /// </remarks>
             private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _accessor;
 
-            public MemoryMappedInfo(long size)
+            public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
             {
-                _name = CreateUniqueName(size);
+                _memoryMappedFile = memoryMappedFile;
+                _name = name;
+                _offset = offset;
                 _size = size;
-
-                _memoryMappedFile = MemoryMappedFile.CreateNew(_name, size);
             }
 
-            public MemoryMappedInfo(string name, long size)
+            public MemoryMappedInfo(string name, long offset, long size)
             {
                 _name = name;
+                _offset = offset;
                 _size = size;
 
-                _memoryMappedFile = MemoryMappedFile.OpenExisting(_name);
+                _memoryMappedFile = new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(_name));
             }
 
             /// <summary>
             /// Name and Size of memory map file
             /// </summary>
             public string Name => _name;
+            public long Offset => _offset;
             public long Size => _size;
 
             private static void ForceCompactingGC()
@@ -105,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Host
                     var streamAccessor = _accessor.TryAddReference();
                     if (streamAccessor == null)
                     {
-                        var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.CreateViewAccessor(0, info._size, MemoryMappedFileAccess.Read), this);
+                        var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info._offset, info._size, MemoryMappedFileAccess.Read), this);
                         streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
                         _accessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
                     }
@@ -124,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // CreateViewStream is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
-                    return RunWithCompactingGCFallback(info => info._memoryMappedFile.CreateViewStream(0, info._size, MemoryMappedFileAccess.Write), this);
+                    return RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewStream(info._offset, info._size, MemoryMappedFileAccess.Write), this);
                 }
             }
 
@@ -173,11 +189,6 @@ namespace Microsoft.CodeAnalysis.Host
                     // concurrent code.
                     _memoryMappedFile.Dispose();
                 }
-            }
-
-            public static string CreateUniqueName(long size)
-            {
-                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
             }
 
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess

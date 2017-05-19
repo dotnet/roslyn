@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// return when the call to <see cref="Dispose"/> completes.</para>
         /// </remarks>
         /// <typeparam name="T">The type of disposable object.</typeparam>
-        private sealed class ReferenceCountedDisposable<T> : IDisposable
+        internal sealed class ReferenceCountedDisposable<T> : IDisposable
             where T : class, IDisposable
         {
             /// <summary>

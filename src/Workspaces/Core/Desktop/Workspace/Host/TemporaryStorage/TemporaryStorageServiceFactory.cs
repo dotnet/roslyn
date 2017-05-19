@@ -4,6 +4,7 @@ using System;
 using System.Composition;
 using System.Diagnostics;
 using System.IO;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -30,7 +31,24 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         internal class TemporaryStorageService : ITemporaryStorageService2
         {
+            /// <summary>
+            /// The maximum size of a single storage unit in a memory mapped file which is shared with other storage
+            /// units.
+            /// </summary>
+            private const long SingleFileThreshold = 128 * 1024;
+
+            /// <summary>
+            /// The size of a memory mapped file created to store multiple temporary objects.
+            /// </summary>
+            private const long MultiFileBlockSize = SingleFileThreshold * 32;
+
             private readonly ITextFactoryService _textFactory;
+
+            /// <summary>
+            /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer
+            /// allocation until space is no longer available in it.
+            /// </summary>
+            private MemoryMappedFileStorage _storage;
 
             public TemporaryStorageService(ITextFactoryService textFactory)
             {
@@ -42,9 +60,9 @@ namespace Microsoft.CodeAnalysis.Host
                 return new TemporaryTextStorage(this);
             }
 
-            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long size, Encoding encoding, CancellationToken cancellationToken)
+            public ITemporaryTextStorage AttachTemporaryTextStorage(string storageName, long offset, long size, Encoding encoding, CancellationToken cancellationToken)
             {
-                return new TemporaryTextStorage(this, storageName, size, encoding);
+                return new TemporaryTextStorage(this, storageName, offset, size, encoding);
             }
 
             public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken)
@@ -52,9 +70,98 @@ namespace Microsoft.CodeAnalysis.Host
                 return new TemporaryStreamStorage(this);
             }
 
-            public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long size, CancellationToken cancellationToken)
+            public ITemporaryStreamStorage AttachTemporaryStreamStorage(string storageName, long offset, long size, CancellationToken cancellationToken)
             {
-                return new TemporaryStreamStorage(this, storageName, size);
+                return new TemporaryStreamStorage(this, storageName, offset, size);
+            }
+
+            /// <summary>
+            /// Allocate shared storage of a specified size.
+            /// </summary>
+            /// <remarks>
+            /// <para>"Small" requests are fulfilled from oversized memory mapped files which support several individual
+            /// storage units. Larger requests are allocated in their own memory mapped files.</para>
+            /// </remarks>
+            /// <param name="size">The size of the shared storage block to allocate.</param>
+            /// <returns>A <see cref="MemoryMappedInfo"/> describing the allocated block.</returns>
+            private MemoryMappedInfo CreateTemporaryStorage(long size)
+            {
+                if (size >= SingleFileThreshold)
+                {
+                    // Larger blocks are allocated separately
+                    var mapName = CreateUniqueName(size);
+                    var storage = MemoryMappedFile.CreateNew(mapName, size);
+                    return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, 0, size);
+                }
+
+                while (true)
+                {
+                    // Obtain the storage location, creating one if necessary. If a reference counted handle to a memory
+                    // mapped file is obtained in this section, it must either be disposed within the loop or returned
+                    // to the caller who will own it through the MemoryMappedInfo.
+                    var storage = Volatile.Read(ref _storage);
+                    var reference = storage?.FileReference.TryAddReference();
+                    if (reference == null)
+                    {
+                        var oldStorage = storage;
+                        (storage, reference) = MemoryMappedFileStorage.Create(MultiFileBlockSize);
+                        if (Interlocked.CompareExchange(ref _storage, storage, oldStorage) != oldStorage)
+                        {
+                            // Another thread created the next storage unit; try again
+                            reference.Dispose();
+                            continue;
+                        }
+                    }
+
+                    // Try to reserve additional space in this storage location
+                    var endOffset = Interlocked.Add(ref storage.Offset, size);
+                    if (endOffset > storage.Size)
+                    {
+                        // No more space is available. Invalidate the current storage block if no other thread has done
+                        // so, and try again to allocate from a different storage block.
+                        Interlocked.CompareExchange(ref _storage, null, storage);
+                        reference.Dispose();
+                        continue;
+                    }
+
+                    return new MemoryMappedInfo(reference, storage.Name, endOffset - size, size);
+                }
+            }
+
+            public static string CreateUniqueName(long size)
+            {
+                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
+            }
+
+            /// <summary>
+            /// This class stores the information necessary to describe a single shared memory mapped file which can
+            /// serve multiple allocation requests. Use <see cref="CreateTemporaryStorage"/> rather than interacting
+            /// with this class directly.
+            /// </summary>
+            private sealed class MemoryMappedFileStorage
+            {
+                public readonly ReferenceCountedDisposable<MemoryMappedFile>.WeakReference FileReference;
+                public readonly string Name;
+                public readonly long Size;
+                public long Offset;
+
+                private MemoryMappedFileStorage(ReferenceCountedDisposable<MemoryMappedFile>.WeakReference memoryMappedFile, string name, long size)
+                {
+                    FileReference = memoryMappedFile;
+                    Name = name;
+                    Size = size;
+                }
+
+                public static (MemoryMappedFileStorage storage, ReferenceCountedDisposable<MemoryMappedFile> firstReference) Create(long size)
+                {
+                    var mapName = CreateUniqueName(size);
+                    var file = MemoryMappedFile.CreateNew(mapName, size);
+
+                    var firstReference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
+                    var weakReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(firstReference);
+                    var storage = new MemoryMappedFileStorage(weakReference, mapName, size);
+                    return (storage, firstReference);
+                }
             }
 
             private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName
@@ -68,14 +175,15 @@ namespace Microsoft.CodeAnalysis.Host
                     _service = service;
                 }
 
-                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long size, Encoding encoding)
+                public TemporaryTextStorage(TemporaryStorageService service, string storageName, long offset, long size, Encoding encoding)
                 {
                     _service = service;
                     _encoding = encoding;
-                    _memoryMappedInfo = new MemoryMappedInfo(storageName, size);
+                    _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }
 
                 public string Name => _memoryMappedInfo?.Name;
+                public long Offset => _memoryMappedInfo.Offset;
                 public long Size => _memoryMappedInfo.Size;
 
                 public void Dispose()
@@ -141,7 +249,7 @@ namespace Microsoft.CodeAnalysis.Host
 
                         // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                         var size = Encoding.Unicode.GetMaxByteCount(text.Length);
-                        _memoryMappedInfo = new MemoryMappedInfo(size);
+                        _memoryMappedInfo = _service.CreateTemporaryStorage(size);
 
                         // Write the source text out as Unicode. We expect that to be cheap.
                         using (var stream = _memoryMappedInfo.CreateWritableStream())
@@ -182,13 +290,14 @@ namespace Microsoft.CodeAnalysis.Host
                     _service = service;
                 }
 
-                public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long size)
+                public TemporaryStreamStorage(TemporaryStorageService service, string storageName, long offset, long size)
                 {
                     _service = service;
-                    _memoryMappedInfo = new MemoryMappedInfo(storageName, size);
+                    _memoryMappedInfo = new MemoryMappedInfo(storageName, offset, size);
                 }
 
                 public string Name => _memoryMappedInfo?.Name;
+                public long Offset => _memoryMappedInfo.Offset;
                 public long Size => _memoryMappedInfo.Size;
 
                 public void Dispose()
@@ -251,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Host
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteStream, cancellationToken))
                     {
                         var size = stream.Length;
-                        _memoryMappedInfo = new MemoryMappedInfo(size);
+                        _memoryMappedInfo = _service.CreateTemporaryStorage(size);
                         using (var viewStream = _memoryMappedInfo.CreateWritableStream())
                         {
                             var buffer = SharedPools.ByteArray.Allocate();
