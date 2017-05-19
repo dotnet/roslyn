@@ -187,30 +187,11 @@ namespace Microsoft.CodeAnalysis.Host
                 Interlocked.MemoryBarrier();
                 _instance = default(T);
 
-#if !DEBUG
                 var decrementedValue = Interlocked.Decrement(ref referenceCount.Value);
                 if (decrementedValue == 0)
                 {
                     instance.Dispose();
                 }
-#else
-                while (true)
-                {
-                    var currentValue = Volatile.Read(ref referenceCount.Value);
-                    Debug.Assert(currentValue > 0, "Dispose should have protected itself against races.");
-
-                    if (Interlocked.CompareExchange(ref referenceCount.Value, currentValue - 1, currentValue) == currentValue)
-                    {
-                        if (currentValue == 1)
-                        {
-                            // Reference count hit 0 for this call
-                            instance.Dispose();
-                        }
-
-                        break;
-                    }
-                }
-#endif
             }
 
             /// <summary>
