@@ -34,10 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             bool isParams,
             bool isExtensionMethodThis,
+            bool shouldPlaceIsConstModifier,
             DiagnosticBag declarationDiagnostics)
         {
             var name = identifier.ValueText;
-            var locations = ImmutableArray.Create<Location>(new SourceLocation(identifier));
+            var location = new SourceLocation(identifier);
+            var locations = ImmutableArray.Create<Location>(location);
 
             if (isParams)
             {
@@ -46,6 +48,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     WellKnownMember.System_ParamArrayAttribute__ctor,
                     declarationDiagnostics,
                     identifier.Parent.GetLocation());
+            }
+
+            if (shouldPlaceIsConstModifier && refKind == RefKind.RefReadOnly && (owner.IsVirtual || owner.IsAbstract))
+            {
+                var isConst = context.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, declarationDiagnostics, syntax);
+
+                return new SourceComplexParameterSymbolWithCustomModifiers(
+                    owner,
+                    ordinal,
+                    parameterType,
+                    refKind,
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConst)),
+                    name,
+                    locations,
+                    syntax.GetReference(),
+                    ConstantValue.Unset,
+                    isParams,
+                    isExtensionMethodThis);
             }
 
             if (!isParams &&

@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return type.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile;
         }
 
+        internal override bool IsConstModifierType(PEModuleSymbol moduleSymbol, TypeSymbol type)
+        {
+            return type.ToDisplayString() == WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsConst);
+        }
+
         internal override TypeSymbol GetSZArrayTypeSymbol(PEModuleSymbol moduleSymbol, TypeSymbol elementType, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             if (elementType is UnsupportedMetadataTypeSymbol)

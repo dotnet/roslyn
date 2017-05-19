@@ -273,6 +273,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
                 }
             }
+            else if (_refKind == RefKind.RefReadOnly && (this.IsVirtual || this.IsAbstract))
+            {
+                var isConst = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax);
+
+                _customModifiers = CustomModifiersTuple.Create(
+                    ImmutableArray<CustomModifier>.Empty,
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConst)));
+            }
 
             if (!hasAccessorList)
             {
@@ -792,6 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder, owner, parameterSyntaxOpt, out arglistToken,
                 allowRefOrOut: false,
                 allowThis: false,
+                shouldPlaceIsConstModifier: true,
                 diagnostics: diagnostics);
 
             if (arglistToken.Kind() != SyntaxKind.None)

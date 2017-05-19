@@ -167,6 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder, this, syntax.ParameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
+                shouldPlaceIsConstModifier: true,
                 diagnostics: diagnostics);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
@@ -320,10 +321,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if ((object)overriddenMethod != null)
                     {
-                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType, 
-                                                                      out _lazyCustomModifiers, 
+                        CustomModifierUtils.CopyMethodCustomModifiers(overriddenMethod, this, out _lazyReturnType,
+                                                                      out _lazyCustomModifiers,
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
+                }
+                else if (_refKind == RefKind.RefReadOnly && (this.IsVirtual || this.IsAbstract))
+                {
+                    var isConst = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax);
+
+                    _lazyCustomModifiers = CustomModifiersTuple.Create(
+                        typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
+                        refCustomModifiers: ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConst)));
                 }
             }
             else if ((object)_explicitInterfaceType != null)

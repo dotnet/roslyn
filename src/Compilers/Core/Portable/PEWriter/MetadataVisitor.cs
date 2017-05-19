@@ -273,6 +273,7 @@ namespace Microsoft.Cci
         {
             this.Visit(method.GetReturnValueAttributes(Context));
             this.Visit(method.ReturnValueCustomModifiers);
+            this.Visit(method.RefCustomModifiers);
 
             if (method.HasDeclarativeSecurity)
             {
@@ -412,6 +413,7 @@ namespace Microsoft.Cci
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
             this.Visit(parameterDefinition.GetAttributes(Context));
+            this.Visit(parameterDefinition.RefCustomModifiers);
             this.Visit(parameterDefinition.CustomModifiers);
 
             MetadataConstant defaultValue = parameterDefinition.GetDefaultValue(Context);

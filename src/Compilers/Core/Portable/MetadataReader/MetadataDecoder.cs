@@ -672,33 +672,47 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(ref BlobReader signatureReader, out SignatureTypeCode typeCode)
+        private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(
+            ref BlobReader signatureReader,
+            out SignatureTypeCode typeCode,
+            Func<TypeSymbol, bool> acceptRequiredModifier = null)
         {
             ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
             for (;;)
             {
                 typeCode = signatureReader.ReadSignatureTypeCode();
+                bool isOptional;
 
                 if (typeCode == SignatureTypeCode.RequiredModifier)
+                {
+                    isOptional = false;
+                }
+                else if (typeCode == SignatureTypeCode.OptionalModifier)
+                {
+                    isOptional = true;
+                }
+                else
+                {
+                    break;
+                }
+
+                TypeSymbol type = DecodeModifierTypeOrThrow(ref signatureReader);
+
+                // if it is a required modifier, make sure the compiler supports this modifier type
+                if (!isOptional && (acceptRequiredModifier == null || !acceptRequiredModifier(type)))
                 {
                     throw new UnsupportedSignatureContent();
                 }
 
-                if (typeCode == SignatureTypeCode.OptionalModifier)
+                ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(isOptional, type);
+
+                if (modifiers == null)
                 {
-                    ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(true, DecodeModifierTypeOrThrow(ref signatureReader));
-
-                    if (modifiers == null)
-                    {
-                        modifiers = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
-                    }
-
-                    modifiers.Add(modifier);
-                    continue;
+                    modifiers = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
                 }
 
-                break;
+                modifiers.Add(modifier);
             }
 
             return modifiers?.ToImmutableAndFree() ?? default(ImmutableArray<ModifierInfo<TypeSymbol>>);
@@ -1095,14 +1109,25 @@ namespace Microsoft.CodeAnalysis
         {
             bool refersToNoPiaLocalType;
 
+            var isConstFound = false;
             SignatureTypeCode typeCode;
-            info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
+            info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode, acceptRequiredModifier: type =>
+            {
+                var isConst = IsConstModifierType(type);
+                isConstFound |= isConst;
+                return isConst;
+            });
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
-                info.RefCustomModifiers = info.CustomModifiers; 
+                info.RefCustomModifiers = info.CustomModifiers;
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
+            }
+            else if (isConstFound)
+            {
+                // This cannot be placed on CustomModifiers, just RefCustomModifiers
+                throw new UnsupportedSignatureContent();
             }
 
             info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
@@ -1844,60 +1869,17 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                // See if there is a Volatile modifier.
+                var isVolatileFound = false;
                 SignatureTypeCode typeCode;
-                ArrayBuilder<ModifierInfo<TypeSymbol>> customModifierBuilder = null;
 
-                for (;;)
+                customModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode, acceptRequiredModifier: type =>
                 {
-                    typeCode = signatureReader.ReadSignatureTypeCode();
+                    var isTypeVolatile = this.IsVolatileModifierType(type);
+                    isVolatileFound |= isTypeVolatile;
+                    return isTypeVolatile;
+                });
 
-                    if (typeCode == SignatureTypeCode.OptionalModifier ||
-                        typeCode == SignatureTypeCode.RequiredModifier)
-                    {
-                        TypeSymbol type;
-
-                        try
-                        {
-                            type = DecodeModifierTypeOrThrow(ref signatureReader);
-                        }
-                        catch (BadImageFormatException mrEx)
-                        {
-                            return GetUnsupportedMetadataTypeSymbol(mrEx); // an exception from metadata reader.
-                        }
-                        catch (UnsupportedSignatureContent)
-                        {
-                            return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
-                        }
-
-                        ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>((typeCode == SignatureTypeCode.OptionalModifier), type);
-
-                        if (IsVolatileModifierType(modifier.Modifier))
-                        {
-                            isVolatile = true;
-                        }
-                        else if (!modifier.IsOptional)
-                        {
-                            return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
-                        }
-
-                        if (customModifierBuilder == null)
-                        {
-                            customModifierBuilder = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
-                        }
-
-                        customModifierBuilder.Add(modifier);
-
-                        continue;
-                    }
-
-                    break;
-                }
-
-                if (customModifierBuilder != null)
-                {
-                    customModifiers = customModifierBuilder.ToImmutableAndFree();
-                }
+                isVolatile = isVolatileFound;
 
                 // get the type
                 bool refersToNoPiaLocalType;

@@ -49,6 +49,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return False
         End Function
 
+        Friend Overrides Function IsConstModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
+            ' VB doesn't deal with ref-readonly parameters or return-types.
+            Return False
+        End Function
+
         Friend Overrides Function GetSZArrayTypeSymbol(moduleSymbol As PEModuleSymbol, elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As TypeSymbol
             If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
                 Return elementType
