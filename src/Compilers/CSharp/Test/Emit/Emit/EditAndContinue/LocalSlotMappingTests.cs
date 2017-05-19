@@ -3477,38 +3477,41 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       47 (0x2f)
-  .maxstack  1
+  // Code size       46 (0x2e)
+  .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
-                int? V_4,
+                object V_4,
                 int V_5)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_4
-  IL_000e:  ldloca.s   V_4
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.0
-  IL_0016:  ldloca.s   V_4
-  IL_0018:  call       ""bool int?.HasValue.get""
-  IL_001d:  stloc.1
- ~IL_001e:  ldloc.1
-  IL_001f:  brfalse.s  IL_0027
- -IL_0021:  nop
- -IL_0022:  ldloc.0
-  IL_0023:  stloc.s    V_5
-  IL_0025:  br.s       IL_002c
- -IL_0027:  ldc.i4.0
-  IL_0028:  stloc.s    V_5
-  IL_002a:  br.s       IL_002c
- -IL_002c:  ldloc.s    V_5
-  IL_002e:  ret
-}
-", methodToken: diff1.UpdatedMethods.Single());
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  isinst     ""int""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.0
+  IL_001c:  stloc.1
+ ~IL_001d:  ldloc.1
+  IL_001e:  brfalse.s  IL_0026
+ -IL_0020:  nop
+ -IL_0021:  ldloc.0
+  IL_0022:  stloc.s    V_5
+  IL_0024:  br.s       IL_002b
+ -IL_0026:  ldc.i4.0
+  IL_0027:  stloc.s    V_5
+  IL_0029:  br.s       IL_002b
+ -IL_002b:  ldloc.s    V_5
+  IL_002d:  ret
+}", methodToken: diff1.UpdatedMethods.Single());
         }
 
         [Fact]
@@ -3643,38 +3646,41 @@ class C
 
             diff1.VerifyIL("C.F", @"
 {
-  // Code size       47 (0x2f)
-  .maxstack  1
+  // Code size       46 (0x2e)
+  .maxstack  2
   .locals init (int V_0, //i
                 bool V_1,
-                [unchanged] V_2,
+                [object] V_2,
                 [int] V_3,
-                int? V_4,
+                object V_4,
                 int V_5)
  -IL_0000:  nop
  -IL_0001:  ldarg.0
-  IL_0002:  isinst     ""int?""
-  IL_0007:  unbox.any  ""int?""
-  IL_000c:  stloc.s    V_4
-  IL_000e:  ldloca.s   V_4
-  IL_0010:  call       ""int int?.GetValueOrDefault()""
-  IL_0015:  stloc.0
-  IL_0016:  ldloca.s   V_4
-  IL_0018:  call       ""bool int?.HasValue.get""
-  IL_001d:  stloc.1
- ~IL_001e:  ldloc.1
-  IL_001f:  brfalse.s  IL_0027
- -IL_0021:  nop
- -IL_0022:  ldloc.0
-  IL_0023:  stloc.s    V_5
-  IL_0025:  br.s       IL_002c
- -IL_0027:  ldc.i4.0
-  IL_0028:  stloc.s    V_5
-  IL_002a:  br.s       IL_002c
- -IL_002c:  ldloc.s    V_5
-  IL_002e:  ret
-}
-", methodToken: diff1.UpdatedMethods.Single());
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldloc.s    V_4
+  IL_0006:  isinst     ""int""
+  IL_000b:  ldnull
+  IL_000c:  cgt.un
+  IL_000e:  dup
+  IL_000f:  brtrue.s   IL_0014
+  IL_0011:  ldc.i4.0
+  IL_0012:  br.s       IL_001b
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  unbox.any  ""int""
+  IL_001b:  stloc.0
+  IL_001c:  stloc.1
+ ~IL_001d:  ldloc.1
+  IL_001e:  brfalse.s  IL_0026
+ -IL_0020:  nop
+ -IL_0021:  ldloc.0
+  IL_0022:  stloc.s    V_5
+  IL_0024:  br.s       IL_002b
+ -IL_0026:  ldc.i4.0
+  IL_0027:  stloc.s    V_5
+  IL_0029:  br.s       IL_002b
+ -IL_002b:  ldloc.s    V_5
+  IL_002d:  ret
+}", methodToken: diff1.UpdatedMethods.Single());
         }
 
         [Fact]
