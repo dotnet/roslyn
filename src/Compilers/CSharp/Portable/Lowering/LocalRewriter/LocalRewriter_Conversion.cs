@@ -170,7 +170,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         explicitCastInCode: explicitCastInCode,
                         rewrittenType: rewrittenType);
 
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
 
                     if (!_inExpressionLambda)
                     {

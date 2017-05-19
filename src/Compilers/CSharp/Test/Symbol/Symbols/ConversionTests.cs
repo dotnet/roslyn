@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             const ConversionKind Inm = ConversionKind.ImplicitNumeric;
             const ConversionKind Inl = ConversionKind.ImplicitNullable;
             const ConversionKind Irf = ConversionKind.ImplicitReference;
-            const ConversionKind Box = ConversionKind.Boxing;
+            const ConversionKind Box = ConversionKind.ValueTypeBoxing;
             const ConversionKind Xrf = ConversionKind.ExplicitReference;
-            const ConversionKind Ubx = ConversionKind.Unboxing;
+            const ConversionKind Ubx = ConversionKind.ValueTypeUnboxing;
             const ConversionKind Xnl = ConversionKind.ExplicitNullable;
             const ConversionKind Xnm = ConversionKind.ExplicitNumeric;
 

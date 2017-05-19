@@ -10,6 +10,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static class ConversionKindExtensions
     {
+        public static bool IsBoxing(this ConversionKind conversionKind)
+        {
+            return conversionKind == ConversionKind.ValueTypeBoxing || conversionKind == ConversionKind.TypeParameterBoxing;
+        }
+
+        public static bool IsUnboxing(this ConversionKind conversionKind)
+        {
+            return conversionKind == ConversionKind.ValueTypeUnboxing || conversionKind == ConversionKind.TypeParameterUnboxing;
+        }
+
         public static bool IsDynamic(this ConversionKind conversionKind)
         {
             return conversionKind == ConversionKind.ImplicitDynamic || conversionKind == ConversionKind.ExplicitDynamic;
@@ -32,7 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.DefaultOrNullLiteral:
                 case ConversionKind.ImplicitReference:
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ImplicitConstant:
                 case ConversionKind.ImplicitUserDefined:
@@ -50,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitEnumeration:
                 case ConversionKind.ExplicitNullable:
                 case ConversionKind.ExplicitReference:
-                case ConversionKind.Unboxing:
+                case ConversionKind.ValueTypeUnboxing:
+                case ConversionKind.TypeParameterUnboxing:
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.PointerToPointer:

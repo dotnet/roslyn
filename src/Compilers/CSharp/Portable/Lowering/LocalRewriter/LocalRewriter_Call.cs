@@ -306,7 +306,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.DefaultOrNullLiteral:
                                     return true;
 
-                                case ConversionKind.Boxing:
+                                case ConversionKind.ValueTypeBoxing:
+                                case ConversionKind.TypeParameterBoxing:
                                 case ConversionKind.ImplicitDynamic:
                                 case ConversionKind.ExplicitDynamic:
                                 case ConversionKind.ExplicitEnumeration:
@@ -318,7 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.ImplicitNullable:
                                 case ConversionKind.ImplicitNumeric:
                                 case ConversionKind.ImplicitReference:
-                                case ConversionKind.Unboxing:
+                                case ConversionKind.ValueTypeUnboxing:
+                                case ConversionKind.TypeParameterUnboxing:
                                 case ConversionKind.PointerToInteger:
                                 case ConversionKind.PointerToPointer:
                                 case ConversionKind.PointerToVoid:

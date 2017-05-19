@@ -530,8 +530,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case CSharp.ConversionKind.ExplicitReference:
                     case CSharp.ConversionKind.ImplicitReference:
-                    case CSharp.ConversionKind.Boxing:
-                    case CSharp.ConversionKind.Unboxing:
+                    case CSharp.ConversionKind.ValueTypeBoxing:
+                    case CSharp.ConversionKind.TypeParameterBoxing:
+                    case CSharp.ConversionKind.ValueTypeUnboxing:
+                    case CSharp.ConversionKind.TypeParameterUnboxing:
                     case CSharp.ConversionKind.Identity:
                         return Semantics.ConversionKind.Cast;
 

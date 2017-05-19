@@ -259,7 +259,7 @@ public class Test
             ConversionTestHelper(model, v61[0].Expression, ConversionKind.ImplicitNumeric, ConversionKind.ImplicitNumeric);
             // object box = -1;
             var v7 = (mainStats[6] as LocalDeclarationStatementSyntax).Declaration.Variables;
-            ConversionTestHelper(model, v7[0].Initializer.Value, ConversionKind.Boxing, ConversionKind.Boxing);
+            ConversionTestHelper(model, v7[0].Initializer.Value, ConversionKind.ValueTypeBoxing, ConversionKind.ValueTypeBoxing);
             // E e = 0;
             var v8 = (mainStats[7] as LocalDeclarationStatementSyntax).Declaration.Variables;
             ConversionTestHelper(model, v8[0].Initializer.Value, ConversionKind.ImplicitEnumeration, ConversionKind.ExplicitEnumeration);
@@ -376,10 +376,10 @@ public class Test
             ConversionTestHelper(model, (v1 as CastExpressionSyntax).Expression, comp.GetSpecialType(SpecialType.System_UInt32), ConversionKind.ExplicitNumeric);
             // obj01 = x;
             var v2 = (mainStats[2] as ExpressionStatementSyntax).Expression;
-            ConversionTestHelper(model, (v2 as AssignmentExpressionSyntax).Right, comp.GetSpecialType(SpecialType.System_Object), ConversionKind.Boxing);
+            ConversionTestHelper(model, (v2 as AssignmentExpressionSyntax).Right, comp.GetSpecialType(SpecialType.System_Object), ConversionKind.ValueTypeBoxing);
             // x = (int)obj01;
             var v3 = ((mainStats[3] as ExpressionStatementSyntax).Expression as AssignmentExpressionSyntax).Right;
-            ConversionTestHelper(model, (v3 as CastExpressionSyntax).Expression, comp.GetSpecialType(SpecialType.System_Int32), ConversionKind.Unboxing);
+            ConversionTestHelper(model, (v3 as CastExpressionSyntax).Expression, comp.GetSpecialType(SpecialType.System_Int32), ConversionKind.ValueTypeUnboxing);
             // obj02 = (Test)obj01;
             var tsym = comp.SourceModule.GlobalNamespace.GetTypeMembers("Test").FirstOrDefault();
             var v4 = ((mainStats[4] as ExpressionStatementSyntax).Expression as AssignmentExpressionSyntax).Right;
@@ -479,7 +479,7 @@ public class Test
             ConversionTestHelper(model, v1, ConversionKind.ExplicitNumeric, ConversionKind.ExplicitNumeric);
             // x = obj01;
             var v2 = ((mainStats[3] as ExpressionStatementSyntax).Expression as AssignmentExpressionSyntax).Right;
-            ConversionTestHelper(model, v2, ConversionKind.Unboxing, ConversionKind.Unboxing);
+            ConversionTestHelper(model, v2, ConversionKind.ValueTypeUnboxing, ConversionKind.ValueTypeUnboxing);
             // obj02 = obj01;
             var v3 = ((mainStats[4] as ExpressionStatementSyntax).Expression as AssignmentExpressionSyntax).Right;
             ConversionTestHelper(model, v3, ConversionKind.ExplicitReference, ConversionKind.ExplicitReference);
@@ -693,7 +693,8 @@ class C {
                     Assert.False(conv.IsExplicit);
                     Assert.True(conv.IsReference);
                     break;
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
                     Assert.True(conv.Exists);
                     Assert.True(conv.IsImplicit);
                     Assert.False(conv.IsExplicit);
@@ -759,7 +760,8 @@ class C {
                     Assert.True(conv.IsExplicit);
                     Assert.True(conv.IsReference);
                     break;
-                case ConversionKind.Unboxing:
+                case ConversionKind.ValueTypeUnboxing:
+                case ConversionKind.TypeParameterUnboxing:
                     Assert.True(conv.Exists);
                     Assert.False(conv.IsImplicit);
                     Assert.True(conv.IsExplicit);
@@ -3594,7 +3596,7 @@ class C
             var conv = model.GetConversion(literal);
             Assert.Equal(SpecialType.System_Int32, literalTypeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, literalTypeInfo.ConvertedType.SpecialType);
-            Assert.Equal(ConversionKind.Boxing, conv.Kind);
+            Assert.Equal(ConversionKind.ValueTypeBoxing, conv.Kind);
         }
 
         [Fact]
@@ -3627,7 +3629,7 @@ class C
             var castConversion = model.GetConversion(cast);
             Assert.Equal(SpecialType.System_Int64, castTypeInfo.Type.SpecialType);
             Assert.Equal(SpecialType.System_Object, castTypeInfo.ConvertedType.SpecialType);
-            Assert.Equal(ConversionKind.Boxing, castConversion.Kind);
+            Assert.Equal(ConversionKind.ValueTypeBoxing, castConversion.Kind);
         }
 
         [Fact]
@@ -3662,7 +3664,7 @@ class C
             Assert.Equal(SpecialType.System_Object, castTypeInfo.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, castConversion.Kind);
 
-            Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(literal, (TypeSymbol)castTypeInfo.Type).Kind);
+            Assert.Equal(ConversionKind.ValueTypeBoxing, model.ClassifyConversion(literal, (TypeSymbol)castTypeInfo.Type).Kind);
         }
 
         [Fact]
@@ -3708,7 +3710,7 @@ class C
             Assert.Equal(SpecialType.System_Object, cast2TypeInfo.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, cast2Conversion.Kind);
 
-            Assert.Equal(ConversionKind.Boxing, model.ClassifyConversion(cast1, (TypeSymbol)cast2TypeInfo.Type).Kind);
+            Assert.Equal(ConversionKind.ValueTypeBoxing, model.ClassifyConversion(cast1, (TypeSymbol)cast2TypeInfo.Type).Kind);
         }
 
         [WorkItem(545136, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545136")]

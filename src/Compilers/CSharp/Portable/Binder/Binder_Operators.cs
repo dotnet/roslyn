@@ -2922,7 +2922,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.ImplicitReference:
                 case ConversionKind.ExplicitReference:
-                case ConversionKind.Unboxing:
+                case ConversionKind.ValueTypeUnboxing:
+                case ConversionKind.TypeParameterUnboxing:
                     // In these three cases, the expression type must be a reference type. Therefore,
                     // the result cannot be determined. The expression could be null, resulting 
                     // in false, or it could be a non-null reference to the appropriate type,
@@ -2936,7 +2937,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If it is of pointer type then we have already given an error.
                     return (operandType.IsValueType && !operandType.IsNullableType()) ? ConstantValue.True : null;
 
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
 
                     // A boxing conversion might be a conversion:
                     //
@@ -3148,12 +3150,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (conversionKind)
             {
                 case ConversionKind.ImplicitReference:
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.Identity:
                 case ConversionKind.ExplicitNullable:
                 case ConversionKind.ExplicitReference:
-                case ConversionKind.Unboxing:
+                case ConversionKind.ValueTypeUnboxing:
+                case ConversionKind.TypeParameterUnboxing:
                     break;
 
                 default:

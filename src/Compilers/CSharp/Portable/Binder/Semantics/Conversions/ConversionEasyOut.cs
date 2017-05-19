@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 const byte XRF = (byte)ConversionKind.ExplicitReference;
                 const byte XNM = (byte)ConversionKind.ExplicitNumeric;
                 const byte NOC = (byte)ConversionKind.NoConversion;
-                const byte BOX = (byte)ConversionKind.Boxing;
-                const byte UNB = (byte)ConversionKind.Unboxing;
+                const byte BOX = (byte)ConversionKind.ValueTypeBoxing;
+                const byte UNB = (byte)ConversionKind.ValueTypeUnboxing;
                 const byte NUM = (byte)ConversionKind.ImplicitNumeric;
                 const byte NUL = (byte)ConversionKind.ImplicitNullable;
                 const byte XNL = (byte)ConversionKind.ExplicitNullable;

@@ -960,7 +960,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else if (receiver.Kind == BoundKind.Conversion)
             {
                 var conversion = (BoundConversion)receiver;
-                if (conversion.ConversionKind == ConversionKind.Unboxing)
+                if (conversion.ConversionKind.IsUnboxing())
                 {
                     EmitExpression(conversion.Operand, true);
                     _builder.EmitOpCode(ILOpCode.Unbox);
@@ -999,7 +999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             // can unbox directly into a ref.
-            if (receiver.Kind == BoundKind.Conversion && ((BoundConversion)receiver).ConversionKind == ConversionKind.Unboxing)
+            if (receiver.Kind == BoundKind.Conversion && ((BoundConversion)receiver).ConversionKind.IsUnboxing())
             {
                 return true;
             }
@@ -1262,7 +1262,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     switch (conversion.ConversionKind)
                     {
-                        case ConversionKind.Boxing:
+                        case ConversionKind.ValueTypeBoxing:
+                        case ConversionKind.TypeParameterBoxing:
                             // NOTE: boxing can produce null for Nullable, but any call through that
                             // will result in null reference exceptions anyways.
                             return true;

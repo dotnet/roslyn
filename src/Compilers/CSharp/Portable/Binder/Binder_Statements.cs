@@ -1677,7 +1677,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // At this point we should have covered all the possible cases for variables.
 
-            if ((expr as BoundConversion)?.ConversionKind == ConversionKind.Unboxing)
+            if ((expr as BoundConversion)?.ConversionKind.IsUnboxing() == true)
             {
                 Error(diagnostics, ErrorCode.ERR_UnboxNotLValue, node);
                 return false;

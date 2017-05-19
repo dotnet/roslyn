@@ -383,7 +383,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitEnumeration:
                 // implicit ref cast does not throw ...
                 case ConversionKind.ImplicitReference:
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
                     return false;
 
                 // unchecked numeric conversion does not throw 

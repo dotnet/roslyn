@@ -576,7 +576,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ExplicitEnumeration:
                 case ConversionKind.ExplicitNullable:
                 case ConversionKind.ExplicitReference:
-                case ConversionKind.Unboxing:
+                case ConversionKind.ValueTypeUnboxing:
+                case ConversionKind.TypeParameterUnboxing:
                 case ConversionKind.ExplicitDynamic:
                 case ConversionKind.PointerToPointer:
                 case ConversionKind.PointerToInteger:
@@ -589,7 +590,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitNumeric:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.ImplicitReference:
-                case ConversionKind.Boxing:
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
                 case ConversionKind.ImplicitConstant:
                 case ConversionKind.PointerToVoid:
 

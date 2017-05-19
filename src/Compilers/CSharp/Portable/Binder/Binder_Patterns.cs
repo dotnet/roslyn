@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedExpression = CreateConversion(operand, inputType.GetNullableUnderlyingType(), discardedDiagnostics);
                     discardedDiagnostics.Free();
                 }
-                else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
+                else if ((conversion.ConversionKind.IsBoxing() || conversion.ConversionKind == ConversionKind.ImplicitReference)
                     && operand.ConstantValue != null && convertedExpression.ConstantValue == null)
                 {
                     // A boxed constant (or string converted to object) is a special case because we prefer
@@ -182,12 +182,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.ImplicitDynamic:
                         // Since the input was `dynamic`, which is equivalent to `object`, there must also
                         // exist some unboxing, identity, or reference conversion as well, making the conversion legal.
-                    case ConversionKind.Boxing:
+                    case ConversionKind.ValueTypeBoxing:
+                    case ConversionKind.TypeParameterBoxing:
                     case ConversionKind.ExplicitNullable:
                     case ConversionKind.ExplicitReference:
                     case ConversionKind.Identity:
                     case ConversionKind.ImplicitReference:
-                    case ConversionKind.Unboxing:
+                    case ConversionKind.ValueTypeUnboxing:
+                    case ConversionKind.TypeParameterUnboxing:
                     case ConversionKind.ImplicitNullable:
                         // these are the conversions allowed by a pattern match
                         break;

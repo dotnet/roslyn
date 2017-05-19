@@ -601,7 +601,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // be given if a conversion is actually used.
             switch (conversion.Kind)
             {
-                case ConversionKind.Boxing:             // a value of type int matches a pattern of type object
+                case ConversionKind.ValueTypeBoxing:    // a value of type int matches a pattern of type object
+                case ConversionKind.TypeParameterBoxing:// a value of type T matches a pattern of type object
                 case ConversionKind.Identity:           // a value of a given type matches a pattern of that type
                 case ConversionKind.ImplicitReference:  // a value of type string matches a pattern of type object
                     return true;
@@ -617,9 +618,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NoConversion:
                     return false;
 
-                case ConversionKind.ExplicitDynamic:    // a value of type dynamic might not match a pattern of type other than object
-                case ConversionKind.ExplicitReference:  // a narrowing reference conversion might or might not succeed
-                case ConversionKind.Unboxing:           // a value of type object might match a pattern of type int
+                case ConversionKind.ExplicitDynamic:        // a value of type dynamic might not match a pattern of type other than object
+                case ConversionKind.ExplicitReference:      // a narrowing reference conversion might or might not succeed
+                case ConversionKind.ValueTypeUnboxing:      // a value of type object might match a pattern of type int
+                case ConversionKind.TypeParameterUnboxing:  // a value of type object might match a pattern of type T
                     return null;
 
                 default: // other conversions do not apply (e.g. conversions from expression, user-defined, pointer conversions, tuple)

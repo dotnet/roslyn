@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -178,14 +178,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.ImplicitThrow:
                 case ConversionKind.AnonymousFunction: 
-                case ConversionKind.Boxing: 
+                case ConversionKind.ValueTypeBoxing:
+                case ConversionKind.TypeParameterBoxing:
                 case ConversionKind.DefaultOrNullLiteral: 
                 case ConversionKind.NullToPointer: 
                 case ConversionKind.PointerToVoid: 
                 case ConversionKind.PointerToPointer: 
                 case ConversionKind.PointerToInteger: 
                 case ConversionKind.IntegerToPointer: 
-                case ConversionKind.Unboxing: 
+                case ConversionKind.ValueTypeUnboxing:
+                case ConversionKind.TypeParameterUnboxing:
                 case ConversionKind.ExplicitReference: 
                 case ConversionKind.IntPtr: 
                 case ConversionKind.ExplicitEnumeration: 
@@ -218,14 +220,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static Conversion ImplicitEnumeration => new Conversion(ConversionKind.ImplicitEnumeration);
         internal static Conversion ImplicitThrow => new Conversion(ConversionKind.ImplicitThrow);
         internal static Conversion AnonymousFunction => new Conversion(ConversionKind.AnonymousFunction);
-        internal static Conversion Boxing => new Conversion(ConversionKind.Boxing);
+        internal static Conversion ValueTypeBoxing => new Conversion(ConversionKind.ValueTypeBoxing);
+        internal static Conversion TypeParameterBoxing => new Conversion(ConversionKind.TypeParameterBoxing);
         internal static Conversion DefaultOrNullLiteral => new Conversion(ConversionKind.DefaultOrNullLiteral);
         internal static Conversion NullToPointer => new Conversion(ConversionKind.NullToPointer);
         internal static Conversion PointerToVoid => new Conversion(ConversionKind.PointerToVoid);
         internal static Conversion PointerToPointer => new Conversion(ConversionKind.PointerToPointer);
         internal static Conversion PointerToInteger => new Conversion(ConversionKind.PointerToInteger);
         internal static Conversion IntegerToPointer => new Conversion(ConversionKind.IntegerToPointer);
-        internal static Conversion Unboxing => new Conversion(ConversionKind.Unboxing);
+        internal static Conversion ValueTypeUnboxing => new Conversion(ConversionKind.ValueTypeUnboxing);
+        internal static Conversion TypeParameterUnboxing => new Conversion(ConversionKind.TypeParameterUnboxing);
         internal static Conversion ExplicitReference => new Conversion(ConversionKind.ExplicitReference);
         internal static Conversion IntPtr => new Conversion(ConversionKind.IntPtr);
         internal static Conversion ExplicitEnumeration => new Conversion(ConversionKind.ExplicitEnumeration);
@@ -574,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return Kind == ConversionKind.Boxing;
+                return Kind.IsBoxing();
             }
         }
 
@@ -588,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return Kind == ConversionKind.Unboxing;
+                return Kind.IsUnboxing();
             }
         }
 
