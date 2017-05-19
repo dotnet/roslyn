@@ -307,25 +307,14 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    var taskCompletionSource = new TaskCompletionSource<Compilation>();
-                    GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken)
-                        .ContinueWith(t =>
-                        {
-                            if (t.IsCanceled || cancellationToken.IsCancellationRequested)
-                            {
-                                taskCompletionSource.SetCanceled();
-                            }
-                            else if (t.IsFaulted)
-                            {
-                                taskCompletionSource.SetException(t.Exception.InnerExceptions);
-                            }
-                            else
-                            {
-                                taskCompletionSource.SetResult(t.Result.Compilation);
-                            }
-                        }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-                    return taskCompletionSource.Task;
+                    return GetCompilationSlowAsync(solution, cancellationToken);
                 }
+            }
+
+            private async Task<Compilation> GetCompilationSlowAsync(SolutionState solution, CancellationToken cancellationToken)
+            {
+                var compilationInfo = await GetOrBuildCompilationInfoAsync(solution, lockGate: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return compilationInfo.Compilation;
             }
 
             private static string LogBuildCompilationAsync(ProjectState state)
