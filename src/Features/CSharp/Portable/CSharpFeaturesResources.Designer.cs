@@ -983,9 +983,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to (Suggested name).
         /// </summary>
-        internal static string suggested_name {
+        internal static string Suggested_name {
             get {
-                return ResourceManager.GetString("suggested_name", resourceCulture);
+                return ResourceManager.GetString("Suggested_name", resourceCulture);
             }
         }
         

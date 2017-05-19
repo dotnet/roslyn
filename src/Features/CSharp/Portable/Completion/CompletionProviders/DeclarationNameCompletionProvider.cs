@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 CompletionItemRules.Default, 
                 glyph: glyph, 
                 sortText: sortText, 
-                description: CSharpFeaturesResources.suggested_name.ToSymbolDisplayParts());
+                description: CSharpFeaturesResources.Suggested_name.ToSymbolDisplayParts());
         }
     }
 }

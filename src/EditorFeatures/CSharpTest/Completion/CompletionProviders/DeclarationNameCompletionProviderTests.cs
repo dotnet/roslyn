@@ -37,7 +37,7 @@ public class MyClass
     MyClass $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.suggested_name);
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic);
             await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic);
             await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic);
         }
@@ -440,6 +440,18 @@ public class C
 }
 ";
             await VerifyNoItemsExistAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async void TestDescription()
+        {
+            var markup = @"
+public class MyClass
+{
+    MyClass $$
+}
+";
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         }
     }
 }
