@@ -678,6 +678,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override bool IsReadOnly
+        {
+            get
+            {
+                return (_flags.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
+            }
+        }
+
         public override bool IsSealed
         {
             get

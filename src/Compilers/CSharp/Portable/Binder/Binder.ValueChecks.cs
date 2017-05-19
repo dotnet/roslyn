@@ -398,7 +398,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // SPEC: When this is used in a primary-expression within an instance method or instance accessor
                     // SPEC: of a struct, it is classified as a variable. 
-                    if (!thisref.Type.IsValueType || RequiresReturnableReference(valueKind))
+                    if (!thisref.Type.IsValueType ||
+                        (thisref.Type.IsReadOnly && (this.ContainingMember() as MethodSymbol)?.MethodKind != MethodKind.Constructor) ||
+                        RequiresReturnableReference(valueKind))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);

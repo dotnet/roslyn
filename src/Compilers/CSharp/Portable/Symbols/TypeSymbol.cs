@@ -483,6 +483,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract bool IsValueType { get; }
 
+        //PROTOTYPE(readonly-ref): make abstract?
+        /// <summary>
+        /// Returns true if the type is a readonly sruct
+        /// </summary>
+        internal virtual bool IsReadOnly
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         // Only the compiler can create TypeSymbols.
         internal TypeSymbol()
         {
