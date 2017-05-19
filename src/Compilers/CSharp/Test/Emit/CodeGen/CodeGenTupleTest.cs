@@ -22738,18 +22738,18 @@ static class C
 
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }));
             comp.VerifyDiagnostics(
-                // (10,41): error CS1928: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                // (10,34): error CS1929: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine((1, 2).M());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int, int)", "M", "C.M((int x, long y))").WithLocation(10, 41),
-                // (16,57): error CS1928: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(1, 2)").WithArguments("(int, int)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(10, 34),
+                // (16,34): error CS1929: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' requires a receiver of type '(int x, long? y)'
                 //         System.Console.WriteLine((First: 1, Second: 2L).M1());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M1").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))").WithLocation(16, 57),
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(First: 1, Second: 2L)").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))", "(int x, long? y)").WithLocation(16, 34),
                 // (19,44): error CS0117: '(int, <null>)' does not contain a definition for 'M1'
                 //         System.Console.WriteLine((1, null).M1());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1").WithLocation(19, 44),
-                // (23,46): error CS1928: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1"),
+                // (23,34): error CS1929: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine(notAliteral.M());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int A, int B)", "M", "C.M((int x, long y))").WithLocation(23, 46)
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "notAliteral").WithArguments("(int A, int B)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(23, 34)
                 );
         }
 
