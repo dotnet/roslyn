@@ -81,6 +81,7 @@
     </Compile>
     <Compile Include="DesignerAttributes\CSharpDesignerAttributeService.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProvider.cs" />
+    <Compile Include="DocumentHighlighting\CSharpDocumentHighlightsService.cs" />
     <Compile Include="ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
     <Compile Include="InitializeParameter\CSharpAddParameterCheckCodeRefactoringProvider.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="UpgradeProject\CSharpUpgradeProjectCodeFixProvider.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableDiagnosticAnalyzer.cs" />
     <Compile Include="UseCoalesceExpression\CSharpUseCoalesceExpressionDiagnosticAnalyzer.cs" />
+    <Compile Include="UseDefaultLiteral\CSharpUseDefaultLiteralCodeFixProvider.cs" />
     <Compile Include="UseExpressionBody\Helpers\UseExpressionBodyHelper.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyCodeRefactoringProvider.cs" />
     <Compile Include="UseExpressionBody\UseExpressionBodyDiagnosticAnalyzer.cs" />
@@ -109,6 +111,7 @@
     <Compile Include="AddBraces\CSharpAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerCodeFixProvider.cs" />
     <Compile Include="UseCollectionInitializer\CSharpUseCollectionInitializerDiagnosticAnalyzer.cs" />
+    <Compile Include="UseDefaultLiteral\CSharpUseDefaultLiteralDiagnosticAnalyzer.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationCodeFixProvider.cs" />
     <Compile Include="UseNullPropagation\CSharpUseNullPropagationDiagnosticAnalyzer.cs" />
     <Compile Include="UseObjectInitializer\UseInitializerHelpers.cs" />
@@ -130,7 +133,7 @@
     <Compile Include="CodeFixes\GenerateMethod\GenerateConversionCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMethod\GenerateMethodCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateType\GenerateTypeCodeFixProvider.cs" />
-    <Compile Include="CodeFixes\GenerateVariable\GenerateVariableCodeFixProvider.cs" />
+    <Compile Include="GenerateVariable\CSharpGenerateVariableCodeFixProvider.cs" />
     <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
     <Compile Include="CodeFixes\HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Iterator\CSharpAddYieldCodeFixProvider.cs" />

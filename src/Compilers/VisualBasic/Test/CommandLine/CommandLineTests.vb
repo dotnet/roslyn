@@ -2657,19 +2657,19 @@ End Module").Path
             Assert.Equal(Path.Combine(_baseDirectory, "s l.json"), parsedArgs.SourceLink)
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:full", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug:pdbonly", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug-", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPdb))
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "/debug+", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify()
 
             parsedArgs = DefaultParse({"/sourcelink:sl.json", "a.vb"}, _baseDirectory)
-            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPortablePdb))
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_SourceLinkRequiresPdb))
         End Sub
 
         <Fact>
@@ -2887,6 +2887,74 @@ print Goodbye, World"
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+        <CompilerTrait(CompilerFeature.Determinism)>
+        <Fact>
+        Public Sub PathMapPdbDeterminism()
+            Dim assertPdbEmit =
+                Sub(dir As TempDirectory, pePdbPath As String, extraArgs As String())
+
+                    Dim source =
+                        <compilation>
+Imports System
+Module Program
+    Sub Main()
+    End Sub
+End Module
+                        </compilation>
+
+                    Dim src = dir.CreateFile("a.vb").WriteAllText(source.Value)
+                    Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                    Dim defaultArgs = {"/nologo", "/debug", "a.vb"}
+                    Dim isDeterministic = extraArgs.Contains("/deterministic")
+                    Dim args = defaultArgs.Concat(extraArgs).ToArray()
+                    Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+
+                    Dim vbc = New MockVisualBasicCompiler(dir.Path, args)
+                    Dim exitCode = vbc.Run(outWriter)
+                    Assert.Equal(0, exitCode)
+
+                    Dim exePath = Path.Combine(dir.Path, "a.exe")
+                    Assert.True(File.Exists(exePath))
+                    Assert.True(File.Exists(pdbPath))
+
+                    Using peStream = File.OpenRead(exePath)
+                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, isDeterministic)
+                    End Using
+                End Sub
+
+            ' No mappings
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, pePdbPath, {})
+            End Using
+
+            ' Simple mapping
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = "q:\a.pdb"
+                assertPdbEmit(dir, pePdbPath, {$"/pathmap:{dir.Path}=q:\"})
+            End Using
+
+            ' Simple mapping deterministic
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = "q:\a.pdb"
+                assertPdbEmit(dir, pePdbPath, {$"/pathmap:{dir.Path}=q:\", "/deterministic"})
+            End Using
+
+            ' Partial mapping
+            Using dir As New DisposableDirectory(Temp)
+                Dim subDir = dir.CreateDirectory("example")
+                Dim pePdbPath = "q:\example\a.pdb"
+                assertPdbEmit(subDir, pePdbPath, {$"/pathmap:{dir.Path}=q:\"})
+            End Using
+
+            ' Legacy feature flag
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
+            End Using
+        End Sub
+
+
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
         Public Sub ParseOut()
@@ -2906,6 +2974,32 @@ print Goodbye, World"
             Assert.Equal("MyBinary.dll", parsedArgs.OutputFileName)
             Assert.Equal("MyBinary.dll", parsedArgs.CompilationOptions.ModuleName)
             Assert.Equal("C:\My Folder", parsedArgs.OutputDirectory)
+
+            parsedArgs = DefaultParse({"/refout:", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("refout", ":<file>").WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/refonly", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refonly:incorrect", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_SwitchNeedsBool).WithArguments("refonly").WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/target:module", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
+
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/link:b", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            parsedArgs = DefaultParse({"/refonly", "/link:b", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            parsedArgs = DefaultParse({"/refonly", "/target:module", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.ERR_NoNetModuleOutputWhenRefOutOrRefOnly).WithLocation(1, 1))
 
             parsedArgs = DefaultParse({"/out:C:\""My Folder""\MyBinary.dll", "/t:library", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(
@@ -3042,6 +3136,12 @@ print Goodbye, World"
 
             parsedArgs = DefaultParse({"/OUT:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("out", ":<file>"))
+
+            parsedArgs = DefaultParse({"/REFOUT:", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("refout", ":<file>"))
+
+            parsedArgs = DefaultParse({"/refout:ref.dll", "/refonly", "a.vb"}, baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_NoRefOutWhenRefOnly).WithLocation(1, 1))
 
             parsedArgs = DefaultParse({"/out+", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/out+")) ' TODO: Dev11 reports ERR_ArgumentRequired
@@ -8150,6 +8250,196 @@ End Class
             Next
         End Sub
 
+        <Fact>
+        Public Sub RefOut()
+            Dim dir = Temp.CreateDirectory()
+            Dim refDir = dir.CreateDirectory("ref")
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText("
+Public Class C
+    ''' <summary>Main method</summary>
+    Public Shared Sub Main()
+        System.Console.Write(""Hello"")
+    End Sub
+    ''' <summary>Private method</summary>
+    Private Shared Sub PrivateMethod()
+        System.Console.Write(""Private"")
+    End Sub
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.exe", "/refout:ref/a.dll", "/doc:doc.xml", "/deterministic", "a.vb"})
+
+            Dim exitCode = vbc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim exe = Path.Combine(dir.Path, "a.exe")
+            Assert.True(File.Exists(exe))
+
+            MetadataReaderUtils.VerifyPEMetadata(exe,
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()", "MethodDefinition:Void PrivateMethod()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
+                )
+
+            Dim doc = Path.Combine(dir.Path, "doc.xml")
+            Assert.True(File.Exists(doc))
+
+            Dim content = File.ReadAllText(doc)
+            Dim expectedDoc =
+"<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+a
+</name>
+</assembly>
+<members>
+<member name=""M:C.Main"">
+ <summary>Main method</summary>
+</member>
+<member name=""M:C.PrivateMethod"">
+ <summary>Private method</summary>
+</member>
+</members>
+</doc>"
+            Assert.Equal(expectedDoc, content.Trim())
+
+            Dim output = ProcessUtilities.RunAndGetOutput(exe, startFolder:=dir.Path)
+            Assert.Equal("Hello", output.Trim())
+
+            Dim refDll = Path.Combine(refDir.Path, "a.dll")
+            Assert.True(File.Exists(refDll))
+
+            ' The types and members that are included needs further refinement.
+            ' See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
+                {"TypeDefinition:<Module>", "TypeDefinition:C"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
+                )
+
+            ' Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path)
+            CleanupAllGeneratedFiles(refDir.Path)
+        End Sub
+
+        <Fact>
+        Public Sub RefOutWithError()
+            Dim dir = Temp.CreateDirectory()
+            dir.CreateDirectory("ref")
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText(
+"Class C
+    Public Shared Sub Main()
+        Bad()
+    End Sub
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refout:ref/a.dll", "/deterministic", "a.vb"})
+
+            Dim exitCode = csc.Run(outWriter)
+            Assert.Equal(1, exitCode)
+
+            Dim vb = Path.Combine(dir.Path, "a.vb")
+
+            Dim dll = Path.Combine(dir.Path, "a.dll")
+            Assert.False(File.Exists(dll))
+
+            Dim refDll = Path.Combine(dir.Path, Path.Combine("ref", "a.dll"))
+            Assert.False(File.Exists(refDll))
+
+            Assert.Equal(
+$"{vb}(3) : error BC30451: 'Bad' is not declared. It may be inaccessible due to its protection level.
+
+        Bad()
+        ~~~",
+outWriter.ToString().Trim())
+
+            ' Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
+        <Fact>
+        Public Sub RefOnly()
+            Dim dir = Temp.CreateDirectory()
+
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText(
+"Class C
+    ''' <summary>Main method</summary>
+    Public Shared Sub Main()
+        Bad()
+    End Sub
+    ''' <summary>Field</summary>
+    Private Dim field As Integer
+
+    ''' <summary>Field</summary>
+    Private Structure S
+        ''' <summary>Struct Field</summary>
+        Private Dim field As Integer
+    End Structure
+End Class")
+
+            Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+            Dim csc = New MockVisualBasicCompiler(Nothing, dir.Path,
+                {"/define:_MYTYPE=""Empty"" ", "/nologo", "/out:a.dll", "/refonly", "/debug", "/deterministic", "/doc:doc.xml", "a.vb"})
+
+            Dim exitCode = csc.Run(outWriter)
+            Assert.Equal(0, exitCode)
+
+            Dim refDll = Path.Combine(dir.Path, "a.dll")
+            Assert.True(File.Exists(refDll))
+
+            ' The types and members that are included needs further refinement.
+            ' See issue https://github.com/dotnet/roslyn/issues/17612
+            MetadataReaderUtils.VerifyPEMetadata(refDll,
+                {"TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S"},
+                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
+                )
+
+            Dim pdb = Path.Combine(dir.Path, "a.pdb")
+            Assert.False(File.Exists(pdb))
+
+            Dim doc = Path.Combine(dir.Path, "doc.xml")
+            Assert.True(File.Exists(doc))
+
+            Dim content = File.ReadAllText(doc)
+            Dim expectedDoc =
+"<?xml version=""1.0""?>
+<doc>
+<assembly>
+<name>
+a
+</name>
+</assembly>
+<members>
+<member name=""M:C.Main"">
+ <summary>Main method</summary>
+</member>
+<member name=""F:C.field"">
+ <summary>Field</summary>
+</member>
+<member name=""T:C.S"">
+ <summary>Field</summary>
+</member>
+<member name=""F:C.S.field"">
+ <summary>Struct Field</summary>
+</member>
+</members>
+</doc>"
+            Assert.Equal(expectedDoc, content.Trim())
+
+            ' Clean up temp files
+            CleanupAllGeneratedFiles(dir.Path)
+        End Sub
+
         <WorkItem(13681, "https://github.com/dotnet/roslyn/issues/13681")>
         <Theory()>
         <InlineData("/t:exe", "/out:foo.dll", "foo.dll", "foo.dll.exe")>                                'Output with known but different extension
@@ -8252,11 +8542,13 @@ End Module
             Assert.Equal($"error BC2012: can't open '{xmlPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
-        <Fact>
-        Public Sub IOFailure_DisposeSourceLinkFile()
+        <Theory>
+        <InlineData("portable")>
+        <InlineData("full")>
+        Public Sub IOFailure_DisposeSourceLinkFile(format As String)
             Dim srcPath = MakeTrivialExe(Temp.CreateDirectory().Path)
             Dim sourceLinkPath = Path.Combine(Path.GetDirectoryName(srcPath), "test.json")
-            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:portable", $"/sourcelink:{sourceLinkPath}", srcPath})
+            Dim csc = New MockVisualBasicCompiler(_baseDirectory, {"/nologo", "/preferreduilang:en", "/debug:" & format, $"/sourcelink:{sourceLinkPath}", srcPath})
             csc.FileOpen = Function(filePath, mode, access, share)
                                If filePath = sourceLinkPath Then
                                    Return New TestStream(

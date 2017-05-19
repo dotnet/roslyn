@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             {
                 var scope = stack.Pop();
                 allScopes.Add(scope);
-                if (offset >= 0 && scope.IsInScope(offset, isScopeEndInclusive))
+                if (offset >= 0 && IsInScope(scope, offset, isScopeEndInclusive))
                 {
                     containingScopes.Add(scope);
                 }
@@ -54,6 +54,21 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             stack.Free();
+        }
+
+        private static bool IsInScope(ISymUnmanagedScope scope, int offset, bool isEndInclusive)
+        {
+            int startOffset = scope.GetStartOffset();
+            if (offset < startOffset)
+            {
+                return false;
+            }
+
+            int endOffset = scope.GetEndOffset();
+
+            // In PDBs emitted by VB the end offset is inclusive, 
+            // in PDBs emitted by C# the end offset is exclusive.
+            return isEndInclusive ? offset <= endOffset : offset < endOffset;
         }
 
         /// <summary>

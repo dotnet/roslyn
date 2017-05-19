@@ -764,7 +764,8 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19368")>
+        <Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate1() As Task
             Dim input =
         <Workspace>

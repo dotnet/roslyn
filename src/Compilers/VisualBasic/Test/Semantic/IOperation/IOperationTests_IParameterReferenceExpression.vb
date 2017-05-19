@@ -226,7 +226,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From y In x ... nto Count()')
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18781"), WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
         Public Sub ParameterReference_ObjectAndCollectionInitializer()
             Dim source = <![CDATA[
 Imports System.Collections.Generic
@@ -238,36 +238,130 @@ Friend Class [Class]
     Public Property C As [Class]
 
     Public Sub M(x As Integer, y As Integer, z As Integer)
-        Dim c = New [Class]() With {'BIND:"New [Class]() With {"
+        Dim c = New [Class]() With {'BIND:"New [Class]() With {"'BIND:"New [Class]() With {'BIND:"New [Class]() With {""
             .X = x,
             .Y = {x, y, 3},
             .Z = New Dictionary(Of Integer, Integer) From {{x, y}},
             .C = New [Class]() With {.X = z}
         }
     End Sub
-End Class
-]]>.Value
+End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... }')
-  Member Initializers(4): IPropertyInitializer (Property: Property [Class].X As System.Int32) (OperationKind.PropertyInitializerInCreation) (Syntax: '.X = x')
-      IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IPropertyInitializer (Property: Property [Class].Y As System.Int32()) (OperationKind.PropertyInitializerInCreation) (Syntax: '.Y = {x, y, 3}')
-      IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y, 3}')
-        Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '{x, y, 3}')
-        Initializer: IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{x, y, 3}')
-            Element Values(3): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-              IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-              ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
-    IPropertyInitializer (Property: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (OperationKind.PropertyInitializerInCreation) (Syntax: '.Z = New Di ... om {{x, y}}')
-      IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'New Diction ... om {{x, y}}')
-    IPropertyInitializer (Property: Property [Class].C As [Class]) (OperationKind.PropertyInitializerInCreation) (Syntax: '.C = New [C ... th {.X = z}')
-      IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... th {.X = z}')
-        Member Initializers(1): IPropertyInitializer (Property: Property [Class].X As System.Int32) (OperationKind.PropertyInitializerInCreation) (Syntax: '.X = z')
-            IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
+  Initializers(4): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.X = x')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.Y = {x, y, 3}')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32()) (Syntax: 'Y')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y, 3}')
+          Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '{x, y, 3}')
+          Initializer: IArrayInitializer (3 elements) (OperationKind.ArrayInitializer) (Syntax: '{x, y, 3}')
+              Element Values(3): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+                ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.Z = New Di ... om {{x, y}}')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'New Diction ... om {{x, y}}')
+          Initializers(1): IInvocationExpression ( Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32).Add(key As System.Int32, value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: '{x, y}')
+              Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New Diction ... om {{x, y}}')
+              Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: key) (OperationKind.Argument) (Syntax: 'x')
+                  IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
+                  IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+    IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.C = New [C ... th {.X = z}')
+      Left: IIndexedPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class]) (Syntax: 'C')
+          Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
+      Right: IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... th {.X = z}')
+          Initializers(1): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.X = z')
+              Left: IIndexedPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
+                  Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... th {.X = z}')
+              Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_DelegateCreationExpressionWithLambdaArgument()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System
+
+Class Class1
+    Delegate Sub DelegateType()
+    Public Sub M(x As Object, y As EventArgs)
+        Dim eventHandler As New EventHandler(Function() x)'BIND:"New EventHandler(Function() x)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... nction() x)')
+  ILambdaExpression (Signature: Function () As System.Object) (OperationKind.LambdaExpression, Type: null) (Syntax: 'Function() x')
+    IBlockStatement (3 statements, 1 locals) (OperationKind.BlockStatement) (Syntax: 'Function() x')
+      Locals: Local_1: <anonymous local> As System.Object
+      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'x')
+        IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+      ILabelStatement (Label: exit) (OperationKind.LabelStatement) (Syntax: 'Function() x')
+      IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'Function() x')
+        ILocalReferenceExpression:  (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'Function() x')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_DelegateCreationExpressionWithMethodArgument()
+            Dim source = <![CDATA[
+Imports System
+
+Class Class1
+    Public Sub M(x As Object, y As EventArgs)
+        Dim eventHandler As New EventHandler(AddressOf Me.M)'BIND:"New EventHandler(AddressOf Me.M)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Explicit) (OperationKind.ConversionExpression, Type: System.EventHandler) (Syntax: 'New EventHa ... essOf Me.M)')
+  IOperation:  (OperationKind.None) (Syntax: 'AddressOf Me.M')
+    Children(1): IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: Class1) (Syntax: 'Me')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(8884, "https://github.com/dotnet/roslyn/issues/8884")>
+        Public Sub ParameterReference_DelegateCreationExpressionWithInvalidArgument()
+            Dim source = <![CDATA[
+Option Strict Off
+Imports System
+
+Class Class1
+    Delegate Sub DelegateType()
+    Public Sub M(x As Object, y As EventArgs)
+        Dim eventHandler As New EventHandler(x)'BIND:"New EventHandler(x)"
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInvalidExpression (OperationKind.InvalidExpression, Type: System.EventHandler, IsInvalid) (Syntax: 'New EventHandler(x)')
+  Children(1): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+]]>.Value
+
+            Dim expectedDiagnostics = <![CDATA[
+BC32008: Delegate 'EventHandler' requires an 'AddressOf' expression or lambda expression as the only argument to its constructor.
+        Dim eventHandler As New EventHandler(x)'BIND:"New EventHandler(x)"
+                                            ~~~
+]]>.Value
 
             VerifyOperationTreeAndDiagnosticsForTest(Of ObjectCreationExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub

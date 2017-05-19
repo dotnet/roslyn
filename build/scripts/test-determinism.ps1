@@ -46,7 +46,7 @@ function Run-Build() {
         }
 
         Write-Host "Building the Solution"
-        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism;pdb-path-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln"
+        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln"
     }
     finally {
         Pop-Location

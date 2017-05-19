@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundPatternSwitchLabel defaultLabel;
             bool isComplete;
             ImmutableArray<BoundPatternSwitchSection> switchSections =
-                BindPatternSwitchSections(boundSwitchExpression, node.Sections, originalBinder, out defaultLabel, out isComplete, diagnostics);
+                BindPatternSwitchSections(originalBinder, out defaultLabel, out isComplete, diagnostics);
             var locals = GetDeclaredLocalsForScope(node);
             var functions = GetDeclaredLocalFunctionsForScope(node);
             return new BoundPatternSwitchStatement(
@@ -101,8 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the decision tree.
         /// </summary>
         private ImmutableArray<BoundPatternSwitchSection> BindPatternSwitchSections(
-            BoundExpression boundSwitchExpression,
-            SyntaxList<SwitchSectionSyntax> sections,
             Binder originalBinder,
             out BoundPatternSwitchLabel defaultLabel,
             out bool isComplete,
@@ -115,11 +113,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Bind match sections
             var boundPatternSwitchSectionsBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
-            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, this.Conversions, boundSwitchExpression);
-            foreach (var sectionSyntax in sections)
+            SubsumptionDiagnosticBuilder subsumption = new SubsumptionDiagnosticBuilder(ContainingMemberOrLambda, SwitchSyntax, this.Conversions, SwitchGoverningExpression);
+            foreach (var sectionSyntax in SwitchSyntax.Sections)
             {
                 boundPatternSwitchSectionsBuilder.Add(BindPatternSwitchSection(
-                    boundSwitchExpression, sectionSyntax, originalBinder, ref defaultLabel, ref someValueMatched, subsumption, diagnostics));
+                    SwitchGoverningExpression, sectionSyntax, originalBinder, ref defaultLabel, ref someValueMatched, subsumption, diagnostics));
             }
 
             isComplete = defaultLabel != null || subsumption.IsComplete || someValueMatched;

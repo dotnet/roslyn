@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
                 ContinueWith("Dim y As Integer = 2").
                 ContinueWith("?x + y")
 
-            Assert.Equal(3, CType(s.ReturnValue, Integer))
+            Assert.Equal(3, s.ReturnValue)
         End Function
 
         <Fact>
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             Dim source = "
 ?1 _
 "
-            Assert.Equal(1, CType(VisualBasicScript.EvaluateAsync(source).Result, Integer))
+            Assert.Equal(1, VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
 
         <Fact>
@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
             Dim source = "
 ?1
 "
-            Assert.Equal(1, CType(VisualBasicScript.EvaluateAsync(source).Result, Integer))
+            Assert.Equal(1, VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
 
         <Fact>
@@ -61,7 +61,7 @@ End If
 ?x + 1
 "
 
-            Assert.Equal(6, CType(VisualBasicScript.EvaluateAsync(source).Result, Integer))
+            Assert.Equal(6, VisualBasicScript.EvaluateAsync(source).Result)
         End Sub
 
         <Fact>
@@ -81,7 +81,7 @@ Dim d = New With { Key .F = 777 }
     & "" "" & (a.GetType() Is b.GetType()).ToString() _
     & "" "" & (b.GetType() is d.GetType()).ToString()
 ")
-            Assert.Equal("True False True", CType(script.EvaluateAsync().Result, String))
+            Assert.Equal("True False True", script.EvaluateAsync().Result)
         End Sub
 
         <Fact>
@@ -107,7 +107,7 @@ Dim d = Function () As Integer
     & "" "" & (b.GetType() is d.GetType()).ToString()
 ")
 
-            Assert.Equal("True False True", CType(script.EvaluateAsync().Result, String))
+            Assert.Equal("True False True", script.EvaluateAsync().Result)
         End Sub
     End Class
 

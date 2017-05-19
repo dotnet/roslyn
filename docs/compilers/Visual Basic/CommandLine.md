@@ -4,6 +4,7 @@
 | ---- | ---- |
 | **OUTPUT FILE**
 | `/out:`*file* | Specifies the output file name.
+| `/refout:`*file* | Specify the reference assembly's output file name
 | `/target:exe` | Create a console application (default). (Short form: `/t`)
 | `/target:winexe` | Create a Windows application.
 | `/target:library` | Create a library assembly.
@@ -27,13 +28,19 @@
 | `/win32manifest:`*file* | The provided file is embedded in the manifest section of the output PE.
 | `/win32resource:`*file* | Specifies a Win32 resource file (.res).
 | **CODE GENERATION**
+| `/debug`{`+`&#124;`-`} | Emit debugging information.
+| `/debug`:`full` | Emit debugging information to .pdb file using default format for the current platform: _Windows PDB_ on Windows, _Portable PDB_ on other systems
+| `/debug`:`pdbonly` | Same as `/debug:full`. For backward compatibility. 
+| `/debug`:`portable` | Emit debugging information to to .pdb file using cross-platform [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md)
+| `/debug`:`embedded` | Emit debugging information into the .dll/.exe itself (.pdb file is not produced) using [Portable PDB format](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/portable_pdb.md).
+| `/sourcelink`:*file* | [Source link](https://github.com/dotnet/core/blob/master/Documentation/diagnostics/source_link.md) info to embed into PDB.
 | `/optimize`{`+`&#124;`-`} | Enable optimizations.
 | `/removeintchecks`{`+`&#124;`-`} | Remove integer checks. Default off.
-| `/debug`{`+`&#124;`-`} | Emit debugging information.
 | `/debug:full` | Emit full debugging information (default).
 | `/debug:portable` | Emit debugging information in the portable format.
 | `/debug:pdbonly` | Emit PDB file only.
 | `/deterministic` | Produce a deterministic assembly (including module version GUID and timestamp)
+| `/refonly | Produce a reference assembly, instead of a full assembly, as the primary output 
 | **ERRORS AND WARNINGS**
 | `/nowarn` | Disable all warnings.
 | `/nowarn:`*number_list* | Disable a list of individual warnings.

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public static class LocalFunctionTestsUtil
     {
-        public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
+        public static IMethodSymbol FindLocalFunction(this CompilationVerifier verifier, string localFunctionName)
         {
             localFunctionName = (char)GeneratedNameKind.LocalFunction + "__" + localFunctionName;
             var methods = verifier.TestData.GetMethodsByName();
@@ -4038,7 +4038,7 @@ class Program
 }
 ");
         }
-        
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);

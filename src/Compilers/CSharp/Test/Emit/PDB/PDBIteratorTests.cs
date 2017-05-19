@@ -403,6 +403,7 @@ class C
         <entry offset=""0x18"" startLine=""23"" startColumn=""13"" endLine=""23"" endColumn=""41"" />
         <entry offset=""0x1d"" startLine=""21"" startColumn=""24"" endLine=""21"" endColumn=""26"" />
         <entry offset=""0x27"" hidden=""true"" />
+        <entry offset=""0x30"" hidden=""true"" />
         <entry offset=""0x31"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x32"">
@@ -555,6 +556,7 @@ public class Test
         <entry offset=""0x17"" startLine=""46"" startColumn=""49"" endLine=""46"" endColumn=""50"" />
         <entry offset=""0x18"" startLine=""46"" startColumn=""24"" endLine=""46"" endColumn=""26"" />
         <entry offset=""0x22"" hidden=""true"" />
+        <entry offset=""0x2c"" hidden=""true"" />
         <entry offset=""0x2d"" startLine=""47"" startColumn=""5"" endLine=""47"" endColumn=""6"" />
       </sequencePoints>
       <scope startOffset=""0x0"" endOffset=""0x2e"">

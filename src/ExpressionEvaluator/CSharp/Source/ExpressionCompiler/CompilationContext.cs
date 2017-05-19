@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 declaredLocals = ImmutableArray<LocalSymbol>.Empty;
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
-                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
+                var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0], null);
                 var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 properties = default(ResultProperties);
                 return statement;

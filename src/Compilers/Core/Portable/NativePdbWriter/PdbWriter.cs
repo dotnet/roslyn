@@ -120,7 +120,8 @@ namespace Microsoft.Cci
             OpenMapTokensToSourceSpans,
             MapTokenToSourceSpan,
             CloseMapTokensToSourceSpans,
-            SetSource
+            SetSource,
+            SetSourceLinkData,
         }
 
         public bool LogOperation(PdbWriterOperation op)
@@ -736,17 +737,25 @@ namespace Microsoft.Cci
 
         private const string SymWriterClsid = "0AE2DEB0-F901-478b-BB9F-881EE8066788";
 
-        private static bool s_MicrosoftDiaSymReaderNativeLoadFailed;
+        private const string LegacyDiaSymReaderModuleName = "diasymreader.dll";
+        private const string DiaSymReaderModuleName32 = "Microsoft.DiaSymReader.Native.x86.dll";
+        private const string DiaSymReaderModuleName64 = "Microsoft.DiaSymReader.Native.amd64.dll";
+
+        private static string s_MicrosoftDiaSymReaderNativeLoadFailure;
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName32, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
         [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory | DllImportSearchPath.SafeDirectories)]
-        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymWriter")]
+        [DllImport(DiaSymReaderModuleName64, EntryPoint = "CreateSymWriter")]
         private extern static void CreateSymWriter64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symWriter);
 
-        private static string PlatformId => (IntPtr.Size == 4) ? "x86" : "amd64";
+        private static string DiaSymReaderModuleName 
+            => (IntPtr.Size == 4) ? DiaSymReaderModuleName32 : DiaSymReaderModuleName64;
+
+        private static string LoadedDiaSymReaderModuleName
+            => s_MicrosoftDiaSymReaderNativeLoadFailure != null ? LegacyDiaSymReaderModuleName : DiaSymReaderModuleName;
 
         private static Type GetCorSymWriterSxSType()
         {
@@ -764,7 +773,7 @@ namespace Microsoft.Cci
             object symWriter = null;
 
             // First try to load an implementation from Microsoft.DiaSymReader.Native, which supports determinism.
-            if (!s_MicrosoftDiaSymReaderNativeLoadFailed)
+            if (s_MicrosoftDiaSymReaderNativeLoadFailure == null)
             {
                 try
                 {
@@ -778,9 +787,9 @@ namespace Microsoft.Cci
                         CreateSymWriter64(ref guid, out symWriter);
                     }
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    s_MicrosoftDiaSymReaderNativeLoadFailed = true;
+                    s_MicrosoftDiaSymReaderNativeLoadFailure = e.Message;
                     symWriter = null;
                 }
             }
@@ -806,25 +815,25 @@ namespace Microsoft.Cci
                 }
                 catch (Exception)
                 {
-                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotAvailable, PlatformId));
+                    throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterOlderVersionThanRequired, LoadedDiaSymReaderModuleName));
                 }
 
                 // Correctness: If the stream is not specified or if it is non-empty the SymWriter appends data to it (provided it contains valid PDB)
                 // and the resulting PDB has Age = existing_age + 1.
                 _pdbStream = new ComMemoryStream();
 
-                if (_deterministic)
+                if (!_deterministic)
                 {
-                    if (!(symWriter is ISymUnmanagedWriter7))
-                    {
-                        throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, PlatformId));
-                    }
-
-                    ((ISymUnmanagedWriter7)symWriter).InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
+                    symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                }
+                else if (symWriter is ISymUnmanagedWriter8 symWriter8)
+                {
+                    symWriter8.InitializeDeterministic(new PdbMetadataWrapper(metadataWriter), _pdbStream);
                 }
                 else
                 {
-                    symWriter.Initialize(new PdbMetadataWrapper(metadataWriter), _fileName, _pdbStream, fullBuild: true);
+                    throw new NotSupportedException(s_MicrosoftDiaSymReaderNativeLoadFailure ??
+                        string.Format(CodeAnalysisResources.SymWriterNotDeterministic, LoadedDiaSymReaderModuleName));
                 }
 
                 _metadataWriter = metadataWriter;
@@ -847,7 +856,7 @@ namespace Microsoft.Cci
                 {
                     fixed (byte* hashPtr = &hash[0])
                     {
-                        ((ISymUnmanagedWriter7)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
+                        ((ISymUnmanagedWriter8)_symWriter).UpdateSignatureByHashingContent(hashPtr, hash.Length);
                     }
                 }
                 catch (Exception ex)
@@ -1494,6 +1503,34 @@ namespace Microsoft.Cci
                         throw new PdbWritingException(ex);
                     }
                 }
+            }
+        }
+
+        public unsafe void EmbedSourceLink(Stream stream)
+        {
+            if (!(_symWriter is ISymUnmanagedWriter8 symWriter8))
+            {
+                throw new NotSupportedException(string.Format(CodeAnalysisResources.SymWriterDoesNotSupportSourceLink, LoadedDiaSymReaderModuleName));
+            }
+
+            try
+            {
+                var buffer = stream.ReadAllBytes();
+
+                fixed (byte* bufferPtr = buffer)
+                {
+                    byte b = 0;
+                    symWriter8.SetSourceLinkData((bufferPtr != null) ? bufferPtr : &b, buffer.Length);
+                }
+
+                if (_callLogger.LogOperation(OP.SetSourceLinkData))
+                {
+                    _callLogger.LogArgument(buffer);
+                }
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PdbWritingException(e);
             }
         }
 
