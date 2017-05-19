@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
@@ -36,7 +37,7 @@ public class MyClass
     MyClass $$
 }
 ";
-            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic);
+            await VerifyItemExistsAsync(markup, "MyClass", glyph: (int)Glyph.MethodPublic, expectedDescriptionOrNull: CSharpFeaturesResources.suggested_name);
             await VerifyItemExistsAsync(markup, "myClass", glyph: (int)Glyph.FieldPublic);
             await VerifyItemExistsAsync(markup, "GetMyClass", glyph: (int)Glyph.MethodPublic);
         }
