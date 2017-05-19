@@ -2937,8 +2937,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter"),
                 // (2,7): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a"),
@@ -3200,8 +3198,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter"),
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var (_, _)"),
@@ -3868,8 +3864,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(2, 8),
@@ -4157,8 +4151,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,3): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var (_, _)").WithLocation(2, 3),
@@ -4309,8 +4301,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(2, 8),
@@ -4527,8 +4517,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var ((_, _), _)").WithLocation(2, 2),
