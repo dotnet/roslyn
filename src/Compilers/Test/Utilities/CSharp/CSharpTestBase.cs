@@ -215,24 +215,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                                                     TestOptions.ReleaseExe);
         }
 
-        internal override IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
-        {
-            var options = TestOptions.ReleaseDll.WithMetadataImportOptions(importOptions);
-            var tc1 = CSharpCompilation.Create("Dummy", new SyntaxTree[0], references, options);
-            return references.Select(r =>
-            {
-                if (r.Properties.Kind == MetadataImageKind.Assembly)
-                {
-                    var assemblySymbol = tc1.GetReferencedAssemblySymbol(r);
-                    return (object)assemblySymbol == null ? null : assemblySymbol.Modules[0];
-                }
-                else
-                {
-                    return tc1.GetReferencedModuleSymbol(r);
-                }
-            });
-        }
-
         internal static PEAssemblyBuilder GetDefaultPEBuilder(CSharpCompilation compilation)
         {
             // PROTOTYPE(readonlyRefs): Using a PEAssemblyBuilder here is a hack till https://github.com/dotnet/roslyn/issues/18799 is fixed.
