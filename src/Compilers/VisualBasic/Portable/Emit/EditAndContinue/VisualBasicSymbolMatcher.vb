@@ -655,7 +655,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim visitedSource = DirectCast(_matcher.Visit(source), TypeSymbol)
                     Dim visitedOther = If(_deepTranslatorOpt IsNot Nothing, DirectCast(_deepTranslatorOpt.Visit(other), TypeSymbol), other)
 
-                    ' If both visitedSource And visitedOther are Nothing, return false meaning that the method was not able to verify the equality.
+                    ' If both visitedSource and visitedOther are Nothing, return false meaning that the method was not able to verify the equality.
                     Return visitedSource IsNot Nothing AndAlso visitedOther IsNot Nothing AndAlso visitedSource.IsSameType(visitedOther, TypeCompareKind.IgnoreTupleNames)
                 End Function
             End Class
