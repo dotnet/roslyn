@@ -10,11 +10,12 @@
     <TestVsi Condition="'$(testVsiNetCore)' == 'true'">true</TestVsi>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
     <RunTestArgs Condition="'$(ManualTest)' == ''">$(RunTestArgs) -xml</RunTestArgs>
-    <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64</RunTestArgs>
-    <RunTestArgs Condition="'$(TestVsi)' == 'true'">$(RunTestArgs) -testVsi -timeout:5</RunTestArgs>
+    <RunTestArgs Condition="'$(Test64)' == 'true'">$(RunTestArgs) -test64 -timeout:2</RunTestArgs>
+    <RunTestArgs Condition="'$(TestVsi)' == 'true'">$(RunTestArgs) -testVsi -timeout:2</RunTestArgs>
     <RunTestArgs Condition="'$(TestVsiNetCore)' == 'true'">$(RunTestArgs) -trait:Feature=NetCore</RunTestArgs>
     <RunTestArgs Condition="'$(Trait)' != ''">$(RunTestArgs) -trait:$(Trait)</RunTestArgs>
     <RunTestArgs Condition="'$(NoTrait)' != ''">$(RunTestArgs) -notrait:$(NoTrait)</RunTestArgs>
+    <RunTestArgs Condition="'$(ProcDumpDir)' != ''">$(RunTestArgs) -procDumpPath:$(ProcDumpDir)</RunTestArgs>
     <DeployExtensionViaBuild Condition="'$(DeployExtensionViaBuild)' == ''">false</DeployExtensionViaBuild>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' != 'true'">*.UnitTests.dll</IncludePattern>
     <IncludePattern Condition="'$(IncludePattern)' == '' AND '$(TestVsi)' == 'true'">*.IntegrationTests.dll</IncludePattern>

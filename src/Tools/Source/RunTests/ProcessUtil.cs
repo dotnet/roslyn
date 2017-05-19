@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Management;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -77,5 +78,25 @@ namespace RunTests
 
             return list;
         }
+
+        internal static bool Is64Bit(Process process)
+        {
+            if (Environment.GetEnvironmentVariable("PROCESSOR_ARCHITECTURE") == "x86")
+            {
+                return false;
+            }
+
+            bool isWow64;
+            if (!IsWow64Process(process.Handle, out isWow64))
+            {
+                throw new Exception($"{nameof(IsWow64Process)} failed with {Marshal.GetLastWin32Error()}");
+            }
+
+            return !isWow64;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool IsWow64Process([In] IntPtr process, [Out] out bool wow64Process);
     }
 }
