@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = DummySyntax();
                 var compilation = _containingType.DeclaringCompilation;
-                var binder = compilation.GetBinder((CSharpSyntaxNode)compilation.SyntaxTrees[0].GetRoot());
+                var binder = compilation.GetBinder((CSharpSyntaxNode)_containingType.DeclaringSyntaxReferences[0].SyntaxTree.GetRoot());
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 0);
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 { WasCompilerGenerated = true };
 
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
-                BoundExpression getAwaiterGetResultCall = null;
+                BoundExpression getAwaiterGetResultCall;
                 binder.GetAwaitableExpressionInfo(initializeCall, out _, out _, out _, out getAwaiterGetResultCall, syntax, diagnostics);
 
                 return new BoundBlock(syntax,
