@@ -307,27 +307,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.EmptyStatement:
                     var emptyStatement = (EmptyStatementSyntax)node;
-                    switch (node.Parent.Kind())
+                    if (!emptyStatement.SemicolonToken.IsMissing)
                     {
-                        case SyntaxKind.ForStatement:
-                        case SyntaxKind.ForEachStatement:
-                        case SyntaxKind.ForEachVariableStatement:
-                        case SyntaxKind.WhileStatement:
-                            // For loop constructs, only warn if we see a block following the statement.
-                            // That indicates code like:  "while (x) ; { }"
-                            // which is most likely a bug.
-                            if (emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.OpenBraceToken)
-                            {
+                        switch (node.Parent.Kind())
+                        {
+                            case SyntaxKind.ForStatement:
+                            case SyntaxKind.ForEachStatement:
+                            case SyntaxKind.ForEachVariableStatement:
+                            case SyntaxKind.WhileStatement:
+                                // For loop constructs, only warn if we see a block following the statement.
+                                // That indicates code like:  "while (x) ; { }"
+                                // which is most likely a bug.
+                                if (emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.OpenBraceToken)
+                                {
+                                    break;
+                                }
+
+                                goto default;
+
+                            default:
+                                // For non-loop constructs, always warn.  This is for code like:
+                                // "if (x) ;" which is almost certainly a bug.
+                                diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
                                 break;
-                            }
-
-                            goto default;
-
-                        default:
-                            // For non-loop constructs, always warn.  This is for code like:
-                            // "if (x) ;" which is almost certainly a bug.
-                            diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
-                            break;
+                        }
                     }
 
                     // fall through
