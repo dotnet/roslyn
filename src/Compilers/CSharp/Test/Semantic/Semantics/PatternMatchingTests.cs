@@ -6030,7 +6030,7 @@ public class C {
         }
 
         [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
-        public void MatchRestrictedTypes()
+        public void MatchRestrictedTypes_Fail()
         {
             
             var program =
@@ -6076,6 +6076,42 @@ unsafe public class C {
                 //         var r1 = z is ref int z0;        // syntax error 2
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "z0").WithArguments("z0").WithLocation(7, 31)
                 );
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void MatchRestrictedTypes_Success()
+        {
+            var program =
+@"using System;
+using System.Reflection;
+unsafe public class C {
+    public int Value;
+
+    static void Main()
+    {
+        C a = new C { Value = 12 };
+        FieldInfo info = typeof(C).GetField(""Value"");
+        TypedReference reference = __makeref(a);
+        if (!(reference is TypedReference reference0)) throw new Exception(""TypedReference"");
+        info.SetValueDirect(reference0, 34);
+        if (a.Value != 34) throw new Exception(""SetValueDirect"");
+
+        int z = 56;
+        if (CopyRefInt(ref z) != 56) throw new Exception(""ref z"");
+
+        Console.WriteLine(""ok"");
+    }
+
+    static int CopyRefInt(ref int z)
+    {
+        if (!(z is int z0)) throw new Exception(""CopyRefInt"");
+        return z0;
+    }
+}";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
         }
     }
 }
