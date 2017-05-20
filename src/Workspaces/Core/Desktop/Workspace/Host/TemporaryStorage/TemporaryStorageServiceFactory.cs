@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
             /// something better.</para>
             /// </remarks>
-            /// <seealso cref="_storage"/>
+            /// <seealso cref="_weakFileReference"/>
             private const long SingleFileThreshold = 128 * 1024;
 
             /// <summary>
@@ -49,16 +49,53 @@ namespace Microsoft.CodeAnalysis.Host
             /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
             /// something better.</para>
             /// </remarks>
-            /// <seealso cref="_storage"/>
+            /// <seealso cref="_weakFileReference"/>
             private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
             private readonly ITextFactoryService _textFactory;
 
             /// <summary>
+            /// The synchronization object for accessing the memory mapped file related fields (indicated in the remarks
+            /// of each field).
+            /// </summary>
+            /// <remarks>
+            /// <para>PERF DEV NOTE: A concurrent (but complex) implementation of this type with identical semantics is
+            /// available in source control history. The use of exclusive locks was not causing any measurable
+            /// performance overhead even on 28-thread machines at the time this was written.</para>
+            /// </remarks>
+            private readonly object _gate = new object();
+
+            /// <summary>
             /// The most recent memory mapped file for creating multiple storage units. It will be used via bump-pointer
             /// allocation until space is no longer available in it.
             /// </summary>
-            private MemoryMappedFileStorage _storage;
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            private ReferenceCountedDisposable<MemoryMappedFile>.WeakReference _weakFileReference;
+
+            /// <summary>The name of the current memory mapped file for multiple storage units.</summary>
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private string _name;
+
+            /// <summary>The total size of the current memory mapped file for multiple storage units.</summary>
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private long _fileSize;
+
+            /// <summary>
+            /// The offset into the current memory mapped file where the next storage unit can be held.
+            /// </summary>
+            /// <remarks>
+            /// <para>Access should be synchronized on <see cref="_gate"/>.</para>
+            /// </remarks>
+            /// <seealso cref="_weakFileReference"/>
+            private long _offset;
 
             public TemporaryStorageService(ITextFactoryService textFactory)
             {
@@ -104,74 +141,36 @@ namespace Microsoft.CodeAnalysis.Host
                     return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, offset: 0, size: size);
                 }
 
-                while (true)
+                lock (_gate)
                 {
-                    // Obtain the storage location, creating one if necessary. If a reference counted handle to a memory
-                    // mapped file is obtained in this section, it must either be disposed within the loop or returned
-                    // to the caller who will own it through the MemoryMappedInfo.
-                    var storage = Volatile.Read(ref _storage);
-                    var reference = storage?.WeakFileReference.TryAddReference();
-                    if (reference == null)
+                    // Obtain a reference to the memory mapped file, creating one if necessary. If a reference counted
+                    // handle to a memory mapped file is obtained in this section, it must either be disposed before
+                    // returning or returned to the caller who will own it through the MemoryMappedInfo.
+                    var reference = _weakFileReference.TryAddReference();
+                    if (reference == null || _offset + size > _fileSize)
                     {
-                        var oldStorage = storage;
-                        (storage, reference) = MemoryMappedFileStorage.Create(MultiFileBlockSize);
-                        if (Interlocked.CompareExchange(ref _storage, storage, oldStorage) != oldStorage)
-                        {
-                            // Another thread created the next storage unit; try again
-                            reference.Dispose();
-                            continue;
-                        }
-                    }
+                        var mapName = CreateUniqueName(MultiFileBlockSize);
+                        var file = MemoryMappedFile.CreateNew(mapName, MultiFileBlockSize);
 
-                    // Try to reserve additional space in this storage location
-                    var endOffset = Interlocked.Add(ref storage.Offset, size);
-                    if (endOffset > storage.Size)
+                        reference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
+                        _weakFileReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(reference);
+                        _name = mapName;
+                        _fileSize = MultiFileBlockSize;
+                        _offset = size;
+                        return new MemoryMappedInfo(reference, _name, offset: 0, size: size);
+                    }
+                    else
                     {
-                        // No more space is available. Invalidate the current storage block if no other thread has done
-                        // so, and try again to allocate from a different storage block.
-                        Interlocked.CompareExchange(ref _storage, null, storage);
-                        reference.Dispose();
-                        continue;
+                        // Reserve additional space in the existing storage location
+                        _offset += size;
+                        return new MemoryMappedInfo(reference, _name, _offset - size, size);
                     }
-
-                    return new MemoryMappedInfo(reference, storage.Name, endOffset - size, size);
                 }
             }
 
             public static string CreateUniqueName(long size)
             {
                 return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-            }
-
-            /// <summary>
-            /// This class stores the information necessary to describe a single shared memory mapped file which can
-            /// serve multiple allocation requests. Use <see cref="CreateTemporaryStorage"/> rather than interacting
-            /// with this class directly.
-            /// </summary>
-            private sealed class MemoryMappedFileStorage
-            {
-                public readonly ReferenceCountedDisposable<MemoryMappedFile>.WeakReference WeakFileReference;
-                public readonly string Name;
-                public readonly long Size;
-                public long Offset;
-
-                private MemoryMappedFileStorage(ReferenceCountedDisposable<MemoryMappedFile>.WeakReference memoryMappedFile, string name, long size)
-                {
-                    WeakFileReference = memoryMappedFile;
-                    Name = name;
-                    Size = size;
-                }
-
-                public static (MemoryMappedFileStorage storage, ReferenceCountedDisposable<MemoryMappedFile> firstReference) Create(long size)
-                {
-                    var mapName = CreateUniqueName(size);
-                    var file = MemoryMappedFile.CreateNew(mapName, size);
-
-                    var firstReference = new ReferenceCountedDisposable<MemoryMappedFile>(file);
-                    var weakReference = new ReferenceCountedDisposable<MemoryMappedFile>.WeakReference(firstReference);
-                    var storage = new MemoryMappedFileStorage(weakReference, mapName, size);
-                    return (storage, firstReference);
-                }
             }
 
             private class TemporaryTextStorage : ITemporaryTextStorage, ITemporaryStorageWithName

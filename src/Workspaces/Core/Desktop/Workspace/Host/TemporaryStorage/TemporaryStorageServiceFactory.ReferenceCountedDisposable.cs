@@ -53,10 +53,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </list>
         ///
         /// <para>All public methods on this type adhere to their pre- and post-conditions and will not invalidate state
-        /// even in concurrent execution. The implementation of <see cref="TryAddReference"/> is lock-free; all other
-        /// methods are wait-free, with the exception of the specific call to <see cref="Dispose"/> which results in the
-        /// underlying object getting disposed. For that case, the implementation will not hold any locks and will
-        /// return when the call to <see cref="Dispose"/> completes.</para>
+        /// even in concurrent execution.</para>
         /// </remarks>
         /// <typeparam name="T">The type of disposable object.</typeparam>
         internal sealed class ReferenceCountedDisposable<T> : IDisposable
@@ -68,10 +65,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             /// <remarks>
             /// <para>This value is only cleared in order to support cases where one or more references is garbage
-            /// collected without having <see cref="Dispose"/> called. It is cleared <em>after</em> the
-            /// <see cref="_boxedReferenceCount"/> field is cleared, which is leveraged to ensure that concurrent calls
-            /// to <see cref="Dispose"/> and <see cref="TryAddReference"/> cannot result in a "valid" reference pointing
-            /// to a disposed underlying object.</para>
+            /// collected without having <see cref="Dispose"/> called.</para>
             /// </remarks>
             private T _instance;
 
@@ -79,11 +73,15 @@ namespace Microsoft.CodeAnalysis.Host
             /// The boxed reference count, which is shared by all references with the same <see cref="Target"/> object.
             /// </summary>
             /// <remarks>
-            /// <para>This field is set to <see langword="null"/> at the point in time when this reference is disposed.
-            /// This occurs prior to clearing the <see cref="_instance"/> field in order to support concurrent
-            /// code.</para>
+            /// <para>This field serves as the synchronization object for the current type, since it is shared among all
+            /// counted reference to the same target object. Accesses to <see cref="StrongBox{T}.Value"/> should only
+            /// occur when this object is locked.</para>
+            ///
+            /// <para>PERF DEV NOTE: A concurrent (but complex) implementation of this type with identical semantics is
+            /// available in source control history. The use of exclusive locks was not causing any measurable
+            /// performance overhead even on 28-thread machines at the time this was written.</para>
             /// </remarks>
-            private StrongBox<int> _boxedReferenceCount;
+            private readonly StrongBox<int> _boxedReferenceCount;
 
             /// <summary>
             /// Initializes a new reference counting wrapper around an <see cref="IDisposable"/> object.
@@ -134,13 +132,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// has already been disposed.</returns>
             public ReferenceCountedDisposable<T> TryAddReference()
             {
-                var (target, referenceCount) = AtomicReadState();
-                if (referenceCount == null)
-                {
-                    return null;
-                }
-
-                return TryAddReferenceImpl(target, referenceCount);
+                return TryAddReferenceImpl(_instance, _boxedReferenceCount);
             }
 
             /// <summary>
@@ -149,54 +141,29 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             private static ReferenceCountedDisposable<T> TryAddReferenceImpl(T target, StrongBox<int> referenceCount)
             {
-                // Cannot use Interlocked.Increment because we need to latch the reference count when it reaches 0 (i.e.
-                // once it reaches zero, it is no longer allowed to ever be non-zero).
-                //
-                // Note: This block can execute concurrently with Dispose().
-                while (true)
+                lock (referenceCount)
                 {
-                    var currentValue = Volatile.Read(ref referenceCount.Value);
-                    if (currentValue == 0)
+                    if (referenceCount.Value == 0)
                     {
                         // The target is already disposed, and cannot be reused
                         return null;
                     }
 
-                    if (Interlocked.CompareExchange(ref referenceCount.Value, checked(currentValue + 1), currentValue) == currentValue)
+                    if (target == null)
                     {
-                        // Must return a new instance, in order for the Dispose operation on each individual instance to
-                        // be idempotent.
-                        return new ReferenceCountedDisposable<T>(target, referenceCount);
+                        // The current reference has been disposed, so even though it isn't disposed yet we don't have a
+                        // reference to the target
+                        return null;
                     }
-                }
-            }
 
-            /// <summary>
-            /// Performs an read of <see cref="_instance"/> and <see cref="_boxedReferenceCount"/>, where the mutation
-            /// performed by <see cref="Dispose"/> behaves as an atomic operation.
-            /// </summary>
-            /// <returns>
-            /// <para>If the returned reference count box is non-<see langword="null"/>, then the target will be set to
-            /// the object this reference was initialized with. However, the target will only be valid prior to the
-            /// reference count being set to zero.</para>
-            ///
-            /// <para>If the returned reference count box is <see langword="null"/>, then the target will also be
-            /// <see langword="null"/>.</para>
-            /// </returns>
-            private (T target, StrongBox<int> referenceCount) AtomicReadState()
-            {
-                // This value can be set in Dispose. A memory barrier is used to ensure _boxedReferenceCount is read
-                // after _instance (a stale read of _instance is not an error).
-                var target = _instance;
-                Interlocked.MemoryBarrier();
-                var referenceCount = Volatile.Read(ref _boxedReferenceCount);
-                if (referenceCount == null)
-                {
-                    return (null, null);
-                }
-                else
-                {
-                    return (target, referenceCount);
+                    checked
+                    {
+                        referenceCount.Value++;
+                    }
+
+                    // Must return a new instance, in order for the Dispose operation on each individual instance to
+                    // be idempotent.
+                    return new ReferenceCountedDisposable<T>(target, referenceCount);
                 }
             }
 
@@ -211,25 +178,26 @@ namespace Microsoft.CodeAnalysis.Host
             /// </remarks>
             public void Dispose()
             {
-                var referenceCount = Interlocked.Exchange(ref _boxedReferenceCount, null);
-                if (referenceCount == null)
+                T instanceToDispose = null;
+                lock (_boxedReferenceCount)
                 {
-                    // Already disposed; allow multiple without error.
-                    return;
+                    if (_instance == null)
+                    {
+                        // Already disposed; allow multiple without error.
+                        return;
+                    }
+
+                    _boxedReferenceCount.Value--;
+                    if (_boxedReferenceCount.Value == 0)
+                    {
+                        instanceToDispose = _instance;
+                    }
+
+                    // Ensure multiple calls to Dispose for this instance are a NOP.
+                    _instance = null;
                 }
 
-                // Set the instance back to its default value, so in case someone forgets to dispose of one of the
-                // counted references the finalizer of the underlying disposable object will have a chance to clean up
-                // the unmanaged resources as soon as possible. The value read during this exchange cannot be null; only
-                // one thread will observe a non-null value for _boxedReferenceCount above, and that is the same thread
-                // which will exchange _instance on this line.
-                var instance = Interlocked.Exchange(ref _instance, null);
-
-                var decrementedValue = Interlocked.Decrement(ref referenceCount.Value);
-                if (decrementedValue == 0)
-                {
-                    instance.Dispose();
-                }
+                instanceToDispose?.Dispose();
             }
 
             /// <summary>
@@ -252,18 +220,13 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new ArgumentNullException(nameof(reference));
                     }
 
-                    var (instance, referenceCount) = reference.AtomicReadState();
-                    if (referenceCount == null)
+                    var instance = reference._instance;
+                    var referenceCount = reference._boxedReferenceCount;
+                    if (instance == null)
                     {
                         // The specified reference is already not valid. This case is supported by WeakReference (not
                         // unlike `new System.WeakReference(null)`), but we return early to avoid an unnecessary
                         // allocation in this case.
-                        return;
-                    }
-
-                    if (referenceCount.Value == 0)
-                    {
-                        // We were able to read the reference, but it's already disposed.
                         return;
                     }
 
