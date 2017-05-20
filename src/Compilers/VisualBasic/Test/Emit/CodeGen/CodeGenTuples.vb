@@ -14755,7 +14755,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 Next
 
                 For i = 0 To members1.Length - 1
-                    For j = 0 To members2.Length
+                    For j = 0 To members2.Length - 1
                         If i <> j Then
                             Assert.NotSame(members1(i), members2(j))
                             Assert.False(members1(i).Equals(members2(j)))
@@ -14803,7 +14803,8 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         Private Shared Sub AssertTestDisplayString(symbols As ImmutableArray(Of Symbol), ParamArray baseLine As String())
-            AssertEx.Equal(symbols.Select(Function(s) s.ToTestDisplayString()), baseLine)
+            ' Re-ordering arguments because expected is usually first.
+            AssertEx.Equal(baseLine, symbols.Select(Function(s) s.ToTestDisplayString()))
         End Sub
 
         <Fact>
