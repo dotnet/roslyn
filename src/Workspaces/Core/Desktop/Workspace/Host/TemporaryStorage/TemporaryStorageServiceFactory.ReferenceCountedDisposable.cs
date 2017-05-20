@@ -83,8 +83,14 @@ namespace Microsoft.CodeAnalysis.Host
             /// Gets the target object.
             /// </summary>
             /// <remarks>
-            /// <para>This call is not valid after <see cref="Dispose"/> is called.</para>
+            /// <para>This call is not valid after <see cref="Dispose"/> is called. If this property or the target
+            /// object is used concurrently with a call to <see cref="Dispose"/>, it is possible for the code to be
+            /// using a disposed object. After the current instance is disposed, this property returns
+            /// <see langword="null"/>. However, the exact time when this property starts returning null after
+            /// <see cref="Dispose"/> is called is unspecified; code is expected to not use this property or the object
+            /// it returns after any code invokes <see cref="Dispose"/>.</para>
             /// </remarks>
+            /// <value>The target object.</value>
             public T Target => _instance;
 
             /// <summary>
@@ -178,14 +184,12 @@ namespace Microsoft.CodeAnalysis.Host
                     return;
                 }
 
-                // This is the thread which will write to _instance, so this will act as an atomic read
-                var instance = Interlocked.Exchange(ref _instance, null);
-
                 // Set the instance back to its default value, so in case someone forgets to dispose of one of the
                 // counted references the finalizer of the underlying disposable object will have a chance to clean up
-                // the unmanaged resources as soon as possible.
-                Interlocked.MemoryBarrier();
-                _instance = default(T);
+                // the unmanaged resources as soon as possible. The value read during this exchange cannot be null; only
+                // one thread will observe a non-null value for _boxedReferenceCount above, and that is the same thread
+                // which will exchange _instance on this line.
+                var instance = Interlocked.Exchange(ref _instance, null);
 
                 var decrementedValue = Interlocked.Decrement(ref referenceCount.Value);
                 if (decrementedValue == 0)
