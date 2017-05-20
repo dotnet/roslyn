@@ -3558,10 +3558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static ArgumentSyntax AsArgument(SyntaxNode argOrExpression)
-        {
-            var arg = argOrExpression as ArgumentSyntax;
-            return arg ?? SyntaxFactory.Argument((ExpressionSyntax)argOrExpression);
-        }
+            => argOrExpression as ArgumentSyntax ?? SyntaxFactory.Argument((ExpressionSyntax)argOrExpression);
 
         public override SyntaxNode InvocationExpression(SyntaxNode expression, IEnumerable<SyntaxNode> arguments)
         {
@@ -4081,6 +4078,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         internal override SyntaxNode RefExpression(SyntaxNode expression)
             => SyntaxFactory.RefExpression((ExpressionSyntax)expression);
+
+        public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
+            => SyntaxFactory.TupleExpression(SyntaxFactory.SeparatedList(arguments.Select(AsArgument)));
 
         #endregion
     }
