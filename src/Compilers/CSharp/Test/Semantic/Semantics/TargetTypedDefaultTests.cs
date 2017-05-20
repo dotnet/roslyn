@@ -1264,7 +1264,7 @@ class C
             comp.VerifyDiagnostics(
                 // (10,40): warning CS7104: Filter expression is a constant 'false', consider removing the try-catch block
                 //         catch (System.Exception) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "false").WithLocation(10, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(10, 40),
                 // (12,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 13)
@@ -1310,7 +1310,7 @@ class C
             comp.VerifyDiagnostics(
                 // (26,40): warning CS7095: Filter expression is a constant, consider removing the filter
                 //         catch (System.Exception) when (false)
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "default").WithLocation(26, 40),
+                Diagnostic(ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch, "default").WithLocation(26, 40),
                 // (28,13): warning CS0162: Unreachable code detected
                 //             System.Console.Write("catch");
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(28, 13)
