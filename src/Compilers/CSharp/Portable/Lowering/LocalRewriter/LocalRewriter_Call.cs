@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
 
-            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
+            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver, out var isVarArg))
             {
                 temps = temporariesBuilder.ToImmutableAndFree();
                 return rewrittenArguments;
@@ -515,12 +515,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If neither of those are the case then we can just take an early out.
 
-
-            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
-            {                                                                                  
+            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver, out bool isVarArg))
+            {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
-                return arguments.ZipAsArray(methodOrIndexer.GetParameters(), (a, p) => BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, p, a));
+
+                ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+                ArrayBuilder<IArgument> argumentsBuilder = ArrayBuilder<IArgument>.GetInstance(arguments.Length);
+
+                int i = 0;
+                for (; i < parameters.Length; ++i)
+                {
+                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
+                }
+
+                if (isVarArg)
+                {
+                    // TODO: In case of __arglist, we might have more arguments than parameters, 
+                    //       set the parameter to null for __arglist argument for now.
+                    //       https://github.com/dotnet/roslyn/issues/19673
+                    Debug.Assert(parameters.Length == arguments.Length - 1);
+
+                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, null, arguments[i]));
+                }
+
+                return argumentsBuilder.ToImmutableAndFree();
             }                                                                                                                   
 
             return BuildArgumentsInEvaluationOrder(syntax, 
@@ -539,7 +558,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             bool invokedAsExtensionMethod,
-            out bool isComReceiver)
+            out bool isComReceiver,
+            out bool isVarArg)
         {
             // An applicable "vararg" method could not possibly be applicable in its expanded
             // form, and cannot possibly have named arguments or used optional parameters, 
@@ -551,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argsToParamsOpt.IsDefault);
                 Debug.Assert(!expanded);
                 isComReceiver = false;
+                isVarArg = true;
                 return true;
             }
 
@@ -558,7 +579,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
                                     methodOrIndexer.ContainingType;
 
-            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport; 
+            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+            isVarArg = false;
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
