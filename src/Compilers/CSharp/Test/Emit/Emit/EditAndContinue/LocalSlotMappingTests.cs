@@ -2351,7 +2351,7 @@ class C
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19682")]
         public void Switch_Patterns()
         {
             var source = @"
