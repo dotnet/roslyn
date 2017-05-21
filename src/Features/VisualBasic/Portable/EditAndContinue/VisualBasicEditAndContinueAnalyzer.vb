@@ -3173,9 +3173,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
         End Sub
 
-        Friend Overrides Sub ReportMemberBodySemanticRudeEdits(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, diagnostics As List(Of RudeEditDiagnostic))
-        End Sub
-
 #End Region
     End Class
 End Namespace

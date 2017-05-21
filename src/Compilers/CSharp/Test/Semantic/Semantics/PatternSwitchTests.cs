@@ -443,7 +443,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0037: Cannot convert null to 'bool' because it is a non-nullable value type
                 //             case null: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -469,7 +472,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //             case 3: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -495,7 +501,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -590,6 +599,29 @@ null";
     public static void Main(string[] args)
     {
         switch ((object)null)
+        {
+            case object o:
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void Subsumption04b()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch ((string)null)
         {
             case object o:
                 break; // unreachable
@@ -819,7 +851,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 3;").WithArguments("Color").WithLocation(15, 17),
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
                 );
         }
 
@@ -1693,12 +1728,27 @@ class Program
                 // (52,55): error CS0103: The name 'c' does not exist in the current context
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
-                // (23,13): error CS0163: Control cannot fall through from one case label ('case (int, int) ') to another
+                // (23,29): warning CS0162: Unreachable code detected
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int, int) ").WithArguments("case (int, int) ").WithLocation(23, 13),
-                // (24,13): error CS0163: Control cannot fall through from one case label ('case (int a, int b) ') to another
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(23, 29),
+                // (24,33): warning CS0162: Unreachable code detected
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int a, int b) ").WithArguments("case (int a, int b) ").WithLocation(24, 13),
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "c").WithLocation(24, 33),
+                // (25,31): warning CS0162: Unreachable code detected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(25, 31),
+                // (30,29): warning CS0162: Unreachable code detected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(30, 29),
+                // (32,31): warning CS0162: Unreachable code detected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(32, 31),
+                // (37,47): warning CS0162: Unreachable code detected
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(37, 47),
+                // (39,47): warning CS0162: Unreachable code detected
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(39, 47),
                 // (23,29): warning CS0164: This label has not been referenced
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
@@ -1839,7 +1889,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(7, 18),
                 // (7,21): error CS0246: The type or namespace name 'EnvDTE' could not be found (are you missing a using directive or an assembly reference?)
                 //             case is EnvDTE.Project x1:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21),
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 17)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
