@@ -23085,5 +23085,35 @@ class C
 }
 ");
         }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void Test()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string) y = (e, null);
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0029: Cannot implicitly convert type 'int?' to 'int'
+                //         (int, string) y = (e, null);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 28)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(tuple).Kind);
+        }
     }
 }

@@ -2443,6 +2443,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
                 }
 
+                if (expression.Kind == BoundKind.TupleLiteral)
+                {
+                    // A BoundTupleLiteral must always be upgraded to a BoundConvertedTupleLiteral during conversion
+                    var sourceTuple = (BoundTupleLiteral)expression;
+                    expression = new BoundConvertedTupleLiteral(
+                        sourceTuple.Syntax,
+                        sourceTuple.Type,
+                        sourceTuple.Arguments,
+                        sourceTuple.Type ?? targetType,
+                        sourceTuple.HasErrors);
+                }
+
                 return new BoundConversion(
                     expression.Syntax,
                     expression,
