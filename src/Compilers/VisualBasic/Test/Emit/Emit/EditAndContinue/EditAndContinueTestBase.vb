@@ -21,6 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         ' PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
         Protected Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
 
+        Protected Shared ReadOnly ValueTupleRefs As MetadataReference() = {SystemRuntimeFacadeRef, ValueTupleRef}
+
         Friend Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 
         Friend Shared Function Visualize(baseline As ModuleMetadata, ParamArray deltas As PinnedMetadata()) As String
