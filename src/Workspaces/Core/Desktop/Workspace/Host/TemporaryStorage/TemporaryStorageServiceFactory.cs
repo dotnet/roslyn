@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Host
                     // mapped file is obtained in this section, it must either be disposed within the loop or returned
                     // to the caller who will own it through the MemoryMappedInfo.
                     var storage = Volatile.Read(ref _storage);
-                    var reference = storage?.FileReference.TryAddReference();
+                    var reference = storage?.WeakFileReference.TryAddReference();
                     if (reference == null)
                     {
                         var oldStorage = storage;
@@ -140,14 +140,14 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             private sealed class MemoryMappedFileStorage
             {
-                public readonly ReferenceCountedDisposable<MemoryMappedFile>.WeakReference FileReference;
+                public readonly ReferenceCountedDisposable<MemoryMappedFile>.WeakReference WeakFileReference;
                 public readonly string Name;
                 public readonly long Size;
                 public long Offset;
 
                 private MemoryMappedFileStorage(ReferenceCountedDisposable<MemoryMappedFile>.WeakReference memoryMappedFile, string name, long size)
                 {
-                    FileReference = memoryMappedFile;
+                    WeakFileReference = memoryMappedFile;
                     Name = name;
                     Size = size;
                 }

@@ -34,23 +34,6 @@ namespace Microsoft.CodeAnalysis.Host
         internal sealed class MemoryMappedInfo : IDisposable
         {
             /// <summary>
-            /// The name of the memory mapped file.
-            /// </summary>
-            private readonly string _name;
-
-            /// <summary>
-            /// The offset into the memory mapped file of the region described by the current
-            /// <see cref="MemoryMappedInfo"/>.
-            /// </summary>
-            private readonly long _offset;
-
-            /// <summary>
-            /// The size of the region of the memory mapped file described by the current
-            /// <see cref="MemoryMappedInfo"/>.
-            /// </summary>
-            private readonly long _size;
-
-            /// <summary>
             /// The memory mapped file.
             /// </summary>
             /// <remarks>
@@ -61,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
 
             /// <summary>
-            /// actual memory accessor that owns the VM
+            /// A weak reference to the actual memory accessor that owns the VM
             /// </summary>
             /// <remarks>
             /// <para>This holds a weak counted reference to current <see cref="MemoryMappedViewAccessor"/>, which
@@ -71,31 +54,37 @@ namespace Microsoft.CodeAnalysis.Host
             /// unmapped, making the process address space it previously claimed available for other purposes. If/when
             /// it is needed again, a new view is created.</para>
             /// </remarks>
-            private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _accessor;
+            private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakAccessor;
 
             public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
             {
                 _memoryMappedFile = memoryMappedFile;
-                _name = name;
-                _offset = offset;
-                _size = size;
+                Name = name;
+                Offset = offset;
+                Size = size;
             }
 
             public MemoryMappedInfo(string name, long offset, long size)
+                : this(new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(name)), name, offset, size)
             {
-                _name = name;
-                _offset = offset;
-                _size = size;
-
-                _memoryMappedFile = new ReferenceCountedDisposable<MemoryMappedFile>(MemoryMappedFile.OpenExisting(_name));
             }
 
             /// <summary>
-            /// Name and Size of memory map file
+            /// The name of the memory mapped file.
             /// </summary>
-            public string Name => _name;
-            public long Offset => _offset;
-            public long Size => _size;
+            public string Name { get; }
+
+            /// <summary>
+            /// The offset into the memory mapped file of the region described by the current
+            /// <see cref="MemoryMappedInfo"/>.
+            /// </summary>
+            public long Offset { get; }
+
+            /// <summary>
+            /// The size of the region of the memory mapped file described by the current
+            /// <see cref="MemoryMappedInfo"/>.
+            /// </summary>
+            public long Size { get; }
 
             private static void ForceCompactingGC()
             {
@@ -116,18 +105,19 @@ namespace Microsoft.CodeAnalysis.Host
                 // CreateViewAccessor is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
-                    // Note: TryAddReference will not return a non-null but invalid reference, even if the current
-                    // object has been disposed (see comments on _memoryMappedFile and TryAddReference).
-                    var streamAccessor = _accessor.TryAddReference();
+                    // Note: TryAddReference behaves according to its documentation even if the target object has been
+                    // disposed. If it returns non-null, then the object will not be disposed before the returned
+                    // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
+                    var streamAccessor = _weakAccessor.TryAddReference();
                     if (streamAccessor == null)
                     {
-                        var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info._offset, info._size, MemoryMappedFileAccess.Read), this);
+                        var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read), this);
                         streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
-                        _accessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
+                        _weakAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
                     }
 
                     Contract.Assert(streamAccessor.Target.CanRead);
-                    return new SharedReadableStream(this, streamAccessor, _size);
+                    return new SharedReadableStream(this, streamAccessor, Size);
                 }
             }
 
@@ -140,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Host
                 // CreateViewStream is not guaranteed to be thread-safe
                 lock (_memoryMappedFile)
                 {
-                    return RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewStream(info._offset, info._size, MemoryMappedFileAccess.Write), this);
+                    return RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write), this);
                 }
             }
 
@@ -185,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Host
                 if (disposing)
                 {
                     // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
-                    // need to write _accessor here since the types involved adhere to their contracts even in
+                    // need to write _weakAccessor here since the types involved adhere to their contracts even in
                     // concurrent code.
                     _memoryMappedFile.Dispose();
                 }
