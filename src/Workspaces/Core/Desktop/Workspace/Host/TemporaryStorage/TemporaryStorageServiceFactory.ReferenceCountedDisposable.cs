@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// <param name="instance">The object owned by this wrapper.</param>
             public ReferenceCountedDisposable(T instance)
             {
-                _instance = instance;
+                _instance = instance ?? throw new ArgumentNullException(nameof(instance));
                 _boxedReferenceCount = new StrongBox<int>(1);
             }
 
@@ -111,6 +111,11 @@ namespace Microsoft.CodeAnalysis.Host
             public ReferenceCountedDisposable<T> TryAddReference()
             {
                 var (target, referenceCount) = AtomicReadState();
+                if (referenceCount == null)
+                {
+                    return null;
+                }
+
                 return TryAddReferenceImpl(target, referenceCount);
             }
 
@@ -218,6 +223,11 @@ namespace Microsoft.CodeAnalysis.Host
                 public WeakReference(ReferenceCountedDisposable<T> reference)
                     : this()
                 {
+                    if (reference == null)
+                    {
+                        throw new ArgumentNullException(nameof(reference));
+                    }
+
                     var (instance, referenceCount) = reference.AtomicReadState();
                     if (referenceCount == null)
                     {
