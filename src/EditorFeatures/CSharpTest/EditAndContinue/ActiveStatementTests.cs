@@ -8841,7 +8841,7 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active);
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "C# 7 enhanced switch statement"));
+            edits.VerifySemanticDiagnostics();
         }
 
         #endregion
