@@ -9,11 +9,12 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVariable
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateVariable
 {
     public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -2493,7 +2494,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestConstantInParameterValue()
         {
-            const string Initial = 
+            const string Initial =
 @"class C
 {   
     const int y = 1 ; 
@@ -7368,6 +7369,21 @@ class C
         Foo = 0;
         Bar = 1;
         Quux = 2;
+    }
+}");
+        }
+
+        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNoNonGenericsWithGenericCode()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        [|IEnumerable|] < string >
+        return ImmutableArray.CreateRange();
     }
 }");
         }

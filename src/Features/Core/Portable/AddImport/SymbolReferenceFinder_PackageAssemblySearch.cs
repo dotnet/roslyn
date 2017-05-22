@@ -28,7 +28,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return;
                 }
 
-                CalculateContext(nameNode, _syntaxFacts, out var name, out var arity, out var inAttributeContext, out var hasIncompleteParentMember);
+                CalculateContext(
+                    nameNode, _syntaxFacts, 
+                    out var name, out var arity, out var inAttributeContext, 
+                    out var hasIncompleteParentMember, out var mustBeGeneric);
 
                 if (ExpressionBinds(nameNode, checkForExtensionMethods: false, cancellationToken: cancellationToken))
                 {

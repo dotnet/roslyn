@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return IsViableExtensionMethod(method, leftExpressionType);
         }
 
-        internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
+        protected override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
         {
             if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
             {
