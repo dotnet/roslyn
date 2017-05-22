@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Remote
             : base(serviceProvider, stream)
         {
             _updateEngine = new SymbolSearchUpdateEngine(
-                new LogService(this), updateCancellationToken: this.CancellationToken);
+                new LogService(this), new ProgressService(this),
+                updateCancellationToken: this.CancellationToken);
 
             Rpc.StartListening();
         }
@@ -48,22 +49,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 name, arity).ConfigureAwait(false);
             var serializedResults = results.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
             return serializedResults;
-        }
-
-        private class LogService : ISymbolSearchLogService
-        {
-            private readonly RemoteSymbolSearchUpdateEngine _service;
-
-            public LogService(RemoteSymbolSearchUpdateEngine service)
-            {
-                _service = service;
-            }
-
-            public Task LogExceptionAsync(string exception, string text)
-                => _service.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
-
-            public Task LogInfoAsync(string text)
-                => _service.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
         }
     }
 }

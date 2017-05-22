@@ -14,10 +14,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
     /// implementation produces an engine that will run in-process.  Implementations at
     /// other layers can behave differently (for example, running the engine out-of-process).
     /// </summary>
-    internal static class SymbolSearchUpdateEngineFactory
+    internal static partial class SymbolSearchUpdateEngineFactory
     {
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
-            Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
+            Workspace workspace,
+            ISymbolSearchLogService logService,
+            ISymbolSearchProgressService progressService,
+            CancellationToken cancellationToken)
         {
             var outOfProcessAllowed = workspace.Options.GetOption(SymbolSearchOptions.OutOfProcessAllowed);
             if (outOfProcessAllowed)
@@ -25,31 +28,41 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    return new RemoteUpdateEngine(workspace, client, logService, cancellationToken);
+                    return new RemoteUpdateEngine(workspace, client, logService, progressService, cancellationToken);
                 }
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.
-            return new SymbolSearchUpdateEngine(logService);
+            return new SymbolSearchUpdateEngine(logService, progressService);
         }
 
-        private class RemoteUpdateEngine : ISymbolSearchUpdateEngine
+        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
             private readonly Workspace _workspace;
-            private readonly ISymbolSearchLogService _logService;
             private readonly CancellationToken _cancellationToken;
+
+            /// <summary>
+            /// Wrapper around our <see cref="ISymbolSearchLogService"/> and 
+            /// <see cref="ISymbolSearchProgressService"/>.  We'll pass this object to the remote side
+            /// so it can notify us of things that are happening so that we can update the local UI 
+            /// with that information.
+            /// </summary>
+            private readonly LogAndProgressService _logAndProgressService;
 
             private RemoteHostClient _client;
             private RemoteHostClient.Session _sessionDoNotAccessDirectly;
 
             public RemoteUpdateEngine(
-                Workspace workspace, RemoteHostClient client,
-                ISymbolSearchLogService logService, CancellationToken cancellationToken)
+                Workspace workspace,
+                RemoteHostClient client,
+                ISymbolSearchLogService logService,
+                ISymbolSearchProgressService progressService,
+                CancellationToken cancellationToken)
             {
                 _workspace = workspace;
-                _logService = logService;
+                _logAndProgressService = new LogAndProgressService(logService, progressService);
                 _cancellationToken = cancellationToken;
 
                 // this engine is stateful service which maintaining a connection to remote host. so
@@ -107,7 +120,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // much less clean and would make some of the state management much more complex.
                     _sessionDoNotAccessDirectly = await _client.TryCreateServiceSessionAsync(
                         WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
-                        _logService,
+                        _logAndProgressService,
                         _cancellationToken).ConfigureAwait(false);
 
                     return _sessionDoNotAccessDirectly;

@@ -126,6 +126,9 @@
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
       <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Sdk.TaskStatusCenter">
+      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -180,6 +183,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.ProgressService.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ServicesVisualStudioNextResources.resx">

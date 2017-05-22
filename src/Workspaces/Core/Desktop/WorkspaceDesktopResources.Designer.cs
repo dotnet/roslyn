@@ -61,6 +61,33 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Downloading index failed.
+        /// </summary>
+        internal static string Downloading_index_failed {
+            get {
+                return ResourceManager.GetString("Downloading_index_failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading index failed:{0}.
+        /// </summary>
+        internal static string Downloading_index_failed_0 {
+            get {
+                return ResourceManager.GetString("Downloading_index_failed_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Downloading IntelliSense index for {0}.
+        /// </summary>
+        internal static string Downloading_IntelliSense_index_for_0 {
+            get {
+                return ResourceManager.GetString("Downloading_IntelliSense_index_for_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid assembly name.
         /// </summary>
         internal static string Invalid_assembly_name {

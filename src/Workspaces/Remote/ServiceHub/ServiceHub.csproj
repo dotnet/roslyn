@@ -78,6 +78,8 @@
     <Compile Include="Services\CodeAnalysisService_SymbolFinder.cs" />
     <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
     <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
+    <Compile Include="Services\RemoteSymbolSearchUpdateEngine.LogService.cs" />
+    <Compile Include="Services\RemoteSymbolSearchUpdateEngine.ProgressService.cs" />
     <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
     <Compile Include="Services\CodeAnalysisService.cs" />
     <Compile Include="Services\CodeAnalysisService_Diagnostics.cs" />

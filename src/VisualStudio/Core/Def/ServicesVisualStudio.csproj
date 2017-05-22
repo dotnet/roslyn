@@ -180,10 +180,8 @@
     <Compile Include="Packaging\IPackageServicesProxy.cs" />
     <Compile Include="Packaging\PackageInstallerService.ProjectState.cs" />
     <Compile Include="Storage\VisualStudioPersistentStorageLocationService.cs" />
-    <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -193,6 +191,8 @@
     <Compile Include="Shared\LogicalStringComparer.cs" />
     <Compile Include="Shared\VisualStudioImageMonikerService.cs" />
     <Compile Include="SolutionEventMonitor.cs" />
+    <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
+    <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.cs" />
     <Compile Include="SymbolSearch\VisualStudioSymbolSearchService.LogService.cs" />
     <Compile Include="Telemetry\CodeMarkerLogger.cs" />
     <Compile Include="Telemetry\ProjectTypeLookupService.cs" />
