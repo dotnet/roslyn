@@ -7404,6 +7404,8 @@ class C
 @"
 class C
 {
+    public int IEnumerable { get; private set; }
+
     private void GetEvaluationRuleNames()
     {
         IEnumerable < Int32
