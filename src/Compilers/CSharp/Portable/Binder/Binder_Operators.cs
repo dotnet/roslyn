@@ -2981,7 +2981,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //    The value is always false.
 
                     Debug.Assert(targetType.IsNullableType());
-                    return (operandType == targetType.GetNullableUnderlyingType()) ? ConstantValue.True : ConstantValue.False;
+                    return operandType.Equals(targetType.GetNullableUnderlyingType(), TypeCompareKind.IgnoreDynamicAndTupleNames)
+                        ? ConstantValue.True : ConstantValue.False;
 
                 default:
                 case ConversionKind.ImplicitDynamic:
