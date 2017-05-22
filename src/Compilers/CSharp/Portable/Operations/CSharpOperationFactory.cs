@@ -1003,13 +1003,13 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private static IInterpolatedStringContent CreateBoundInterpolatedStringContentOperation(BoundNode boundNode)
         {
-            if (boundNode.Kind == BoundKind.Literal)
+            if (boundNode.Kind == BoundKind.StringInsert)
             {
-                return CreateBoundInterpolatedStringTextOperation((BoundLiteral)boundNode);
+                return (IInterpolatedStringContent)Create(boundNode);
             }
             else
             {
-                return (IInterpolatedStringContent)Create(boundNode);
+                return CreateBoundInterpolatedStringTextOperation(boundNode);
             }
         }
 
@@ -1025,11 +1025,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyInterpolation(expression, alignment, format, isInvalid, syntax, type, constantValue);
         }
 
-        private static IInterpolatedStringText CreateBoundInterpolatedStringTextOperation(BoundLiteral boundLiteral)
+        private static IInterpolatedStringText CreateBoundInterpolatedStringTextOperation(BoundNode boundNode)
         {
-            Lazy<IOperation> text = new Lazy<IOperation>(() => Create(boundLiteral));
-            bool isInvalid = boundLiteral.HasErrors;
-            SyntaxNode syntax = boundLiteral.Syntax;
+            Lazy<IOperation> text = new Lazy<IOperation>(() => Create(boundNode));
+            bool isInvalid = boundNode.HasErrors;
+            SyntaxNode syntax = boundNode.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             return new LazyInterpolatedStringText(text, isInvalid, syntax, type, constantValue);

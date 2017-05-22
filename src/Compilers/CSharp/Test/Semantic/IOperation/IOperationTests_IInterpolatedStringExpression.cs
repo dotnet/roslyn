@@ -179,6 +179,38 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         }
 
         [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
+        public void InterpolatedStringExpression_InterpolationAndFormatAndAlignment()
+        {
+            string source = @"
+using System;
+
+internal class Class
+{
+    private string x = string.Empty;
+    private const int y = 0;
+
+    public void M()
+    {
+        Console.WriteLine(/*<bind>*/$""String {x,y:D3}""/*</bind>*/);
+    }
+}
+";
+            string expectedOperationTree = @"
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x,y:D3}""')
+  Parts(2): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+      Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{x,y:D3}')
+      Expression: IFieldReferenceExpression: System.String Class.x (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Class) (Syntax: 'x')
+      Alignment: IFieldReferenceExpression: System.Int32 Class.y (Static) (OperationKind.FieldReferenceExpression, Type: System.Int32, Constant: 0) (Syntax: 'y')
+      FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<InterpolatedStringExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")]
         public void InterpolatedStringExpression_InvocationInInterpolation()
         {
             string source = @"

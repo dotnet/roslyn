@@ -1031,10 +1031,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Shared Function CreateBoundInterpolatedStringContentOperation(boundNode As BoundNode) As IInterpolatedStringContent
-            If boundNode.Kind = BoundKind.Literal Then
-                Return CreateBoundInterpolatedStringTextOperation(DirectCast(boundNode, BoundLiteral))
-            Else
+            If boundNode.Kind = BoundKind.Interpolation Then
                 Return DirectCast(Create(boundNode), IInterpolatedStringContent)
+            Else
+                Return CreateBoundInterpolatedStringTextOperation(boundNode)
             End If
         End Function
 
@@ -1049,10 +1049,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyInterpolation(expression, alignment, format, isInvalid, syntax, type, constantValue)
         End Function
 
-        Private Shared Function CreateBoundInterpolatedStringTextOperation(boundLiteral As BoundLiteral) As IInterpolatedStringText
-            Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundLiteral))
-            Dim isInvalid As Boolean = boundLiteral.HasErrors
-            Dim syntax As SyntaxNode = boundLiteral.Syntax
+        Private Shared Function CreateBoundInterpolatedStringTextOperation(boundNode As BoundNode) As IInterpolatedStringText
+            Dim text As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Create(boundNode))
+            Dim isInvalid As Boolean = boundNode.HasErrors
+            Dim syntax As SyntaxNode = boundNode.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = Nothing
             Return New LazyInterpolatedStringText(text, isInvalid, syntax, type, constantValue)

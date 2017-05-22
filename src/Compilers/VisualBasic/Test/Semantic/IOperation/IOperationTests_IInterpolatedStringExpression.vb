@@ -166,6 +166,35 @@ IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type:
         End Sub
 
         <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
+        Public Sub InterpolatedStringExpression_InterpolationAndFormatAndAlignment()
+            Dim source = <![CDATA[
+Imports System
+
+Friend Class [Class]
+    Private x As String = String.Empty
+
+    Public Sub M()
+        Console.WriteLine($"String {x,20:D3}")'BIND:"$"String {x,20:D3}""
+    End Sub
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x,20:D3}"')
+  Parts(2): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+      Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20:D3}')
+      Expression: IFieldReferenceExpression: [Class].x As System.String (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'x')
+          Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: [Class]) (Syntax: 'x')
+      Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+      FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
+]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            VerifyOperationTreeAndDiagnosticsForTest(Of InterpolatedStringExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
+        End Sub
+
+        <Fact, WorkItem(18300, "https://github.com/dotnet/roslyn/issues/18300")>
         Public Sub InterpolatedStringExpression_InvocationInInterpolation()
             Dim source = <![CDATA[
 Imports System
