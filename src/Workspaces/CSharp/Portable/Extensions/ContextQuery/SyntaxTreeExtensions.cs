@@ -979,6 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             int position,
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken,
+            ISet<SyntaxKind> allowedModifiersBefore = null,
             int? allowableIndex = null)
         {
             // cases:
@@ -1036,6 +1037,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     }
                 }
 
+                return true;
+            }
+
+            if (allowedModifiersBefore != null &&
+                allowedModifiersBefore.Contains(token.Kind()) &&
+                token.Parent.GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
+            {
+                if (allowableIndex.HasValue)
+                {
+                    var parameter = token.GetAncestor<ParameterSyntax>();
+                    var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
+
+                    int parameterIndex = parameterList.Parameters.IndexOf(parameter);
+                    if (allowableIndex.Value != parameterIndex)
+                    {
+                        return false;
+                    }
+                }
                 return true;
             }
 

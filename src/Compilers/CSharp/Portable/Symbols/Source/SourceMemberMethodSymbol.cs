@@ -219,6 +219,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var loc = parameterSyntax.Type.Location;
                     diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
                 }
+                else if (this.Parameters[0].RefKind == RefKind.Ref && !parameter0Type.IsValueType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
+                }
+                else if (this.Parameters[0].RefKind == RefKind.RefReadOnly && parameter0Type.TypeKind != TypeKind.Struct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, location, Name);
+                }
                 else if ((object)ContainingType.ContainingType != null)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExtensionMethodsDecl, location, ContainingType.Name);

@@ -1504,5 +1504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnReadonlyNotField2 = 8411,
         ERR_ExplicitReadOnlyAttr = 8412,
         ERR_TypeReserved = 8413,
+        ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8414,
+        ERR_RefReadOnlyExtensionMustBeValueType = 8415,
     }
 }

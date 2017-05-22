@@ -78,6 +78,7 @@
     <Compile Include="CodeGen\CodeGenAsyncMainTests.cs" />
     <Compile Include="CodeGen\CodeGenInParametersTests.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
+    <Compile Include="CodeGen\CodeGenRefExtensionMethods.cs" />
     <Compile Include="CodeGen\PatternTests.cs" />
     <Compile Include="CodeGen\CodeGenRefReadonlyReturnTests.cs" />
     <Compile Include="CodeGen\CodeGenRefConditionalOperatorTests.cs" />

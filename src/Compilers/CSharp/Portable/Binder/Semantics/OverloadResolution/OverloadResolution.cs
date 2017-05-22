@@ -2964,10 +2964,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    bool isThisArgument = arguments.IsExtensionMethodThisArgument(argumentPosition);
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
-                    conversion = CheckArgumentForApplicability(candidate, argument, argumentRefKind, parameters.ParameterTypes[argumentPosition], parameterRefKind, ignoreOpenTypes, ref useSiteDiagnostics);
+                    conversion = CheckArgumentForApplicability(candidate, argument, argumentRefKind, parameters.ParameterTypes[argumentPosition], parameterRefKind, ignoreOpenTypes, isThisArgument, ref useSiteDiagnostics);
 
-                    if (arguments.IsExtensionMethodThisArgument(argumentPosition) && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
+                    if (isThisArgument && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
                         // Return early, without checking conversions of subsequent arguments,
                         // if the instance argument is not convertible to the 'this' parameter,
@@ -3025,6 +3026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol parameterType,
             RefKind parRefKind,
             bool ignoreOpenTypes,
+            bool isThisArgument,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Spec 7.5.3.1
@@ -3034,9 +3036,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   exists from the argument to the type of the corresponding parameter, or
             // - for a ref or out parameter, the type of the argument is identical to the type of the corresponding parameter. 
 
-            // RefKind has to match unless the ref kind is None and argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
+            // There are two cases where ref kind can mismatch:
+            // 1) If the ref kind is None and argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
             // The spec is correct, this is not an intended behavior. We don't fix the bug to avoid a breaking change.
-            if (argRefKind != parRefKind && !(argRefKind == RefKind.None && argument.HasDynamicType()))
+            // 2) PROTOTYPE(readonly-ref) If it was an extension method 'this' argument, and the parameter is ref or ref-readonly.
+
+            if (argRefKind != parRefKind &&
+                !(argRefKind == RefKind.None && argument.HasDynamicType()) &&
+                !(isThisArgument && (parRefKind == RefKind.Ref || parRefKind == RefKind.RefReadOnly)))
             {
                 return Conversion.NoConversion;
             }
