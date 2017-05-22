@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 {
                     // Only hard select this result if it's a prefix match
                     // We need to do this so that 
-                    // * deleting a retyping a dot in a member access does not change the 
+                    // * deleting and retyping a dot in a member access does not change the 
                     //   text that originally appeared before the dot
                     // * deleting through a word from the end keeps that word selected
                     // This also preserves the behavior the VB had through Dev12.
