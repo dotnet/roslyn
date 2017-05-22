@@ -2413,7 +2413,8 @@ parse_member_name:;
                     }
 
                     var incompleteMember = _syntaxFactory.IncompleteMember(attributes, modifiers.ToList(), type.IsMissing ? null : type);
-                    if (incompleteMember.ContainsDiagnostics)
+
+                    if (incompleteMember.ContainsErrorDiagnostics(considerTrivia: false))
                     {
                         return incompleteMember;
                     }

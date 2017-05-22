@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             SyntaxFactory.ParseExpression(code);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/13719")]
+        [Fact]
+        [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
         public void ReportErrorForIncompleteMember()
         {
             var test = @"

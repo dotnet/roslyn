@@ -1017,5 +1017,64 @@ namespace Microsoft.CodeAnalysis
             // Get a new green node with the errors added on.
             return SetDiagnostics(errorInfos);
         }
+
+        /// <summary>
+        /// Walks the green tree from this node downwards and lazily returns all
+        /// diagnostics found.
+        /// </summary>
+        internal IEnumerable<DiagnosticInfo> GetAllSyntaxErrors(bool considerTrivia = true)
+        {
+            if (ContainsDiagnostics)
+            {
+                foreach (var diagnostic in GetDiagnostics())
+                {
+                    yield return diagnostic;
+                }
+
+                for (int i = 0; i < SlotCount; i++)
+                {
+                    GreenNode child = GetSlot(i);
+                    foreach (var childDiagnostic in child.GetAllSyntaxErrors())
+                    {
+                        yield return childDiagnostic;
+                    }
+                }
+                if (considerTrivia)
+                {
+                    if (HasLeadingTrivia)
+                    {
+                        foreach (var triviaDiagnostic in GetLeadingTriviaCore().GetAllSyntaxErrors())
+                        {
+                            yield return triviaDiagnostic;
+                        }
+                    }
+                    if (HasTrailingTrivia)
+                    {
+                        foreach (var triviaDiagnostic in GetTrailingTriviaCore().GetAllSyntaxErrors())
+                        {
+                            yield return triviaDiagnostic;
+                        }
+                    }
+                }
+            }
+        }
+        /// <summary>
+        /// Returns True if the tree transitively contains at least one error diagnostic.
+        ///
+        /// This method does not consider warnings as errors even when warnAsError is turned on.
+        /// </summary>
+        /// <returns></returns>
+        internal bool ContainsErrorDiagnostics(bool considerTrivia = true)
+        {
+            foreach (var diagnostic in GetAllSyntaxErrors(considerTrivia))
+            {
+                if (diagnostic.DefaultSeverity == DiagnosticSeverity.Error)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
