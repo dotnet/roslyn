@@ -3156,6 +3156,35 @@ class Program
             var comp = CompileAndVerify(compilation, expectedOutput: "Main");
         }
 
+        [Fact, WorkItem(18948, "https://github.com/dotnet/roslyn/issues/18948")]
+        public void AsyncGenericPatternCrash()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+static class Ex
+{
+    public static async Task<T> SwitchWithAwaitInPatternFails<T>(Task self, T defaultValue)
+    {
+        switch (self)
+        {
+            case Task<T> resultTask:
+                return await resultTask.ConfigureAwait(false);
+
+            default:
+                await self.ConfigureAwait(false);
+                return default(T);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(
+                source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation);
+        }
+
         [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
         public void SemanticModelForBrokenSwitch_01()
         {
