@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<LocalSymbol> temporariesBuilder = ArrayBuilder<LocalSymbol>.GetInstance();
             rewrittenArguments = _factory.MakeTempsForDiscardArguments(rewrittenArguments, temporariesBuilder);
 
-            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver, out var isVarArg))
+            if (CanSkipRewriting(rewrittenArguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
             {
                 temps = temporariesBuilder.ToImmutableAndFree();
                 return rewrittenArguments;
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If neither of those are the case then we can just take an early out.
 
-            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver, out bool isVarArg))
+            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var _))
             {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
@@ -529,15 +529,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
                 }
 
-                if (isVarArg)
+                // TODO: In case of __arglist, we will have more arguments than parameters, 
+                //       set the parameter to null for __arglist argument for now.
+                //       https://github.com/dotnet/roslyn/issues/19673
+                for (; i < arguments.Length; ++i)
                 {
-                    // TODO: In case of __arglist, we might have more arguments than parameters, 
-                    //       set the parameter to null for __arglist argument for now.
-                    //       https://github.com/dotnet/roslyn/issues/19673
-                    Debug.Assert(parameters.Length == arguments.Length - 1);
-
                     argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, null, arguments[i]));
                 }
+
+                Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
 
                 return argumentsBuilder.ToImmutableAndFree();
             }                                                                                                                   
@@ -558,8 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             bool invokedAsExtensionMethod,
-            out bool isComReceiver,
-            out bool isVarArg)
+            out bool isComReceiver)
         {
             // An applicable "vararg" method could not possibly be applicable in its expanded
             // form, and cannot possibly have named arguments or used optional parameters, 
@@ -571,7 +570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(argsToParamsOpt.IsDefault);
                 Debug.Assert(!expanded);
                 isComReceiver = false;
-                isVarArg = true;
                 return true;
             }
 
@@ -580,7 +578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     methodOrIndexer.ContainingType;
 
             isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
-            isVarArg = false;
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
