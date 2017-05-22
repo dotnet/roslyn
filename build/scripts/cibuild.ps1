@@ -55,6 +55,13 @@ function Terminate-BuildProcesses() {
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains 
 # the procdump binaries (both 32 and 64 bit)
 function Ensure-ProcDump() {
+
+    # Jenkins images default to having procdump installed in the root.  Use that if available to avoid
+    # an unnecessary download.
+    if (Test-Path "c:\SysInternals\procdump.exe") {
+        return "c:\SysInternals";
+    }    
+
     $toolsDir = Join-Path $binariesDir "Tools"
     $outDir = Join-Path $toolsDir "ProcDump"
     $filePath = Join-Path $outDir "procdump.exe"

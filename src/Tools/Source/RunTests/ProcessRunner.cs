@@ -36,8 +36,8 @@ namespace RunTests
         public static Task<ProcessOutput> RunProcessAsync(
             string executable,
             string arguments,
-            bool lowPriority,
             CancellationToken cancellationToken,
+            bool lowPriority = false,
             string workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
