@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Experimentation
             nameof(LastDateTimeUsedSuggestionAction), defaultValue: DateTime.MinValue.ToBinary(),
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(LastDateTimeUsedSuggestionAction)));
 
-        public static readonly Option<uint> UsedSuggestedActionCount = new Option<uint>(nameof(AnalyzerABTestOptions), nameof(UsedSuggestedActionCount),
+        public static readonly Option<int> UsedSuggestedActionCount = new Option<int>(nameof(AnalyzerABTestOptions), nameof(UsedSuggestedActionCount),
             defaultValue: 0, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(UsedSuggestedActionCount)));
 
         public static readonly Option<bool> NeverShowAgain = new Option<bool>(nameof(AnalyzerABTestOptions), nameof(NeverShowAgain),
