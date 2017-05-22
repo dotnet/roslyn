@@ -120,6 +120,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return references;
         }
 
+        public void RenameFile(string projectName, string oldFileName, string newFileName)
+        {
+            var projectItem = GetProjectItem(projectName, oldFileName);
+
+            projectItem.Name = newFileName;
+        }
+
         public void EditProjectFile(string projectName)
         {
             var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
