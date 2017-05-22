@@ -1355,14 +1355,14 @@ class Program : [|IReadOnlyCollection|]
 
         [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-        public async Task TestNoNonGenericsWithGenericCode()
+        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
         {
             var code = @"
 class C
 {
     private void GetEvaluationRuleNames()
     {
-        [|IEnumerable|] < string >
+        [|IEnumerable|] < Int32 >
         return ImmutableArray.CreateRange();
     }
 }";
@@ -1375,7 +1375,7 @@ class C
 {
     private void GetEvaluationRuleNames()
     {
-        System.Collections.Generic.IEnumerable < string >
+        System.Collections.Generic.IEnumerable < Int32 >
         return ImmutableArray.CreateRange();
     }
 }");

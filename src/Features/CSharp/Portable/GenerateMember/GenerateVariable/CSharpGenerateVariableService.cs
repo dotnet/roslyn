@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
             // user realy is typing a generic name, and thus should not get recommendations to create a
             // variable.
             var localText = localRoot.ToString();
-            var startIndex = localRoot.Span.Start - identifierName.Span.Start;
+            var startIndex = identifierName.Span.Start - localRoot.Span.Start;
 
             var parsedType = SyntaxFactory.ParseTypeName(localText, startIndex, consumeFullText: false);
 

@@ -7375,14 +7375,38 @@ class C
 
         [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestNoNonGenericsWithGenericCode()
+        public async Task TestNotOnGenericCodeParsedAsExpression()
         {
             await TestMissingAsync(@"
 class C
 {
     private void GetEvaluationRuleNames()
     {
-        [|IEnumerable|] < string >
+        [|IEnumerable|] < Int32 >
+        return ImmutableArray.CreateRange();
+    }
+}");
+        }
+
+        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestOnNonGenericExpressionWithLessThan()
+        {
+            await TestInRegularAndScriptAsync(@"
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        [|IEnumerable|] < Int32
+        return ImmutableArray.CreateRange();
+    }
+}",
+@"
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        IEnumerable < Int32
         return ImmutableArray.CreateRange();
     }
 }");

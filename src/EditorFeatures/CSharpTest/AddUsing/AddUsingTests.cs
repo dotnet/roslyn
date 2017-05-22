@@ -4606,14 +4606,14 @@ namespace Outer
 
         [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
-        public async Task TestNoNonGenericsWithGenericCode()
+        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
         {
             var code = @"
 class C
 {
     private void GetEvaluationRuleNames()
     {
-        [|IEnumerable|] < string >
+        [|IEnumerable|] < Int32 >
         return ImmutableArray.CreateRange();
     }
 }";
@@ -4628,7 +4628,7 @@ class C
 {
     private void GetEvaluationRuleNames()
     {
-        IEnumerable < string >
+        IEnumerable < Int32 >
         return ImmutableArray.CreateRange();
     }
 }");
