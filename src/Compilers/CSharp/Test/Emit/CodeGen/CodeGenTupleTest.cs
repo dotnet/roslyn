@@ -22930,12 +22930,12 @@ class P
         var x1 = (1, 1) as (int, int a)?;
         var x2 = (1, 1) as (int, int)?;
         var x3 = (1, new object()) as (int, dynamic)?;
-        Console.Write(x1 != null && x2 != null & x3 != null);
+        Console.Write($""{x1} {x2} {x3}"");
     }
 }";
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "True");
+            CompileAndVerify(comp, expectedOutput: "(1, 1) (1, 1) (1, System.Object)");
         }
 
         [Fact]
