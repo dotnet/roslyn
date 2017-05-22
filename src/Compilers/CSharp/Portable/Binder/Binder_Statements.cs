@@ -2451,7 +2451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         sourceTuple.Syntax,
                         sourceTuple.Type,
                         sourceTuple.Arguments,
-                        sourceTuple.Type ?? targetType,
+                        sourceTuple.Type ?? ErrorTypeSymbol.UnknownResultType,
                         sourceTuple.HasErrors);
                 }
 
