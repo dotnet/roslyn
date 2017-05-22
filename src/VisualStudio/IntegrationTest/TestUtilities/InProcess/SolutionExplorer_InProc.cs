@@ -410,7 +410,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (open)
             {
-                projectItem.Open();
+                OpenFile(projectName, fileName);
             }
         }
 
