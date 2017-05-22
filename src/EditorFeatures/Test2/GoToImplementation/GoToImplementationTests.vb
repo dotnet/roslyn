@@ -413,5 +413,31 @@ class D : C
 
             Await TestAsync(workspace)
         End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToImplementation)>
+        <WorkItem(19700, "https://github.com/dotnet/roslyn/issues/19700")>
+        Public Async Function TestWithIntermediateAbstractOverrides() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+    abstract class A {
+        public virtual void $$[|M|]() { }
+    }
+    abstract class B : A {
+        public abstract override void M();
+    }
+    sealed class C1 : B {
+        public override void [|M|]() { }
+    }
+    sealed class C2 : A {
+        public override void [|M|]() => base.M();
+    }
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
     End Class
 End Namespace
