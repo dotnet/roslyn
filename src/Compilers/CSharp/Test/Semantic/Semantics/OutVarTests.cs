@@ -32238,12 +32238,12 @@ class C
                 // (11,18): error CS0150: A constant value is expected
                 //             case M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
-                // (8,43): error CS0165: Use of unassigned local variable 'z1'
-                //             case M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 43),
-                // (11,43): error CS0165: Use of unassigned local variable 'z2'
-                //             case M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 43)
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(z1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(z2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 17)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);

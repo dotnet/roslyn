@@ -1285,6 +1285,27 @@ Sum: 10, Count: 4")
         End Sub
 
         <Fact>
+        <WorkItem(18762, "https://github.com/dotnet/roslyn/issues/18762")>
+        Public Sub UnnamedTempShouldNotCrashPdbEncoding()
+
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+Imports System.Threading.Tasks
+
+Module Module1
+    Private Async Function DoAllWorkAsync() As Task(Of (FirstValue As String, SecondValue As String))
+        Return (Nothing, Nothing)
+    End Function
+End Module
+    </file>
+</compilation>,
+additionalRefs:={ValueTupleRef, SystemRuntimeFacadeRef}, useLatestFramework:=True, options:=TestOptions.DebugDll)
+
+        End Sub
+
+        <Fact>
         Public Sub Overloading001()
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -14755,7 +14776,7 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
                 Next
 
                 For i = 0 To members1.Length - 1
-                    For j = 0 To members2.Length
+                    For j = 0 To members2.Length - 1
                         If i <> j Then
                             Assert.NotSame(members1(i), members2(j))
                             Assert.False(members1(i).Equals(members2(j)))
@@ -14803,7 +14824,8 @@ options:=TestOptions.DebugExe, additionalRefs:=s_valueTupleRefs)
         End Sub
 
         Private Shared Sub AssertTestDisplayString(symbols As ImmutableArray(Of Symbol), ParamArray baseLine As String())
-            AssertEx.Equal(symbols.Select(Function(s) s.ToTestDisplayString()), baseLine)
+            ' Re-ordering arguments because expected is usually first.
+            AssertEx.Equal(baseLine, symbols.Select(Function(s) s.ToTestDisplayString()))
         End Sub
 
         <Fact>
