@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rightParts = ((BoundTupleExpression)right).Arguments;
             }
-            else if (right.Kind == BoundKind.Conversion)
+            else if (right.Kind == BoundKind.Conversion && ((BoundConversion)right).Operand.Kind == BoundKind.ConvertedTupleLiteral)
             {
                 var tupleConversion = (BoundConversion)right;
                 Debug.Assert(tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral ||

@@ -1632,7 +1632,7 @@ class Program
 this.set(2)
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, ilSource,  references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(source, ilSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -7270,6 +7270,42 @@ class Program
 ";
             string expectedOutput = @"1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        var (a, b) = ((byte, byte))t;
+        System.Console.Write($""{a} {b}"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"1 2", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void UserDefinedCastInDeconstruction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        var (a, b) = ((byte, byte))c;
+        System.Console.Write($""{a} {b}"");
+    }
+    public static explicit operator (byte, byte)(C c)
+    {
+        return (3, 4);
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"3 4", additionalRefs: s_valueTupleRefs);
         }
     }
 }
