@@ -4038,7 +4038,7 @@ class Program
 }
 ");
         }
-        
+
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);

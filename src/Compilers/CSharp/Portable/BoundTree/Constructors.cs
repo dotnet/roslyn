@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isDelegateCall,
             bool invokedAsExtensionMethod,
             ImmutableArray<MethodSymbol> originalMethods,
-            LookupResultKind resultKind)
+            LookupResultKind resultKind,
+            Binder binder)
         {
             if (!originalMethods.IsEmpty)
                 resultKind = resultKind.WorseResultKind(LookupResultKind.OverloadResolutionFailure);
@@ -84,14 +85,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var call = new BoundCall(node, receiverOpt, method, arguments, namedArguments,
                 refKinds, isDelegateCall: isDelegateCall, expanded: false, invokedAsExtensionMethod: invokedAsExtensionMethod, argsToParamsOpt: default(ImmutableArray<int>),
-                resultKind: resultKind, type: method.ReturnType, hasErrors: true);
+                resultKind: resultKind, binderOpt: binder, type: method.ReturnType, hasErrors: true);
             call.OriginalMethodsOpt = originalMethods;
             return call;
         }
 
         public BoundCall Update(BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
         {
-            return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, ResultKind, Type);
+            return this.Update(receiverOpt, method, arguments, ArgumentNamesOpt, ArgumentRefKindsOpt, IsDelegateCall, Expanded, InvokedAsExtensionMethod, ArgsToParamsOpt, ResultKind, BinderOpt, Type);
         }
 
         public static BoundCall Synthesized(SyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method)
@@ -122,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     invokedAsExtensionMethod: false,
                     argsToParamsOpt: default(ImmutableArray<int>),
                     resultKind: LookupResultKind.Viable,
+                    binderOpt: null,
                     type: method.ReturnType,
                     hasErrors: method.OriginalDefinition is ErrorMethodSymbol
                 )
@@ -131,12 +133,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectCreationExpression
     {
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, params BoundExpression[] arguments)
-            : this(syntax, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, constructor.ContainingType)
+        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, Binder binderOpt, params BoundExpression[] arguments)
+            : this(syntax, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, binderOpt, constructor.ContainingType)
         {
         }
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments)
-            : this(syntax, constructor, arguments, default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, constructor.ContainingType)
+        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, Binder binderOpt, ImmutableArray<BoundExpression> arguments)
+            : this(syntax, constructor, arguments, default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), null, null, binderOpt, constructor.ContainingType)
         {
         }
     }
@@ -161,6 +163,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
+                binderOpt: null,
+                useSetterForDefaultArgumentGeneration: false,
                 type: indexer.Type,
                 hasErrors: true)
             {
