@@ -5756,10 +5756,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(21, 15),
                 // (12,17): warning CS0162: Unreachable code detected
                 //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17),
-                // (17,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
