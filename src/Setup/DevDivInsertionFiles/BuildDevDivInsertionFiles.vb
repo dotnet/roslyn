@@ -12,6 +12,7 @@ Public Class BuildDevDivInsertionFiles
     Private Const DevDivPackagesDirName = "DevDivPackages"
     Private Const DevDivVsixDirName = "DevDivVsix"
     Private Const ExternalApisDirName = "ExternalAPIs"
+    Private Const NetFX20DirectoryName = "NetFX20"
     Private Const PublicKeyToken = "31BF3856AD364E35"
 
     Private ReadOnly _binDirectory As String
@@ -426,7 +427,7 @@ Public Class BuildDevDivInsertionFiles
         ' These are for msvsmon, whose setup authoring is done by the debugger.
         For Each folder In Directory.EnumerateDirectories(Path.Combine(_binDirectory, "Dlls"), "*.NetFX20")
             For Each eePath In Directory.EnumerateFiles(folder, "*.ExpressionEvaluator.*.dll", SearchOption.TopDirectoryOnly)
-                filesToInsert.Add(New NugetFileInfo(GetPathRelativeToBinaries(eePath), GetPathRelativeToBinaries(folder)))
+                filesToInsert.Add(New NugetFileInfo(GetPathRelativeToBinaries(eePath), NetFX20DirectoryName))
             Next
         Next
 
