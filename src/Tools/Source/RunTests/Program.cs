@@ -64,7 +64,7 @@ namespace RunTests
             var finishedTask = await Task.WhenAny(timeoutTask, runTask);
             if (finishedTask == timeoutTask)
             {
-                HandleTimeout(options);
+                await HandleTimeout(options, cancellationToken);
                 cts.Cancel();
 
                 try
@@ -150,26 +150,18 @@ namespace RunTests
         /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
         /// the runnner.
         /// </summary>
-        private static void HandleTimeout(Options options)
+        private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
         {
-            string GetProcDumpFilePath(Process proc) => ProcessUtil.Is64Bit(proc)
-                ? Path.Combine(options.ProcDumpPath, "procdump64.exe")
-                : Path.Combine(options.ProcDumpPath, "procdump.exe");
+            var procDumpFilePath = Path.Combine(options.ProcDumpPath, "procdump.exe");
 
-            void DumpProcess(Process targetProcess, string dumpFilePath)
+            async Task DumpProcess(Process targetProcess, string dumpFilePath)
             {
                 Console.Write($"Dumping {targetProcess.ProcessName} {targetProcess.Id} to {dumpFilePath} ... ");
                 try
                 {
-                    var processStartInfo = new ProcessStartInfo();
-                    processStartInfo.FileName = GetProcDumpFilePath(targetProcess);
-                    processStartInfo.Arguments = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
-                    processStartInfo.CreateNoWindow = true;
-                    processStartInfo.UseShellExecute = false;
-                    processStartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                    processStartInfo.RedirectStandardOutput = true;
-                    var process = Process.Start(processStartInfo);
-                    process.WaitForExit();
+                    var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
+                    var processTask = ProcessRunner.RunProcessAsync(procDumpFilePath, args, cancellationToken);
+                    var processOutput = await processTask;
 
                     // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
                     // for succesful cases (possibly returning the count of dumps that were written).  Best 
@@ -180,15 +172,16 @@ namespace RunTests
                     }
                     else
                     {
-                        Console.WriteLine($"FAILED with {process.ExitCode}");
-                        Console.WriteLine($"{processStartInfo.FileName} {processStartInfo.Arguments}");
-                        Console.WriteLine(process.StandardOutput.ReadToEnd());
+                        Console.WriteLine($"FAILED with {processOutput.ExitCode}");
+                        Console.WriteLine($"{procDumpFilePath} {args}");
+                        Console.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
                     Console.WriteLine("FAILED");
                     Console.WriteLine(ex.Message);
+                    Logger.Log("Failed to dump process", ex);
                 }
             }
 
@@ -204,7 +197,7 @@ namespace RunTests
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
                 {
                     var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
-                    DumpProcess(proc, dumpFilePath);
+                    await DumpProcess(proc, dumpFilePath);
                     counter++;
                 }
             }
