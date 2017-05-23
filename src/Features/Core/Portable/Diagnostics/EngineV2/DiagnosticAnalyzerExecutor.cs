@@ -91,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
                 CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
             {
-                if (analyzerDriver.Analyzers.Length == 0)
+                if (analyzerDriver == null ||
+                    analyzerDriver.Analyzers.Length == 0)
                 {
                     // quick bail out
                     return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -152,6 +153,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
             {
                 var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
+                if (analyzers.Length == 0)
+                {
+                    // return null since we can't create CompilationWithAnalyzers with 0 analyzers
+                    return null;
+                }
+
                 return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
             }
 
