@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics,
             bool allowRefOrOut,
             bool allowThis,
-            bool shouldPlaceIsConstModifier)
+            bool addIsConstModifier)
         {
             arglistToken = default(SyntaxToken);
 
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterIndex,
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    shouldPlaceIsConstModifier,
+                    addIsConstModifier,
                     diagnostics);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);

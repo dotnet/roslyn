@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     binder, this, syntax.ParameterList, out arglistToken,
                     allowRefOrOut: true,
                     allowThis: false,
-                    shouldPlaceIsConstModifier: false,
+                    addIsConstModifier: false,
                     diagnostics: diagnostics);
 
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)

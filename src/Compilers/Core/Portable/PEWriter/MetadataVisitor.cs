@@ -272,8 +272,8 @@ namespace Microsoft.Cci
         public virtual void Visit(IMethodDefinition method)
         {
             this.Visit(method.GetReturnValueAttributes(Context));
-            this.Visit(method.ReturnValueCustomModifiers);
             this.Visit(method.RefCustomModifiers);
+            this.Visit(method.ReturnValueCustomModifiers);
 
             if (method.HasDeclarativeSecurity)
             {
@@ -443,6 +443,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IParameterTypeInformation parameterTypeInformation)
         {
+            this.Visit(parameterTypeInformation.RefCustomModifiers);
             this.Visit(parameterTypeInformation.CustomModifiers);
             this.Visit(parameterTypeInformation.GetType(Context));
         }

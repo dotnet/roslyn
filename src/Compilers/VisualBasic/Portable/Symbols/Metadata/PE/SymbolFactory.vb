@@ -44,12 +44,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return type.PrimitiveTypeCode
         End Function
 
-        Friend Overrides Function IsVolatileModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
+        Friend Overrides Function IsAcceptedVolatileModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
             ' VB doesn't deal with Volatile fields.
             Return False
         End Function
 
-        Friend Overrides Function IsConstModifierType(moduleSymbol As PEModuleSymbol, type As TypeSymbol) As Boolean
+        Friend Overrides Function IsAcceptedIsConstModifierType(type As TypeSymbol) As Boolean
             ' VB doesn't deal with ref-readonly parameters or return-types.
             Return False
         End Function

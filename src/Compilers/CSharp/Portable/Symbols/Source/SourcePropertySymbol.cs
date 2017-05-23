@@ -273,13 +273,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
                 }
             }
-            else if (_refKind == RefKind.RefReadOnly && (this.IsVirtual || this.IsAbstract))
+            else if (_refKind == RefKind.RefReadOnly && (IsVirtual || IsAbstract))
             {
-                var isConst = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax);
+                var isConstType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax.Type);
 
                 _customModifiers = CustomModifiersTuple.Create(
                     ImmutableArray<CustomModifier>.Empty,
-                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConst)));
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConstType)));
             }
 
             if (!hasAccessorList)
@@ -783,7 +783,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics)
+            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics, bool addIsConstModifier)
         {
             if (parameterSyntaxOpt == null)
             {
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder, owner, parameterSyntaxOpt, out arglistToken,
                 allowRefOrOut: false,
                 allowThis: false,
-                shouldPlaceIsConstModifier: true,
+                addIsConstModifier: addIsConstModifier,
                 diagnostics: diagnostics);
 
             if (arglistToken.Kind() != SyntaxKind.None)
@@ -1397,7 +1397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> ComputeParameters(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             var parameterSyntaxOpt = GetParameterListSyntax(syntax);
-            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics);
+            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addIsConstModifier: IsVirtual || IsAbstract);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             foreach (ParameterSymbol param in parameters)
