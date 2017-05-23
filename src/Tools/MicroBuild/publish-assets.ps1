@@ -43,6 +43,7 @@ try
         "dev15.3-preview1" { } 
         "master" { } 
         "post-dev15" { } 
+        "findRefsOOPWork2" { }
         default
         {
             if (-not $test)
