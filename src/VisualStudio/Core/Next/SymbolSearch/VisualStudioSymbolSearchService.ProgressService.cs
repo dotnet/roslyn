@@ -2,8 +2,9 @@
 
 using System;
 using System.Composition;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.TaskStatusCenter;
@@ -15,48 +16,87 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     [ExportWorkspaceService(typeof(ISymbolSearchProgressService), ServiceLayer.Host), Shared]
     internal class VisualStudioSymbolSearchProgressService : ISymbolSearchProgressService
     {
-        private readonly object _gate;
-        private readonly IVsTaskStatusCenterService _taskCenterServiceOpt;
+        private readonly object _gate = new object();
+        private readonly Lazy<IVsTaskStatusCenterService> _taskCenterServiceOpt;
 
-        private TaskCompletionSource<bool> _taskCompletionSource;
+        private TaskCompletionSource<bool> _taskCompletionSource = new TaskCompletionSource<bool>();
 
         [ImportingConstructor]
         public VisualStudioSymbolSearchProgressService(VSShell.SVsServiceProvider serviceProvider)
         {
-            _taskCenterServiceOpt = new ProgressService((IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService)));
+            _taskCenterServiceOpt = new Lazy<IVsTaskStatusCenterService>(() => 
+                (IVsTaskStatusCenterService)serviceProvider.GetService(typeof(SVsTaskStatusCenterService)));
         }
-        public Task OnDownloadFullDatabaseStartedAsync(string title)
+
+        public async Task OnDownloadFullDatabaseStartedAsync(string title)
         {
+            try
+            {
+                await OnDownloadFullDatabaseStartedWorkerAsync(title).ConfigureAwait(false);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+            }
+        }
+
+        private Task OnDownloadFullDatabaseStartedWorkerAsync(string title)
+        {
+            var options = GetOptions(title);
+            var data = new TaskProgressData
+            {
+                CanBeCanceled = false,
+                PercentComplete = null,
+            };
+
+            TaskCompletionSource<bool> localTaskCompletionSource;
+
             lock (_gate)
             {
-                var options = new TaskHandlerOptions
-                {
-                    Title = title,
-                    Category = TaskCategory.BackgroundService,
-                    RetentionAfterCompletion = CompletionRetention.Faulted,
-                    DisplayTaskDetails = _ => { }
-                };
+                // Take any existing tasks and move them to the complete state.
+                _taskCompletionSource.TrySetResult(true);
 
-                var data = new TaskProgressData
-                {
-                    CanBeCanceled = false,
-                    PercentComplete = null,
-                    ShutdownBehavior = AppShutdownBehavior.NoBlock,
-                };
-
+                // Now create an existing task to track the current download and let
+                // vs know about it.
                 _taskCompletionSource = new TaskCompletionSource<bool>();
-                var handler = _taskCenterServiceOpt?.PreRegister(options, data);
-                handler?.RegisterTask(_taskCompletionSource.Task);
+                localTaskCompletionSource = _taskCompletionSource;
             }
 
+            var handler = _taskCenterServiceOpt.Value?.PreRegister(options, data);
+            handler?.RegisterTask(localTaskCompletionSource.Task);
+
             return SpecializedTasks.EmptyTask;
+        }
+
+        private static TaskHandlerOptions GetOptions(string title)
+        {
+            var options = new TaskHandlerOptions
+            {
+                Title = title
+            };
+
+            try
+            {
+                options = SetRetentionMode(options);
+            }
+            catch
+            {
+            }
+
+            return options;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static TaskHandlerOptions SetRetentionMode(TaskHandlerOptions options)
+        {
+            options.ActionsAfterCompletion = CompletionActions.RetainOnFaulted;
+            return options;
         }
 
         public Task OnDownloadFullDatabaseSucceededAsync()
         {
             lock (_gate)
             {
-                _taskCompletionSource.TrySetResult(true);
+                _taskCompletionSource?.TrySetResult(true);
                 return SpecializedTasks.EmptyTask;
             }
         }
@@ -65,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             lock (_gate)
             {
-                _taskCompletionSource.TrySetCanceled();
+                _taskCompletionSource?.TrySetCanceled();
                 return SpecializedTasks.EmptyTask;
             }
         }
@@ -74,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             lock (_gate)
             {
-                _taskCompletionSource.TrySetException(new Exception(message));
+                _taskCompletionSource?.TrySetException(new Exception(message));
                 return SpecializedTasks.EmptyTask;
             }
         }
