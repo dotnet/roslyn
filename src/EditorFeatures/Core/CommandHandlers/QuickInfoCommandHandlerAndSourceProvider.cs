@@ -19,39 +19,35 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
-    [Export(typeof(IQuickInfoSourceProvider))]
     [Order(After = PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.QuickInfo, ContentTypeNames.RoslynContentType)]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [Export(typeof(IQuickInfoSourceProvider))]
+    [Name("RoslynQuickInfoProvider")]
     internal partial class QuickInfoCommandHandlerAndSourceProvider :
         ForegroundThreadAffinitizedObject,
         ICommandHandler<InvokeQuickInfoCommandArgs>,
         IQuickInfoSourceProvider
     {
-        private readonly IInlineRenameService _inlineRenameService;
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> _providers;
 
         [ImportingConstructor]
         public QuickInfoCommandHandlerAndSourceProvider(
-            IInlineRenameService inlineRenameService,
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters)
-            : this(inlineRenameService,
-                   ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
+            : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
                    providers, asyncListeners)
         {
         }
 
         // For testing purposes.
         public QuickInfoCommandHandlerAndSourceProvider(
-            IInlineRenameService inlineRenameService,
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
-            _inlineRenameService = inlineRenameService;
             _providers = ExtensionOrderer.Order(providers);
             _asyncListeners = asyncListeners;
             _presenter = presenter;
