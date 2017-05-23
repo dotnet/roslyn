@@ -18,24 +18,24 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
     /// </summary>
     public static class TestExportProvider
     {
-        private static ComposableCatalog s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =>
-            CreateAssemblyCatalogWithCSharpAndVisualBasic();
+        private static Lazy<ComposableCatalog> s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic =
+            new Lazy<ComposableCatalog>(() => CreateAssemblyCatalogWithCSharpAndVisualBasic());
 
         public static ComposableCatalog EntireAssemblyCatalogWithCSharpAndVisualBasic
-            => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic;
+            => s_lazyEntireAssemblyCatalogWithCSharpAndVisualBasic.Value;
 
-        private static ExportProvider s_lazyExportProviderWithCSharpAndVisualBasic
-            => CreateExportProviderWithCSharpAndVisualBasic();
+        private static Lazy<ExportProvider> s_lazyExportProviderWithCSharpAndVisualBasic
+            = new Lazy<ExportProvider>(CreateExportProviderWithCSharpAndVisualBasic);
 
         public static ExportProvider ExportProviderWithCSharpAndVisualBasic
-            => s_lazyExportProviderWithCSharpAndVisualBasic;
+            => s_lazyExportProviderWithCSharpAndVisualBasic.Value;
 
-        private static ComposableCatalog s_lazyMinimumCatalogWithCSharpAndVisualBasic =>
-            MinimalTestExportProvider.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
-                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies()));
+        private static Lazy<ComposableCatalog> s_lazyMinimumCatalogWithCSharpAndVisualBasic =
+            new Lazy<ComposableCatalog>(() => MinimalTestExportProvider.CreateTypeCatalog(GetNeutralAndCSharpAndVisualBasicTypes())
+                        .WithParts(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies())));
 
         public static ComposableCatalog MinimumCatalogWithCSharpAndVisualBasic
-            => s_lazyMinimumCatalogWithCSharpAndVisualBasic;
+            => s_lazyMinimumCatalogWithCSharpAndVisualBasic.Value;
 
         private static Type[] GetNeutralAndCSharpAndVisualBasicTypes()
         {
