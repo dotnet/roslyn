@@ -4387,7 +4387,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>
   <data name="IDS_CSCHelp" xml:space="preserve">
-       <value>
+    <value>
                               Visual C# Compiler Options
 
                         - OUTPUT FILES -
@@ -4525,7 +4525,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /moduleassemblyname:&lt;string&gt;  Name of the assembly which this module will be
                                a part of
  /modulename:&lt;string&gt;          Specify the name of the source module
- </value>
+</value>
     <comment>Visual C# Compiler Options</comment>
   </data>
   <data name="ERR_ComImportWithInitializers" xml:space="preserve">
