@@ -319,6 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 invokedAsExtensionMethod: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 resultKind: LookupResultKind.Viable,
+                binderOpt: null,
                 type: method.ReturnType)
             { WasCompilerGenerated = true };
         }
@@ -359,6 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         invokedAsExtensionMethod: false,
                         argsToParamsOpt: default(ImmutableArray<int>),
                         resultKind: LookupResultKind.Viable,
+                        binderOpt: binder,
                         type: userMain.ReturnType)
                 { WasCompilerGenerated = true };
 
@@ -482,7 +484,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 scriptLocal,
                                 new BoundObjectCreationExpression(
                                     syntax,
-                                    ctor)
+                                    ctor,
+                                    null)
                                 { WasCompilerGenerated = true },
                                 _containingType)
                             { WasCompilerGenerated = true })
@@ -574,6 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             default(ImmutableArray<RefKind>),
                             false,
                             default(ImmutableArray<int>),
+                            null,
                             null,
                             null,
                             _containingType)
