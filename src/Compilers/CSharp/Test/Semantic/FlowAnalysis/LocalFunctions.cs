@@ -1319,7 +1319,6 @@ struct S
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "Local()").WithArguments("_x").WithLocation(14, 9));
         }
 
-
         [Fact]
         [WorkItem(18813, "https://github.com/dotnet/roslyn/issues/18813")]
         public void LocalIEnumerableFunctionWithOutParameter1()
@@ -1329,9 +1328,9 @@ class c
 {
     static void Main(string[] args)
     {
-        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool output)
         {
-            foobar = true;
+            output = true;
             yield return ""foo"";
         }
 
@@ -1342,10 +1341,10 @@ class c
             comp.VerifyDiagnostics(
                 // (6,83): error CS1623: Iterators cannot have ref or out parameters
                 //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "foobar"),
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
                 // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
                 //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("foobar").WithLocation(6, 56));
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("output").WithLocation(6, 56));
         }
 
         [Fact]
@@ -1357,9 +1356,9 @@ class c
 {
     static void Main(string[] args)
     {
-        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
+        System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool output)
         {
-            foobar = false;
+            output = false;
             for (int i = 0; i < count; i++)
             {
                 foreach (var val in getFoo(3, out var bar))
@@ -1375,10 +1374,10 @@ class c
             comp.VerifyDiagnostics(
                 // (6,83): error CS1623: Iterators cannot have ref or out parameters
                 //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "foobar"),
+                Diagnostic(ErrorCode.ERR_BadIteratorArgType, "output"),
                 // (6,56): error CS0177: The out parameter 'foobar' must be assigned to before control leaves the current method
                 //         System.Collections.Generic.IEnumerable<string> getFoo(int count, out bool foobar)
-                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("foobar").WithLocation(6, 56));
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "getFoo").WithArguments("output").WithLocation(6, 56));
         }
     }
 }
