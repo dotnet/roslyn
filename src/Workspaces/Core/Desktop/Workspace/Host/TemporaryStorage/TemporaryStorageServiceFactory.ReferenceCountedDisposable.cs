@@ -52,11 +52,6 @@ namespace Microsoft.CodeAnalysis.Host
             /// The boxed reference count, which is shared by all references with the same <see cref="Target"/> object.
             /// </summary>
             /// <remarks>
-            /// <para>Only use equality operators to compare this value with 0. The actual reference count is allowed to
-            /// be a negative integer in order to support a reference count full 32-bit number of reference. Ideally it
-            /// would be represented as a <see cref="uint"/>, but some <see cref="Interlocked"/> operations are not
-            /// implemented for this type.</para>
-            ///
             /// <para>This field is set to <see langword="null"/> at the point in time when this reference is disposed.
             /// This occurs prior to clearing the <see cref="_instance"/> field in order to support concurrent
             /// code.</para>
@@ -138,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Host
                         return null;
                     }
 
-                    if (Interlocked.CompareExchange(ref referenceCount.Value, currentValue + 1, currentValue) == currentValue)
+                    if (Interlocked.CompareExchange(ref referenceCount.Value, checked(currentValue + 1), currentValue) == currentValue)
                     {
                         // Must return a new instance, in order for the Dispose operation on each individual instance to
                         // be idempotent.

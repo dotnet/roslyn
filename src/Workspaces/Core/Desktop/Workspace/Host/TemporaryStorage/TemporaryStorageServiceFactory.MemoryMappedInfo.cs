@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.Host
             public Stream CreateReadableStream()
             {
                 // CreateViewAccessor is not guaranteed to be thread-safe
-                lock (_memoryMappedFile)
+                lock (_memoryMappedFile.Target)
                 {
                     // Note: TryAddReference behaves according to its documentation even if the target object has been
                     // disposed. If it returns non-null, then the object will not be disposed before the returned
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Host
             public Stream CreateWritableStream()
             {
                 // CreateViewStream is not guaranteed to be thread-safe
-                lock (_memoryMappedFile)
+                lock (_memoryMappedFile.Target)
                 {
                     return RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write), this);
                 }

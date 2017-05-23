@@ -32,14 +32,22 @@ namespace Microsoft.CodeAnalysis.Host
         internal class TemporaryStorageService : ITemporaryStorageService2
         {
             /// <summary>
-            /// The maximum size of a single storage unit in a memory mapped file which is shared with other storage
-            /// units.
+            /// The maximum size in bytes of a single storage unit in a memory mapped file which is shared with other
+            /// storage units.
             /// </summary>
+            /// <remarks>
+            /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
+            /// something better.</para>
+            /// </remarks>
             private const long SingleFileThreshold = 128 * 1024;
 
             /// <summary>
-            /// The size of a memory mapped file created to store multiple temporary objects.
+            /// The size in bytes of a memory mapped file created to store multiple temporary objects.
             /// </summary>
+            /// <remarks>
+            /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
+            /// something better.</para>
+            /// </remarks>
             private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
             private readonly ITextFactoryService _textFactory;
