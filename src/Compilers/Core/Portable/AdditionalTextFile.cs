@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
         /// there were errors reading the file.
         /// </summary>
-        public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
+        public override SourceText GetText(CancellationToken cancellationToken = default)
         {
             lock (_lockObject)
             {
