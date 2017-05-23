@@ -78,7 +78,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     else if (optionKey.Option.Type == typeof(long))
                     {
                         var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
-
                         if (untypedValue is string stringValue)
                         {
                             // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
@@ -148,6 +147,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     if (optionKey.Option.Type == typeof(bool))
                     {
                         subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
+                        return true;
+                    }
+                    else if (optionKey.Option.Type == typeof(long))
+                    {
+                        subKey.SetValue(key, value, RegistryValueKind.QWord);
                         return true;
                     }
                     else
