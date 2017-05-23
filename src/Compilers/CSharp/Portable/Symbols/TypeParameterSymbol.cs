@@ -485,6 +485,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override bool IsReadOnly
+        {
+            get
+            {
+                //PROTOTYPE(readonly ref): is this always false? consider overriding/constraints
+                return false;
+            }
+        }
+
         internal sealed override ObsoleteAttributeData ObsoleteAttributeData
         {
             get { return null; }

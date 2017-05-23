@@ -105,6 +105,56 @@ class Program
         }
 
         [Fact]
+        public void InvokeOnReadOnlyInstanceFieldGeneric()
+        {
+            var text = @"
+class Program
+{
+    readonly S1<string> f;
+
+    static void Main()
+    {
+        var p = new Program();
+        System.Console.Write(p.f.M1(""hello""));
+        System.Console.Write(p.f.ToString());
+    }
+
+    readonly struct S1<T>
+    {
+        public T M1(T arg)
+        {
+            return arg;
+        }
+
+        public override string ToString()
+        {
+            return ""2"";
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"hello2");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""Program.S1<string> Program.f""
+  IL_000b:  ldstr      ""hello""
+  IL_0010:  call       ""string Program.S1<string>.M1(string)""
+  IL_0015:  call       ""void System.Console.Write(string)""
+  IL_001a:  ldflda     ""Program.S1<string> Program.f""
+  IL_001f:  constrained. ""Program.S1<string>""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  call       ""void System.Console.Write(string)""
+  IL_002f:  ret
+}");
+        }
+
+        [Fact]
         public void InvokeOnReadOnlyThis()
         {
             var text = @"
@@ -151,7 +201,7 @@ class Program
         }
 
         [Fact]
-        public void InvokeRecursively()
+        public void InvokeOnThis()
         {
             var text = @"
 class Program
@@ -209,6 +259,46 @@ class Program
   IL_0011:  ret
 }");
 
+        }
+
+        [Fact]
+        public void InvokeOnThisBaseMethods()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
+        default(S1).Test();
+    }
+    readonly struct S1
+    {
+        public void Test()
+        {
+            System.Console.Write(this.GetType());
+            System.Console.Write(ToString());
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"Program+S1Program+S1");
+
+            comp.VerifyIL("Program.S1.Test()", @"
+{
+  // Code size       39 (0x27)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""Program.S1""
+  IL_0006:  box        ""Program.S1""
+  IL_000b:  call       ""System.Type object.GetType()""
+  IL_0010:  call       ""void System.Console.Write(object)""
+  IL_0015:  ldarg.0
+  IL_0016:  constrained. ""Program.S1""
+  IL_001c:  callvirt   ""string object.ToString()""
+  IL_0021:  call       ""void System.Console.Write(string)""
+  IL_0026:  ret
+}");
         }
 
         [Fact]

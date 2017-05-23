@@ -1414,10 +1414,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     NamedTypeSymbol methodContainingType = method.ContainingType;
                     if (methodContainingType.IsVerifierValue())
                     {
-                        Debug.Assert(method.MethodKind != MethodKind.Constructor);
-
-                        // if method is defined in the struct itself and is assumed to be mutating, unless 
-                        var thisAddresskind = methodContainingType.IsReadOnly ?
+                        // if method is defined in the struct itself it is assumed to be mutating, unless 
+                        // it is a member of a readonly struct and is not a constructor
+                        var thisAddresskind = methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor ?
                                                                         AddressKind.ReadOnly :
                                                                         AddressKind.Writeable;
                         if (MayUseCallForStructMethod(method))
@@ -2711,7 +2710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Default value for the given default expression is not a constant
             // Expression must be of type parameter type or a non-primitive value type
             // Emit an initobj instruction for these cases
-            EmitInitObj(expression.Type, used, expression.Syntax);
+            EmitDefaultValue(expression.Type, used, expression.Syntax);
         }
 
         private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)

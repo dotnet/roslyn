@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsByRefLikeType => false;
 
+        internal override bool IsReadOnly => false;
+
         public override bool IsAbstract => false;
 
         public override bool IsSealed => true;
