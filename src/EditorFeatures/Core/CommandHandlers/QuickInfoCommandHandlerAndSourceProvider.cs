@@ -25,7 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     [Name("RoslynQuickInfoProvider")]
     internal partial class QuickInfoCommandHandlerAndSourceProvider :
         ForegroundThreadAffinitizedObject,
-        ICommandHandler<InvokeQuickInfoCommandArgs>,
         IQuickInfoSourceProvider
     {
         private readonly IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> _presenter;
@@ -79,59 +78,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 new AggregateAsynchronousOperationListener(_asyncListeners, FeatureAttribute.QuickInfo),
                 _providers);
             return true;
-        }
-
-        private bool TryGetControllerCommandHandler<TCommandArgs>(TCommandArgs args, out ICommandHandler<TCommandArgs> commandHandler)
-            where TCommandArgs : CommandArgs
-        {
-            AssertIsForeground();
-            if (!TryGetController(args, out var controller))
-            {
-                commandHandler = null;
-                return false;
-            }
-
-            commandHandler = (ICommandHandler<TCommandArgs>)controller;
-            return true;
-        }
-
-        private CommandState GetCommandStateWorker<TCommandArgs>(
-            TCommandArgs args,
-            Func<CommandState> nextHandler)
-            where TCommandArgs : CommandArgs
-        {
-            AssertIsForeground();
-            return TryGetControllerCommandHandler(args, out var commandHandler)
-                ? commandHandler.GetCommandState(args, nextHandler)
-                : nextHandler();
-        }
-
-        private void ExecuteCommandWorker<TCommandArgs>(
-            TCommandArgs args,
-            Action nextHandler)
-            where TCommandArgs : CommandArgs
-        {
-            AssertIsForeground();
-            if (!TryGetControllerCommandHandler(args, out var commandHandler))
-            {
-                nextHandler();
-            }
-            else
-            {
-                commandHandler.ExecuteCommand(args, nextHandler);
-            }
-        }
-
-        CommandState ICommandHandler<InvokeQuickInfoCommandArgs>.GetCommandState(InvokeQuickInfoCommandArgs args, Func<CommandState> nextHandler)
-        {
-            AssertIsForeground();
-            return GetCommandStateWorker(args, nextHandler);
-        }
-
-        void ICommandHandler<InvokeQuickInfoCommandArgs>.ExecuteCommand(InvokeQuickInfoCommandArgs args, Action nextHandler)
-        {
-            AssertIsForeground();
-            ExecuteCommandWorker(args, nextHandler);
         }
 
         public IQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
