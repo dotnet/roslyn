@@ -7297,8 +7297,8 @@ class C
     static void Main()
     {
         var t = (new C(), new D());
-        var (a, b) = ((byte, byte))t;
-        System.Console.Write($""{a} {b}"");
+        var (a, _) = ((byte, byte))t;
+        System.Console.Write($""{a}"");
     }
     public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
 }
@@ -7306,7 +7306,7 @@ class D
 {
     public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
 }";
-            CompileAndVerify(source, expectedOutput: @"Convert Convert2 1 2", additionalRefs: s_valueTupleRefs);
+            CompileAndVerify(source, expectedOutput: @"Convert Convert2 1", additionalRefs: s_valueTupleRefs);
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
