@@ -7289,6 +7289,49 @@ class C
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var t = (new C(), new D());
+        var (a, b) = ((byte, byte))t;
+        System.Console.Write($""{a} {b}"");
+    }
+    public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
+}
+class D
+{
+    public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
+}";
+            CompileAndVerify(source, expectedOutput: @"Convert Convert2 1 2", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction3()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var (a, b) = ((byte, byte))(new C(), new D());
+        System.Console.Write($""{a} {b}"");
+    }
+    public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
+    public C() { System.Console.Write(""C ""); }
+}
+class D
+{
+    public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
+    public D() { System.Console.Write(""D ""); }
+}";
+            CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 1 2", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
         public void UserDefinedCastInDeconstruction()
         {
             var source = @"
