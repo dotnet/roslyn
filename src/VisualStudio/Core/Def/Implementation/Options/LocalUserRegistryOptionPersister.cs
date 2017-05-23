@@ -77,19 +77,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     }
                     else if (optionKey.Option.Type == typeof(long))
                     {
-                        object untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
 
                         if (untypedValue is string stringValue)
                         {
                             // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
                             // those back.
-                            bool suceeded = long.TryParse(stringValue, out long longValue);
+                            var suceeded = long.TryParse(stringValue, out long longValue);
                             value = longValue;
                             return suceeded;
                         }
                         else if (untypedValue is long longValue)
                         {
                             value = longValue;
+                            return true;
+                        }
+
+                        value = null;
+                        return false;
+                    }
+                    else if (optionKey.Option.Type == typeof(int))
+                    {
+                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+
+                        if (untypedValue is string stringValue)
+                        {
+                            // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
+                            // those back.
+                            var suceeded = int.TryParse(stringValue, out int intValue);
+                            value = intValue;
+                            return suceeded;
+                        }
+                        else if (untypedValue is int intValue)
+                        {
+                            value = intValue;
                             return true;
                         }
 
@@ -127,11 +148,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     if (optionKey.Option.Type == typeof(bool))
                     {
                         subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
-                        return true;
-                    }
-                    else if (optionKey.Option.Type == typeof(long))
-                    {
-                        subKey.SetValue(key, value, RegistryValueKind.QWord);
                         return true;
                     }
                     else
