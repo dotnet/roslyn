@@ -18,10 +18,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.GoToDefinition
             : base(streamingPresenters)
         {
         }
-
-        protected override ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation)
-        {
-            return symbol;
-        }
     }
 }
