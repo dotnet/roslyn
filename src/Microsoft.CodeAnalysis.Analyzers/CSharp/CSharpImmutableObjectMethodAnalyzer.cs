@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
             s_localizableMessage,
             AnalyzerDiagnosticCategory.AnalyzerCorrectness,
             DiagnosticHelpers.DefaultDiagnosticSeverity,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
