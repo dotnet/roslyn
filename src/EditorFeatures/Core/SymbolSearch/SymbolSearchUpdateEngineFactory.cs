@@ -36,20 +36,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return new SymbolSearchUpdateEngine(logService, progressService);
         }
 
-        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine
+        private partial class RemoteUpdateEngine : ISymbolSearchUpdateEngine, ISymbolSearchLogService, ISymbolSearchProgressService
         {
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
             private readonly Workspace _workspace;
             private readonly CancellationToken _cancellationToken;
 
-            /// <summary>
-            /// Wrapper around our <see cref="ISymbolSearchLogService"/> and 
-            /// <see cref="ISymbolSearchProgressService"/>.  We'll pass this object to the remote side
-            /// so it can notify us of things that are happening so that we can update the local UI 
-            /// with that information.
-            /// </summary>
-            private readonly LogAndProgressService _logAndProgressService;
+            private readonly ISymbolSearchLogService _logService;
+            private readonly ISymbolSearchProgressService _progressService;
 
             private RemoteHostClient _client;
             private RemoteHostClient.Session _sessionDoNotAccessDirectly;
@@ -62,7 +57,8 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 CancellationToken cancellationToken)
             {
                 _workspace = workspace;
-                _logAndProgressService = new LogAndProgressService(logService, progressService);
+                _logService = logService;
+                _progressService = progressService;
                 _cancellationToken = cancellationToken;
 
                 // this engine is stateful service which maintaining a connection to remote host. so
@@ -120,7 +116,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // much less clean and would make some of the state management much more complex.
                     _sessionDoNotAccessDirectly = await _client.TryCreateServiceSessionAsync(
                         WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
-                        _logAndProgressService,
+                        this,
                         _cancellationToken).ConfigureAwait(false);
 
                     return _sessionDoNotAccessDirectly;
@@ -192,6 +188,28 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
                     sourceName, localSettingsDirectory).ConfigureAwait(false);
             }
+
+            #region RPC callbacks
+
+            public Task LogExceptionAsync(string exception, string text)
+                => _logService.LogExceptionAsync(exception, text);
+
+            public Task LogInfoAsync(string text)
+                => _logService.LogInfoAsync(text);
+
+            public Task OnDownloadFullDatabaseStartedAsync(string title)
+                => _progressService.OnDownloadFullDatabaseStartedAsync(title);
+
+            public Task OnDownloadFullDatabaseSucceededAsync()
+                => _progressService.OnDownloadFullDatabaseSucceededAsync();
+
+            public Task OnDownloadFullDatabaseCanceledAsync()
+                => _progressService.OnDownloadFullDatabaseCanceledAsync();
+
+            public Task OnDownloadFullDatabaseFailedAsync(string message)
+                => _progressService.OnDownloadFullDatabaseFailedAsync(message);
+
+            #endregion
         }
     }
 }

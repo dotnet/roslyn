@@ -185,7 +185,6 @@
     <Compile Include="SymbolSearch\IIOService.cs" />
     <Compile Include="SymbolSearch\IPatchService.cs" />
     <Compile Include="SymbolSearch\IRemoteControlService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchUpdateEngineFactory.LogAndProgressService.cs" />
     <Compile Include="SymbolSearch\Patching\Delta.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.cs" />
     <Compile Include="SymbolSearch\SymbolSearchUpdateEngine.DatabaseFactoryService.cs" />
