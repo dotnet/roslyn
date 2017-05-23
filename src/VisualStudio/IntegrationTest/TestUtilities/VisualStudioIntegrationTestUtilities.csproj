@@ -33,6 +33,7 @@
     <Compile Include="Common\ProjectUtilities.cs" />
     <Compile Include="Common\Reference.cs" />
     <Compile Include="Common\Signature.cs" />
+    <Compile Include="FirstChanceExceptionLogger.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="HostWaitHelper.cs" />
     <Compile Include="InProcess\Debugger_InProc.cs" />

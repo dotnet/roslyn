@@ -3,14 +3,15 @@
 using System.Windows.Automation;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveFormsAndWpf : AbstractInteractiveWindowTest
     {
-        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        public CSharpInteractiveFormsAndWpf(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
             VisualStudio.InteractiveWindow.SubmitText(@"#r ""System.Windows.Forms""
 #r ""WindowsBase""

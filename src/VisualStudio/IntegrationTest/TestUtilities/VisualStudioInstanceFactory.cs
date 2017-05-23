@@ -28,6 +28,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// The instance that has already been launched by this factory and can be reused.
         /// </summary>
         private VisualStudioInstance _currentlyRunningInstance;
+        private FirstChanceExceptionLogger _firstChanceExceptionLogger;
 
         private bool _hasCurrentlyActiveContext;
 
@@ -45,28 +46,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public VisualStudioInstanceFactory()
         {
             AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolveHandler;
-            AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
-        }
-
-        private static void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
-        {
-            try
-            {
-                var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
-                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
-                var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
-
-                var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
-
-                ScreenshotService.TakeScreenshot(fullPath);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine(e);
-                // Per the AppDomain.FirstChanceException contract we must catch and deal with all exceptions that arise in the handler.
-                // Otherwise, we are likely to end up with recursive calls into this method until we overflow the stack.
-            }
         }
 
         // This looks like it is pointless (since we are returning an assembly that is already loaded) but it is actually required.
@@ -91,13 +70,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Returns a <see cref="VisualStudioInstanceContext"/>, starting a new instance of Visual Studio if necessary.
         /// </summary>
-        public VisualStudioInstanceContext GetNewOrUsedInstance(ImmutableHashSet<string> requiredPackageIds)
+        public VisualStudioInstanceContext GetNewOrUsedInstance(ImmutableHashSet<string> requiredPackageIds, Action<string> logAction = null)
         {
             ThrowExceptionIfAlreadyHasActiveContext();
 
-            bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
-            UpdateCurrentlyRunningInstance(requiredPackageIds, shouldStartNewInstance);
+            _firstChanceExceptionLogger?.Dispose();
+            _firstChanceExceptionLogger = new FirstChanceExceptionLogger(CaptureTestNameAttribute.CurrentName, logAction);
 
+            bool shouldStartNewInstance = ShouldStartNewInstance(requiredPackageIds);
+            UpdateCurrentlyRunningInstance(requiredPackageIds, shouldStartNewInstance, logAction);
+            
             return new VisualStudioInstanceContext(_currentlyRunningInstance, this);
         }
 
@@ -106,6 +88,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             ThrowExceptionIfAlreadyHasActiveContext();
 
             _hasCurrentlyActiveContext = false;
+
+            _firstChanceExceptionLogger?.Dispose();
+            _firstChanceExceptionLogger = null;
 
             if (!canReuse)
             {
@@ -137,7 +122,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// <summary>
         /// Starts up a new <see cref="VisualStudioInstance"/>, shutting down any instances that are already running.
         /// </summary>
-        private void UpdateCurrentlyRunningInstance(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance)
+        private void UpdateCurrentlyRunningInstance(ImmutableHashSet<string> requiredPackageIds, bool shouldStartNewInstance, Action<string> logAction)
         {
             Process hostProcess;
             DTE dte;
@@ -173,7 +158,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath, logAction);
         }
 
         private static ISetupConfiguration GetSetupConfiguration()
@@ -286,7 +271,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             // We want to make sure everybody cleaned up their contexts by the end of everything
             ThrowExceptionIfAlreadyHasActiveContext();
 
-            AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
             AppDomain.CurrentDomain.AssemblyResolve -= AssemblyResolveHandler;
         }
     }
