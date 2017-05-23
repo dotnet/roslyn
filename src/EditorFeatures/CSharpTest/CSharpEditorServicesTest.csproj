@@ -246,7 +246,7 @@
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
-    <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
     <Compile Include="Diagnostics\UpgradeProject\UpgradeProjectTests.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProviderTests_NameDeclarationInfoTests.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.cs" />
@@ -396,6 +396,7 @@
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseDefaultLiteral\UseDefaultLiteralTests.cs" />
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConstructorsRefactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConversionOperatorsRefactoringTests.cs" />

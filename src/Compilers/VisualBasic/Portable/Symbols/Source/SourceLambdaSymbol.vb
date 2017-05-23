@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If Me._lazyAnonymousDelegateSymbol Is ErrorTypeSymbol.UnknownResultType Then
                     Dim newValue As NamedTypeSymbol = MakeAssociatedAnonymousDelegate()
-                    Dim oldValue As NamedTypeSymbol = Interlocked.CompareExchange(Of NamedTypeSymbol)(Me._lazyAnonymousDelegateSymbol, newValue, ErrorTypeSymbol.UnknownResultType)
+                    Dim oldValue As NamedTypeSymbol = Interlocked.CompareExchange(Me._lazyAnonymousDelegateSymbol, newValue, ErrorTypeSymbol.UnknownResultType)
                     Debug.Assert(oldValue Is ErrorTypeSymbol.UnknownResultType OrElse oldValue Is newValue)
                 End If
                 Return Me._lazyAnonymousDelegateSymbol

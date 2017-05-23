@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -38,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ArrayBuilder<BoundStatement> _loweredDecisionTree = ArrayBuilder<BoundStatement>.GetInstance();
 
             private PatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
-                : base(localRewriter._factory.CurrentMethod, localRewriter._factory.Compilation.Conversions)
+                : base(localRewriter._factory.CurrentMethod, (SwitchStatementSyntax)node.Syntax, localRewriter._factory.Compilation.Conversions)
             {
                 this._localRewriter = localRewriter;
                 this._factory = localRewriter._factory;
                 this._factory.Syntax = node.Syntax;
                 foreach (var section in node.SwitchSections)
                 {
-                    _switchSections.Add((SyntaxNode)section.Syntax, ArrayBuilder<BoundStatement>.GetInstance());
+                    _switchSections.Add(section.Syntax, ArrayBuilder<BoundStatement>.GetInstance());
                 }
             }
 
@@ -59,15 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = _localRewriter.VisitExpression(node.Expression);
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
 
-                // if the expression is "too complex", we copy it to a temp.
-                LocalSymbol initialTemp = null;
                 if (expression.ConstantValue == null)
                 {
-                    initialTemp = _factory.SynthesizedLocal(expression.Type, expression.Syntax);
-                    result.Add(_factory.Assignment(_factory.Local(initialTemp), expression));
-                    expression = _factory.Local(initialTemp);
-
-                    // EnC: We need to insert a hidden sequence point to handle function remapping in case 
+                    // EnC: We need to insert a hidden sequence point to handle function remapping in case
                     // the containing method is edited while methods invoked in the expression are being executed.
                     if (!node.WasCompilerGenerated && _localRewriter.Instrument)
                     {
@@ -85,7 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 // at this point the end of result is unreachable.
 
-                _declaredTemps.AddOptional(initialTemp);
                 _declaredTemps.AddRange(node.InnerLocals);
 
                 // output the sections of code
@@ -148,12 +142,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression loweredExpression,
                 BoundPatternSwitchStatement node)
             {
-                var loweredDecisionTree = DecisionTree.Create(loweredExpression, loweredExpression.Type, _enclosingSymbol);
+                var loweredDecisionTree = CreateEmptyDecisionTree(loweredExpression);
                 BoundPatternSwitchLabel defaultLabel = null;
                 SyntaxNode defaultSection = null;
                 foreach (var section in node.SwitchSections)
                 {
-                    var sectionSyntax = (SyntaxNode)section.Syntax;
+                    var sectionSyntax = section.Syntax;
                     foreach (var label in section.SwitchLabels)
                     {
                         var loweredLabel = LowerSwitchLabel(label);
@@ -171,7 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Syntax = label.Syntax;
                             AddToDecisionTree(loweredDecisionTree, sectionSyntax, loweredLabel);
                         }
                     }
@@ -223,14 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, convertedExpression));
                     }
 
+                    // If the temp is not yet in the declared temp set, add it now
                     if (_declaredTempSet.Add(decisionTree.Temp))
                     {
                         _declaredTemps.Add(decisionTree.Temp);
-                    }
-                    else
-                    {
-                        // we should only attempt to declare each temp once.
-                        throw ExceptionUtilities.Unreachable;
                     }
                 }
 
@@ -403,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var loweredRight = kv.Key;
                         var loweredLeft = kv.Value;
-                        loweredRight = _factory.Convert(loweredLeft.Type, loweredRight);
+                        Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.AllIgnoreOptions));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
                                 _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));

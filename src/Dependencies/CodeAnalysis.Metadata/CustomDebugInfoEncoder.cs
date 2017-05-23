@@ -194,7 +194,10 @@ namespace Microsoft.CodeAnalysis.Debugging
                         builder.WriteInt32(info.SlotIndex);
                         builder.WriteInt32(info.ScopeStart);
                         builder.WriteInt32(info.ScopeEnd);
-                        builder.WriteUTF8(info.LocalName);
+                        if (info.LocalName != null)
+                        {
+                            builder.WriteUTF8(info.LocalName);
+                        }
                         builder.WriteByte(0);
                     }
                 });

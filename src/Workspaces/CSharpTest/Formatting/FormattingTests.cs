@@ -6795,6 +6795,32 @@ class Program
 {
     void Main()
     {
+        for ( ;;)
+        {
+        }
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Main()
+    {
+        for (; ; )
+        {
+        }
+    }
+}";
+            await AssertFormatAsync(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingForForStatementInfiniteLoopWithNoSpaces()
+        {
+            var code = @"
+class Program
+{
+    void Main()
+    {
         for ( ; ; )
         {
         }
@@ -6810,7 +6836,75 @@ class Program
         }
     }
 }";
-            await AssertFormatAsync(expected, code);
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, false },
+            };
+
+            await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingForForStatementInfiniteLoopWithSpacesBefore()
+        {
+            var code = @"
+class Program
+{
+    void Main()
+    {
+        for (;; )
+        {
+        }
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Main()
+    {
+        for ( ; ;)
+        {
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, true },
+                { CSharpFormattingOptions.SpaceAfterSemicolonsInForStatement, false },
+            };
+
+            await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task SpacingForForStatementInfiniteLoopWithSpacesBeforeAndAfter()
+        {
+            var code = @"
+class Program
+{
+    void Main()
+    {
+        for (;;)
+        {
+        }
+    }
+}";
+            var expected = @"
+class Program
+{
+    void Main()
+    {
+        for ( ; ; )
+        {
+        }
+    }
+}";
+            var optionSet = new Dictionary<OptionKey, object>
+            {
+                { CSharpFormattingOptions.SpaceBeforeSemicolonsInForStatement, true },
+            };
+
+            await AssertFormatAsync(expected, code, changedOptionSet: optionSet);
         }
 
         [WorkItem(4421, "https://github.com/dotnet/roslyn/issues/4421")]
@@ -7434,7 +7528,7 @@ switch (o)
 
         private Task AssertFormatBodyAsync(string expected, string input)
         {
-            Func<string, string> transform = s => 
+            Func<string, string> transform = s =>
             {
                 var lines = s.Split(new[] { Environment.NewLine }, StringSplitOptions.None);
                 for (int i = 0; i < lines.Length; i++)

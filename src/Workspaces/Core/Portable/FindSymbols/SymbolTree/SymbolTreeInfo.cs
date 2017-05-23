@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo
+    internal partial class SymbolTreeInfo : IChecksummedObject
     {
-        public readonly Checksum Checksum;
+        public Checksum Checksum { get; }
 
         /// <summary>
         /// To prevent lots of allocations, we concatenate all the names in all our
@@ -105,13 +105,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private SymbolTreeInfo(
             Checksum checksum,
             string concatenatedNames,
-            Node[] sortedNodes, 
+            Node[] sortedNodes,
             Task<SpellChecker> spellCheckerTask)
         {
             Checksum = checksum;
             _concatenatedNames = concatenatedNames;
             _nodes = ImmutableArray.Create(sortedNodes);
             _spellCheckerTask = spellCheckerTask;
+        }
+
+        public static SymbolTreeInfo CreateEmpty(Checksum checksum)
+        {
+            var unsortedNodes = ImmutableArray.Create(BuilderNode.RootNode);
+            SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
+
+            return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes,
+                CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes));
         }
 
         public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
@@ -209,7 +218,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 Bind(node, assemblySymbol.GlobalNamespace, results, cancellationToken);
             }
 
-            return results.ToImmutableAndFree(); ;
+            return results.ToImmutableAndFree();
         }
 
         private static StringSliceComparer GetComparer(bool ignoreCase)
@@ -322,8 +331,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, checksum, filePath,
-                () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes)));
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(
+                solution, checksum, filePath, concatenatedNames, sortedNodes));
         }
 
         private static Task<SpellChecker> CreateSpellCheckerAsync(Checksum checksum, string concatenatedNames, Node[] sortedNodes)
