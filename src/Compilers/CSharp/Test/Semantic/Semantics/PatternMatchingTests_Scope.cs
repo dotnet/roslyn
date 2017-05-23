@@ -5178,7 +5178,7 @@ public class X
 ";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
-                // (27,26): error CS0128: A local variable named 'x4' is already defined in this scope
+                // (27,26): error CS0128: A local variable or function named 'x4' is already defined in this scope
                 //         switch (4 is var x4 ? x4 : 0)
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x4").WithArguments("x4").WithLocation(27, 26),
                 // (37,26): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -5208,7 +5208,10 @@ public class X
                 // (89,18): error CS0150: A constant value is expected
                 //             case y10:
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "y10").WithLocation(89, 18),
-                // (112,28): error CS0128: A local variable named 'x14' is already defined in this scope
+                // (90,17): warning CS0162: Unreachable code detected
+                //                 var y10 = 12;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(90, 17),
+                // (112,28): error CS0128: A local variable or function named 'x14' is already defined in this scope
                 //                   2 is var x14, 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x14").WithArguments("x14").WithLocation(112, 28),
                 // (125,25): error CS0841: Cannot use local variable 'y15' before it is declared
@@ -5216,7 +5219,10 @@ public class X
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(125, 25),
                 // (127,18): error CS0841: Cannot use local variable 'y15' before it is declared
                 //             case y15: 
-                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18)
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "y15").WithArguments("y15").WithLocation(127, 18),
+                // (128,17): warning CS0162: Unreachable code detected
+                //                 var y15 = 15;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "var").WithLocation(128, 17)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

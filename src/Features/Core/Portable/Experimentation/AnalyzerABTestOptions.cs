@@ -3,7 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
+namespace Microsoft.CodeAnalysis.Experimentation
 {
     internal static class AnalyzerABTestOptions
     {
@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
             nameof(LastDateTimeUsedSuggestionAction), defaultValue: DateTime.MinValue.ToBinary(),
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(LastDateTimeUsedSuggestionAction)));
 
-        public static readonly Option<uint> UsedSuggestedActionCount = new Option<uint>(nameof(AnalyzerABTestOptions), nameof(UsedSuggestedActionCount),
+        public static readonly Option<int> UsedSuggestedActionCount = new Option<int>(nameof(AnalyzerABTestOptions), nameof(UsedSuggestedActionCount),
             defaultValue: 0, storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(UsedSuggestedActionCount)));
 
         public static readonly Option<bool> NeverShowAgain = new Option<bool>(nameof(AnalyzerABTestOptions), nameof(NeverShowAgain),
@@ -25,5 +25,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Experimentation
         public static readonly Option<long> LastDateTimeInfoBarShown = new Option<long>(nameof(AnalyzerABTestOptions), nameof(LastDateTimeInfoBarShown),
             defaultValue: DateTime.MinValue.ToBinary(),
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(LastDateTimeInfoBarShown)));
+
+        public static readonly Option<bool> VsixInstalled = new Option<bool>(nameof(AnalyzerABTestOptions),
+            nameof(VsixInstalled), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(VsixInstalled)));
+
+        public static readonly Option<bool> ParticipatedInExperiment = new Option<bool>(nameof(AnalyzerABTestOptions),
+            nameof(ParticipatedInExperiment), defaultValue: false,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(ParticipatedInExperiment)));
     }
 }
