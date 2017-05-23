@@ -392,6 +392,13 @@ namespace Roslyn.Test.Utilities
             Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
         }
 
+        public static void AssertStartsWithToleratingWhitespaceDifferences(string expectedSubString, string actualString)
+        {
+            expectedSubString = NormalizeWhitespace(expectedSubString);
+            actualString = NormalizeWhitespace(actualString);
+            Assert.StartsWith(expectedSubString, actualString, StringComparison.Ordinal);
+        }
+
         internal static string NormalizeWhitespace(string input)
         {
             var output = new StringBuilder();
@@ -440,6 +447,10 @@ namespace Roslyn.Test.Utilities
                 if (expected is IEnumerable<byte>)
                 {
                     itemInspector = b => $"0x{b:X2}";
+                }
+                else if (expected is IEnumerable<string>)
+                {
+                    itemInspector = new Func<T, string>(obj => (obj != null) ? string.Format("\"{0}\"", obj.ToString()) : "<null>");
                 }
                 else
                 {

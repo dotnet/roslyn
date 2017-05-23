@@ -52,6 +52,31 @@ function Terminate-BuildProcesses() {
     Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
 }
 
+# Ensure that procdump is available on the machine.  Returns the path to the directory that contains 
+# the procdump binaries (both 32 and 64 bit)
+function Ensure-ProcDump() {
+
+    # Jenkins images default to having procdump installed in the root.  Use that if available to avoid
+    # an unnecessary download.
+    if (Test-Path "c:\SysInternals\procdump.exe") {
+        return "c:\SysInternals";
+    }    
+
+    $toolsDir = Join-Path $binariesDir "Tools"
+    $outDir = Join-Path $toolsDir "ProcDump"
+    $filePath = Join-Path $outDir "procdump.exe"
+    if (-not (Test-Path $filePath)) { 
+        Remove-Item -Re $filePath -ErrorAction SilentlyContinue
+        Create-Directory $outDir 
+        $zipFilePath = Join-Path $toolsDir "procdump.zip"
+        Invoke-WebRequest "https://download.sysinternals.com/files/Procdump.zip" -outfile $zipFilePath | Out-Null
+        Add-Type -AssemblyName System.IO.Compression.FileSystem
+        [IO.Compression.ZipFile]::ExtractToDirectory($zipFilePath, $outDir)
+    }
+
+    return $outDir
+}
+
 # The Jenkins images used to execute our tests can live for a very long time.  Over the course
 # of hundreds of runs this can cause the %TEMP% folder to fill up.  To avoid this we redirect
 # %TEMP% into the binaries folder which is deleted at the end of every run as a part of cleaning
@@ -161,6 +186,7 @@ try {
     $testVsiArg = if ($testVsi) { "true" } else { "false" }
     $testVsiNetCoreArg = if ($testVsiNetCore) { "true" } else { "false" }
     $buildLog = Join-Path $binariesdir "Build.log"
+    $procDumpDir = Ensure-ProcDump
 
     # To help the VS SDK team track down their issues around install via build temporarily 
     # re-enabling the build based deployment
@@ -172,7 +198,7 @@ try {
         Write-Host "The testVsiNetCore option can't be combined with other test arguments"
     }
 
-    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:TestVsiNetCore=$testVsiNetCoreArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64 /p:DeployExtensionViaBuild=$deployExtensionViaBuild /p:TreatWarningsAsErrors=true
+    Run-MSBuild /p:BootstrapBuildPath="$bootstrapDir" BuildAndTest.proj /p:Configuration=$buildConfiguration /p:Test64=$test64Arg /p:TestVsi=$testVsiArg /p:TestDesktop=$testDesktop /p:TestCoreClr=$testCoreClr /p:TestVsiNetCore=$testVsiNetCoreArg /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism /fileloggerparameters:LogFile="$buildLog"`;verbosity=diagnostic /p:DeployExtension=false /p:RoslynRuntimeIdentifier=win7-x64 /p:DeployExtensionViaBuild=$deployExtensionViaBuild /p:TreatWarningsAsErrors=true /p:ProcDumpDir=$procDumpDir
 
     exit 0
 }

@@ -103,7 +103,11 @@ namespace RunTests
                     Console.Write($", {failures, 2} failures");
                 }
                 Console.WriteLine();
-                Task.WaitAny(running.ToArray());
+
+                if (running.Count > 0)
+                {
+                    await Task.WhenAny(running.ToArray());
+                }
             } while (running.Count > 0);
 
             Print(completed);
