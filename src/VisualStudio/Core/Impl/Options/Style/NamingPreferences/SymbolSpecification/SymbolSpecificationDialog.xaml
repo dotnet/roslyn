@@ -27,6 +27,16 @@
         <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
         <Thickness x:Key="textboxPadding">2</Thickness>
+        <DataTemplate x:Key="listViewDataTemplate">
+            <StackPanel Orientation="Horizontal">
+                <CheckBox x:Uid="SelectableMemberCheckBox" 
+                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
+                          Width="Auto"
+                          Focusable="False"
+                          Content="{Binding Name}">
+                </CheckBox>
+            </StackPanel>
+        </DataTemplate>
     </Window.Resources>
     <Grid Margin="5,6,11,11">
         <Grid.RowDefinitions>
@@ -35,8 +45,11 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0 5 0 0">
-            <Label Content="{Binding ElementName=dialog, Path=SymbolSpecificationTitleLabelText}"/>
-            <TextBox Width="300" Text="{Binding ItemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"></TextBox>
+            <Label Name="titleLabel" Content="{Binding ElementName=dialog, Path=SymbolSpecificationTitleLabelText}"/>
+            <TextBox Width="300" 
+                     Text="{Binding ItemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                     VerticalContentAlignment="Center"
+                     AutomationProperties.LabeledBy="{Binding ElementName=titleLabel}"/>
         </StackPanel>
         <Grid Grid.Row="1" Margin="0 5 0 0">
             <Grid.ColumnDefinitions>
@@ -52,27 +65,8 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=SymbolKindsLabelText}"/>
-                <ListView Grid.Row="1" Grid.Column="0" x:Uid="SymbolKinds"
-                          x:Name="SymbolKinds"
-                          MinWidth="70"
-                          Margin="8 4 8 7"
-                          SelectionMode="Extended"
-                          ItemsSource="{Binding SymbolKindList, Mode=TwoWay}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItem">
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False">
-                                </CheckBox>
-                                <TextBlock x:Uid="SelectableMemberName" Margin="4 0 0 0"
-                                                   Text="{Binding Name}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <Label Name="symbolKindsLabel" Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=SymbolKindsLabelText}"/>
+                <ContentControl Name="symbolKindsContentControl" Grid.Row="1" MinWidth="70" Margin="8 4 8 7" Focusable="False"/>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllSymbolKinds"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}" Click="DeselectAllSymbolKinds"></vs:DialogButton>
@@ -87,52 +81,14 @@
                     <RowDefinition Height="0.5*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=AccessibilitiesLabelText}"/>
-                <ListView Grid.Row="1" x:Uid="MemberSelectionList2"
-                          x:Name="Accessibilities"
-                          Margin="8 4 8 7"
-                          MinWidth="70"
-                          SelectionMode="Extended"
-                          ItemsSource="{Binding AccessibilityList, Mode=TwoWay}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItem">
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False">
-                                </CheckBox>
-                                <TextBlock x:Uid="SelectableMemberName" Margin="4 0 0 0"
-                                                   Text="{Binding Name}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <Label Name="accessibilitiesLabel" Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=AccessibilitiesLabelText}"/>
+                <ContentControl Name="accessibilitiesContentControl" Grid.Row="1" MinWidth="70" Margin="8 4 8 7" Focusable="False"/>
                 <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllAccessibilities"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}" Click="DeselectAllAccessibilities"></vs:DialogButton>
                 </StackPanel>
-                <Label Grid.Row="3" Margin="0 4 0 0" Content="{Binding ElementName=dialog, Path=ModifiersLabelText}"/>
-                <ListView Grid.Row="4" x:Uid="MemberSelectionList2"
-                          x:Name="Modifiers"
-                          SelectionMode="Extended"
-                          Margin="8 4 8 7"
-                          MinWidth="70"
-                          ItemsSource="{Binding ModifierList, Mode=TwoWay}">
-                    <ListView.ItemTemplate x:Uid="SelectableMemberListItem">
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <CheckBox x:Uid="SelectableMemberCheckBox" 
-                                          IsChecked="{Binding IsChecked, Mode=TwoWay}" 
-                                          Width="Auto"
-                                          Focusable="False">
-                                </CheckBox>
-                                <TextBlock x:Uid="SelectableMemberName" Margin="4 0 0 0"
-                                                   Text="{Binding Name}"/>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
+                <Label Name="modifiersLabel" Grid.Row="3" Margin="0 4 0 0" Content="{Binding ElementName=dialog, Path=ModifiersLabelText}"/>
+                <ContentControl Name="modifiersContentControl" Grid.Row="4" MinWidth="70" Margin="8 4 8 7" Focusable="False"/>
                 <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Left">
                     <vs:DialogButton Margin="8 0 0 0" Content="{Binding ElementName=dialog, Path=SelectAllButtonText}" Click="SelectAllModifiers"></vs:DialogButton>
                     <vs:DialogButton Margin="7 0 0 0" Content="{Binding ElementName=dialog, Path=DeselectAllButtonText}"  Click="DeselectAllModifiers"></vs:DialogButton>

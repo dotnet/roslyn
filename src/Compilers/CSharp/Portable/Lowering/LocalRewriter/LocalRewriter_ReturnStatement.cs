@@ -28,10 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
             }
-            else if (node.WasCompilerGenerated && _factory.CurrentMethod?.IsAsync == true)
-            {
-                rewritten = new BoundSequencePoint(null, rewritten);
-            }
 
             return rewritten;
         }

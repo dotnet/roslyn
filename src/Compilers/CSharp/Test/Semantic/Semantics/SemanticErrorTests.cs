@@ -15915,9 +15915,11 @@ static class S
     internal static void F(this double d) { }
 }";
             var compilation = CreateStandardCompilation(text, references: new[] { SystemCoreRef });
+            // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
-                // (5,9): error CS1928: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' has some invalid arguments
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "F").WithArguments("float", "F", "S.F(double)").WithLocation(5, 11));
+                // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
+                //         f.F();
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "f").WithArguments("float", "F", "S.F(double)", "double").WithLocation(5, 9));
         }
 
         [Fact]

@@ -28,11 +28,9 @@ namespace Microsoft.CodeAnalysis.Emit
 
         /// <summary>
         /// Unless set (private) members that don't affect the language semantics of the resulting assembly will be excluded
-        /// when emitting with <see cref="EmitMetadataOnly"/> on. 
+        /// when emitting metadata-only assemblies as primary output (with <see cref="EmitMetadataOnly"/> on).
+        /// If emitting a secondary output, this flag is required to be false.
         /// </summary>
-        /// <remarks>
-        /// Has no effect when <see cref="EmitMetadataOnly"/> is false.
-        /// </remarks>
         public bool IncludePrivateMembers { get; private set; }
 
         /// <summary>
@@ -135,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Emit
             SubsystemVersion subsystemVersion = default(SubsystemVersion),
             string runtimeMetadataVersion = null,
             bool tolerateErrors = false,
-            bool includePrivateMembers = false,
+            bool includePrivateMembers = true,
             ImmutableArray<InstrumentationKind> instrumentationKinds = default(ImmutableArray<InstrumentationKind>))
         {
             this.EmitMetadataOnly = metadataOnly;
