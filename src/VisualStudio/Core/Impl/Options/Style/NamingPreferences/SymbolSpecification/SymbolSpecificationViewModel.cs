@@ -141,6 +141,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             return true;
         }
 
+        // For screen readers
+        public override string ToString()
+        {
+            return _symbolSpecName;
+        }
+
         internal interface ISymbolSpecificationViewModelPart
         {
             bool IsChecked { get; set; }

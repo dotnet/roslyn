@@ -160,16 +160,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax;
         }
 
-        internal static ExpressionSyntax SkipRef(this ExpressionSyntax syntax, out RefKind refKind)
+        internal static ExpressionSyntax CheckAndUnwrapRefExpression(
+            this ExpressionSyntax syntax,
+            DiagnosticBag diagnostics,
+            out RefKind refKind)
         {
             refKind = RefKind.None;
             if (syntax?.Kind() == SyntaxKind.RefExpression)
             {
                 refKind = RefKind.Ref;
                 syntax = ((RefExpressionSyntax)syntax).Expression;
+
+                syntax.CheckDeconstructionCompatibleArgument(diagnostics);
             }
 
             return syntax;
+        }
+
+        internal static void CheckDeconstructionCompatibleArgument(this ExpressionSyntax expression, DiagnosticBag diagnostics)
+        {
+            if (IsDeconstructionCompatibleArgument(expression))
+            {
+                diagnostics.Add(ErrorCode.ERR_VarInvocationLvalueReserved, expression.GetLocation());
+            }
+        }
+
+        /// <summary>
+        /// See if the expression is an invocation of a method named 'var',
+        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
+        /// We report an error when such an invocation is used in a certain syntactic contexts that
+        /// will require an lvalue because we may elect to support deconstruction
+        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
+        /// ref-returning method named var.
+        /// </summary>
+        private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
+        {
+            if (expression.Kind() == SyntaxKind.InvocationExpression)
+            {
+                var invocation = (InvocationExpressionSyntax)expression;
+                var invocationTarget = invocation.Expression;
+
+                return invocationTarget.Kind() == SyntaxKind.IdentifierName &&
+                    ((IdentifierNameSyntax)invocationTarget).IsVar;
+            }
+
+            return false;
         }
     }
 }

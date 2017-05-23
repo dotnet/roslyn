@@ -57,6 +57,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
+    <Compile Include="..\..\..\Core\MSBuildTask\MvidReader.cs">
+      <Link>Emit\MvidReader.cs</Link>
+    </Compile>
     <Compile Include="Attributes\AttributeTests.cs" />
     <Compile Include="Attributes\AttributeTests_Assembly.cs" />
     <Compile Include="Attributes\AttributeTests_CallerInfoAttributes.cs" />
@@ -70,6 +73,7 @@
     <Compile Include="Attributes\AttributeTests_Synthesized.cs" />
     <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
+    <Compile Include="CodeGen\CodeGenAsyncMainTests.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
     <Compile Include="CodeGen\PatternTests.cs" />
     <Compile Include="Emit\BinaryCompatibility.cs" />
@@ -142,14 +146,13 @@
     <Compile Include="Emit\EditAndContinue\LocalSlotMappingTests.cs" />
     <Compile Include="Emit\EmitCustomModifiers.cs" />
     <Compile Include="Emit\EmitErrorTests.cs" />
-    <Compile Include="Emit\EmitMetadata.cs" />
+    <Compile Include="Emit\EmitMetadataTests.cs" />
     <Compile Include="Emit\EmitMetadataTestBase.cs" />
     <Compile Include="Attributes\EmitTestStrongNameProvider.cs" />
     <Compile Include="Emit\EndToEndTests.cs" />
     <Compile Include="Emit\EntryPointTests.cs" />
     <Compile Include="Emit\NoPiaEmbedTypes.cs" />
     <Compile Include="Emit\OptionalArgumentsTests.cs" />
-    <Compile Include="Emit\OutputStreams.cs" />
     <Compile Include="Emit\ResourceTests.cs" />
     <Compile Include="CodeGen\CodeGenScriptTests.cs" />
     <Compile Include="PDB\CheckSumTest.cs" />

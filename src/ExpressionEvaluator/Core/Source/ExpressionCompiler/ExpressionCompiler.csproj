@@ -19,9 +19,6 @@
     <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\DateTimeUtilities.cs">
       <Link>Shared\DateTimeUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
-      <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
-    </Compile>
     <Compile Include="AssemblyReaders.cs" />
     <Compile Include="AssemblyReference.cs" />
     <Compile Include="CustomTypeInfo.cs" />

@@ -272,6 +272,7 @@
     <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
     <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpSymbolMatcher.cs" />
+    <Compile Include="Emitter\Model\SourceAssemblySymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ArrayTypeSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\AssemblyReference.cs" />
     <Compile Include="Emitter\Model\AttributeDataAdapter.cs" />

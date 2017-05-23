@@ -90,6 +90,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            var service = project.LanguageServices.GetService<IDesignerAttributeService>();
+            if (service == null)
+            {
+                // project doesn't support designer attribute service.
+                return;
+            }
+
             // Try to compute this data in the remote process.  If that fails, then compute
             // the results in the local process.
             var pathToResult = await TryAnalyzeProjectInRemoteProcessAsync(project, cancellationToken).ConfigureAwait(false);

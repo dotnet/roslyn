@@ -380,11 +380,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return delegateType.GetDelegateType()?.DelegateInvokeMethod;
         }
 
-        private static ImmutableArray<ParameterSymbol> DelegateParameters(MethodSymbol invokeMethod)
-        {
-            return ((object)invokeMethod == null) ? ImmutableArray<ParameterSymbol>.Empty : invokeMethod.Parameters;
-        }
-
         private static TypeSymbol DelegateReturnType(MethodSymbol invokeMethod, out RefKind refKind)
         {
             if ((object)invokeMethod == null)

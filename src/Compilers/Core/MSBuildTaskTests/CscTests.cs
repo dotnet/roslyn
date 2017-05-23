@@ -286,5 +286,23 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             csc.EmbeddedFiles = MSBuildUtil.CreateTaskItems();
             Assert.Equal(@"/debug:portable /out:test.exe test.cs", csc.GenerateResponseFileContents());
         }
+
+        [Fact]
+        public void RefOut()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.OutputRefAssembly = MSBuildUtil.CreateTaskItem("ref\\test.dll");
+            Assert.Equal("/out:test.exe /refout:ref\\test.dll test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void RefOnly()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.RefOnly = true;
+            Assert.Equal("/out:test.exe /refonly test.cs", csc.GenerateResponseFileContents());
+        }
     }
 }

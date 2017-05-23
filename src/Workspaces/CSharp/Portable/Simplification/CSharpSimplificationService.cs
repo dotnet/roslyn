@@ -4,16 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
@@ -31,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpParenthesesReducer(),
                 new CSharpEscapingReducer(),
                 new CSharpMiscellaneousReducer(),
-                new CSharpInferredMemberNameReducer());
+                new CSharpInferredMemberNameReducer(),
+                new CSharpDefaultExpressionReducer());
 
         public CSharpSimplificationService() : base(s_reducers)
         {

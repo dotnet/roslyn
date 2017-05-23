@@ -86,6 +86,11 @@ namespace Microsoft.CodeAnalysis
         public string OutputFileName { get; internal set; }
 
         /// <summary>
+        /// Path of the output ref assembly or null if not specified.
+        /// </summary>
+        public string OutputRefFilePath { get; internal set; }
+
+        /// <summary>
         /// Path of the PDB file or null if same as output binary path with .pdb extension.
         /// </summary>
         public string PdbPath { get; internal set; }
@@ -463,5 +468,6 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
         #endregion
+
     }
 }

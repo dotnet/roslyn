@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -47,13 +46,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             var project = _workspace.DeferredState.ProjectTracker.ImmutableProjects
                     .Where(p =>
                     {
+                        // We're about to access various properties of the IVsHierarchy associated with the project.
+                        // The properties supported and the interpretation of their values varies from one project system
+                        // to another. This code is designed with C# and VB in mind, so we need to filter out everything
+                        // else.
+                        if (p.Language != LanguageNames.CSharp
+                            && p.Language != LanguageNames.VisualBasic)
+                        {
+                            return false;
+                        }
+
                         // Here we try to match the hierarchy from Solution Explorer to a hierarchy from the Roslyn project.
                         // The canonical name of a hierarchy item must be unique _within_ an hierarchy, but since we're
                         // examining multiple hierarchies the canonical name could be the same. Indeed this happens when two
                         // project files are in the same folder--they both use the full path to the _folder_ as the canonical
                         // name. To distinguish them we also examine the "regular" name, which will necessarily be different
                         // if the two projects are in the same folder.
-                        if (p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
+                        // Note that if a project has been loaded with Lightweight Solution Load it won't even have a
+                        // hierarchy, so we need to check for null first.
+                        if (p.Hierarchy != null
+                            && p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
                             && p.Hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
                             && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
                             && projectName.Equals(nestedName))

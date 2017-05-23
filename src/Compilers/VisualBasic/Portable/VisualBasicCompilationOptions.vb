@@ -738,6 +738,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Me.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics)
         End Function
 
+        Friend Overrides Function CommonWithMetadataImportOptions(value As MetadataImportOptions) As CompilationOptions
+            Return WithMetadataImportOptions(value)
+        End Function
+
         <Obsolete>
         Protected Overrides Function CommonWithFeatures(features As ImmutableArray(Of String)) As CompilationOptions
             Throw New NotImplementedException()
@@ -807,7 +811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New VisualBasicCompilationOptions(Me) With {.OptimizationLevel = value}
         End Function
 
-        Friend Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
+        Friend Shadows Function WithMetadataImportOptions(value As MetadataImportOptions) As VisualBasicCompilationOptions
             If value = Me.MetadataImportOptions Then
                 Return Me
             End If
