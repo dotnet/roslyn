@@ -45,8 +45,8 @@
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
     <MicrosoftMetadataVisualizerVersion>1.0.0-beta1-61531-03</MicrosoftMetadataVisualizerVersion>
     <MicrosoftMSXMLVersion>8.0.0.0-alpha</MicrosoftMSXMLVersion>
-    <MicrosoftNetCompilersVersion>2.0.1</MicrosoftNetCompilersVersion>
-    <MicrosoftNetCompilersnetcoreVersion>2.0.0-rc2-61102-09</MicrosoftNetCompilersnetcoreVersion>
+    <MicrosoftNetCompilersVersion>2.3.0-beta2-61716-09</MicrosoftNetCompilersVersion>
+    <MicrosoftNetCompilersnetcoreVersion>2.3.0-beta2-61716-09</MicrosoftNetCompilersnetcoreVersion>
     <MicrosoftNetRoslynDiagnosticsVersion>2.0.0-beta1-61628-06</MicrosoftNetRoslynDiagnosticsVersion>
     <MicrosoftNetCoreILAsmVersion>1.1.0</MicrosoftNetCoreILAsmVersion>
     <MicrosoftNETCoreCompilersVersion>2.3.0-dev-56735-00</MicrosoftNETCoreCompilersVersion>
