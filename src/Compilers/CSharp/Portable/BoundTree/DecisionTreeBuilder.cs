@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -145,9 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private DecisionTree AddByValue(DecisionTree decision, BoundConstantPattern value, DecisionMaker makeDecision)
         {
             Debug.Assert(!decision.MatchIsComplete); // otherwise we would have given a subsumption error
+            if (value.ConstantValue == null)
+            {
+                // If value.ConstantValue == null, we have a bad expression in a case label.
+                // The case label is considered unreachable.
+                return null;
+            }
 
-            // Even if value.ConstantValue == null, we proceed here for error recovery, so that the case label isn't
-            // dropped on the floor. That is useful, for example to suppress unreachable code warnings on bad case labels.
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -186,9 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AddByValue(byValue.Default, value, makeDecision);
             }
 
-            // For error recovery, to avoid "unreachable code" diagnostics when there is a bad case
-            // label, we use the case label itself as the value key.
-            object valueKey = value.ConstantValue?.Value ?? value;
+            Debug.Assert(value.ConstantValue != null);
+            object valueKey = value.ConstantValue.Value;
             DecisionTree valueDecision;
             if (byValue.ValueAndDecision.TryGetValue(valueKey, out valueDecision))
             {
@@ -234,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            if ((object)value.Value.Type == null)
+            if ((object)value.Value.Type == null || value.ConstantValue == null)
             {
                 return null;
             }
@@ -250,6 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case true:
                         if (decision.MatchIsComplete)
                         {
+                            // Subsumed case have been eliminated by semantic analysis.
+                            Debug.Assert(false);
                             return null;
                         }
 
@@ -276,12 +282,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                     forType = decision;
                     break;
                 }
-                else if (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics) != false)
+                switch (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics))
                 {
-                    // because there is overlap, we cannot reuse some earlier entry
-                    break;
+                    case true:
+                        if (decision.MatchIsComplete)
+                        {
+                            // we should have reported this case as subsumed already.
+                            Debug.Assert(false);
+                            return null;
+                        }
+                        else
+                        {
+                            goto case null;
+                        }
+                    case false:
+                        continue;
+                    case null:
+                        // because there is overlap, we cannot reuse some earlier entry
+                        goto noReuse;
                 }
             }
+            noReuse:;
 
             // if we did not piggy-back, then create a new decision tree node for the type.
             if (forType == null)
@@ -293,6 +314,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return AddByValue(forType, value, makeDecision);
+        }
+
+        /// <summary>
+        /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
+        /// type <paramref name="patternType"/>?
+        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
+        /// 'null' if it might catch some of them. For this test we assume the expression's value
+        /// isn't null.
+        /// </summary>
+        internal bool? ExpressionOfTypeMatchesPatternType(TypeSymbol expressionType, TypeSymbol patternType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return Binder.ExpressionOfTypeMatchesPatternType(this._conversions, expressionType, patternType, ref _useSiteDiagnostics, out Conversion conversion, null, false);
         }
 
         private DecisionTree AddByType(DecisionTree decision, TypeSymbol type, DecisionMaker makeDecision)
@@ -575,55 +608,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     byType.MatchIsComplete = true;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
-        /// type <paramref name="patternType"/>?
-        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
-        /// 'null' if it might catch some of them. For this test we assume the expression's value
-        /// isn't null.
-        /// </summary>
-        protected bool? ExpressionOfTypeMatchesPatternType(
-            TypeSymbol expressionType,
-            TypeSymbol patternType,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            if ((object)expressionType == (object)patternType)
-            {
-                return true;
-            }
-
-            var conversion = _conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteDiagnostics);
-
-            // This is for classification purposes only; we discard use-site diagnostics. Use-site diagnostics will
-            // be given if a conversion is actually used.
-            switch (conversion.Kind)
-            {
-                case ConversionKind.Boxing:             // a value of type int matches a pattern of type object
-                case ConversionKind.Identity:           // a value of a given type matches a pattern of that type
-                case ConversionKind.ImplicitReference:  // a value of type string matches a pattern of type object
-                    return true;
-
-                case ConversionKind.ImplicitNullable:   // a value of type int matches a pattern of type int?
-                case ConversionKind.ExplicitNullable:   // a non-null value of type "int?" matches a pattern of type int
-                    // but if the types differ (e.g. one of them is type byte and the other is type int?).. no match
-                    return ConversionsBase.HasIdentityConversion(expressionType.StrippedType().TupleUnderlyingTypeOrSelf(), patternType.StrippedType().TupleUnderlyingTypeOrSelf());
-
-                case ConversionKind.ExplicitEnumeration:// a value of enum type does not match a pattern of integral type
-                case ConversionKind.ExplicitNumeric:    // a value of type long does not match a pattern of type int
-                case ConversionKind.ImplicitNumeric:    // a value of type short does not match a pattern of type int
-                case ConversionKind.NoConversion:
-                    return false;
-
-                case ConversionKind.ExplicitDynamic:    // a value of type dynamic might not match a pattern of type other than object
-                case ConversionKind.ExplicitReference:  // a narrowing reference conversion might or might not succeed
-                case ConversionKind.Unboxing:           // a value of type object might match a pattern of type int
-                    return null;
-
-                default: // other conversions do not apply (e.g. conversions from expression, user-defined, pointer conversions, tuple)
-                    return false;
             }
         }
     }

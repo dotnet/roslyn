@@ -75,6 +75,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         value = subKey.GetValue(key, defaultValue: (bool)optionKey.Option.DefaultValue ? 1 : 0).Equals(1);
                         return true;
                     }
+                    else if (optionKey.Option.Type == typeof(long))
+                    {
+                        object untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+
+                        if (untypedValue is string stringValue)
+                        {
+                            // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
+                            // those back.
+                            bool suceeded = long.TryParse(stringValue, out long longValue);
+                            value = longValue;
+                            return suceeded;
+                        }
+                        else if (untypedValue is long longValue)
+                        {
+                            value = longValue;
+                            return true;
+                        }
+
+                        value = null;
+                        return false;
+                    }
                     else
                     {
                         // Otherwise we can just store normally
@@ -106,6 +127,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     if (optionKey.Option.Type == typeof(bool))
                     {
                         subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
+                        return true;
+                    }
+                    else if (optionKey.Option.Type == typeof(long))
+                    {
+                        subKey.SetValue(key, value, RegistryValueKind.QWord);
                         return true;
                     }
                     else

@@ -924,5 +924,125 @@ End Class
 
         End Sub
 
+        <Fact>
+        Public Sub ComplexTypes()
+            Dim sourceText = "
+Imports System
+Imports System.Collections.Generic
+
+Class C
+    Sub G()
+        Dim <N:0>a</N:0> = New With {.Key = ""a"", .Value = New List(Of Tuple(Of Integer, Integer))()}
+        Dim <N:1>b</N:1> = (5, a)
+        Dim <N:2>c</N:2> = {b}
+    End Sub
+End Class   
+"
+            Dim source0 = MarkedSource(sourceText)
+            Dim source1 = MarkedSource(sourceText)
+            Dim source2 = MarkedSource(sourceText)
+
+            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll, references:=ValueTupleRefs)
+            Dim compilation1 = compilation0.WithSource(source1.Tree)
+            Dim compilation2 = compilation1.WithSource(source2.Tree)
+
+            Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.G")
+            Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.G")
+            Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.G")
+
+            Dim v0 = CompileAndVerify(compilation0)
+            v0.VerifyIL("C.G", "
+{
+  // Code size       42 (0x2a)
+  .maxstack  4
+  .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
+                System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
+                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+  IL_0000:  nop
+  IL_0001:  ldstr      ""a""
+  IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
+  IL_000b:  newobj     ""Sub VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))..ctor(String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.5
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""Sub System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)..ctor(Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_0028:  stloc.2
+  IL_0029:  ret
+}
+")
+
+            Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
+
+            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+
+            diff1.VerifyIL("C.G", "
+{
+  // Code size       42 (0x2a)
+  .maxstack  4
+  .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
+                System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
+                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+  IL_0000:  nop
+  IL_0001:  ldstr      ""a""
+  IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
+  IL_000b:  newobj     ""Sub VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))..ctor(String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.5
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""Sub System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)..ctor(Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_0028:  stloc.2
+  IL_0029:  ret
+}
+")
+
+            Dim diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+
+            diff2.VerifyIL("C.G", "
+{
+  // Code size       42 (0x2a)
+  .maxstack  4
+  .locals init (VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))) V_0, //a
+                System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>) V_1, //b
+                (Integer, a As <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)() V_2) //c
+  IL_0000:  nop
+  IL_0001:  ldstr      ""a""
+  IL_0006:  newobj     ""Sub System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))..ctor()""
+  IL_000b:  newobj     ""Sub VB$AnonymousType_0(Of String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))..ctor(String, System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer)))""
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.5
+  IL_0014:  ldloc.0
+  IL_0015:  call       ""Sub System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)..ctor(Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_001a:  ldc.i4.1
+  IL_001b:  newarr     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_0020:  dup
+  IL_0021:  ldc.i4.0
+  IL_0022:  ldloc.1
+  IL_0023:  stelem     ""System.ValueTuple(Of Integer, <anonymous type: Key As String, Value As System.Collections.Generic.List(Of System.Tuple(Of Integer, Integer))>)""
+  IL_0028:  stloc.2
+  IL_0029:  ret
+}
+")
+        End Sub
+
     End Class
 End Namespace
