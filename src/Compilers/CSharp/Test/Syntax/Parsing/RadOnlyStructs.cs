@@ -9,10 +9,10 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
-    [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-    public class RadOnlyStructs : ParsingTests
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public class ReadOnlyStructs : ParsingTests
     {
-        public RadOnlyStructs(ITestOutputHelper output) : base(output) { }
+        public ReadOnlyStructs(ITestOutputHelper output) : base(output) { }
 
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {

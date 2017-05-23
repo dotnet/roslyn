@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class CodeGenInParametersTests : CompilingTestBase
     {
         [Fact]

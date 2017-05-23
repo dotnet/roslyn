@@ -507,7 +507,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedProperty()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -534,7 +534,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer()
         {
             var comp = CreateCompilationWithMscorlib45(@"
@@ -562,7 +562,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer1()
         {
             var comp = CreateCompilationWithMscorlib45(@"

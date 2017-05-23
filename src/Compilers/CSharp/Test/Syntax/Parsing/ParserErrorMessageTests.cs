@@ -2868,7 +2868,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void InParametersWouldErrorOutInEarlierCSharpVersions()
         {
             var code = @"
@@ -2962,7 +2962,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadInWithThis()
         {
             var test = @"
@@ -2990,7 +2990,7 @@ public static class Extensions
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefWithInParameterModifiers()
         {
             var test = @"
@@ -3032,7 +3032,7 @@ public class TestType
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadOutWithInParameterModifiers()
         {
             var test = @"
@@ -3249,7 +3249,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void DuplicateParameterModifiersWillErrorOut()
         {
             var test = @"
@@ -3289,7 +3289,7 @@ public static class TestType
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithRefParameterModifiers()
         {
             var test = @"
@@ -3331,7 +3331,7 @@ public static void Method6<T, U, V>(ref ref readonly int i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithInParameterModifiers()
         {
             var test = @"
@@ -3382,7 +3382,7 @@ public static void Method6<T, U, V>(in ref readonly int i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithThisParameterModifiers()
         {
             var test = @"
@@ -3433,7 +3433,7 @@ public static void Method6<T, U, V>(this ref readonly int i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithParamsParameterModifiers()
         {
             var test = @"
@@ -3484,7 +3484,7 @@ public static void Method6<T, U, V>(params ref readonly int[] i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithOutParameterModifiers()
         {
             var test = @"
@@ -3535,7 +3535,7 @@ public static void Method6<T, U, V>(out ref readonly int i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void InParametersAreParsedCorrectly()
         {
             var test = @"
@@ -3599,7 +3599,7 @@ public class Test
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyParametersAreParsedCorrectly()
         {
             var test = @"

@@ -5489,7 +5489,7 @@ public class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturn()
         {
             var sourceA =
@@ -5515,7 +5515,7 @@ public class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturn1()
         {
             var sourceA =

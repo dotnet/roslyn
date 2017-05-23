@@ -2175,7 +2175,7 @@ static class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningVoidMethod()
         {
             var source = @"
@@ -2216,7 +2216,7 @@ static class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningVoidMethodNested()
         {
             var source = @"
@@ -2267,7 +2267,7 @@ static class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningAsyncMethod()
         {
             var source = @"

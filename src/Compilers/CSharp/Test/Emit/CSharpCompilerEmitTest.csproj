@@ -76,11 +76,11 @@
     <Compile Include="Attributes\AttributeTests_Tuples.cs" />
     <Compile Include="Attributes\AttributeTests_WellKnownAttributes.cs" />
     <Compile Include="CodeGen\CodeGenAsyncMainTests.cs" />
-    <Compile Include="CodeGen\CodeGenReadonlyStructTests.cs" />
+    <Compile Include="CodeGen\CodeGenReadOnlyStructTests.cs" />
     <Compile Include="CodeGen\CodeGenInParametersTests.cs" />
     <Compile Include="CodeGen\CodeGenCapturing.cs" />
     <Compile Include="CodeGen\PatternTests.cs" />
-    <Compile Include="CodeGen\CodeGenRefReadonlyReturnTests.cs" />
+    <Compile Include="CodeGen\CodeGenRefReadOnlyReturnTests.cs" />
     <Compile Include="CodeGen\CodeGenRefConditionalOperatorTests.cs" />
     <Compile Include="Emit\BinaryCompatibility.cs" />
     <Compile Include="Emit\DesktopStrongNameProviderTests.cs" />

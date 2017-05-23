@@ -12,8 +12,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-    public class CodeGenReadonlyStructTests : CompilingTestBase
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public class CodeGenReadOnlyStructTests : CompilingTestBase
     {
         [Fact]
         public void InvokeOnReadOnlyStaticField()
