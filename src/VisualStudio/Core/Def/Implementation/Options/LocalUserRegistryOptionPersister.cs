@@ -78,43 +78,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     else if (optionKey.Option.Type == typeof(long))
                     {
                         var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
-                        if (untypedValue is string stringValue)
+                        switch (untypedValue)
                         {
-                            // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
-                            // those back.
-                            var suceeded = long.TryParse(stringValue, out long longValue);
-                            value = longValue;
-                            return suceeded;
-                        }
-                        else if (untypedValue is long longValue)
-                        {
-                            value = longValue;
-                            return true;
-                        }
+                            case string stringValue:
+                                {
+                                    // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
+                                    // those back.
+                                    var suceeded = long.TryParse(stringValue, out long longValue);
+                                    value = longValue;
+                                    return suceeded;
+                                }
 
-                        value = null;
-                        return false;
+                            case long longValue:
+                                value = longValue;
+                                return true;
+                        }
                     }
                     else if (optionKey.Option.Type == typeof(int))
                     {
                         var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
-
-                        if (untypedValue is string stringValue)
+                        switch (untypedValue)
                         {
-                            // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
-                            // those back.
-                            var suceeded = int.TryParse(stringValue, out int intValue);
-                            value = intValue;
-                            return suceeded;
-                        }
-                        else if (untypedValue is int intValue)
-                        {
-                            value = intValue;
-                            return true;
-                        }
+                            case string stringValue:
+                                {
+                                    // Due to a previous bug we were accidentally serializing longs as strings. Gracefully convert
+                                    // those back.
+                                    var suceeded = int.TryParse(stringValue, out int intValue);
+                                    value = intValue;
+                                    return suceeded;
+                                }
 
-                        value = null;
-                        return false;
+                            case int intValue:
+                                value = intValue;
+                                return true;
+                        }
                     }
                     else
                     {
@@ -124,6 +121,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     }
                 }
             }
+
+            value = null;
+            return false;
         }
 
         bool IOptionPersister.TryPersist(OptionKey optionKey, object value)
