@@ -1675,6 +1675,37 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode NullableTypeExpression(SyntaxNode type);
 
         /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public abstract SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(params SyntaxNode[] elements)
+        {
+            return TupleTypeExpression((IEnumerable<SyntaxNode>)elements);
+        }
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple element.
+        /// </summary>
+        public abstract SyntaxNode TupleElementExpression(SyntaxNode type, string name = null);
+
+        /// <summary>
+        /// Creates a tuple expression.
+        /// </summary>
+        public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
+        /// <summary>
+        /// Creates a tuple expression.
+        /// </summary>
+        public SyntaxNode TupleExpression(params SyntaxNode[] arguments)
+        {
+            return TupleExpression((IEnumerable<SyntaxNode>)arguments);
+        }
+
+        /// <summary>
         /// Creates an expression that denotes an assignment from the right argument to left argument.
         /// </summary>
         public abstract SyntaxNode AssignmentStatement(SyntaxNode left, SyntaxNode right);

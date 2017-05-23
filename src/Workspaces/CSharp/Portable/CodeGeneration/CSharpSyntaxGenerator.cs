@@ -3977,6 +3977,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
+        public override SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements)
+        {
+            return SyntaxFactory.TupleType(
+                elements == null ? default(SeparatedSyntaxList<TupleElementSyntax>)
+                : SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
+        }
+
+        public override SyntaxNode TupleElementExpression(SyntaxNode type, string name)
+        {
+            return SyntaxFactory.TupleElement((TypeSyntax)type, name?.ToIdentifierToken() ?? default(SyntaxToken));
+        }
+
+        public override SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments)
+        {
+            return SyntaxFactory.TupleExpression(
+                arguments == null ? default(SeparatedSyntaxList<ArgumentSyntax>)
+                : SyntaxFactory.SeparatedList(arguments.Cast<ArgumentSyntax>()));
+        }
+
         public override SyntaxNode Argument(string nameOpt, RefKind refKind, SyntaxNode expression)
         {
             return SyntaxFactory.Argument(
