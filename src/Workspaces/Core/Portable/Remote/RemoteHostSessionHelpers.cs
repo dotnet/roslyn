@@ -11,9 +11,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Helper type of common session case
+    /// Helper type for common session case
     /// 
-    /// RemoteHostClient.Session with 1 solution
+    /// This will tie <see cref="Solution"/> and <see cref="RemoteHostClient.Session"/>'s lifetime together
+    /// so that one can handle those more easily
     /// </summary>
     internal sealed class SolutionAndSessionHolder : IDisposable
     {
@@ -69,9 +70,14 @@ namespace Microsoft.CodeAnalysis.Remote
     }
 
     /// <summary>
-    /// Helper type of common session case
+    /// Helper type for common session case
     /// 
-    /// RemoteHostClient.Session that lives for multiple solutions
+    /// This will let one to hold onto <see cref="RemoteHostClient.Session"/> for a while.
+    /// this helper will let you not care about remote host being gone while you hold onto the session if that ever happen
+    /// 
+    /// and also make sure state is correct even if multiple threads call TryInvokeAsync at the same time. but this 
+    /// is not optimized to handle highly concurrent usage. if highly concurrent usage is required, either using
+    /// <see cref="RemoteHostCLient.Session"/> direclty or using <see cref="SolutionAndSessionHolder"/> would be better choice
     /// </summary>
     internal sealed class KeepAliveSessionHolder
     {
@@ -87,14 +93,14 @@ namespace Microsoft.CodeAnalysis.Remote
 
         public KeepAliveSessionHolder(RemoteHostClient client, RemoteHostClient.Session session, string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
+            Initialize_NoLock(client, session);
+
             _gate = new SemaphoreSlim(initialCount: 1);
             _remoteHostClientService = client.Workspace.Services.GetService<IRemoteHostClientService>();
             _cancellationToken = cancellationToken;
 
             _serviceName = serviceName;
             _callbackTarget = callbackTarget;
-
-            Initialize_NoLock(client, session);
         }
 
         public void Shutdown()
@@ -274,6 +280,9 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private void Initialize_NoLock(RemoteHostClient client, RemoteHostClient.Session session)
         {
+            Contract.ThrowIfNull(client);
+            Contract.ThrowIfNull(session);
+
             _client = client;
             _client.ConnectionChanged += OnConnectionChanged;
 

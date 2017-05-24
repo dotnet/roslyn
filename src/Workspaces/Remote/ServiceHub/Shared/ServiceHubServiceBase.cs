@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly CancellationToken CancellationToken;
 
         /// <summary>
-        /// Scope Id of the solution. caller and callee share this id which one
+        /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
         /// can use to find matching caller and callee while exchanging data
         /// 
-        /// FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
+        /// PinnedSolutionInfo.FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
         /// 
         /// this flag will be passed down to solution controller to help
         /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
         /// 
-        /// SolutionChecksum indicates solution this connection belong to
+        /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
         /// </summary>
         private PinnedSolutionInfo _solutionInfo;
 
