@@ -1405,11 +1405,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void EnterParameter(ParameterSymbol parameter)
         {
-            if ((parameter.ContainingSymbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction)
-            {
-                _variableUsePass.Visit(parameter.ExplicitDefaultExpression);
-            }
-
             if (parameter.RefKind == RefKind.Out && !this.currentMethodOrLambda.IsAsync) // out parameters not allowed in async
             {
                 int slot = GetOrCreateSlot(parameter);

@@ -277,6 +277,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<BoundExpression> boundNamedArgumentsBuilder = null;
                 HashSet<string> boundNamedArgumentsSet = null;
 
+                // VariableUsePass assumes we're not in a scope that can reference local variables.
+                // Need to rework VariableUsePass if that ever changes.
+                Debug.Assert((this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.LocalFunction);
+
                 // Avoid "cascading" errors for constructor arguments.
                 // We will still generate errors for each duplicate named attribute argument,
                 // matching Dev10 compiler behavior.
@@ -284,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var shouldHaveName = false;
 
-                var variableUsePass = new VariableUsePass(this.Compilation.SourceAssembly);
+                var variableUsePass = this.IsSemanticModelBinder ? null : new VariableUsePass(this.Compilation.SourceAssembly);
 
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
@@ -297,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Constructor argument
                         var boundArgumentExpression = BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false);
-                        variableUsePass.Visit(boundArgumentExpression);
+                        variableUsePass?.Visit(boundArgumentExpression);
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
@@ -334,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
-                        variableUsePass.Visit(boundNamedArgument);
+                        variableUsePass?.Visit(boundNamedArgument);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }

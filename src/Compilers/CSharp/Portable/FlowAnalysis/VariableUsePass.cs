@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -50,6 +51,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private readonly HashSet<LocalFunctionSymbol> _usedLocalFunctions;
 
+        private bool _insideNameOf;
+
         /// <summary>
         /// Create a visitor for use within a method (e.g. local functions).
         /// Keep track of what local variables are referenced, by placing them in the HashSets.
@@ -68,48 +71,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocal(node);
         }
 
-        private void VisitMethodReference(MethodSymbol symbol)
+        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
         {
-            if (symbol == null)
-            {
-                return;
-            }
-            if (symbol.MethodKind == MethodKind.LocalFunction)
-            {
-                // Generic local functions don't matter: the only way they can appear in a constant pattern
-                // is if they are in nameof, and nameof does not allow constructed generic local functions.
-                _usedLocalFunctions.Add((LocalFunctionSymbol)symbol);
-            }
-        }
+            Debug.Assert(!_insideNameOf);
+            _insideNameOf = true;
 
-        public override BoundNode VisitCall(BoundCall node)
-        {
-            VisitMethodReference(node.Method);
-            return base.VisitCall(node);
-        }
+            var result = base.VisitNameOfOperator(node);
 
-        public override BoundNode VisitConversion(BoundConversion node)
-        {
-            if (node.ConversionKind == ConversionKind.MethodGroup)
-            {
-                VisitMethodReference(node.SymbolOpt);
-            }
+            Debug.Assert(_insideNameOf);
+            _insideNameOf = false;
 
-            return base.VisitConversion(node);
-        }
-
-        public override BoundNode VisitDelegateCreationExpression(BoundDelegateCreationExpression node)
-        {
-            VisitMethodReference(node.MethodOpt);
-
-            return base.VisitDelegateCreationExpression(node);
+            return result;
         }
 
         public override BoundNode VisitMethodGroup(BoundMethodGroup node)
         {
-            foreach (var method in node.Methods)
+            if (this._insideNameOf &&
+                node.Methods.Length == 1 &&
+                node.Methods[0].MethodKind == MethodKind.LocalFunction)
             {
-                VisitMethodReference(method);
+                // Generic local functions don't matter: the only way they can appear in a constant pattern
+                // is if they are in nameof, and nameof does not allow constructed generic local functions.
+                _usedLocalFunctions.Add((LocalFunctionSymbol)node.Methods[0]);
             }
 
             return base.VisitMethodGroup(node);

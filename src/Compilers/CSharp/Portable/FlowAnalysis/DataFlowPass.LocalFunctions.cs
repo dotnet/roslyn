@@ -133,7 +133,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             var oldReads = usages.ReadVars;
             usages.ReadVars = BitVector.Empty;
 
-            if (!localFunc.WasCompilerGenerated) EnterParameters(localFuncSymbol.Parameters);
+            if (!localFunc.WasCompilerGenerated)
+            {
+                EnterParameters(localFuncSymbol.Parameters);
+
+                foreach (var parameter in localFuncSymbol.Parameters)
+                {
+                    _variableUsePass.Visit(parameter.ExplicitDefaultExpression);
+                }
+            }
 
             var oldPending2 = SavePending();
 

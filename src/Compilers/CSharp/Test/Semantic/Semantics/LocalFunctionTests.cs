@@ -433,34 +433,38 @@ class C
 {
     public void M()
     {
-        void Local([A, B]int x, [CLSCompliant]string s = """") { }
+        void Local([A, B, D(2)]int x, [CLSCompliant]string s = """") { }
         Local(0);
     }
+}
+class D : Attribute
+{
+    public D(int x) { }
 }");
             var comp = CreateStandardCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
-                // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B]").WithLocation(7, 20),
-                // (7,33): error CS8204: Attributes are not allowed on local function parameters or type parameters
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 33),
+                // (7,20): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A, B, D(2)]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A, B, D(2)]").WithLocation(7, 20),
+                // (7,39): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void Local([A, B, D(2)]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[CLSCompliant]").WithLocation(7, 39),
                 // (7,21): error CS0246: The type or namespace name 'AAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                //         void Local([A, B, D(2)]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("AAttribute").WithLocation(7, 21),
                 // (7,21): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                //         void Local([A, B, D(2)]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(7, 21),
                 // (7,24): error CS0246: The type or namespace name 'BAttribute' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                //         void Local([A, B, D(2)]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("BAttribute").WithLocation(7, 24),
                 // (7,24): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
+                //         void Local([A, B, D(2)]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(7, 24),
-                // (7,34): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
-                //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
+                // (7,40): error CS7036: There is no argument given that corresponds to the required formal parameter 'isCompliant' of 'CLSCompliantAttribute.CLSCompliantAttribute(bool)'
+                //         void Local([A, B, D(2)]int x, [CLSCompliant]string s = "") { }
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 40));
 
             var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
             var model = comp.GetSemanticModel(tree);
@@ -470,6 +474,7 @@ class C
 
             Assert.True(attrs[0].AttributeClass.IsErrorType());
             Assert.True(attrs[1].AttributeClass.IsErrorType());
+            Assert.Equal(2, (int)attrs[2].ConstructorArguments.Single().Value);
 
             param = localSymbol.Parameters[1];
             attrs = param.GetAttributes();
@@ -3204,6 +3209,52 @@ class Program
 
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             CompileAndVerify(comp.VerifyDiagnostics(), expectedOutput: "");
+        }
+
+        [Fact]
+        [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void SpeculativeDoesNotMarkUsed()
+        {
+            var source = SyntaxFactory.ParseSyntaxTree(@"
+class Program
+{
+    private static int Foo;
+    static void Main()
+    {
+    }
+}
+class A : System.Attribute
+{
+    public A(int x) { }
+}
+");
+            var speculative = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    [A(Program.Foo)]
+    public void M()
+    {
+    }
+}");
+            var comp = CreateStandardCompilation(source);
+
+            var semanticModel = comp.GetSemanticModel(source);
+
+            var position = source.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single().Position;
+
+            var x = speculative.GetRoot().DescendantNodes().OfType<AttributeSyntax>().Single();
+            var attributeConstructor = (SourceConstructorSymbol)semanticModel.GetSpeculativeSymbolInfo(position, x).Symbol;
+            Assert.Equal("A", attributeConstructor.ContainingType.Name);
+
+            Assert.True(semanticModel.TryGetSpeculativeSemanticModel(position, x, out var speculativeModel));
+            var attributeConstructor2 = speculativeModel.GetSymbolInfo(x).Symbol;
+            Assert.Equal("A", attributeConstructor2.ContainingType.Name);
+
+            comp.VerifyEmitDiagnostics(
+                // (4,24): warning CS0169: The field 'Program.Foo' is never used
+                //     private static int Foo;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "Foo").WithArguments("Program.Foo").WithLocation(4, 24)
+                );
         }
     }
 }

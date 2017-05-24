@@ -154,11 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // before the thread which won the race finishes adding
                     // them. https://github.com/dotnet/roslyn/issues/17243
                     AddDeclarationDiagnostics(diagnostics);
-
-                    if (boundExpressionOpt != null && (this.ContainingSymbol as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
-                    {
-                        new VariableUsePass(this.DeclaringCompilation.SourceAssembly).Visit(boundExpressionOpt);
-                    }
                 }
 
                 diagnostics.Free();
@@ -214,6 +209,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             BoundExpression valueBeforeConversion;
             var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+
+            if (!binder.IsSemanticModelBinder && (this.ContainingSymbol as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+            {
+                // It is okay to call this multiple times (in a multithreaded environment),
+                // as the only thing VariableUsePass is add/remove members from sets,
+                // which can be performed multiple times with no further effect.
+                new VariableUsePass(this.DeclaringCompilation.SourceAssembly).Visit(convertedExpression);
+            }
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
