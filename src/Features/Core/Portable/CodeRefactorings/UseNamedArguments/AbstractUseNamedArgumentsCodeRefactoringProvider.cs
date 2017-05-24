@@ -27,8 +27,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
             public async Task ComputeRefactoringsAsync(
                 CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken)
             {
-                var document = context.Document;
-
                 if (context.Span.Length > 0)
                 {
                     return;
@@ -60,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
                 // line that the argument starts on.
 
+                var document = context.Document;
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
@@ -95,11 +94,26 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     return;
                 }
 
-                var argumentList = (TArgumentListSyntax)argument.Parent;
-                var (index, count) = GetArgumentListIndexAndCount(argument, argumentList);
+                var argumentList = argument.Parent as TArgumentListSyntax;
+                if (argumentList == null)
+                {
+                    return;
+                }
 
                 var arguments = GetArguments(argumentList);
-                for (var i = index; i < count; i++)
+                var argumentCount = arguments.Count;
+                var argumentIndex = arguments.IndexOf(argument);
+                if (argumentIndex >= parameters.Length)
+                {
+                    return;
+                }
+
+                if (!IsLegalToAddNamedArguments(parameters, argumentCount))
+                {
+                    return;
+                }
+
+                for (var i = argumentIndex; i < argumentCount; i++)
                 {
                     if (!(arguments[i] is TArgumentSyntax))
                     {
@@ -107,16 +121,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     }
                 }
 
-                if (!IsLegalToAddNamedArguments(parameters, count))
-                {
-                    return;
-                }
-
-                var argumentName = parameters[index].Name;
+                var argumentName = parameters[argumentIndex].Name;
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                        c => AddNamedArgumentsAsync(root, document, argument, parameters, index)));
+                        c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex)));
             }
 
             private Task<Document> AddNamedArgumentsAsync(
@@ -130,12 +139,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 var newArgumentList = GetOrSynthesizeNamedArguments(parameters, argumentList, index);
                 var newRoot = root.ReplaceNode(argumentList, newArgumentList);
                 return Task.FromResult(document.WithSyntaxRoot(newRoot));
-            }
-
-            private (int, int) GetArgumentListIndexAndCount(TArgumentSyntax argument, TArgumentListSyntax argumentList)
-            {
-                var arguments = GetArguments(argumentList);
-                return (arguments.IndexOf(argument), arguments.Count);
             }
 
             private TArgumentListSyntax GetOrSynthesizeNamedArguments(
