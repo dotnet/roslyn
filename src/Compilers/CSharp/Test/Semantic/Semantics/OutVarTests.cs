@@ -1015,6 +1015,7 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
 
             // Note: the following assertion is not, in general, correct for declaration expressions,
             // even though this helper is used to handle declaration expressions.
