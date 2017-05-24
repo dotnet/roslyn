@@ -22,7 +22,7 @@ try {
                 $name = [IO.Path]::ChangeExtension($v, ".pdb")
                 $pdbPath = Join-Path $configDir $name
                 Write-Host "`t$pdbPath"
-                Exec-Block { & $gitlink -u "https://github.com/dotnet/roslyn" $pdbPath } | Write-Host
+                Exec-Block { & $gitlink -u "https://github.com/dotnet/roslyn" --baseDir $repoDir $pdbPath } | Write-Host
             }
         }
     }
