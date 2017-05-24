@@ -20,7 +20,6 @@ using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
@@ -121,11 +120,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void Dispose(bool finalize)
         {
-            if (ExportProvider == null)
-            {
-                throw new Exception(nameof(ExportProvider));
-            }
-
             var metadataAsSourceService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
             if (metadataAsSourceService != null)
             {
@@ -134,19 +128,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             this.ClearSolutionData();
 
-            if (Documents == null)
-            {
-                throw new Exception(nameof(Documents));
-            }
-
             foreach (var document in Documents)
             {
                 document.CloseTextView();
-            }
-
-            if (AdditionalDocuments == null)
-            {
-                throw new Exception(nameof(AdditionalDocuments));
             }
 
             foreach (var document in AdditionalDocuments)
@@ -154,17 +138,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 document.CloseTextView();
             }
 
-            if (ProjectionDocuments == null)
-            {
-                throw new Exception(nameof(ProjectionDocuments));
-            }
-
             foreach (var document in ProjectionDocuments)
             {
                 document.CloseTextView();
             }
-
-            Contract.ThrowIfNull(ExportProvider, nameof(ExportProvider) + "2");
 
             var exceptions = ExportProvider.GetExportedValue<TestExtensionErrorHandler>().GetExceptions();
 
@@ -179,7 +156,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
             if (SynchronizationContext.Current != null)
             {
-                Contract.ThrowIfNull(Dispatcher.CurrentDispatcher, nameof(Dispatcher.CurrentDispatcher));
                 Dispatcher.CurrentDispatcher.DoEvents();
             }
 
