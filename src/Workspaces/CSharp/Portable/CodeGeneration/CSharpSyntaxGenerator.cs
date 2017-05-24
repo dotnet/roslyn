@@ -1858,7 +1858,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             switch (declaration)
             {
                 case MethodDeclarationSyntax methodDeclaration:
-                    return methodDeclaration.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations));
+                    return WithAccessibility(
+                        methodDeclaration.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                        Accessibility.NotApplicable);
             }
 
             return declaration;
