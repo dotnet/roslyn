@@ -45,7 +45,13 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case string s:").WithArguments("pattern matching", "7").WithLocation(11, 13),
                 // (15,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
                 //         bool b = args[0] is string s;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "args[0] is string s").WithArguments("pattern matching", "7").WithLocation(15, 18)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "args[0] is string s").WithArguments("pattern matching", "7").WithLocation(15, 18),
+                // (11,18): error CS8121: An expression of type 'int' cannot be handled by a pattern of type 'string'.
+                //             case string s:
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "string").WithArguments("int", "string").WithLocation(11, 18),
+                // (11,25): error CS0136: A local or parameter named 's' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //             case string s:
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "s").WithArguments("s").WithLocation(11, 25)
             );
         }
 
