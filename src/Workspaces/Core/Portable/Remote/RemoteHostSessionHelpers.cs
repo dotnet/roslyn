@@ -15,15 +15,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// RemoteHostClient.Session with 1 solution
     /// </summary>
-    internal sealed class SessionWithSolution : IDisposable
+    internal sealed class SolutionAndSessionHolder : IDisposable
     {
         private readonly RemoteHostClient.Session _session;
         private readonly PinnedRemotableDataScope _scope;
         private readonly CancellationToken _cancellationToken;
 
-        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Session session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        public static async Task<SolutionAndSessionHolder> CreateAsync(RemoteHostClient.Session session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
         {
-            var sessionWithSolution = new SessionWithSolution(session, scope, cancellationToken);
+            var sessionWithSolution = new SolutionAndSessionHolder(session, scope, cancellationToken);
 
             try
             {
@@ -33,11 +33,14 @@ namespace Microsoft.CodeAnalysis.Remote
             catch
             {
                 sessionWithSolution.Dispose();
-                return null;
+
+                // we only expect this to happen on cancellation. otherwise, rethrow
+                cancellationToken.ThrowIfCancellationRequested();
+                throw;
             }
         }
 
-        private SessionWithSolution(RemoteHostClient.Session session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        private SolutionAndSessionHolder(RemoteHostClient.Session session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
         {
             _session = session;
             _scope = scope;
@@ -70,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// RemoteHostClient.Session that lives for multiple solutions
     /// </summary>
-    internal sealed class KeepAliveSession
+    internal sealed class KeepAliveSessionHolder
     {
         private readonly SemaphoreSlim _gate;
         private readonly IRemoteHostClientService _remoteHostClientService;
@@ -82,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
         private RemoteHostClient _client;
         private RemoteHostClient.Session _session;
 
-        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Session session, string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public KeepAliveSessionHolder(RemoteHostClient client, RemoteHostClient.Session session, string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             _gate = new SemaphoreSlim(initialCount: 1);
             _remoteHostClientService = client.Workspace.Services.GetService<IRemoteHostClientService>();

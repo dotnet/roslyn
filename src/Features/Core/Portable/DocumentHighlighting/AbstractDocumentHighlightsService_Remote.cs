@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
-        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
+        private static async Task<SolutionAndSessionHolder> TryGetRemoteSessionAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var outOfProcessAllowed = solution.Workspace.Options.GetOption(DocumentHighlightingOptions.OutOfProcessAllowed);

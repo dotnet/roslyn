@@ -8,11 +8,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        internal static Task<SessionWithSolution> TryGetRemoteSessionAsync(
+        internal static Task<SolutionAndSessionHolder> TryGetRemoteSessionAsync(
             Solution solution, CancellationToken cancellationToken)
             => TryGetRemoteSessionAsync(solution, serverCallback: null, cancellationToken: cancellationToken);
 
-        private static async Task<SessionWithSolution> TryGetRemoteSessionAsync(
+        private static async Task<SolutionAndSessionHolder> TryGetRemoteSessionAsync(
             Solution solution, object serverCallback, CancellationToken cancellationToken)
         {
             var outOfProcessAllowed = solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed);

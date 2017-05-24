@@ -208,7 +208,7 @@
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
-    <Compile Include="Remote\RemoteHostSessions.cs" />
+    <Compile Include="Remote\RemoteHostSessionHelpers.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />

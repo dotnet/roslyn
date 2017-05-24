@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -15,8 +14,12 @@ namespace Microsoft.CodeAnalysis.TodoComments
 {
     internal abstract class AbstractTodoCommentService : ITodoCommentService
     {
+        // we hold onto workspace to make sure given input (Document) belong to right workspace.
+        // since remote host is from workspace service, different workspace can have different expectation
+        // on remote host, so we need to make sure given input always belong to right workspace where
+        // the session belong to.
         private readonly Workspace _workspace;
-        private KeepAliveSession _session;
+        private KeepAliveSessionHolder _session;
 
         protected AbstractTodoCommentService(Workspace workspace)
         {
@@ -65,7 +68,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return success ? result : SpecializedCollections.EmptyList<TodoComment>();
         }
 
-        private async Task<KeepAliveSession> GetKeepAliveSessionAsync(RemoteHostClient client)
+        private async Task<KeepAliveSessionHolder> GetKeepAliveSessionAsync(RemoteHostClient client)
         {
             if (_session != null)
             {

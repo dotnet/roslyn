@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal class JsonRpcSession : RemoteHostClient.Session
+    internal class ServiceHubJsonRpcSession : RemoteHostClient.Session
     {
         // communication channel related to service information
         private readonly ServiceJsonRpcClient _serviceClient;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // close connection when cancellation has raised
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
-        public JsonRpcSession(
+        public ServiceHubJsonRpcSession(
             object callbackTarget,
             Stream serviceStream,
             Stream snapshotStream,
@@ -110,10 +110,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// </summary>
         private class SnapshotJsonRpcClient : JsonRpcClient
         {
-            private readonly JsonRpcSession _owner;
+            private readonly ServiceHubJsonRpcSession _owner;
             private readonly CancellationTokenSource _source;
 
-            public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream, CancellationToken cancellationToken)
+            public SnapshotJsonRpcClient(ServiceHubJsonRpcSession owner, Stream stream, CancellationToken cancellationToken)
                 : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: cancellationToken)
             {
                 _owner = owner;
