@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // When a casted parameter is passed as the single argument to a params parameter,
+            // When a casted value is passed as the single argument to a params parameter,
             // we can only remove the cast if it is implicitly convertible to the parameter's type,
             // but not the parameter's element type. Otherwise, we could end up changing the invocation
-            // to pass a null array rather than an array with a null single element.
+            // to pass an array rather than an array with a single element.
             //
             // IOW, given the following method...
             //
