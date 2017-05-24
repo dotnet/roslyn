@@ -13,7 +13,7 @@
     <OutputType>Exe</OutputType>
     <AssemblyName>ConsoleClassifier</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <ScrubbedSamplePath>CSharp\ConsoleClassifier</ScrubbedSamplePath>
   </PropertyGroup>

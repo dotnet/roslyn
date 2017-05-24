@@ -12,9 +12,7 @@
     <LargeAddressAware>true</LargeAddressAware>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <PackageTargetFallback>portable-net452;dotnet;netstandard1.6</PackageTargetFallback>
-    <RuntimeIdentifiers>win7-x64;$(UnixRuntimeIdentifier)</RuntimeIdentifiers>
-    <RuntimeIdentifier>$(RoslynRuntimeIdentifier)</RuntimeIdentifier>
-    <SelfContained Condition="'$(RoslynRuntimeIdentifier)' != ''" >true</SelfContained>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />

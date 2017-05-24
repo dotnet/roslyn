@@ -13,7 +13,7 @@
     <RootNamespace>Roslyn.UnitTestFramework</RootNamespace>
     <AssemblyName>Roslyn.UnitTestFramework</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <ProjectReference Include="..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj">

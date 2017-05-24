@@ -11,7 +11,7 @@
     <RootNamespace>Roslyn.Test.Performance.Runner</RootNamespace>
     <AssemblyName>Roslyn.Test.Performance.Runner</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SignAssembly>false</SignAssembly>
   </PropertyGroup>

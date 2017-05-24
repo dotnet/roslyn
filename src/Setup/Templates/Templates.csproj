@@ -23,7 +23,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <TargetFrameworkProfile />
     <RoslynProjectType>Vsix</RoslynProjectType>
   </PropertyGroup>

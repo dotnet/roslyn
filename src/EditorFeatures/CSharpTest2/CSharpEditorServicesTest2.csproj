@@ -5,7 +5,7 @@
   <PropertyGroup>
     <StartupObject />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">

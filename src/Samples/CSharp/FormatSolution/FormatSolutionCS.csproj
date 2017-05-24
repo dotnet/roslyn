@@ -11,7 +11,7 @@
     <RootNamespace>FormatSolution</RootNamespace>
     <AssemblyName>FormatSolution</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <ScrubbedSamplePath>CSharp\FormatSolution</ScrubbedSamplePath>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>

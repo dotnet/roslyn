@@ -15,7 +15,7 @@
     <OptionStrict>Off</OptionStrict>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFramework>netcoreapp1.1</TargetFramework>
-    <RuntimeIdentifiers>win7-x64;$(UnixRuntimeIdentifier)</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <NonShipping>true</NonShipping>
     <NoWarn>$(NoWarn);40057</NoWarn>
   </PropertyGroup>

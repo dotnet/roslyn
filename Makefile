@@ -54,7 +54,7 @@ bootstrap: restore
 test:
 	@export PATH="$(BINARIES_PATH)/dotnet-cli:$(PATH)" ; \
 	export HOME="$(HOME_DIR)" ; \
-	dotnet publish -r $(RUNTIME_ID) src/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest -p:RoslynRuntimeIdentifier=$(RUNTIME_ID) && \
+	dotnet publish -r $(RUNTIME_ID) src/Test/DeployCoreClrTestRuntime -o $(BINARIES_PATH)/$(BUILD_CONFIGURATION)/CoreClrTest -p:SelfContained=true && \
 	build/scripts/tests.sh $(BUILD_CONFIGURATION)
 
 restore: $(DOTNET)

@@ -11,7 +11,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CSharpAnalyzers</RootNamespace>
     <AssemblyName>CSharpAnalyzers.Vsix</AssemblyName>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>

@@ -13,7 +13,7 @@
     <Prefer32Bit>false</Prefer32Bit>
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <TargetFramework>netcoreapp1.1</TargetFramework>
-    <RuntimeIdentifiers>win7-x64;$(UnixRuntimeIdentifier)</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <PackageTargetFallback>portable-net452</PackageTargetFallback>
     <NoStdLib>true</NoStdLib>
     <NoWarn>$(NoWarn);40057</NoWarn>

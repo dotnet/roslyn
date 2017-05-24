@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <RuntimeIdentifier>x64</RuntimeIdentifier>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
     <ProjectGuid>{8CE3A581-2969-4864-A803-013E9D977C3A}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.VisualBasic.CommandLine</RootNamespace>
@@ -17,7 +17,6 @@
     <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>netcoreapp1.1</TargetFramework>
-    <RuntimeIdentifiers>win7-x64;$(UnixRuntimeIdentifier)</RuntimeIdentifiers>
     <PackageTargetFallback>portable-net452</PackageTargetFallback>
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>

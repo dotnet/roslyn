@@ -34,7 +34,7 @@
     <RootNamespace>ConvertToAutoPropertyCS</RootNamespace>
     <AssemblyName>ConvertToAutoPropertyCS</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <UseCodeBase>true</UseCodeBase>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
