@@ -595,6 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MemberResolutionKind.ConstructedParameterFailedConstraintCheck:
                         case MemberResolutionKind.NoCorrespondingNamedParameter:
                         case MemberResolutionKind.UseSiteError:
+                        case MemberResolutionKind.BadNonTrailingNamedArgument:
                             return true;
                     }
                     break;

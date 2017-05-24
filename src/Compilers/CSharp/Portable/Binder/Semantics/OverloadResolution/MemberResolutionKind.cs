@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         NameUsedForPositional,
 
         /// <summary>
+        /// The candidate member was rejected because a named argument was used out-of-position and followed by unnamed arguments.
+        /// </summary>
+        BadNonTrailingNamedArgument,
+
+        /// <summary>
         /// The candidate member was rejected because it is not supported by the language or cannot be used 
         /// given the current set of assembly references.
         /// </summary>

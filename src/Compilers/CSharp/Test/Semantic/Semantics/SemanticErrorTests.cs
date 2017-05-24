@@ -15681,16 +15681,19 @@ class C
 public class C
 {
     public static int Main()
-        {
-            Test(age: 5,"""");
+    {
+        Test(age: 5,"""");
         return 0;
-        }
-    public static void Test(int age , string Name)
+    }
+    public static void Test(int age, string Name)
     { }
-
 }";
-            DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription[] { new ErrorDescription { Code = 1738, Line = 6, Column = 25 } });
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular6);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         Test(age: 5,"");
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, @"""""").WithArguments("7.2").WithLocation(6, 21)
+                );
         }
 
         [Fact]

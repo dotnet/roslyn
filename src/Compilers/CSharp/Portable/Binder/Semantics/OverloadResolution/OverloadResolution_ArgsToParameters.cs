@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -113,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (2) was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
             // (3) Is there any non-optional parameter without a corresponding argument?
+            // (4) Is there any named argument used out-of-position and followed by unnamed arguments?
             //
             // If the answer to any of these questions is "yes" then the method is not applicable.
             // It is possible that the answer to any number of these questions is "yes", and so
@@ -151,6 +153,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ArgumentAnalysisResult.RequiredParameterMissing(requiredParameterMissing.Value);
             }
 
+            // (4) Is there any named argument used out-of-position and followed by unnamed arguments?
+
+            int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters, parameters);
+            if (badNonTrailingNamedArgument != null)
+            {
+                return ArgumentAnalysisResult.BadNonTrailingNamedArgument(badNonTrailingNamedArgument.Value);
+            }
+
             // __arglist cannot be used with named arguments (as it doesn't have a name)
             if (arguments.Names.Count != 0 && symbol.GetIsVararg())
             {
@@ -162,6 +172,44 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expanded ?
                 ArgumentAnalysisResult.ExpandedForm(argsToParameters.ToImmutableArray()) :
                 ArgumentAnalysisResult.NormalForm(argsToParameters.ToImmutableArray());
+        }
+
+        private static int? CheckForBadNonTrailingNamedArgument(AnalyzedArguments arguments, ParameterMap argsToParameters, ImmutableArray<ParameterSymbol> parameters)
+        {
+            // Is there any named argument used out-of-position and followed by unnamed arguments?
+
+            // If the map is trivial then clearly not.
+            if (argsToParameters.IsTrivial)
+            {
+                return null;
+            }
+
+            // Find the first named argument which is used out-of-position or a params parameter
+            int foundPosition = -1;
+            int length = argsToParameters.Length;
+            for (int i = 0; i < length;  i++)
+            {
+                if (arguments.Name(i) != null && 
+                    (argsToParameters[i] != i || parameters[argsToParameters[i]].IsParams))
+                {
+                    foundPosition = i;
+                    break;
+                }
+            }
+
+            if (foundPosition != -1)
+            {
+                // Verify that all the following arguments are named
+                for (int i = foundPosition + 1; i < length; i++)
+                {
+                    if (arguments.Name(i) == null)
+                    {
+                        return foundPosition;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static int? CorrespondsToAnyParameter(
@@ -232,8 +280,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = arguments.Names[argumentPosition];
                 for (int p = 0; p < memberParameters.Length; ++p)
                 {
-                    // TODO: p is initialized to zero; is it ok for a named argument to "correspond" to
-                    // _any_ parameter, or just the parameters past the point of positional arguments?
+                    // p is initialized to zero; it ok for a named argument to "correspond" to
+                    // _any_ parameter (not just the parameters past the point of positional arguments)
                     if (memberParameters[p].Name == name.Identifier.ValueText)
                     {
                         return p;

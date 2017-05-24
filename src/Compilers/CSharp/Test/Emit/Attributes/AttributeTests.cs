@@ -4362,6 +4362,12 @@ namespace AttributeTest
                 // (7,27): error CS1016: Named attribute argument expected
                 //     [A(3, z: 5, X = 6, y: 1)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "1").WithLocation(7, 27),
+                // (8,17): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //     [A(3, z: 5, 1)]
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "1").WithArguments("7.2").WithLocation(8, 17),
+                // (8,11): error CS8321: Named argument 'z' is used out-of-position but is followed by an unnamed argument
+                //     [A(3, z: 5, 1)]
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "z").WithArguments("z").WithLocation(8, 11),
                 // (9,24): error CS1016: Named attribute argument expected
                 //     [A(3, 1, X = 6, z: 5)]
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "5").WithLocation(9, 24),
@@ -4370,10 +4376,8 @@ namespace AttributeTest
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "0").WithLocation(10, 15),
                 // (11,18): error CS1016: Named attribute argument expected
                 //     [A(X = 6, x: 0)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "0").WithLocation(11, 18),
-                // (8,17): error CS1738: Named argument specifications must appear after all fixed arguments have been specified
-                //     [A(3, z: 5, 1)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "1").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "0").WithLocation(11, 18)
+                );
         }
 
         [WorkItem(541877, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541877")]
