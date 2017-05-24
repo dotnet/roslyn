@@ -7315,10 +7315,11 @@ class D
             var source = @"
 class C
 {
+    static int A { set { System.Console.Write(""A ""); } }
+    static int B { set { System.Console.Write(""B""); } }
     static void Main()
     {
-        var (a, b) = ((byte, byte))(new C(), new D());
-        System.Console.Write($""{a} {b}"");
+        (A, B) = ((byte, byte))(new C(), new D());
     }
     public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
     public C() { System.Console.Write(""C ""); }
@@ -7328,7 +7329,7 @@ class D
     public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
     public D() { System.Console.Write(""D ""); }
 }";
-            CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 1 2", additionalRefs: s_valueTupleRefs);
+            CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 A B", additionalRefs: s_valueTupleRefs);
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
