@@ -151,25 +151,25 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <PackageReference Include="EnvDTE">
-      <Version>$(EnvDTEVersion)</Version>
+      <Version>8.0.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0">
-      <Version>$(MicrosoftVisualStudioShellInterop80Version)</Version>
+      <Version>8.0.50727</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0">
-      <Version>$(MicrosoftVisualStudioShellInterop90Version)</Version>
+      <Version>9.0.30729</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0">
-      <Version>$(MicrosoftVisualStudioShellInterop100Version)</Version>
+      <Version>10.0.30319</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
-      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />

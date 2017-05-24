@@ -48,7 +48,7 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
+      <Version>1.3.1</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -29,19 +29,19 @@
   <ItemGroup>
     <Reference Include="System" />
     <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
+      <Version>1.3.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata">
-      <Version>$(MicrosoftVisualStudioDebuggerMetadataVersion)</Version>
+      <Version>15.0.26201-gamma</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
+      <Version>2.2.0-beta4-build3444</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
+      <Version>2.2.0-beta4-build3444</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
+      <Version>2.2.0-beta4-build1194</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">

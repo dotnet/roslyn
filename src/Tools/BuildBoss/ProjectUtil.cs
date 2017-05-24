@@ -17,6 +17,9 @@ namespace BuildBoss
         private readonly XmlNamespaceManager _manager;
         private readonly XNamespace _namespace;
 
+        internal bool IsSdkProject => FindSingleProperty("TargetFramework") != null;
+        internal bool IsLegacyProject => !IsSdkProject;
+
         internal ProjectUtil(string filePath) : this(new ProjectKey(filePath), XDocument.Load(filePath))
         {
         }
@@ -189,7 +192,7 @@ namespace BuildBoss
             var version = element.Attribute("Version");
             if (version != null)
             {
-                return new PackageReference(name, version.Value);
+                return new PackageReference(name, version.Value, isVersionAttribute: true);
             }
 
             var elem = element.Element(_namespace.GetName("Version"));
@@ -198,7 +201,7 @@ namespace BuildBoss
                 throw new Exception($"Could not find a Version for package reference {name}");
             }
 
-            return new PackageReference(name, elem.Value.Trim());
+            return new PackageReference(name, elem.Value.Trim(), isVersionAttribute: false);
         }
 
         internal XElement FindSingleProperty(string localName) => GetAllPropertyGroupElements().SingleOrDefault(x => x.Name.LocalName == localName);

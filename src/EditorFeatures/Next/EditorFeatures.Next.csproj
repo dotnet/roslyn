@@ -50,58 +50,58 @@
     <Reference Include="System.Drawing" />
     <Reference Include="$(NuGetPackageRoot)\VS.ExternalAPIs.CodingConventions\1.0.60704.2\Microsoft.VisualStudio.CodingConventions.dll" />
     <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
-      <Version>$(MicrosoftVisualStudioCoreUtilityVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Imaging">
-      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
-      <Version>$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</Version>
+      <Version>14.3.25407</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime">
-      <Version>$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)</Version>
+      <Version>14.3.25407</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
-      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.Data">
-      <Version>$(MicrosoftVisualStudioTextDataVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
-      <Version>$(MicrosoftVisualStudioTextLogicVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
-      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Validation">
-      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Threading">
-      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
+      <Version>1.3.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Tpl.Dataflow">
-      <Version>$(MicrosoftTplDataflowVersion)</Version>
+      <Version>4.5.24</Version>
     </PackageReference>
     <PackageReference Include="VS.ExternalAPIs.CodingConventions">
-      <Version>$(VSExternalAPIsCodingConventionsVersion)</Version>
+      <Version>1.0.60704.2</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

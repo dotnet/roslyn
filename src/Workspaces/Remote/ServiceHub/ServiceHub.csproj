@@ -48,13 +48,13 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <PackageReference Include="StreamJsonRpc">
-      <Version>$(StreamJsonRpcVersion)</Version>
+      <Version>1.0.2-rc</Version>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
-      <Version>$(NewtonsoftJsonVersion)</Version>
+      <Version>8.0.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Telemetry">
-      <Version>$(MicrosoftVisualStudioTelemetryVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

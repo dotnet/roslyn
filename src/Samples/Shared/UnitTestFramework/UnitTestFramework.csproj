@@ -48,16 +48,16 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <PackageReference Include="Moq">
-      <Version>$(MoqVersion)</Version>
+      <Version>4.2.1402.2112</Version>
     </PackageReference>
     <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
+      <Version>2.2.0-beta4-build3444</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
+      <Version>2.2.0-beta4-build3444</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
+      <Version>2.2.0-beta4-build1194</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

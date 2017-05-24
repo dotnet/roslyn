@@ -144,19 +144,19 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
+      <Version>2.2.0-beta4-build3444</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
+      <Version>2.2.0-beta4-build3444</Version>
     </PackageReference>
     <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
+      <Version>2.2.0-beta4-build1194</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Tpl.Dataflow">
-      <Version>$(MicrosoftTplDataflowVersion)</Version>
+      <Version>4.5.24</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Runtime">
-      <Version>$(MicrosoftBuildRuntimeVersion)</Version>
+      <Version>15.1.0-preview-000458-02</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

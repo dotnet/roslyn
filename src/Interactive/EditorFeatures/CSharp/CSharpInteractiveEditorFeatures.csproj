@@ -102,13 +102,13 @@
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+      <Version>2.0.0-rc3-61304-01</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

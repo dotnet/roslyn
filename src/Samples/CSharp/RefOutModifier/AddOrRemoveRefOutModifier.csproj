@@ -83,7 +83,7 @@
     <Reference Include="System" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
+      <Version>1.0.27</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

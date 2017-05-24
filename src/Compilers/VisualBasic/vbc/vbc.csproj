@@ -31,7 +31,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <PackageReference Include="Microsoft.DiaSymReader.Native">
-      <Version>$(MicrosoftDiaSymReaderNativeVersion)</Version>
+      <Version>1.5.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

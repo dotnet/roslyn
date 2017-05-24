@@ -30,7 +30,7 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <PackageReference Include="Mono.Options">
-      <Version>$(MonoOptionsVersion)</Version>
+      <Version>4.4.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

@@ -188,55 +188,55 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <PackageReference Include="BasicUndo">
-      <Version>$(BasicUndoVersion)</Version>
+      <Version>0.9.3</Version>
     </PackageReference>
     <PackageReference Include="EnvDTE">
-      <Version>$(EnvDTEVersion)</Version>
+      <Version>8.0.1</Version>
     </PackageReference>
     <PackageReference Include="EnvDTE80">
-      <Version>$(EnvDTE80Version)</Version>
+      <Version>8.0.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+      <Version>2.0.0-rc3-61304-01</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.RemoteControl">
-      <Version>$(MicrosoftVisualStudioRemoteControlVersion)</Version>
+      <Version>14.0.249-master2E2DC10C</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime">
-      <Version>$(MicrosoftVisualStudioShellInterop140DesignTimeVersion)</Version>
+      <Version>14.3.25407</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
-      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Internal.VisualStudio.Shell.Interop.14.0.DesignTime">
-      <Version>$(MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion)</Version>
+      <Version>14.3.25407-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Progression.CodeSchema">
-      <Version>$(MicrosoftVisualStudioProgressionCodeSchemaVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Progression.Common">
-      <Version>$(MicrosoftVisualStudioProgressionCommonVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Progression.Interfaces">
-      <Version>$(MicrosoftVisualStudioProgressionInterfacesVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.GraphModel">
-      <Version>$(MicrosoftVisualStudioGraphModelVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
-      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
-      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+      <Version>15.0.26201-alpha</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
