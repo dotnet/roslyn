@@ -420,5 +420,22 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             VisitArray(operation.Children);
         }
+
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            VisitArray(operation.Parts);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            Visit(operation.Text);
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            Visit(operation.Expression);
+            Visit(operation.Alignment);
+            Visit(operation.FormatString);
+        }
     }
 }

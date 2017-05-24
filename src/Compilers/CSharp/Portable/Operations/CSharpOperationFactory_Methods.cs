@@ -259,6 +259,16 @@ namespace Microsoft.CodeAnalysis.Semantics
                         OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
         }
 
+        private static readonly ConditionalWeakTable<BoundInterpolatedString, object> s_interpolatedStringExpressionMappings =
+            new ConditionalWeakTable<BoundInterpolatedString, object>();
+
+        private static ImmutableArray<IInterpolatedStringContent> GetInterpolatedStringExpressionParts(BoundInterpolatedString boundInterpolatedString)
+        {
+            return (ImmutableArray<IInterpolatedStringContent>)s_interpolatedStringExpressionMappings.GetValue(boundInterpolatedString,
+                interpolatedString =>
+                    interpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
+        }
+
         internal class Helper
         {
             internal static BinaryOperationKind DeriveBinaryOperationKind(UnaryOperationKind incrementKind)

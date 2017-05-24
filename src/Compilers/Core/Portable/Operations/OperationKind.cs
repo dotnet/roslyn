@@ -126,7 +126,9 @@ namespace Microsoft.CodeAnalysis
         ConditionalAccessExpression = 0x11c,
         /// <summary>Indicates an <see cref="IConditionalAccessInstanceExpression"/>.</summary>
         ConditionalAccessInstanceExpression = 0x11d,
-
+        /// <summary>Indicates an <see cref="IInterpolatedStringExpression"/>.</summary>
+        InterpolatedStringExpression = 0x11e,
+        
         // Expressions that occur only in C#.
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
@@ -185,5 +187,10 @@ namespace Microsoft.CodeAnalysis
         RelationalCaseClause = 0x40b,
         /// <summary>Indicates an <see cref="IRangeCaseClause"/>.</summary>
         RangeCaseClause = 0x40c,
+
+        /// <summary>Indicates an <see cref="IInterpolatedStringText"/>.</summary>
+        InterpolatedStringText = 0x40d,
+        /// <summary>Indicates an <see cref="IInterpolation"/>.</summary>
+        Interpolation = 0x40e,
     }
 }
