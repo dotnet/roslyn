@@ -37,19 +37,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
-        {
-            foreach (var section in switchSyntax.Sections)
-            {
-                if (section.Labels.Any(SyntaxKind.CasePatternSwitchLabel))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // If it is a valid C# 6 switch statement, we use the old binder to bind it.
