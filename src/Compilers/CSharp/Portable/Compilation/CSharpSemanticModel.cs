@@ -1935,10 +1935,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if ((highestBoundExpr as BoundConversion)?.Conversion.IsTupleLiteralConversion == true)
                 {
                     var tupleLiteralConversion = (BoundConversion)highestBoundExpr;
-                    var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
-                    type = convertedTuple.NaturalTypeOpt;
-                    convertedType = tupleLiteralConversion.Type;
-                    conversion = tupleLiteralConversion.Conversion;
+                    if (tupleLiteralConversion.Operand.Kind == BoundKind.ConvertedTupleLiteral)
+                    {
+                        var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
+                        type = convertedTuple.NaturalTypeOpt;
+                        convertedType = tupleLiteralConversion.Type;
+                        conversion = tupleLiteralConversion.Conversion;
+                    }
+                    else
+                    {
+                        Debug.Assert(false);
+                        type = null;
+                        convertedType = null;
+                        conversion = Conversion.Identity;
+                    }
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
