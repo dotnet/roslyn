@@ -118,8 +118,8 @@ Public Class UpdateNuGetTemplateVersions
                 package.@version = "1.1.36"
             ElseIf package.@id = "System.Reflection.Metadata" Then
                 package.@version = "1.0.21"
-            ElseIf package.@id = "Microsoft.Composition" Then
-                package.@version = "1.0.27"
+            ElseIf package.@id = "System.Composition" Then
+                package.@version = "1.0.31"
             ElseIf package.@id = "Microsoft.CodeAnalysis.Analyzers" Then
                 package.@version = "1.1.0"
             Else
