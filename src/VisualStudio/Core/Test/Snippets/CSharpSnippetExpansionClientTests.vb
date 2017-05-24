@@ -3,6 +3,7 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
@@ -305,7 +306,7 @@ using G=   H.I;
 	}
 }</Test>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = TestWorkspace.Create(workspaceXml, exportProvider:=TestExportProvider.CreateExportProviderWithCSharpAndVisualBasic())
                 Dim document = workspace.Documents.Single()
 
                 workspace.Options = workspace.Options _
