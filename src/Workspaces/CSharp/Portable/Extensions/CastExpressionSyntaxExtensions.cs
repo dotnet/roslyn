@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            // Special case: When a null literal is cast and passed as the single argument to a params parameter,
+            // When a casted parameter and passed as the single argument to a params parameter,
             // we can only remove the cast if it is implicitly convertible to the parameter's type,
             // but not the parameter's element type. Otherwise, we could end up changing the invocation
             // to pass a null array rather than an array with a null single element.
