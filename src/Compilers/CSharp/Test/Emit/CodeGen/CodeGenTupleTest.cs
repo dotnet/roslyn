@@ -22916,6 +22916,111 @@ class C
         }
 
         [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInAsOperator()
+        {
+            var source =
+@"
+using System;
+
+class P
+{
+    static void Main()
+    {
+        var x1 = (1, 1) as (int, int a)?;
+        var x2 = (1, 1) as (int, int)?;
+        var x3 = (1, new object()) as (int, dynamic)?;
+        Console.Write($""{x1} {x2} {x3}"");
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, 1) (1, 1) (1, System.Object)");
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInAsOperator2()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x = (a: 1, b: 1) as (int c, int d)?;
+        var y = (1, 1) as (int, long)?;
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,17): warning CS0458: The result of the expression is always 'null' of type '(int, long)?'
+                //         var y = (1, 1) as (int, long)?;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(1, 1) as (int, long)?").WithArguments("(int, long)?").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInIsOperator()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x1 = (1, 1) is (int, int a)?;
+    }
+}";
+            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,29): error CS1525: Invalid expression term 'int'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),
+                // (6,41): error CS1525: Invalid expression term ';'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
+                // (6,41): error CS1003: Syntax error, ':' expected
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(6, 41),
+                // (6,41): error CS1525: Invalid expression term ';'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
+                // (6,34): error CS8185: A declaration is not allowed in this context.
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 34),
+                // (6,28): error CS0150: A constant value is expected
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int a)").WithLocation(6, 28),
+                // (6,34): error CS0165: Use of unassigned local variable 'a'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInIsOperator2()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x1 = (1, 1) is System.Nullable<(int, int a)>;
+    }
+}";
+            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS0183: The given expression is always of the provided ('(int, int a)?') type
+                //         var x1 = (1, 1) is System.Nullable<(int, int a)>;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "(1, 1) is System.Nullable<(int, int a)>").WithArguments("(int, int a)?").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
         [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversions()
         {
