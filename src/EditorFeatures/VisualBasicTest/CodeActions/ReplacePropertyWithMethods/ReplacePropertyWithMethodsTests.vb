@@ -591,7 +591,8 @@ Class C
     Public Property Foo As Integer Implements IFoo.Foo
 End Class",
 "Interface IFoo
-    Property Foo As Integer
+    Function GetFoo() As Integer
+    Sub SetFoo(Value As Integer)
 End Interface
 
 Class C
