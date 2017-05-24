@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 //    var temp = this.AllocateTemp(type, expression.Syntax);
                 //    _builder.EmitLocalAddress(temp);                  //  ldloca temp
                 //    _builder.EmitOpCode(ILOpCode.Dup);                //  dup
-                //    _builder.EmitOpCode(ILOpCode.Initobj);            //  intitobj  <type>
+                //    _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <type>
                 //    EmitSymbolToken(type, expression.Syntax);
                 //    return temp;
 

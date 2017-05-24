@@ -328,7 +328,7 @@ class Program
             this = arg; // OK
         }
 
-        public void Tes1()
+        public void Test1()
         {            
             this = default; // error
         }

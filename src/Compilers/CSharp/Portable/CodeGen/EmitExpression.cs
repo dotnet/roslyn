@@ -2001,7 +2001,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var temp = EmitAddress(target, AddressKind.Writeable);
             Debug.Assert(temp == null, "in-place init target should not create temps");
 
-            _builder.EmitOpCode(ILOpCode.Initobj);    //  intitobj  <MyStruct>
+            _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
             EmitSymbolToken(target.Type, target.Syntax);
 
             if (used)
@@ -2735,7 +2735,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {                
                 var temp = this.AllocateTemp(type, syntaxNode);
                 _builder.EmitLocalAddress(temp);                  //  ldloca temp
-                _builder.EmitOpCode(ILOpCode.Initobj);            //  intitobj  <MyStruct>
+                _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <MyStruct>
                 EmitSymbolToken(type, syntaxNode);
                 _builder.EmitLocalLoad(temp);                     //  ldloc temp
                 FreeTemp(temp);

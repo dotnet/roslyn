@@ -198,16 +198,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 //PROTOTYPE(readonlyRefs): these are all 7.2 features we need to update this.
                 // C# 7.1 features.
+                case MessageID.IDS_FeatureReadonlyReferences:
+                case MessageID.IDS_FeatureRefStructs:
+                case MessageID.IDS_FeatureReadonlyStructs:
+                    return LanguageVersion.CSharp7_1;
+
+                // C# 7.1 features.
                 case MessageID.IDS_FeatureAsyncMain:
                 case MessageID.IDS_FeatureDefaultLiteral:
                 case MessageID.IDS_FeatureInferredTupleNames:
                 case MessageID.IDS_FeatureGenericPatternMatching:
-                    return LanguageVersion.CSharp7_1;
-
-                // C# 7.1 features.
-                case MessageID.IDS_FeatureReadonlyReferences:
-                case MessageID.IDS_FeatureRefStructs:
-                case MessageID.IDS_FeatureReadonlyStructs:
                     return LanguageVersion.CSharp7_1;
 
                 // C# 7 features.
