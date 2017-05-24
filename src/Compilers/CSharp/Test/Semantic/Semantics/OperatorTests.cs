@@ -8895,5 +8895,55 @@ public enum FlagsEnum
             var verifier = CompileAndVerify(source, expectedOutput: "Foo, Bar");
             verifier.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void IsWarningWithNonNullConstant()
+        {
+            var source =
+@"class Program
+{
+    public static void Main(string[] args)
+    {
+        const string d = ""foo"";
+        var x = d is string;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(source)
+                .VerifyDiagnostics(
+                // (6,17): warning CS0183: The given expression is always of the provided ('string') type
+                //         var x = d is string;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "d is string").WithArguments("string").WithLocation(6, 17)
+                );
+        }
+
+        [Fact, WorkItem(19310, "https://github.com/dotnet/roslyn/issues/19310")]
+        public void IsWarningWithTupleConversion()
+        {
+            var source =
+@"using System;
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var t = (x: 1, y: 2);
+        if (t is ValueTuple<long, int>) { }   // too big
+        if (t is ValueTuple<short, int>) { }  // too small
+        if (t is ValueTuple<int, int>) { }    // goldilocks
+    }
+}";
+            var compilation = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+                .VerifyDiagnostics(
+                // (7,13): warning CS0184: The given expression is never of the provided ('(long, int)') type
+                //         if (t is ValueTuple<long, int>) { }   // too big
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is ValueTuple<long, int>").WithArguments("(long, int)").WithLocation(7, 13),
+                // (8,13): warning CS0184: The given expression is never of the provided ('(short, int)') type
+                //         if (t is ValueTuple<short, int>) { }  // too small
+                Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "t is ValueTuple<short, int>").WithArguments("(short, int)").WithLocation(8, 13),
+                // (9,13): warning CS0183: The given expression is always of the provided ('(int, int)') type
+                //         if (t is ValueTuple<int, int>) { }    // goldilocks
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "t is ValueTuple<int, int>").WithArguments("(int, int)").WithLocation(9, 13)
+                );
+        }
     }
 }

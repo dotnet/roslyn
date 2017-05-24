@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -44,151 +46,68 @@ namespace Microsoft.CodeAnalysis.Semantics
             });
         }
 
-        private static readonly ConditionalWeakTable<BoundExpression, IArgument> s_argumentMappings = new ConditionalWeakTable<BoundExpression, IArgument>();
+        private static readonly ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>> s_callToArgumentsMappings
+            = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>();
 
-        private static IArgument DeriveArgument(
-            int parameterIndex,
-            int argumentIndex,
-            ImmutableArray<BoundExpression> boundArguments,
-            ImmutableArray<string> argumentNamesOpt,
-            ImmutableArray<RefKind> argumentRefKindsOpt,
-            ImmutableArray<CSharp.Symbols.ParameterSymbol> parameters,
-            SyntaxNode invocationSyntax)
+        internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
         {
-            if ((uint)argumentIndex >= (uint)boundArguments.Length)
-            {
-                // Check for an omitted argument that becomes an empty params array.
-                if (parameters.Length > 0)
-                {
-                    IParameterSymbol lastParameter = parameters[parameters.Length - 1];
-                    if (lastParameter.IsParams)
-                    {
-                        var value = CreateParamArray(lastParameter, boundArguments, argumentIndex, invocationSyntax);
-                        return new Argument(
-                            argumentKind: ArgumentKind.ParamArray,
-                            parameter: lastParameter,
-                            value: value,
-                            inConversion: null,
-                            outConversion: null,
-                            isInvalid: lastParameter == null || value.IsInvalid,
-                            syntax: value.Syntax,
-                            type: null,
-                            constantValue: default(Optional<object>));
-                    }
-                }
-
-                // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                var invalid = OperationFactory.CreateInvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
-                return new Argument(
-                    argumentKind: ArgumentKind.Explicit,
-                    parameter: null,
-                    value: invalid,
-                    inConversion: null,
-                    outConversion: null,
-                    isInvalid: true,
-                    syntax: null,
-                    type: null,
-                    constantValue: default(Optional<object>));
-            }
-
-            return s_argumentMappings.GetValue(
-                boundArguments[argumentIndex],
-                (argument) =>
-                {
-                    string nameOpt = !argumentNamesOpt.IsDefaultOrEmpty ? argumentNamesOpt[argumentIndex] : null;
-                    IParameterSymbol parameterOpt = (uint)parameterIndex < (uint)parameters.Length ? parameters[parameterIndex] : null;
-
-                    if ((object)nameOpt == null)
-                    {
-                        RefKind refMode = argumentRefKindsOpt.IsDefaultOrEmpty ? RefKind.None : argumentRefKindsOpt[argumentIndex];
-
-                        if (refMode != RefKind.None)
-                        {
-                            var value = Create(argument);
-                            return new Argument(
-                                argumentKind: ArgumentKind.Explicit,
-                                parameter: parameterOpt,
-                                value: value,
-                                inConversion: null,
-                                outConversion: null,
-                                isInvalid: parameterOpt == null || value.IsInvalid,
-                                syntax: argument.Syntax,
-                                type: null,
-                                constantValue: default(Optional<object>));
-                        }
-
-                        if (argumentIndex >= parameters.Length - 1 &&
-                            parameters.Length > 0 &&
-                            parameters[parameters.Length - 1].IsParams &&
-                            // An argument that is an array of the appropriate type is not a params argument.
-                            (boundArguments.Length > argumentIndex + 1 ||
-                             ((object)argument.Type != null && // If argument type is null, we are in an error scenario and cannot tell if it is a param array, or not. 
-                              (argument.Type.TypeKind != TypeKind.Array ||
-                              !argument.Type.Equals((CSharp.Symbols.TypeSymbol)parameters[parameters.Length - 1].Type, TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds)))))
-                        {
-                            var parameter = parameters[parameters.Length - 1];
-                            var value = CreateParamArray(parameter, boundArguments, argumentIndex, invocationSyntax);
-
-                            return new Argument(
-                                argumentKind: ArgumentKind.ParamArray,
-                                parameter: parameter,
-                                value: value,
-                                inConversion: null,
-                                outConversion: null,
-                                isInvalid: parameter == null || value.IsInvalid,
-                                syntax: value.Syntax,
-                                type: null,
-                                constantValue: default(Optional<object>));
-                        }
-                        else
-                        {
-                            var value = Create(argument);
-                            return new Argument(
-                                argumentKind: ArgumentKind.Explicit,
-                                parameter: parameterOpt,
-                                value: value,
-                                inConversion: null,
-                                outConversion: null,
-                                isInvalid: parameterOpt == null || value.IsInvalid,
-                                syntax: value.Syntax,
-                                type: null,
-                                constantValue: default(Optional<object>));
-                        }
-                    }
-
-                    var operation = Create(argument);
-                    return new Argument(
-                        argumentKind: ArgumentKind.Explicit,
-                        parameter: parameterOpt,
-                        value: operation,
-                        inConversion: null,
-                        outConversion: null,
-                        isInvalid: parameterOpt == null || operation.IsInvalid,
-                        syntax: operation.Syntax,
-                        type: null,
-                        constantValue: default(Optional<object>));
-                });
+            return new Argument(kind,
+                parameter,
+                value,
+                inConversion: null,
+                outConversion: null,
+                isInvalid: parameter == null || value.IsInvalid,
+                syntax: value.Syntax,
+                type: value.Type,
+                constantValue: default(Optional<object>));
         }
 
-        private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
+        private static ImmutableArray<IArgument> DeriveArguments(
+            BoundExpression boundNode,
+            Binder binder,
+            Symbol methodOrIndexer,
+            MethodSymbol optionalParametersMethod,
+            ImmutableArray<BoundExpression> boundArguments,
+            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<int> argumentsToParametersOpt,
+            ImmutableArray<RefKind> argumentRefKindsOpt,
+            ImmutableArray<ParameterSymbol> parameters,
+            bool expanded,
+            SyntaxNode invocationSyntax,
+            bool invokedAsExtensionMethod = false)
         {
-            if (parameter.Type.TypeKind == TypeKind.Array)
+            // We can simply return empty array only if both parameters and boundArguments are empty, because:
+            // - if only parameters is empty, there's error in code but we still need to return provided expression.
+            // - if boundArguments is empty, then either there's error or we need to provide values for optional/param-array parameters. 
+            if (parameters.IsDefaultOrEmpty && boundArguments.IsDefaultOrEmpty)
             {
-                IArrayTypeSymbol arrayType = (IArrayTypeSymbol)parameter.Type;
-                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-
-                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
-                {
-                    builder.Add(Create(boundArguments[index]));
-                }
-
-                var paramArrayArguments = builder.ToImmutableAndFree();
-
-                // Use the invocation syntax node if there is no actual syntax available for the argument (because the paramarray is empty.)
-                return OperationFactory.CreateArrayCreationExpression(arrayType, paramArrayArguments, paramArrayArguments.Length > 0 ? paramArrayArguments[0].Syntax : invocationSyntax);
+                return ImmutableArray<IArgument>.Empty;
             }
 
-            return OperationFactory.CreateInvalidExpression(invocationSyntax, ImmutableArray<IOperation>.Empty);
+            return (ImmutableArray<IArgument>)s_callToArgumentsMappings.GetValue(
+                boundNode,
+                (n) =>
+                {
+                    //TODO: https://github.com/dotnet/roslyn/issues/18722
+                    //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
+                    //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
+                    if (n.HasErrors || (object)optionalParametersMethod == null)
+                    {
+                        // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
+                        // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
+                        return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, Create(arg)));
+                    }
+
+                    return LocalRewriter.MakeArgumentsInEvaluationOrder(
+                         binder: binder,
+                         syntax: invocationSyntax,
+                         arguments: boundArguments,
+                         methodOrIndexer: methodOrIndexer,
+                         optionalParametersMethod: optionalParametersMethod,
+                         expanded: expanded,
+                         argsToParamsOpt: argumentsToParametersOpt,
+                         invokedAsExtensionMethod: invokedAsExtensionMethod);
+                });
         }
 
         private static ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
