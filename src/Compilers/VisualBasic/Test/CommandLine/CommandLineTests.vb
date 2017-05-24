@@ -2887,6 +2887,74 @@ print Goodbye, World"
             CleanupAllGeneratedFiles(src.Path)
         End Sub
 
+        <CompilerTrait(CompilerFeature.Determinism)>
+        <Fact>
+        Public Sub PathMapPdbDeterminism()
+            Dim assertPdbEmit =
+                Sub(dir As TempDirectory, pePdbPath As String, extraArgs As String())
+
+                    Dim source =
+                        <compilation>
+Imports System
+Module Program
+    Sub Main()
+    End Sub
+End Module
+                        </compilation>
+
+                    Dim src = dir.CreateFile("a.vb").WriteAllText(source.Value)
+                    Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                    Dim defaultArgs = {"/nologo", "/debug", "a.vb"}
+                    Dim isDeterministic = extraArgs.Contains("/deterministic")
+                    Dim args = defaultArgs.Concat(extraArgs).ToArray()
+                    Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
+
+                    Dim vbc = New MockVisualBasicCompiler(dir.Path, args)
+                    Dim exitCode = vbc.Run(outWriter)
+                    Assert.Equal(0, exitCode)
+
+                    Dim exePath = Path.Combine(dir.Path, "a.exe")
+                    Assert.True(File.Exists(exePath))
+                    Assert.True(File.Exists(pdbPath))
+
+                    Using peStream = File.OpenRead(exePath)
+                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, isDeterministic)
+                    End Using
+                End Sub
+
+            ' No mappings
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, pePdbPath, {})
+            End Using
+
+            ' Simple mapping
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = "q:\a.pdb"
+                assertPdbEmit(dir, pePdbPath, {$"/pathmap:{dir.Path}=q:\"})
+            End Using
+
+            ' Simple mapping deterministic
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = "q:\a.pdb"
+                assertPdbEmit(dir, pePdbPath, {$"/pathmap:{dir.Path}=q:\", "/deterministic"})
+            End Using
+
+            ' Partial mapping
+            Using dir As New DisposableDirectory(Temp)
+                Dim subDir = dir.CreateDirectory("example")
+                Dim pePdbPath = "q:\example\a.pdb"
+                assertPdbEmit(subDir, pePdbPath, {$"/pathmap:{dir.Path}=q:\"})
+            End Using
+
+            ' Legacy feature flag
+            Using dir As New DisposableDirectory(Temp)
+                Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
+            End Using
+        End Sub
+
+
         <WorkItem(540891, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540891")>
         <Fact>
         Public Sub ParseOut()

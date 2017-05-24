@@ -227,7 +227,7 @@
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
-    <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
+    <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
     <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.vb" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.vb" />
@@ -276,7 +276,7 @@
     <Compile Include="Diagnostics\ExitContinue\ExitContinueCodeActionTests.vb" />
     <Compile Include="Diagnostics\FixIncorrectFunctionReturnType\FixIncorrectFunctionReturnTypeTests.vb" />
     <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.vb" />
-    <Compile Include="Diagnostics\GenerateConstructor\GenerateConstructorTests.vb" />
+    <Compile Include="GenerateConstructor\GenerateConstructorTests.vb" />
     <Compile Include="Diagnostics\GenerateEndConstruct\GenerateEndConstructTests.vb" />
     <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.vb" />
     <Compile Include="Diagnostics\GenerateEvent\GenerateEventTests.vb" />

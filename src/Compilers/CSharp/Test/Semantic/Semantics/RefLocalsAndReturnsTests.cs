@@ -596,37 +596,46 @@ public class Test
         }
     }
   
-
+    public class C
+    {
+        public ref C M()
+        {
+            return ref this;
+        }
+    }
 }";
             var comp = CreateCompilationRef(text);
             comp.VerifyDiagnostics(
-    // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
-    //             return ref this;
-    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
-    // (15,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
-    //             return ref x;
-    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
-    // (20,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
-    //             return ref this.x;
-    Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
-    // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
-    //             return ref Foo(ref M1);
-    Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
-    // (36,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-    //             return ref Foo(ref M1);
-    Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
-    // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
-    //             return ref Foo(ref M2.x);
-    Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
-    // (41,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
-    //             return ref Foo(ref M2.x);
-    Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
-    // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
-    //             return ref Foo(ref M2).x;
-    Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
-    // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
-    //             return ref Foo(ref M2).x;
-    Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24));
+                // (10,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //             return ref this;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(10, 24),
+                // (15,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //             return ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(15, 24),
+                // (20,24): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //             return ref this.x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this.x").WithArguments("this").WithLocation(20, 24),
+                // (36,32): error CS8168: Cannot return local 'M1' by reference because it is not a ref local
+                //             return ref Foo(ref M1);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "M1").WithArguments("M1").WithLocation(36, 32),
+                // (36,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Foo(ref M1);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M1)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(36, 24),
+                // (41,32): error CS8169: Cannot return a member of local 'M2' by reference because it is not a ref local
+                //             return ref Foo(ref M2.x);
+                Diagnostic(ErrorCode.ERR_RefReturnLocal2, "M2").WithArguments("M2").WithLocation(41, 32),
+                // (41,24): error CS8164: Cannot return by reference a result of 'Test.Foo<char>(ref char)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Foo(ref M2.x);
+                Diagnostic(ErrorCode.ERR_RefReturnCall, "Foo(ref M2.x)").WithArguments("Test.Foo<char>(ref char)", "arg").WithLocation(41, 24),
+                // (46,32): error CS8168: Cannot return local 'M2' by reference because it is not a ref local
+                //             return ref Foo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "M2").WithArguments("M2").WithLocation(46, 32),
+                // (46,24): error CS8165: Cannot return by reference a member of result of 'Test.Foo<Test.S1>(ref Test.S1)' because the argument passed to parameter 'arg' cannot be returned by reference
+                //             return ref Foo(ref M2).x;
+                Diagnostic(ErrorCode.ERR_RefReturnCall2, "Foo(ref M2)").WithArguments("Test.Foo<Test.S1>(ref Test.S1)", "arg").WithLocation(46, 24),
+                // (58,24): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+                //             return ref this;
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(58, 24));
         }
 
         [Fact]
