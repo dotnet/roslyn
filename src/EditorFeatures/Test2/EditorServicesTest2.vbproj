@@ -97,6 +97,10 @@
       <Project>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F8}</Project>
       <Name>BasicCompilerTestUtilities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Next\EditorFeatures.Next.csproj">
+      <Project>{366bbcdc-b05f-4677-9b5b-78ba816a1484}</Project>
+      <Name>EditorFeatures.Next</Name>
+    </ProjectReference>
     <ProjectReference Include="..\TestUtilities2\ServicesTestUtilities2.vbproj">
       <Project>{3dfb4701-e3d6-4435-9f70-a6e35822c4f2}</Project>
       <Name>ServicesTestUtilities2</Name>
@@ -249,6 +253,7 @@
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
     <Compile Include="NamingStyles\NamingStylesTests.vb" />
+    <Compile Include="NavigableSymbol\NavigableSymbolsTest.vb" />
     <Compile Include="Simplification\BlockSimplificationTests.vb" />
     <Compile Include="Simplification\SimplifierAPITests.vb" />
     <Compile Include="CodeFixes\CodeFixServiceTests.vb" />

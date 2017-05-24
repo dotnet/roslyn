@@ -6,6 +6,7 @@ Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Language.NavigateTo.Interfaces
 
+#If False Then
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
     Public Class NavigateToTests
         Inherits AbstractNavigateToTests
@@ -795,3 +796,4 @@ End Class
         End Function
     End Class
 End Namespace
+#end if
