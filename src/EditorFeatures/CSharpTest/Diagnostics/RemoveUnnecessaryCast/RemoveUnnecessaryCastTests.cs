@@ -788,7 +788,7 @@ class Test
         }
 
         [WorkItem(545595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545595")]
-        [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task RemoveUnneededCastInCollectionInitializer()
         {
             await TestInRegularAndScriptAsync(
@@ -817,7 +817,7 @@ class Program
         }
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-        [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastWhichInCollectionInitializer1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -844,7 +844,7 @@ class X : List<int>
         }
 
         [WorkItem(529787, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529787")]
-        [WpfFact(Skip = "529787"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontRemoveNecessaryCastWhichInCollectionInitializer2()
         {
             await TestMissingInRegularAndScriptAsync(
