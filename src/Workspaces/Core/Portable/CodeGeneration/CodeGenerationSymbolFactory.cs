@@ -414,9 +414,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             DeclarationModifiers? modifiers = null,
             IMethodSymbol explicitInterfaceSymbol = null,
             string name = null,
-            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>))
+            ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
+            INamedTypeSymbol containingType = null)
         {
-            return CodeGenerationSymbolFactory.CreateMethodSymbol(
+            return CreateMethodSymbol(
+                containingType,
                 attributes,
                 accessibility ?? method.DeclaredAccessibility,
                 modifiers ?? method.GetSymbolModifiers(),
