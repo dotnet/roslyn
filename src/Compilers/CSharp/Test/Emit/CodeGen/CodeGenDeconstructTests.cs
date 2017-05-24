@@ -7333,6 +7333,21 @@ class D
         }
 
         [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction4()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var (a, _) = ((short, short))((int, int))(1L, 2L);
+        System.Console.Write($""{a}"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"1", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
         public void UserDefinedCastInDeconstruction()
         {
             var source = @"

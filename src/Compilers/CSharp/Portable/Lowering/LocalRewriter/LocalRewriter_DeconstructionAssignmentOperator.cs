@@ -134,10 +134,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (right.Kind == BoundKind.Conversion)
             {
                 var tupleConversion = (BoundConversion)right;
-                if (IsTupleExpression(tupleConversion.Operand.Kind))
+                if ((tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral || tupleConversion.Conversion.Kind == ConversionKind.Identity)
+                    && IsTupleExpression(tupleConversion.Operand.Kind))
                 {
-                    Debug.Assert(tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral ||
-                        tupleConversion.Conversion.Kind == ConversionKind.Identity);
                     return ((BoundTupleExpression)tupleConversion.Operand).Arguments;
                 }
             }
@@ -145,6 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Example:
             // var (x, y) = GetTuple();
             // var (x, y) = ((byte, byte)) (1, 2);
+            // var (a, _) = ((short, short))((int, int))(1L, 2L);
             if (right.Type.IsTupleType)
             {
                 inInit = false;
