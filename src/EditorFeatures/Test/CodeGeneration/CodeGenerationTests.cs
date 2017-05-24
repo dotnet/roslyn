@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Func<SemanticModel, ITypeSymbol> type = null,
             string name = "F",
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool ignoreTrivia = true,
             bool hasConstantValue = false,
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             string name = "C",
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
             ImmutableArray<SyntaxNode> baseArguments = default(ImmutableArray<SyntaxNode>),
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             string name = "M",
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             Type returnType = null,
             Func<SemanticModel, IMethodSymbol> explicitInterface = null,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             CodeGenerationOperatorKind[] operatorKinds,
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             Type returnType = null,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string initial,
             CodeGenerationOperatorKind operatorKind,
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             Type returnType = null,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Func<SemanticModel, IParameterSymbol> fromType,
             bool isImplicit = false,
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             string statements = null,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
             bool ignoreTrivia = true)
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             string name = "D",
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             Type returnType = null,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string name = "E",
             ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>),
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             Type type = null,
             Func<SemanticModel, IEventSymbol> explicitInterfaceSymbol = null,
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string name = "P",
             Accessibility defaultAccessibility = Accessibility.Public,
             Accessibility setterAccessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             string getStatements = null,
             string setStatements = null,
             Type type = null,
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 IMethodSymbol getAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     default(ImmutableArray<AttributeData>),
                     defaultAccessibility,
-                    new DeclarationModifiers(isAbstract: getStatements == null),
+                    new Editing.DeclarationModifiers(isAbstract: getStatements == null),
                     typeSymbol,
                     false,
                     null,
@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 IMethodSymbol setAccessor = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     default(ImmutableArray<AttributeData>),
                     setterAccessibility,
-                    new DeclarationModifiers(isAbstract: setStatements == null),
+                    new Editing.DeclarationModifiers(isAbstract: setStatements == null),
                     GetTypeSymbol(typeof(void))(context.SemanticModel),
                     false,
                     null,
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string expected,
             string name = "C",
             Accessibility accessibility = Accessibility.Public,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             TypeKind typeKind = TypeKind.Class,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
             INamedTypeSymbol baseType = null,
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         }
 
         private static ImmutableArray<IParameterSymbol> GetParameterSymbols(ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters, TestContext context)
-            => parameters.IsDefault 
+            => parameters.IsDefault
                 ? default(ImmutableArray<IParameterSymbol>)
                 : parameters.SelectAsArray(p => p(context.SemanticModel));
 
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 
         private static ImmutableArray<ISymbol> GetSymbols(ImmutableArray<Func<SemanticModel, ISymbol>> members, TestContext context)
         {
-            return members == null 
+            return members == null
                 ? default(ImmutableArray<ISymbol>)
                 : members.SelectAsArray(m => m(context.SemanticModel));
         }
@@ -665,10 +665,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
         {
             return s => CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default(ImmutableArray<AttributeData>), Accessibility.Public,
-                new DeclarationModifiers(), GetTypeSymbol(typeof(int))(s), name, value != null, value);
+                new Editing.DeclarationModifiers(), GetTypeSymbol(typeof(int))(s), name, value != null, value);
         }
 
-        internal static Func<SemanticModel, ISymbol> CreateField(Accessibility accessibility, DeclarationModifiers modifiers, Type type, string name)
+        internal static Func<SemanticModel, ISymbol> CreateField(Accessibility accessibility, Editing.DeclarationModifiers modifiers, Type type, string name)
         {
             return s => CodeGenerationSymbolFactory.CreateFieldSymbol(
                 default(ImmutableArray<AttributeData>), accessibility,
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             return s => s == null ? null : s.Compilation.GetTypeByMetadataName(typeMetadataName);
         }
 
-        internal static IEnumerable<SyntaxToken> CreateModifierTokens(DeclarationModifiers modifiers, string language)
+        internal static IEnumerable<SyntaxToken> CreateModifierTokens(Editing.DeclarationModifiers modifiers, string language)
         {
             if (language == LanguageNames.CSharp)
             {
