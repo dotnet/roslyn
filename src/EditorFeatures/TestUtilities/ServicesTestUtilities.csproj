@@ -256,6 +256,7 @@
     <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />
+    <Compile Include="TestExportJoinableTaskContext.cs" />
     <Compile Include="TestExportProvider.cs" />
     <Compile Include="TestExtensionErrorHandler.cs" />
     <Compile Include="TestOptionsServiceFactory.cs" />
