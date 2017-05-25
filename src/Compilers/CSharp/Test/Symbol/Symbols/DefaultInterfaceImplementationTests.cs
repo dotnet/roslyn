@@ -6069,9 +6069,9 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1/*, expectedOutput:
+            CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"M4
-M1"*/, verify:false, symbolValidator: Validate);
+M1", verify:false, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -7010,7 +7010,7 @@ class Test1 : I1
                 Assert.Null(test1.FindImplementationForInterfaceMember(m1));
             }
 
-            CompileAndVerify(compilation1/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, verify: false, symbolValidator: Validate);
             Validate(compilation1.SourceModule);
         }
 
