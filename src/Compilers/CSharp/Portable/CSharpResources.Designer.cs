@@ -4067,6 +4067,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.IsByRefLikeAttribute&apos;. This is reserved for compiler usage..
+        /// </summary>
+        internal static string ERR_ExplicitIsByRefLikeAttr {
+            get {
+                return ResourceManager.GetString("ERR_ExplicitIsByRefLikeAttr", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit).
         /// </summary>
         internal static string ERR_ExplicitLayoutAndAutoImplementedProperty {
@@ -5966,15 +5975,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an entry point cannot be marked with the &apos;async&apos; modifier.
-        /// </summary>
-        internal static string ERR_MainCantBeAsync {
-            get {
-                return ResourceManager.GetString("ERR_MainCantBeAsync", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; for Main method because it is imported.
         /// </summary>
         internal static string ERR_MainClassIsImport {
@@ -6900,18 +6900,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_NonInvocableMemberCalled", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Async Main methods must return Task or Task&lt;int&gt;.
+        ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
-        internal static string ERR_NonTaskMainCantBeAsync
-        {
-            get
-            {
+        internal static string ERR_NonTaskMainCantBeAsync {
+            get {
                 return ResourceManager.GetString("ERR_NonTaskMainCantBeAsync", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
@@ -9971,7 +9969,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("IDS_Covariantly", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to 
         ///                              Visual C# Compiler Options
@@ -9985,10 +9983,8 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                               /t:winexe)
         /// /target:library        [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string IDS_CSCHelp
-        {
-            get
-            {
+        internal static string IDS_CSCHelp {
+            get {
                 return ResourceManager.GetString("IDS_CSCHelp", resourceCulture);
             }
         }

@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static string spanSource = @"
 namespace System
 {
-    public ref struct Span<T>
+    public ref struct Span<T> 
     {
         public ref T this[int i] => throw null;
         public override int GetHashCode() => 1;
@@ -39,16 +39,6 @@ namespace System
         public Span<T> field;
     }
 }
-
-namespace System.Runtime.CompilerServices
-{
-    [AttributeUsage(AttributeTargets.Struct)]
-    public sealed class IsByRefLikeAttribute: Attribute
-    {
-        public IsByRefLikeAttribute(){}
-    }
-}
-
 ";
         //PROTOTYPE(span): this will be updated when rules for defining span are implemented
         //                 most likely we would just pick the actual binary/corlib where

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
             var text = @"
 class Program
 {
-    ref struct S1{}
+    ref struct S1{} 
 
     public ref struct S2{}
 }

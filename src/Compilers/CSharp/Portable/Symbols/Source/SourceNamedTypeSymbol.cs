@@ -731,6 +731,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsReadOnlyAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitByRefLikeAttr, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location);
@@ -1124,8 +1129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (this.IsByRefLikeType)
             {
-                //PROTOTYPE(span): should also set [Obsolete] Attribute with a known marker
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeIsByRefLikeAttribute());
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
             }
 
             if (this.Indexers.Any())

@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsByRefLikeType
+        internal sealed override bool IsByRefLikeType
         {
             get
             {
@@ -1341,6 +1341,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
+
+            if (this.IsByRefLikeType)
+            {
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilationForIsByRefLike: true);
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(DiagnosticBag diagnostics)
