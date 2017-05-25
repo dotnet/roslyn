@@ -82,6 +82,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 diagnosticId = IDEDiagnosticIds.PreferIntrinsicPredefinedTypeInMemberAccessDiagnosticId
             ElseIf expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
+                Dim method = model.GetMemberGroup(expression)
+                If method.Length = 1 Then
+                    Dim symbol = method.First()
+                    If (symbol.IsOverrides Or symbol.IsOverridable) And memberAccess.Expression.Kind = SyntaxKind.MyClassExpression Then
+                        Return False
+                    End If
+                End If
                 diagnosticId = If(memberAccess.Expression.Kind = SyntaxKind.MeExpression,
                     IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
