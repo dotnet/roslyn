@@ -1939,15 +1939,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var convertedTuple = (BoundConvertedTupleLiteral)tupleLiteralConversion.Operand;
                         type = convertedTuple.NaturalTypeOpt;
-                        convertedType = tupleLiteralConversion.Type;
-                        conversion = tupleLiteralConversion.Conversion;
                     }
                     else
                     {
                         type = tupleLiteralConversion.Operand.Type;
-                        convertedType = tupleLiteralConversion.Type;
-                        conversion = tupleLiteralConversion.Conversion;
                     }
+                    convertedType = tupleLiteralConversion.Type;
+                    conversion = tupleLiteralConversion.Conversion;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
