@@ -188,7 +188,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return null;
         }
 
-        public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host)
+        public void RegisterWorkspaceHost(IVisualStudioWorkspaceHost host, bool readyForEvents = false)
         {
             this.AssertIsForeground();
 
@@ -197,7 +197,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 throw new ArgumentException("The workspace host is already registered.", nameof(host));
             }
 
-            _workspaceHosts.Add(new WorkspaceHostState(this, host));
+            var state = new WorkspaceHostState(this, host);
+            state.HostReadyForEvents = readyForEvents;
+
+            _workspaceHosts.Add(state);
         }
 
         public void StartSendingEventsToWorkspaceHost(IVisualStudioWorkspaceHost host)

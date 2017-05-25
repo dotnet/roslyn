@@ -85,7 +85,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // to UI thread to run. 
             await Task.Factory.SafeStartNew(() =>
             {
-                vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).RegisterWorkspaceHost(host);
+                var projectTracker = vsWorkspace.GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider);
+                projectTracker.RegisterWorkspaceHost(host, readyForEvents: true);
 
                 // There may have been notifications fired by the workspace between the time we 
                 // were created and now when we let it know about us.  Because of that, we need
