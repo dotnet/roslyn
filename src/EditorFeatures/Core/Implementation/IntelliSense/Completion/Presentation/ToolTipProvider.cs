@@ -6,10 +6,11 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -17,7 +18,6 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Utilities;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
-using System.Windows.Automation;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -91,9 +91,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var description = obj.Result;
                 this.Content = GetTextBlock(description.TaggedParts, _toolTipProvider._typeMap);
 
-                // As of https://devdiv.visualstudio.com/DevDiv/_git/VS/pullrequest/67974?_a=overview 
-                // the editor will pull AutomationProperties.Name from our UIElement and expose
-                // to automation.
+                // The editor will pull AutomationProperties.Name from our UIElement and expose
+                // it to automation.
                 AutomationProperties.SetName(this, description.Text);
             }
 
