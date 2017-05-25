@@ -1374,23 +1374,15 @@ class Program
 
                 _tempDirectory.CreateDirectory("Temp");
                 var tmp = Path.Combine(_tempDirectory.Path, "Temp");
-
-                var result = ProcessUtilities.Run("cmd",
-                    string.Format("/C \"SET TMP={2} && {0} /shared:{3} /nologo /t:library {1}\"",
-                    BasicCompilerClientExecutable,
-                    srcFile.ToQuotedPath(),
-                    tmp,
-                    serverData.PipeName));
+                var args = $"/C SET TMP={tmp} && \"{BasicCompilerClientExecutable}\" /shared:{ serverData.PipeName } /nologo /t:library {srcFile.ToQuotedPath() }";
+                var result = ProcessUtilities.Run("cmd", args );
 
                 Assert.Equal(0, result.ExitCode);
 
                 Directory.Delete(tmp);
 
-                result = ProcessUtilities.Run("cmd",
-                    string.Format("/C \"\"{0}\" /shared:{2} /nologo /t:library {1}\"",
-                    BasicCompilerClientExecutable,
-                    srcFile.ToQuotedPath(),
-                    serverData.PipeName));
+                args = $"/C \"\"{BasicCompilerClientExecutable}\" /shared:{ serverData.PipeName } /nologo /t:library {srcFile.ToQuotedPath() }\"";
+                result = ProcessUtilities.Run("cmd",args);
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
