@@ -25,16 +25,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             // Setup
             var tempDir = Temp.CreateDirectory();
-            var srcFile = tempDir.CreateFile("test.cs").WriteAllText(source).Path;
-            var outFile = srcFile.Replace("test.cs", "test.dll");
+            var srcFile = tempDir.CreateFile("test.cs").WriteAllText(source);
+            var quotedOutFile = srcFile.ToQuotedPath().Replace("test.cs", "test.dll");
+            var outFile = srcFile.Path.Replace("test.cs", "test.dll");
 
-            finalFlags = $"{ _flags } { additionalFlags } /pathmap:{tempDir.Path}=/";
+            finalFlags = $"{ _flags } { additionalFlags } \"/pathmap:{tempDir.Path}=/\"";
             try
             {
                 var errorsFile = srcFile + ".errors";
 
                 // Compile
-                var result = ProcessUtilities.Run("cmd", $@"/C ""{CompilerServerUnitTests.CSharpCompilerClientExecutable}"" { finalFlags } { srcFile } /out:{ outFile } > { errorsFile }");
+                var result = ProcessUtilities.Run("cmd", $@"/C """"{CompilerServerUnitTests.CSharpCompilerClientExecutable}"" { finalFlags } { srcFile.ToQuotedPath() } /out:{ quotedOutFile } > ""{ errorsFile }""""");
                 if (result.ExitCode != 0)
                 {
                     var errors = File.ReadAllText(errorsFile);
@@ -47,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             }
             finally
             {
-                File.Delete(srcFile);
+                File.Delete(srcFile.Path);
                 File.Delete(outFile);
             }
         }

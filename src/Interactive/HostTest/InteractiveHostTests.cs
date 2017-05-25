@@ -841,7 +841,7 @@ new D().Y
             var assemblyName = GetUniqueName();
             CompileLibrary(directory, assemblyName + ".dll", assemblyName, @"public class C { }");
             var rspFile = Temp.CreateFile();
-            rspFile.WriteAllText("/lib:" + directory.Path);
+            rspFile.WriteAllText("/lib:" + directory.ToQuotedPath());
 
             _host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
 
@@ -921,7 +921,7 @@ OK
             rspFile.WriteAllText($@"
 /r:System
 /u:System.Diagnostics
-{initFile.Path}
+{initFile.ToQuotedPath()}
 ");
 
             _host.ResetAsync(new InteractiveHostOptions(initializationFile: rspFile.Path, culture: CultureInfo.InvariantCulture)).Wait();
@@ -945,7 +945,7 @@ Loading context from '{Path.GetFileName(rspFile.Path)}'.
 
             var rspFile = Temp.CreateFile();
             rspFile.WriteAllText($@"
-{scriptFile}
+{scriptFile.ToQuotedPath()}
 a
 b
 c

@@ -253,21 +253,21 @@ End Module")
         [Fact]
         public async Task CscFallBackOutputUtf8()
         {
-            var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕");
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
                 var result = ProcessUtilities.Run("cmd",
-                    string.Format("/C {0} /shared:{3} /utf8output /nologo /t:library {1} > {2}",
+                    string.Format("/C \"\"{0}\" /shared:{3} /utf8output /nologo /t:library {1} > {2}\"",
                     CSharpCompilerClientExecutable,
-                    srcFile,
-                    tempOut.Path,
+                    srcFile.ToQuotedPath(),
+                    tempOut.ToQuotedPath(),
                     serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
-                    tempOut.ReadAllText().Trim().Replace(srcFile, "test.cs"));
+                    tempOut.ReadAllText().Trim().Replace(srcFile.Path, "test.cs"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
@@ -298,23 +298,23 @@ End Module")
         [Fact]
         public async Task VbcFallbackUtf8()
         {
-            var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
+            var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕");
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
                 var result = ProcessUtilities.Run("cmd",
-                    string.Format("/C {0} /shared:{3} /utf8output /nologo /t:library {1} > {2}",
+                    string.Format("/C \"\"{0}\" /shared:{3} /utf8output /nologo /t:library {1} > {2}\"",
                     BasicCompilerClientExecutable,
-                    srcFile,
-                    tempOut.Path,
+                    srcFile.ToQuotedPath(),
+                    tempOut.ToQuotedPath(),
                     serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
 
 ♕
-~", tempOut.ReadAllText().Trim().Replace(srcFile, "test.vb"));
+~", tempOut.ReadAllText().Trim().Replace(srcFile.Path, "test.vb"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
@@ -985,7 +985,7 @@ public class Library
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
-                                                    $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
+                                                    $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:" + libDirectory.ToQuotedPath() + "\\lib.dll",
                                                     _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1037,7 +1037,7 @@ End Class
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
-                                                    $"src1.vb /shared:{serverData.PipeName} /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
+                                                    $"src1.vb /shared:{serverData.PipeName} /nologo /t:library /out:" + libDirectory.ToQuotedPath() + "\\lib.dll",
                                                     _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1073,21 +1073,21 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Shared()
         {
-            var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕");
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = ProcessUtilities.Run("cmd",
-                    string.Format("/C {0} /shared:{3} /nologo /t:library {1} > {2}",
+                    string.Format("/C \"\"{0}\" /shared:{3} /nologo /t:library {1} > {2}\"",
                     CSharpCompilerClientExecutable,
-                    srcFile,
-                    tempOut.Path,
+                    srcFile.ToQuotedPath(),
+                    tempOut.ToQuotedPath(),
                     serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
-                    tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+                    tempOut.ReadAllText().Trim().Replace(srcFile.Path, "SRC.CS"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -1098,15 +1098,15 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_Off_Share()
         {
-            var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
+            var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕");
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
             using (var serverData = ServerUtil.CreateServer())
             {
-                var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /nologo /shared:{3} /t:library {1} > {2}",
+                var result = ProcessUtilities.Run("cmd", string.Format("/C \"\"{0}\" /nologo /shared:{3} /t:library {1} > {2}\"",
                     BasicCompilerClientExecutable,
-                    srcFile,
-                    tempOut.Path,
+                    srcFile.ToQuotedPath(),
+                    tempOut.ToQuotedPath(),
                     serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
@@ -1115,7 +1115,7 @@ End Module
 ?
 ~
 ".Trim(),
-                            tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
+                            tempOut.ReadAllText().Trim().Replace(srcFile.Path, "SRC.VB"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -1126,20 +1126,20 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_CS()
         {
-            var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕");
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
             using (var serverData = ServerUtil.CreateServer())
             {
-                var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /shared:{3} /utf8output /nologo /t:library {1} > {2}",
+                var result = ProcessUtilities.Run("cmd", string.Format("/C \"\"{0}\" /shared:{3} /utf8output /nologo /t:library {1} > {2}\"",
                     CSharpCompilerClientExecutable,
-                    srcFile,
-                    tempOut.Path,
+                    srcFile.ToQuotedPath(),
+                    tempOut.ToQuotedPath(),
                     serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
-                    tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+                    tempOut.ReadAllText().Trim().Replace(srcFile.Path, "SRC.CS"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -1150,15 +1150,15 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Utf8Output_WithRedirecting_On_Shared_VB()
         {
-            var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
+            var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕");
             var tempOut = _tempDirectory.CreateFile("output.txt");
 
             using (var serverData = ServerUtil.CreateServer())
             {
-                var result = ProcessUtilities.Run("cmd", string.Format("/C {0} /utf8output /nologo /shared:{3} /t:library {1} > {2}",
+                var result = ProcessUtilities.Run("cmd", string.Format("/C \"\"{0}\" /utf8output /nologo /shared:{3} /t:library {1} > {2}\"",
                     BasicCompilerClientExecutable,
-                    srcFile,
-                    tempOut.Path,
+                    srcFile.ToQuotedPath(),
+                    tempOut.ToQuotedPath(),
                     serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
@@ -1167,7 +1167,7 @@ End Module
 ♕
 ~
 ".Trim(),
-                            tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.VB"));
+                            tempOut.ReadAllText().Trim().Replace(srcFile.Path, "SRC.VB"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -1237,22 +1237,22 @@ class Program
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+                var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕");
                 var tempOut = _tempDirectory.CreateFile("output.txt");
                 var rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
-                    string.Format("/utf8output /nologo /t:library {0}", srcFile));
+                    string.Format("/utf8output /nologo /t:library {0}", srcFile.ToQuotedPath()));
 
                 var result = ProcessUtilities.Run("cmd",
                     string.Format(
-                        "/C {0} /shared:{3} /noconfig @{1} > {2}",
+                        "/C \"\"{0}\" /shared:{3} /noconfig @{1} > {2}\"",
                         CSharpCompilerClientExecutable,
-                        rspFile,
-                        tempOut,
+                        rspFile.ToQuotedPath(),
+                        tempOut.ToQuotedPath(),
                         serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("src.cs(1,1): error CS1056: Unexpected character '♕'",
-                    tempOut.ReadAllText().Trim().Replace(srcFile, "src.cs"));
+                    tempOut.ReadAllText().Trim().Replace(srcFile.Path, "src.cs"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -1264,24 +1264,24 @@ class Program
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+                var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕");
                 var tempOut = _tempDirectory.CreateFile("output.txt");
                 var rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
-                    string.Format("/utf8output /nologo /t:library {0}", srcFile));
+                    string.Format("/utf8output /nologo /t:library {0}", srcFile.ToQuotedPath()));
 
                 var result = ProcessUtilities.Run("cmd",
                     string.Format(
-                        "/C {0} /shared:{3} /noconfig @{1} > {2}",
+                        "/C \"\"{0}\" /shared:{3} /noconfig @{1} > {2}\"",
                         BasicCompilerClientExecutable,
-                        rspFile,
-                        tempOut,
+                        rspFile.ToQuotedPath(),
+                        tempOut.ToQuotedPath(),
                         serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(@"src.vb(1) : error BC30037: Character is not valid.
 
 ♕
-~", tempOut.ReadAllText().Trim().Replace(srcFile, "src.vb"));
+~", tempOut.ReadAllText().Trim().Replace(srcFile.Path, "src.vb"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -1337,15 +1337,15 @@ class Program
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("").Path;
+                var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("");
 
                 _tempDirectory.CreateDirectory("Temp");
                 var tmp = Path.Combine(_tempDirectory.Path, "Temp");
 
                 var result = ProcessUtilities.Run("cmd",
-                    string.Format("/C \"SET TMP={2} && {0} /shared:{3} /nologo /t:library {1}\"",
+                    string.Format("/C \"SET TMP={2} && \"{0}\" /shared:{3} /nologo /t:library {1}\"",
                     CSharpCompilerClientExecutable,
-                    srcFile,
+                    srcFile.ToQuotedPath(),
                     tmp,
                     serverData.PipeName));
 
@@ -1354,9 +1354,9 @@ class Program
                 Directory.Delete(tmp);
 
                 result = ProcessUtilities.Run("cmd",
-                    string.Format("/C {0} /nologo /t:library {1}",
+                    string.Format("/C \"\"{0}\" /nologo /t:library {1}\"",
                     CSharpCompilerClientExecutable,
-                    srcFile));
+                    srcFile.ToQuotedPath()));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
@@ -1370,7 +1370,7 @@ class Program
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("").Path;
+                var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("");
 
                 _tempDirectory.CreateDirectory("Temp");
                 var tmp = Path.Combine(_tempDirectory.Path, "Temp");
@@ -1378,7 +1378,7 @@ class Program
                 var result = ProcessUtilities.Run("cmd",
                     string.Format("/C \"SET TMP={2} && {0} /shared:{3} /nologo /t:library {1}\"",
                     BasicCompilerClientExecutable,
-                    srcFile,
+                    srcFile.ToQuotedPath(),
                     tmp,
                     serverData.PipeName));
 
@@ -1387,9 +1387,9 @@ class Program
                 Directory.Delete(tmp);
 
                 result = ProcessUtilities.Run("cmd",
-                    string.Format("/C {0} /shared:{2} /nologo /t:library {1}",
+                    string.Format("/C \"\"{0}\" /shared:{2} /nologo /t:library {1}\"",
                     BasicCompilerClientExecutable,
-                    srcFile,
+                    srcFile.ToQuotedPath(),
                     serverData.PipeName));
 
                 Assert.Equal("", result.Output.Trim());
