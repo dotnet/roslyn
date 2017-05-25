@@ -32,19 +32,19 @@ function Run-Build() {
         $buildArgs = "$buildArgs /t:Rebuild"
     }
 
-    $target = if ($project -ne "") { $project } else { Join-Path $repoDir "Roslyn.sln" }
-    $buildArgs = "$buildArgs $target"
+    $target = if ($project -ne "") { $project } else { Join-Path $($repoDir) "Roslyn.sln" }
+    $buildArgs = "$buildArgs ""$target"""
 
     Exec-Command $msbuild $buildArgs | Out-Host
 }
 
 function Run-Test() {
-    $proj = Join-Path $repoDir "BuildAndTest.proj"
-    $args = "/v:m /p:ManualTest=true /t:Test /p:TestDesktop=true $proj"
+    $proj = Join-Path $($repoDir) "BuildAndTest.proj"
+    $args = "/v:m /p:ManualTest=true /t:Test /p:TestDesktop=true ""$proj"" "
     if ($test64) { 
         $args += " /p:Test64=true"
     }
-    Exec-Command $msbuild $args | Out-Host
+    Exec-Command $($msbuild) $($args) | Out-Host
 }
 
 try {
@@ -54,7 +54,7 @@ try {
         exit 1
     }
 
-    . (Join-Path $PSScriptRoot "build-utils.ps1")
+    . (Join-Path $($PSScriptRoot) "build-utils.ps1")
 
     $nuget = Ensure-NuGet
     if ($clearPackageCache) {
@@ -62,9 +62,9 @@ try {
     }
 
     if ($msbuildDir -eq "") {
-        $msbuildDir = Get-MSBuildDir
+        $msbuildDir = $( Get-MSBuildDir)
     }
-    $msbuild = Join-Path $msbuildDir "msbuild.exe"
+    $msbuild = Join-Path $($msbuildDir) "msbuild.exe"
 
     if ($restore) {
         Restore-Packages -clean:$clean -msbuildDir $msbuildDir -project $project
