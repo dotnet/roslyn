@@ -18,12 +18,39 @@ namespace Microsoft.CodeAnalysis.Host
         /// disposed.
         /// </summary>
         /// <remarks>
+        /// <para>Each instance of <see cref="ReferenceCountedDisposable{T}"/> represents a counted reference (also
+        /// referred to as a <em>reference</em> in the following documentation) to a target object. Each of these
+        /// references has a lifetime, starting when it is constructed and continuing through its release. During
+        /// this time, the reference is considered <em>alive</em>. Each reference which is alive owns exactly one
+        /// reference to the target object, ensuring that it will not be disposed while still in use. A reference is
+        /// released through either of the following actions:</para>
+        ///
+        /// <list type="bullet">
+        /// <item>The reference is explicitly released by a call to <see cref="Dispose"/>.</item>
+        /// <item>The reference is no longer in use by managed code and gets reclaimed by the garbage collector.</item>
+        /// </list>
+        ///
         /// <para>While each instance of <see cref="ReferenceCountedDisposable{T}"/> should be explicitly disposed when
         /// the object is no longer needed by the code owning the reference, this implementation will not leak resources
-        /// in the event one or more callers fail to do so. The underlying object will be deterministically released
-        /// when the last reference to it is disposed. However, the underlying object is eligible for non-deterministic
-        /// release (should it have a finalizer) when each reference to it is <em>either</em> disposed <em>or</em>
-        /// eligible for garbage collection itself.</para>
+        /// in the event one or more callers fail to do so. When all references to an object are explicitly released
+        /// (i.e. by calling <see cref="Dispose"/>), the target object will itself be deterministically released by a
+        /// call to <see cref="IDisposable.Dispose"/> when the last reference to it is released. However, in the event
+        /// one or more references is not explicitly released, the underlying object will still become eligible for
+        /// non-deterministic release (i.e. finalization) as soon as each reference to it is released by one of the
+        /// two actions described previously.</para>
+        ///
+        /// <para>When using <see cref="ReferenceCountedDisposable{T}"/>, certain steps must be taken to ensure the
+        /// target object is not disposed early.</para>
+        ///
+        /// <list type="number">
+        /// <para>Use <see cref="ReferenceCountedDisposable{T}"/> consistently. In other words, do not mix code using
+        /// reference-counted wrappers with code that references to the target directly.</para>
+        /// <para>Only use the <see cref="ReferenceCountedDisposable{T}(T)"/> constructor one time per target object.
+        /// Additional references to the same target object must only be obtained by calling
+        /// <see cref="TryAddReference"/>.</para>
+        /// <para>Do not call <see cref="IDisposable.Dispose"/> on the target object directly. It will be called
+        /// automatically at the appropriate time, as described above.</para>
+        /// </list>
         ///
         /// <para>All public methods on this type adhere to their pre- and post-conditions and will not invalidate state
         /// even in concurrent execution. The implementation of <see cref="TryAddReference"/> is lock-free; all other
@@ -226,7 +253,9 @@ namespace Microsoft.CodeAnalysis.Host
                     var (instance, referenceCount) = reference.AtomicReadState();
                     if (referenceCount == null)
                     {
-                        // The specified reference is already not valid.
+                        // The specified reference is already not valid. This case is supported by WeakReference (not
+                        // unlike `new System.WeakReference(null)`), but we return early to avoid an unnecessary
+                        // allocation in this case.
                         return;
                     }
 

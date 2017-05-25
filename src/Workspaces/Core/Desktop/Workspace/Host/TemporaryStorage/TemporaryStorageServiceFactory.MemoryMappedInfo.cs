@@ -44,17 +44,19 @@ namespace Microsoft.CodeAnalysis.Host
             private readonly ReferenceCountedDisposable<MemoryMappedFile> _memoryMappedFile;
 
             /// <summary>
-            /// A weak reference to the actual memory accessor that owns the VM
+            /// A weak reference to a read-only view for the memory mapped file.
             /// </summary>
             /// <remarks>
             /// <para>This holds a weak counted reference to current <see cref="MemoryMappedViewAccessor"/>, which
             /// allows additional accessors for the same address space to be obtained up until the point when no
             /// external code is using it. When the memory is no longer being used by any
-            /// <see cref="SharedReadableStream"/> objects, the view of the memory mapped file is automatically
-            /// unmapped, making the process address space it previously claimed available for other purposes. If/when
-            /// it is needed again, a new view is created.</para>
+            /// <see cref="SharedReadableStream"/> objects, the view of the memory mapped file is unmapped, making the
+            /// process address space it previously claimed available for other purposes. If/when it is needed again, a
+            /// new view is created.</para>
+            ///
+            /// <para>This view is read-only, so it is only used by <see cref="CreateReadableStream"/>.</para>
             /// </remarks>
-            private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakAccessor;
+            private ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference _weakReadAccessor;
 
             public MemoryMappedInfo(ReferenceCountedDisposable<MemoryMappedFile> memoryMappedFile, string name, long offset, long size)
             {
@@ -108,12 +110,12 @@ namespace Microsoft.CodeAnalysis.Host
                     // Note: TryAddReference behaves according to its documentation even if the target object has been
                     // disposed. If it returns non-null, then the object will not be disposed before the returned
                     // reference is disposed (see comments on _memoryMappedFile and TryAddReference).
-                    var streamAccessor = _weakAccessor.TryAddReference();
+                    var streamAccessor = _weakReadAccessor.TryAddReference();
                     if (streamAccessor == null)
                     {
                         var rawAccessor = RunWithCompactingGCFallback(info => info._memoryMappedFile.Target.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read), this);
                         streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
-                        _weakAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
+                        _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
                     }
 
                     Contract.Assert(streamAccessor.Target.CanRead);
@@ -175,8 +177,7 @@ namespace Microsoft.CodeAnalysis.Host
                 if (disposing)
                 {
                     // See remarks on field for relation between _memoryMappedFile and the views/streams. There is no
-                    // need to write _weakAccessor here since the types involved adhere to their contracts even in
-                    // concurrent code.
+                    // need to write _weakReadAccessor here since lifetime of the target is not owned by this instance.
                     _memoryMappedFile.Dispose();
                 }
             }

@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
             /// something better.</para>
             /// </remarks>
+            /// <seealso cref="_storage"/>
             private const long SingleFileThreshold = 128 * 1024;
 
             /// <summary>
@@ -48,6 +49,7 @@ namespace Microsoft.CodeAnalysis.Host
             /// <para>This value was arbitrarily chosen and appears to work well. Can be changed if data suggests
             /// something better.</para>
             /// </remarks>
+            /// <seealso cref="_storage"/>
             private const long MultiFileBlockSize = SingleFileThreshold * 32;
 
             private readonly ITextFactoryService _textFactory;
@@ -99,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Host
                     // Larger blocks are allocated separately
                     var mapName = CreateUniqueName(size);
                     var storage = MemoryMappedFile.CreateNew(mapName, size);
-                    return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, 0, size);
+                    return new MemoryMappedInfo(new ReferenceCountedDisposable<MemoryMappedFile>(storage), mapName, offset: 0, size: size);
                 }
 
                 while (true)
