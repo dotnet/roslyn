@@ -3,15 +3,190 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Xunit;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
     public class IsConstModifierTests : CSharpTestBase
     {
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Methods_Parameters()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Methods_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    public void M(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj.M(value);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Methods_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    private int value = 5;
+    public ref readonly int M()
+    {
+        return ref value;
+    }
+}").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Properties()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    private int value = 5;
+    public ref readonly int P => ref value;
+}").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.P);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Indexers_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    public int this[ref readonly int p]
+    {
+        set { System.Console.WriteLine(p); }
+    }
+}").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj[value] = 0;
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Indexers_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    private int value = 5;
+    public ref readonly int this[int p] => ref value;
+}").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj[0]);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Delegates_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate void D(ref readonly int p);
+").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        Process((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    private static void Process(D func)
+    {
+        int value = 5;
+        func(value);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Delegates_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate ref readonly int D();
+").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Process(() => ref value);
+    }
+
+    private static void Process(D func)
+    {
+        System.Console.WriteLine(func());
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -60,7 +235,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Methods_ReturnTypes()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_ReturnTypes()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -106,6 +281,282 @@ public class Test
     {
         var obj = new TestRef();
         System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Properties()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .field private int32 'value'
+  .method public hidebysig newslot specialname virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          get_P() cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldflda     int32 TestRef::'value'
+    IL_0006:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  }
+
+  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          P()
+  {
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) TestRef::get_P()
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.P);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Indexers_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
+  .method public hidebysig newslot specialname virtual
+          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, int32 'value') cil managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::WriteLine(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  }
+
+  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+  {
+    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst), int32)
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj[value] = 0;
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Indexers_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
+  .field private int32 'value'
+  .method public hidebysig newslot specialname virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          get_Item(int32 p) cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  1
+    .locals init (int32& V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldflda     int32 TestRef::'value'
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  }
+
+  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) Item(int32)
+  {
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) TestRef::get_Item(int32)
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj[0]);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Delegates_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance void Invoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p) runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance void  EndInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        Process((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    private static void Process(D func)
+    {
+        int value = 5;
+        func(value);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Delegates_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) Invoke() runtime managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Process(() => ref value);
+    }
+
+    private static void Process(D func)
+    {
+        System.Console.WriteLine(func());
     }
 }";
 
@@ -221,6 +672,349 @@ public class Test
         }
 
         [Fact]
+        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Properties()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .field private int32 'value'
+  .method public hidebysig newslot specialname virtual
+          instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &
+          get_P() cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldflda     int32 TestRef::'value'
+    IL_0006:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  }
+
+  .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &
+          P()
+  {
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & TestRef::get_P()
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.P);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS1546: Property, indexer, or event 'TestRef.P' is not supported by the language; try directly calling accessor method 'TestRef.get_P()'
+                //         System.Console.WriteLine(obj.P);
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "P").WithArguments("TestRef.P", "TestRef.get_P()").WithLocation(7, 38));
+
+            code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.get_P());
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS0570: 'TestRef.get_P()' is not supported by the language
+                //         System.Console.WriteLine(obj.get_P());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("TestRef.get_P()").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Indexers_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
+  .method public hidebysig newslot specialname virtual
+          instance void  set_Item(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p, int32 'value') cil managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::WriteLine(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  }
+
+  .property instance int32 Item(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &)
+  {
+    .set instance void TestRef::set_Item(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &, int32)
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj[value] = 0;
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[in ?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(in ?, ?)'
+                //         obj[value] = 0;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[in ?]", "TestRef.set_Item(in ?, ?)").WithLocation(8, 9));
+
+            code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj.set_Item(value, 0);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,13): error CS0570: 'TestRef.set_Item(in ?, ?)' is not supported by the language
+                //         obj.set_Item(value, 0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(in ?, ?)").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Indexers_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
+  .field private int32 'value'
+  .method public hidebysig newslot specialname virtual
+          instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &
+          get_Item(int32 p) cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  1
+    .locals init (int32& V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldflda     int32 TestRef::'value'
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  }
+
+  .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & Item(int32)
+  {
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & TestRef::get_Item(int32)
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj[0]);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(?)'
+                //         System.Console.WriteLine(obj[0]);
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[?]", "TestRef.get_Item(?)").WithLocation(7, 34));
+
+            code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.get_Item(0));
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS0570: 'TestRef.get_Item(?)' is not supported by the language
+                //         System.Console.WriteLine(obj.get_Item(0));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(?)").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Delegates_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance void Invoke(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p) runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance void  EndInvoke(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p, class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        Process((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    private static void Process(D func)
+    {
+        int value = 5;
+        func(value);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,17): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                //         Process((ref readonly int p) => System.Console.WriteLine(p));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(in ?)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(in ?)' is not supported by the language
+                //         func(value);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(in ?)").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Delegates_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & Invoke() runtime managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual
+          instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Process(() => ref value);
+    }
+
+    private static void Process(D func)
+    {
+        System.Console.WriteLine(func());
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
+                //         Process(() => ref value);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
+                // (13,34): error CS0570: 'D.Invoke()' is not supported by the language
+                //         System.Console.WriteLine(func());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func()").WithArguments("D.Invoke()").WithLocation(13, 34));
+        }
+
+        [Fact]
         public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Methods_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
@@ -270,6 +1064,405 @@ public class Test
                 // (8,13): error CS0570: 'TestRef.M(?)' is not supported by the language
                 //         obj.M(value);
                 Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M(?)").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Methods_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .field private int32 'value'
+  .method public hidebysig newslot virtual 
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute)
+          M() cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 ) 
+    .maxstack  1
+    .locals init (int32& V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldflda     int32 TestRef::'value'
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS0570: 'TestRef.M()' is not supported by the language
+                //         System.Console.WriteLine(obj.M());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M").WithArguments("TestRef.M()").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Properties()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .field private int32 'value'
+  .method public hidebysig newslot specialname virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute)
+          get_P() cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldflda     int32 TestRef::'value'
+    IL_0006:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  }
+
+  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute)
+          P()
+  {
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) TestRef::get_P()
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.P);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS1546: Property, indexer, or event 'TestRef.P' is not supported by the language; try directly calling accessor method 'TestRef.get_P()'
+                //         System.Console.WriteLine(obj.P);
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "P").WithArguments("TestRef.P", "TestRef.get_P()").WithLocation(7, 38));
+
+            code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.get_P());
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS0570: 'TestRef.get_P()' is not supported by the language
+                //         System.Console.WriteLine(obj.get_P());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_P").WithArguments("TestRef.get_P()").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Indexers_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
+  .method public hidebysig newslot specialname virtual
+          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) p, int32 'value') cil managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::WriteLine(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  }
+
+  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute))
+  {
+    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute), int32)
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj[value] = 0;
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(?, ?)'
+                //         obj[value] = 0;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[?]", "TestRef.set_Item(?, ?)").WithLocation(8, 9));
+
+            code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj.set_Item(value, 0);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,13): error CS0570: 'TestRef.set_Item(?, ?)' is not supported by the language
+                //         obj.set_Item(value, 0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(?, ?)").WithLocation(8, 13));
+        }
+
+        [Fact]
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Indexers_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
+  .field private int32 'value'
+  .method public hidebysig newslot specialname virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute)
+          get_Item(int32 p) cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  1
+    .locals init (int32& V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldflda     int32 TestRef::'value'
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  }
+
+  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) Item(int32)
+  {
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) TestRef::get_Item(int32)
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj[0]);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,34): error CS1546: Property, indexer, or event 'TestRef.this[?]' is not supported by the language; try directly calling accessor method 'TestRef.get_Item(?)'
+                //         System.Console.WriteLine(obj[0]);
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[0]").WithArguments("TestRef.this[?]", "TestRef.get_Item(?)").WithLocation(7, 34));
+
+            code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.get_Item(0));
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,38): error CS0570: 'TestRef.get_Item(?)' is not supported by the language
+                //         System.Console.WriteLine(obj.get_Item(0));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "get_Item").WithArguments("TestRef.get_Item(?)").WithLocation(7, 38));
+        }
+
+        [Fact]
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Delegates_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance void Invoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) p) runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance void  EndInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) p, class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        Process((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    private static void Process(D func)
+    {
+        int value = 5;
+        func(value);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,17): error CS0570: 'D.Invoke(?)' is not supported by the language
+                //         Process((ref readonly int p) => System.Console.WriteLine(p));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(?)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(?)' is not supported by the language
+                //         func(value);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(?)").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void OtherModReqsAreNotAllowedOnRefCustomModifiersForRefReadOnlySignatures_Delegates_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) Invoke() runtime managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsReadOnlyAttribute) EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+  }
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Process(() => ref value);
+    }
+
+    private static void Process(D func)
+    {
+        System.Console.WriteLine(func());
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
+                //         Process(() => ref value);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
+                // (13,34): error CS0570: 'D.Invoke()' is not supported by the language
+                //         System.Console.WriteLine(func());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func()").WithArguments("D.Invoke()").WithLocation(13, 34));
         }
 
         [Fact]
@@ -376,6 +1569,48 @@ class Test
         }
 
         [Fact]
+        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Delegates_Parameters()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public class IntPtr {}
+    public class Int32 {}
+    public class Delegate {}
+    public class MulticastDelegate : Delegate {}
+}
+public delegate void D(ref readonly int p);";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (11,24): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // public delegate void D(ref readonly int p);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int p").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(11, 24));
+        }
+
+        [Fact]
+        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Delegates_ReturnTypes()
+        {
+            var code = @"
+namespace System
+{
+    public class Object {}
+    public class Void {}
+    public class IntPtr {}
+    public class Int32 {}
+    public class Delegate {}
+    public class MulticastDelegate : Delegate {}
+}
+public delegate ref readonly int D();";
+
+            CreateCompilation(code).VerifyDiagnostics(
+                // (11,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // public delegate ref readonly int D();
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(11, 17));
+        }
+
+        [Fact]
         public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Virtual()
         {
             var code = @"
@@ -449,6 +1684,44 @@ abstract class Test
         }
 
         [Fact]
+        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_NoModifiers()
+        {
+            var code = @"
+class Test
+{
+    private int x = 0;
+    public ref readonly int Method() => ref x;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Static()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+    public static ref readonly int Method() => ref x;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
         public void IsConstIsWrittenOnRefReadOnlyMembers_Properties_Virtual()
         {
             var code = @"
@@ -474,6 +1747,44 @@ class Test
 abstract class Test
 {
     public abstract ref readonly int Property { get; }
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void IsConstIsWrittenOnRefReadOnlyMembers_Properties_NoModifiers()
+        {
+            var code = @"
+class Test
+{
+    private int x = 0;
+    public ref readonly int Property => ref x;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void IsConstIsWrittenOnRefReadOnlyMembers_Properties_Static()
+        {
+            var code = @"
+class Test
+{
+    private static int x = 0;
+    public static ref readonly int Property => ref x;
 }";
 
             CompileAndVerify(code, verify: false, symbolValidator: module =>
@@ -559,6 +1870,53 @@ abstract class Test
         }
 
         [Fact]
+        public void IsConstIsWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_NoModifiers()
+        {
+            var code = @"
+class Test
+{
+    private int x;
+    public ref readonly int this[int p] => ref x;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void IsConstIsWrittenOnRefReadOnlyMembers_Delegates_Parameters()
+        {
+            var code = "public delegate void D(ref readonly int p);";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void IsConstIsWrittenOnRefReadOnlyMembers_Delegates_ReturnTypes()
+        {
+            var code = "public delegate ref readonly int D();";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
         public void IsConstIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_NoModifiers()
         {
             var code = @"
@@ -595,82 +1953,6 @@ class Test
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_NoModifiers()
-        {
-            var code = @"
-class Test
-{
-    private int x = 0;
-    public ref readonly int Method() => ref x;
-}";
-
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
-            {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
-
-                Assert.Empty(method.ReturnTypeCustomModifiers);
-                Assert.Empty(method.RefCustomModifiers);
-            });
-        }
-
-        [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Static()
-        {
-            var code = @"
-class Test
-{
-    private static int x = 0;
-    public static ref readonly int Method() => ref x;
-}";
-
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
-            {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
-
-                Assert.Empty(method.ReturnTypeCustomModifiers);
-                Assert.Empty(method.RefCustomModifiers);
-            });
-        }
-
-        [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Properties_NoModifiers()
-        {
-            var code = @"
-class Test
-{
-    private int x = 0;
-    public ref readonly int Property => ref x;
-}";
-
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
-            {
-                var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
-
-                Assert.Empty(property.TypeCustomModifiers);
-                Assert.Empty(property.RefCustomModifiers);
-            });
-        }
-
-        [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Properties_Static()
-        {
-            var code = @"
-class Test
-{
-    private static int x = 0;
-    public static ref readonly int Property => ref x;
-}";
-
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
-            {
-                var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
-
-                Assert.Empty(property.TypeCustomModifiers);
-                Assert.Empty(property.RefCustomModifiers);
-            });
-        }
-
-        [Fact]
         public void IsConstIsNotWrittenOnRefReadOnlyMembers_Indexers_Parameters_NoModifiers()
         {
             var code = @"
@@ -689,45 +1971,7 @@ class Test
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_NoModifiers()
-        {
-            var code = @"
-class Test
-{
-    private int x;
-    public ref readonly int this[int p] => ref x;
-}";
-
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
-            {
-                var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
-
-                Assert.Empty(indexer.TypeCustomModifiers);
-                Assert.Empty(indexer.RefCustomModifiers);
-            });
-        }
-
-        [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Delegates()
-        {
-            var code = "delegate ref readonly int D(ref readonly int x);";
-
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
-            {
-                var @delegate = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
-
-                Assert.Empty(@delegate.ReturnTypeCustomModifiers);
-                Assert.Empty(@delegate.RefCustomModifiers);
-
-                var parameter = @delegate.Parameters.Single();
-
-                Assert.Empty(parameter.CustomModifiers);
-                Assert.Empty(parameter.RefCustomModifiers);
-            });
-        }
-
-        [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Operators()
+        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Operators_Unary()
         {
             var code = @"
 public class Test
@@ -741,6 +1985,28 @@ public class Test
 
                 Assert.Empty(parameter.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Operators_Binary()
+        {
+            var code = @"
+public class Test
+{
+    public static bool operator+(ref readonly Test obj1, ref readonly Test obj2) => false;
+}";
+
+            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            {
+                var parameters = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_Addition").Parameters;
+                Assert.Equal(2, parameters.Length);
+
+                Assert.Empty(parameters[0].CustomModifiers);
+                Assert.Empty(parameters[0].RefCustomModifiers);
+
+                Assert.Empty(parameters[1].CustomModifiers);
+                Assert.Empty(parameters[1].RefCustomModifiers);
             });
         }
 
@@ -904,6 +2170,74 @@ public class Test
         }
 
         [Fact]
+        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Indexers_Parameters()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
+  .method public hidebysig newslot specialname virtual
+          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, int32 'value') cil managed
+  {
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::WriteLine(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  }
+
+  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+  {
+    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst), int32)
+  }
+}";
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj[value] = 0;
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+                // (8,9): error CS1546: Property, indexer, or event 'TestRef.this[ref int]' is not supported by the language; try directly calling accessor method 'TestRef.set_Item(ref int, int)'
+                //         obj[value] = 0;
+                Diagnostic(ErrorCode.ERR_BindToBogusProp1, "obj[value]").WithArguments("TestRef.this[ref int]", "TestRef.set_Item(ref int, int)").WithLocation(8, 9));
+
+            code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj.set_Item(value, 0);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+                // (8,13): error CS0570: 'TestRef.set_Item(ref int, int)' is not supported by the language
+                //         obj.set_Item(value, 0);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "set_Item").WithArguments("TestRef.set_Item(ref int, int)").WithLocation(8, 13));
+        }
+
+        [Fact]
         public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Indexers_ReturnTypes()
         {
             var ilSource = @"
@@ -953,6 +2287,1034 @@ public class Test
                 // (7,21): error CS0570: 'TestRef.this[int]' is not supported by the language
                 //         var value = obj[5];
                 Diagnostic(ErrorCode.ERR_BindToBogus, "obj[5]").WithArguments("TestRef.this[int]").WithLocation(7, 21));
+        }
+
+        [Fact]
+        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Delegates_Parameters()
+        {
+            var ilSource = @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance void Invoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p) runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual
+          instance void  EndInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+  }
+}";
+            
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        Process((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    private static void Process(D func)
+    {
+        int value = 5;
+        func(value);
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+                // (6,17): error CS0570: 'D.Invoke(ref int)' is not supported by the language
+                //         Process((ref readonly int p) => System.Console.WriteLine(p));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "(ref readonly int p) => System.Console.WriteLine(p)").WithArguments("D.Invoke(ref int)").WithLocation(6, 17),
+                // (12,9): error CS0570: 'D.Invoke(ref int)' is not supported by the language
+                //         func(value);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func(value)").WithArguments("D.Invoke(ref int)").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Delegates_ReturnTypes()
+        {
+            var ilSource = @"
+.class public auto ansi sealed D
+       extends [mscorlib]System.MulticastDelegate
+{
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor(object 'object', native int 'method') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) Invoke() runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
+          BeginInvoke(class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+  {
+  }
+
+  .method public hidebysig newslot virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+  {
+  }
+}";
+
+            var code = @"
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Process(() => ref value);
+    }
+
+    private static void Process(D func)
+    {
+        System.Console.WriteLine(func());
+    }
+}";
+
+            CreateStandardCompilation(code, references: new[] { CompileIL(ilSource) }).VerifyDiagnostics(
+                // (8,17): error CS0570: 'D.Invoke()' is not supported by the language
+                //         Process(() => ref value);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "() => ref value").WithArguments("D.Invoke()").WithLocation(8, 17),
+                // (13,34): error CS0570: 'D.Invoke()' is not supported by the language
+                //         System.Console.WriteLine(func());
+                Diagnostic(ErrorCode.ERR_BindToBogus, "func()").WithArguments("D.Invoke()").WithLocation(13, 34));
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_Class_Abstract()
+        {
+            var reference = CreateStandardCompilation(@"
+public abstract class Parent
+{
+    public abstract void M(ref readonly int p);
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override void M(ref readonly int p) { }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_Class_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Parent
+{
+    public virtual void M(ref readonly int p) {}
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override void M(ref readonly int p) { }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_ImplicitInterfaces_NonVirtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    void M(ref readonly int p);
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public void M(ref readonly int p) { }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var implicitParameter = type.GetMethod("M").Parameters.Single();
+                Assert.Empty(implicitParameter.CustomModifiers);
+                Assert.Empty(implicitParameter.RefCustomModifiers);
+
+                var explicitParameter = type.GetMethod("Parent.M").Parameters.Single();
+                Assert.Empty(explicitParameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_ImplicitInterfaces_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    void M(ref readonly int p);
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public virtual void M(ref readonly int p) { }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_Parameters_ExplicitInterfaces()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    void M(ref readonly int p);
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetMethod("M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    void Parent.M(ref readonly int p) { }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetMethod("Parent.M").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_Class_Abstract()
+        {
+            var reference = CreateStandardCompilation(@"
+public abstract class Parent
+{
+    public abstract ref readonly int M();
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var method = type.GetMethod("M");
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override ref readonly int M() { throw null; }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var method = type.GetMethod("M");
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_Class_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Parent
+{
+    public virtual ref readonly int M() { throw null; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var method = type.GetMethod("M");
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override ref readonly int M() { throw null; }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var method = type.GetMethod("M");
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_ImplicitInterfaces_NonVirtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int M();
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var method = type.GetMethod("M");
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public ref readonly int M() { throw null; }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var implicitMethod = type.GetMethod("M");
+                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_ImplicitInterfaces_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int M();
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var implicitMethod = type.GetMethod("M");
+
+                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public virtual ref readonly int M() { throw null; }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var implicitMethod = type.GetMethod("M");
+
+                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Methods_ReturnTypes_ExplicitInterfaces()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int M();
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var implicitMethod = type.GetMethod("M");
+
+                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    ref readonly int Parent.M() { throw null; }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var implicitMethod = type.GetMethod("Parent.M");
+
+                Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Properties_Class_Abstract()
+        {
+            var reference = CreateStandardCompilation(@"
+public abstract class Parent
+{
+    public abstract ref readonly int P { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override ref readonly int P { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Properties_Class_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Parent
+{
+    public virtual ref readonly int P { get { throw null; } }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override ref readonly int P { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Properties_ImplicitInterface_NonVirtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int P { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public ref readonly int P { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var implicitproperty = type.GetProperty("P");
+                Assert.Empty(implicitproperty.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(implicitproperty.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Properties_ImplicitInterface_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int P { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public virtual ref readonly int P { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Properties_ExplicitInterface()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int P { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var property = type.GetProperty("P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    ref readonly int Parent.P { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var property = type.GetProperty("Parent.P");
+
+                Assert.Empty(property.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_Class_Abstract()
+        {
+            var reference = CreateStandardCompilation(@"
+public abstract class Parent
+{
+    public abstract int this[ref readonly int p] { set; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override int this[ref readonly int p] { set {} }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_Class_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Parent
+{
+    public virtual int this[ref readonly int p] { set { } }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override int this[ref readonly int p] { set {} }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_ImplicitInterface_NonVirtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    int this[ref readonly int p] { set; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public int this[ref readonly int p] { set {} }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var implicitParameter = type.GetProperty("this[]").Parameters.Single();
+                Assert.Empty(implicitParameter.CustomModifiers);
+                Assert.Empty(implicitParameter.RefCustomModifiers);
+
+                var explicitParameter = type.GetMethod("Parent.set_Item").Parameters.First();
+                Assert.Empty(explicitParameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_ImplicitInterface_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    int this[ref readonly int p] { set; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public virtual int this[ref readonly int p] { set {} }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_Parameters_ExplicitInterface()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    int this[ref readonly int p] { set; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var parameter = type.GetProperty("this[]").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    int Parent.this[ref readonly int p] { set {} }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var parameter = type.GetProperty("Parent.Item").Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_Class_Abstract()
+        {
+            var reference = CreateStandardCompilation(@"
+public abstract class Parent
+{
+    public abstract ref readonly int this[int p] { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override ref readonly int this[int p] { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_Class_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public class Parent
+{
+    public virtual ref readonly int this[int p] { get { throw null; } }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public override ref readonly int this[int p] { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_ImplicitInterface_NonVirtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int this[int p] { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public ref readonly int this[int p] { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_ImplicitInterface_Virtual()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int this[int p] { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    public virtual ref readonly int this[int p] { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+
+            });
+        }
+
+        [Fact]
+        public void WhenImplementingParentWithModifiersCopyThem_Indexers_ReturnTypes_ExplicitInterface()
+        {
+            var reference = CreateStandardCompilation(@"
+public interface Parent
+{
+    ref readonly int this[int p] { get; }
+}");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Parent");
+                var indexer = type.GetProperty("this[]");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Child : Parent
+{
+    ref readonly int Parent.this[int p] { get { throw null; } }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+                var indexer = type.GetProperty("Parent.Item");
+
+                Assert.Empty(indexer.TypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            });
+        }
+
+        [Fact]
+        public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameters()
+        {
+            var reference = CreateStandardCompilation("public delegate void D(ref readonly int p);");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        Run((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    public static void Run(D lambda)
+    {
+        lambda(value);
+    }
+
+    private static int value = 5;
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation("public delegate ref readonly int D();");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+
+            var code = @"
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Run(() => ref value);
+    }
+
+    public static void Run(D lambda)
+    {
+        System.Console.WriteLine(lambda());
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         private void AssertSingleIsConstRequiredModifier(ImmutableArray<CustomModifier> modifiers)

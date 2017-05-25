@@ -1094,18 +1094,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             Return If(result Is ErrorFactory.EmptyErrorInfo,
-                InterlockedOperations.Initialize(_uncommonFields._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
+                InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
                 result)
         End Function
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
-            Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            If _packedFlags.IsUseSiteDiagnosticPopulated Then
+                Return _uncommonFields?._lazyUseSiteErrorInfo
+            End If
+
             If errorInfo IsNot Nothing Then
+                Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
                 errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()
-            Return _uncommonFields?._lazyUseSiteErrorInfo
+            Return errorInfo
         End Function
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData

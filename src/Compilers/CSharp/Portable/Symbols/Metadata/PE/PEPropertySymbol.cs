@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
-            var isBad = propEx != null;
+            var isBad = false;
             var returnInfo = propertyParams[0];
             PEPropertySymbol result;
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 result = new PEPropertySymbolWithCustomModifiers(moduleSymbol, containingType, handle, getMethod, setMethod, propertyParams, metadataDecoder, out isBad);
             }
 
-            if (isBad)
+            if (propEx != null || isBad)
             {
                 result._lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, result);
             }

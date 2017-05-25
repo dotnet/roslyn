@@ -1016,20 +1016,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return CSDiagnosticInfo.IsEmpty(result)
-                   ? InterlockedOperations.Initialize(ref _uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
+                   ? InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
                    : result;
         }
 
         private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
         {
-            Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+            if (_packedFlags.IsUseSiteDiagnosticPopulated)
+            {
+                return _uncommonFields?._lazyUseSiteDiagnostic;
+            }
+
             if (diagnostic != null)
             {
+                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
                 diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
-            return _uncommonFields?._lazyUseSiteDiagnostic;
+            return diagnostic;
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()

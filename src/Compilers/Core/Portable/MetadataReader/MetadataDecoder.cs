@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis
                     int countOfSizes;
                     int countOfLowerBounds;
 
-                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     if (!ppSig.TryReadCompressedInteger(out countOfDimensions) ||
                         !ppSig.TryReadCompressedInteger(out countOfSizes))
@@ -285,13 +285,13 @@ namespace Microsoft.CodeAnalysis
                     break;
 
                 case SignatureTypeCode.SZArray:
-                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     typeSymbol = GetSZArrayTypeSymbol(typeSymbol, modifiers);
                     break;
 
                 case SignatureTypeCode.Pointer:
-                    modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                    modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
                     typeSymbol = DecodeTypeOrThrow(ref ppSig, typeCode, out refersToNoPiaLocalType);
                     typeSymbol = MakePointerTypeSymbol(typeSymbol, modifiers);
                     break;
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis
             {
                 bool argumentRefersToNoPia;
                 SignatureTypeCode typeCode;
-                ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref ppSig, out typeCode);
+                ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref ppSig, AllowedRequiredModifierType.None, out typeCode, out _);
                 argumentsBuilder.Add(KeyValuePair.Create(DecodeTypeOrThrow(ref ppSig, typeCode, out argumentRefersToNoPia), modifiers));
                 argumentRefersToNoPiaLocalTypeBuilder.Add(argumentRefersToNoPia);
             }
@@ -672,50 +672,16 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(ref BlobReader signatureReader, out SignatureTypeCode typeCode)
-        {
-            ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
-
-            for (;;)
-            {
-                typeCode = signatureReader.ReadSignatureTypeCode();
-
-                if (typeCode == SignatureTypeCode.RequiredModifier)
-                {
-                    throw new UnsupportedSignatureContent();
-                }
-
-                if (typeCode == SignatureTypeCode.OptionalModifier)
-                {
-                    ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(true, DecodeModifierTypeOrThrow(ref signatureReader));
-
-                    if (modifiers == null)
-                    {
-                        modifiers = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
-                    }
-
-                    modifiers.Add(modifier);
-                    continue;
-                }
-
-                break;
-            }
-
-            return modifiers?.ToImmutableAndFree() ?? default(ImmutableArray<ModifierInfo<TypeSymbol>>);
-        }
-
-        /// <exception cref="UnsupportedSignatureContent">If the encoded type is invalid.</exception>
-        /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(
             ref BlobReader signatureReader,
+            AllowedRequiredModifierType allowedRequiredModifierType,
             out SignatureTypeCode typeCode,
-            Func<TypeSymbol, bool> acceptRequiredModifier,
             out bool requiredModifierFound)
         {
             requiredModifierFound = false;
             ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
-            for (;;)
+            for (; ; )
             {
                 typeCode = signatureReader.ReadSignatureTypeCode();
                 bool isOptional;
@@ -735,10 +701,21 @@ namespace Microsoft.CodeAnalysis
 
                 TypeSymbol type = DecodeModifierTypeOrThrow(ref signatureReader);
 
-                // if it is a required modifier, make sure the compiler supports this modifier type
                 if (!isOptional)
                 {
-                    if (acceptRequiredModifier(type))
+                    var isAllowed = false;
+
+                    switch (allowedRequiredModifierType)
+                    {
+                        case AllowedRequiredModifierType.System_Runtime_CompilerServices_IsConst:
+                            isAllowed = IsAcceptedIsConstModifierType(type);
+                            break;
+                        case AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile:
+                            isAllowed = IsAcceptedVolatileModifierType(type);
+                            break;
+                    }
+
+                    if (isAllowed)
                     {
                         requiredModifierFound = true;
                     }
@@ -903,7 +880,7 @@ namespace Microsoft.CodeAnalysis
         {
             SignatureTypeCode typeCode;
 
-            var customModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
+            var customModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             var constraints = LocalSlotConstraints.None;
             TypeSymbol typeSymbol;
 
@@ -944,7 +921,7 @@ namespace Microsoft.CodeAnalysis
         {
             SignatureTypeCode typeCode;
 
-            var customModifiers = DecodeModifiersOrThrow(ref sigReader, out typeCode);
+            var customModifiers = DecodeModifiersOrThrow(ref sigReader, AllowedRequiredModifierType.None, out typeCode, out _);
 
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
@@ -1150,16 +1127,17 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
         private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info)
         {
-            bool refersToNoPiaLocalType;
-
-            SignatureTypeCode typeCode;
-            info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode, IsAcceptedIsConstModifierType, out bool isConstFound);
+            info.CustomModifiers = DecodeModifiersOrThrow(
+                ref signatureReader,
+                AllowedRequiredModifierType.System_Runtime_CompilerServices_IsConst,
+                out SignatureTypeCode typeCode,
+                out bool isConstFound);
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
                 info.IsByRef = true;
                 info.RefCustomModifiers = info.CustomModifiers;
-                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode);
+                info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             }
             else if (isConstFound)
             {
@@ -1167,7 +1145,7 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
+            info.Type = DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
         }
 
         // MetaImport::DecodeMethodSignature
@@ -1907,11 +1885,13 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 SignatureTypeCode typeCode;
-                customModifiers = DecodeModifiersOrThrow(ref signatureReader, out typeCode, IsAcceptedVolatileModifierType, out isVolatile);
+                customModifiers = DecodeModifiersOrThrow(
+                    ref signatureReader,
+                    AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile,
+                    out typeCode,
+                    out isVolatile);
 
-                // get the type
-                bool refersToNoPiaLocalType;
-                return DecodeTypeOrThrow(ref signatureReader, typeCode, out refersToNoPiaLocalType);
+                return DecodeTypeOrThrow(ref signatureReader, typeCode, out _);
             }
             catch (UnsupportedSignatureContent)
             {
@@ -2425,6 +2405,13 @@ namespace Microsoft.CodeAnalysis
 
             var methodParam = methodParams[1];
             return !methodParam.IsByRef && methodParam.Type.Equals(eventType);
+        }
+
+        private enum AllowedRequiredModifierType
+        {
+            None,
+            System_Runtime_CompilerServices_Volatile,
+            System_Runtime_CompilerServices_IsConst,
         }
     }
 }

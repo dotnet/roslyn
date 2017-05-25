@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                       out _lazyParameters, alsoCopyParamsModifier: true);
                     }
                 }
-                else if (_refKind == RefKind.RefReadOnly && (IsVirtual || IsAbstract))
+                else if (_refKind == RefKind.RefReadOnly)
                 {
                     var isConstType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax.ReturnType);
 

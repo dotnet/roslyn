@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     _lazyParameters = CustomModifierUtils.CopyParameterCustomModifiers(overriddenOrImplementedProperty.Parameters, _lazyParameters, alsoCopyParamsModifier: isOverride);
                 }
             }
-            else if (_refKind == RefKind.RefReadOnly && (IsVirtual || IsAbstract))
+            else if (_refKind == RefKind.RefReadOnly)
             {
                 var isConstType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax.Type);
 
