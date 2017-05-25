@@ -2443,10 +2443,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
                 }
 
-                if (expression.Kind == BoundKind.TupleLiteral)
+                if (conversion.IsValid)
                 {
-                    // A BoundTupleLiteral must always be upgraded to a BoundConvertedTupleLiteral during conversion
-                    return CreateConversion(expression.Syntax, expression, conversion, false, targetType, diagnostics);
+                    var ignoredDiagnostics = new DiagnosticBag();
+                    return CreateConversion(expression.Syntax, expression, conversion, isCast: false, destination: targetType, diagnostics: ignoredDiagnostics);
                 }
 
                 return new BoundConversion(

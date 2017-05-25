@@ -1944,10 +1944,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        Debug.Assert(false);
-                        type = null;
-                        convertedType = null;
-                        conversion = Conversion.Identity;
+                        type = tupleLiteralConversion.Operand.Type;
+                        convertedType = tupleLiteralConversion.Type;
+                        conversion = tupleLiteralConversion.Conversion;
                     }
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())

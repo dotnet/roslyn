@@ -6090,7 +6090,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, @"((long c, string d))(1, ""hello"")").WithArguments("(long c, string d)", "(short a, string b)").WithLocation(13, 34),
                 // (7,25): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         (short, string) x1 = (1, "hello");
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 25)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 25),
+                // (10,25): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         (short, string) x2 = ((long, string))(1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(10, 25),
+                // (13,29): warning CS0219: The variable 'x3' is assigned but its value is never used
+                //         (short a, string b) x3 = ((long c, string d))(1, "hello");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(13, 29)
             );
         }
 
@@ -7133,19 +7139,19 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(long c, long d)").WithLocation(7, 48),
-                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(long c, long d)").WithLocation(7, 54),
                 // (7,29): error CS0266: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'. An explicit conversion exists (are you missing a cast?)
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
-                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(int c, int d)").WithLocation(9, 50),
-                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(int c, int d)").WithLocation(9, 56),
                 // (9,33): error CS0266: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'. An explicit conversion exists (are you missing a cast?)
@@ -7153,7 +7159,13 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
                 // (12,56): error CS0030: Cannot convert type 'string' to 'long'
                 //         (int a, int b) x3 = ((long c, long d))(e: 1, f:"qq");
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""qq""").WithArguments("string", "long").WithLocation(12, 56)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"""qq""").WithArguments("string", "long").WithLocation(12, 56),
+                // (7,24): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(7, 24),
+                // (9,28): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(9, 28)
             );
         }
 
