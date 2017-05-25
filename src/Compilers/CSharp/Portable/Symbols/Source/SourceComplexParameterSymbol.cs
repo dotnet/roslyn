@@ -81,8 +81,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                LazyDefaultSyntaxValue(out var boundExpressionOpt, needsBoundExpression: true);
-                return boundExpressionOpt;
+                var diagnostics = DiagnosticBag.GetInstance();
+                MakeDefaultExpression(diagnostics, this.ParameterBinderOpt, out var result);
+                // Drop diagnostics. These are reported elsewhere (when computing DefaultSyntaxValue)
+                diagnostics.Free();
+                return result;
             }
         }
 
@@ -136,42 +139,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                   && !HasCallerFilePathAttribute
                                                   && HasCallerMemberNameAttribute;
 
-        private ConstantValue DefaultSyntaxValue => LazyDefaultSyntaxValue(out var unused, needsBoundExpression: false);
-
-        private ConstantValue LazyDefaultSyntaxValue(out BoundExpression boundExpressionOpt, bool needsBoundExpression)
+        private ConstantValue DefaultSyntaxValue
         {
-            if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
+            get
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-
-                if (Interlocked.CompareExchange(
-                    ref _lazyDefaultSyntaxValue,
-                    MakeDefaultExpression(diagnostics, ParameterBinderOpt, out boundExpressionOpt),
-                    ConstantValue.Unset) == ConstantValue.Unset)
+                if (_lazyDefaultSyntaxValue == ConstantValue.Unset)
                 {
-                    // This is a race condition where the thread that loses
-                    // the compare exchange tries to access the diagnostics
-                    // before the thread which won the race finishes adding
-                    // them. https://github.com/dotnet/roslyn/issues/17243
-                    AddDeclarationDiagnostics(diagnostics);
+                    var diagnostics = DiagnosticBag.GetInstance();
+
+                    if (Interlocked.CompareExchange(
+                        ref _lazyDefaultSyntaxValue,
+                        MakeDefaultExpression(diagnostics, ParameterBinderOpt),
+                        ConstantValue.Unset) == ConstantValue.Unset)
+                    {
+                        // This is a race condition where the thread that loses
+                        // the compare exchange tries to access the diagnostics
+                        // before the thread which won the race finishes adding
+                        // them. https://github.com/dotnet/roslyn/issues/17243
+                        AddDeclarationDiagnostics(diagnostics);
+                    }
+
+                    diagnostics.Free();
                 }
 
-                diagnostics.Free();
+                return _lazyDefaultSyntaxValue;
             }
-            else if (needsBoundExpression)
+        }
+
+        protected ConstantValue MakeDefaultExpression(DiagnosticBag diagnostics, Binder binder)
+        {
+            var result = MakeDefaultExpression(diagnostics, binder, out var convertedExpression);
+
+            if (binder?.IsSemanticModelBinder != true && (this.ContainingSymbol as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
             {
-                // Constant value is already calculated, but we still need to recalculate the BoundExpression
-                var diagnostics = DiagnosticBag.GetInstance();
-                MakeDefaultExpression(diagnostics, ParameterBinderOpt, out boundExpressionOpt);
-                // Drop diagnostics - they were already reported on the first calculation.
-                diagnostics.Free();
-            }
-            else
-            {
-                boundExpressionOpt = null;
+                // It is okay to call this multiple times (in a multithreaded environment),
+                // as the only thing VariableUsePass is add/remove members from sets,
+                // which can be performed multiple times with no further effect.
+                new VariableUsePass(this.DeclaringCompilation.SourceAssembly).Visit(convertedExpression);
             }
 
-            return _lazyDefaultSyntaxValue;
+            return result;
         }
 
         // If binder is null, then get it from the compilation. Otherwise use the provided binder.
@@ -209,14 +216,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             BoundExpression valueBeforeConversion;
             var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
-
-            if (!binder.IsSemanticModelBinder && (this.ContainingSymbol as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
-            {
-                // It is okay to call this multiple times (in a multithreaded environment),
-                // as the only thing VariableUsePass is add/remove members from sets,
-                // which can be performed multiple times with no further effect.
-                new VariableUsePass(this.DeclaringCompilation.SourceAssembly).Visit(convertedExpression);
-            }
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)
