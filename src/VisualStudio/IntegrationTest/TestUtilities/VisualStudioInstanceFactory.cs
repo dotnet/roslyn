@@ -20,8 +20,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         public static readonly string VsProductVersion = Settings.Default.VsProductVersion;
 
-        public static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
-
         public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
 
         /// <summary>
