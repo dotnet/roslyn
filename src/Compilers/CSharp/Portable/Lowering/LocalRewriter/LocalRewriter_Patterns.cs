@@ -137,9 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         kind: BinaryOperatorKind.NullableNullEqual,
                         loweredLeft: input,
                         loweredRight: boundConstant,
-                        returnType: systemBoolean
-
-                    );
+                        returnType: systemBoolean);
                 }
                 else
                 {
