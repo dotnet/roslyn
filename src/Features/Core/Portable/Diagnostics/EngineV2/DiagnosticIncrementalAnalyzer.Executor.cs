@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // perf optimization. check whether we want to analyze this project or not.
-                        if (!await FullAnalysisEnabledAsync(project, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false))
+                        if (!ignoreFullAnalysisOptions && !await FullAnalysisEnabledAsync(project, cancellationToken).ConfigureAwait(false))
                         {
                             return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
@@ -424,13 +424,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static async Task<bool> FullAnalysisEnabledAsync(Project project, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
+            private static async Task<bool> FullAnalysisEnabledAsync(Project project, CancellationToken cancellationToken)
             {
-                if (ignoreFullAnalysisOptions)
-                {
-                    return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-                }
-
                 if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) ||
                     !project.Solution.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
