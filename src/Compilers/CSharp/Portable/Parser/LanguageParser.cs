@@ -1590,7 +1590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             switch (this.CurrentToken.Kind)
             {
                 case SyntaxKind.ClassKeyword:
-                    // report use of static class
+                    // report use of "static class" if feature is unsupported 
                     for (int i = 0, n = modifiers.Count; i < n; i++)
                     {
                         if (modifiers[i].RawKind == (int)SyntaxKind.StaticKeyword)
@@ -1602,12 +1602,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
                 case SyntaxKind.StructKeyword:
-                    // report use of ref struct class
+                    // report use of "readonly struct" if feature is unsupported
                     for (int i = 0, n = modifiers.Count; i < n; i++)
                     {
                         if (modifiers[i].RawKind == (int)SyntaxKind.ReadOnlyKeyword)
                         {
-                            modifiers[i] = CheckFeatureAvailability(modifiers[i], MessageID.IDS_FeatureReadonlyStructs);
+                            modifiers[i] = CheckFeatureAvailability(modifiers[i], MessageID.IDS_FeatureReadOnlyStructs);
                         }
                     }
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
