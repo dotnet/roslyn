@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                             @event,
                             accessibility: accessibility,
                             modifiers: modifiers,
-                            explicitInterfaceSymbol: useExplicitInterfaceSymbol ? @event : null,
+                            explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(@event) : default,
                             name: memberName,
                             addMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.AddEventHandler),
                             removeMethod: GetAddOrRemoveMethod(generateInvisibly, accessor, memberName, factory.RemoveEventHandler));

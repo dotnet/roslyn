@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Event, destination),
                 modifiers: new DeclarationModifiers(),
                 type: type,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: name,
                 addMethod: addMethod,
                 removeMethod: removeMethod);
@@ -192,7 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 modifiers: new DeclarationModifiers(),
                 type: type,
                 returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: name,
                 parameters: default(ImmutableArray<IParameterSymbol>),
                 getMethod: getMethod,
