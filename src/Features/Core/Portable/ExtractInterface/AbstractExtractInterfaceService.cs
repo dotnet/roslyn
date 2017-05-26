@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
                             returnType: method.ReturnType,
                             returnsByRef: method.ReturnsByRef,
-                            explicitInterfaceSymbol: null,
+                            explicitInterfaceImplementations: default,
                             name: method.Name,
                             typeParameters: method.TypeParameters,
                             parameters: method.Parameters));
