@@ -57,6 +57,7 @@ class C
   IL_0011:  ret
 }");
         }
+
         [Fact]
         public void TestIsNullPatternGenericParam()
         {
@@ -168,6 +169,64 @@ class C
     {
         Console.Write(((object)null) is null);
         if (((object) null) is null) {
+            Console.Write("" Branch taken"");
+        }
+    }
+}
+";
+
+            // Release
+            var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
+            compilation.VerifyIL("C.Main", @"{
+    // Code size       20 (0x14)
+    .maxstack  2
+    IL_0000:  ldnull
+    IL_0001:  ldnull
+    IL_0002:  ceq
+    IL_0004:  call       ""void System.Console.Write(bool)""
+    IL_0009:  ldstr      "" Branch taken""
+    IL_000e:  call       ""void System.Console.Write(string)""
+    IL_0013:  ret
+}");
+            // Debug
+            compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
+            compilation.VerifyIL("C.Main", @"{
+    // Code size       33 (0x21)
+    .maxstack  2
+    .locals init (bool V_0)
+    IL_0000:  nop
+    IL_0001:  ldnull
+    IL_0002:  ldnull
+    IL_0003:  ceq
+    IL_0005:  call       ""void System.Console.Write(bool)""
+    IL_000a:  nop
+    IL_000b:  ldnull
+    IL_000c:  ldnull
+    IL_000d:  ceq
+    IL_000f:  stloc.0
+    IL_0010:  ldloc.0
+    IL_0011:  brfalse.s  IL_0020
+    IL_0013:  nop
+    IL_0014:  ldstr      "" Branch taken""
+    IL_0019:  call       ""void System.Console.Write(string)""
+    IL_001e:  nop
+    IL_001f:  nop
+    IL_0020:  ret
+}");
+        }
+
+        [Fact]
+        public void TestIsNullPatternStringConstant()
+        {
+            var source = @"
+using System;
+class C
+{
+    const String nullString = null;
+    public static void Main()
+    {
+        Console.Write(((string)null) is nullString);
+        if (((string) null) is nullString) {
             Console.Write("" Branch taken"");
         }
     }
