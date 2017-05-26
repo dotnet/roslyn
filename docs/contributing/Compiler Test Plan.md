@@ -83,6 +83,7 @@
 - COM interop
 - modopt and modreq
 - ref assemblies
+- telemetry
 
 # Testing in interaction with other components
 Interaction with IDE, Debugger, and EnC should be worked out with relevant teams. A few highlights:
@@ -91,6 +92,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to" and renaming
+    - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
 
 - Debugger / EE
