@@ -206,6 +206,7 @@
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceTypeCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceMemberCompletionProviderTests.cs" />
     <Compile Include="AddUsing\AddUsingTestsWithAddImportDiagnosticProvider.cs" />
+    <Compile Include="Completion\CompletionProviders\InternalsVisibleToCompletionProviderTests.cs" />
     <Compile Include="InitializeParameter\AddParameterCheckTests.cs" />
     <Compile Include="AddParameter\AddParameterTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
