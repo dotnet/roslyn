@@ -1126,6 +1126,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitIsByRefLikeAttr, arguments.AttributeSyntaxOpt.Location);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.CaseSensitiveExtensionAttribute))
             {
                 // [Extension] attribute should not be set explicitly.
@@ -1245,6 +1250,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitIsByRefLikeAttr, arguments.AttributeSyntaxOpt.Location);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {

@@ -1505,6 +1505,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitReadOnlyAttr = 8412,
         ERR_TypeReserved = 8413,
 
-        ERR_ExplicitByRefLikeAttr = 8414,
+        ERR_ExplicitIsByRefLikeAttr = 8414,
     }
 }
