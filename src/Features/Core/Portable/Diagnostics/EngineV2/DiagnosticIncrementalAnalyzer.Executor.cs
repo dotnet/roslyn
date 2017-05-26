@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
             /// </summary>
             public async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, bool forceAnalyzerRun, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
                 {
@@ -102,13 +102,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
                         var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
-                        if (existingData.Version == version)
+                        // we can't return here if we have open file only analyzers sine saved data for open file only analyzer
+                        // is wrong. (since it only contains info on open files rather than whole project)
+                        if (existingData.Version == version && !analyzerDriverOpt.ContainsOpenFileOnlyAnalyzers(project.Solution.Workspace))
                         {
                             return existingData;
                         }
 
                         // perf optimization. check whether we want to analyze this project or not.
-                        if (!FullAnalysisEnabled(project, ignoreFullAnalysisOptions))
+                        if (!FullAnalysisEnabled(project, forceAnalyzerRun))
                         {
                             return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty);
                         }
@@ -225,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     //       this can happen since caller could have created the driver with different set of analyzers that are different
                     //       than what we used to create the cache.
                     var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out var analyzersToRun))
+                    if (TryReduceAnalyzersToRun(analyzerDriverOpt, project, version, existing, out var analyzersToRun))
                     {
                         // it looks like we can reduce the set. create new CompilationWithAnalyzer.
                         // if we reduced to 0, we just pass in null for analyzer drvier. it could be reduced to 0
@@ -272,7 +274,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             private bool TryReduceAnalyzersToRun(
-                CompilationWithAnalyzers analyzerDriverOpt, VersionStamp version,
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, VersionStamp version,
                 ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult> existing,
                 out ImmutableArray<DiagnosticAnalyzer> analyzers)
             {
@@ -289,13 +291,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var analyzer in existingAnalyzers)
                 {
                     if (existing.TryGetValue(analyzer, out var analysisResult) &&
-                        analysisResult.Version == version)
+                        analysisResult.Version == version &&
+                        !analyzer.IsOpenFileOnly(project.Solution.Workspace))
                     {
                         // we already have up to date result.
                         continue;
                     }
 
                     // analyzer that is out of date.
+                    // open file only analyzer is always out of date for project wide data
                     builder.Add(analyzer);
                 }
 
@@ -483,9 +487,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static bool FullAnalysisEnabled(Project project, bool ignoreFullAnalysisOptions)
+            private static bool FullAnalysisEnabled(Project project, bool forceAnalyzerRun)
             {
-                if (ignoreFullAnalysisOptions)
+                if (forceAnalyzerRun)
                 {
                     // asked to ignore any checks.
                     return true;
