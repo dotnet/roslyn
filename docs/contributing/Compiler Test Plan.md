@@ -108,6 +108,8 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
  
 - Edit-and-continue
 
+- Live Unit Testing (instrumentation)
+
 # Eric's cheatsheet
 
 ## Statements 
