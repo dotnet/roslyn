@@ -20,9 +20,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.Typescript
 v.toExponential(");
 
             VisualStudio.Editor.InvokeSignatureHelp();
-            VisualStudio.Editor.Verify.CurrentSignature(
-                "toExponential([fractionDigits?: number]): string\r\n" +
-                "Returns a string containing a number represented in exponential notation.");
+            var currentSignature = VisualStudio.Editor.GetCurrentSignature();
+            Assert.StartsWith("toExponential", currentSignature.Content);
         }
     }
 }
