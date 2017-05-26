@@ -161,7 +161,7 @@ End Class";
                         analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                         new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
 
-                var result = await executor.AnalyzeAsync(analyzerDriver, project, CancellationToken.None);
+                var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
 
@@ -182,7 +182,7 @@ End Class";
                     analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
                     new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
 
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
+            var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
