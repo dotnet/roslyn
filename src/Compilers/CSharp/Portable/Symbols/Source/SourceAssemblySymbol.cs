@@ -2341,6 +2341,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            // Make sure we're not marking a constructed field as used
+            field = field.OriginalDefinition;
+
             container.EnsureFieldDefinitionsNoted();
 
             if (_unusedFieldWarnings.IsDefault)

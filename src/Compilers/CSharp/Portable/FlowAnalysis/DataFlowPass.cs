@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if ((object)_sourceAssembly != null && variable.Kind == SymbolKind.Field)
                 {
-                    _sourceAssembly.NoteFieldAccess((FieldSymbol)variable.OriginalDefinition,
+                    _sourceAssembly.NoteFieldAccess((FieldSymbol)variable,
                                                     read: true,
                                                     write: false);
                 }
@@ -2211,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)_sourceAssembly != null && node.MemberSymbol != null && node.MemberSymbol.Kind == SymbolKind.Field)
             {
-                _sourceAssembly.NoteFieldAccess((FieldSymbol)node.MemberSymbol.OriginalDefinition, read: false, write: true);
+                _sourceAssembly.NoteFieldAccess((FieldSymbol)node.MemberSymbol, read: false, write: true);
             }
 
             return result;

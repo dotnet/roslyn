@@ -7,11 +7,11 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// VariableUsePass marks all referenced variables in the visited node as used (as a read).
+    /// FieldUsePass marks all referenced fields in the visited node as used (as a read).
     /// This pass is used for things like attribute arguments and default parameter expressions,
     /// which are otherwise not analyzed for use references.
     /// </summary>
-    internal class VariableUsePass : BoundTreeWalkerWithStackGuard
+    internal class FieldUsePass : BoundTreeWalkerWithStackGuard
     {
         /// <summary>
         /// The current source assembly.
@@ -25,19 +25,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Even though this class looks stateless, it cannot be shared/cached on the CSharpCompilation.
         /// Specifically, BoundTreeWalkerWithStackGuard has an int _recursionDepth that breaks in multithreaded scenarios.
         /// </remarks>
-        public VariableUsePass(SourceAssemblySymbol sourceAssembly)
+        public FieldUsePass(SourceAssemblySymbol sourceAssembly)
         {
             _sourceAssembly = sourceAssembly;
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
-            _sourceAssembly.NoteFieldAccess(node.FieldSymbol.OriginalDefinition, true, false);
+            _sourceAssembly.NoteFieldAccess(node.FieldSymbol, true, false);
             return base.VisitFieldAccess(node);
         }
     }
 
-    internal sealed class LocalVariableUsePass : VariableUsePass
+    internal sealed class LocalVariableUsePass : FieldUsePass
     {
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<LocalSymbol> _usedVariables;
 
         /// <summary>
-        /// Variables that were used anywhere, in the sense required to suppress warnings about
+        /// Local functions that were used anywhere, in the sense required to suppress warnings about
         /// unused variables.
         /// </summary>
         private readonly HashSet<LocalFunctionSymbol> _usedLocalFunctions;

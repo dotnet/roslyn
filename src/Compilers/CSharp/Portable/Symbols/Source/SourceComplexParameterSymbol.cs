@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // It is okay to call this multiple times (in a multithreaded environment),
                 // as the only thing VariableUsePass is add/remove members from sets,
                 // which can be performed multiple times with no further effect.
-                new VariableUsePass(this.DeclaringCompilation.SourceAssembly).Visit(convertedExpression);
+                new FieldUsePass(this.DeclaringCompilation.SourceAssembly).Visit(convertedExpression);
             }
 
             return result;

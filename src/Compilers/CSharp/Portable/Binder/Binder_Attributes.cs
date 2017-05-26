@@ -288,7 +288,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var shouldHaveName = false;
 
-                var variableUsePass = this.IsSemanticModelBinder ? null : new VariableUsePass(this.Compilation.SourceAssembly);
+                var variableUsePass = attributeArgumentList.Arguments.Count == 0 || this.IsSemanticModelBinder ?
+                    null :
+                    new FieldUsePass(this.Compilation.SourceAssembly);
 
                 foreach (var argument in attributeArgumentList.Arguments)
                 {
@@ -387,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var containingAssembly = fieldSymbol.ContainingAssembly as SourceAssemblySymbol;
 
                 // We do not want to generate any unassigned field or unreferenced field diagnostics.
-                containingAssembly?.NoteFieldAccess(fieldSymbol.OriginalDefinition, read: true, write: true);
+                containingAssembly?.NoteFieldAccess(fieldSymbol, read: true, write: true);
 
                 lvalue = new BoundFieldAccess(nameSyntax, null, fieldSymbol, ConstantValue.NotAvailable, resultKind, fieldSymbol.Type);
             }
