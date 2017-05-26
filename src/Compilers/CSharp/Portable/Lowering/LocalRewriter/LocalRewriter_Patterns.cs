@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
         {
             var systemObject = _factory.SpecialType(SpecialType.System_Object);
-            if (boundConstant is BoundLiteral bl && bl.ConstantValue?.IsNull == true)
+            if (boundConstant.ConstantValue == ConstantValue.Null)
             {
                 if (input.Type.IsNonNullableValueType())
                 {
