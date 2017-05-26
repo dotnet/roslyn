@@ -218,7 +218,7 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""Default"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7.0"">
+    <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
@@ -249,7 +249,7 @@ class C
     </Project>
     <Project Language=""C#"" LanguageVersion=""Default"">
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7.0"">
+    <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
@@ -276,7 +276,7 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7.0"">
+    <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
     <Project Language=""C#"" LanguageVersion=""Default"">
     </Project>
@@ -332,7 +332,7 @@ class C
 }
         </Document>
     </Project>
-    <Project Language=""C#"" LanguageVersion=""7.0"">
+    <Project Language=""C#"" LanguageVersion=""7"">
     </Project>
     <Project Language=""Visual Basic"">
     </Project>
