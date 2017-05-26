@@ -112,7 +112,7 @@ class Program
         }
 
         [Fact]
-        public void ReadOnlyStructPartial()
+        public void ReadOnlyStructPartialMatchingModifiers()
         {
             var text = @"
 class Program
@@ -130,10 +130,19 @@ class Program
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
             );
+
+            var s1 = comp.GetTypeByMetadataName("Program+S1");
+            Assert.False(s1.IsByRefLikeType);
+            Assert.True(s1.IsReadOnly);
+
+            var s2 = comp.GetTypeByMetadataName("Program+S2");
+            Assert.True(s2.IsByRefLikeType);
+            Assert.True(s2.IsReadOnly);
         }
 
+        [WorkItem(19808, "https://github.com/dotnet/roslyn/issues/19808")]
         [Fact]
-        public void ReadOnlyStructPartialErr()
+        public void ReadOnlyStructPartialNotMatchingModifiers()
         {
             var text = @"
 class Program
@@ -151,6 +160,14 @@ class Program
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
             );
+
+            var s1 = comp.GetTypeByMetadataName("Program+S1");
+            Assert.True(s1.IsByRefLikeType);
+            Assert.True(s1.IsReadOnly);
+
+            var s2 = comp.GetTypeByMetadataName("Program+S2");
+            Assert.False(s2.IsByRefLikeType);
+            Assert.True(s2.IsReadOnly);
         }
     }
 }
