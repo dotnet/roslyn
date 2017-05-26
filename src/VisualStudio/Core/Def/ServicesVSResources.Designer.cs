@@ -1602,6 +1602,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Preview pane.
+        /// </summary>
+        internal static string Preview_pane {
+            get {
+                return ResourceManager.GetString("Preview_pane", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Preview reference changes.
         /// </summary>
         internal static string Preview_reference_changes {
