@@ -110,7 +110,11 @@ try {
 
     if (-not $skipRestore) { 
         Write-Host "Running restore"
+
+        # Temporary work around to help NuGet team debug a restore issue
+        ${env:NUGET_SHOW_STACK}="true"
         Restore-All -msbuildDir $msbuildDir 
+        Remove-Item env:\NUGET_SHOW_STACK
     }
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
