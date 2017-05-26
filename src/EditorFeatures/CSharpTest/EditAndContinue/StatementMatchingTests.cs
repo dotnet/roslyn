@@ -9,8 +9,90 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class StatementMatchingTests : EditingTestBase
     {
+        #region Known Matches
+
         [Fact]
-        public void Match1()
+        public void KnownMatches()
+        {
+            string src1 = @"
+Console.WriteLine(1)/*1*/;
+Console.WriteLine(1)/*2*/;
+";
+
+            string src2 = @"
+Console.WriteLine(1)/*3*/;
+Console.WriteLine(1)/*4*/;
+";
+
+            var m1 = MakeMethodBody(src1);
+            var m2 = MakeMethodBody(src2);
+
+            var knownMatches = new KeyValuePair<SyntaxNode, SyntaxNode>[]
+            {
+                new KeyValuePair<SyntaxNode, SyntaxNode>(m1.Statements[1], m2.Statements[0])
+            };
+
+            // pre-matched:
+
+            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "Console.WriteLine(1)/*1*/;", "Console.WriteLine(1)/*4*/;" },
+                { "Console.WriteLine(1)/*2*/;", "Console.WriteLine(1)/*3*/;" }
+            };
+
+            expected.AssertEqual(actual);
+
+            // not pre-matched:
+
+            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2);
+
+            actual = ToMatchingPairs(match);
+
+            expected = new MatchingPairs
+            {
+                { "Console.WriteLine(1)/*1*/;", "Console.WriteLine(1)/*3*/;" },
+                { "Console.WriteLine(1)/*2*/;", "Console.WriteLine(1)/*4*/;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void KnownMatches_Root()
+        {
+            string src1 = @"
+Console.WriteLine(1);
+";
+
+            string src2 = @"
+Console.WriteLine(2);
+";
+
+            var m1 = MakeMethodBody(src1);
+            var m2 = MakeMethodBody(src2);
+
+            var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1, m2) };
+            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "Console.WriteLine(1);", "Console.WriteLine(2);" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
+
+        #region Statements
+
+        [Fact]
+        public void MiscStatements()
         {
             var src1 = @"
 int x = 1; 
@@ -59,30 +141,99 @@ if (x > 1)
         }
 
         [Fact]
-        public void KnownMatches_Root()
+        public void ThrowException_UpdateInsert()
         {
-            string src1 = @"
-Console.WriteLine(1);
+            var src1 = @"
+return a > 3 ? a : throw new Exception();
+return c > 7 ? c : 7;
 ";
 
-            string src2 = @"
-Console.WriteLine(2);
+            var src2 = @"
+return a > 3 ? a : throw new ArgumentException();
+return c > 7 ? c : throw new IndexOutOfRangeException();
 ";
 
-            var m1 = MakeMethodBody(src1);
-            var m2 = MakeMethodBody(src2);
-
-            var knownMatches = new[] { new KeyValuePair<SyntaxNode, SyntaxNode>(m1, m2) };
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
             var actual = ToMatchingPairs(match);
 
             var expected = new MatchingPairs
             {
-                { "Console.WriteLine(1);", "Console.WriteLine(2);" }
+                { "return a > 3 ? a : throw new Exception();", "return a > 3 ? a : throw new ArgumentException();" },
+                { "return c > 7 ? c : 7;", "return c > 7 ? c : throw new IndexOutOfRangeException();" }
             };
 
             expected.AssertEqual(actual);
         }
+
+        [Fact]
+        public void ThrowException_UpdateDelete()
+        {
+            var src1 = @"
+return a > 3 ? a : throw new Exception();
+return b > 5 ? b : throw new OperationCanceledException();
+";
+
+            var src2 = @"
+return a > 3 ? a : throw new ArgumentException();
+return b > 5 ? b : 5;
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "return a > 3 ? a : throw new Exception();", "return a > 3 ? a : throw new ArgumentException();" },
+                { "return b > 5 ? b : throw new OperationCanceledException();", "return b > 5 ? b : 5;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void Tuple()
+        {
+            var src1 = @"
+return (1, 2);
+return (d, 6);
+return (10, e, 22);
+return (2, () => { 
+    int a = 6;
+    return 1;
+});";
+
+            var src2 = @"
+return (1, 2, 3);
+return (d, 5);
+return (10, e);
+return (2, () => {
+    int a = 6;
+    return 5;
+});";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "return (1, 2);", "return (1, 2, 3);" },
+                { "return (d, 6);", "return (d, 5);" },
+                { "return (10, e, 22);", "return (10, e);" },
+                { "return (2, () => {      int a = 6;     return 1; });", "return (2, () => {     int a = 6;     return 5; });" },
+                { "() => {      int a = 6;     return 1; }", "() => {     int a = 6;     return 5; }" },
+                { "{      int a = 6;     return 1; }", "{     int a = 6;     return 5; }" },
+                { "int a = 6;", "int a = 6;" },
+                { "int a = 6", "int a = 6" },
+                { "a = 6", "a = 6" },
+                { "return 1;", "return 5;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
+
+        #region Local Variables
 
         [Fact]
         public void Locals_Rename()
@@ -314,7 +465,144 @@ if (X)
         }
 
         [Fact]
-        public void MatchLambdas1()
+        public void VariableDesignations()
+        {
+            var src1 = @"
+M(out int z);
+N(out var a);
+";
+
+            var src2 = @"
+M(out var z);
+N(out var b);
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "M(out int z);", "M(out var z);" },
+                { "z", "z" },
+                { "N(out var a);", "N(out var b);" },
+                { "a", "b" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void ParenthesizedVariable_Update()
+        {
+            var src1 = @"
+var (x1, (x2, x3)) = (1, (2, true));
+var (a1, a2) = (1, () => { return 7; });
+";
+
+            var src2 = @"
+var (x1, (x3, x4)) = (1, (2, true));
+var (a1, a3) = (1, () => { return 8; });
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var (x1, (x2, x3)) = (1, (2, true));", "var (x1, (x3, x4)) = (1, (2, true));" },
+                { "x1", "x1" },
+                { "x2", "x4" },
+                { "x3", "x3" },
+                { "var (a1, a2) = (1, () => { return 7; });", "var (a1, a3) = (1, () => { return 8; });" },
+                { "a1", "a1" },
+                { "a2", "a3" },
+                { "() => { return 7; }", "() => { return 8; }" },
+                { "{ return 7; }", "{ return 8; }" },
+                { "return 7;", "return 8;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void ParenthesizedVariable_Insert()
+        {
+            var src1 = @"var (z1, z2) = (1, 2);";
+            var src2 = @"var (z1, z2, z3) = (1, 2, 5);";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var (z1, z2) = (1, 2);", "var (z1, z2, z3) = (1, 2, 5);" },
+                { "z1", "z1" },
+                { "z2", "z2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void ParenthesizedVariable_Delete()
+        {
+            var src1 = @"var (y1, y2, y3) = (1, 2, 7);";
+            var src2 = @"var (y1, y2) = (1, 4);";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "var (y1, y2, y3) = (1, 2, 7);", "var (y1, y2) = (1, 4);" },
+                { "y1", "y1" },
+                { "y2", "y2" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void RefVariable()
+        {
+            var src1 = @"
+ref int a = ref G(new int[] { 1, 2 });
+    ref int G(int[] p)
+    {
+        return ref p[1];
+    }
+";
+
+            var src2 = @"
+ref int32 a = ref G1(new int[] { 1, 2 });
+    ref int G1(int[] p)
+    {
+        return ref p[2];
+    }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "ref int a = ref G(new int[] { 1, 2 });", "ref int32 a = ref G1(new int[] { 1, 2 });" },
+                { "ref int a = ref G(new int[] { 1, 2 })", "ref int32 a = ref G1(new int[] { 1, 2 })" },
+                { "a = ref G(new int[] { 1, 2 })", "a = ref G1(new int[] { 1, 2 })" },
+                { "ref int G(int[] p)     {         return ref p[1];     }", "ref int G1(int[] p)     {         return ref p[2];     }" },
+                { "{         return ref p[1];     }", "{         return ref p[2];     }" },
+                { "return ref p[1];", "return ref p[2];" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
+
+        #region Lambdas
+
+        [Fact]
+        public void Lambdas1()
         {
             var src1 = "Action x = a => a;";
             var src2 = "Action x = (a) => a;";
@@ -334,7 +622,7 @@ if (X)
         }
 
         [Fact]
-        public void MatchLambdas2a()
+        public void Lambdas2a()
         {
             var src1 = @"
 F(x => x + 1, 1, y => y + 1, delegate(int x) { return x; }, async u => u);
@@ -359,7 +647,7 @@ F(y => y + 1, G(), x => x + 1, (int x) => x, u => u, async (u, v) => u + v);
         }
 
         [Fact, WorkItem(830419, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/830419")]
-        public void MatchLambdas2b()
+        public void Lambdas2b()
         {
             var src1 = @"
 F(delegate { return x; });
@@ -381,7 +669,7 @@ F((a) => x, () => x);
         }
 
         [Fact]
-        public void MatchLambdas3()
+        public void Lambdas3()
         {
             var src1 = @"
 a += async u => u;
@@ -403,7 +691,7 @@ a += u => u;
         }
 
         [Fact]
-        public void MatchLambdas4()
+        public void Lambdas4()
         {
             var src1 = @"
 foreach (var a in z)
@@ -438,7 +726,7 @@ foreach (var a in z)
         }
 
         [Fact]
-        public void MatchLambdas5()
+        public void Lambdas5()
         {
             var src1 = @"
 F(a => b => c => d);
@@ -462,7 +750,7 @@ F(a => b => c => d);
         }
 
         [Fact]
-        public void MatchLambdas6()
+        public void Lambdas6()
         {
             var src1 = @"
 F(a => b => c => d);
@@ -486,7 +774,7 @@ F(a => G(b => H(c => I(d))));
         }
 
         [Fact]
-        public void MatchLambdas7()
+        public void Lambdas7()
         {
             var src1 = @"
 F(a => 
@@ -537,8 +825,50 @@ F(a =>
             expected.AssertEqual(actual);
         }
 
+        #endregion
+
+        #region Local Functions
+
         [Fact]
-        public void MatchQueries1()
+        public void LocalFunctionDefinitions()
+        {
+            var src1 = @"
+(int a, string c) F1(int i) { return null; }
+(int a, int b) F2(int i) { return null; }
+(int a, int b, int c) F3(int i) { return null; }
+";
+
+            var src2 = @"
+(int a, int b) F1(int i) { return null; }
+(int a, int b, string c) F2(int i) { return null; }
+(int a, int b) F3(int i) { return null; }
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs
+            {
+                { "(int a, string c) F1(int i) { return null; }", "(int a, int b) F1(int i) { return null; }" },
+                { "{ return null; }", "{ return null; }" },
+                { "return null;", "return null;" },
+                { "(int a, int b) F2(int i) { return null; }", "(int a, int b, string c) F2(int i) { return null; }" },
+                { "{ return null; }", "{ return null; }" },
+                { "return null;", "return null;" },
+                { "(int a, int b, int c) F3(int i) { return null; }", "(int a, int b) F3(int i) { return null; }" },
+                { "{ return null; }", "{ return null; }" },
+                { "return null;", "return null;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        #endregion
+
+        #region LINQ
+
+        [Fact]
+        public void Queries1()
         {
             var src1 = @"
 var q = from c in cars
@@ -572,7 +902,7 @@ var q = from c in cars
         }
 
         [Fact]
-        public void MatchQueries2()
+        public void Queries2()
         {
             var src1 = @"
 var q = from c in cars
@@ -644,7 +974,7 @@ var q = from c in cars
         }
 
         [Fact]
-        public void MatchQueries3()
+        public void Queries3()
         {
             var src1 = @"
 var q = from a in await seq1
@@ -688,7 +1018,7 @@ var q = from a in await seq1
         }
 
         [Fact]
-        public void MatchQueries4()
+        public void Queries4()
         {
             var src1 = "F(from a in await b from x in y select c);";
             var src2 = "F(from a in await c from x in y select c);";
@@ -710,7 +1040,7 @@ var q = from a in await seq1
         }
 
         [Fact]
-        public void MatchQueries5()
+        public void Queries5()
         {
             var src1 = "F(from a in b  group a by a.x into g  select g);";
             var src2 = "F(from a in b  group z by z.y into h  select h);";
@@ -732,8 +1062,12 @@ var q = from a in await seq1
             expected.AssertEqual(actual);
         }
 
+        #endregion
+
+        #region Iterators
+
         [Fact]
-        public void MatchYields()
+        public void Yields()
         {
             var src1 = @"
 yield return /*1*/ 1;
@@ -766,58 +1100,12 @@ foreach (var x in y) { yield return /*3*/ 2; }
             expected.AssertEqual(actual);
         }
 
-        [Fact]
-        public void KnownMatches()
-        {
-            string src1 = @"
-Console.WriteLine(1)/*1*/;
-Console.WriteLine(1)/*2*/;
-";
+        #endregion
 
-            string src2 = @"
-Console.WriteLine(1)/*3*/;
-Console.WriteLine(1)/*4*/;
-";
-
-            var m1 = MakeMethodBody(src1);
-            var m2 = MakeMethodBody(src2);
-
-            var knownMatches = new KeyValuePair<SyntaxNode, SyntaxNode>[]
-            {
-                new KeyValuePair<SyntaxNode, SyntaxNode>(m1.Statements[1], m2.Statements[0])
-            };
-
-            // pre-matched:
-
-            var match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2, knownMatches);
-
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "Console.WriteLine(1)/*1*/;", "Console.WriteLine(1)/*4*/;" },
-                { "Console.WriteLine(1)/*2*/;", "Console.WriteLine(1)/*3*/;" }
-            };
-
-            expected.AssertEqual(actual);
-
-            // not pre-matched:
-
-            match = StatementSyntaxComparer.Default.ComputeMatch(m1, m2);
-
-            actual = ToMatchingPairs(match);
-
-            expected = new MatchingPairs
-            {
-                { "Console.WriteLine(1)/*1*/;", "Console.WriteLine(1)/*3*/;" },
-                { "Console.WriteLine(1)/*2*/;", "Console.WriteLine(1)/*4*/;" }
-            };
-
-            expected.AssertEqual(actual);
-        }
+        #region Constructors
 
         [Fact]
-        public void MatchConstructorWithInitializer1()
+        public void ConstructorWithInitializer1()
         {
             var src1 = @"
 (int x = 1) : base(a => a + 1) { Console.WriteLine(1); }
@@ -840,7 +1128,7 @@ Console.WriteLine(1)/*4*/;
         }
 
         [Fact]
-        public void MatchConstructorWithInitializer2()
+        public void ConstructorWithInitializer2()
         {
             var src1 = @"
 () : base(a => a + 1) { Console.WriteLine(1); }
@@ -861,8 +1149,12 @@ Console.WriteLine(1)/*4*/;
             expected.AssertEqual(actual);
         }
 
+        #endregion
+
+        #region Exception Handlers
+
         [Fact]
-        public void MatchExceptionHandlers()
+        public void ExceptionHandlers()
         {
             var src1 = @"
 try { throw new InvalidOperationException(1); }
@@ -898,181 +1190,12 @@ catch (Exception e) when (filter(e)) { Console.WriteLine(30); }
             expected.AssertEqual(actual);
         }
 
-        [Fact]
-        public void MatchTuple()
-        {
-            var src1 = @"
-return (1, 2);
-return (d, 6);
-return (10, e, 22);
-return (2, () => { 
-    int a = 6;
-    return 1;
-});";
+        #endregion
 
-            var src2 = @"
-return (1, 2, 3);
-return (d, 5);
-return (10, e);
-return (2, () => {
-    int a = 6;
-    return 5;
-});";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "return (1, 2);", "return (1, 2, 3);" },
-                { "return (d, 6);", "return (d, 5);" },
-                { "return (10, e, 22);", "return (10, e);" },
-                { "return (2, () => {      int a = 6;     return 1; });", "return (2, () => {     int a = 6;     return 5; });" },
-                { "() => {      int a = 6;     return 1; }", "() => {     int a = 6;     return 5; }" },
-                { "{      int a = 6;     return 1; }", "{     int a = 6;     return 5; }" },
-                { "int a = 6;", "int a = 6;" },
-                { "int a = 6", "int a = 6" },
-                { "a = 6", "a = 6" },
-                { "return 1;", "return 5;" }
-            };
-
-            expected.AssertEqual(actual);
-        }
+        #region Foreach
 
         [Fact]
-        public void MatchLocalFunctionDefinitions()
-        {
-            var src1 = @"
-(int a, string c) F1(int i) { return null; }
-(int a, int b) F2(int i) { return null; }
-(int a, int b, int c) F3(int i) { return null; }
-";
-
-            var src2 = @"
-(int a, int b) F1(int i) { return null; }
-(int a, int b, string c) F2(int i) { return null; }
-(int a, int b) F3(int i) { return null; }
-";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "(int a, string c) F1(int i) { return null; }", "(int a, int b) F1(int i) { return null; }" },
-                { "{ return null; }", "{ return null; }" },
-                { "return null;", "return null;" },
-                { "(int a, int b) F2(int i) { return null; }", "(int a, int b, string c) F2(int i) { return null; }" },
-                { "{ return null; }", "{ return null; }" },
-                { "return null;", "return null;" },
-                { "(int a, int b, int c) F3(int i) { return null; }", "(int a, int b) F3(int i) { return null; }" },
-                { "{ return null; }", "{ return null; }" },
-                { "return null;", "return null;" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchVariableDesignations()
-        {
-            var src1 = @"
-M(out int z);
-N(out var a);
-";
-
-            var src2 = @"
-M(out var z);
-N(out var b);
-";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "M(out int z);", "M(out var z);" },
-                { "z", "z" },
-                { "N(out var a);", "N(out var b);" },
-                { "a", "b" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchParenthesizedVariable_Update()
-        {
-            var src1 = @"
-var (x1, (x2, x3)) = (1, (2, true));
-var (a1, a2) = (1, () => { return 7; });
-";
-
-            var src2 = @"
-var (x1, (x3, x4)) = (1, (2, true));
-var (a1, a3) = (1, () => { return 8; });
-";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "var (x1, (x2, x3)) = (1, (2, true));", "var (x1, (x3, x4)) = (1, (2, true));" },
-                { "x1", "x1" },
-                { "x2", "x4" },
-                { "x3", "x3" },
-                { "var (a1, a2) = (1, () => { return 7; });", "var (a1, a3) = (1, () => { return 8; });" },
-                { "a1", "a1" },
-                { "a2", "a3" },
-                { "() => { return 7; }", "() => { return 8; }" },
-                { "{ return 7; }", "{ return 8; }" },
-                { "return 7;", "return 8;" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchParenthesizedVariable_Insert()
-        {
-            var src1 = @"var (z1, z2) = (1, 2);";
-            var src2 = @"var (z1, z2, z3) = (1, 2, 5);";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "var (z1, z2) = (1, 2);", "var (z1, z2, z3) = (1, 2, 5);" },
-                { "z1", "z1" },
-                { "z2", "z2" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchParenthesizedVariable_Delete()
-        {
-            var src1 = @"var (y1, y2, y3) = (1, 2, 7);";
-            var src2 = @"var (y1, y2) = (1, 4);";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "var (y1, y2, y3) = (1, 2, 7);", "var (y1, y2) = (1, 4);" },
-                { "y1", "y1" },
-                { "y2", "y2" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchForeachVariable_Update1()
+        public void ForeachVariable_Update1()
         {
             var src1 = @"
 foreach (var (a1, a2) in e) { A1(); }
@@ -1105,7 +1228,7 @@ foreach ((var b3, int b2) in e) { A2(); }
         }
 
         [Fact]
-        public void MatchForeachVariable_Update2()
+        public void ForeachVariable_Update2()
         {
             var src1 = @"
 foreach (_ in e2) { yield return 4; }
@@ -1134,7 +1257,7 @@ foreach (var b in e2) { yield return 4; }
         }
 
         [Fact]
-        public void MatchForeachVariable_Insert()
+        public void ForeachVariable_Insert()
         {
             var src1 = @"
 foreach (var (a3, a4) in e) { }
@@ -1165,7 +1288,7 @@ foreach ((var b6, var b4, var b5) in e) { }
         }
 
         [Fact]
-        public void MatchForeachVariable_Delete()
+        public void ForeachVariable_Delete()
         {
             var src1 = @"
 foreach (var (a11, a12, a13) in e) { A1(); }
@@ -1197,8 +1320,12 @@ foreach ((var b7, var b9) in e) { A2(); }
             expected.AssertEqual(actual);
         }
 
+        #endregion
+
+        #region Patterns
+
         [Fact]
-        public void MatchConstantPattern()
+        public void ConstantPattern()
         {
             var src1 = @"
 if ((o is null) && (y == 7)) return 3;
@@ -1224,7 +1351,7 @@ if (a is 77) return 5;
         }
 
         [Fact]
-        public void MatchDeclarationPattern()
+        public void DeclarationPattern()
         {
             var src1 = @"
 if (!(o is int i) && (y == 7)) return;
@@ -1261,7 +1388,7 @@ if (!(a is int s)) return;
         }
 
         [Fact]
-        public void MatchCasePattern_UpdateInsert()
+        public void CasePattern_UpdateInsert()
         {
             var src1 = @"
 switch(shape)
@@ -1297,7 +1424,39 @@ switch(shape)
         }
 
         [Fact]
-        public void MatchWhenCondition()
+        public void CasePattern_UpdateDelete()
+        {
+            var src1 = @"
+switch(shape)
+{
+    case Point p: return 0;
+    case Circle c: return 1;
+}
+";
+
+            var src2 = @"
+switch(shape)
+{
+    case Circle circle: return 1;
+}
+";
+
+            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
+            var actual = ToMatchingPairs(match);
+
+            var expected = new MatchingPairs {
+                { "switch(shape) {     case Point p: return 0;     case Circle c: return 1; }", "switch(shape) {     case Circle circle: return 1; }" },
+                { "case Circle c: return 1;", "case Circle circle: return 1;" },
+                { "case Circle c:", "case Circle circle:" },
+                { "c", "circle" },
+                { "return 1;", "return 1;" }
+            };
+
+            expected.AssertEqual(actual);
+        }
+
+        [Fact]
+        public void WhenCondition()
         {
             var src1 = @"
 switch(shape)
@@ -1336,121 +1495,6 @@ switch(shape)
             expected.AssertEqual(actual);
         }
 
-        [Fact]
-        public void MatchRef()
-        {
-            var src1 = @"
-ref int a = ref G(new int[] { 1, 2 });
-    ref int G(int[] p)
-    {
-        return ref p[1];
-    }
-";
-
-            var src2 = @"
-ref int32 a = ref G1(new int[] { 1, 2 });
-    ref int G1(int[] p)
-    {
-        return ref p[2];
-    }
-";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "ref int a = ref G(new int[] { 1, 2 });", "ref int32 a = ref G1(new int[] { 1, 2 });" },
-                { "ref int a = ref G(new int[] { 1, 2 })", "ref int32 a = ref G1(new int[] { 1, 2 })" },
-                { "a = ref G(new int[] { 1, 2 })", "a = ref G1(new int[] { 1, 2 })" },
-                { "ref int G(int[] p)     {         return ref p[1];     }", "ref int G1(int[] p)     {         return ref p[2];     }" },
-                { "{         return ref p[1];     }", "{         return ref p[2];     }" },
-                { "return ref p[1];", "return ref p[2];" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchThrowException_UpdateInsert()
-        {
-            var src1 = @"
-return a > 3 ? a : throw new Exception();
-return c > 7 ? c : 7;
-";
-
-            var src2 = @"
-return a > 3 ? a : throw new ArgumentException();
-return c > 7 ? c : throw new IndexOutOfRangeException();
-";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "return a > 3 ? a : throw new Exception();", "return a > 3 ? a : throw new ArgumentException();" },
-                { "return c > 7 ? c : 7;", "return c > 7 ? c : throw new IndexOutOfRangeException();" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchThrowException_UpdateDelete()
-        {
-            var src1 = @"
-return a > 3 ? a : throw new Exception();
-return b > 5 ? b : throw new OperationCanceledException();
-";
-
-            var src2 = @"
-return a > 3 ? a : throw new ArgumentException();
-return b > 5 ? b : 5;
-";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs
-            {
-                { "return a > 3 ? a : throw new Exception();", "return a > 3 ? a : throw new ArgumentException();" },
-                { "return b > 5 ? b : throw new OperationCanceledException();", "return b > 5 ? b : 5;" }
-            };
-
-            expected.AssertEqual(actual);
-        }
-
-        [Fact]
-        public void MatchCasePattern_UpdateDelete()
-        {
-            var src1 = @"
-switch(shape)
-{
-    case Point p: return 0;
-    case Circle c: return 1;
-}
-";
-
-            var src2 = @"
-switch(shape)
-{
-    case Circle circle: return 1;
-}
-";
-
-            var match = GetMethodMatches(src1, src2, kind: MethodKind.Regular);
-            var actual = ToMatchingPairs(match);
-
-            var expected = new MatchingPairs {
-                { "switch(shape) {     case Point p: return 0;     case Circle c: return 1; }", "switch(shape) {     case Circle circle: return 1; }" },
-                { "case Circle c: return 1;", "case Circle circle: return 1;" },
-                { "case Circle c:", "case Circle circle:" },
-                { "c", "circle" },
-                { "return 1;", "return 1;" }
-            };
-
-            expected.AssertEqual(actual);
-        }
+        #endregion
     }
 }
