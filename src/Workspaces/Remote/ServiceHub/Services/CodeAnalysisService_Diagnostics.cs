@@ -23,18 +23,12 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName)
         {
+            // if this analysis is explicitly asked by user, boost priority of this request
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, CancellationToken))
+            using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : null)
             {
-                IDisposable booster = null;
-
                 try
                 {
-                    if (arguments.ForcedAnalysis)
-                    {
-                        // if this analysis is explicitly asked by user, boost priority of this request
-                        booster = UserOperationBooster.Boost();
-                    }
-
                     // entry point for diagnostic service
                     var solution = await GetSolutionAsync().ConfigureAwait(false);
 
@@ -57,11 +51,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     // rpc connection has closed.
                     // this can happen if client side cancelled the
                     // operation
-                }
-                finally
-                {
-                    // if this request has been boosted, let it go
-                    booster?.Dispose();
                 }
             }
         }
