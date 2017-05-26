@@ -1028,5 +1028,57 @@ class A
 }",
 CodeStyleOptions.QualifyMethodAccess);
         }
+
+        [WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfBaseQualificationOnProperty()
+        {
+            await TestMissingAsyncWithOption(
+@"class Base
+{
+    protected virtual int Property { get; }
+}
+class Derived : Base
+{
+    protected override int Property { get { return [|base.Property|]; } }
+}",
+CodeStyleOptions.QualifyPropertyAccess);
+        }
+
+        [WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfBaseQualificationOnMethod()
+        {
+            await TestMissingAsyncWithOption(
+@"class Base
+{
+    protected virtual void M() { }
+}
+class Derived : Base
+{
+    protected override void M() { [|base.M()|]; }
+}",
+CodeStyleOptions.QualifyMethodAccess);
+        }
+
+        [WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfBaseQualificationOnEvent()
+        {
+            await TestMissingAsyncWithOption(
+@"class Base
+{
+    protected virtual event EventHandler Event;
+}
+class Derived : Base
+{
+    protected override event EventHandler Event 
+    {
+        add { [|base.Event|] += value; }
+        remove { }
+    }
+}",
+CodeStyleOptions.QualifyEventAccess);
+        }
     }
 }
