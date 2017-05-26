@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override CompletionProvider CreateCompletionProvider() => new InternalsVisibleToCompletionProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NameCref()
+        public async Task CodeCompletionContainsOtherAssemblyOfSolution()
         {
             var text = @"
-[assembly: InternalsVisibleTo(""$$"")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""$$"")]
 ";
             await VerifyItemExistsAsync(text, "ClassLibrary1.dll");
         }
