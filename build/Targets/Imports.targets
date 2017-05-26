@@ -445,7 +445,7 @@
       <Error Text="IBCMerge not found at $(IbcMergePath). Local developer builds should pass /p:SkipApplyOptimizations=true to avoid this"
              Condition="!Exists('$(IbcMergePath)')" />
 
-      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
+      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental -excludeGenmethUnboxingStubs &quot;$(OptimizationDataFile)&quot;"
             ConsoleToMSBuild="true"
             Condition="Exists('$(IbcMergePath)')">
         <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
