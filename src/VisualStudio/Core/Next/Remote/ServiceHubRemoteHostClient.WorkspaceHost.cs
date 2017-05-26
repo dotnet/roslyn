@@ -33,13 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = workspace.CurrentSolution.Id;
             }
 
-            public Task InitializeAsync()
-            {
-                // Ensure that we populate the remote service with the initial state of
-                // the workspace's solution.
-                return RegisterPrimarySolutionAsync();
-            }
-
             public void OnAfterWorkingFolderChange()
             {
                 this.AssertIsForeground();
@@ -65,7 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    await session.InvokeAsync(nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
+                    await session.InvokeAsync(
+                        nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
 
                     await session.InvokeAsync(
                         nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
