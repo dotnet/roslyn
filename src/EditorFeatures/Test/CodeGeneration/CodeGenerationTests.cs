@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Accessibility accessibility = Accessibility.Public,
             Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             Type returnType = null,
-            Func<SemanticModel, IMethodSymbol> explicitInterface = null,
+            Func<SemanticModel, ImmutableArray<IMethodSymbol>> getExplicitInterfaces = null,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var parsedStatements = context.ParseStatements(statements);
-                var explicitInterfaceSymbol = GetMethodSymbol(explicitInterface, context);
+                var explicitInterfaceImplementations = GetMethodSymbols(getExplicitInterfaces, context);
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     default(ImmutableArray<AttributeData>),
                     accessibility,
                     modifiers,
                     GetTypeSymbol(returnType)(context.SemanticModel),
                     false,
-                    ImmutableArray.Create(explicitInterfaceSymbol),
+                    explicitInterfaceImplementations,
                     name,
                     typeParameters,
                     parameterSymbols,
@@ -649,9 +649,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 ? default(ImmutableArray<IParameterSymbol>)
                 : parameters.SelectAsArray(p => p(context.SemanticModel));
 
-        private static IMethodSymbol GetMethodSymbol(Func<SemanticModel, IMethodSymbol> explicitInterface, TestContext context)
+        private static ImmutableArray<IMethodSymbol> GetMethodSymbols(
+            Func<SemanticModel, ImmutableArray<IMethodSymbol>> explicitInterface, TestContext context)
         {
-            return explicitInterface == null ? null : explicitInterface(context.SemanticModel);
+            return explicitInterface == null ? default : explicitInterface(context.SemanticModel);
         }
 
         private static ImmutableArray<ISymbol> GetSymbols(ImmutableArray<Func<SemanticModel, ISymbol>> members, TestContext context)
