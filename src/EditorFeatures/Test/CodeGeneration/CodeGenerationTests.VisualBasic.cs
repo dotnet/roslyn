@@ -493,7 +493,7 @@ End Class";
                     name: "M",
                     returnType: typeof(void),
                     parameters: Parameters(Parameter(typeof(int), "i")),
-                    explicitInterface: s => s.LookupSymbols(input.IndexOf('M'), null, "M").First() as IMethodSymbol);
+                    getExplicitInterfaces: s => s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>().ToImmutableArray());
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
