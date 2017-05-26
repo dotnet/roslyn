@@ -165,29 +165,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 method As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
 
-            Dim updatedExplicitImpl = UpdateExplicitInterfaceImplementation(
-                [property], method.ExplicitInterfaceImplementations.FirstOrDefault(), desiredName)
+            Dim updatedImplementations = method.ExplicitInterfaceImplementations.SelectAsArray(
+                Function(i) UpdateExplicitInterfaceImplementation([property], i, desiredName))
 
-            Return If(updatedExplicitImpl Is method.ExplicitInterfaceImplementations.FirstOrDefault(),
+            Return If(updatedImplementations.SequenceEqual(method.ExplicitInterfaceImplementations),
                       method,
                       CodeGenerationSymbolFactory.CreateMethodSymbol(
-                        method, explicitInterfaceSymbol:=updatedExplicitImpl))
+                        method, explicitInterfaceImplementations:=updatedImplementations))
         End Function
 
         Private Function UpdateExplicitInterfaceImplementation(
                 [property] As IPropertySymbol,
-                methodSymbol As IMethodSymbol,
+                explicitInterfaceImplMethod As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
 
-            If methodSymbol IsNot Nothing Then
-                If methodSymbol.Name = "get_" + [property].Name OrElse
-                   methodSymbol.Name = "set_" + [property].Name Then
+            If explicitInterfaceImplMethod IsNot Nothing Then
+                If explicitInterfaceImplMethod.Name = "get_" + [property].Name OrElse
+                   explicitInterfaceImplMethod.Name = "set_" + [property].Name Then
                     Return CodeGenerationSymbolFactory.CreateMethodSymbol(
-                        methodSymbol, name:=desiredName, containingType:=methodSymbol.ContainingType)
+                        explicitInterfaceImplMethod, name:=desiredName, containingType:=explicitInterfaceImplMethod.ContainingType)
                 End If
             End If
 
-            Return methodSymbol
+            Return explicitInterfaceImplMethod
         End Function
 
         Private Function CopyLeadingTriviaOver(propertyStatement As PropertyStatementSyntax,

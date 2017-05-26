@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes,
             Accessibility accessibility, DeclarationModifiers modifiers,
             ITypeSymbol returnType, bool returnsByRef,
-            IMethodSymbol explicitInterfaceSymbol, string name,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
             ImmutableArray<ITypeParameterSymbol> typeParameters,
             ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> returnTypeAttributes = default(ImmutableArray<AttributeData>),
             MethodKind methodKind = MethodKind.Ordinary)
         {
-            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceSymbol, name, typeParameters, parameters, returnTypeAttributes, methodKind);
+            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceImplementations, name, typeParameters, parameters, returnTypeAttributes, methodKind);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
             return result;
         }
@@ -165,14 +165,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public static IMethodSymbol CreateMethodSymbol(
             ImmutableArray<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers,
-            ITypeSymbol returnType, bool returnsByRef, IMethodSymbol explicitInterfaceSymbol, string name,
-            ImmutableArray<ITypeParameterSymbol> typeParameters, ImmutableArray<IParameterSymbol> parameters,
+            ITypeSymbol returnType, bool returnsByRef,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations, string name,
+            ImmutableArray<ITypeParameterSymbol> typeParameters, 
+            ImmutableArray<IParameterSymbol> parameters,
             ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
             ImmutableArray<SyntaxNode> handlesExpressions = default(ImmutableArray<SyntaxNode>),
             ImmutableArray<AttributeData> returnTypeAttributes = default(ImmutableArray<AttributeData>),
             MethodKind methodKind = MethodKind.Ordinary)
         {
-            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceSymbol, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind);
+            return CreateMethodSymbol(null, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceImplementations, name, typeParameters, parameters, statements, handlesExpressions, returnTypeAttributes, methodKind);
         }
 
         /// <summary>
@@ -284,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             IMethodSymbol accessor,
             ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>),
             Accessibility? accessibility = null,
-            IMethodSymbol explicitInterfaceSymbol = null,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>))
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -293,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessor.GetSymbolModifiers().WithIsAbstract(statements == null),
                 accessor.ReturnType,
                 accessor.ReturnsByRef,
-                explicitInterfaceSymbol ?? accessor.ExplicitInterfaceImplementations.FirstOrDefault(),
+                explicitInterfaceImplementations.IsDefault ? accessor.ExplicitInterfaceImplementations : explicitInterfaceImplementations,
                 accessor.Name,
                 accessor.TypeParameters,
                 accessor.Parameters,
@@ -314,8 +316,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 accessibility,
                 new DeclarationModifiers(isAbstract: statements == null),
                 returnType: null, 
-                returnsByRef: false, 
-                explicitInterfaceSymbol: null,
+                returnsByRef: false,
+                explicitInterfaceImplementations: default,
                 name: string.Empty,
                 typeParameters: default(ImmutableArray<ITypeParameterSymbol>), 
                 parameters: default(ImmutableArray<IParameterSymbol>),
@@ -376,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
                 returnsByRef: returnsByRef,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: "Invoke",
                 typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: parameters);
@@ -412,7 +414,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<AttributeData> attributes = default(ImmutableArray<AttributeData>),
             Accessibility? accessibility = null,
             DeclarationModifiers? modifiers = null,
-            IMethodSymbol explicitInterfaceSymbol = null,
+            ImmutableArray<IMethodSymbol> explicitInterfaceImplementations = default,
             string name = null,
             ImmutableArray<SyntaxNode> statements = default(ImmutableArray<SyntaxNode>),
             INamedTypeSymbol containingType = null)
@@ -424,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 modifiers ?? method.GetSymbolModifiers(),
                 method.ReturnType,
                 method.ReturnsByRef,
-                explicitInterfaceSymbol,
+                explicitInterfaceImplementations,
                 name ?? method.Name,
                 method.TypeParameters,
                 method.Parameters,

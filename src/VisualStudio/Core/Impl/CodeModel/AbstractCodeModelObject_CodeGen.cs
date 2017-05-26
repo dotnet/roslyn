@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
                     returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: "add_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>));
@@ -94,7 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
                     returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: "remove_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>));
@@ -141,7 +141,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
                 returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: name,
                 typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: default(ImmutableArray<IParameterSymbol>));
@@ -164,7 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
                     returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: "get_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>),
@@ -180,7 +180,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
                     returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: "set_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>));
