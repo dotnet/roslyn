@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     modifiers: new DeclarationModifiers(isStatic: State.IsStatic, isAbstract: isAbstract),
                     type: DetermineReturnType(cancellationToken),
                     returnsByRef: DetermineReturnsByRef(cancellationToken),
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: this.State.IdentifierToken.ValueText,
                     parameters: DetermineParameters(cancellationToken),
                     getMethod: getMethod,

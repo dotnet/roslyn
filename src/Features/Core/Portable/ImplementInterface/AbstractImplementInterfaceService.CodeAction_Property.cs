@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                     updatedProperty,
                     accessibility: accessibility,
                     modifiers: modifiers,
-                    explicitInterfaceSymbol: useExplicitInterfaceSymbol ? property : null,
+                    explicitInterfaceImplementations: useExplicitInterfaceSymbol ? ImmutableArray.Create(property) : default,
                     name: memberName,
                     getMethod: getAccessor,
                     setMethod: setAccessor);
