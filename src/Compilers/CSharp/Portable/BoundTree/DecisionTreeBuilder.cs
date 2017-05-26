@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = value.Value.Type;
                 if (byType.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
                 {
-                    // reuse the input expression when we can
+                    // reuse the input expression when we have an equivalent type to reduce the number of generated temps
                     forType = new DecisionTree.ByValue(byType.Expression, type.TupleUnderlyingTypeOrSelf(), null);
                 }
                 else

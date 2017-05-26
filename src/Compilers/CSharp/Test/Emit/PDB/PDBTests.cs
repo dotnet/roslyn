@@ -3000,7 +3000,8 @@ class Program
 
     static void M1()
     {
-        switch (1)
+        switch
+            (1)
         {
             case 0 when true:
                 ;
@@ -3014,7 +3015,8 @@ class Program
 
     static void M2()
     {
-        switch (nameof(M2))
+        switch
+            (nameof(M2))
         {
             case nameof(M1) when true:
                 ;
@@ -3031,79 +3033,46 @@ class Program
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1M2");
 
-            verifier.VerifyIL("Program.M1",
-@"{
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
   // Code size       15 (0xf)
   .maxstack  1
   .locals init (int V_0)
+  // sequence point: {
   IL_0000:  nop
+  // sequence point: switch ...           (1
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.0
   IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(1);
   IL_0005:  ldc.i4.1
   IL_0006:  call       ""void System.Console.Write(int)""
   IL_000b:  nop
+  // sequence point: break;
   IL_000c:  br.s       IL_000e
+  // sequence point: }
   IL_000e:  ret
 }");
-            c.VerifyPdb("Program.M1",
-@"<symbols>
-  <entryPoint declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-  <methods>
-    <method containingType=""Program"" name=""M1"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-        <encLocalSlotMap>
-          <slot kind=""1"" offset=""11"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""19"" />
-        <entry offset=""0x5"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""34"" />
-        <entry offset=""0xc"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" />
-        <entry offset=""0xe"" startLine=""24"" startColumn=""5"" endLine=""24"" endColumn=""6"" />
-      </sequencePoints>
-    </method>
-  </methods>
-</symbols>");
-
-            verifier.VerifyIL("Program.M2",
-@"{
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
   // Code size       23 (0x17)
   .maxstack  1
   .locals init (string V_0)
+  // sequence point: {
   IL_0000:  nop
+  // sequence point: switch ...  (nameof(M2)
   IL_0001:  ldstr      ""M2""
   IL_0006:  stloc.0
   IL_0007:  br.s       IL_0009
+  // sequence point: Console.Write(nameof(M2));
   IL_0009:  ldstr      ""M2""
   IL_000e:  call       ""void System.Console.Write(string)""
   IL_0013:  nop
+  // sequence point: break;
   IL_0014:  br.s       IL_0016
+  // sequence point: }
   IL_0016:  ret
 }");
-            c.VerifyPdb("Program.M2",
-@"<symbols>
-  <entryPoint declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-  <methods>
-    <method containingType=""Program"" name=""M2"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-        <encLocalSlotMap>
-          <slot kind=""1"" offset=""11"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""27"" startColumn=""5"" endLine=""27"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""28"" />
-        <entry offset=""0x9"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""43"" />
-        <entry offset=""0x14"" startLine=""34"" startColumn=""17"" endLine=""34"" endColumn=""23"" />
-        <entry offset=""0x16"" startLine=""38"" startColumn=""5"" endLine=""38"" endColumn=""6"" />
-      </sequencePoints>
-    </method>
-  </methods>
-</symbols>");
 
             // Check the release code generation too.
             c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
@@ -3177,8 +3146,8 @@ class Program
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "1234");
 
-            verifier.VerifyIL("Program.M1<T>",
-@"{
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
   // Code size       80 (0x50)
   .maxstack  2
   .locals init (T V_0,
@@ -3188,7 +3157,9 @@ class Program
                 int V_4,
                 object V_5,
                 T V_6)
+  // sequence point: {
   IL_0000:  nop
+  // sequence point: switch (1)
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.s    V_4
   IL_0004:  ldc.i4.1
@@ -3212,64 +3183,31 @@ class Program
   IL_0031:  ldc.i4.1
   IL_0032:  stloc.1
   IL_0033:  br.s       IL_0042
+  // sequence point: <hidden>
   IL_0035:  ldloc.0
   IL_0036:  stloc.2
   IL_0037:  br.s       IL_0039
+  // sequence point: Console.Write(1);
   IL_0039:  ldc.i4.1
   IL_003a:  call       ""void System.Console.Write(int)""
   IL_003f:  nop
+  // sequence point: break;
   IL_0040:  br.s       IL_004f
+  // sequence point: <hidden>
   IL_0042:  ldloc.1
   IL_0043:  stloc.3
   IL_0044:  br.s       IL_0046
+  // sequence point: Console.Write(2);
   IL_0046:  ldc.i4.2
   IL_0047:  call       ""void System.Console.Write(int)""
   IL_004c:  nop
+  // sequence point: break;
   IL_004d:  br.s       IL_004f
+  // sequence point: }
   IL_004f:  ret
 }");
-            c.VerifyPdb("Program.M1",
-@"<symbols>
-  <entryPoint declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-  <methods>
-    <method containingType=""Program"" name=""M1"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-        <encLocalSlotMap>
-          <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""11"" />
-          <slot kind=""0"" offset=""53"" />
-          <slot kind=""0"" offset=""137"" />
-          <slot kind=""1"" offset=""11"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""19"" />
-        <entry offset=""0x35"" hidden=""true"" />
-        <entry offset=""0x39"" startLine=""19"" startColumn=""17"" endLine=""19"" endColumn=""34"" />
-        <entry offset=""0x40"" startLine=""20"" startColumn=""17"" endLine=""20"" endColumn=""23"" />
-        <entry offset=""0x42"" hidden=""true"" />
-        <entry offset=""0x46"" startLine=""22"" startColumn=""17"" endLine=""22"" endColumn=""34"" />
-        <entry offset=""0x4d"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0x4f"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x50"">
-        <scope startOffset=""0x35"" endOffset=""0x42"">
-          <local name=""t"" il_index=""2"" il_start=""0x35"" il_end=""0x42"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x42"" endOffset=""0x4f"">
-          <local name=""i"" il_index=""3"" il_start=""0x42"" il_end=""0x4f"" attributes=""0"" />
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>");
-
-            verifier.VerifyIL("Program.M2<T>",
-@"{
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
   // Code size       87 (0x57)
   .maxstack  2
   .locals init (T V_0,
@@ -3279,7 +3217,9 @@ class Program
                 string V_4,
                 object V_5,
                 T V_6)
+  // sequence point: {
   IL_0000:  nop
+  // sequence point: switch (nameof(M2))
   IL_0001:  ldstr      ""M2""
   IL_0006:  stloc.s    V_4
   IL_0008:  ldstr      ""M2""
@@ -3302,61 +3242,29 @@ class Program
   IL_0034:  ldstr      ""M2""
   IL_0039:  stloc.1
   IL_003a:  br.s       IL_0049
+  // sequence point: <hidden>
   IL_003c:  ldloc.0
   IL_003d:  stloc.2
   IL_003e:  br.s       IL_0040
+  // sequence point: Console.Write(3);
   IL_0040:  ldc.i4.3
   IL_0041:  call       ""void System.Console.Write(int)""
   IL_0046:  nop
+  // sequence point: break;
   IL_0047:  br.s       IL_0056
+  // sequence point: <hidden>
   IL_0049:  ldloc.1
   IL_004a:  stloc.3
   IL_004b:  br.s       IL_004d
+  // sequence point: Console.Write(4);
   IL_004d:  ldc.i4.4
   IL_004e:  call       ""void System.Console.Write(int)""
   IL_0053:  nop
+  // sequence point: break;
   IL_0054:  br.s       IL_0056
+  // sequence point: }
   IL_0056:  ret
 }");
-            c.VerifyPdb("Program.M2",
-@"<symbols>
-  <entryPoint declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-  <methods>
-    <method containingType=""Program"" name=""M2"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-        <encLocalSlotMap>
-          <slot kind=""35"" offset=""11"" />
-          <slot kind=""35"" offset=""11"" />
-          <slot kind=""0"" offset=""62"" />
-          <slot kind=""0"" offset=""149"" />
-          <slot kind=""1"" offset=""11"" />
-          <slot kind=""temp"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""28"" startColumn=""5"" endLine=""28"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""29"" startColumn=""9"" endLine=""29"" endColumn=""28"" />
-        <entry offset=""0x3c"" hidden=""true"" />
-        <entry offset=""0x40"" startLine=""32"" startColumn=""17"" endLine=""32"" endColumn=""34"" />
-        <entry offset=""0x47"" startLine=""33"" startColumn=""17"" endLine=""33"" endColumn=""23"" />
-        <entry offset=""0x49"" hidden=""true"" />
-        <entry offset=""0x4d"" startLine=""35"" startColumn=""17"" endLine=""35"" endColumn=""34"" />
-        <entry offset=""0x54"" startLine=""36"" startColumn=""17"" endLine=""36"" endColumn=""23"" />
-        <entry offset=""0x56"" startLine=""40"" startColumn=""5"" endLine=""40"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0x57"">
-        <scope startOffset=""0x3c"" endOffset=""0x49"">
-          <local name=""t"" il_index=""2"" il_start=""0x3c"" il_end=""0x49"" attributes=""0"" />
-        </scope>
-        <scope startOffset=""0x49"" endOffset=""0x56"">
-          <local name=""s"" il_index=""3"" il_start=""0x49"" il_end=""0x56"" attributes=""0"" />
-        </scope>
-      </scope>
-    </method>
-  </methods>
-</symbols>");
 
             // Check the release code generation too.
             c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
@@ -3468,49 +3376,28 @@ class Program
             c.VerifyDiagnostics();
             var verifier = CompileAndVerify(c, expectedOutput: "66");
 
-            verifier.VerifyIL("Program.M2<T>",
-@"{
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
   // Code size       15 (0xf)
   .maxstack  1
   .locals init (T V_0, //t
                 string V_1, //s
                 string V_2)
+  // sequence point: {
   IL_0000:  nop
+  // sequence point: switch (x)
   IL_0001:  ldnull
   IL_0002:  stloc.2
   IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(6);
   IL_0005:  ldc.i4.6
   IL_0006:  call       ""void System.Console.Write(int)""
   IL_000b:  nop
+  // sequence point: break;
   IL_000c:  br.s       IL_000e
+  // sequence point: }
   IL_000e:  ret
 }");
-            c.VerifyPdb("Program.M2",
-@"<symbols>
-  <entryPoint declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-  <methods>
-    <method containingType=""Program"" name=""M2"">
-      <customDebugInfo>
-        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""85"" />
-          <slot kind=""0"" offset=""132"" />
-          <slot kind=""1"" offset=""43"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" />
-        <entry offset=""0x1"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""19"" />
-        <entry offset=""0x5"" startLine=""22"" startColumn=""17"" endLine=""22"" endColumn=""34"" />
-        <entry offset=""0xc"" startLine=""23"" startColumn=""17"" endLine=""23"" endColumn=""23"" />
-        <entry offset=""0xe"" startLine=""25"" startColumn=""5"" endLine=""25"" endColumn=""6"" />
-      </sequencePoints>
-      <scope startOffset=""0x0"" endOffset=""0xf"">
-        <constant name=""x"" value=""null"" type=""String"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>");
 
             // Check the release code generation too.
             c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);

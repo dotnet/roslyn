@@ -179,7 +179,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (defaultLabel != null && !loweredDecisionTree.MatchIsComplete)
                 {
-                    Add(loweredDecisionTree, (e, t) => new DecisionTree.Guarded(loweredExpression, loweredExpression.Type, default(ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>>), defaultSection, null, defaultLabel));
+                    Add(loweredDecisionTree, (e, t) => new DecisionTree.Guarded(
+                        expression: loweredExpression,
+                        type: loweredExpression.Type,
+                        bindings: default,
+                        sectionSyntax: defaultSection,
+                        guard: null,
+                        label: defaultLabel));
                 }
 
                 // We discard use-site diagnostics, as they have been reported during initial binding.
@@ -291,7 +297,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var inputExpression = byType.Expression;
                                 var objectType = _factory.SpecialType(SpecialType.System_Object);
                                 var nullValue = _factory.Null(objectType);
-                                BoundExpression notNull = byType.Type.IsNullableType() ? _localRewriter.RewriteNullableNullEquality(_factory.Syntax, BinaryOperatorKind.NullableNullNotEqual, byType.Expression, nullValue, _factory.SpecialType(SpecialType.System_Boolean))
+                                BoundExpression notNull =
+                                    byType.Type.IsNullableType()
+                                    ? _localRewriter.RewriteNullableNullEquality(
+                                            _factory.Syntax,
+                                            BinaryOperatorKind.NullableNullNotEqual,
+                                            byType.Expression,
+                                            nullValue,
+                                            _factory.SpecialType(SpecialType.System_Boolean))
                                     : _factory.ObjectNotEqual(nullValue, _factory.Convert(objectType, byType.Expression));
                                 _loweredDecisionTree.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
                                 LowerDecisionTree(byType.Expression, byType.WhenNull);
