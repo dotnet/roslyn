@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 reference.Dispose();
             }
 
-            Assert.Null(reference.Target);
+            Assert.Throws<ObjectDisposedException>(() => reference.Target);
             Assert.True(target.IsDisposed);
             Assert.Equal(1, target.DisposeCount);
         }

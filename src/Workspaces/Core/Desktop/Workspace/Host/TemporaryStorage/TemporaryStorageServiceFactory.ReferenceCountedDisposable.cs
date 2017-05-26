@@ -112,13 +112,13 @@ namespace Microsoft.CodeAnalysis.Host
             /// <remarks>
             /// <para>This call is not valid after <see cref="Dispose"/> is called. If this property or the target
             /// object is used concurrently with a call to <see cref="Dispose"/>, it is possible for the code to be
-            /// using a disposed object. After the current instance is disposed, this property returns
-            /// <see langword="null"/>. However, the exact time when this property starts returning null after
+            /// using a disposed object. After the current instance is disposed, this property throws
+            /// <see cref="ObjectDisposedException"/>. However, the exact time when this property starts throwing after
             /// <see cref="Dispose"/> is called is unspecified; code is expected to not use this property or the object
             /// it returns after any code invokes <see cref="Dispose"/>.</para>
             /// </remarks>
             /// <value>The target object.</value>
-            public T Target => _instance;
+            public T Target => _instance ?? throw new ObjectDisposedException(nameof(ReferenceCountedDisposable<T>));
 
             /// <summary>
             /// Increments the reference count for the disposable object, and returns a new disposable reference to it.
