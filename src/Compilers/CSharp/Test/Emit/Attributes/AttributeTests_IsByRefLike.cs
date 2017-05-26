@@ -160,10 +160,10 @@ public delegate ref readonly int D([IsByRefLike]ref readonly int x);
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 // [IsByRefLike]
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(4, 2),
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(4, 2),
                 // (5,37): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 // public delegate ref readonly int D([IsByRefLike]ref readonly int x);
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(5, 37));
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(5, 37));
         }
 
         [Fact]
@@ -189,7 +189,7 @@ public class Test
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 // [IsByRefLike]
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(4, 2));
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(4, 2));
         }
 
         [Fact]
@@ -218,7 +218,7 @@ public class Test
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(6, 6));
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(6, 6));
         }
 
         [Fact]
@@ -247,7 +247,7 @@ public class Test
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (8,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(8, 6));
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(8, 6));
         }
 
         [Fact]
@@ -278,13 +278,13 @@ public class Test
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(6, 6),
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(6, 6),
                 // (7,14): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [return: IsByRefLike]
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(7, 14),
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(7, 14),
                 // (8,37): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     public ref readonly int Method([IsByRefLike]ref readonly int x)
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(8, 37));
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(8, 37));
         }
 
         [Fact]
@@ -311,10 +311,10 @@ public class Test
             CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [IsByRefLike]
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(6, 6),
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(6, 6),
                 // (7,35): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     public ref readonly int this[[IsByRefLike]ref readonly int x] { get { return ref x; } }
-                Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(7, 35));
+                Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsByRefLike").WithArguments("System.Runtime.CompilerServices.IsByRefLikeAttribute").WithLocation(7, 35));
         }
 
         [Fact]
@@ -639,7 +639,7 @@ public class Test
         private static void AssertReferencedIsByRefLikeAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
         {
             var attributeType = attributes.Single().AttributeClass;
-            Assert.Equal("IsByRefLikeAttribute", attributeType.Name);
+            Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
             Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
             Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
         }

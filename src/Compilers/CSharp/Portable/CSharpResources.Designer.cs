@@ -4067,15 +4067,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.IsByRefLikeAttribute&apos;. This is reserved for compiler usage..
-        /// </summary>
-        internal static string ERR_ExplicitIsByRefLikeAttr {
-            get {
-                return ResourceManager.GetString("ERR_ExplicitIsByRefLikeAttr", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: Auto-implemented properties cannot be used inside a type marked with StructLayout(LayoutKind.Explicit).
         /// </summary>
         internal static string ERR_ExplicitLayoutAndAutoImplementedProperty {
@@ -4121,11 +4112,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not use &apos;System.Runtime.CompilerServices.IsReadOnlyAttribute&apos;. This is reserved for compiler usage..
+        ///   Looks up a localized string similar to Do not use &apos;{0}&apos;. This is reserved for compiler usage..
         /// </summary>
-        internal static string ERR_ExplicitReadOnlyAttr {
+        internal static string ERR_ExplicitReservedAttr {
             get {
-                return ResourceManager.GetString("ERR_ExplicitReadOnlyAttr", resourceCulture);
+                return ResourceManager.GetString("ERR_ExplicitReservedAttr", resourceCulture);
             }
         }
         

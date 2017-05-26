@@ -41,10 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
-        private bool _needsGeneratedIsByRefLikeAttribute_Value;
 
         private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
-        private bool _needsGeneratedIsByRefLikeAttribute_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -61,16 +59,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         /// <summary>
-        /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
-        /// The value is set during lowering the symbols that need that attribute, and is frozen on first trial to get it.
-        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
         /// </summary>
         internal bool NeedsGeneratedIsByRefLikeAttribute
         {
             get
             {
-                _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
-                return Compilation.NeedsGeneratedIsByRefLikeAttribute || _needsGeneratedIsByRefLikeAttribute_Value;
+                return Compilation.NeedsGeneratedIsByRefLikeAttribute;
             }
         }
 
@@ -1473,21 +1468,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(!_needsGeneratedIsReadOnlyAttribute_IsFrozen);
                 _needsGeneratedIsReadOnlyAttribute_Value = true;
-            }
-        }
-
-        internal void EnsureIsByRefLikeAttributeExists()
-        {
-            if (_needsGeneratedIsByRefLikeAttribute_Value || Compilation.NeedsGeneratedIsByRefLikeAttribute)
-            {
-                return;
-            }
-
-            // Don't report any errors. They should be reported during binding.
-            if (Compilation.CheckIfIsByRefLikeAttributeShouldBeEmbedded(diagnosticsOpt: null, locationOpt: null))
-            {
-                Debug.Assert(!_needsGeneratedIsByRefLikeAttribute_IsFrozen);
-                _needsGeneratedIsByRefLikeAttribute_Value = true;
             }
         }
     }
