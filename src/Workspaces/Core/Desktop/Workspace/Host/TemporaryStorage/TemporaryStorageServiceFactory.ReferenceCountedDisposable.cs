@@ -92,15 +92,17 @@ namespace Microsoft.CodeAnalysis.Host
             /// <para>The reference count is initialized to 1.</para>
             /// </remarks>
             /// <param name="instance">The object owned by this wrapper.</param>
+            /// <exception cref="ArgumentNullException">
+            /// If <paramref name="instance"/> is <see langword="null"/>.
+            /// </exception>
             public ReferenceCountedDisposable(T instance)
+                : this(instance, new StrongBox<int>(1))
             {
-                _instance = instance ?? throw new ArgumentNullException(nameof(instance));
-                _boxedReferenceCount = new StrongBox<int>(1);
             }
 
             private ReferenceCountedDisposable(T instance, StrongBox<int> referenceCount)
             {
-                _instance = instance;
+                _instance = instance ?? throw new ArgumentNullException(nameof(instance));
 
                 // The reference count has already been incremented for this instance
                 _boxedReferenceCount = referenceCount;
