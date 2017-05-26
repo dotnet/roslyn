@@ -31,10 +31,5 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(value != ThreeState.Unknown);
             return value == ThreeState.True;
         }
-
-        public static bool IsTrue(this ThreeState value)
-        {
-            return value == ThreeState.True;
-        }
     }
 }

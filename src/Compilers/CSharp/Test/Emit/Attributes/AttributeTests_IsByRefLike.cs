@@ -280,7 +280,7 @@ public class Test
                 //     [IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(6, 6),
                 // (7,14): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
-                //     [return: IsReadOnly]
+                //     [return: IsByRefLike]
                 Diagnostic(ErrorCode.ERR_ExplicitIsByRefLikeAttr, "IsByRefLike").WithLocation(7, 14),
                 // (8,37): error CS8412: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     public ref readonly int Method([IsByRefLike]ref readonly int x)
@@ -636,7 +636,7 @@ public class Test
                 );
         }
 
-        private void AssertReferencedIsByRefLikeAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        private static void AssertReferencedIsByRefLikeAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
         {
             var attributeType = attributes.Single().AttributeClass;
             Assert.Equal("IsByRefLikeAttribute", attributeType.Name);
@@ -644,7 +644,7 @@ public class Test
             Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
         }
 
-        private void AssertNotReferencedIsByRefLikeAttribute(ImmutableArray<CSharpAttributeData> attributes)
+        private static void AssertNotReferencedIsByRefLikeAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
             foreach(var attr in attributes)
             {
@@ -652,13 +652,13 @@ public class Test
             }
         }
 
-        private void AssertNoIsByRefLikeAttributeExists(AssemblySymbol assembly)
+        private static void AssertNoIsByRefLikeAttributeExists(AssemblySymbol assembly)
         {
             var isByRefLikeAttributeTypeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute);
             Assert.Null(assembly.GetTypeByMetadataName(isByRefLikeAttributeTypeName));
         }
 
-        private void AssertGeneratedEmbeddedAttribute(AssemblySymbol assembly, string expectedTypeName)
+        private static void AssertGeneratedEmbeddedAttribute(AssemblySymbol assembly, string expectedTypeName)
         {
             var typeSymbol = assembly.GetTypeByMetadataName(expectedTypeName);
             Assert.NotNull(typeSymbol);
