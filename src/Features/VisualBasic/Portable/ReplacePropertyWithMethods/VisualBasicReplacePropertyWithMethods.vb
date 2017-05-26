@@ -165,6 +165,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 method As IMethodSymbol,
                 desiredName As String) As IMethodSymbol
 
+            ' We have a property like:
+            '       Public ReadOnly Foo As Integer Implements I.Foo'
+            '
+            ' That property has an implicit getter:
+            '       Public Function get_Foo As Integer Implements I.get_Foo'
+            '
+            ' We want to generate the new explicit function:
+            '       Public Function GetFoo() As Integer Implements I.GetFoo
+            ' 
+            ' To do this we make the new method using the information from the implicit getter 
+            ' Function.  However, we need to update the 'explicit interface implementations' 
+            ' of the implicit getter function so that they point to the updated interface method
+            ' and not hte old implicit interface method.
             Dim updatedImplementations = method.ExplicitInterfaceImplementations.SelectAsArray(
                 Function(i) UpdateExplicitInterfaceImplementation([property], i, desiredName))
 
