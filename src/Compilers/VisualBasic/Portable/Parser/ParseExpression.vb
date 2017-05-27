@@ -959,14 +959,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ReportSyntaxError(operatorToken, ERRID.ERR_MissingIsInTypeOf)
             End If
 
-            Dim typeName = ParseGeneralType()
-
             Dim kind As SyntaxKind = If(operatorToken.Kind = SyntaxKind.IsNotKeyword,
                                         SyntaxKind.TypeOfIsNotExpression,
                                         SyntaxKind.TypeOfIsExpression)
 
+            If CheckFeatureAvailability(Feature.TypeOfMultiple) Then
+                Dim arrayOfTypes = ParseTypeArray()
+                If arrayOfTypes.Kind = SyntaxKind.typearray Then
+                    Return SyntaxFactory.TypeOfExpression(kind, [typeOf], exp, operatorToken, arrayOfTypes)
+                End If
+            End If
+
+            Dim typeName As TypeSyntax = ParseGeneralType()
+
+
+
             Return SyntaxFactory.TypeOfExpression(kind, [typeOf], exp, operatorToken, typeName)
         End Function
+
 
         ' /*********************************************************************
         ' *

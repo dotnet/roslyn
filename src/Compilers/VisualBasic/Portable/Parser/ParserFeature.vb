@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
+        TypeOfMultiple
     End Enum
 
     Friend Module FeatureExtensions
@@ -42,7 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case feature.IOperation
                     Return "IOperation"
-
+                Case Feature.TypeOfMultiple
+                    Return "TypeOfMulitple"
                 Case Else
                     Return Nothing
             End Select
@@ -89,7 +91,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
-
+                
+                Case Feature.TypeOfMultiple
+                    Return LanguageVersion.Latest
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

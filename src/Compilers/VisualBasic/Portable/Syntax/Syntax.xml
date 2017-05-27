@@ -5243,6 +5243,41 @@ Unify Enum declarations with other block type declarations.
     <!--****************
       -  TypeOf ... Is/IsNot
       ******************-->
+    <node-structure name="TypeArray" parent="TypeSyntax">
+        <description>
+          Represents an array of type names.
+        </description>
+        <lm-equiv name="TypeArrayNode"></lm-equiv>
+        <native-equiv name="TypeArrayrExpression"></native-equiv>
+
+        <node-kind name="TypeArrayInitializer">
+          <lm-equiv name="TypeArrayInitializer"></lm-equiv>
+          <native-equiv name="Expression.Opcodes.TypeArrayInitializer"></native-equiv>
+        </node-kind>
+
+        <child name="OpenBraceToken" kind="OpenBraceToken">
+          <description>The "{" token.</description>
+          <lm-equiv name="LeftBrace"></lm-equiv>
+          <native-equiv name="BracedInitializerList.GetLocationOfLBrace"></native-equiv>
+        </child>
+
+        <child name="_Types_" optional="true" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@TypeSyntax">
+          <description>The list of types between the braces.</description>
+          <lm-equiv name="_Types_"></lm-equiv>
+          <native-equiv name="BracedInitializerList.InitialValues"></native-equiv>
+        </child>
+
+        <child name="CloseBraceToken" kind="CloseBraceToken">
+          <description>The "}" token.</description>
+          <lm-equiv name="RightBrace"></lm-equiv>
+          <native-equiv name="BracedInitializerList.RBracePresent"></native-equiv>
+          <native-equiv name="BracedInitializerList.GetLocationOfRBrace"></native-equiv>
+        </child>
+    </node-structure>
+
+    <!--****************
+      -  TypeOf ... Is/IsNot
+      ******************-->
     <node-structure name="TypeOfExpressionSyntax" parent="ExpressionSyntax">
       <description>Represents a TypeOf...Is or IsNot expression.</description>
       <lm-equiv name="IsTypeNode"></lm-equiv>
