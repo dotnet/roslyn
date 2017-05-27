@@ -40,8 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private Dictionary<FieldSymbol, NamedTypeSymbol> _fixedImplementationTypes;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
+
+        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this builder has a symbol that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -54,6 +55,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
                 return Compilation.NeedsGeneratedIsReadOnlyAttribute || _needsGeneratedIsReadOnlyAttribute_Value;
+            }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether this builder has a symbol that needs IsByRefLikeAttribute to be generated during emit phase.
+        /// </summary>
+        internal bool NeedsGeneratedIsByRefLikeAttribute
+        {
+            get
+            {
+                return Compilation.NeedsGeneratedIsByRefLikeAttribute;
             }
         }
 
@@ -1421,10 +1433,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return TrySynthesizeIsReadOnlyAttribute();
         }
 
+        internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute(Symbol symbol)
+        {
+            if ((object)Compilation.SourceModule != symbol.ContainingModule)
+            {
+                // For symbols that are not defined in the same compilation (like NoPia), don't synthesize this attribute.
+                return null;
+            }
+
+            return TrySynthesizeIsByRefLikeAttribute();
+        }
+
         protected virtual SynthesizedAttributeData TrySynthesizeIsReadOnlyAttribute()
         {
             // For modules, this attribute should be present. Only assemblies generate and embed this type.
             return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        protected virtual SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
+        {
+            // For modules, this attribute should be present. Only assemblies generate and embed this type.
+            return Compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
         }
 
         internal void EnsureIsReadOnlyAttributeExists()

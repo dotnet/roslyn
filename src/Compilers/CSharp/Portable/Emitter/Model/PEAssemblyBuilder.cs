@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
 
         /// <summary>
         /// The behavior of the C# command-line compiler is as follows:
@@ -72,9 +73,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 builder.Add(_lazyEmbeddedAttribute);
             }
+
             if ((object)_lazyIsReadOnlyAttribute != null)
             {
                 builder.Add(_lazyIsReadOnlyAttribute);
+            }
+
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                builder.Add(_lazyIsByRefLikeAttribute);
             }
 
             return builder.ToImmutableAndFree();
@@ -177,20 +184,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
+        protected override SynthesizedAttributeData TrySynthesizeIsByRefLikeAttribute()
+        {
+            if ((object)_lazyIsByRefLikeAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyIsByRefLikeAttribute.Constructor,
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeIsByRefLikeAttribute();
+        }
+
         private void CreateEmbeddedAttributesIfNeeded(DiagnosticBag diagnostics)
         {
             if (this.NeedsGeneratedIsReadOnlyAttribute)
             {
-                CreateEmbeddedAttributeIfNeeded(
-                    ref _lazyEmbeddedAttribute,
-                    diagnostics,
-                    AttributeDescription.CodeAnalysisEmbeddedAttribute);
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
 
                 CreateEmbeddedAttributeIfNeeded(
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute);
             }
+
+            if (this.NeedsGeneratedIsByRefLikeAttribute)
+            {
+                CreateEmbeddedAttributeItselfIfNeeded(diagnostics);
+
+                CreateEmbeddedAttributeIfNeeded(
+                    ref _lazyIsByRefLikeAttribute,
+                    diagnostics,
+                    AttributeDescription.IsByRefLikeAttribute);
+            }
+        }
+
+        private void CreateEmbeddedAttributeItselfIfNeeded(DiagnosticBag diagnostics)
+        {
+            CreateEmbeddedAttributeIfNeeded(
+                ref _lazyEmbeddedAttribute,
+                diagnostics,
+                AttributeDescription.CodeAnalysisEmbeddedAttribute);
         }
 
         private void CreateEmbeddedAttributeIfNeeded(ref SynthesizedEmbeddedAttributeSymbol symbol, DiagnosticBag diagnostics, AttributeDescription description)
