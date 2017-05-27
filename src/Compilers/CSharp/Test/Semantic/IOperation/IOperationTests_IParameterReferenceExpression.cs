@@ -827,5 +827,28 @@ IOperation:  (OperationKind.None) (Syntax: '__arglist(x, y)')
 
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(19790, "https://github.com/dotnet/roslyn/issues/19790")]
+        public void ParameterReference_IsPatternExpression()
+        {
+            string source = @"
+class Class1
+{
+    public void Method1(object x)
+    {
+        if (/*<bind>*/x is int y/*</bind>*/) { }
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'x is int y')
+  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+    IOperation:  (OperationKind.None) (Syntax: 'int y')
+      Children(1): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'int y')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
