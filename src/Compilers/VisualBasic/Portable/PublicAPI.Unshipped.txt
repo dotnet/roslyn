@@ -3,7 +3,25 @@ Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.ToDisplayString(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> String
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(version As String, ByRef result As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Boolean
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.Add_Types_(ParamArray items As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.CloseBraceToken() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.OpenBraceToken() -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.Update(openBraceToken As Microsoft.CodeAnalysis.SyntaxToken, _Types_ As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax), closeBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.WithCloseBraceToken(closeBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.WithOpenBraceToken(openBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.With_Types_(_Types_ As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax._Types_() -> Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax)
 Microsoft.CodeAnalysis.VisualBasic.SyntaxExtensions.TryGetInferredMemberName(syntax As Microsoft.CodeAnalysis.SyntaxNode) -> String
 Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.ConflictMarkerTrivia = 792 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Microsoft.CodeAnalysis.VisualBasic.SyntaxKind.TypeArray = 793 -> Microsoft.CodeAnalysis.VisualBasic.SyntaxKind
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult).VisitTypeArray(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax) -> TResult
+Overridable Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor.VisitTypeArray(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.Accept(Of TResult)(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor(Of TResult)) -> TResult
+Overrides Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax.Accept(visitor As Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxVisitor) -> Void
+Overrides Microsoft.CodeAnalysis.VisualBasic.VisualBasicSyntaxRewriter.VisitTypeArray(node As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax) -> Microsoft.CodeAnalysis.SyntaxNode
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.ConflictMarkerTrivia(text As String) -> Microsoft.CodeAnalysis.SyntaxTrivia
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypeArray(ParamArray _Types_ As Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax()) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypeArray(_Types_ As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax)) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
+Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFactory.TypeArray(openBraceToken As Microsoft.CodeAnalysis.SyntaxToken, _Types_ As Microsoft.CodeAnalysis.SeparatedSyntaxList(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeSyntax), closeBraceToken As Microsoft.CodeAnalysis.SyntaxToken) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.TypeArraySyntax
 Shared Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts.IsReservedTupleElementName(elementName As String) -> Boolean

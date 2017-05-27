@@ -3198,6 +3198,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Trivia created when merge conflict markers (like "&lt;&lt;&lt;&lt;&lt;&lt;&lt;") are detected in source code
         ''' </summary>
         ConflictMarkerTrivia = 792
-
+        ''' <summary>
+        ''' Represents an array of Types.
+        ''' </summary>
+        TypeArray = 793
     End Enum
 End Namespace

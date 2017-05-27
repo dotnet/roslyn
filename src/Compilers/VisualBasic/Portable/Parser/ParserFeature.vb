@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case feature.IOperation
                     Return "IOperation"
                 Case Feature.TypeOfMultiple
-                    Return "TypeOfMulitple"
+                    Return "TypeOfMultiple"
                 Case Else
                     Return Nothing
             End Select
@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic15_3
                 
                 Case Feature.TypeOfMultiple
-                    Return LanguageVersion.Latest
+                    Return LanguageVersion.VisualBasic15
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -157,6 +157,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.TypeOfMultiple
+                    Return ERRID.FEATURE_TypeOfMultiple
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

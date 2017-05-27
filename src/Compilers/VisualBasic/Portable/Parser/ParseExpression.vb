@@ -962,15 +962,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim kind As SyntaxKind = If(operatorToken.Kind = SyntaxKind.IsNotKeyword,
                                         SyntaxKind.TypeOfIsNotExpression,
                                         SyntaxKind.TypeOfIsExpression)
-
+            Dim typeName As TypeSyntax
             If CheckFeatureAvailability(Feature.TypeOfMultiple) Then
-                Dim arrayOfTypes = ParseTypeArray()
-                If arrayOfTypes.Kind = SyntaxKind.typearray Then
-                    Return SyntaxFactory.TypeOfExpression(kind, [typeOf], exp, operatorToken, arrayOfTypes)
+                typeName = ParseTypeArray()
+                If typeName.Kind = SyntaxKind.TypeArray Then
+                    Return SyntaxFactory.TypeOfExpression(kind, [typeOf], exp, operatorToken, typeName)
                 End If
+                typeName = ResyncAt(typeName, SyntaxKind.IsKeyword, SyntaxKind.IsNotKeyword)
             End If
 
-            Dim typeName As TypeSyntax = ParseGeneralType()
+            typeName = ParseGeneralType()
 
 
 

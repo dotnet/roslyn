@@ -3070,45 +3070,44 @@ checkNullable:
             Return genericName
         End Function
 
-        Friend  Function ParseTypeArray() As CollectionInitializerSyntax
+        Friend Function ParseTypeArray() As TypeArraySyntax
 
             Dim openBrace As PunctuationSyntax = Nothing
             If Not TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace, createIfMissing:=True) Then
-                Return SyntaxFactory.CollectionInitializer(openBrace, Nothing, InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CloseBraceToken))
+                Return SyntaxFactory.TypeArray(openBrace, Nothing, InternalSyntaxFactory.MissingPunctuation(SyntaxKind.CloseBraceToken))
             End If
 
-            Dim _types_ As CoreInternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax) = Nothing
+            Dim _types_ As CoreInternalSyntax.SeparatedSyntaxList(Of TypeSyntax) = Nothing
 
             If CurrentToken.Kind <> SyntaxKind.CloseBraceToken Then
 
-                Dim expressions = _pool.AllocateSeparated(Of ExpressionSyntax)()
+                Dim ListedTypes = _pool.AllocateSeparated(Of TypeSyntax)()
 
                 Do
-                    'This used to call ParseInitializer
-                    Dim _type_ As ExpressionSyntax = ParseGeneralType(True)
+
+                    Dim _type_ As TypeSyntax = ParseGeneralType(True)
 
                     If _type_.ContainsDiagnostics Then
                         _type_ = ResyncAt(_type_, SyntaxKind.CommaToken, SyntaxKind.CloseBraceToken)
                     End If
 
-                    expressions.Add(_type_)
-
+                    ListedTypes.Add(_type_)
                     Dim comma As PunctuationSyntax = Nothing
                     If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                        expressions.AddSeparator(comma)
+                        ListedTypes.AddSeparator(comma)
                     Else
                         Exit Do
                     End If
 
                 Loop
 
-                _types_ = expressions.ToList
-                _pool.Free(expressions)
+                _types_ = ListedTypes.ToList
+                _pool.Free(ListedTypes)
 
             End If
 
             Dim closeBrace = GetClosingRightBrace()
-            Return SyntaxFactory.TypeArrayInitializer(openBrace, _types_, closeBrace)
+            Return SyntaxFactory.TypeArray(openBrace, _types_, closeBrace)
         End Function
 
 
