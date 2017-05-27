@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Accessibility accessibility = Accessibility.Public,
             Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             Type returnType = null,
-            Func<SemanticModel, IMethodSymbol> explicitInterface = null,
+            Func<SemanticModel, ImmutableArray<IMethodSymbol>> getExplicitInterfaces = null,
             ImmutableArray<ITypeParameterSymbol> typeParameters = default(ImmutableArray<ITypeParameterSymbol>),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             string statements = null,
@@ -132,14 +132,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             {
                 var parameterSymbols = GetParameterSymbols(parameters, context);
                 var parsedStatements = context.ParseStatements(statements);
-                var explicitInterfaceSymbol = GetMethodSymbol(explicitInterface, context);
+                var explicitInterfaceImplementations = GetMethodSymbols(getExplicitInterfaces, context);
                 var method = CodeGenerationSymbolFactory.CreateMethodSymbol(
                     default(ImmutableArray<AttributeData>),
                     accessibility,
                     modifiers,
                     GetTypeSymbol(returnType)(context.SemanticModel),
                     false,
-                    explicitInterfaceSymbol,
+                    explicitInterfaceImplementations,
                     name,
                     typeParameters,
                     parameterSymbols,
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             Editing.DeclarationModifiers modifiers = default(Editing.DeclarationModifiers),
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             Type type = null,
-            Func<SemanticModel, IEventSymbol> explicitInterfaceSymbol = null,
+            Func<SemanticModel, ImmutableArray<IEventSymbol>> getExplicitInterfaceImplementations = null,
             IMethodSymbol addMethod = null,
             IMethodSymbol removeMethod = null,
             IMethodSymbol raiseMethod = null,
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     accessibility,
                     modifiers,
                     typeSymbol,
-                    explicitInterfaceSymbol?.Invoke(context.SemanticModel),
+                    getExplicitInterfaceImplementations?.Invoke(context.SemanticModel) ?? default,
                     name,
                     addMethod,
                     removeMethod,
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
             string getStatements = null,
             string setStatements = null,
             Type type = null,
-            IPropertySymbol explicitInterfaceSymbol = null,
+            ImmutableArray<IPropertySymbol> explicitInterfaceImplementations = default,
             ImmutableArray<Func<SemanticModel, IParameterSymbol>> parameters = default(ImmutableArray<Func<SemanticModel, IParameterSymbol>>),
             bool isIndexer = false,
             CodeGenerationOptions codeGenerationOptions = default(CodeGenerationOptions),
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     new Editing.DeclarationModifiers(isAbstract: getStatements == null),
                     typeSymbol,
                     false,
-                    null,
+                    default,
                     "get_" + name,
                     default(ImmutableArray<ITypeParameterSymbol>),
                     getParameterSymbols,
@@ -422,7 +422,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     new Editing.DeclarationModifiers(isAbstract: setStatements == null),
                     GetTypeSymbol(typeof(void))(context.SemanticModel),
                     false,
-                    null,
+                    default,
                     "set_" + name,
                     default(ImmutableArray<ITypeParameterSymbol>),
                     setParameterSymbols,
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                     modifiers,
                     typeSymbol,
                     false,
-                    explicitInterfaceSymbol,
+                    explicitInterfaceImplementations,
                     name,
                     getParameterSymbols,
                     getAccessor,
@@ -649,9 +649,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
                 ? default(ImmutableArray<IParameterSymbol>)
                 : parameters.SelectAsArray(p => p(context.SemanticModel));
 
-        private static IMethodSymbol GetMethodSymbol(Func<SemanticModel, IMethodSymbol> explicitInterface, TestContext context)
+        private static ImmutableArray<IMethodSymbol> GetMethodSymbols(
+            Func<SemanticModel, ImmutableArray<IMethodSymbol>> explicitInterface, TestContext context)
         {
-            return explicitInterface == null ? null : explicitInterface(context.SemanticModel);
+            return explicitInterface == null ? default : explicitInterface(context.SemanticModel);
         }
 
         private static ImmutableArray<ISymbol> GetSymbols(ImmutableArray<Func<SemanticModel, ISymbol>> members, TestContext context)
