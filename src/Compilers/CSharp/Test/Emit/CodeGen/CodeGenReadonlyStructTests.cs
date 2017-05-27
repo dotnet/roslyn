@@ -310,6 +310,61 @@ class Program
 {
     static void Main()
     {
+        S1 v = new S1(42);
+        System.Console.Write(v.x);
+
+        S1 v2 = new S1(v);
+        System.Console.Write(v2.x);
+    }
+
+    readonly struct S1
+    {
+        public readonly int x;
+
+        public S1(int i)
+        {            
+            x = i; // OK
+        }
+
+        public S1(S1 arg)
+        {
+            this = arg; // OK
+        }
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"4242");
+
+            comp.VerifyIL("Program.S1..ctor(int)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stfld      ""int Program.S1.x""
+  IL_0007:  ret
+}");
+
+            comp.VerifyIL("Program.S1..ctor(Program.S1)", @"
+{
+  // Code size        8 (0x8)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.1
+  IL_0002:  stobj      ""Program.S1""
+  IL_0007:  ret
+}");
+        }
+
+        [Fact]
+        public void AssignThisErr()
+        {
+            var text = @"
+class Program
+{
+    static void Main()
+    {
     }
 
     static void TakesRef(ref S1 arg){}
@@ -361,6 +416,99 @@ class Program
                 // (37,26): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
                 //             TakesRef(ref this.x); // error
                 Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this.x").WithArguments("this").WithLocation(37, 26)
+                );
+
+        }
+
+        [Fact]
+        public void AssignThisNestedMethods()
+        {
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+    }
+
+    static void TakesRef(ref S1 arg){}
+    static void TakesRef(ref int arg){}
+
+    readonly struct S1
+    {
+        readonly int x;
+
+        public S1(int i)
+        {            
+            void F() { x = i;} // Error           
+            Action a = () => { x = i;}; // Error 
+            F();
+        }
+
+        public S1(S1 arg)
+        {
+            void F() { this = arg;} // Error
+            Action a = () => { this = arg;}; // Error 
+            F();
+        }
+
+        public void Test1()
+        {            
+            void F() { this = default;} // Error
+            Action a = () => { this = default;}; // Error 
+            F();
+        }
+
+        public void Test2()
+        {           
+            void F() { TakesRef(ref this);} // Error
+            Action a = () => { TakesRef(ref this);}; // Error 
+            F();
+        }
+
+        public void Test3()
+        {            
+            void F() { TakesRef(ref this.x);} // Error
+            Action a = () => { TakesRef(ref this.x);}; // Error 
+            F();
+        }
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(text);
+            comp.VerifyDiagnostics(
+                // (19,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             void F() { x = i;} // Error           
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(19, 24),
+                // (20,32): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             Action a = () => { x = i;}; // Error 
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "x").WithLocation(20, 32),
+                // (26,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             void F() { this = arg;} // Error
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(26, 24),
+                // (27,32): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             Action a = () => { this = arg;}; // Error 
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(27, 32),
+                // (33,24): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             void F() { this = default;} // Error
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(33, 24),
+                // (34,32): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             Action a = () => { this = default;}; // Error 
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(34, 32),
+                // (40,37): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             void F() { TakesRef(ref this);} // Error
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(40, 37),
+                // (41,45): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             Action a = () => { TakesRef(ref this);}; // Error 
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(41, 45),
+                // (47,37): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             void F() { TakesRef(ref this.x);} // Error
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(47, 37),
+                // (48,45): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
+                //             Action a = () => { TakesRef(ref this.x);}; // Error 
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "this").WithLocation(48, 45)
                 );
 
         }

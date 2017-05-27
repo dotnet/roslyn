@@ -36,6 +36,25 @@ class Program
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
             );
+
+
+            var s1 = comp.GetTypeByMetadataName("Program+S1");
+            Assert.False(s1.IsByRefLikeType);
+            Assert.True(s1.IsReadOnly);
+            Assert.Equal(Accessibility.Private, s1.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Struct, s1.TypeKind);
+
+            var s2 = comp.GetTypeByMetadataName("Program+S2");
+            Assert.False(s2.IsByRefLikeType);
+            Assert.True(s2.IsReadOnly);
+            Assert.Equal(Accessibility.Public, s2.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Struct, s2.TypeKind);
+
+            var s3 = comp.GetTypeByMetadataName("Program+S3");
+            Assert.False(s3.IsByRefLikeType);
+            Assert.True(s3.IsReadOnly);
+            Assert.Equal(Accessibility.Public, s3.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Struct, s3.TypeKind);
         }
 
         [Fact]
@@ -92,6 +111,24 @@ class Program
                 //     readonly public interface S3{}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "S3").WithArguments("readonly").WithLocation(8, 31)
             );
+
+            var s1 = comp.GetTypeByMetadataName("Program+S1");
+            Assert.False(s1.IsByRefLikeType);
+            Assert.False(s1.IsReadOnly);
+            Assert.Equal(Accessibility.Private, s1.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Class, s1.TypeKind);
+
+            var s2 = comp.GetTypeByMetadataName("Program+S2");
+            Assert.False(s2.IsByRefLikeType);
+            Assert.False(s2.IsReadOnly);
+            Assert.Equal(Accessibility.Public, s2.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Delegate, s2.TypeKind);
+
+            var s3 = comp.GetTypeByMetadataName("Program+S3");
+            Assert.False(s3.IsByRefLikeType);
+            Assert.False(s3.IsReadOnly);
+            Assert.Equal(Accessibility.Public, s3.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Interface, s3.TypeKind);
         }
 
         [Fact]
@@ -109,6 +146,18 @@ class Program
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll.WithAllowUnsafe(true));
             comp.VerifyDiagnostics(
             );
+
+            var s1 = comp.GetTypeByMetadataName("Program+S1");
+            Assert.True(s1.IsByRefLikeType);
+            Assert.True(s1.IsReadOnly);
+            Assert.Equal(Accessibility.Private, s1.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Struct, s1.TypeKind);
+
+            var s2 = comp.GetTypeByMetadataName("Program+S2");
+            Assert.True(s2.IsByRefLikeType);
+            Assert.True(s2.IsReadOnly);
+            Assert.Equal(Accessibility.Public, s2.DeclaredAccessibility);
+            Assert.Equal(TypeKind.Struct, s2.TypeKind);
         }
 
         [Fact]
@@ -154,6 +203,10 @@ class Program
     readonly partial struct S2{}
 
     partial struct S2{}
+
+    readonly partial ref struct S3{}
+
+    partial struct S3{}
 }
 ";
 
@@ -168,6 +221,10 @@ class Program
             var s2 = comp.GetTypeByMetadataName("Program+S2");
             Assert.False(s2.IsByRefLikeType);
             Assert.True(s2.IsReadOnly);
+
+            var s3 = comp.GetTypeByMetadataName("Program+S3");
+            Assert.True(s3.IsByRefLikeType);
+            Assert.True(s3.IsReadOnly);
         }
     }
 }

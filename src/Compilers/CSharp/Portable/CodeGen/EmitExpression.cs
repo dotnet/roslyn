@@ -1416,7 +1416,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // if method is defined in the struct itself it is assumed to be mutating, unless 
                         // it is a member of a readonly struct and is not a constructor
-                        var thisAddresskind = methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor ?
+                        var receiverAddresskind = methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor ?
                                                                         AddressKind.ReadOnly :
                                                                         AddressKind.Writeable;
                         if (MayUseCallForStructMethod(method))
@@ -1427,12 +1427,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                             // calling a method defined in a value type
                             Debug.Assert(receiverType == methodContainingType);
-                            tempOpt = EmitReceiverRef(receiver, thisAddresskind);
+                            tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
                             callKind = CallKind.Call;
                         }
                         else
                         {
-                            tempOpt = EmitReceiverRef(receiver, thisAddresskind);
+                            tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
                             callKind = CallKind.ConstrainedCallVirt;
                         }
                     }
@@ -2729,6 +2729,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        //PROTOTYPE(readonly-ref): check the callers of this method, they may want to call EmitDefaultValue instead for its optimizations.
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)

@@ -1591,25 +1591,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case SyntaxKind.ClassKeyword:
                     // report use of "static class" if feature is unsupported 
-                    for (int i = 0, n = modifiers.Count; i < n; i++)
-                    {
-                        if (modifiers[i].RawKind == (int)SyntaxKind.StaticKeyword)
-                        {
-                            modifiers[i] = CheckFeatureAvailability(modifiers[i], MessageID.IDS_FeatureStaticClasses);
-                        }
-                    }
-
+                    CheckForVersionSpecificModifiers(modifiers, SyntaxKind.StaticKeyword, MessageID.IDS_FeatureStaticClasses);
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
                 case SyntaxKind.StructKeyword:
                     // report use of "readonly struct" if feature is unsupported
-                    for (int i = 0, n = modifiers.Count; i < n; i++)
-                    {
-                        if (modifiers[i].RawKind == (int)SyntaxKind.ReadOnlyKeyword)
-                        {
-                            modifiers[i] = CheckFeatureAvailability(modifiers[i], MessageID.IDS_FeatureReadOnlyStructs);
-                        }
-                    }
+                    CheckForVersionSpecificModifiers(modifiers, SyntaxKind.ReadOnlyKeyword, MessageID.IDS_FeatureReadOnlyStructs);
                     return this.ParseClassOrStructOrInterfaceDeclaration(attributes, modifiers);
 
                 case SyntaxKind.RefKeyword:
@@ -1624,6 +1611,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
+            }
+        }
+
+        /// <summary>
+        /// checks for modifiers whose feature is not available
+        /// </summary>
+        private void CheckForVersionSpecificModifiers(SyntaxListBuilder modifiers, SyntaxKind kind, MessageID feature)
+        {
+            for (int i = 0, n = modifiers.Count; i < n; i++)
+            {
+                if (modifiers[i].RawKind == (int)kind)
+                {
+                    modifiers[i] = CheckFeatureAvailability(modifiers[i], feature);
+                }
             }
         }
 

@@ -400,10 +400,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // SPEC: of a struct, it is classified as a variable. 
 
                     // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
-                    //"this" is only readable in members of readonly structs, unless we are in a constructor.
+                    //"this" is readonly in members of readonly structs, unless we are in a constructor.
                     //"this" is not returnable by reference in a struct.
                     if (!thisref.Type.IsValueType ||
-                        (thisref.Type.IsReadOnly && (this.ContainingMember() as MethodSymbol)?.MethodKind != MethodKind.Constructor) ||
+                        (thisref.Type.IsReadOnly && (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor) ||
                         RequiresReturnableReference(valueKind))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
