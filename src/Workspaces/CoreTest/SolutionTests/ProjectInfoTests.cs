@@ -13,8 +13,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(id: null, version: VersionStamp.Default, name: "Foo", assemblyName: "Bar", language: "C#"));
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: null, assemblyName: "Bar", language: "C#"));
-            Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: null, language: "C#"));
             Assert.Throws<ArgumentNullException>(() => ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: "Bar", language: null));
+        }
+
+        [Fact]
+        public void TestNullOrWhitespaceAssemblyNameAllowed()
+        {
+            var pid = ProjectId.CreateNewId();
+            var info = ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: null, language: "C#");
+            Assert.True(info.AssemblyName.StartsWith(ProjectInfo.InvalidAssemblyNamePrefix));
+
+            info = ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: "", language: "C#");
+            Assert.True(info.AssemblyName.StartsWith(ProjectInfo.InvalidAssemblyNamePrefix));
+
+            info = ProjectInfo.Create(pid, VersionStamp.Default, name: "Foo", assemblyName: " ", language: "C#");
+            Assert.True(info.AssemblyName.StartsWith(ProjectInfo.InvalidAssemblyNamePrefix));
         }
 
         [Fact]

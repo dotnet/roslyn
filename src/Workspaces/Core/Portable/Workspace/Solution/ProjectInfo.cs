@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -16,6 +17,8 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public sealed class ProjectInfo
     {
+        internal const string InvalidAssemblyNamePrefix = "__InvalidAssembly_";
+
         internal ProjectAttributes Attributes { get; }
 
         /// <summary>
@@ -320,6 +323,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal class ProjectAttributes : IChecksummedObject, IObjectWritable
         {
+            private static int s_nextInvalidAssemblySuffix = 0;
+
             /// <summary>
             /// The unique Id of the project.
             /// </summary>
@@ -381,7 +386,12 @@ namespace Microsoft.CodeAnalysis
                 Id = id ?? throw new ArgumentNullException(nameof(id));
                 Name = name ?? throw new ArgumentNullException(nameof(name));
                 Language = language ?? throw new ArgumentNullException(nameof(language));
-                AssemblyName = assemblyName ?? throw new ArgumentNullException(nameof(assemblyName));
+
+                // Empty assembly names are not allowed.  For now just default to an unused assembly
+                // name.
+                AssemblyName = string.IsNullOrWhiteSpace(assemblyName)
+                    ? InvalidAssemblyNamePrefix + Interlocked.Increment(ref s_nextInvalidAssemblySuffix)
+                    : assemblyName;
 
                 Version = version;
                 FilePath = filePath;

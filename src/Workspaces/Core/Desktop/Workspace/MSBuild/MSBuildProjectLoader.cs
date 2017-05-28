@@ -501,17 +501,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         }
 
         private static string GetAssemblyNameFromProjectPath(string projectFilePath)
-        {
-            var assemblyName = Path.GetFileNameWithoutExtension(projectFilePath);
-
-            // if this is still unreasonable, use a fixed name.
-            if (string.IsNullOrWhiteSpace(assemblyName))
-            {
-                assemblyName = "assembly";
-            }
-
-            return assemblyName;
-        }
+            => Path.GetFileNameWithoutExtension(projectFilePath);
 
         private static readonly char[] s_directorySplitChars = new char[] { Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar };
 
