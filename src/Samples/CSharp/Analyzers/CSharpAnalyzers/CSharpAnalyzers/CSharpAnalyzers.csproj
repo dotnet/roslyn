@@ -79,7 +79,7 @@
     <InternalsVisibleToTest Include="CSharpAnalyzers.Test" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Composition" Version="$(MicrosoftCompositionVersion)" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
   </ItemGroup>
   <Target Name="AfterBuild">
     <GetAssemblyIdentity AssemblyFiles="$(OutDir)\CSharpAnalyzers.dll">

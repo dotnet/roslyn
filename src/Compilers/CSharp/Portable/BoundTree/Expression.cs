@@ -2820,6 +2820,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
         protected override OperationKind ExpressionKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression, this.Pattern);
     }
 
     /// <summary>

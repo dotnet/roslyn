@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
 {
@@ -144,6 +145,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching
             var semanticModel = syntaxContext.SemanticModel;
             var localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(declarator);
             var isType = semanticModel.GetTypeInfo(castExpression.Type).Type;
+
+            if (isType.IsNullable())
+            {
+                // not legal to write "if (x is int? y)"
+                return;
+            }
+
             if (!localSymbol.Type.Equals(isType))
             {
                 // we have something like:

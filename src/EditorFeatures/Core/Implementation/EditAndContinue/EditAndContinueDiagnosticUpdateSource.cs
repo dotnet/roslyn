@@ -7,6 +7,7 @@ using System.Composition;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -66,6 +67,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                 documentId: documentIdOpt));
         }
 
+        /// <summary>
+        /// Reports diagnostics.
+        /// </summary>
+        /// <returns>Returns ids of documents that belong to <paramref name="projectId"/> and containing one or more diagnostics.</returns>
         public ImmutableArray<DocumentId> ReportDiagnostics(object errorId, Solution solution, ProjectId projectId, IEnumerable<Diagnostic> diagnostics)
         {
             Debug.Assert(errorId != null);
@@ -73,14 +78,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             Debug.Assert(projectId != null);
 
             var updateEvent = DiagnosticsUpdated;
-            var documentIds = ArrayBuilder<DocumentId>.GetInstance();
+            var documentIds = PooledHashSet<DocumentId>.GetInstance();
             var documentDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
             var projectDiagnosticData = ArrayBuilder<DiagnosticData>.GetInstance();
             var project = solution.GetProject(projectId);
 
             foreach (var diagnostic in diagnostics)
             {
-                var documentOpt = solution.GetDocument(diagnostic.Location.SourceTree, projectId);
+                var documentOpt = solution.GetDocument(diagnostic.Location.SourceTree);
 
                 if (documentOpt != null)
                 {
@@ -89,7 +94,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                         documentDiagnosticData.Add(DiagnosticData.Create(documentOpt, diagnostic));
                     }
 
-                    documentIds.Add(documentOpt.Id);
+                    // only add documents from the current project:
+                    if (documentOpt.Project.Id == projectId)
+                    {
+                        documentIds.Add(documentOpt.Id);
+                    }
                 }
                 else if (updateEvent != null)
                 {
@@ -119,9 +128,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     diagnostics: projectDiagnosticData.ToImmutable()));
             }
 
+            var result = documentIds.AsImmutableOrEmpty();
             documentDiagnosticData.Free();
             projectDiagnosticData.Free();
-            return documentIds.ToImmutableAndFree();
+            documentIds.Free();
+            return result;
         }
 
         internal ImmutableArray<DocumentId> ReportDiagnostics(DebuggingSession session, object errorId, ProjectId projectId, Solution solution, IEnumerable<Diagnostic> diagnostics)
