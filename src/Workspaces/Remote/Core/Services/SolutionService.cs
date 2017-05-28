@@ -53,12 +53,9 @@ namespace Microsoft.CodeAnalysis.Remote
                     return currentSolution;
                 }
 
-                var beforeCreate = DateTime.Now;
                 var solution = await CreateSolution_NoLockAsync(solutionChecksum, fromPrimaryBranch, s_primaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
-                var afterCreate = DateTime.Now;
 
                 s_lastSolution = Tuple.Create(solutionChecksum, solution);
-                AbstractNavigateToSearchService.Log("Solution create time: " + (afterCreate - beforeCreate));
                 return solution;
             }
         }

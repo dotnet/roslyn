@@ -47,24 +47,5 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 }
             }
         }
-
-        private static readonly bool s_log = false;
-        private static readonly object s_logGate = new object();
-
-        public static void Log(string text)
-        {
-            if (!s_log)
-            {
-                return;
-            }
-
-            lock (s_logGate)
-            {
-                IOUtilities.PerformIO(() =>
-                {
-                    File.AppendAllText(@"c:\temp\navtolog.txt", text + "\r\n");
-                });
-            }
-        }
     }
 }

@@ -30,23 +30,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (UserOperationBooster.Boost())
             {
-                var start = DateTime.Now;
                 var solution = await GetSolutionAsync().ConfigureAwait(false);
-                var getSolutionEnd = DateTime.Now;
 
                 var project = solution.GetProject(projectId);
                 var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
                     project, searchPattern, CancellationToken).ConfigureAwait(false);
 
-                var resultEnd = DateTime.Now;
-
                 var converted = Convert(result);
-
-                var text = "Searching: " + projectId.DebugName +
-                    "\r\nGet-Solution: " + (getSolutionEnd - start) +
-                    "\r\nSearch: " + (resultEnd - getSolutionEnd) +
-                    "\r\n";
-                AbstractNavigateToSearchService.Log(text);
 
                 return converted;
             }

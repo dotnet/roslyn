@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             {
                 try
                 {
-                    AbstractNavigateToSearchService.Log("Starting NavTo: " + DateTime.Now);
                     using (var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), _cancellationToken))
                     using (var asyncToken = _asyncListener.BeginAsyncOperation(GetType() + ".Search"))
                     {
@@ -68,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                         await Task.WhenAll(searchTasks).ConfigureAwait(false);
                     }
-                    AbstractNavigateToSearchService.Log("Ending NavTo: " + DateTime.Now);
                 }
                 catch (OperationCanceledException)
                 {
