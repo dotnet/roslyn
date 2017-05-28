@@ -804,9 +804,6 @@
     <Compile Include="Shared\Utilities\ResettableDelay.cs" />
     <Compile Include="Shared\Utilities\ViewHostingControl.cs" />
     <Compile Include="Shared\Utilities\VirtualTreePoint.cs" />
-    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.SymbolRenameInfo.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameLocationSet.cs" />
     <Compile Include="TextViewRoles.cs" />
