@@ -146,6 +146,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
