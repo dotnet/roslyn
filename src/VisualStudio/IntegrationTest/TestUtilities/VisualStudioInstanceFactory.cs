@@ -20,7 +20,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
     {
         public static readonly string VsProductVersion = Settings.Default.VsProductVersion;
 
-        public static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
+        public static readonly string VsProgId = Settings.Default.VsProgId;
 
         public static readonly string VsLaunchArgs = $"{(string.IsNullOrWhiteSpace(Settings.Default.VsRootSuffix) ? "/log" : $"/rootsuffix {Settings.Default.VsRootSuffix}")} /log";
 
@@ -253,7 +253,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             throw new Exception(instanceFoundWithInvalidState ?
                                 "An instance matching the specified requirements was found but it was in an invalid state." :
-                                "There were no instances of Visual Studio 15.0 or later found that match the specified requirements.");
+                                $"There were no instances of Visual Studio {VsProductVersion} found that match the specified requirements.");
         }
 
         private static Process StartNewVisualStudioProcess(string installationPath)
