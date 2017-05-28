@@ -8,8 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -36,8 +38,10 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            using (var session = await TryGetRemoteSessionAsync(
-                document.Project.Solution, cancellationToken).ConfigureAwait(false))
+            var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
+                DocumentHighlightingOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed, cancellationToken).ConfigureAwait(false);
+
+            using (session)
             {
                 if (session == null)
                 {

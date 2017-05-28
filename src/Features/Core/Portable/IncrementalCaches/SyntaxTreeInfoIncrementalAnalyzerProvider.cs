@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return SpecializedTasks.EmptyTask;
                 }
 
-                if (document.Project.Solution.Workspace.Kind != "Test" &&
+                if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Test &&
                     document.Project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace)
                 {
                     // if FAR feature is set to run on remote host, then we don't need to build inproc cache.

@@ -3,6 +3,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -41,6 +43,36 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var clientService = workspace.Services.GetService<IRemoteHostClientService>();
             return clientService?.TryGetRemoteHostClientAsync(cancellationToken);
+        }
+
+        public static Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+            this Solution solution, Option<bool> option, string experimentName, CancellationToken cancellationToken)
+            => TryCreateCodeAnalysisServiceSessionAsync(solution, option, experimentName, callbackTarget: null, cancellationToken: cancellationToken);
+
+
+        public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+            this Solution solution, Option<bool> option, string experimentName, object callbackTarget, CancellationToken cancellationToken)
+        {
+            var workspace = solution.Workspace;
+
+            var outOfProcessAllowed = workspace.Options.GetOption(option);
+            if (!outOfProcessAllowed)
+            {
+                return null;
+            }
+
+            // Treat experiments as always on in tests.
+            if (experimentName != null && workspace.Kind != WorkspaceKind.Test)
+            {
+                var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
+                if (!experimentEnabled.IsExperimentEnabled(experimentName))
+                {
+                    return null;
+                }
+            }
+
+            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return await client.TryCreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task RunOnRemoteHostAsync(

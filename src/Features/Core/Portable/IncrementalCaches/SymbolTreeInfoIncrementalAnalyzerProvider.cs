@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (project.Solution.Workspace.Kind != "Test" &&
+                if (project.Solution.Workspace.Kind != WorkspaceKind.Test &&
                     project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace)
                 {
                     // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
