@@ -103,9 +103,8 @@ namespace Microsoft.CodeAnalysis.UseNullPropagation
                 {
                     var nameNode = syntaxFacts.GetNameOfMemberAccessExpression(memberAccess);
                     syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
-                    var comparer = syntaxFacts.IsCaseSensitive
-                        ? StringComparer.Ordinal
-                        : CaseInsensitiveComparison.Comparer;
+                    var comparer = syntaxFacts.StringComparer;
+
                     if (arity == 0 && comparer.Equals(name, nameof(Nullable<int>.Value)))
                     {
                         // They're calling ".Value" off of a nullable.  Because we're moving to ?.
