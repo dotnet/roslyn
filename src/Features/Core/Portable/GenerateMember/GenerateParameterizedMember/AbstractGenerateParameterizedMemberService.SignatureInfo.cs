@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var languageServiceProvider = this.Document.Project.Solution.Workspace.Services.GetLanguageServices(this.State.TypeToGenerateIn.Language);
                 var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
-                var equalityComparer = syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
+                var equalityComparer = syntaxFacts.StringComparer;
                 var reservedParameterNames = this.DetermineParameterNames(cancellationToken)
                                                  .Select(p => p.BestNameForParameter)
                                                  .ToSet(equalityComparer);
