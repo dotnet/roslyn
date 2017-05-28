@@ -5,13 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Threading;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests
@@ -41,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
                 typeof(Microsoft.CodeAnalysis.Editor.UnitTests.TestOptionsServiceFactory),
-                typeof(SymbolMapping.SymbolMappingServiceFactory),
+                typeof(DefaultSymbolMappingService),
                 typeof(TestWaitIndicator),
                 typeof(TestExtensionErrorHandler),
                 typeof(TestExportJoinableTaskContext) // Needed by editor components, but not actually exported anywhere else

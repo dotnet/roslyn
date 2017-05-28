@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         {
             var catalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(CallHierarchyProvider))
-                .WithPart(typeof(SymbolMappingServiceFactory))
+                .WithPart(typeof(DefaultSymbolMappingService))
                 .WithPart(typeof(EditorNotificationServiceFactory))
                 .WithParts(additionalTypes);
 

@@ -8,32 +8,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.SymbolMapping
 {
-    [ExportWorkspaceServiceFactory(typeof(ISymbolMappingService), ServiceLayer.Default), Shared]
-    internal class SymbolMappingServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceService(typeof(ISymbolMappingService), ServiceLayer.Default), Shared]
+    internal class DefaultSymbolMappingService : ISymbolMappingService
     {
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        public async Task<SymbolMappingResult> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
         {
-            return new SymbolMappingService();
-        }
-
-        private sealed class SymbolMappingService : ISymbolMappingService
-        {
-            public async Task<SymbolMappingResult> MapSymbolAsync(Document document, SymbolKey symbolId, CancellationToken cancellationToken)
+            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var symbol = symbolId.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
+            if (symbol != null)
             {
-                var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = symbolId.Resolve(compilation, cancellationToken: cancellationToken).Symbol;
-                if (symbol != null)
-                {
-                    return new SymbolMappingResult(document.Project, symbol);
-                }
-
-                return null;
+                return new SymbolMappingResult(document.Project, symbol);
             }
 
-            public Task<SymbolMappingResult> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
-            {
-                return Task.FromResult(new SymbolMappingResult(document.Project, symbol));
-            }
+            return null;
         }
+
+        public Task<SymbolMappingResult> MapSymbolAsync(Document document, ISymbol symbol, CancellationToken cancellationToken)
+            => Task.FromResult(new SymbolMappingResult(document.Project, symbol));
     }
 }
