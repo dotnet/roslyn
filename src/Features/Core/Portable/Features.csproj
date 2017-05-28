@@ -229,6 +229,9 @@
     <Compile Include="RQName\SimpleTree\SimpleTreeNode.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />
