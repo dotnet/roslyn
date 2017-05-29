@@ -1703,13 +1703,18 @@ namespace Microsoft.CodeAnalysis.Editing
             return TupleTypeExpression(elementTypes.Select(AsTupleElement));
         }
 
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
         /// <summary>
         /// Creates an expression that denotes a tuple element.
         /// </summary>
         public abstract SyntaxNode TupleElementExpression(SyntaxNode type, string name = null);
 
+        /// <summary>
+        /// Creates an expression that denotes a tuple element.
+        /// </summary>
         public SyntaxNode TupleElementExpression(ITypeSymbol type, string name = null)
             => TupleElementExpression(TypeExpression(type), name);
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         private SyntaxNode AsTupleElement(ITypeSymbol type)
             => TupleElementExpression(type, name: null);

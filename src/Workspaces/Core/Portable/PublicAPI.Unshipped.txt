@@ -9,7 +9,7 @@ Microsoft.CodeAnalysis.Document.WithFolders(System.Collections.Generic.IEnumerab
 Microsoft.CodeAnalysis.Document.WithName(string name) -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleElementExpression(Microsoft.CodeAnalysis.ITypeSymbol type, string name = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(params Microsoft.CodeAnalysis.SyntaxNode[] elements) -> Microsoft.CodeAnalysis.SyntaxNode
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, ISystem.Collections.Generic.Enumerable<string> elementNames = null) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TupleTypeExpression(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Generic.IEnumerable<string> elementNames = null) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TypeExpression(Microsoft.CodeAnalysis.ITypeSymbol typeSymbol, bool addImport) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Solution.WithDocumentFilePath(Microsoft.CodeAnalysis.DocumentId documentId, string filePath) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithDocumentName(Microsoft.CodeAnalysis.DocumentId documentId, string name) -> Microsoft.CodeAnalysis.Solution
