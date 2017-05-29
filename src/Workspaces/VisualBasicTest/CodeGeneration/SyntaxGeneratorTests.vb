@@ -243,10 +243,8 @@ End Class
             VerifySyntax(Of TypeSyntax)(_g.NullableTypeExpression(_g.IdentifierName("x")), "x?")
             VerifySyntax(Of TypeSyntax)(_g.NullableTypeExpression(_g.NullableTypeExpression(_g.IdentifierName("x"))), "x?")
 
-            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x"), "y")), "(y As x)")
-            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x"))), "(x)")
+            VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x"), "y"), _g.TupleElementExpression(_g.IdentifierName("w"), "z")), "(y As x, z As w)")
             VerifySyntax(Of TypeSyntax)(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x")), _g.TupleElementExpression(_g.IdentifierName("y"))), "(x, y)")
-            VerifySyntax(Of TupleExpressionSyntax)(_g.TupleExpression(_g.Argument(_g.IdentifierName("x")), _g.Argument(_g.IdentifierName("y"))), "(x, y)")
         End Sub
 
         <Fact>

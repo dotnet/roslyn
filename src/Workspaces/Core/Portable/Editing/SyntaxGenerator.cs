@@ -1688,22 +1688,34 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(IEnumerable<ITypeSymbol> elementTypes, IEnumerable<string> elementNames = null)
+        {
+            if (elementNames != null)
+            {
+                if (elementNames.Count() != elementTypes?.Count())
+                {
+                    throw new ArgumentException("The number of element names must match the cardinality of the tuple.", nameof(elementNames));
+                }
+                return TupleTypeExpression(elementTypes.Zip(elementNames, AsTupleElement));
+            }
+            return TupleTypeExpression(elementTypes.Select(AsTupleElement));
+        }
+
+        /// <summary>
         /// Creates an expression that denotes a tuple element.
         /// </summary>
         public abstract SyntaxNode TupleElementExpression(SyntaxNode type, string name = null);
 
-        /// <summary>
-        /// Creates a tuple expression.
-        /// </summary>
-        public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+        public SyntaxNode TupleElementExpression(ITypeSymbol type, string name = null)
+            => TupleElementExpression(TypeExpression(type), name);
 
-        /// <summary>
-        /// Creates a tuple expression.
-        /// </summary>
-        public SyntaxNode TupleExpression(params SyntaxNode[] arguments)
-        {
-            return TupleExpression((IEnumerable<SyntaxNode>)arguments);
-        }
+        private SyntaxNode AsTupleElement(ITypeSymbol type)
+            => TupleElementExpression(type, name: null);
+
+        private SyntaxNode AsTupleElement(ITypeSymbol type, string name)
+            => TupleElementExpression(type, name);
 
         /// <summary>
         /// Creates an expression that denotes an assignment from the right argument to left argument.

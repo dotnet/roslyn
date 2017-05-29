@@ -224,10 +224,11 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
             VerifySyntax<TypeSyntax>(_g.NullableTypeExpression(_g.IdentifierName("x")), "x?");
             VerifySyntax<TypeSyntax>(_g.NullableTypeExpression(_g.NullableTypeExpression(_g.IdentifierName("x"))), "x?");
 
-            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x"), "y") ), "(x y)");
-            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x"))), "(x)");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x"), "y"), _g.TupleElementExpression(_g.IdentifierName("w"), "z")), "(x y, w z)");
             VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(_g.TupleElementExpression(_g.IdentifierName("x")), _g.TupleElementExpression(_g.IdentifierName("y"))), "(x, y)");
-            VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(_g.Argument(_g.IdentifierName("x")), _g.Argument(_g.IdentifierName("y"))), "(x, y)");
+            var intType = _emptyCompilation.GetSpecialType(SpecialType.System_Int32);
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(new[] { intType, intType }), "(int, int)");
+            VerifySyntax<TypeSyntax>(_g.TupleTypeExpression(new[] { intType, intType }, new[] { "x", "y" }), "(int x, int y)");
         }
 
         [Fact]

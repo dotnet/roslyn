@@ -532,7 +532,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function TupleTypeExpression(elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.TupleType(If(elements Is Nothing, Nothing, SyntaxFactory.SeparatedList(elements.Cast(Of TupleElementSyntax)())))
+            If elements Is Nothing Or elements.Count() <= 1 Then
+                Throw New ArgumentException("Tuples must have at least two elements.")
+            End If
+            Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast(Of TupleElementSyntax)()))
         End Function
 
         Public Overrides Function TupleElementExpression(type As SyntaxNode, Optional name As String = Nothing) As SyntaxNode
@@ -541,10 +544,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Else
                 Return SyntaxFactory.NamedTupleElement(name.ToIdentifierToken(), SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)))
             End If
-        End Function
-
-        Public Overrides Function TupleExpression(arguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.TupleExpression(If(arguments Is Nothing, Nothing, SyntaxFactory.SeparatedList(arguments.Cast(Of SimpleArgumentSyntax)())))
         End Function
 
         Public Overrides Function WithTypeArguments(name As SyntaxNode, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
