@@ -232,6 +232,7 @@
     <Compile Include="BoundTree\BoundTreeVisitor.vb" />
     <Compile Include="BoundTree\BoundTreeWalker.vb" />
     <Compile Include="BoundTree\BoundTryCast.vb" />
+    <Compile Include="BoundTree\BoundTypeArray.vb" />
     <Compile Include="BoundTree\BoundTypeExpression.vb" />
     <Compile Include="BoundTree\BoundTypeOrValueExpression.vb" />
     <Compile Include="BoundTree\BoundUnaryOperator.vb" />
@@ -768,6 +769,7 @@
     <Compile Include="Symbols\Source\SynthesizedStaticLocalBackingField.vb" />
     <Compile Include="Symbols\Source\SynthesizedSubmissionConstructorSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedWithEventsAccessorSymbol.vb" />
+    <Compile Include="Symbols\Source\TypeArraySymbol.vb" />
     <Compile Include="Symbols\Source\TypeParameterConstraintKind.vb" />
     <Compile Include="Symbols\Source\UnboundLambdaParameterSymbol.vb" />
     <Compile Include="Symbols\SpecialMembers.vb" />

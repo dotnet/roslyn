@@ -63,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         [DirectCast]
         [TryCast]
         [TypeOf]
+        TypeArray
         SequencePoint
         SequencePointExpression
         SequencePointWithSpan
@@ -2573,6 +2574,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function Update(operand As BoundExpression, isTypeOfIsNotExpression As Boolean, targetType As TypeSymbol, type As TypeSymbol) As BoundTypeOf
             If operand IsNot Me.Operand OrElse isTypeOfIsNotExpression <> Me.IsTypeOfIsNotExpression OrElse targetType IsNot Me.TargetType OrElse type IsNot Me.Type Then
                 Dim result = New BoundTypeOf(Me.Syntax, operand, isTypeOfIsNotExpression, targetType, type, Me.HasErrors)
+                
+                If Me.WasCompilerGenerated Then
+                    result.SetWasCompilerGenerated()
+                End If
+                
+                Return result
+            End If
+            Return Me
+        End Function
+    End Class
+
+    Friend NotInheritable Partial Class BoundTypeArray
+        Inherits BoundExpression
+
+        Public Sub New(syntax As SyntaxNode, targets As ImmutableArray(Of TypeSymbol), type As TypeSymbol, hasErrors As Boolean)
+            MyBase.New(BoundKind.TypeArray, syntax, type, hasErrors)
+            Me._Targets = targets
+        End Sub
+
+        Public Sub New(syntax As SyntaxNode, targets As ImmutableArray(Of TypeSymbol), type As TypeSymbol)
+            MyBase.New(BoundKind.TypeArray, syntax, type)
+            Me._Targets = targets
+        End Sub
+
+
+        Private ReadOnly _Targets As ImmutableArray(Of TypeSymbol)
+        Public ReadOnly Property Targets As ImmutableArray(Of TypeSymbol)
+            Get
+                Return _Targets
+            End Get
+        End Property
+
+        Public Overrides Function Accept(visitor as BoundTreeVisitor) As BoundNode
+            Return visitor.VisitTypeArray(Me)
+        End Function
+
+        Public Function Update(targets As ImmutableArray(Of TypeSymbol), type As TypeSymbol) As BoundTypeArray
+            If targets <> Me.Targets OrElse type IsNot Me.Type Then
+                Dim result = New BoundTypeArray(Me.Syntax, targets, type, Me.HasErrors)
                 
                 If Me.WasCompilerGenerated Then
                     result.SetWasCompilerGenerated()
@@ -9809,6 +9849,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return VisitTryCast(CType(node, BoundTryCast), arg)
                 Case BoundKind.[TypeOf]: 
                     Return VisitTypeOf(CType(node, BoundTypeOf), arg)
+                Case BoundKind.TypeArray: 
+                    Return VisitTypeArray(CType(node, BoundTypeArray), arg)
                 Case BoundKind.SequencePoint: 
                     Return VisitSequencePoint(CType(node, BoundSequencePoint), arg)
                 Case BoundKind.SequencePointExpression: 
@@ -10253,6 +10295,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitTypeOf(node As BoundTypeOf, arg As A) As R
+            Return Me.DefaultVisit(node, arg)
+        End Function
+
+        Public Overridable Function VisitTypeArray(node As BoundTypeArray, arg As A) As R
             Return Me.DefaultVisit(node, arg)
         End Function
 
@@ -10956,6 +11002,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overridable Function VisitTypeOf(node As BoundTypeOf) As BoundNode
+            Return Me.DefaultVisit(node)
+        End Function
+
+        Public Overridable Function VisitTypeArray(node As BoundTypeArray) As BoundNode
             Return Me.DefaultVisit(node)
         End Function
 
@@ -11704,6 +11754,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function VisitTypeOf(node as BoundTypeOf) As BoundNode
             Me.Visit(node.Operand)
+            Return Nothing
+        End Function
+
+        Public Overrides Function VisitTypeArray(node as BoundTypeArray) As BoundNode
             Return Nothing
         End Function
 
@@ -12698,6 +12752,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim targetType as TypeSymbol = Me.VisitType(node.TargetType)
             Dim type as TypeSymbol = Me.VisitType(node.Type)
             Return node.Update(operand, node.IsTypeOfIsNotExpression, targetType, type)
+        End Function
+
+        Public Overrides Function VisitTypeArray(node As BoundTypeArray) As BoundNode
+            Dim type as TypeSymbol = Me.VisitType(node.Type)
+            Return node.Update(node.Targets, type)
         End Function
 
         Public Overrides Function VisitSequencePoint(node As BoundSequencePoint) As BoundNode
@@ -13878,6 +13937,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New TreeDumperNode("operand", Nothing, new TreeDumperNode() { Visit(node.Operand, Nothing) }),
                 New TreeDumperNode("isTypeOfIsNotExpression", node.IsTypeOfIsNotExpression, Nothing),
                 New TreeDumperNode("targetType", node.TargetType, Nothing),
+                New TreeDumperNode("type", node.Type, Nothing)
+            })
+        End Function
+
+        Public Overrides Function VisitTypeArray(node As BoundTypeArray, arg As Object) As TreeDumperNode
+            Return New TreeDumperNode("typeArray", Nothing, New TreeDumperNode() {
+                New TreeDumperNode("targets", node.Targets, Nothing),
                 New TreeDumperNode("type", node.Type, Nothing)
             })
         End Function

@@ -185,5 +185,7 @@ namespace Microsoft.CodeAnalysis
         RelationalCaseClause = 0x40b,
         /// <summary>Indicates an <see cref="IRangeCaseClause"/>.</summary>
         RangeCaseClause = 0x40c,
+        /// <summary>Indicates an <see cref="ITypeArray"/>.</summary>
+        TypeArray = 0x40d,
     }
 }
