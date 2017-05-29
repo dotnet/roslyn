@@ -4,8 +4,8 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -30,36 +30,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                string name, SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery)
             {
-                var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
-                if (info == null)
-                {
-                    // Looks like there was nothing in the cache.  Return no results for now.
-                    return ImmutableArray<ISymbol>.Empty;
-                }
+                var result = await AddImportSymbolTreeInfoService.TryFindSourceSymbolsAsync(
+                    _project, filter, searchQuery, _projectToAssembly, CancellationToken).ConfigureAwait(false);
 
-                // Don't create the assembly until it is actually needed by the SymbolTreeInfo.FindAsync
-                // code.  Creating the assembly can be costly and we want to avoid it until it is actually
-                // needed.
-                var lazyAssembly = _projectToAssembly.GetOrAdd(_project, CreateLazyAssembly);
-
-                var declarations = await info.FindAsync(
-                    searchQuery, lazyAssembly, _project.Id,
-                    filter, CancellationToken).ConfigureAwait(false);
-
-                return declarations.SelectAsArray(d => d.Symbol);
-            }
-
-            private static AsyncLazy<IAssemblySymbol> CreateLazyAssembly(Project project)
-            {
-                return new AsyncLazy<IAssemblySymbol>(
-                    async c =>
-                    {
-                        var compilation = await project.GetCompilationAsync(c).ConfigureAwait(false);
-                        return compilation.Assembly;
-                    }, cacheResult: true);
+                return result.SelectAsArray(s => s.Symbol);
             }
         }
     }

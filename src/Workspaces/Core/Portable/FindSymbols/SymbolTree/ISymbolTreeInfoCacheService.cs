@@ -3,6 +3,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
 {
@@ -17,5 +18,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         /// Returns null if the info cannot be retrieved from the cache.
         /// </summary>
         Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken);
+    }
+
+    internal interface IRemoteSymbolTreeInfoCacheService
+    {
+        Task<SerializableSymbolAndProjectId[]> TryFindSourceSymbolsAsync(
+            ProjectId projectId, SymbolFilter filter, string queryName, SearchKind queryKind);
+
+        Task<SerializableSymbolAndProjectId[]> TryFindMetadataSymbolsAsync(
+            Checksum metadataChecksum, ProjectId assemblyProjectId, SymbolFilter filter, string queryName, SearchKind queryKind);
     }
 }

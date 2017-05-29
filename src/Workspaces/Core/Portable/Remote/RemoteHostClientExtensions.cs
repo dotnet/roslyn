@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
+            return true;
+
+#if false
             // Treat experiments as always on in tests.
             if (experimentName != null && workspace.Kind != WorkspaceKind.Test)
             {
@@ -68,6 +71,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return true;
+#endif
         }
 
         public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
