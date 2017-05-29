@@ -12,26 +12,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             private readonly Solution _solution;
             private readonly IStreamingFindLiteralReferencesProgress _progress;
-            private readonly CancellationToken _cancellationToken;
 
             public FindLiteralsServerCallback(
                 Solution solution,
-                IStreamingFindLiteralReferencesProgress progress,
-                CancellationToken cancellationToken)
+                IStreamingFindLiteralReferencesProgress progress)
             {
                 _solution = solution;
                 _progress = progress;
-                _cancellationToken = cancellationToken;
             }
 
-            public Task ReportProgressAsync(int current, int maximum) 
-                => _progress.ReportProgressAsync(current, maximum);
+            public Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
+                => _progress.ReportProgressAsync(current, maximum, cancellationToken);
 
-            public async Task OnReferenceFoundAsync(
-                DocumentId documentId, TextSpan span)
+            public async Task OnReferenceFoundAsync(DocumentId documentId, TextSpan span, CancellationToken cancellationToken)
             {
                 var document = _solution.GetDocument(documentId);
-                await _progress.OnReferenceFoundAsync(document, span).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(document, span, cancellationToken).ConfigureAwait(false);
             }
         }
     }

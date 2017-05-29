@@ -27,9 +27,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // communication channel related to snapshot information
         private readonly SnapshotJsonRpcClient _snapshotClientOpt;
 
-        // close connection when cancellation has raised
-        private readonly CancellationTokenRegistration _cancellationRegistration;
-
         public static async Task<JsonRpcSession> CreateAsync(
             Optional<Func<CancellationToken, Task<PinnedRemotableDataScope>>> getSnapshotAsync,
             object callbackTarget,
@@ -42,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             JsonRpcSession session;
             try
             {
-                session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt, cancellationToken);
+                session = new JsonRpcSession(snapshot, callbackTarget, serviceStream, snapshotStreamOpt);
             }
             catch
             {
@@ -52,9 +49,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             try
             {
-                await session.InitializeAsync().ConfigureAwait(false);
+                await session.InitializeAsync(cancellationToken).ConfigureAwait(false);
             }
-            catch when (!cancellationToken.IsCancellationRequested)
+            catch
             {
                 // The session disposes of itself when cancellation is requested.
                 session.Dispose();
@@ -68,23 +65,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             PinnedRemotableDataScope snapshot,
             object callbackTarget,
             Stream serviceStream,
-            Stream snapshotStreamOpt,
-            CancellationToken cancellationToken) :
-            base(snapshot, cancellationToken)
+            Stream snapshotStreamOpt) :
+            base(snapshot)
         {
             Contract.Requires((snapshot == null) == (snapshotStreamOpt == null));
 
             // get session id
             _currentSessionId = Interlocked.Increment(ref s_sessionId);
 
-            _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget, cancellationToken);
-            _snapshotClientOpt = snapshot == null ? null : new SnapshotJsonRpcClient(this, snapshotStreamOpt, cancellationToken);
-
-            // dispose session when cancellation has raised
-            _cancellationRegistration = CancellationToken.Register(Dispose);
+            _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget);
+            _snapshotClientOpt = snapshot == null ? null : new SnapshotJsonRpcClient(this, snapshotStreamOpt);
         }
 
-        private async Task InitializeAsync()
+        private async Task InitializeAsync(CancellationToken cancellationToken)
         {
             // All roslyn remote service must based on ServiceHubServiceBase which implements Initialize method
             // This will set this session's solution and whether that solution is for primary branch or not
@@ -93,37 +86,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             if (_snapshotClientOpt != null)
             {
-                await _snapshotClientOpt.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, primaryBranch, solutionChecksum).ConfigureAwait(false);
+                await _snapshotClientOpt.InvokeWithCancellationAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, new object[] { _currentSessionId, primaryBranch, solutionChecksum }, cancellationToken).ConfigureAwait(false);
             }
 
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, _currentSessionId, primaryBranch, solutionChecksum).ConfigureAwait(false);
+            await _serviceClient.InvokeWithCancellationAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, new object[] { _currentSessionId, primaryBranch, solutionChecksum }, cancellationToken).ConfigureAwait(false);
         }
 
-        public override Task InvokeAsync(string targetName, params object[] arguments)
+        public override Task InvokeWithCancellationAsync(string targetName, object[] arguments, CancellationToken cancellationToken)
         {
-            return _serviceClient.InvokeAsync(targetName, arguments);
+            return _serviceClient.InvokeWithCancellationAsync(targetName, arguments, cancellationToken);
         }
 
-        public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+        public override Task<T> InvokeWithCancellationAsync<T>(string targetName, object[] arguments, CancellationToken cancellationToken)
         {
-            return _serviceClient.InvokeAsync<T>(targetName, arguments);
+            return _serviceClient.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken);
         }
 
-        public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+        public override Task InvokeWithCancellationAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            return _serviceClient.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
+            return _serviceClient.InvokeWithCancellationAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
-        public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public override Task<T> InvokeWithCancellationAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            return _serviceClient.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
+            return _serviceClient.InvokeWithCancellationAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
         }
 
         protected override void OnDisposed()
         {
-            // dispose cancellation registration
-            _cancellationRegistration.Dispose();
-
             // dispose service and snapshot channels
             _serviceClient.Dispose();
             _snapshotClientOpt?.Dispose();
@@ -138,8 +128,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             private readonly object _callbackTarget;
 
-            public ServiceJsonRpcClient(Stream stream, object callbackTarget, CancellationToken cancellationToken)
-                : base(stream, callbackTarget, useThisAsCallback: false, cancellationToken: cancellationToken)
+            public ServiceJsonRpcClient(Stream stream, object callbackTarget)
+                : base(stream, callbackTarget, useThisAsCallback: false)
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
                 _callbackTarget = callbackTarget;
@@ -163,8 +153,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private readonly JsonRpcSession _owner;
             private readonly CancellationTokenSource _source;
 
-            public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream, CancellationToken cancellationToken)
-                : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: cancellationToken)
+            public SnapshotJsonRpcClient(JsonRpcSession owner, Stream stream)
+                : base(stream, callbackTarget: null, useThisAsCallback: true)
             {
                 Contract.ThrowIfNull(owner.PinnedScopeOpt);
 

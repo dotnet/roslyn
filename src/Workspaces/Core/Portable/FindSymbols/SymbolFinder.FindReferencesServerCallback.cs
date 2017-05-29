@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             private readonly Solution _solution;
             private readonly IStreamingFindReferencesProgress _progress;
-            private readonly CancellationToken _cancellationToken;
 
             private readonly object _gate = new object();
             private readonly Dictionary<SerializableSymbolAndProjectId, SymbolAndProjectId> _definitionMap =
@@ -26,34 +25,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public FindReferencesServerCallback(
                 Solution solution,
-                IStreamingFindReferencesProgress progress,
-                CancellationToken cancellationToken)
+                IStreamingFindReferencesProgress progress)
             {
                 _solution = solution;
                 _progress = progress;
-                _cancellationToken = cancellationToken;
             }
 
-            public Task OnStartedAsync() => _progress.OnStartedAsync();
-            public Task OnCompletedAsync() => _progress.OnCompletedAsync();
-            public Task ReportProgressAsync(int current, int maximum) => _progress.ReportProgressAsync(current, maximum);
+            public Task OnStartedAsync(CancellationToken cancellationToken) => _progress.OnStartedAsync(cancellationToken);
+            public Task OnCompletedAsync(CancellationToken cancellationToken) => _progress.OnCompletedAsync(cancellationToken);
+            public Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) => _progress.ReportProgressAsync(current, maximum, cancellationToken);
 
-            public Task OnFindInDocumentStartedAsync(DocumentId documentId)
+            public Task OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 var document = _solution.GetDocument(documentId);
-                return _progress.OnFindInDocumentStartedAsync(document);
+                return _progress.OnFindInDocumentStartedAsync(document, cancellationToken);
             }
 
-            public Task OnFindInDocumentCompletedAsync(DocumentId documentId)
+            public Task OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
             {
                 var document = _solution.GetDocument(documentId);
-                return _progress.OnFindInDocumentCompletedAsync(document);
+                return _progress.OnFindInDocumentCompletedAsync(document, cancellationToken);
             }
 
-            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition)
+            public async Task OnDefinitionFoundAsync(SerializableSymbolAndProjectId definition, CancellationToken cancellationToken)
             {
                 var symbolAndProjectId = await definition.TryRehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
+                    _solution, cancellationToken).ConfigureAwait(false);
 
                 if (!symbolAndProjectId.HasValue)
                 {
@@ -65,11 +62,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     _definitionMap[definition] = symbolAndProjectId.Value;
                 }
 
-                await _progress.OnDefinitionFoundAsync(symbolAndProjectId.Value).ConfigureAwait(false);
+                await _progress.OnDefinitionFoundAsync(symbolAndProjectId.Value, cancellationToken).ConfigureAwait(false);
             }
 
             public async Task OnReferenceFoundAsync(
-                SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference)
+                SerializableSymbolAndProjectId definition, SerializableReferenceLocation reference, CancellationToken cancellationToken)
             {
                 SymbolAndProjectId symbolAndProjectId;
                 lock (_gate)
@@ -78,9 +75,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var referenceLocation = await reference.RehydrateAsync(
-                    _solution, _cancellationToken).ConfigureAwait(false);
+                    _solution, cancellationToken).ConfigureAwait(false);
 
-                await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation).ConfigureAwait(false);
+                await _progress.OnReferenceFoundAsync(symbolAndProjectId, referenceLocation, cancellationToken).ConfigureAwait(false);
             }
         }
     }

@@ -28,13 +28,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchUpdateEngine(ISymbolSearchLogService logService)
-            : this(logService, CancellationToken.None)
-        {
-        }
-
-        public SymbolSearchUpdateEngine(
-            ISymbolSearchLogService logService, 
-            CancellationToken updateCancellationToken)
             : this(logService,
                    new RemoteControlService(),
                    new DelayService(),
@@ -42,8 +35,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                    new PatchService(),
                    new DatabaseFactoryService(),
                    // Report all exceptions we encounter, but don't crash on them.
-                   FatalError.ReportWithoutCrash,
-                   updateCancellationToken)
+                   FatalError.ReportWithoutCrash)
         {
         }
 
@@ -57,8 +49,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             IIOService ioService,
             IPatchService patchService,
             IDatabaseFactoryService databaseFactoryService,
-            Func<Exception, bool> reportAndSwallowException,
-            CancellationToken updateCancellationToken)
+            Func<Exception, bool> reportAndSwallowException)
         {
             _delayService = delayService;
             _ioService = ioService;
@@ -67,12 +58,10 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
             _reportAndSwallowException = reportAndSwallowException;
-
-            _updateCancellationToken = updateCancellationToken;
         }
 
         public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-            string source, string name, int arity)
+            string source, string name, int arity, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
@@ -109,7 +98,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-            string source, string assemblyName)
+            string source, string assemblyName, CancellationToken cancellationToken)
         {
             if (!_sourceToDatabase.TryGetValue(source, out var databaseWrapper))
             {
@@ -146,7 +135,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         }
 
         public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-            string name, int arity)
+            string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
             if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out var databaseWrapper))

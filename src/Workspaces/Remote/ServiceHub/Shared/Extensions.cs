@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal static partial class Extensions
     {
-        public static async Task InvokeAsync(
+        public static async Task InvokeWithCancellationAsync(
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // send request by adding direct stream name to end of arguments
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    var task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -44,15 +44,15 @@ namespace Microsoft.CodeAnalysis.Remote
                     // there is a slight delay when merged cancellation token will be notified once cancellation token
                     // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
                     // actually care is the cancellation token given in, not the merged cancellation token.
-                    // but we need merged one to cancel operation if InvokeAsync has failed. if it failed without
-                    // cancellation token is raised, then we do want to have watson report
+                    // but we need merged one to cancel operation if InvokeWithCancellationAsync has failed. if it
+                    // failed without cancellation token is raised, then we do want to have watson report
                     cancellationToken.ThrowIfCancellationRequested();
                     throw;
                 }
             }
         }
 
-        public static async Task<T> InvokeAsync<T>(
+        public static async Task<T> InvokeWithCancellationAsync<T>(
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // send request to asset source
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    var task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async Task InvokeAsync(
+        public static async Task InvokeWithCancellationAsync(
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Action<Stream, CancellationToken> actionWithDirectStream, CancellationToken cancellationToken)
         {
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // send request by adding direct stream name to end of arguments
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    var task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public static async Task<T> InvokeAsync<T>(
+        public static async Task<T> InvokeWithCancellationAsync<T>(
             this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
             Func<Stream, CancellationToken, T> funcWithDirectStream, CancellationToken cancellationToken)
         {
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // send request to asset source
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    var task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);

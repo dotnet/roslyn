@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 _definition = definition;
             }
 
-            public async Task OnReferenceFoundAsync(Document document, TextSpan span)
+            public async Task OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken)
             {
                 var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                     document, span, _context.CancellationToken).ConfigureAwait(false);
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     _definition, documentSpan, isWrittenTo: false)).ConfigureAwait(false);
             }
 
-            public Task ReportProgressAsync(int current, int maximum)
+            public Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken)
                 => _context.ReportProgressAsync(current, maximum);
         }
 
@@ -73,20 +73,20 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
 
             // Do nothing functions.  The streaming far service doesn't care about
             // any of these.
-            public Task OnStartedAsync() => SpecializedTasks.EmptyTask;
-            public Task OnCompletedAsync() => SpecializedTasks.EmptyTask;
-            public Task OnFindInDocumentStartedAsync(Document document) => SpecializedTasks.EmptyTask;
-            public Task OnFindInDocumentCompletedAsync(Document document) => SpecializedTasks.EmptyTask;
+            public Task OnStartedAsync(CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task OnCompletedAsync(CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
+            public Task OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => SpecializedTasks.EmptyTask;
 
             // Simple context forwarding functions.
-            public Task ReportProgressAsync(int current, int maximum) =>
+            public Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken) =>
                 _context.ReportProgressAsync(current, maximum);
 
             // More complicated forwarding functions.  These need to map from the symbols
             // used by the FAR engine to the INavigableItems used by the streaming FAR 
             // feature.
 
-            private async Task<DefinitionItem> GetDefinitionItemAsync(SymbolAndProjectId definition)
+            private async Task<DefinitionItem> GetDefinitionItemAsync(SymbolAndProjectId definition, CancellationToken cancellationToken)
             {
                 using (await _gate.DisposableWaitAsync(_context.CancellationToken).ConfigureAwait(false))
                 {
@@ -102,13 +102,13 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 }
             }
 
-            public async Task OnDefinitionFoundAsync(SymbolAndProjectId definition)
+            public async Task OnDefinitionFoundAsync(SymbolAndProjectId definition, CancellationToken cancellationToken)
             {
-                var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
+                var definitionItem = await GetDefinitionItemAsync(definition, cancellationToken).ConfigureAwait(false);
                 await _context.OnDefinitionFoundAsync(definitionItem).ConfigureAwait(false);
             }
 
-            public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location)
+            public async Task OnReferenceFoundAsync(SymbolAndProjectId definition, ReferenceLocation location, CancellationToken cancellationToken)
             {
                 // Ignore duplicate locations.  We don't want to clutter the UI with them.
                 if (location.IsDuplicateReferenceLocation)
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                     return;
                 }
 
-                var definitionItem = await GetDefinitionItemAsync(definition).ConfigureAwait(false);
+                var definitionItem = await GetDefinitionItemAsync(definition, cancellationToken).ConfigureAwait(false);
                 var referenceItem = await location.TryCreateSourceReferenceItemAsync(
                     definitionItem, includeHiddenLocations: false,
                     cancellationToken: _context.CancellationToken).ConfigureAwait(false);

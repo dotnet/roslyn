@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
                 if (client != null)
                 {
-                    return new RemoteUpdateEngine(workspace, client, logService, cancellationToken);
+                    return new RemoteUpdateEngine(workspace, client, logService);
                 }
             }
 
@@ -39,18 +39,16 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             private readonly Workspace _workspace;
             private readonly ISymbolSearchLogService _logService;
-            private readonly CancellationToken _cancellationToken;
 
             private RemoteHostClient _client;
             private RemoteHostClient.Session _sessionDoNotAccessDirectly;
 
             public RemoteUpdateEngine(
                 Workspace workspace, RemoteHostClient client,
-                ISymbolSearchLogService logService, CancellationToken cancellationToken)
+                ISymbolSearchLogService logService)
             {
                 _workspace = workspace;
                 _logService = logService;
-                _cancellationToken = cancellationToken;
 
                 // this engine is stateful service which maintaining a connection to remote host. so
                 // this feature is required to handle remote host recycle situation.
@@ -84,9 +82,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task<RemoteHostClient.Session> TryGetSessionAsync()
+            private async Task<RemoteHostClient.Session> TryGetSessionAsync(CancellationToken cancellationToken)
             {
-                using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+                using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (_sessionDoNotAccessDirectly != null)
                     {
@@ -108,76 +106,80 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     _sessionDoNotAccessDirectly = await _client.TryCreateServiceSessionAsync(
                         WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine,
                         _logService,
-                        _cancellationToken).ConfigureAwait(false);
+                        cancellationToken).ConfigureAwait(false);
 
                     return _sessionDoNotAccessDirectly;
                 }
             }
 
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-                string source, string name, int arity)
+                string source, string name, int arity, CancellationToken cancellationToken)
             {
-                var session = await TryGetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync(cancellationToken).ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone
                     return ImmutableArray<PackageWithTypeResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<SerializablePackageWithTypeResult[]>(
+                var results = await session.InvokeWithCancellationAsync<SerializablePackageWithTypeResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
-                    source, name, arity).ConfigureAwait(false);
+                    new object[] { source, name, arity },
+                    cancellationToken).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-                string source, string assemblyName)
+                string source, string assemblyName, CancellationToken cancellationToken)
             {
-                var session = await TryGetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync(cancellationToken).ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone
                     return ImmutableArray<PackageWithAssemblyResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<SerializablePackageWithAssemblyResult[]>(
+                var results = await session.InvokeWithCancellationAsync<SerializablePackageWithAssemblyResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
-                    source, assemblyName).ConfigureAwait(false);
+                    new[] { source, assemblyName },
+                    cancellationToken).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-                string name, int arity)
+                string name, int arity, CancellationToken cancellationToken)
             {
-                var session = await TryGetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync(cancellationToken).ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone
                     return ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<SerializableReferenceAssemblyWithTypeResult[]>(
+                var results = await session.InvokeWithCancellationAsync<SerializableReferenceAssemblyWithTypeResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
-                    name, arity).ConfigureAwait(false);
+                    new object[] { name, arity },
+                    cancellationToken).ConfigureAwait(false);
 
                 return results.Select(r => r.Rehydrate()).ToImmutableArray();
             }
 
             public async Task UpdateContinuouslyAsync(
-                string sourceName, string localSettingsDirectory)
+                string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
             {
-                var session = await TryGetSessionAsync().ConfigureAwait(false);
+                var session = await TryGetSessionAsync(cancellationToken).ConfigureAwait(false);
                 if (session == null)
                 {
                     // we couldn't get session. most likely remote host is gone
                     return;
                 }
 
-                await session.InvokeAsync(
+                await session.InvokeWithCancellationAsync(
                     nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync),
-                    sourceName, localSettingsDirectory).ConfigureAwait(false);
+                    new[] { sourceName, localSettingsDirectory },
+                    cancellationToken).ConfigureAwait(false);
             }
         }
     }

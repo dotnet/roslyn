@@ -121,30 +121,28 @@ namespace Microsoft.CodeAnalysis.Remote
         public abstract class Session : IDisposable
         {
             protected readonly PinnedRemotableDataScope PinnedScopeOpt;
-            protected readonly CancellationToken CancellationToken;
 
             private bool _disposed;
 
-            protected Session(PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+            protected Session(PinnedRemotableDataScope scope)
             {
                 _disposed = false;
 
                 PinnedScopeOpt = scope;
-                CancellationToken = cancellationToken;
             }
 
-            public abstract Task InvokeAsync(string targetName, params object[] arguments);
+            public abstract Task InvokeWithCancellationAsync(string targetName, object[] arguments, CancellationToken cancellationToken);
 
-            public abstract Task<T> InvokeAsync<T>(string targetName, params object[] arguments);
+            public abstract Task<T> InvokeWithCancellationAsync<T>(string targetName, object[] arguments, CancellationToken cancellationToken);
 
-            public abstract Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync);
+            public abstract Task InvokeWithCancellationAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
-            public abstract Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync);
+            public abstract Task<T> InvokeWithCancellationAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken);
 
-            public void AddAdditionalAssets(CustomAsset asset)
+            public void AddAdditionalAssets(CustomAsset asset, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(PinnedScopeOpt);
-                PinnedScopeOpt.AddAdditionalAsset(asset, CancellationToken);
+                PinnedScopeOpt.AddAdditionalAsset(asset, cancellationToken);
             }
 
             protected virtual void OnDisposed()

@@ -42,12 +42,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 //    is not cancelled
                 //
                 // 2. Request to required this asset has cancelled. (callerCancellationToken)
-                using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_owner.CancellationToken, callerCancellationToken))
+                using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_owner.ServiceCancellationToken, callerCancellationToken))
                 using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, sessionId, checksums, mergedCancellationToken.Token))
                 {
-                    return await _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
+                    return await _owner.Rpc.InvokeWithCancellationAsync(
+                        WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                         new object[] { sessionId, checksums.ToArray() },
-                        (s, c) => ReadAssets(s, sessionId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
+                        (s, c) => ReadAssets(s, sessionId, checksums, c),
+                        mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
 

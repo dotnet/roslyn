@@ -38,12 +38,6 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public const string HostId = "RoslynNuGetSearch";
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
 
-        /// <summary>
-        /// Cancellation support for the task we use to keep the local database up to date.
-        /// When VS shuts down it will dispose us.  We'll cancel the task at that point.
-        /// </summary>
-        private readonly CancellationToken _updateCancellationToken;
-
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
@@ -57,11 +51,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         private readonly IDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
-        private Task LogInfoAsync(string text) => _logService.LogInfoAsync(text);
+        private Task LogInfoAsync(string text, CancellationToken cancellationToken) => _logService.LogInfoAsync(text, cancellationToken);
 
-        private Task LogExceptionAsync(Exception e, string text) => _logService.LogExceptionAsync(e.ToString(), text);
+        private Task LogExceptionAsync(Exception e, string text, CancellationToken cancellationToken) => _logService.LogExceptionAsync(e.ToString(), text, cancellationToken);
 
-        public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory)
+        public Task UpdateContinuouslyAsync(string source, string localSettingsDirectory, CancellationToken cancellationToken)
         {
             // Only the first thread to try to update this source should succeed
             // and cause us to actually begin the update loop. 
@@ -76,7 +70,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync();
+            return new Updater(this, source, localSettingsDirectory).UpdateInBackgroundAsync(cancellationToken);
         }
 
         private class Updater
@@ -101,7 +95,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             /// <summary>
             /// Internal for testing purposes.
             /// </summary>
-            internal async Task UpdateInBackgroundAsync()
+            internal async Task UpdateInBackgroundAsync(CancellationToken cancellationToken)
             {
                 // We only support this single source currently.
                 if (_source != NugetOrgSource)
@@ -110,19 +104,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
 
                 // Keep on looping until we're told to shut down.
-                while (!_service._updateCancellationToken.IsCancellationRequested)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    await _service.LogInfoAsync("Starting update").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Starting update", cancellationToken).ConfigureAwait(false);
                     try
                     {
-                        var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync().ConfigureAwait(false);
+                        var delayUntilNextUpdate = await UpdateDatabaseInBackgroundWorkerAsync(cancellationToken).ConfigureAwait(false);
 
-                        await _service.LogInfoAsync($"Waiting {delayUntilNextUpdate} until next update").ConfigureAwait(false);
-                        await Task.Delay(delayUntilNextUpdate, _service._updateCancellationToken).ConfigureAwait(false);
+                        await _service.LogInfoAsync($"Waiting {delayUntilNextUpdate} until next update", cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delayUntilNextUpdate, cancellationToken).ConfigureAwait(false);
                     }
                     catch (OperationCanceledException)
                     {
-                        await _service.LogInfoAsync("Update canceled. Ending update loop").ConfigureAwait(false);
+                        await _service.LogInfoAsync("Update canceled. Ending update loop", cancellationToken).ConfigureAwait(false);
                         return;
                     }
                 }
@@ -158,7 +152,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             /// <returns>The timespan the caller should wait until calling this method again.</returns>
-            private async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync()
+            private async Task<TimeSpan> UpdateDatabaseInBackgroundWorkerAsync(CancellationToken cancellationToken)
             {
                 // Attempt to update the local db if we have one, or download a full db
                 // if we don't.  In the event of any error back off a minute and try 
@@ -167,7 +161,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // disk.
                 try
                 {
-                    await CleanCacheDirectoryAsync().ConfigureAwait(false);
+                    await CleanCacheDirectoryAsync(cancellationToken).ConfigureAwait(false);
 
                     // If we have a local database, then see if it needs to be patched.
                     // Otherwise download the full database.
@@ -175,13 +169,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                     if (_service._ioService.Exists(_databaseFileInfo))
                     {
-                        await _service.LogInfoAsync("Local database file exists. Patching local database").ConfigureAwait(false);
-                        return await PatchLocalDatabaseAsync().ConfigureAwait(false);
+                        await _service.LogInfoAsync("Local database file exists. Patching local database", cancellationToken).ConfigureAwait(false);
+                        return await PatchLocalDatabaseAsync(cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        await _service.LogInfoAsync("Local database file does not exist. Downloading full database").ConfigureAwait(false);
-                        return await DownloadFullDatabaseAsync().ConfigureAwait(false);
+                        await _service.LogInfoAsync("Local database file does not exist. Downloading full database", cancellationToken).ConfigureAwait(false);
+                        return await DownloadFullDatabaseAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (OperationCanceledException)
@@ -198,47 +192,47 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // It's the standard way to indicate that we've been asked to shut
                     // down.
                     var delay = _service._delayService.ExpectedFailureDelay;
-                    await _service.LogExceptionAsync(e, $"Error occurred updating. Retrying update in {delay}").ConfigureAwait(false);
+                    await _service.LogExceptionAsync(e, $"Error occurred updating. Retrying update in {delay}", cancellationToken).ConfigureAwait(false);
                     return delay;
                 }
             }
 
-            private async Task CleanCacheDirectoryAsync()
+            private async Task CleanCacheDirectoryAsync(CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Cleaning cache directory").ConfigureAwait(false);
+                await _service.LogInfoAsync("Cleaning cache directory", cancellationToken).ConfigureAwait(false);
 
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                 if (!_service._ioService.Exists(_cacheDirectoryInfo))
                 {
-                    await _service.LogInfoAsync("Creating cache directory").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Creating cache directory", cancellationToken).ConfigureAwait(false);
 
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                     _service._ioService.Create(_cacheDirectoryInfo);
-                    await _service.LogInfoAsync("Cache directory created").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Cache directory created", cancellationToken).ConfigureAwait(false);
                 }
 
-                _service._updateCancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
             }
 
-            private async Task<TimeSpan> DownloadFullDatabaseAsync()
+            private async Task<TimeSpan> DownloadFullDatabaseAsync(CancellationToken cancellationToken)
             {
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/Latest.xml");
 
-                await _service.LogInfoAsync($"Downloading and processing full database: {serverPath}").ConfigureAwait(false);
+                await _service.LogInfoAsync($"Downloading and processing full database: {serverPath}", cancellationToken).ConfigureAwait(false);
 
-                var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
-                var delayUntilNextUpdate = await ProcessFullDatabaseXElementAsync(element).ConfigureAwait(false);
+                var element = await DownloadFileAsync(serverPath, cancellationToken).ConfigureAwait(false);
+                var delayUntilNextUpdate = await ProcessFullDatabaseXElementAsync(element, cancellationToken).ConfigureAwait(false);
 
-                await _service.LogInfoAsync("Downloading and processing full database completed").ConfigureAwait(false);
+                await _service.LogInfoAsync("Downloading and processing full database completed", cancellationToken).ConfigureAwait(false);
                 return delayUntilNextUpdate;
             }
 
-            private async Task<TimeSpan> ProcessFullDatabaseXElementAsync(XElement element)
+            private async Task<TimeSpan> ProcessFullDatabaseXElementAsync(XElement element, CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Processing full database element").ConfigureAwait(false);
+                await _service.LogInfoAsync("Processing full database element", cancellationToken).ConfigureAwait(false);
 
                 // Convert the database contents in the xml to a byte[].
-                var result = await TryParseDatabaseElementAsync(element).ConfigureAwait(false);
+                var result = await TryParseDatabaseElementAsync(element, cancellationToken).ConfigureAwait(false);
 
                 if (!result.Item1)
                 {
@@ -248,7 +242,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // we can retrieve good data the next time around.
 
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;
-                    await _service.LogInfoAsync($"Unable to parse full database element. Update again in {failureDelay}").ConfigureAwait(false);
+                    await _service.LogInfoAsync($"Unable to parse full database element. Update again in {failureDelay}", cancellationToken).ConfigureAwait(false);
                     return failureDelay;
                 }
 
@@ -258,7 +252,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // searching.
                 try
                 {
-                    await CreateAndSetInMemoryDatabaseAsync(bytes).ConfigureAwait(false);
+                    await CreateAndSetInMemoryDatabaseAsync(bytes, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
@@ -267,23 +261,23 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // isn't going to help.  We need to wait until there is good data
                     // on the server for us to download.
                     var failureDelay = _service._delayService.CatastrophicFailureDelay;
-                    await _service.LogInfoAsync($"Unable to create database from full database element. Update again in {failureDelay}").ConfigureAwait(false);
+                    await _service.LogInfoAsync($"Unable to create database from full database element. Update again in {failureDelay}", cancellationToken).ConfigureAwait(false);
                     return failureDelay;
                 }
 
                 // Write the file out to disk so we'll have it the next time we launch VS.  Do this
                 // after we set the in-memory instance so we at least have something to search while
                 // we're waiting to write.
-                await WriteDatabaseFile(bytes).ConfigureAwait(false);
+                await WriteDatabaseFile(bytes, cancellationToken).ConfigureAwait(false);
 
                 var delay = _service._delayService.UpdateSucceededDelay;
-                await _service.LogInfoAsync($"Processing full database element completed. Update again in {delay}").ConfigureAwait(false);
+                await _service.LogInfoAsync($"Processing full database element completed. Update again in {delay}", cancellationToken).ConfigureAwait(false);
                 return delay;
             }
 
-            private async Task WriteDatabaseFile(byte[] bytes)
+            private async Task WriteDatabaseFile(byte[] bytes, CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Writing database file").ConfigureAwait(false);
+                await _service.LogInfoAsync("Writing database file", cancellationToken).ConfigureAwait(false);
 
                 await RepeatIOAsync(
                     async () =>
@@ -291,7 +285,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         var guidString = Guid.NewGuid().ToString();
                         var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
 
-                        await _service.LogInfoAsync($"Temp file path: {tempFilePath}").ConfigureAwait(false);
+                        await _service.LogInfoAsync($"Temp file path: {tempFilePath}", cancellationToken).ConfigureAwait(false);
 
                         try
                         {
@@ -300,25 +294,25 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                             // file has been completely written to disk (at least as well as the OS can guarantee
                             // things).
 
-                            await _service.LogInfoAsync("Writing temp file").ConfigureAwait(false);
+                            await _service.LogInfoAsync("Writing temp file", cancellationToken).ConfigureAwait(false);
 
                             // (intentionally not wrapped in IOUtilities.  If this throws we want to retry writing).
                             _service._ioService.WriteAndFlushAllBytes(tempFilePath, bytes);
-                            await _service.LogInfoAsync("Writing temp file completed").ConfigureAwait(false);
+                            await _service.LogInfoAsync("Writing temp file completed", cancellationToken).ConfigureAwait(false);
 
                             // If we have an existing db file, try to replace it file with the temp file.
                             // Otherwise, just move the temp file into place.
                             if (_service._ioService.Exists(_databaseFileInfo))
                             {
-                                await _service.LogInfoAsync("Replacing database file").ConfigureAwait(false);
+                                await _service.LogInfoAsync("Replacing database file", cancellationToken).ConfigureAwait(false);
                                 _service._ioService.Replace(tempFilePath, _databaseFileInfo.FullName, destinationBackupFileName: null, ignoreMetadataErrors: true);
-                                await _service.LogInfoAsync("Replace database file completed").ConfigureAwait(false);
+                                await _service.LogInfoAsync("Replace database file completed", cancellationToken).ConfigureAwait(false);
                             }
                             else
                             {
-                                await _service.LogInfoAsync("Moving database file").ConfigureAwait(false);
+                                await _service.LogInfoAsync("Moving database file", cancellationToken).ConfigureAwait(false);
                                 _service._ioService.Move(tempFilePath, _databaseFileInfo.FullName);
-                                await _service.LogInfoAsync("Moving database file completed").ConfigureAwait(false);
+                                await _service.LogInfoAsync("Moving database file completed", cancellationToken).ConfigureAwait(false);
                             }
                         }
                         finally
@@ -327,19 +321,20 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                             // If this fails, that's unfortunately, but just proceed.
                             IOUtilities.PerformIO(() => _service._ioService.Delete(new FileInfo(tempFilePath)));
                         }
-                    }).ConfigureAwait(false);
+                    },
+                    cancellationToken).ConfigureAwait(false);
 
-                await _service.LogInfoAsync("Writing database file completed").ConfigureAwait(false);
+                await _service.LogInfoAsync("Writing database file completed", cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<TimeSpan> PatchLocalDatabaseAsync()
+            private async Task<TimeSpan> PatchLocalDatabaseAsync(CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Patching local database").ConfigureAwait(false);
+                await _service.LogInfoAsync("Patching local database", cancellationToken).ConfigureAwait(false);
 
-                await _service.LogInfoAsync("Reading in local database").ConfigureAwait(false);
+                await _service.LogInfoAsync("Reading in local database", cancellationToken).ConfigureAwait(false);
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
                 var databaseBytes = _service._ioService.ReadAllBytes(_databaseFileInfo.FullName);
-                await _service.LogInfoAsync($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}").ConfigureAwait(false);
+                await _service.LogInfoAsync($"Reading in local database completed. databaseBytes.Length={databaseBytes.Length}", cancellationToken).ConfigureAwait(false);
 
                 // Make a database instance out of those bytes and set is as the current in memory database
                 // that searches will run against.  If we can't make a database instance from these bytes
@@ -348,12 +343,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 AddReferenceDatabase database;
                 try
                 {
-                    database = await CreateAndSetInMemoryDatabaseAsync(databaseBytes).ConfigureAwait(false);
+                    database = await CreateAndSetInMemoryDatabaseAsync(databaseBytes, cancellationToken).ConfigureAwait(false);
                 }
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
-                    await _service.LogExceptionAsync(e, "Error creating database from local copy. Downloading full database").ConfigureAwait(false);
-                    return await DownloadFullDatabaseAsync().ConfigureAwait(false);
+                    await _service.LogExceptionAsync(e, "Error creating database from local copy. Downloading full database", cancellationToken).ConfigureAwait(false);
+                    return await DownloadFullDatabaseAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 var databaseVersion = database.DatabaseVersion;
@@ -361,13 +356,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 // Now attempt to download and apply patch file.
                 var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
-                await _service.LogInfoAsync("Downloading and processing patch file: " + serverPath).ConfigureAwait(false);
+                await _service.LogInfoAsync("Downloading and processing patch file: " + serverPath, cancellationToken).ConfigureAwait(false);
 
-                var element = await DownloadFileAsync(serverPath).ConfigureAwait(false);
-                var delayUntilUpdate = await ProcessPatchXElementAsync(element, databaseBytes).ConfigureAwait(false);
+                var element = await DownloadFileAsync(serverPath, cancellationToken).ConfigureAwait(false);
+                var delayUntilUpdate = await ProcessPatchXElementAsync(element, databaseBytes, cancellationToken).ConfigureAwait(false);
 
-                await _service.LogInfoAsync("Downloading and processing patch file completed").ConfigureAwait(false);
-                await _service.LogInfoAsync("Patching local database completed").ConfigureAwait(false);
+                await _service.LogInfoAsync("Downloading and processing patch file completed", cancellationToken).ConfigureAwait(false);
+                await _service.LogInfoAsync("Patching local database completed", cancellationToken).ConfigureAwait(false);
 
                 return delayUntilUpdate;
             }
@@ -378,22 +373,22 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             /// indicates that our data is corrupt), the exception will bubble up and must be appropriately
             /// dealt with by the caller.
             /// </summary>
-            private async Task<AddReferenceDatabase> CreateAndSetInMemoryDatabaseAsync(byte[] bytes)
+            private async Task<AddReferenceDatabase> CreateAndSetInMemoryDatabaseAsync(byte[] bytes, CancellationToken cancellationToken)
             {
-                var database = await CreateDatabaseFromBytesAsync(bytes).ConfigureAwait(false);
+                var database = await CreateDatabaseFromBytesAsync(bytes, cancellationToken).ConfigureAwait(false);
                 _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
                 return database;
             }
 
-            private async Task<TimeSpan> ProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes)
+            private async Task<TimeSpan> ProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes, CancellationToken cancellationToken)
             {
                 try
                 {
-                    await _service.LogInfoAsync("Processing patch element").ConfigureAwait(false);
-                    var delayUntilUpdate = await TryProcessPatchXElementAsync(patchElement, databaseBytes).ConfigureAwait(false);
+                    await _service.LogInfoAsync("Processing patch element", cancellationToken).ConfigureAwait(false);
+                    var delayUntilUpdate = await TryProcessPatchXElementAsync(patchElement, databaseBytes, cancellationToken).ConfigureAwait(false);
                     if (delayUntilUpdate != null)
                     {
-                        await _service.LogInfoAsync($"Processing patch element completed. Update again in {delayUntilUpdate.Value}").ConfigureAwait(false);
+                        await _service.LogInfoAsync($"Processing patch element completed. Update again in {delayUntilUpdate.Value}", cancellationToken).ConfigureAwait(false);
                         return delayUntilUpdate.Value;
                     }
 
@@ -401,40 +396,40 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
                 catch (Exception e) when (_service._reportAndSwallowException(e))
                 {
-                    await _service.LogExceptionAsync(e, "Error occurred while processing patch element. Downloading full database").ConfigureAwait(false);
+                    await _service.LogExceptionAsync(e, "Error occurred while processing patch element. Downloading full database", cancellationToken).ConfigureAwait(false);
                     // Fall through and download full database.
                 }
 
-                return await DownloadFullDatabaseAsync().ConfigureAwait(false);
+                return await DownloadFullDatabaseAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            private async Task<TimeSpan?> TryProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes)
+            private async Task<TimeSpan?> TryProcessPatchXElementAsync(XElement patchElement, byte[] databaseBytes, CancellationToken cancellationToken)
             {
                 ParsePatchElement(patchElement, out var upToDate, out var tooOld, out var patchBytes);
 
                 if (upToDate)
                 {
-                    await _service.LogInfoAsync("Local version is up to date").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Local version is up to date", cancellationToken).ConfigureAwait(false);
                     return _service._delayService.UpdateSucceededDelay;
                 }
 
                 if (tooOld)
                 {
-                    await _service.LogInfoAsync("Local version too old").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Local version too old", cancellationToken).ConfigureAwait(false);
                     return null;
                 }
 
-                await _service.LogInfoAsync($"Got patch. databaseBytes.Length={databaseBytes.Length} patchBytes.Length={patchBytes.Length}.").ConfigureAwait(false);
+                await _service.LogInfoAsync($"Got patch. databaseBytes.Length={databaseBytes.Length} patchBytes.Length={patchBytes.Length}.", cancellationToken).ConfigureAwait(false);
 
                 // We have patch data.  Apply it to our current database bytes to produce the new
                 // database.
-                await _service.LogInfoAsync("Applying patch").ConfigureAwait(false);
+                await _service.LogInfoAsync("Applying patch", cancellationToken).ConfigureAwait(false);
                 var finalBytes = _service._patchService.ApplyPatch(databaseBytes, patchBytes);
-                await _service.LogInfoAsync($"Applying patch completed. finalBytes.Length={finalBytes.Length}").ConfigureAwait(false);
+                await _service.LogInfoAsync($"Applying patch completed. finalBytes.Length={finalBytes.Length}", cancellationToken).ConfigureAwait(false);
 
-                await CreateAndSetInMemoryDatabaseAsync(finalBytes).ConfigureAwait(false);
+                await CreateAndSetInMemoryDatabaseAsync(finalBytes, cancellationToken).ConfigureAwait(false);
 
-                await WriteDatabaseFile(finalBytes).ConfigureAwait(false);
+                await WriteDatabaseFile(finalBytes, cancellationToken).ConfigureAwait(false);
 
                 return _service._delayService.UpdateSucceededDelay;
             }
@@ -467,17 +462,17 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 }
             }
 
-            private async Task<AddReferenceDatabase> CreateDatabaseFromBytesAsync(byte[] bytes)
+            private async Task<AddReferenceDatabase> CreateDatabaseFromBytesAsync(byte[] bytes, CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Creating database from bytes").ConfigureAwait(false);
+                await _service.LogInfoAsync("Creating database from bytes", cancellationToken).ConfigureAwait(false);
                 var result = _service._databaseFactoryService.CreateDatabaseFromBytes(bytes);
-                await _service.LogInfoAsync("Creating database from bytes completed").ConfigureAwait(false);
+                await _service.LogInfoAsync("Creating database from bytes completed", cancellationToken).ConfigureAwait(false);
                 return result;
             }
 
-            private async Task<XElement> DownloadFileAsync(string serverPath)
+            private async Task<XElement> DownloadFileAsync(string serverPath, CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Creating download client: " + serverPath).ConfigureAwait(false);
+                await _service.LogInfoAsync("Creating download client: " + serverPath, cancellationToken).ConfigureAwait(false);
 
                 // Create a client that will attempt to download the specified file.  The client works
                 // in the following manner:
@@ -493,19 +488,19 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 var pollingMinutes = (int)TimeSpan.FromDays(1).TotalMinutes;
                 using (var client = _service._remoteControlService.CreateClient(HostId, serverPath, pollingMinutes))
                 {
-                    await _service.LogInfoAsync("Creating download client completed").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Creating download client completed", cancellationToken).ConfigureAwait(false);
 
                     // Poll the client every minute until we get the file.
                     while (true)
                     {
-                        _service._updateCancellationToken.ThrowIfCancellationRequested();
+                        cancellationToken.ThrowIfCancellationRequested();
 
-                        var resultOpt = await TryDownloadFileAsync(client).ConfigureAwait(false);
+                        var resultOpt = await TryDownloadFileAsync(client, cancellationToken).ConfigureAwait(false);
                         if (resultOpt == null)
                         {
                             var delay = _service._delayService.CachePollDelay;
-                            await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}").ConfigureAwait(false);
-                            await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                            await _service.LogInfoAsync($"File not downloaded. Trying again in {delay}", cancellationToken).ConfigureAwait(false);
+                            await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                         }
                         else
                         {
@@ -517,9 +512,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<XElement> TryDownloadFileAsync(IRemoteControlClient client)
+            private async Task<XElement> TryDownloadFileAsync(IRemoteControlClient client, CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Read file from client").ConfigureAwait(false);
+                await _service.LogInfoAsync("Read file from client", cancellationToken).ConfigureAwait(false);
 
                 // "ReturnsNull": Only return a file if we have it locally *and* it's not older than our polling time (1 day).
 
@@ -527,12 +522,12 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 {
                     if (stream == null)
                     {
-                        await _service.LogInfoAsync("Read file completed. Client returned no data").ConfigureAwait(false);
+                        await _service.LogInfoAsync("Read file completed. Client returned no data", cancellationToken).ConfigureAwait(false);
                         return null;
                     }
 
-                    await _service.LogInfoAsync("Read file completed. Client returned data").ConfigureAwait(false);
-                    await _service.LogInfoAsync("Converting data to XElement").ConfigureAwait(false);
+                    await _service.LogInfoAsync("Read file completed. Client returned data", cancellationToken).ConfigureAwait(false);
+                    await _service.LogInfoAsync("Converting data to XElement", cancellationToken).ConfigureAwait(false);
 
                     // We're reading in our own XML file, but even so, use conservative settings
                     // just to be on the safe side.  First, disallow DTDs entirely (we will never
@@ -546,18 +541,18 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     using (var reader = XmlReader.Create(stream, settings))
                     {
                         var result = XElement.Load(reader);
-                        await _service.LogInfoAsync("Converting data to XElement completed").ConfigureAwait(false);
+                        await _service.LogInfoAsync("Converting data to XElement completed", cancellationToken).ConfigureAwait(false);
                         return result;
                     }
                 }
             }
 
-            private async Task RepeatIOAsync(Func<Task> action)
+            private async Task RepeatIOAsync(Func<Task> action, CancellationToken cancellationToken)
             {
                 const int repeat = 6;
                 for (var i = 0; i < repeat; i++)
                 {
-                    _service._updateCancellationToken.ThrowIfCancellationRequested();
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     try
                     {
@@ -574,15 +569,15 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                         // around the reporting in this case.
 
                         var delay = _service._delayService.FileWriteDelay;
-                        await _service.LogExceptionAsync(e, $"Operation failed. Trying again after {delay}").ConfigureAwait(false);
-                        await Task.Delay(delay, _service._updateCancellationToken).ConfigureAwait(false);
+                        await _service.LogExceptionAsync(e, $"Operation failed. Trying again after {delay}", cancellationToken).ConfigureAwait(false);
+                        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
-            private async Task<ValueTuple<bool, byte[]>> TryParseDatabaseElementAsync(XElement element)
+            private async Task<ValueTuple<bool, byte[]>> TryParseDatabaseElementAsync(XElement element, CancellationToken cancellationToken)
             {
-                await _service.LogInfoAsync("Parsing database element").ConfigureAwait(false);
+                await _service.LogInfoAsync("Parsing database element", cancellationToken).ConfigureAwait(false);
                 var contentsAttribute = element.Attribute(ContentAttributeName);
                 if (contentsAttribute == null)
                 {
@@ -591,7 +586,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ValueTuple.Create(false, (byte[])null);
                 }
 
-                var contentBytes = await ConvertContentAttributeAsync(contentsAttribute).ConfigureAwait(false);
+                var contentBytes = await ConvertContentAttributeAsync(contentsAttribute, cancellationToken).ConfigureAwait(false);
 
                 var checksumAttribute = element.Attribute(ChecksumAttributeName);
                 if (checksumAttribute != null)
@@ -614,7 +609,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 return ValueTuple.Create(true, contentBytes);
             }
 
-            private async Task<byte[]> ConvertContentAttributeAsync(XAttribute contentsAttribute)
+            private async Task<byte[]> ConvertContentAttributeAsync(XAttribute contentsAttribute, CancellationToken cancellationToken)
             {
                 var text = contentsAttribute.Value;
                 var compressedBytes = Convert.FromBase64String(text);
@@ -629,7 +624,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
                     var bytes = outStream.ToArray();
 
-                    await _service.LogInfoAsync($"Parsing complete. bytes.length={bytes.Length}").ConfigureAwait(false);
+                    await _service.LogInfoAsync($"Parsing complete. bytes.length={bytes.Length}", cancellationToken).ConfigureAwait(false);
                     return bytes;
                 }
             }

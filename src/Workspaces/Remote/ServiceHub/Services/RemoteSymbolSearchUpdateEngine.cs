@@ -3,6 +3,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -15,37 +16,36 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteSymbolSearchUpdateEngine(Stream stream, IServiceProvider serviceProvider)
             : base(serviceProvider, stream)
         {
-            _updateEngine = new SymbolSearchUpdateEngine(
-                new LogService(this), updateCancellationToken: this.CancellationToken);
+            _updateEngine = new SymbolSearchUpdateEngine(new LogService(this));
 
             Rpc.StartListening();
         }
 
-        public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
+        public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken)
         {
-            return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
+            return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory, cancellationToken);
         }
 
-        public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity)
+        public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
-                source, name, arity).ConfigureAwait(false);
+                source, name, arity, cancellationToken).ConfigureAwait(false);
             var serializedResults = results.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
             return serializedResults;
         }
 
-        public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string assemblyName)
+        public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string assemblyName, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
-                source, assemblyName).ConfigureAwait(false);
+                source, assemblyName, cancellationToken).ConfigureAwait(false);
             var serializedResults = results.Select(SerializablePackageWithAssemblyResult.Dehydrate).ToArray();
             return serializedResults;
         }
 
-        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity)
+        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity, CancellationToken cancellationToken)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
-                name, arity).ConfigureAwait(false);
+                name, arity, cancellationToken).ConfigureAwait(false);
             var serializedResults = results.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
             return serializedResults;
         }
@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 _service = service;
             }
 
-            public Task LogExceptionAsync(string exception, string text)
-                => _service.Rpc.InvokeAsync(nameof(LogExceptionAsync), exception, text);
+            public Task LogExceptionAsync(string exception, string text, CancellationToken cancellationToken)
+                => _service.Rpc.InvokeWithCancellationAsync(nameof(LogExceptionAsync), new[] { exception, text }, cancellationToken);
 
-            public Task LogInfoAsync(string text)
-                => _service.Rpc.InvokeAsync(nameof(LogInfoAsync), text);
+            public Task LogInfoAsync(string text, CancellationToken cancellationToken)
+                => _service.Rpc.InvokeWithCancellationAsync(nameof(LogInfoAsync), new[] { text }, cancellationToken);
         }
     }
 }

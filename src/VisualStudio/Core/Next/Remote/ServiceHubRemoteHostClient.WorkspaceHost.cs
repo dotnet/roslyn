@@ -37,27 +37,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 // Ensure that we populate the remote service with the initial state of
                 // the workspace's solution.
-                return RegisterPrimarySolutionAsync();
+                return RegisterPrimarySolutionAsync(CancellationToken.None);
             }
 
             public void OnAfterWorkingFolderChange()
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolutionAsync().Wait();
+                RegisterPrimarySolutionAsync(CancellationToken.None).Wait();
             }
 
             public void OnSolutionAdded(SolutionInfo solutionInfo)
             {
                 this.AssertIsForeground();
-                RegisterPrimarySolutionAsync().Wait();
+                RegisterPrimarySolutionAsync(CancellationToken.None).Wait();
             }
 
-            private async Task RegisterPrimarySolutionAsync()
+            private async Task RegisterPrimarySolutionAsync(CancellationToken cancellationToken)
             {
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var session = await _client.TryCreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, CancellationToken.None).ConfigureAwait(false))
+                using (var session = await _client.TryCreateServiceSessionAsync(WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution, cancellationToken).ConfigureAwait(false))
                 {
                     if (session == null)
                     {
@@ -65,11 +65,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                         return;
                     }
 
-                    await session.InvokeAsync(nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
+                    await session.InvokeWithCancellationAsync(nameof(IRemoteHostService.RegisterPrimarySolutionId), new[] { solutionId }, cancellationToken).ConfigureAwait(false);
 
-                    await session.InvokeAsync(
-                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
-                        _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
+                    await session.InvokeWithCancellationAsync(
+                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation),
+                        new object[] { solutionId, _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution) },
+                        cancellationToken).ConfigureAwait(false);
                 }
             }
 

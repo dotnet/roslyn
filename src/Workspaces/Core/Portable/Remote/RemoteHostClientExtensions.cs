@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                await session.InvokeAsync(targetName, arguments).ConfigureAwait(false);
+                await session.InvokeWithCancellationAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return default(T);
                 }
 
-                return await session.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
+                return await session.InvokeWithCancellationAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
         }
 

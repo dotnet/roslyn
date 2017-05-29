@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
 
@@ -11,21 +12,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </summary>
     internal interface IStreamingFindReferencesProgress
     {
-        Task OnStartedAsync();
-        Task OnCompletedAsync();
+        Task OnStartedAsync(CancellationToken cancellationToken);
+        Task OnCompletedAsync(CancellationToken cancellationToken);
 
-        Task OnFindInDocumentStartedAsync(Document document);
-        Task OnFindInDocumentCompletedAsync(Document document);
+        Task OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken);
+        Task OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken);
 
-        Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId);
-        Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location);
+        Task OnDefinitionFoundAsync(SymbolAndProjectId symbolAndProjectId, CancellationToken cancellationToken);
+        Task OnReferenceFoundAsync(SymbolAndProjectId symbolAndProjectId, ReferenceLocation location, CancellationToken cancellationToken);
 
-        Task ReportProgressAsync(int current, int maximum);
+        Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken);
     }
 
     internal interface IStreamingFindLiteralReferencesProgress
     {
-        Task OnReferenceFoundAsync(Document document, TextSpan span);
-        Task ReportProgressAsync(int current, int maximum);
+        Task OnReferenceFoundAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+        Task ReportProgressAsync(int current, int maximum, CancellationToken cancellationToken);
     }
 }

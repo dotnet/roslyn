@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.Remote
             return _host;
         }
 
-        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum)
+        public async Task SynchronizePrimaryWorkspaceAsync(Checksum checksum, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, CancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
                 try
                 {
                     var solutionController = (ISolutionController)RoslynServices.SolutionService;
-                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, CancellationToken).ConfigureAwait(false);
+                    await solutionController.UpdatePrimaryWorkspaceAsync(checksum, cancellationToken).ConfigureAwait(false);
                 }
                 catch (IOException)
                 {
@@ -98,13 +98,13 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums)
+        public async Task SynchronizeGlobalAssetsAsync(Checksum[] checksums, CancellationToken cancellationToken)
         {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, CancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeGlobalAssetsAsync, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
                 try
                 {
-                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, CancellationToken).ConfigureAwait(false);
+                    var assets = await RoslynServices.AssetService.GetAssetsAsync<object>(checksums, cancellationToken).ConfigureAwait(false);
 
                     foreach (var asset in assets)
                     {
