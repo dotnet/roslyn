@@ -3,7 +3,12 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -13,9 +18,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     internal class SyntaxTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
-        {
-            return new IncrementalAnalyzer();
-        }
+            => new IncrementalAnalyzer();
 
         private class IncrementalAnalyzer : IncrementalAnalyzerBase
         {
@@ -27,12 +30,20 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return SpecializedTasks.EmptyTask;
                 }
 
-                if (document.Project.Solution.Workspace.Kind != WorkspaceKind.Test &&
-                    document.Project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace)
+                var workspace = document.Project.Solution.Workspace;
+
+                if (workspace.Kind != WorkspaceKind.Test &&
+                    workspace.Kind != WorkspaceKind.RemoteWorkspace)
                 {
-                    // if FAR feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
-                    return SpecializedTasks.EmptyTask;
+                    // If we're in the local workspace, only precalculate the index if we're not
+                    // using the remote service.
+                    if (workspace.IsOutOfProcessEnabled(NavigateToOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) ||
+                        workspace.IsOutOfProcessEnabled(FindUsagesOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) ||
+                        workspace.IsOutOfProcessEnabled(SymbolFinderOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) ||
+                        workspace.IsOutOfProcessEnabled(DocumentHighlightingOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed))
+                    {
+                        return SpecializedTasks.EmptyTask;
+                    }
                 }
 
                 return SyntaxTreeIndex.PrecalculateAsync(document, cancellationToken);

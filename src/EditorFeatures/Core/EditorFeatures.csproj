@@ -160,7 +160,6 @@
     <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpanFactory.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\FindUsagesContext.cs" />
-    <Compile Include="FindUsages\FindUsagesOptions.cs" />
     <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />

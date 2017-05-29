@@ -49,16 +49,12 @@ namespace Microsoft.CodeAnalysis.Remote
             this Solution solution, Option<bool> option, string experimentName, CancellationToken cancellationToken)
             => TryCreateCodeAnalysisServiceSessionAsync(solution, option, experimentName, callbackTarget: null, cancellationToken: cancellationToken);
 
-
-        public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
-            this Solution solution, Option<bool> option, string experimentName, object callbackTarget, CancellationToken cancellationToken)
+        public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> option, string experimentName)
         {
-            var workspace = solution.Workspace;
-
             var outOfProcessAllowed = workspace.Options.GetOption(option);
             if (!outOfProcessAllowed)
             {
-                return null;
+                return false;
             }
 
             // Treat experiments as always on in tests.
@@ -67,8 +63,21 @@ namespace Microsoft.CodeAnalysis.Remote
                 var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
                 if (!experimentEnabled.IsExperimentEnabled(experimentName))
                 {
-                    return null;
+                    return false;
                 }
+            }
+
+            return true;
+        }
+
+        public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+            this Solution solution, Option<bool> option, string experimentName, object callbackTarget, CancellationToken cancellationToken)
+        {
+            var workspace = solution.Workspace;
+
+            if (!workspace.IsOutOfProcessEnabled(option, experimentName))
+            {
+                return null;
             }
 
             var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);

@@ -4,15 +4,17 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
@@ -194,14 +196,21 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (project.Solution.Workspace.Kind != WorkspaceKind.Test &&
-                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace)
-                {
-                    // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
-                    return;
-                }
+                var workspace = project.Solution.Workspace;
 
+                if (workspace.Kind != WorkspaceKind.Test &&
+                    workspace.Kind != WorkspaceKind.RemoteWorkspace)
+                {
+                    // If we're in the local workspace, only precalculate the index if we're not
+                    // using the remote service.
+                    if (workspace.IsOutOfProcessEnabled(NavigateToOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) ||
+                        workspace.IsOutOfProcessEnabled(FindUsagesOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) ||
+                        workspace.IsOutOfProcessEnabled(SymbolFinderOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) ||
+                        workspace.IsOutOfProcessEnabled(DocumentHighlightingOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed))
+                    {
+                        return;
+                    }
+                }
 
                 var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
 

@@ -147,6 +147,7 @@
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
+    <Compile Include="FindUsages\FindUsagesOptions.cs" />
     <Compile Include="FindUsages\IRemoteFindUsages.cs" />
     <Compile Include="FindUsages\SerializableClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="FindUsages\SerializableDefinitionItem.cs" />
