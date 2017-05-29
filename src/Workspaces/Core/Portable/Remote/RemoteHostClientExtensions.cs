@@ -72,6 +72,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return null;
+            }
+
             return await client.TryCreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 
