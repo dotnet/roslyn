@@ -76,15 +76,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var c = await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             if (c.Assembly?.Identity?.IsStrongName ?? false)
             {
-                var sb = new StringBuilder(capacity: c.Assembly.Identity.PublicKey.Length * 2);
-                foreach (var b in c.Assembly.Identity.PublicKey)
-                {
-                    sb.Append(b.ToString("x2"));
-                }
-                return sb.ToString();
+                return GetPublicKeyAsHexString(c.Assembly.Identity.PublicKey);
             }
-            else
-                return string.Empty;
+            return string.Empty;
+        }
+
+        private static string GetPublicKeyAsHexString(ImmutableArray<byte> publicKey)
+        {
+            var sb = new StringBuilder(capacity: publicKey.Length * 2);
+            foreach (var b in publicKey)
+            {
+                sb.Append(b.ToString("x2"));
+            }
+            return sb.ToString();
         }
 
         private static AttributeSyntax GetAttributeSyntaxOfToken(SyntaxToken token)
