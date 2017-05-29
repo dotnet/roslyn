@@ -21,9 +21,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
 
-        Public Sub New(syntax As SyntaxNode, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            Me.New(syntax, Nothing, type, hasErrors)
-        End Sub
+        'Public Sub New(syntax As SyntaxNode, type As TypeSymbol, Optional hasErrors As Boolean = False)
+        '    Me.New(syntax, Nothing, type, hasErrors)
+        'End Sub
 
 
 
