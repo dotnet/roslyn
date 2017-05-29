@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private static bool IsHostOrTestWorkspace(Project project)
         {
             return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
-                   project.Solution.Workspace.Kind == "Test";
+                   project.Solution.Workspace.Kind == WorkspaceKind.Test;
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(

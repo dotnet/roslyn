@@ -25,8 +25,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 {
     public partial class TestWorkspace : Workspace
     {
-        public const string WorkspaceName = TestWorkspaceName.Name;
-
         public ExportProvider ExportProvider { get; }
 
         public bool CanApplyChangeDocument { get; set; }
@@ -42,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private readonly BackgroundParser _backgroundParser;
 
         public TestWorkspace()
-            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceName)
+            : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
         {
         }
 
         public TestWorkspace(ExportProvider exportProvider, string workspaceKind = null, bool disablePartialSolutions = true)
-            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceName)
+            : base(MefV1HostServices.Create(exportProvider.AsExportProvider()), workspaceKind ?? WorkspaceKind.Test)
         {
             ResetThreadAffinity();
 
