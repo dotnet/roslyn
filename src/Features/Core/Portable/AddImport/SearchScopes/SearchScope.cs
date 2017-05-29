@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 CancellationToken = cancellationToken;
             }
 
-            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery query);
+            protected abstract Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(SymbolFilter filter, SearchQuery query);
             public abstract SymbolReference CreateReference<T>(SymbolResult<T> symbol) where T : INamespaceOrTypeSymbol;
 
             public async Task<ImmutableArray<SymbolResult<ISymbol>>> FindDeclarationsAsync(
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 using (var query = this.Exact ? SearchQuery.Create(name, ignoreCase: true) : SearchQuery.CreateFuzzy(name))
                 {
-                    var symbols = await FindDeclarationsAsync(name, filter, query).ConfigureAwait(false);
+                    var symbols = await FindDeclarationsAsync(filter, query).ConfigureAwait(false);
 
                     if (Exact)
                     {
