@@ -243,6 +243,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterpolatedStringExpression
                     Return BindInterpolatedStringExpression(DirectCast(node, InterpolatedStringExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.TypeArray
+                    Return BindTypeArray(DirectCast(node, TypeArraySyntax), diagnostics)
+
                 Case SyntaxKind.TupleExpression
                     Return BindTupleExpression(DirectCast(node, TupleExpressionSyntax), diagnostics)
 
@@ -738,45 +741,55 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        'Private Function BindTypeArray(node As TypeArraySyntax, diagnostics As DiagnosticBag) As BoundExpression
+
+        '    Return
+        'End Function
+
         Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
 
             Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
-
-            Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(node.Type, diagnostics)
-            Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
-
             Dim resultType As TypeSymbol = GetSpecialType(SpecialType.System_Boolean, node, diagnostics)
-
-            If operand.HasErrors OrElse operandType.IsErrorType() OrElse targetType.IsErrorType() Then
-                ' If operand is bad or either the source or target types have errors, bail out preventing more cascading errors.
-                Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
-            End If
-
-            If Not operandType.IsReferenceType AndAlso
-               Not operandType.IsTypeParameter() Then
-
-                ReportDiagnostic(diagnostics, node.Expression, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
+            If TypeOf node.Type Is TypeArraySyntax Then
+                Return New BoundTypeOf(node, operand, operatorIsIsNot, Nothing, resultType)
 
             Else
-                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteDiagnostics)
 
-                If diagnostics.Add(node, useSiteDiagnostics) Then
-                    ' Suppress any additional diagnostics
-                    diagnostics = New DiagnosticBag()
-                ElseIf Not Conversions.ConversionExists(convKind) Then
-                    ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
+                Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(node.Type, diagnostics)
+                Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
+
+
+                If operand.HasErrors OrElse operandType.IsErrorType() OrElse targetType.IsErrorType() Then
+                    ' If operand is bad or either the source or target types have errors, bail out preventing more cascading errors.
+                    Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
                 End If
-            End If
 
-            If operandType.IsTypeParameter() Then
-                operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node.Expression, diagnostics), operand, diagnostics)
-            End If
+                If Not operandType.IsReferenceType AndAlso
+               Not operandType.IsTypeParameter() Then
 
-            Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
+                    ReportDiagnostic(diagnostics, node.Expression, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
+
+                Else
+                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                    Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteDiagnostics)
+
+                    If diagnostics.Add(node, useSiteDiagnostics) Then
+                        ' Suppress any additional diagnostics
+                        diagnostics = New DiagnosticBag()
+                    ElseIf Not Conversions.ConversionExists(convKind) Then
+                        ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
+                    End If
+                End If
+
+                If operandType.IsTypeParameter() Then
+                    operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node.Expression, diagnostics), operand, diagnostics)
+                End If
+
+                Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
+            End If
 
         End Function
 

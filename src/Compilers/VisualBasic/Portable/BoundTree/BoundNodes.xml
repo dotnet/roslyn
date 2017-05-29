@@ -523,17 +523,18 @@
                  representing the stub is stored here -->
         <Field Name="RelaxationLambdaOpt" Type="BoundLambda" Null="allow" />
     </Node>
-
+  
+ 
     <Node Name="BoundTypeOf" Base="BoundExpression">
       <!-- Non-null type is required for this node kind -->
-      <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+      <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
 
       <Field Name="Operand" Type="BoundExpression"/>
       <Field Name="IsTypeOfIsNotExpression" Type="Boolean"/>
-      <Field Name="TargetType" Type="TypeSymbol"/>
+      <Field Name="TargetType" Type="TypeSymbol" Null="allow"/>
     </Node>
-
-    <AbstractNode Name="BoundStatement" Base="BoundNode"/>
+  
+  <AbstractNode Name="BoundStatement" Base="BoundNode"/>
 
     <Node Name="BoundSequencePoint" Base="BoundStatement">
         <!-- 

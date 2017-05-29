@@ -2538,8 +2538,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             MyBase.New(BoundKind.TypeOf, syntax, type, hasErrors OrElse operand.NonNullAndHasErrors())
 
             Debug.Assert(operand IsNot Nothing, "Field 'operand' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(targetType IsNot Nothing, "Field 'targetType' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
-            Debug.Assert(type IsNot Nothing, "Field 'type' cannot be null (use Null=""allow"" in BoundNodes.xml to remove this check)")
 
             Me._Operand = operand
             Me._IsTypeOfIsNotExpression = isTypeOfIsNotExpression
