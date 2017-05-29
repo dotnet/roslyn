@@ -1031,6 +1031,22 @@ CodeStyleOptions.QualifyMethodAccess);
 
         [WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
+        public async Task DoNotReportToQualify_IfBaseQualificationOnField()
+        {
+            await TestMissingAsyncWithOption(
+@"class Base
+{
+    protected int field;
+}
+class Derived : Base
+{
+    void M() { [|base.field|] = 0; }
+}",
+CodeStyleOptions.QualifyFieldAccess);
+        }
+
+        [WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]
         public async Task DoNotReportToQualify_IfBaseQualificationOnProperty()
         {
             await TestMissingAsyncWithOption(

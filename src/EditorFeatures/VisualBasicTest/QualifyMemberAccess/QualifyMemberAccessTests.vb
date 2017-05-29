@@ -466,6 +466,37 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Error)
 
         <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyBaseQualificationOnField() As Task
+            Await TestMissingAsyncWithOption("
+Class Base
+    Protected Field As Integer
+End Class
+Class Derived
+    Inherits Base
+    Sub M()
+        [|MyBase.Field|] = 0
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
+        Public Async Function DoNotReportToQualify_IfMyClassQualificationOnField() As Task
+            Await TestMissingAsyncWithOption("
+Class C
+    Private ReadOnly Field As Integer
+    Sub M()
+        [|MyClass.Field|] = 0
+    End Sub
+End Class
+",
+CodeStyleOptions.QualifyFieldAccess)
+        End Function
+
+        <WorkItem(17711, "https://github.com/dotnet/roslyn/issues/17711")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)>
         Public Async Function DoNotReportToQualify_IfMyBaseQualificationOnProperty() As Task
             Await TestMissingAsyncWithOption("
 Class Base
