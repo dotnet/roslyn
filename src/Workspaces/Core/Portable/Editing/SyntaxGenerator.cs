@@ -1692,9 +1692,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode TupleTypeExpression(IEnumerable<ITypeSymbol> elementTypes, IEnumerable<string> elementNames = null)
         {
+            if (elementTypes == null)
+            {
+                throw new ArgumentNullException(nameof(elementTypes));
+            }
             if (elementNames != null)
             {
-                if (elementNames.Count() != elementTypes?.Count())
+                if (elementNames.Count() != elementTypes.Count())
                 {
                     throw new ArgumentException("The number of element names must match the cardinality of the tuple.", nameof(elementNames));
                 }
