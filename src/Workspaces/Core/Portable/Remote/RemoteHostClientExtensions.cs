@@ -46,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
-            this Solution solution, Option<bool> option, string experimentName, CancellationToken cancellationToken)
-            => TryCreateCodeAnalysisServiceSessionAsync(solution, option, experimentName, callbackTarget: null, cancellationToken: cancellationToken);
+             this Solution solution, Option<bool> option, string experimentName, CancellationToken cancellationToken)
+             => TryCreateCodeAnalysisServiceSessionAsync(solution, option, experimentName, callbackTarget: null, cancellationToken: cancellationToken);
 
         public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> option, string experimentName)
         {
@@ -57,21 +57,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
-            return true;
-
-#if false
-            // Treat experiments as always on in tests.
-            if (experimentName != null && workspace.Kind != WorkspaceKind.Test)
-            {
-                var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
-                if (!experimentEnabled.IsExperimentEnabled(experimentName))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-#endif
+             // Treat experiments as always on in tests.
+             if (experimentName != null && workspace.Kind != WorkspaceKind.Test)
+             {
+                 var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
+                 if (!experimentEnabled.IsExperimentEnabled(experimentName))
+                 {
+                     return false;
+                 }
+             }
+ 
+             return true;
         }
 
         public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(

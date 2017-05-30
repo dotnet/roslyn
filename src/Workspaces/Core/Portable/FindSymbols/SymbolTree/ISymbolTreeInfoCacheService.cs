@@ -19,13 +19,4 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         /// </summary>
         Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken);
     }
-
-    internal interface IRemoteSymbolTreeInfoCacheService
-    {
-        Task<SerializableSymbolAndProjectId[]> TryFindSourceSymbolsAsync(
-            ProjectId projectId, SymbolFilter filter, string queryName, SearchKind queryKind);
-
-        Task<SerializableSymbolAndProjectId[]> TryFindMetadataSymbolsAsync(
-            Checksum metadataChecksum, ProjectId assemblyProjectId, SymbolFilter filter, string queryName, SearchKind queryKind);
-    }
 }

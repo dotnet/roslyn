@@ -208,6 +208,7 @@
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="FindSymbols\SymbolTree\IRemoteSymbolTreeInfoCacheService.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />

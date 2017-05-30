@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
                 DocumentHighlightingOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed, cancellationToken).ConfigureAwait(false);
-
             using (session)
             {
                 if (session == null)

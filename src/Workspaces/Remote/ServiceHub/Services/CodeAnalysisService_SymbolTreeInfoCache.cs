@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var projectAssembly = compilation.Assembly;
 
             var symbols = await AddImportSymbolTreeInfoService.TryFindMetadataSymbolsInCurrentProcessAsync(
-                solution, metadataReference, projectAssembly, assemblyProjectId, 
+                solution, metadataReference, projectAssembly, assemblyProjectId,
                 filter, SearchQuery.Create(queryName, queryKind), CancellationToken).ConfigureAwait(false);
 
             return symbols.Select(SerializableSymbolAndProjectId.Dehydrate).ToArray();

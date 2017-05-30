@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 if (session == null)
                 {
                     return await TryFindMetadataSymbolsInCurrentProcessAsync(
-                        solution, metadataReference, assembly, assemblyProjectId, 
+                        solution, metadataReference, assembly, assemblyProjectId,
                         filter, searchQuery, cancellationToken).ConfigureAwait(false);
                 }
                 else
@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> TryFindMetadataSymbolsInRemoteProcessAsync(
             RemoteHostClient.Session session, Solution solution,
-            Checksum metadataChecksum, ProjectId assemblyProjectId, 
-            SymbolFilter filter, SearchQuery searchQuery, 
+            Checksum metadataChecksum, ProjectId assemblyProjectId,
+            SymbolFilter filter, SearchQuery searchQuery,
             CancellationToken cancellationToken)
         {
             var array = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
@@ -160,7 +160,6 @@ namespace Microsoft.CodeAnalysis.AddImport
                 new object[] { metadataChecksum, assemblyProjectId, filter, searchQuery.Name, searchQuery.Kind }).ConfigureAwait(false);
 
             return await ConvertAsync(solution, array, cancellationToken).ConfigureAwait(false);
-
         }
 
         #endregion
