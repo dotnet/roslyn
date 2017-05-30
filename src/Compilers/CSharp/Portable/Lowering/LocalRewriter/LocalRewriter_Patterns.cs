@@ -144,10 +144,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _factory.ObjectEqual(_factory.Convert(systemObject, input), boundConstant);
                 }
             }
-            else if (input.Type.IsNullableType() && boundConstant is BoundDefaultExpression boundDefault && boundDefault.NullableNeverHasValue())
-            {
-                return _factory.Not(MakeNullableHasValue(_factory.Syntax, input));
-            }
             else
             {
                 return _factory.StaticCall(
