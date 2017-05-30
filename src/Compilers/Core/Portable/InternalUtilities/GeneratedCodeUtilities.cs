@@ -32,7 +32,7 @@ namespace Roslyn.Utilities
 
                 foreach (var attribute in symbol.GetAttributes())
                 {
-                    if (attribute.AttributeClass == generatedCodeAttribute)
+                    if (generatedCodeAttribute.Equals(attribute.AttributeClass))
                     {
                         return true;
                     }
