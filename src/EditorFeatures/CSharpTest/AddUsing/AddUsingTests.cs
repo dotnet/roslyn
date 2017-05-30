@@ -16,24 +16,27 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
-    public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddImportCodeFixProvider());
 
-        private async Task TestAsync(
-             string initialMarkup,
-             string expected,
-             bool systemSpecialCase,
-             int index = 0,
-             object fixProviderData = null)
+        protected async Task TestAsync(
+            string initialMarkup,
+            string expected,
+            bool systemSpecialCase,
+            int index = 0,
+            object fixProviderData = null)
         {
             await TestInRegularAndScriptAsync(initialMarkup, expected, index: index, fixProviderData: fixProviderData, options: new Dictionary<OptionKey, object>
             {
                 { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
             });
         }
+    }
 
+    public partial class AddUsingTests : AbstractAddUsingTests
+    {
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestTypeFromMultipleNamespaces1()
         {
