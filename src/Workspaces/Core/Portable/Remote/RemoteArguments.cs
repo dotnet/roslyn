@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,12 +46,20 @@ namespace Microsoft.CodeAnalysis.Remote
             };
         }
 
+        public Task<SymbolAndProjectId?> TryRehydrateAsync(Solution solution, CancellationToken cancellationToken)
+            => TryRehydrateAsync(solution, forceCompilation: true, cancellationToken: cancellationToken);
+
+
         public async Task<SymbolAndProjectId?> TryRehydrateAsync(
-            Solution solution, CancellationToken cancellationToken)
+            Solution solution, bool forceCompilation, CancellationToken cancellationToken)
         {
             var projectId = ProjectId;
             var project = solution.GetProject(projectId);
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await GetCompilationAsync(project, forceCompilation, cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                return null;
+            }
 
             // The server and client should both be talking about the same compilation.  As such
             // locations in symbols are save to resolve as we rehydrate the SymbolKey.
@@ -73,6 +80,18 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             return new SymbolAndProjectId(symbol, projectId);
+        }
+
+        private async Task<Compilation> GetCompilationAsync(
+            Project project, bool forceCompilation, CancellationToken cancellationToken)
+        {
+            if (forceCompilation)
+            {
+                return await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            project.TryGetCompilation(out var compilation);
+            return compilation;
         }
     }
 
