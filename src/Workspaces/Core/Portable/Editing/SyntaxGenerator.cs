@@ -1683,9 +1683,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a tuple type.
         /// </summary>
         public SyntaxNode TupleTypeExpression(params SyntaxNode[] elements)
-        {
-            return TupleTypeExpression((IEnumerable<SyntaxNode>)elements);
-        }
+            => TupleTypeExpression((IEnumerable<SyntaxNode>)elements);
 
         /// <summary>
         /// Creates an expression that denotes a tuple type.
@@ -1696,6 +1694,7 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 throw new ArgumentNullException(nameof(elementTypes));
             }
+
             if (elementNames != null)
             {
                 if (elementNames.Count() != elementTypes.Count())
@@ -1704,6 +1703,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 }
                 return TupleTypeExpression(elementTypes.Zip(elementNames, AsTupleElement));
             }
+
             return TupleTypeExpression(elementTypes.Select(AsTupleElement));
         }
 

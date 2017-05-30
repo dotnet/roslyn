@@ -3983,6 +3983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));
             }
+
             return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
         }
 

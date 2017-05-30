@@ -535,6 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If elements Is Nothing Or elements.Count() <= 1 Then
                 Throw New ArgumentException("Tuples must have at least two elements.")
             End If
+
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast(Of TupleElementSyntax)()))
         End Function
 
