@@ -435,7 +435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var syntax = DummySyntax();
                 var compilation = _containingType.DeclaringCompilation;
-                var binder = compilation.GetBinder((CSharpSyntaxNode)_containingType.DeclaringSyntaxReferences[0].SyntaxTree.GetRoot());
+                var binder = new InContainerBinder(
+                    container: null,
+                    next: new BuckStopsHereBinder(compilation),
+                    imports: compilation.GlobalImports);
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 0);
