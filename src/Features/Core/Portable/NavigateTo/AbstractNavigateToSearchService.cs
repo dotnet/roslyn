@@ -11,32 +11,38 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
             Document document, string searchPattern, CancellationToken cancellationToken)
         {
-            var client = await GetRemoteHostClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            var session = await GetRemoteHostSessionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            using (session)
             {
-                return await SearchDocumentInCurrentProcessAsync(
-                    document, searchPattern, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await SearchDocumentInRemoteProcessAsync(
-                    client, document, searchPattern, cancellationToken).ConfigureAwait(false);
+                if (session == null)
+                {
+                    return await SearchDocumentInCurrentProcessAsync(
+                        document, searchPattern, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await SearchDocumentInRemoteProcessAsync(
+                        session, document, searchPattern, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
         public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            var client = await GetRemoteHostClientAsync(project, cancellationToken).ConfigureAwait(false);
-            if (client == null)
+            var session  = await GetRemoteHostSessionAsync(project, cancellationToken).ConfigureAwait(false);
+            using (session)
             {
-                return await SearchProjectInCurrentProcessAsync(
-                    project, searchPattern, cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                return await SearchProjectInRemoteProcessAsync(
-                    client, project, searchPattern, cancellationToken).ConfigureAwait(false);
+                if (session == null)
+                {
+                    return await SearchProjectInCurrentProcessAsync(
+                        project, searchPattern, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await SearchProjectInRemoteProcessAsync(
+                        session, project, searchPattern, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
     }
