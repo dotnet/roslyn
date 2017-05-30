@@ -18,7 +18,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -31,7 +31,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"private System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlProperty()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"this.SomeButton.Text = ""NewButtonText""", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeControlPropertyInCode()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -71,7 +71,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal(expectedPropertyValue, actualPropertyValue);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void AddClickHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -97,7 +97,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     }", codeFileActualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RenameControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -120,7 +120,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.DoesNotContain(@"private System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void RemoveEventHandler()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -136,7 +136,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.DoesNotContain(@"VisualStudio.Editor.SomeButton.Click += new System.EventHandler(VisualStudio.Editor.FooHandler);", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void ChangeAccessibility()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -151,7 +151,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Contains(@"public System.Windows.Forms.Button SomeButton;", actualText);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.WinForms)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19858"), Trait(Traits.Feature, Traits.Features.WinForms)]
         public void DeleteControl()
         {
             var project = new ProjectUtils.Project(ProjectName);
