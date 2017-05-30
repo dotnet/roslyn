@@ -322,6 +322,38 @@ class C<T>
         }
 
         [Fact]
+        public void BadUnaryOperator()
+        {
+            string source = @"
+class C<T>
+{
+    static void M()
+    {
+        var a = +default;
+        var b = -default;
+        var c = ~default;
+        var d = !default;
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS0023: Operator '+' cannot be applied to operand of type 'default'
+                //         var a = +default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+default").WithArguments("+", "default").WithLocation(6, 17),
+                // (7,17): error CS0023: Operator '-' cannot be applied to operand of type 'default'
+                //         var b = -default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-default").WithArguments("-", "default").WithLocation(7, 17),
+                // (8,17): error CS0023: Operator '~' cannot be applied to operand of type 'default'
+                //         var c = ~default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "~default").WithArguments("~", "default").WithLocation(8, 17),
+                // (9,17): error CS0023: Operator '!' cannot be applied to operand of type 'default'
+                //         var d = !default;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!default").WithArguments("!", "default").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
         public void AssignmentToRefType()
         {
             string source = @"
@@ -944,16 +976,19 @@ class C
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "reached");
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0023: Operator '!' cannot be applied to operand of type 'default'
+                //         if (!default)
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!default").WithArguments("!", "default").WithLocation(6, 13)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
 
             var def = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", def.ToString());
-            Assert.Equal("System.Boolean", model.GetTypeInfo(def).Type.ToTestDisplayString());
-            Assert.Equal("System.Boolean", model.GetTypeInfo(def).ConvertedType.ToTestDisplayString());
+            Assert.Null(model.GetTypeInfo(def).Type);
+            Assert.Null(model.GetTypeInfo(def).ConvertedType);
         }
 
         [Fact]
