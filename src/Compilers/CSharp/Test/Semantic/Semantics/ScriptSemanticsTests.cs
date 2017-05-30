@@ -16,6 +16,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class ScriptSemanticsTests : CSharpTestBase
     {
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation() {
+            var newCoreSource = @"
+namespace System.Runtime.CompilerServices {
+    public class ExtensionAttribute {}
+}
+
+namespace System.Runtime.CompilerServices {
+    public interface INotifyCompletion {
+        void OnCompleted(Action action);
+    }
+}
+
+namespace System.Threading.Tasks {
+    public class Awaiter<T>: System.Runtime.CompilerServices.INotifyCompletion {
+        public bool IsCompleted  => true;
+        public void OnCompleted(Action action) {}
+        public T GetResult() { throw new Exception(); }
+    }
+    public class Task<T> {}
+}
+
+public static class MyExtensions {
+    public static System.Threading.Tasks.Awaiter<T> GetAwaiter<T>(this System.Threading.Tasks.Task<T> task) {
+        return null;
+    }
+}";
+
+            var replacementCor = CreateStandardCompilation(newCoreSource);
+            replacementCor.VerifyDiagnostics(
+                // (22,95): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
+                //     public static System.Threading.Tasks.Awaiter<T> GetAwaiter<T>(this System.Threading.Tasks.Task<T> task) {
+                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<T>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(22, 95));
+
+            var firstSubmission = CreateSubmission(
+                code: "var a = 1 + 1;",
+                references: new MetadataReference[] { replacementCor.ToMetadataReference() });
+
+            var secondSubmission = CreateSubmission(
+                code: "System.Console.Write(a);",
+                references: new MetadataReference[] { replacementCor.ToMetadataReference() },
+                options: TestOptions.DebugDll.WithUsings("MyExtensions"),
+                previous: firstSubmission);
+
+            secondSubmission.VerifyEmitDiagnostics(
+                // warning CS1685: The predefined type 'Task<TResult>' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Threading.Tasks.Task<TResult>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
+        }
+
         [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
         [Fact]
         public void ThisIndexerAccessInScript()
