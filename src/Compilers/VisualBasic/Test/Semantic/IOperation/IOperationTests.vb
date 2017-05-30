@@ -362,7 +362,10 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
 Imports System
 Module Module1
     Class C1
-        Inherits IDisposable
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Throw New NotImplementedException()
+        End Sub
     End Class
     Sub S1()
         Using D1 as New C1()
@@ -391,7 +394,10 @@ End Module
 Imports System
 Module Module1
     Class C1
-        Inherits IDisposable
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Throw New NotImplementedException()
+        End Sub
     End Class
     Sub S1()
         Using
