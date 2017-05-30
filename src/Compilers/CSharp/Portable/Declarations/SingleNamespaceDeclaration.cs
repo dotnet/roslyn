@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -8,13 +9,23 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ImmutableArray<SingleNamespaceOrTypeDeclaration> _children;
 
+        /// <summary>
+        /// The <see cref="SyntaxReference"/> to the <see cref="CompilationUnitSyntax"/> or
+        /// <see cref="NamespaceDeclarationSyntax"/> for this namespace.  This differs from
+        /// <see cref="SingleNamespaceOrTypeDeclaration.SyntaxReference"/> which may just 
+        /// point to the <see cref="NameSyntax"/> node for this namespace's name.
+        /// </summary>
+        public readonly SyntaxReference FullDeclarationSyntaxReference;
+
         protected SingleNamespaceDeclaration(
             string name,
             SyntaxReference syntaxReference,
+            SyntaxReference fullDeclarationSyntaxReference,
             SourceLocation nameLocation,
             ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
             : base(name, syntaxReference, nameLocation, diagnostics: ImmutableArray<Diagnostic>.Empty)
         {
+            FullDeclarationSyntaxReference = fullDeclarationSyntaxReference;
             _children = children;
         }
 
@@ -52,6 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasUsings,
             bool hasExternAliases,
             SyntaxReference syntaxReference,
+            SyntaxReference fullDeclarationSyntaxReference,
             SourceLocation nameLocation,
             ImmutableArray<SingleNamespaceOrTypeDeclaration> children)
         {
@@ -60,11 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // custom types.
             if (!hasUsings && !hasExternAliases)
             {
-                return new SingleNamespaceDeclaration(name, syntaxReference, nameLocation, children);
+                return new SingleNamespaceDeclaration(
+                    name, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children);
             }
             else
             {
-                return new SingleNamespaceDeclarationEx(name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children);
+                return new SingleNamespaceDeclarationEx(
+                    name, hasUsings, hasExternAliases, syntaxReference, fullDeclarationSyntaxReference, nameLocation, children);
             }
         }
     }

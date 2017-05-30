@@ -785,7 +785,6 @@
     <Compile Include="Syntax\IndexerDeclarationSyntax.cs" />
     <Compile Include="Syntax\MethodDeclarationSyntax.cs" />
     <Compile Include="Syntax\NamespaceDeclarationSyntax.cs" />
-    <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.cs" />
     <Compile Include="Syntax\NameSyntax.cs" />
     <Compile Include="Syntax\ParameterListSyntax.cs" />
     <Compile Include="Syntax\ParameterSyntax.cs" />
