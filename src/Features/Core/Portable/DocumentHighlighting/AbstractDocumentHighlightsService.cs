@@ -142,11 +142,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Document document,
+            IEnumerable<ReferencedSymbol> references, Document startingDocument,
             IImmutableSet<Document> documentsToSearch, ISymbol symbol,
             CancellationToken cancellationToken)
         {
-            var solution = document.Project.Solution;
+            var solution = startingDocument.Project.Solution;
 
             references = references.FilterToItemsToShow();
             references = references.FilterNonMatchingMethodNames(solution, symbol);
@@ -159,15 +159,15 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             var additionalReferences = new List<Location>();
 
-            foreach (var additionalDocument in documentsToSearch)
+            foreach (var currentDocument in documentsToSearch)
             {
                 // 'documentsToSearch' may contain documents from languages other than our own
                 // (for example cshtml files when we're searching the cs document).  Since we're
                 // delegating to a virtual method for this language type, we have to make sure
                 // we only process the document if it's also our language.
-                if (additionalDocument.Project.Language == document.Project.Language)
+                if (currentDocument.Project.Language == startingDocument.Project.Language)
                 {
-                    additionalReferences.AddRange(await GetAdditionalReferencesAsync(document, symbol, cancellationToken).ConfigureAwait(false));
+                    additionalReferences.AddRange(await GetAdditionalReferencesAsync(currentDocument, symbol, cancellationToken).ConfigureAwait(false));
                 }
             }
 
