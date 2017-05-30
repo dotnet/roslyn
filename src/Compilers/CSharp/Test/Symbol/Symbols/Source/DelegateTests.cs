@@ -735,7 +735,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningDelegate()
         {
             var source = @"delegate ref readonly int D(in int arg);";
@@ -754,7 +754,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningDelegate1()
         {
             var source = @"delegate ref readonly int D(ref readonly int arg);";
@@ -773,7 +773,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlysInlambda()
         {
             var source = @"
@@ -809,7 +809,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlysInlambda1()
         {
             var source = @"

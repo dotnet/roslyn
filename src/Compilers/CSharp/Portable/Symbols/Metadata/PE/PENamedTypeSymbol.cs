@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal AttributeUsageInfo lazyAttributeUsageInfo = AttributeUsageInfo.Null;
             internal ThreeState lazyContainsExtensionMethods;
             internal ThreeState lazyIsByRefLike;
+            internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
@@ -2076,6 +2077,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return uncommon.lazyIsByRefLike.Value();
+            }
+        }
+
+        internal override bool IsReadOnly
+        {
+            get
+            {
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
+
+                if (!uncommon.lazyIsReadOnly.HasValue())
+                {
+                    var isReadOnly = ThreeState.False;
+
+                    if (this.TypeKind == TypeKind.Struct)
+                    {
+                        var moduleSymbol = this.ContainingPEModule;
+                        var module = moduleSymbol.Module;
+                        isReadOnly = module.HasIsReadOnlyAttribute(_handle).ToThreeState();
+                    }
+
+                    uncommon.lazyIsReadOnly = isReadOnly;
+                }
+
+                return uncommon.lazyIsReadOnly.Value();
             }
         }
 

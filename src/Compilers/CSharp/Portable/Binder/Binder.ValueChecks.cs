@@ -398,7 +398,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // SPEC: When this is used in a primary-expression within an instance method or instance accessor
                     // SPEC: of a struct, it is classified as a variable. 
-                    if (!thisref.Type.IsValueType || RequiresReturnableReference(valueKind))
+
+                    // Note: RValueOnly is checked at the beginning of this method. Since we are here we need more than readable.
+                    //"this" is readonly in members of readonly structs, unless we are in a constructor.
+                    //"this" is not returnable by reference in a struct.
+                    if (!thisref.Type.IsValueType ||
+                        (thisref.Type.IsReadOnly && (this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.Constructor) ||
+                        RequiresReturnableReference(valueKind))
                     {
                         // CONSIDER: the Dev10 name has angle brackets (i.e. "<this>")
                         Error(diagnostics, GetThisLvalueError(valueKind), node, ThisParameterSymbol.SymbolName);

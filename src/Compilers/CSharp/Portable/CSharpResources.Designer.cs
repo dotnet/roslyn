@@ -10413,6 +10413,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to readonly structs.
+        /// </summary>
+        internal static string IDS_FeatureReadOnlyStructs {
+            get {
+                return ResourceManager.GetString("IDS_FeatureReadOnlyStructs", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to byref locals and returns.
         /// </summary>
         internal static string IDS_FeatureRefLocalsReturns {

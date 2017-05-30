@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
-                    allowedModifiers |= DeclarationModifiers.Ref | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Interface:
                 case TypeKind.Delegate:
@@ -675,6 +675,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return (_flags.DeclarationModifiers & DeclarationModifiers.Ref) != 0;
+            }
+        }
+
+        internal override bool IsReadOnly
+        {
+            get
+            {
+                return (_flags.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
             }
         }
 
