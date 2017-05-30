@@ -36,9 +36,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var result = await AbstractNavigateToSearchService.SearchProjectInCurrentProcessAsync(
                     project, searchPattern, CancellationToken).ConfigureAwait(false);
 
-                var converted = Convert(result);
-
-                return converted;
+                return Convert(result);
             }
         }
 
