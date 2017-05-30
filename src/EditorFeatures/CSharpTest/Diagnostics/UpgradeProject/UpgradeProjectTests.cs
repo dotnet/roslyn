@@ -283,9 +283,9 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7"),
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7")
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
     });
         }
 
@@ -311,7 +311,7 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
                     });
         }
 
@@ -339,7 +339,7 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7"),
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "default")
                     });
         }
@@ -368,8 +368,8 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
         }
     }

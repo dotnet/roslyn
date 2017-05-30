@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp6:
                     return "6";
                 case LanguageVersion.CSharp7:
-                    return "7";
+                    return "7.0";
                 case LanguageVersion.CSharp7_1:
                     return "7.1";
                 case LanguageVersion.Default:
