@@ -5,6 +5,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -43,45 +44,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 return false;
             }
 
-            var project = _workspace.DeferredState.ProjectTracker.ImmutableProjects
-                    .Where(p =>
+            // First filter the projects by matching up properties on the input hierarchy against properties on each
+            // project's hierarchy.
+            var candidateProjects = _workspace.DeferredState.ProjectTracker.ImmutableProjects
+                .Where(p =>
+                {
+                    // We're about to access various properties of the IVsHierarchy associated with the project.
+                    // The properties supported and the interpretation of their values varies from one project system
+                    // to another. This code is designed with C# and VB in mind, so we need to filter out everything
+                    // else.
+                    if (p.Language != LanguageNames.CSharp
+                        && p.Language != LanguageNames.VisualBasic)
                     {
-                        // We're about to access various properties of the IVsHierarchy associated with the project.
-                        // The properties supported and the interpretation of their values varies from one project system
-                        // to another. This code is designed with C# and VB in mind, so we need to filter out everything
-                        // else.
-                        if (p.Language != LanguageNames.CSharp
-                            && p.Language != LanguageNames.VisualBasic)
-                        {
-                            return false;
-                        }
-
-                        // Here we try to match the hierarchy from Solution Explorer to a hierarchy from the Roslyn project.
-                        // The canonical name of a hierarchy item must be unique _within_ an hierarchy, but since we're
-                        // examining multiple hierarchies the canonical name could be the same. Indeed this happens when two
-                        // project files are in the same folder--they both use the full path to the _folder_ as the canonical
-                        // name. To distinguish them we also examine the "regular" name, which will necessarily be different
-                        // if the two projects are in the same folder.
-                        // Note that if a project has been loaded with Lightweight Solution Load it won't even have a
-                        // hierarchy, so we need to check for null first.
-                        if (p.Hierarchy != null
-                            && p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
-                            && p.Hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
-                            && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
-                            && projectName.Equals(nestedName))
-                        {
-                            if (targetFrameworkMoniker == null)
-                            {
-                                return true;
-                            }
-
-                            return p.Hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out string projectTargetFrameworkMoniker)
-                                && projectTargetFrameworkMoniker.Equals(targetFrameworkMoniker);
-                        }
-
                         return false;
-                    })
-                    .SingleOrDefault();
+                    }
+
+                    // Here we try to match the hierarchy from Solution Explorer to a hierarchy from the Roslyn project.
+                    // The canonical name of a hierarchy item must be unique _within_ an hierarchy, but since we're
+                    // examining multiple hierarchies the canonical name could be the same. Indeed this happens when two
+                    // project files are in the same folder--they both use the full path to the _folder_ as the canonical
+                    // name. To distinguish them we also examine the "regular" name, which will necessarily be different
+                    // if the two projects are in the same folder.
+                    // Note that if a project has been loaded with Lightweight Solution Load it won't even have a
+                    // hierarchy, so we need to check for null first.
+                    if (p.Hierarchy != null
+                        && p.Hierarchy.TryGetCanonicalName((uint)VSConstants.VSITEMID.Root, out string projectCanonicalName)
+                        && p.Hierarchy.TryGetItemName((uint)VSConstants.VSITEMID.Root, out string projectName)
+                        && projectCanonicalName.Equals(nestedCanonicalName, System.StringComparison.OrdinalIgnoreCase)
+                        && projectName.Equals(nestedName))
+                    {
+                        if (targetFrameworkMoniker == null)
+                        {
+                            return true;
+                        }
+
+                        return p.Hierarchy.TryGetTargetFrameworkMoniker((uint)VSConstants.VSITEMID.Root, out string projectTargetFrameworkMoniker)
+                            && projectTargetFrameworkMoniker.Equals(targetFrameworkMoniker);
+                    }
+
+                    return false;
+                })
+                .ToArray();
+
+            // If we have multiple candidates then we might be dealing with Web Application Projects. In this case
+            // there will be one main project plus one project for each open aspx/cshtml/vbhtml file, all with
+            // identical properties on their hierarchies. We can find the main project by excluding everything
+            // with a contained document. We may end up looking at lots of documents, so we do this check only if we
+            // must.
+            if (candidateProjects.Length > 1)
+            {
+                candidateProjects = candidateProjects
+                    .Where(p => !p.GetCurrentDocuments().Any(doc => doc is ContainedDocument))
+                    .ToArray();
+            }
+
+            // If there are still multiple matching projects, just pick one.
+            var project = candidateProjects.FirstOrDefault();
 
             if (project == null)
             {
