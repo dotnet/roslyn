@@ -604,7 +604,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
 
             var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
-            var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
+            var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte?.Solution?.SolutionBuild?.ActiveConfiguration;
 
             OutputToOutputWindow($"Getting project information - start");
             var start = DateTimeOffset.UtcNow;
@@ -613,7 +613,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
             // contain any projects.
-            if (solutionConfig != null)
+            if (solutionConfig?.Name != null && solutionConfig?.PlatformName != null)
             {
                 // Capture the context so that we come back on the UI thread, and do the actual project creation there.
                 var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
