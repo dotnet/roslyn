@@ -338,18 +338,18 @@ class C<T>
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics(
-                // (6,17): error CS0023: Operator '+' cannot be applied to operand of type 'default'
+                // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = +default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+default").WithArguments("+", "default").WithLocation(6, 17),
-                // (7,17): error CS0023: Operator '-' cannot be applied to operand of type 'default'
+                Diagnostic(ErrorCode.ERR_BadUnaryOpOnNullOrDefault, "+default").WithArguments("+", "default").WithLocation(6, 17),
+                // (7,17): error CS8310: Operator '-' cannot be applied to operand 'default'
                 //         var b = -default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-default").WithArguments("-", "default").WithLocation(7, 17),
-                // (8,17): error CS0023: Operator '~' cannot be applied to operand of type 'default'
+                Diagnostic(ErrorCode.ERR_BadUnaryOpOnNullOrDefault, "-default").WithArguments("-", "default").WithLocation(7, 17),
+                // (8,17): error CS8310: Operator '~' cannot be applied to operand 'default'
                 //         var c = ~default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "~default").WithArguments("~", "default").WithLocation(8, 17),
-                // (9,17): error CS0023: Operator '!' cannot be applied to operand of type 'default'
+                Diagnostic(ErrorCode.ERR_BadUnaryOpOnNullOrDefault, "~default").WithArguments("~", "default").WithLocation(8, 17),
+                // (9,17): error CS8310: Operator '!' cannot be applied to operand 'default'
                 //         var d = !default;
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!default").WithArguments("!", "default").WithLocation(9, 17)
+                Diagnostic(ErrorCode.ERR_BadUnaryOpOnNullOrDefault, "!default").WithArguments("!", "default").WithLocation(9, 17)
                 );
         }
 
@@ -971,15 +971,15 @@ class C
     {
         if (!default)
         {
-            System.Console.WriteLine(""reached"");
+            throw null;
         }
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,13): error CS0023: Operator '!' cannot be applied to operand of type 'default'
+                // (6,13): error CS8310: Operator '!' cannot be applied to operand 'default'
                 //         if (!default)
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!default").WithArguments("!", "default").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_BadUnaryOpOnNullOrDefault, "!default").WithArguments("!", "default").WithLocation(6, 13)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -1008,10 +1008,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,13): error CS0023: Operator '!' cannot be applied to operand of type 'method group'
                 //         if (!Main || !null)
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!Main").WithArguments("!", "method group"),
-                // (6,22): error CS0023: Operator '!' cannot be applied to operand of type '<null>'
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!Main").WithArguments("!", "method group").WithLocation(6, 13),
+                // (6,22): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //         if (!Main || !null)
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!null").WithArguments("!", "<null>").WithLocation(6, 22)
+                Diagnostic(ErrorCode.ERR_BadUnaryOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(6, 22)
                 );
         }
 

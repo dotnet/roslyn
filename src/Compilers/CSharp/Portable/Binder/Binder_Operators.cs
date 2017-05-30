@@ -2185,7 +2185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
                 // (or other typeless expressions).
-                Error(diagnostics, ErrorCode.ERR_BadUnaryOp, node, operatorText, operand.Display);
+                Error(diagnostics, ErrorCode.ERR_BadUnaryOpOnNullOrDefault, node, operatorText, operand.Display);
             }
 
             // If the operand is bad, avoid generating cascading errors.

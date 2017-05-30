@@ -1970,6 +1970,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_BadUnaryOpOnNullOrDefault {
+            get {
+                return ResourceManager.GetString("ERR_BadUnaryOpOnNullOrDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Overloaded unary operator &apos;{0}&apos; takes one parameter.
         /// </summary>
         internal static string ERR_BadUnOpArgs {
