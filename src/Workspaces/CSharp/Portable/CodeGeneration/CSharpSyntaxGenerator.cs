@@ -3979,10 +3979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements)
         {
-            if (elements == null || elements.Count() <= 1)
-            {
-                throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));
-            }
+            ValidateTupleElements(elements);
 
             return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
         }
