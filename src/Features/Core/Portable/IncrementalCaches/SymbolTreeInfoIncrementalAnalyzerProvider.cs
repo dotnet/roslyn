@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (project.Solution.Workspace.Kind != "Test" &&
+                if (project.Solution.Workspace.Kind != WorkspaceKind.Test &&
                     project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
                     project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
                 {
