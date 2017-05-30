@@ -25,6 +25,10 @@ namespace Microsoft.CodeAnalysis
         {
             return DefaultVisit(symbol);
         }
+        public virtual TResult VisitTypeArray(ITypeArraySymbol symbol)
+        {
+            return DefaultVisit(symbol);
+        }
 
         public virtual TResult VisitAssembly(IAssemblySymbol symbol)
         {

@@ -243,8 +243,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.InterpolatedStringExpression
                     Return BindInterpolatedStringExpression(DirectCast(node, InterpolatedStringExpressionSyntax), diagnostics)
 
-                'Case SyntaxKind.TypeArray
-                '    Return BindTypeArray(DirectCast(node, TypeArraySyntax), diagnostics)
+                Case SyntaxKind.TypeArray
+                    Return BindTypeArray(DirectCast(node, TypeArraySyntax), diagnostics)
 
                 Case SyntaxKind.TupleExpression
                     Return BindTupleExpression(DirectCast(node, TupleExpressionSyntax), diagnostics)
@@ -741,6 +741,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Private Function BindTypeArray(node As TypeArraySyntax, diagnostics As DiagnosticBag) As BoundExpression
+            Dim _Targets_ As New List(Of TypeSymbol)(node._Types_.Count)
+            For i = 0 To node._Types_.Count - 1
+                Dim target = node._Types_(i)
+                Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(target, diagnostics)
+                Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
+                _Targets_.Add(targetType)
+            Next
+            Dim results = _Targets_.ToImmutableArrayOrEmpty
+            Return New BoundTypeArray(node, results, New TypeArraySymbol(results))
+        End Function
+
 
         Private Function BindTypeArray(node As TypeArraySyntax, diagnostics As DiagnosticBag, operandType As TypeSymbol) As BoundExpression
             Dim _Targets_ As New List(Of TypeSymbol)(node._Types_.Count)
@@ -751,28 +763,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If targetType.IsErrorType() Then
                     ' If target types have errors, bail out preventing more cascading errors.
-                    'Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
-                End If
-
-                If Not operandType.IsReferenceType AndAlso Not operandType.IsTypeParameter() Then
-
-                    ReportDiagnostic(diagnostics, target, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
-
+                    'Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)  
                 Else
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteDiagnostics)
 
-                    If diagnostics.Add(target, useSiteDiagnostics) Then
-                        ' Suppress any additional diagnostics
-                        '  diagnostics = New DiagnosticBag()
-                    ElseIf Not Conversions.ConversionExists(convKind) Then
-                        ReportDiagnostic(diagnostics, target, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
+                    If Not operandType.IsReferenceType AndAlso Not operandType.IsTypeParameter() Then
+
+                        ReportDiagnostic(diagnostics, target, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
+
+                    Else
+                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteDiagnostics)
+
+                        If diagnostics.Add(target, useSiteDiagnostics) Then
+                            ' Suppress any additional diagnostics
+                            diagnostics = New DiagnosticBag()
+                        ElseIf Not Conversions.ConversionExists(convKind) Then
+                            ReportDiagnostic(diagnostics, target, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
+                        End If
                     End If
-                End If
 
-                ''If operandType.IsTypeParameter() Then
-                ''    operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node.Expression, diagnostics), operand, diagnostics)
-                ''End If
+                    ''If operandType.IsTypeParameter() Then
+                    ''    operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node.Expression, diagnostics), operand, diagnostics)
+                    ''End If
+                End If
                 _Targets_.Add(targetType)
             Next
             Dim results = _Targets_.ToImmutableArrayOrEmpty

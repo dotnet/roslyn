@@ -73,5 +73,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Overridable Function VisitTypeParameter(symbol As TypeParameterSymbol) As TResult
             Return DefaultVisit(symbol)
         End Function
+
+        Friend Overridable Function VisitTypeArray(symbol As TypeArraySymbol) As TResult
+            Return DefaultVisit(symbol)
+        End Function
+
     End Class
 End Namespace

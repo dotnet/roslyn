@@ -147,6 +147,7 @@
     <Compile Include="Serialization\ObjectBinderSnapshot.cs" />
     <Compile Include="Serialization\ObjectReader.cs" />
     <Compile Include="Serialization\ObjectWriter.cs" />
+    <Compile Include="Symbols\ITypeArraySymbol.cs" />
     <Compile Include="Symbols\IDiscardSymbol.cs" />
     <Compile Include="Syntax\InternalSyntax\GreenNodeExtensions.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxListPool.cs" />

@@ -14,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Friend NotInheritable Class TypeArraySymbol
         Inherits TypeSymbol
+        Implements ITypeArraySymbol
 
         Private _Targets_ As ImmutableArray(Of TypeSymbol)
 
@@ -48,87 +49,98 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property ContainingSymbol As Symbol
             Get
-                Throw New NotImplementedException()
+                Return Nothing
             End Get
         End Property
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Throw New NotImplementedException()
+                Return ImmutableArray(Of Location).Empty
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaringSyntaxReferences As ImmutableArray(Of SyntaxReference)
             Get
-                Throw New NotImplementedException()
+                Return ImmutableArray(Of SyntaxReference).Empty
             End Get
         End Property
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Throw New NotImplementedException()
+                Return Accessibility.NotApplicable
             End Get
         End Property
 
         Friend Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
             Get
-                Throw New NotImplementedException()
+                Throw New NotImplementedException(NameOf(BaseTypeNoUseSiteDiagnostics))
             End Get
         End Property
 
         Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
-                Throw New NotImplementedException()
+                Throw New NotImplementedException(NameOf(InterfacesNoUseSiteDiagnostics))
             End Get
         End Property
 
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
-                Throw New NotImplementedException()
+                Return Nothing
             End Get
         End Property
 
-        Public Overrides Sub Accept(visitor As SymbolVisitor)
-            Throw New NotImplementedException()
-        End Sub
 
-        Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
-            Throw New NotImplementedException()
-        End Sub
 
         Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
-            Throw New NotImplementedException()
+            Return ImmutableArray(Of Symbol).Empty
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
-            Throw New NotImplementedException()
+            Return ImmutableArray(Of Symbol).Empty
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-            Throw New NotImplementedException()
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
 
         Public Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
-            Throw New NotImplementedException()
+            Return ImmutableArray(Of NamedTypeSymbol).Empty
         End Function
+
+        Public Overrides Sub Accept(visitor As SymbolVisitor)
+            visitor.VisitTypeArray(Me)
+        End Sub
 
         Public Overrides Function Accept(Of TResult)(visitor As SymbolVisitor(Of TResult)) As TResult
-            Throw New NotImplementedException()
+            Return visitor.VisitTypeArray(Me)
         End Function
+
+        Public Overrides Sub Accept(visitor As VisualBasicSymbolVisitor)
+            visitor.VisitTypeArray(Me)
+        End Sub
 
         Public Overrides Function Accept(Of TResult)(visitor As VisualBasicSymbolVisitor(Of TResult)) As TResult
-            Throw New NotImplementedException()
+            Return visitor.VisitTypeArray(Me)
         End Function
+
 
         Friend Overrides Function InternalSubstituteTypeParameters(substitution As TypeSubstitution) As TypeWithModifiers
-            Throw New NotImplementedException()
+            Return Nothing
+            '  Throw New NotImplementedException()
         End Function
-
-        Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
-            Throw New NotImplementedException()
-        End Function
-
         Friend Overrides Function Accept(Of TArgument, TResult)(visitor As VisualBasicSymbolVisitor(Of TArgument, TResult), arg As TArgument) As TResult
+            Return visitor.VisitTypeArray(Me, arg)
+        End Function
+        Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
+            Throw New NotImplementedException(NameOf(GetUnificationUseSiteDiagnosticRecursive))
+
+        End Function
+
+        Public Function Types() As ImmutableArray(Of ITypeSymbol) Implements ITypeArraySymbol.Types
+            Return _Targets_.Cast(Of ITypeSymbol).ToImmutableArrayOrEmpty
+        End Function
+
+        Public Overloads Function Equals(other As IArrayTypeSymbol) As Boolean Implements ITypeArraySymbol.Equals
             Throw New NotImplementedException()
         End Function
     End Class
