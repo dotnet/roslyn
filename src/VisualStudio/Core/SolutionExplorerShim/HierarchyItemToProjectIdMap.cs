@@ -86,31 +86,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                 })
                 .ToArray();
 
-            // If we have multiple candidates then we might be dealing with Web Application Projects. In this case
-            // there will be one main project plus one project for each open aspx/cshtml/vbhtml file, all with
-            // identical properties on their hierarchies. We can find the main project by excluding everything
-            // with a contained document. We may end up looking at lots of documents, so we do this check only if we
-            // must.
-            if (candidateProjects.Length > 1)
+            // If we only have one candidate then no further checks are required.
+            if (candidateProjects.Length == 1)
             {
-                candidateProjects = candidateProjects
-                    .Where(p => !p.GetCurrentDocuments().Any(doc => doc is ContainedDocument))
-                    .ToArray();
-            }
-
-            // If there are still multiple matching projects, just pick one.
-            var project = candidateProjects.FirstOrDefault();
-
-            if (project == null)
-            {
-                projectId = default(ProjectId);
-                return false;
-            }
-            else
-            {
-                projectId = project.Id;
+                projectId = candidateProjects[0].Id;
                 return true;
             }
+
+            // If we have multiple candidates then we might be dealing with Web Application Projects. In this case
+            // there will be one main project plus one project for each open aspx/cshtml/vbhtml file, all with
+            // identical properties on their hierarchies. We can find the main project by taking the first project
+            // without a ContainedDocument.
+            foreach (var candidateProject in candidateProjects)
+            {
+                if (!candidateProject.GetCurrentDocuments().Any(doc => doc is ContainedDocument))
+                {
+                    projectId = candidateProject.Id;
+                    return true;
+                }
+            }
+
+            projectId = default(ProjectId);
+            return false;
         }
     }
 }
