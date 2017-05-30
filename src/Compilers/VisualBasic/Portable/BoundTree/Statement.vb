@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -176,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _syntax As SyntaxNode
 
             Public Sub New(boundCaseBlock As BoundCaseBlock)
-                ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses, 
+                ' `CaseElseClauseSyntax` is bound to `BoundCaseStatement` with an empty list of case clauses,
                 ' so we explicitly create an IOperation node for Case-Else clause to differentiate it from Case clause.
                 Dim caseStatement = boundCaseBlock.CaseStatement
                 If caseStatement.CaseClauses.IsEmpty AndAlso caseStatement.Syntax.Kind() = SyntaxKind.CaseElseStatement Then
@@ -1460,7 +1461,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return s_variablesMappings.GetValue(
                     Me,
                     Function(BoundUsing)
-                        Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration))
+                        Dim usingStatementSyntax = Syntax.ChildNodes().OfType(Of UsingStatementSyntax).SingleOrDefault()
+                        Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration), usingStatementSyntax)
                     End Function)
             End Get
         End Property
@@ -1487,9 +1489,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Implements IVariableDeclarationStatement
 
             Private ReadOnly _variables As ImmutableArray(Of IVariableDeclaration)
+            Private ReadOnly _syntax As SyntaxNode
 
-            Public Sub New(variables As ImmutableArray(Of IVariableDeclaration))
+            Public Sub New(variables As ImmutableArray(Of IVariableDeclaration), syntax As SyntaxNode)
                 _variables = variables
+                _syntax = syntax
             End Sub
 
             Public Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
@@ -1514,7 +1518,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
                 Get
-                    Return Nothing
+                    Return _syntax
                 End Get
             End Property
 

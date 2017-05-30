@@ -16,24 +16,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                              <file name="c.vb">
                                  <![CDATA[
 Public Class B2
-    Public Shared Operator +(x As B2, y As B2) As B2 
+    Public Shared Operator +(x As B2, y As B2) As B2
         System.Console.WriteLine("+")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2 
+    Public Shared Operator -(x As B2) As B2
         System.Console.WriteLine("-")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2 
+    Public Shared Operator -(x As B2) As B2
         System.Console.WriteLine("-")
         Return x
     End Operator
 End Class
 
 Module Module1
-    Sub Main() 
+    Sub Main()
         Dim x, y As New B2()
         x = x + 10
         x = x + y
@@ -142,7 +142,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
                              <file name="c.vb">
                                  <![CDATA[
 Public Class B2
-    Public Shared Operator +(x As B2, y As B2) As B2 
+    Public Shared Operator +(x As B2, y As B2) As B2
         System.Console.WriteLine("+")
         Return x
     End Operator
@@ -150,7 +150,7 @@ End Class
 
 Module Module1
     Sub Main()
-        Dim x, y As Integer 
+        Dim x, y As Integer
         Dim a, b As New B2()
         x += y
         a += b
@@ -291,7 +291,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
                              <file name="c.vb">
                                  <![CDATA[
 Module Module1
-    Sub Main() 
+    Sub Main()
         Test1(Nothing)
         Test2(New System.Guid(), Nothing)
         Test1(AddressOf Main)
@@ -352,5 +352,64 @@ BC30581: 'AddressOf' expression cannot be converted to 'Integer' because 'Intege
     IObjectCreationExpression (Constructor: Sub System.Guid..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Guid) (Syntax: 'New System.Guid()')
     IOperation:  (OperationKind.None) (Syntax: 'AddressOf Main')")
         End Sub
+
+        <Fact>
+        <WorkItem(19819, "https://github.com/dotnet/roslyn/issues/19819")>
+        Public Sub UsingDeclarationSyntaxNotNull()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+Module Module1
+    Class C1
+        Inherits IDisposable
+    End Class
+    Sub S1()
+        Using D1 as New C1()
+        End Using
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
+
+            Assert.NotNull(op.Declaration.Syntax)
+            Assert.Equal("Using D1 as New C1()", op.Declaration.Syntax.ToString())
+        End Sub
+
+        <Fact>
+        <WorkItem(19819, "https://github.com/dotnet/roslyn/issues/19819")>
+        Public Sub UsingDeclarationIncompleteUsingNotNullSyntax()
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+Module Module1
+    Class C1
+        Inherits IDisposable
+    End Class
+    Sub S1()
+        Using
+        End Using
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
+
+            Assert.NotNull(op.Declaration.Syntax)
+            Assert.Equal("Using", op.Declaration.Syntax.ToString())
+        End Sub
+
     End Class
 End Namespace
