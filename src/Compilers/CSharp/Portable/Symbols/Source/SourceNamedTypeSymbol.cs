@@ -1132,6 +1132,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
             }
 
+            if (this.IsReadOnly)
+            {
+                AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
+            }
+
             if (this.Indexers.Any())
             {
                 string defaultMemberName = this.Indexers.First().MetadataName; // UNDONE: IndexerNameAttribute
