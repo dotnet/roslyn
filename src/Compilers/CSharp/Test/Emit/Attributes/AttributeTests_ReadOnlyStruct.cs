@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class ReadOnlyStruct : CSharpTestBase
     {
         [Fact]
