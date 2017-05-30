@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
             workspace.Options = workspace.Options.WithChangedOption(
-            AddImportOptions.OutOfProcessAllowed, DirectCast(parameters.fixProviderData, Boolean))
+                AddImportOptions.OutOfProcessAllowed, DirectCast(parameters.fixProviderData, Boolean))
 
             Return MyBase.CreateDiagnosticProviderAndFixer(workspace, parameters)
         End Function

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -72,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 class C
 {
     NuGetType n;
-}", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -91,7 +92,7 @@ class C
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NS1", "NS2")));
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -101,7 +102,7 @@ class C
 class C
 {
     NuGetType n;
-}", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
@@ -185,7 +186,7 @@ parameters: new TestParameters(fixProviderData: data));
                 NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -195,7 +196,7 @@ parameters: new TestParameters(fixProviderData: data));
 class C
 {
     NuGetType n;
-}", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             installerServiceMock.Verify();
         }
 
@@ -214,7 +215,7 @@ class C
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -224,7 +225,7 @@ class C
 class C
 {
     NuGetType n;
-}", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             installerServiceMock.Verify();
         }
 
@@ -244,7 +245,7 @@ class C
             packageServiceMock.Setup(s => s.FindPackagesWithTypeAsync(NugetOrgSource, "NuGetType", 0, It.IsAny<CancellationToken>()))
                 .Returns(CreateSearchResult("NuGetPackage", "NuGetType", CreateNameParts("NuGetNamespace")));
 
-            await TestAsync(
+            await TestInRegularAndScriptAsync(
 @"class C
 {
     [|NuGetType|] n;
@@ -252,7 +253,7 @@ class C
 @"class C
 {
     NuGetType n;
-}", systemSpecialCase: false, fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
+}", fixProviderData: new FixProviderData(installerServiceMock.Object, packageServiceMock.Object));
             installerServiceMock.Verify();
         }
 
