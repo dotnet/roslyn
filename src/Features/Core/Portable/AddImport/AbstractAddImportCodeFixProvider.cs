@@ -293,7 +293,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             Project project, HashSet<PortableExecutableReference> seenReferences, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<(ProjectId, PortableExecutableReference, Checksum)>.GetInstance();
-
             var solution = project.Solution;
             foreach (var p in solution.Projects)
             {
@@ -410,18 +409,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
 
-        bool IEqualityComparer<PortableExecutableReference>.Equals(
-            PortableExecutableReference x, PortableExecutableReference y)
-        {
-            return StringComparer.OrdinalIgnoreCase.Equals(
-                x.FilePath ?? x.Display,
-                y.FilePath ?? y.Display);
-        }
+        bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
+            => StringComparer.OrdinalIgnoreCase.Equals(x.FilePath ?? x.Display, y.FilePath ?? y.Display);
 
         int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
-        {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath ?? obj.Display);
-        }
+            => StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath ?? obj.Display);
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)
         {
