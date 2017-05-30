@@ -2444,11 +2444,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (conversion.IsTupleLiteralConversion ||
-                    (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
+                     (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
                 {
-                    var ignoredDiagnostics = new DiagnosticBag();
-                    return CreateTupleLiteralConversion(expression.Syntax, (BoundTupleLiteral)expression, conversion,
-                        isCast: false, destination: targetType, diagnostics: ignoredDiagnostics, hasErrors: true);
+                    // Follow-up issue https://github.com/dotnet/roslyn/issues/19878
+                    // How should we represent the tuple or nullable+tuple conversion in this case?
+                    conversion = Conversion.NoConversion;
                 }
 
                 return new BoundConversion(

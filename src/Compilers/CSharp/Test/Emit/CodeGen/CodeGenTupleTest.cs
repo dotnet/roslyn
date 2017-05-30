@@ -23113,17 +23113,17 @@ class C
             var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             Assert.Null(model.GetTypeInfo(tuple).Type);
             Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(tuple).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
 
             var first = tuple.Arguments[0].Expression;
             Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(first).Kind);
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
 
             var second = tuple.Arguments[1].Expression;
             Assert.Null(model.GetTypeInfo(second).Type);
-            Assert.Equal("System.String", model.GetTypeInfo(second).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(second).Kind);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
         }
 
         [Fact]
@@ -23153,17 +23153,17 @@ class C
             var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             Assert.Null(model.GetTypeInfo(tuple).Type);
             Assert.Equal("(System.Int32, System.String)?", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(tuple).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
 
             var first = tuple.Arguments[0].Expression;
             Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
-            Assert.Equal("System.Int32", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(first).Kind);
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
 
             var second = tuple.Arguments[1].Expression;
             Assert.Null(model.GetTypeInfo(second).Type);
-            Assert.Equal("System.String", model.GetTypeInfo(second).ConvertedType.ToTestDisplayString());
-            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(second).Kind);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
         }
 
         [Fact]

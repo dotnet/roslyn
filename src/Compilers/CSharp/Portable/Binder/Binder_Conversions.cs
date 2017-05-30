@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics, bool hasErrors = false)
+        private BoundExpression CreateTupleLiteralConversion(SyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
@@ -394,8 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: destination,
-                    hasErrors: hasErrors);
+                    type: destination);
             }
 
             // If we had a cast in the code, keep conversion in the tree.
@@ -409,8 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: destination,
-                    hasErrors: hasErrors);
+                    type: destination);
             }
 
             return result;
