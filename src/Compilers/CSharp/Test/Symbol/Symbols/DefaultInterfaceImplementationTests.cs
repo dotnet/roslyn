@@ -57,7 +57,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -70,7 +71,8 @@ class Test2 : I1
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate2(compilation3.SourceModule);
 
@@ -81,7 +83,7 @@ class Test2 : I1
         private static void ValidateMethodImplementationTest1_011(ModuleSymbol m, string expectedImplementation)
         {
             var i1 = m.GlobalNamespace.GetTypeMember("I1");
-            var m1 = i1.GetMember<MethodSymbol>("M1");
+            var m1 = i1.GetMembers().OfType<MethodSymbol>().Single();
 
             Assert.True(i1.IsAbstract);
             Assert.True(i1.IsMetadataAbstract);
@@ -105,15 +107,18 @@ class Test2 : I1
             var test1 = m.GlobalNamespace.GetTypeMember("Test1");
             Assert.Equal(expectedImplementation, test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
             Assert.Equal("I1", test1.Interfaces.Single().ToTestDisplayString());
+            Assert.Same(m1, i1.FindImplementationForInterfaceMember(m1));
         }
 
         private static void ValidateMethodImplementationTest2_011(ModuleSymbol m, string expectedImplementation)
         {
             var test2 = m.GlobalNamespace.GetTypeMember("Test2");
-            Assert.Equal("I1", test2.Interfaces.Single().ToTestDisplayString());
-            var m1 = test2.Interfaces.Single().GetMember<MethodSymbol>("M1");
+            var i1 = test2.Interfaces.Single();
+            Assert.Equal("I1", i1.ToTestDisplayString());
+            var m1 = i1.GetMember<MethodSymbol>("M1");
 
             Assert.Equal(expectedImplementation, test2.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
+            Assert.Same(m1, i1.FindImplementationForInterfaceMember(m1));
         }
 
         [Fact]
@@ -993,6 +998,9 @@ class Test2 : I1
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
@@ -1043,7 +1051,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
             var test2 = compilation2.GetTypeByMetadataName("Test2");
@@ -1058,6 +1066,20 @@ class Test2 : I1
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
                     Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
                 });
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
+            test2 = compilation3.GetTypeByMetadataName("Test2");
+
+            Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
+
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                );
         }
 
         [Fact]
@@ -1197,7 +1219,8 @@ class Test2 : I2
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
             var test2 = compilation2.GetTypeByMetadataName("Test2");
@@ -1215,7 +1238,8 @@ class Test2 : I2
                     Assert.Equal("I1", interfaces[1].ToTestDisplayString());
                 });
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
             test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -1283,7 +1307,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -1295,7 +1320,8 @@ class Test2 : I1
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -2367,18 +2393,33 @@ class Test2 : I1
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2").WithLocation(2, 15)
@@ -2434,7 +2475,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -2447,6 +2488,29 @@ class Test2 : I1
                     Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
                     ValidatePropertyImplementation_501(m, "Test2");
                 });
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                );
+
+            ValidatePropertyImplementation_501(compilation3.SourceModule, "Test2");
         }
 
         [Fact]
@@ -3581,21 +3645,36 @@ class Test2 : I1
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2"),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2"),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2"),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2"),
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2")
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2").WithLocation(2, 15)
                 );
 
             ValidateIndexerImplementation_501(compilation3.SourceModule, "Test2");
@@ -3654,7 +3733,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -3667,6 +3746,29 @@ class Test2 : I1
                     Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
                     ValidateIndexerImplementation_501(m, "Test2");
                 });
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                );
+
+            ValidateIndexerImplementation_501(compilation3.SourceModule, "Test2");
         }
 
         [Fact]
@@ -3771,7 +3873,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -3928,7 +4031,8 @@ class Test2 : I1
 {}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -3941,7 +4045,8 @@ class Test2 : I1
             compilation2.VerifyDiagnostics();
             CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
@@ -4641,9 +4746,15 @@ class Test2 : I1
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2").WithLocation(2, 15)
@@ -4691,7 +4802,7 @@ class Test2 : I1
 ";
 
             var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
-                                                            parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                                                            parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics();
 
@@ -4704,6 +4815,20 @@ class Test2 : I1
                     Assert.Equal("I1", test2Result.Interfaces.Single().ToTestDisplayString());
                     ValidateEventImplementation_501(m, "Test2");
                 });
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                            parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test2 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                );
+
+            ValidateEventImplementation_501(compilation3.SourceModule, "Test2");
         }
 
         [Fact]
@@ -7178,6 +7303,98 @@ class Test2 : I1
                 Assert.Null(test1.FindImplementationForInterfaceMember(m5));
                 Assert.Null(test2.FindImplementationForInterfaceMember(m5));
             }
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (4,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern void M1(); 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("extern", "7", "7.1").WithLocation(4, 17),
+                // (5,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern void M2(); 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("extern", "7", "7.1").WithLocation(5, 25),
+                // (5,25): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern void M2(); 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("virtual", "7", "7.1").WithLocation(5, 25),
+                // (6,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static extern void M3(); 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("static", "7", "7.1").WithLocation(6, 24),
+                // (6,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static extern void M3(); 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("extern", "7", "7.1").WithLocation(6, 24),
+                // (7,25): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("private", "7", "7.1").WithLocation(7, 25),
+                // (7,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("extern", "7", "7.1").WithLocation(7, 25),
+                // (8,24): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("sealed", "7", "7.1").WithLocation(8, 24),
+                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("extern", "7", "7.1").WithLocation(8, 24),
+                // (4,17): warning CS0626: Method, operator, or accessor 'I1.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void M1(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.M1()").WithLocation(4, 17),
+                // (5,25): warning CS0626: Method, operator, or accessor 'I1.M2()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern void M2(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M2").WithArguments("I1.M2()").WithLocation(5, 25),
+                // (6,24): warning CS0626: Method, operator, or accessor 'I1.M3()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern void M3(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M3").WithArguments("I1.M3()").WithLocation(6, 24),
+                // (7,25): warning CS0626: Method, operator, or accessor 'I1.M4()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M4").WithArguments("I1.M4()").WithLocation(7, 25),
+                // (8,24): warning CS0626: Method, operator, or accessor 'I1.M5()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M5").WithArguments("I1.M5()").WithLocation(8, 24)
+                );
+
+            Validate(compilation2.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation3.VerifyDiagnostics(
+                // (4,17): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern void M1(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(4, 17),
+                // (5,25): error CS8501: Target runtime doesn't support default interface implementation.
+                //     virtual extern void M2(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M2").WithLocation(5, 25),
+                // (6,24): error CS8501: Target runtime doesn't support default interface implementation.
+                //     static extern void M3(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M3").WithLocation(6, 24),
+                // (7,25): error CS8501: Target runtime doesn't support default interface implementation.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M4").WithLocation(7, 25),
+                // (8,24): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M5").WithLocation(8, 24),
+                // (4,17): warning CS0626: Method, operator, or accessor 'I1.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void M1(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.M1()").WithLocation(4, 17),
+                // (5,25): warning CS0626: Method, operator, or accessor 'I1.M2()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern void M2(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M2").WithArguments("I1.M2()").WithLocation(5, 25),
+                // (6,24): warning CS0626: Method, operator, or accessor 'I1.M3()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern void M3(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M3").WithArguments("I1.M3()").WithLocation(6, 24),
+                // (7,25): warning CS0626: Method, operator, or accessor 'I1.M4()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern void M4();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M4").WithArguments("I1.M4()").WithLocation(7, 25),
+                // (8,24): warning CS0626: Method, operator, or accessor 'I1.M5()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed void M5();
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M5").WithArguments("I1.M5()").WithLocation(8, 24)
+                );
+
+            Validate(compilation3.SourceModule);
         }
 
         [Fact]
@@ -7474,141 +7691,6 @@ class Test1 : I1
                 Assert.False(m1.IsOverride);
                 Assert.Equal(Accessibility.Public, m1.DeclaredAccessibility);
                 Assert.Null(test1.FindImplementationForInterfaceMember(m1));
-            }
-        }
-
-        [Fact]
-        public void MethodModifiers_19()
-        {
-            var source1 =
-@"
-
-public interface I2 {}
-
-public interface I1
-{
-    public void I2.M01();
-    protected void I2.M02();
-    protected internal void I2.M03();
-    internal void I2.M04();
-    private void I2.M05();
-    static void I2.M06();
-    virtual void I2.M07();
-    sealed void I2.M08();
-    override void I2.M09();
-    abstract void I2.M10();
-    extern void I2.M11();
-    async void I2.M12();
-}
-";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            var expected = new[]
-            {
-                // (7,20): error CS0106: The modifier 'public' is not valid for this item
-                //     public void I2.M01();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M01").WithArguments("public").WithLocation(7, 20),
-                // (8,23): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected void I2.M02();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected").WithLocation(8, 23),
-                // (9,32): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal void I2.M03();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal").WithLocation(9, 32),
-                // (10,22): error CS0106: The modifier 'internal' is not valid for this item
-                //     internal void I2.M04();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M04").WithArguments("internal").WithLocation(10, 22),
-                // (11,21): error CS0106: The modifier 'private' is not valid for this item
-                //     private void I2.M05();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M05").WithArguments("private").WithLocation(11, 21),
-                // (12,20): error CS0106: The modifier 'static' is not valid for this item
-                //     static void I2.M06();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M06").WithArguments("static").WithLocation(12, 20),
-                // (13,21): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual void I2.M07();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M07").WithArguments("virtual").WithLocation(13, 21),
-                // (14,20): error CS0106: The modifier 'sealed' is not valid for this item
-                //     sealed void I2.M08();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M08").WithArguments("sealed").WithLocation(14, 20),
-                // (15,22): error CS0106: The modifier 'override' is not valid for this item
-                //     override void I2.M09();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(15, 22),
-                // (16,22): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract void I2.M10();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M10").WithArguments("abstract").WithLocation(16, 22),
-                // (17,20): error CS0106: The modifier 'extern' is not valid for this item
-                //     extern void I2.M11();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M11").WithArguments("extern").WithLocation(17, 20),
-                // (18,19): error CS0106: The modifier 'async' is not valid for this item
-                //     async void I2.M12();
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M12").WithArguments("async").WithLocation(18, 19),
-                // (7,20): error CS0541: 'I1.M01()': explicit interface declaration can only be declared in a class or struct
-                //     public void I2.M01();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M01").WithArguments("I1.M01()").WithLocation(7, 20),
-                // (8,23): error CS0541: 'I1.M02()': explicit interface declaration can only be declared in a class or struct
-                //     protected void I2.M02();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M02").WithArguments("I1.M02()").WithLocation(8, 23),
-                // (9,32): error CS0541: 'I1.M03()': explicit interface declaration can only be declared in a class or struct
-                //     protected internal void I2.M03();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M03").WithArguments("I1.M03()").WithLocation(9, 32),
-                // (10,22): error CS0541: 'I1.M04()': explicit interface declaration can only be declared in a class or struct
-                //     internal void I2.M04();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M04").WithArguments("I1.M04()").WithLocation(10, 22),
-                // (11,21): error CS0541: 'I1.M05()': explicit interface declaration can only be declared in a class or struct
-                //     private void I2.M05();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M05").WithArguments("I1.M05()").WithLocation(11, 21),
-                // (12,20): error CS0541: 'I1.M06()': explicit interface declaration can only be declared in a class or struct
-                //     static void I2.M06();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M06").WithArguments("I1.M06()").WithLocation(12, 20),
-                // (13,21): error CS0541: 'I1.M07()': explicit interface declaration can only be declared in a class or struct
-                //     virtual void I2.M07();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M07").WithArguments("I1.M07()").WithLocation(13, 21),
-                // (14,20): error CS0541: 'I1.M08()': explicit interface declaration can only be declared in a class or struct
-                //     sealed void I2.M08();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M08").WithArguments("I1.M08()").WithLocation(14, 20),
-                // (15,22): error CS0541: 'I1.M09()': explicit interface declaration can only be declared in a class or struct
-                //     override void I2.M09();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M09").WithArguments("I1.M09()").WithLocation(15, 22),
-                // (16,22): error CS0541: 'I1.M10()': explicit interface declaration can only be declared in a class or struct
-                //     abstract void I2.M10();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M10").WithArguments("I1.M10()").WithLocation(16, 22),
-                // (17,20): error CS0541: 'I1.M11()': explicit interface declaration can only be declared in a class or struct
-                //     extern void I2.M11();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M11").WithArguments("I1.M11()").WithLocation(17, 20),
-                // (18,19): error CS0541: 'I1.M12()': explicit interface declaration can only be declared in a class or struct
-                //     async void I2.M12();
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M12").WithArguments("I1.M12()").WithLocation(18, 19)
-            };
-
-            compilation1.VerifyDiagnostics(expected);
-
-            ValidateSymbolsMethodModifiers_19(compilation1);
-
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation2.VerifyDiagnostics(expected);
-
-            ValidateSymbolsMethodModifiers_19(compilation2);
-        }
-
-        private static void ValidateSymbolsMethodModifiers_19(CSharpCompilation compilation1)
-        {
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-
-            foreach (var methodName in new[] { "I2.M01", "I2.M02", "I2.M03", "I2.M04", "I2.M05", "I2.M06", "I2.M07", "I2.M08", "I2.M09", "I2.M10", "I2.M11", "I2.M12" })
-            {
-                var m01 = i1.GetMember<MethodSymbol>(methodName);
-
-                Assert.True(m01.IsAbstract);
-                Assert.False(m01.IsVirtual);
-                Assert.True(m01.IsMetadataVirtual());
-                Assert.False(m01.IsSealed);
-                Assert.False(m01.IsStatic);
-                Assert.False(m01.IsExtern);
-                Assert.False(m01.IsAsync);
-                Assert.False(m01.IsOverride);
-                Assert.Equal(Accessibility.Public, m01.DeclaredAccessibility);
             }
         }
 
@@ -11161,10 +11243,95 @@ class Test2 : I1, I2, I3, I4, I5
     int I2.P2 { set {} }
 }
 ";
-            ValidatePropertyModifiers_16(source1);
+            ValidatePropertyModifiers_16(source1,
+                new DiagnosticDescription[]
+                {
+                // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern int P1 {get;} 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7", "7.1").WithLocation(4, 16),
+                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern int P2 {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7", "7.1").WithLocation(8, 24),
+                // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern int P2 {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7", "7.1").WithLocation(8, 24),
+                // (12,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7", "7.1").WithLocation(12, 23),
+                // (12,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7", "7.1").WithLocation(12, 23),
+                // (16,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern int P4 {get;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7", "7.1").WithLocation(16, 24),
+                // (16,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern int P4 {get;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7", "7.1").WithLocation(16, 24),
+                // (20,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed int P5 {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7", "7.1").WithLocation(20, 23),
+                // (20,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed int P5 {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7", "7.1").WithLocation(20, 23),
+                // (8,28): warning CS0626: Method, operator, or accessor 'I2.P2.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern int P2 {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.P2.set").WithLocation(8, 28),
+                // (12,27): warning CS0626: Method, operator, or accessor 'I3.P3.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I3.P3.get").WithLocation(12, 27),
+                // (12,32): warning CS0626: Method, operator, or accessor 'I3.P3.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I3.P3.set").WithLocation(12, 32),
+                // (16,28): warning CS0626: Method, operator, or accessor 'I4.P4.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern int P4 {get;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I4.P4.get").WithLocation(16, 28),
+                // (20,27): warning CS0626: Method, operator, or accessor 'I5.P5.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed int P5 {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I5.P5.set").WithLocation(20, 27),
+                // (4,20): warning CS0626: Method, operator, or accessor 'I1.P1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int P1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.P1.get").WithLocation(4, 20)
+                },
+                // (4,20): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern int P1 {get;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 20),
+                // (8,28): error CS8501: Target runtime doesn't support default interface implementation.
+                //     virtual extern int P2 {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(8, 28),
+                // (12,27): error CS8501: Target runtime doesn't support default interface implementation.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(12, 27),
+                // (12,32): error CS8501: Target runtime doesn't support default interface implementation.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(12, 32),
+                // (16,28): error CS8501: Target runtime doesn't support default interface implementation.
+                //     private extern int P4 {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(16, 28),
+                // (20,27): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern sealed int P5 {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(20, 27),
+                // (8,28): warning CS0626: Method, operator, or accessor 'I2.P2.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern int P2 {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.P2.set").WithLocation(8, 28),
+                // (12,27): warning CS0626: Method, operator, or accessor 'I3.P3.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I3.P3.get").WithLocation(12, 27),
+                // (12,32): warning CS0626: Method, operator, or accessor 'I3.P3.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern int P3 {get; set;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I3.P3.set").WithLocation(12, 32),
+                // (16,28): warning CS0626: Method, operator, or accessor 'I4.P4.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern int P4 {get;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I4.P4.get").WithLocation(16, 28),
+                // (20,27): warning CS0626: Method, operator, or accessor 'I5.P5.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed int P5 {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I5.P5.set").WithLocation(20, 27),
+                // (4,20): warning CS0626: Method, operator, or accessor 'I1.P1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int P1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.P1.get").WithLocation(4, 20)
+                );
         }
 
-        private void ValidatePropertyModifiers_16(string source1)
+        private void ValidatePropertyModifiers_16(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         { 
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
@@ -11314,6 +11481,24 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Null(test1.FindImplementationForInterfaceMember(p5set));
                 Assert.Null(test2.FindImplementationForInterfaceMember(p5set));
             }
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected1);
+
+            Validate(compilation2.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation3.VerifyDiagnostics(expected2);
+
+            Validate(compilation3.SourceModule);
         }
 
         [Fact]
@@ -11787,201 +11972,6 @@ class Test2 : I1, I2, I3, I4, I5
             Assert.Equal(Accessibility.Public, p5get.DeclaredAccessibility);
             Assert.Null(test1.FindImplementationForInterfaceMember(p5get));
             Assert.Null(test2.FindImplementationForInterfaceMember(p5get));
-        }
-
-        [Fact]
-        public void PropertyModifiers_19()
-        {
-            var source1 =
-@"
-
-public interface I2 {}
-
-public interface I1
-{
-    public int I2.P01 {get; set;}
-    protected int I2.P02 {get;}
-    protected internal int I2.P03 {set;}
-    internal int I2.P04 {get;}
-    private int I2.P05 {set;}
-    static int I2.P06 {get;}
-    virtual int I2.P07 {set;}
-    sealed int I2.P08 {get;}
-    override int I2.P09 {set;}
-    abstract int I2.P10 {get;}
-    extern int I2.P11 {get; set;}
-
-    int I2.P12 { public get; set;}
-    int I2.P13 { get; protected set;}
-    int I2.P14 { protected internal get; set;}
-    int I2.P15 { get; internal set;}
-    int I2.P16 { private get; set;}
-    int I2.P17 { private get;}
-}
-";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            var expected = new[]
-            {
-                // (7,19): error CS0106: The modifier 'public' is not valid for this item
-                //     public int I2.P01 {get; set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P01").WithArguments("public").WithLocation(7, 19),
-                // (7,19): error CS0541: 'I1.P01': explicit interface declaration can only be declared in a class or struct
-                //     public int I2.P01 {get; set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P01").WithArguments("I1.P01").WithLocation(7, 19),
-                // (8,22): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected int I2.P02 {get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(8, 22),
-                // (8,22): error CS0541: 'I1.P02': explicit interface declaration can only be declared in a class or struct
-                //     protected int I2.P02 {get;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P02").WithArguments("I1.P02").WithLocation(8, 22),
-                // (9,31): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal int I2.P03 {set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(9, 31),
-                // (9,31): error CS0541: 'I1.P03': explicit interface declaration can only be declared in a class or struct
-                //     protected internal int I2.P03 {set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P03").WithArguments("I1.P03").WithLocation(9, 31),
-                // (10,21): error CS0106: The modifier 'internal' is not valid for this item
-                //     internal int I2.P04 {get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P04").WithArguments("internal").WithLocation(10, 21),
-                // (10,21): error CS0541: 'I1.P04': explicit interface declaration can only be declared in a class or struct
-                //     internal int I2.P04 {get;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P04").WithArguments("I1.P04").WithLocation(10, 21),
-                // (11,20): error CS0106: The modifier 'private' is not valid for this item
-                //     private int I2.P05 {set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P05").WithArguments("private").WithLocation(11, 20),
-                // (11,20): error CS0541: 'I1.P05': explicit interface declaration can only be declared in a class or struct
-                //     private int I2.P05 {set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P05").WithArguments("I1.P05").WithLocation(11, 20),
-                // (12,19): error CS0106: The modifier 'static' is not valid for this item
-                //     static int I2.P06 {get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P06").WithArguments("static").WithLocation(12, 19),
-                // (12,19): error CS0541: 'I1.P06': explicit interface declaration can only be declared in a class or struct
-                //     static int I2.P06 {get;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P06").WithArguments("I1.P06").WithLocation(12, 19),
-                // (13,20): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual int I2.P07 {set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P07").WithArguments("virtual").WithLocation(13, 20),
-                // (13,20): error CS0541: 'I1.P07': explicit interface declaration can only be declared in a class or struct
-                //     virtual int I2.P07 {set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P07").WithArguments("I1.P07").WithLocation(13, 20),
-                // (14,19): error CS0106: The modifier 'sealed' is not valid for this item
-                //     sealed int I2.P08 {get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P08").WithArguments("sealed").WithLocation(14, 19),
-                // (14,19): error CS0541: 'I1.P08': explicit interface declaration can only be declared in a class or struct
-                //     sealed int I2.P08 {get;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P08").WithArguments("I1.P08").WithLocation(14, 19),
-                // (15,21): error CS0106: The modifier 'override' is not valid for this item
-                //     override int I2.P09 {set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(15, 21),
-                // (15,21): error CS0541: 'I1.P09': explicit interface declaration can only be declared in a class or struct
-                //     override int I2.P09 {set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P09").WithArguments("I1.P09").WithLocation(15, 21),
-                // (16,21): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract int I2.P10 {get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P10").WithArguments("abstract").WithLocation(16, 21),
-                // (16,21): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
-                //     abstract int I2.P10 {get;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(16, 21),
-                // (17,19): error CS0106: The modifier 'extern' is not valid for this item
-                //     extern int I2.P11 {get; set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P11").WithArguments("extern").WithLocation(17, 19),
-                // (17,19): error CS0541: 'I1.P11': explicit interface declaration can only be declared in a class or struct
-                //     extern int I2.P11 {get; set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P11").WithArguments("I1.P11").WithLocation(17, 19),
-                // (19,12): error CS0541: 'I1.P12': explicit interface declaration can only be declared in a class or struct
-                //     int I2.P12 { public get; set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P12").WithArguments("I1.P12").WithLocation(19, 12),
-                // (19,25): error CS0106: The modifier 'public' is not valid for this item
-                //     int I2.P12 { public get; set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("public").WithLocation(19, 25),
-                // (20,12): error CS0541: 'I1.P13': explicit interface declaration can only be declared in a class or struct
-                //     int I2.P13 { get; protected set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P13").WithArguments("I1.P13").WithLocation(20, 12),
-                // (20,33): error CS0106: The modifier 'protected' is not valid for this item
-                //     int I2.P13 { get; protected set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(20, 33),
-                // (21,12): error CS0541: 'I1.P14': explicit interface declaration can only be declared in a class or struct
-                //     int I2.P14 { protected internal get; set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P14").WithArguments("I1.P14").WithLocation(21, 12),
-                // (21,37): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     int I2.P14 { protected internal get; set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(21, 37),
-                // (22,12): error CS0541: 'I1.P15': explicit interface declaration can only be declared in a class or struct
-                //     int I2.P15 { get; internal set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P15").WithArguments("I1.P15").WithLocation(22, 12),
-                // (22,32): error CS0106: The modifier 'internal' is not valid for this item
-                //     int I2.P15 { get; internal set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("internal").WithLocation(22, 32),
-                // (23,12): error CS0541: 'I1.P16': explicit interface declaration can only be declared in a class or struct
-                //     int I2.P16 { private get; set;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P16").WithArguments("I1.P16").WithLocation(23, 12),
-                // (23,26): error CS0106: The modifier 'private' is not valid for this item
-                //     int I2.P16 { private get; set;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(23, 26),
-                // (24,12): error CS0541: 'I1.P17': explicit interface declaration can only be declared in a class or struct
-                //     int I2.P17 { private get;}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P17").WithArguments("I1.P17").WithLocation(24, 12),
-                // (24,26): error CS0106: The modifier 'private' is not valid for this item
-                //     int I2.P17 { private get;}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(24, 26)
-            };
-
-            compilation1.VerifyDiagnostics(expected);
-
-            ValidateSymbolsPropertyModifiers_19(compilation1);
-
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation2.VerifyDiagnostics(expected);
-
-            ValidateSymbolsPropertyModifiers_19(compilation2);
-        }
-
-        private static void ValidateSymbolsPropertyModifiers_19(CSharpCompilation compilation1)
-        {
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-
-            foreach (var propertyName in new[] { "I2.P01", "I2.P02", "I2.P03", "I2.P04", "I2.P05", "I2.P06", "I2.P07", "I2.P08", "I2.P09", "I2.P10",
-                                                 "I2.P11", "I2.P12", "I2.P13", "I2.P14", "I2.P15", "I2.P16", "I2.P17" })
-            {
-                ValidateSymbolsPropertyModifiers_19(i1.GetMember<PropertySymbol>(propertyName));
-
-            }
-        }
-
-        private static void ValidateSymbolsPropertyModifiers_19(PropertySymbol p01)
-        {
-            Assert.True(p01.IsAbstract);
-            Assert.False(p01.IsVirtual);
-            Assert.False(p01.IsSealed);
-            Assert.False(p01.IsStatic);
-            Assert.False(p01.IsExtern);
-            Assert.False(p01.IsOverride);
-            Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
-
-            ValidateAccessor(p01.GetMethod);
-            ValidateAccessor(p01.SetMethod);
-
-            void ValidateAccessor(MethodSymbol accessor)
-            {
-                if ((object)accessor == null)
-                {
-                    return;
-                }
-
-                Assert.True(accessor.IsAbstract);
-                Assert.False(accessor.IsVirtual);
-                Assert.True(accessor.IsMetadataVirtual());
-                Assert.False(accessor.IsSealed);
-                Assert.False(accessor.IsStatic);
-                Assert.False(accessor.IsExtern);
-                Assert.False(accessor.IsAsync);
-                Assert.False(accessor.IsOverride);
-                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
-            }
         }
 
         [Fact]
@@ -16281,7 +16271,68 @@ class Test2 : I1, I2, I4, I5
     int I2.this[int x] { set {} }
 }
 ";
-            ValidatePropertyModifiers_16(source1);
+            ValidatePropertyModifiers_16(source1,
+                new DiagnosticDescription[]
+                {
+                // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern int this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(4, 16),
+                // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern int this[int x] {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(8, 24),
+                // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern int this[int x] {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7", "7.1").WithLocation(8, 24),
+                // (12,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern int this[int x] {get;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7", "7.1").WithLocation(12, 24),
+                // (12,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern int this[int x] {get;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(12, 24),
+                // (16,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed int this[int x] {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7", "7.1").WithLocation(16, 23),
+                // (16,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed int this[int x] {set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(16, 23),
+                // (8,37): warning CS0626: Method, operator, or accessor 'I2.this[int].set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern int this[int x] {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.this[int].set").WithLocation(8, 37),
+                // (12,37): warning CS0626: Method, operator, or accessor 'I4.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern int this[int x] {get;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I4.this[int].get").WithLocation(12, 37),
+                // (16,36): warning CS0626: Method, operator, or accessor 'I5.this[int].set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed int this[int x] {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I5.this[int].set").WithLocation(16, 36),
+                // (4,29): warning CS0626: Method, operator, or accessor 'I1.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int this[int x] {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.this[int].get").WithLocation(4, 29)
+                },
+                // (4,29): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern int this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(4, 29),
+                // (8,37): error CS8501: Target runtime doesn't support default interface implementation.
+                //     virtual extern int this[int x] {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(8, 37),
+                // (12,37): error CS8501: Target runtime doesn't support default interface implementation.
+                //     private extern int this[int x] {get;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(12, 37),
+                // (16,36): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern sealed int this[int x] {set;}
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(16, 36),
+                // (8,37): warning CS0626: Method, operator, or accessor 'I2.this[int].set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern int this[int x] {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.this[int].set").WithLocation(8, 37),
+                // (12,37): warning CS0626: Method, operator, or accessor 'I4.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern int this[int x] {get;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I4.this[int].get").WithLocation(12, 37),
+                // (16,36): warning CS0626: Method, operator, or accessor 'I5.this[int].set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed int this[int x] {set;}
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I5.this[int].set").WithLocation(16, 36),
+                // (4,29): warning CS0626: Method, operator, or accessor 'I1.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int this[int x] {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.this[int].get").WithLocation(4, 29)
+                );
         }
 
         [Fact]
@@ -16458,164 +16509,6 @@ class Test2 : I1, I2, I3, I4, I5
                 //     static extern int this[int x] {get; set;} 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I3.this[int].set").WithLocation(12, 41)
                 );
-        }
-
-        [Fact]
-        public void IndexerModifiers_19()
-        {
-            var source1 =
-@"
-
-public interface I2 {}
-
-public interface I01{ public int I2.this[int x] {get; set;} }
-public interface I02{ protected int I2.this[int x] {get;} }
-public interface I03{ protected internal int I2.this[int x] {set;} }
-public interface I04{ internal int I2.this[int x] {get;} }
-public interface I05{ private int I2.this[int x] {set;} }
-public interface I06{ static int I2.this[int x] {get;} }
-public interface I07{ virtual int I2.this[int x] {set;} }
-public interface I08{ sealed int I2.this[int x] {get;} }
-public interface I09{ override int I2.this[int x] {set;} }
-public interface I10{ abstract int I2.this[int x] {get;} }
-public interface I11{ extern int I2.this[int x] {get; set;} }
-
-public interface I12{ int I2.this[int x] { public get; set;} }
-public interface I13{ int I2.this[int x] { get; protected set;} }
-public interface I14{ int I2.this[int x] { protected internal get; set;} }
-public interface I15{ int I2.this[int x] { get; internal set;} }
-public interface I16{ int I2.this[int x] { private get; set;} }
-public interface I17{ int I2.this[int x] { private get;} }
-";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            var expected = new[]
-            {
-                // (5,37): error CS0106: The modifier 'public' is not valid for this item
-                // public interface I01{ public int I2.this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("public").WithLocation(5, 37),
-                // (5,37): error CS0541: 'I01.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I01{ public int I2.this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I01.this[int]").WithLocation(5, 37),
-                // (6,40): error CS0106: The modifier 'protected' is not valid for this item
-                // public interface I02{ protected int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(6, 40),
-                // (6,40): error CS0541: 'I02.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I02{ protected int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I02.this[int]").WithLocation(6, 40),
-                // (7,49): error CS0106: The modifier 'protected internal' is not valid for this item
-                // public interface I03{ protected internal int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected internal").WithLocation(7, 49),
-                // (7,49): error CS0541: 'I03.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I03{ protected internal int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I03.this[int]").WithLocation(7, 49),
-                // (8,39): error CS0106: The modifier 'internal' is not valid for this item
-                // public interface I04{ internal int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("internal").WithLocation(8, 39),
-                // (8,39): error CS0541: 'I04.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I04{ internal int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I04.this[int]").WithLocation(8, 39),
-                // (9,38): error CS0106: The modifier 'private' is not valid for this item
-                // public interface I05{ private int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("private").WithLocation(9, 38),
-                // (9,38): error CS0541: 'I05.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I05{ private int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I05.this[int]").WithLocation(9, 38),
-                // (10,37): error CS0106: The modifier 'static' is not valid for this item
-                // public interface I06{ static int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(10, 37),
-                // (10,37): error CS0541: 'I06.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I06{ static int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I06.this[int]").WithLocation(10, 37),
-                // (11,38): error CS0106: The modifier 'virtual' is not valid for this item
-                // public interface I07{ virtual int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("virtual").WithLocation(11, 38),
-                // (11,38): error CS0541: 'I07.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I07{ virtual int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I07.this[int]").WithLocation(11, 38),
-                // (12,37): error CS0106: The modifier 'sealed' is not valid for this item
-                // public interface I08{ sealed int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(12, 37),
-                // (12,37): error CS0541: 'I08.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I08{ sealed int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I08.this[int]").WithLocation(12, 37),
-                // (13,39): error CS0106: The modifier 'override' is not valid for this item
-                // public interface I09{ override int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(13, 39),
-                // (13,39): error CS0541: 'I09.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I09{ override int I2.this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I09.this[int]").WithLocation(13, 39),
-                // (14,39): error CS0106: The modifier 'abstract' is not valid for this item
-                // public interface I10{ abstract int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(14, 39),
-                // (14,39): error CS0541: 'I10.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I10{ abstract int I2.this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I10.this[int]").WithLocation(14, 39),
-                // (15,37): error CS0106: The modifier 'extern' is not valid for this item
-                // public interface I11{ extern int I2.this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("extern").WithLocation(15, 37),
-                // (15,37): error CS0541: 'I11.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I11{ extern int I2.this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I11.this[int]").WithLocation(15, 37),
-                // (17,30): error CS0541: 'I12.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I12{ int I2.this[int x] { public get; set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I12.this[int]").WithLocation(17, 30),
-                // (17,51): error CS0106: The modifier 'public' is not valid for this item
-                // public interface I12{ int I2.this[int x] { public get; set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("public").WithLocation(17, 51),
-                // (18,30): error CS0541: 'I13.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I13{ int I2.this[int x] { get; protected set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I13.this[int]").WithLocation(18, 30),
-                // (18,59): error CS0106: The modifier 'protected' is not valid for this item
-                // public interface I13{ int I2.this[int x] { get; protected set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(18, 59),
-                // (19,30): error CS0541: 'I14.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I14{ int I2.this[int x] { protected internal get; set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I14.this[int]").WithLocation(19, 30),
-                // (19,63): error CS0106: The modifier 'protected internal' is not valid for this item
-                // public interface I14{ int I2.this[int x] { protected internal get; set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(19, 63),
-                // (20,30): error CS0541: 'I15.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I15{ int I2.this[int x] { get; internal set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I15.this[int]").WithLocation(20, 30),
-                // (20,58): error CS0106: The modifier 'internal' is not valid for this item
-                // public interface I15{ int I2.this[int x] { get; internal set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("internal").WithLocation(20, 58),
-                // (21,30): error CS0541: 'I16.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I16{ int I2.this[int x] { private get; set;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I16.this[int]").WithLocation(21, 30),
-                // (21,52): error CS0106: The modifier 'private' is not valid for this item
-                // public interface I16{ int I2.this[int x] { private get; set;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(21, 52),
-                // (22,30): error CS0541: 'I17.this[int]': explicit interface declaration can only be declared in a class or struct
-                // public interface I17{ int I2.this[int x] { private get;} }
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "this").WithArguments("I17.this[int]").WithLocation(22, 30),
-                // (22,52): error CS0106: The modifier 'private' is not valid for this item
-                // public interface I17{ int I2.this[int x] { private get;} }
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(22, 52)
-            };
-
-            compilation1.VerifyDiagnostics(expected);
-
-            ValidateSymbolsIndexerModifiers_19(compilation1);
-
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation2.VerifyDiagnostics(expected);
-
-            ValidateSymbolsIndexerModifiers_19(compilation2);
-        }
-
-        private static void ValidateSymbolsIndexerModifiers_19(CSharpCompilation compilation1)
-        {
-
-            for (int i = 1; i <= 17; i++)
-            {
-                var i1 = compilation1.GetTypeByMetadataName("I" + (i < 10 ? "0" : "") + i);
-                ValidateSymbolsPropertyModifiers_19(i1.GetMember<PropertySymbol>("I2.this[]"));
-            }
         }
 
         [Fact]
@@ -21625,6 +21518,129 @@ class Test2 : I1, I2, I3, I4, I5
                     Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
                 }
             }
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (4,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7", "7.1").WithLocation(4, 32),
+                // (8,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern event System.Action P2;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7", "7.1").WithLocation(8, 40),
+                // (8,40): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     virtual extern event System.Action P2;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7", "7.1").WithLocation(8, 40),
+                // (12,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static extern event System.Action P3; 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7", "7.1").WithLocation(12, 39),
+                // (12,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static extern event System.Action P3; 
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7", "7.1").WithLocation(12, 39),
+                // (16,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern event System.Action P4;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7", "7.1").WithLocation(16, 40),
+                // (16,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private extern event System.Action P4;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7", "7.1").WithLocation(16, 40),
+                // (20,39): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed event System.Action P5;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7", "7.1").WithLocation(20, 39),
+                // (20,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     extern sealed event System.Action P5;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7", "7.1").WithLocation(20, 39),
+                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern event System.Action P2;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
+                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern event System.Action P2;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
+                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern event System.Action P3; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
+                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern event System.Action P3; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
+                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern event System.Action P4;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.add").WithLocation(16, 40),
+                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern event System.Action P4;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.remove").WithLocation(16, 40),
+                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed event System.Action P5;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.add").WithLocation(20, 39),
+                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed event System.Action P5;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.remove").WithLocation(20, 39),
+                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P1; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.add").WithLocation(4, 32),
+                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P1; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32)
+                );
+
+            Validate(compilation2.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation3.VerifyDiagnostics(
+                // (4,32): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern event System.Action P1; 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P1").WithLocation(4, 32),
+                // (8,40): error CS8501: Target runtime doesn't support default interface implementation.
+                //     virtual extern event System.Action P2;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P2").WithLocation(8, 40),
+                // (12,39): error CS8501: Target runtime doesn't support default interface implementation.
+                //     static extern event System.Action P3; 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P3").WithLocation(12, 39),
+                // (16,40): error CS8501: Target runtime doesn't support default interface implementation.
+                //     private extern event System.Action P4;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P4").WithLocation(16, 40),
+                // (20,39): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern sealed event System.Action P5;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P5").WithLocation(20, 39),
+                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern event System.Action P2;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
+                // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     virtual extern event System.Action P2;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.remove").WithLocation(8, 40),
+                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern event System.Action P3; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.add").WithLocation(12, 39),
+                // (12,39): warning CS0626: Method, operator, or accessor 'I3.P3.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     static extern event System.Action P3; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P3").WithArguments("I3.P3.remove").WithLocation(12, 39),
+                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern event System.Action P4;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.add").WithLocation(16, 40),
+                // (16,40): warning CS0626: Method, operator, or accessor 'I4.P4.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     private extern event System.Action P4;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P4").WithArguments("I4.P4.remove").WithLocation(16, 40),
+                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed event System.Action P5;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.add").WithLocation(20, 39),
+                // (20,39): warning CS0626: Method, operator, or accessor 'I5.P5.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern sealed event System.Action P5;
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P5").WithArguments("I5.P5.remove").WithLocation(20, 39),
+                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P1; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.add").WithLocation(4, 32),
+                // (4,32): warning CS0626: Method, operator, or accessor 'I1.P1.remove' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern event System.Action P1; 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P1").WithArguments("I1.P1.remove").WithLocation(4, 32)
+                );
+
+            Validate(compilation3.SourceModule);
+
         }
 
         [Fact]
@@ -22074,282 +22090,6 @@ class Test2 : I1, I2, I3, I4, I5
                 Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
                 Assert.Null(test1.FindImplementationForInterfaceMember(accessor));
                 Assert.Null(test2.FindImplementationForInterfaceMember(accessor));
-            }
-        }
-
-        [Fact]
-        public void EventModifiers_19()
-        {
-            var source1 =
-@"
-
-public interface I2 {}
-
-public interface I1
-{
-    public event System.Action I2.P01 {add {} remove{}}
-    protected event System.Action I2.P02 {add {} remove{}}
-    protected internal event System.Action I2.P03 {add {} remove{}}
-    internal event System.Action I2.P04 {add {} remove{}}
-    private event System.Action I2.P05 {add {} remove{}}
-    static event System.Action I2.P06 {add {} remove{}}
-    virtual event System.Action I2.P07 {add {} remove{}}
-    sealed event System.Action I2.P08 {add {} remove{}}
-    override event System.Action I2.P09 {add {} remove{}}
-    abstract event System.Action I2.P10 {add {} remove{}}
-    extern event System.Action I2.P11 {add {} remove{}}
-}
-";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
-            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
-                // (7,35): error CS0106: The modifier 'public' is not valid for this item
-                //     public event System.Action I2.P01 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P01").WithArguments("public").WithLocation(7, 35),
-                // (7,35): error CS0541: 'I1.P01': explicit interface declaration can only be declared in a class or struct
-                //     public event System.Action I2.P01 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P01").WithArguments("I1.P01").WithLocation(7, 35),
-                // (8,38): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected event System.Action I2.P02 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(8, 38),
-                // (8,38): error CS0541: 'I1.P02': explicit interface declaration can only be declared in a class or struct
-                //     protected event System.Action I2.P02 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P02").WithArguments("I1.P02").WithLocation(8, 38),
-                // (9,47): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal event System.Action I2.P03 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(9, 47),
-                // (9,47): error CS0541: 'I1.P03': explicit interface declaration can only be declared in a class or struct
-                //     protected internal event System.Action I2.P03 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P03").WithArguments("I1.P03").WithLocation(9, 47),
-                // (10,37): error CS0106: The modifier 'internal' is not valid for this item
-                //     internal event System.Action I2.P04 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P04").WithArguments("internal").WithLocation(10, 37),
-                // (10,37): error CS0541: 'I1.P04': explicit interface declaration can only be declared in a class or struct
-                //     internal event System.Action I2.P04 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P04").WithArguments("I1.P04").WithLocation(10, 37),
-                // (11,36): error CS0106: The modifier 'private' is not valid for this item
-                //     private event System.Action I2.P05 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P05").WithArguments("private").WithLocation(11, 36),
-                // (11,36): error CS0541: 'I1.P05': explicit interface declaration can only be declared in a class or struct
-                //     private event System.Action I2.P05 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P05").WithArguments("I1.P05").WithLocation(11, 36),
-                // (12,35): error CS0106: The modifier 'static' is not valid for this item
-                //     static event System.Action I2.P06 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P06").WithArguments("static").WithLocation(12, 35),
-                // (12,35): error CS0541: 'I1.P06': explicit interface declaration can only be declared in a class or struct
-                //     static event System.Action I2.P06 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P06").WithArguments("I1.P06").WithLocation(12, 35),
-                // (13,36): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual event System.Action I2.P07 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P07").WithArguments("virtual").WithLocation(13, 36),
-                // (13,36): error CS0541: 'I1.P07': explicit interface declaration can only be declared in a class or struct
-                //     virtual event System.Action I2.P07 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P07").WithArguments("I1.P07").WithLocation(13, 36),
-                // (14,35): error CS0106: The modifier 'sealed' is not valid for this item
-                //     sealed event System.Action I2.P08 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P08").WithArguments("sealed").WithLocation(14, 35),
-                // (14,35): error CS0541: 'I1.P08': explicit interface declaration can only be declared in a class or struct
-                //     sealed event System.Action I2.P08 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P08").WithArguments("I1.P08").WithLocation(14, 35),
-                // (15,37): error CS0106: The modifier 'override' is not valid for this item
-                //     override event System.Action I2.P09 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(15, 37),
-                // (15,37): error CS0541: 'I1.P09': explicit interface declaration can only be declared in a class or struct
-                //     override event System.Action I2.P09 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P09").WithArguments("I1.P09").WithLocation(15, 37),
-                // (16,37): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract event System.Action I2.P10 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P10").WithArguments("abstract").WithLocation(16, 37),
-                // (16,37): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
-                //     abstract event System.Action I2.P10 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(16, 37),
-                // (17,35): error CS0106: The modifier 'extern' is not valid for this item
-                //     extern event System.Action I2.P11 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P11").WithArguments("extern").WithLocation(17, 35),
-                // (17,35): error CS0541: 'I1.P11': explicit interface declaration can only be declared in a class or struct
-                //     extern event System.Action I2.P11 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P11").WithArguments("I1.P11").WithLocation(17, 35)
-                );
-
-            ValidateEventModifiers_19(compilation1);
-
-            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
-                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
-            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation2.VerifyDiagnostics(
-                // (7,35): error CS0106: The modifier 'public' is not valid for this item
-                //     public event System.Action I2.P01 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P01").WithArguments("public").WithLocation(7, 35),
-                // (7,35): error CS0541: 'I1.P01': explicit interface declaration can only be declared in a class or struct
-                //     public event System.Action I2.P01 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P01").WithArguments("I1.P01").WithLocation(7, 35),
-                // (7,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     public event System.Action I2.P01 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(7, 40),
-                // (7,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     public event System.Action I2.P01 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(7, 47),
-                // (8,38): error CS0106: The modifier 'protected' is not valid for this item
-                //     protected event System.Action I2.P02 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(8, 38),
-                // (8,38): error CS0541: 'I1.P02': explicit interface declaration can only be declared in a class or struct
-                //     protected event System.Action I2.P02 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P02").WithArguments("I1.P02").WithLocation(8, 38),
-                // (8,43): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     protected event System.Action I2.P02 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(8, 43),
-                // (8,50): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     protected event System.Action I2.P02 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(8, 50),
-                // (9,47): error CS0106: The modifier 'protected internal' is not valid for this item
-                //     protected internal event System.Action I2.P03 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(9, 47),
-                // (9,47): error CS0541: 'I1.P03': explicit interface declaration can only be declared in a class or struct
-                //     protected internal event System.Action I2.P03 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P03").WithArguments("I1.P03").WithLocation(9, 47),
-                // (9,52): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     protected internal event System.Action I2.P03 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(9, 52),
-                // (9,59): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     protected internal event System.Action I2.P03 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(9, 59),
-                // (10,37): error CS0106: The modifier 'internal' is not valid for this item
-                //     internal event System.Action I2.P04 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P04").WithArguments("internal").WithLocation(10, 37),
-                // (10,37): error CS0541: 'I1.P04': explicit interface declaration can only be declared in a class or struct
-                //     internal event System.Action I2.P04 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P04").WithArguments("I1.P04").WithLocation(10, 37),
-                // (10,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     internal event System.Action I2.P04 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(10, 42),
-                // (10,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     internal event System.Action I2.P04 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(10, 49),
-                // (11,36): error CS0106: The modifier 'private' is not valid for this item
-                //     private event System.Action I2.P05 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P05").WithArguments("private").WithLocation(11, 36),
-                // (11,36): error CS0541: 'I1.P05': explicit interface declaration can only be declared in a class or struct
-                //     private event System.Action I2.P05 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P05").WithArguments("I1.P05").WithLocation(11, 36),
-                // (11,41): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     private event System.Action I2.P05 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(11, 41),
-                // (11,48): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     private event System.Action I2.P05 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(11, 48),
-                // (12,35): error CS0106: The modifier 'static' is not valid for this item
-                //     static event System.Action I2.P06 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P06").WithArguments("static").WithLocation(12, 35),
-                // (12,35): error CS0541: 'I1.P06': explicit interface declaration can only be declared in a class or struct
-                //     static event System.Action I2.P06 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P06").WithArguments("I1.P06").WithLocation(12, 35),
-                // (12,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     static event System.Action I2.P06 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(12, 40),
-                // (12,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     static event System.Action I2.P06 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(12, 47),
-                // (13,36): error CS0106: The modifier 'virtual' is not valid for this item
-                //     virtual event System.Action I2.P07 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P07").WithArguments("virtual").WithLocation(13, 36),
-                // (13,36): error CS0541: 'I1.P07': explicit interface declaration can only be declared in a class or struct
-                //     virtual event System.Action I2.P07 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P07").WithArguments("I1.P07").WithLocation(13, 36),
-                // (13,41): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     virtual event System.Action I2.P07 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(13, 41),
-                // (13,48): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     virtual event System.Action I2.P07 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(13, 48),
-                // (14,35): error CS0106: The modifier 'sealed' is not valid for this item
-                //     sealed event System.Action I2.P08 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P08").WithArguments("sealed").WithLocation(14, 35),
-                // (14,35): error CS0541: 'I1.P08': explicit interface declaration can only be declared in a class or struct
-                //     sealed event System.Action I2.P08 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P08").WithArguments("I1.P08").WithLocation(14, 35),
-                // (14,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     sealed event System.Action I2.P08 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(14, 40),
-                // (14,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     sealed event System.Action I2.P08 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(14, 47),
-                // (15,37): error CS0106: The modifier 'override' is not valid for this item
-                //     override event System.Action I2.P09 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(15, 37),
-                // (15,37): error CS0541: 'I1.P09': explicit interface declaration can only be declared in a class or struct
-                //     override event System.Action I2.P09 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P09").WithArguments("I1.P09").WithLocation(15, 37),
-                // (15,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     override event System.Action I2.P09 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(15, 42),
-                // (15,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     override event System.Action I2.P09 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(15, 49),
-                // (16,37): error CS0106: The modifier 'abstract' is not valid for this item
-                //     abstract event System.Action I2.P10 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P10").WithArguments("abstract").WithLocation(16, 37),
-                // (16,37): error CS0541: 'I1.P10': explicit interface declaration can only be declared in a class or struct
-                //     abstract event System.Action I2.P10 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P10").WithArguments("I1.P10").WithLocation(16, 37),
-                // (16,42): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     abstract event System.Action I2.P10 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(16, 42),
-                // (16,49): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     abstract event System.Action I2.P10 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(16, 49),
-                // (17,35): error CS0106: The modifier 'extern' is not valid for this item
-                //     extern event System.Action I2.P11 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "P11").WithArguments("extern").WithLocation(17, 35),
-                // (17,35): error CS0541: 'I1.P11': explicit interface declaration can only be declared in a class or struct
-                //     extern event System.Action I2.P11 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P11").WithArguments("I1.P11").WithLocation(17, 35),
-                // (17,40): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     extern event System.Action I2.P11 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(17, 40),
-                // (17,47): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
-                //     extern event System.Action I2.P11 {add {} remove{}}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(17, 47)
-                );
-
-            ValidateEventModifiers_19(compilation2);
-        }
-
-        private static void ValidateEventModifiers_19(CSharpCompilation compilation1)
-        {
-            var i1 = compilation1.GetTypeByMetadataName("I1");
-
-            foreach (var eventName in new[] { "I2.P01", "I2.P02", "I2.P03", "I2.P04", "I2.P05", "I2.P06",
-                                                 "I2.P07", "I2.P08", "I2.P09", "I2.P10", "I2.P11"})
-            {
-                ValidateEventModifiers_19(i1.GetMember<EventSymbol>(eventName));
-            }
-        }
-
-        private static void ValidateEventModifiers_19(EventSymbol p01)
-        {
-            Assert.False(p01.IsAbstract);
-            Assert.True(p01.IsVirtual);
-            Assert.False(p01.IsSealed);
-            Assert.False(p01.IsStatic);
-            Assert.False(p01.IsExtern);
-            Assert.False(p01.IsOverride);
-            Assert.Equal(Accessibility.Public, p01.DeclaredAccessibility);
-
-            ValidateAccessor(p01.AddMethod);
-            ValidateAccessor(p01.RemoveMethod);
-
-            void ValidateAccessor(MethodSymbol accessor)
-            {
-                Assert.False(accessor.IsAbstract);
-                Assert.True(accessor.IsVirtual);
-                Assert.True(accessor.IsMetadataVirtual());
-                Assert.False(accessor.IsSealed);
-                Assert.False(accessor.IsStatic);
-                Assert.False(accessor.IsExtern);
-                Assert.False(accessor.IsAsync);
-                Assert.False(accessor.IsOverride);
-                Assert.Equal(Accessibility.Public, accessor.DeclaredAccessibility);
             }
         }
 
@@ -23045,5 +22785,5276 @@ class Test1 : I1.T1
                 Diagnostic(ErrorCode.ERR_BadAccess, "T4").WithArguments("I1.T4").WithLocation(29, 37)
                 );
         }
+
+        [Fact]
+        public void MethodImplementationInDerived_01()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I5 : I4
+{
+}
+
+public interface I1 : I2, I5
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+        }
+
+        private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m)
+        {
+            var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+            var i1 = test1.Interfaces.Where(i => i.Name == "I1").Single();
+            var i1i2m1 = i1.GetMember<MethodSymbol>("I2.M1");
+            var i1i4m1 = i1.GetMember<MethodSymbol>("I4.M1");
+            var i2 = i1.Interfaces.Where(i => i.Name == "I2").Single();
+            var i2m1 = i2.GetMembers().OfType<MethodSymbol>().Single();
+            var i4 = i1.AllInterfaces.Where(i => i.Name == "I4").Single();
+            var i4m1 = i4.GetMembers().OfType<MethodSymbol>().Single();
+            var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+
+            Assert.True(i1.IsAbstract);
+            Assert.True(i1.IsMetadataAbstract);
+
+            ValidateExplicitImplementation(i1i2m1);
+            ValidateExplicitImplementation(i1i4m1);
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(i1i4m1));
+            Assert.Same(i1i2m1, test1.FindImplementationForInterfaceMember(i2m1));
+            Assert.Same(i1i4m1, test1.FindImplementationForInterfaceMember(i4m1));
+
+            Assert.Null(i1.FindImplementationForInterfaceMember(i1i2m1));
+            Assert.Null(i1.FindImplementationForInterfaceMember(i1i4m1));
+            Assert.Same(i1i2m1, i1.FindImplementationForInterfaceMember(i2m1));
+            Assert.Same(i1i4m1, i1.FindImplementationForInterfaceMember(i4m1));
+
+            Assert.Null(i2.FindImplementationForInterfaceMember(i2m1));
+            Assert.Null(i4.FindImplementationForInterfaceMember(i4m1));
+
+            Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
+            Assert.Same(i1i4m1, i3.FindImplementationForInterfaceMember(i4m1));
+        }
+
+        private static void ValidateExplicitImplementation(MethodSymbol m1)
+        {
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.True(m1.IsMetadataFinal);
+            Assert.False(m1.IsMetadataNewSlot());
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+
+            if (m1.ContainingModule is PEModuleSymbol peModule)
+            {
+                int rva;
+                peModule.Module.GetMethodDefPropsOrThrow(((PEMethodSymbol)m1.OriginalDefinition).Handle, out _, out _, out _, out rva);
+                Assert.NotEqual(0, rva);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_02()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     void I2.M1() 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(14, 13),
+                // (18,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     void I4.M1() 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(18, 13)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8506: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_03()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation1.VerifyDiagnostics(
+                // (14,13): error CS8501: Target runtime doesn't support default interface implementation.
+                //     void I2.M1() 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(14, 13),
+                // (18,13): error CS8501: Target runtime doesn't support default interface implementation.
+                //     void I4.M1() 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(18, 13)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8502: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_04()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    void I2.M1(); 
+    void I4.M1(); 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (15,13): error CS0501: 'I1.I4.M1()' must declare a body because it is not marked abstract, extern, or partial
+                //     void I4.M1(); 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("I1.I4.M1()").WithLocation(15, 13),
+                // (14,13): error CS0501: 'I1.I2.M1()' must declare a body because it is not marked abstract, extern, or partial
+                //     void I2.M1(); 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M1").WithArguments("I1.I2.M1()").WithLocation(14, 13)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_05()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I1
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (18,10): error CS0540: 'I1.I4.M1()': containing type does not implement interface 'I4'
+                //     void I4.M1() 
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I4").WithArguments("I1.I4.M1()", "I4").WithLocation(18, 10),
+                // (14,10): error CS0540: 'I1.I2.M1()': containing type does not implement interface 'I2'
+                //     void I2.M1() 
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1()", "I2").WithLocation(14, 10)
+                );
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_06()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    public static void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    internal virtual void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,27): error CS0106: The modifier 'static' is not valid for this item
+                //     public static void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("static").WithLocation(14, 27),
+                // (14,27): error CS0106: The modifier 'public' is not valid for this item
+                //     public static void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 27),
+                // (18,30): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal virtual void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(18, 30),
+                // (18,30): error CS0106: The modifier 'virtual' is not valid for this item
+                //     internal virtual void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(18, 30)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_07()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    private sealed void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    protected abstract void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,28): error CS0106: The modifier 'sealed' is not valid for this item
+                //     private sealed void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 28),
+                // (14,28): error CS0106: The modifier 'private' is not valid for this item
+                //     private sealed void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 28),
+                // (18,32): error CS0106: The modifier 'abstract' is not valid for this item
+                //     protected abstract void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(18, 32),
+                // (18,32): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected abstract void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(18, 32)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_08()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I4
+{
+    void M1(); 
+}
+
+public interface I1 : I2, I4
+{
+    private protected void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    internal protected override void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,13): error CS0107: More than one protection modifier
+                //     private protected void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "protected").WithLocation(14, 13),
+                // (14,31): error CS0106: The modifier 'protected' is not valid for this item
+                //     private protected void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(14, 31),
+                // (14,31): error CS0106: The modifier 'private' is not valid for this item
+                //     private protected void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 31),
+                // (18,41): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     internal protected override void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(18, 41),
+                // (18,41): error CS0106: The modifier 'override' is not valid for this item
+                //     internal protected override void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(18, 41)
+                );
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+        }
+        
+        [Fact]
+        public void MethodImplementationInDerived_09()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I1 : I2
+{
+    extern void I2.M1(); 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void I2.M1(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                );
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.Interfaces.Where(i => i.Name == "I1").Single();
+                var i1i2m1 = i1.GetMember<MethodSymbol>("I2.M1");
+                var i2 = i1.Interfaces.Where(i => i.Name == "I2").Single();
+                var i2m1 = i2.GetMembers().OfType<MethodSymbol>().Single();
+                var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+
+                Assert.True(i1.IsAbstract);
+                Assert.True(i1.IsMetadataAbstract);
+
+                ValidateExplicitExternImplementation(i1i2m1);
+
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
+                Assert.Same(i1i2m1, test1.FindImplementationForInterfaceMember(i2m1));
+
+                Assert.Null(i1.FindImplementationForInterfaceMember(i1i2m1));
+                Assert.Same(i1i2m1, i1.FindImplementationForInterfaceMember(i2m1));
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i2m1));
+
+                Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
+            }
+            
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(
+                // (9,20): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern void I2.M1(); 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M1").WithArguments("default interface implementation", "7.1").WithLocation(9, 20),
+                // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void I2.M1(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                );
+
+            Validate1(compilation2.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation3.VerifyDiagnostics(
+                // (9,20): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern void I2.M1(); 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M1").WithLocation(9, 20),
+                // (9,20): warning CS0626: Method, operator, or accessor 'I1.I2.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern void I2.M1(); 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                );
+
+            Validate1(compilation3.SourceModule);
+
+            var source2 =
+@"
+public interface I2
+{
+    void M1(); 
+}
+
+public interface I1 : I2
+{
+    extern void I2.M1()
+    {} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation4 = CreateStandardCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (9,20): error CS0179: 'I1.I2.M1()' cannot be extern and declare a body
+                //     extern void I2.M1()
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "M1").WithArguments("I1.I2.M1()").WithLocation(9, 20)
+                );
+
+            Validate1(compilation4.SourceModule);
+        }
+        
+        private static void ValidateExplicitExternImplementation(MethodSymbol m1)
+        {
+            Assert.True(m1.IsMetadataVirtual());
+            Assert.True(m1.IsMetadataFinal);
+            Assert.False(m1.IsMetadataNewSlot());
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.NotEqual(m1.OriginalDefinition is PEMethodSymbol, m1.IsExtern);
+            Assert.False(m1.IsAsync);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+
+            if (m1.ContainingModule is PEModuleSymbol peModule)
+            {
+                int rva;
+                peModule.Module.GetMethodDefPropsOrThrow(((PEMethodSymbol)m1).Handle, out _, out _, out _, out rva);
+                Assert.Equal(0, rva);
+            }
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_10()
+        {
+            var source1 =
+@"
+using System.Threading.Tasks;
+
+public interface I2
+{
+    Task M1(); 
+}
+
+public interface I1 : I2
+{
+    async Task I2.M1()
+    {
+        await Task.Factory.StartNew(() => System.Console.WriteLine(""I2.M1""));
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I2 i2 = new Test1();
+        i2.M1().Wait();
+    }
+}
+";
+
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll,
+                                                               parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.Interfaces.Where(i => i.Name == "I1").Single();
+                var i1i2m1 = i1.GetMember<MethodSymbol>("I2.M1");
+                var i2 = i1.Interfaces.Where(i => i.Name == "I2").Single();
+                var i2m1 = i2.GetMembers().OfType<MethodSymbol>().Single();
+                var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+
+                Assert.True(i1.IsAbstract);
+                Assert.True(i1.IsMetadataAbstract);
+
+                Validate2(i1i2m1);
+
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1i2m1));
+                Assert.Equal("System.Threading.Tasks.Task I1.I2.M1()", test1.FindImplementationForInterfaceMember(i2m1).ToTestDisplayString());
+
+                Assert.Null(i1.FindImplementationForInterfaceMember(i1i2m1));
+                Assert.Equal("System.Threading.Tasks.Task I1.I2.M1()", i1.FindImplementationForInterfaceMember(i2m1).ToTestDisplayString());
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i2m1));
+
+                Assert.Equal("System.Threading.Tasks.Task I1.I2.M1()", i3.FindImplementationForInterfaceMember(i2m1).ToTestDisplayString());
+            }
+
+            void Validate2(MethodSymbol m1)
+            {
+                Assert.True(m1.IsMetadataVirtual());
+                Assert.True(m1.IsMetadataFinal);
+                Assert.False(m1.IsMetadataNewSlot());
+                Assert.False(m1.IsAbstract);
+                Assert.False(m1.IsVirtual);
+                Assert.False(m1.IsSealed);
+                Assert.False(m1.IsStatic);
+                Assert.False(m1.IsExtern);
+                Assert.NotEqual(m1 is PEMethodSymbol, m1.IsAsync);
+                Assert.False(m1.IsOverride);
+                Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+
+                if (m1.ContainingModule is PEModuleSymbol peModule)
+                {
+                    int rva;
+                    peModule.Module.GetMethodDefPropsOrThrow(((PEMethodSymbol)m1).Handle, out _, out _, out _, out rva);
+                    Assert.NotEqual(0, rva);
+                }
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_11()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    internal void M1(); 
+}
+
+public interface I4
+{
+    internal void M1(); 
+}
+
+public interface I5 : I4
+{
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    void I2.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+    void I4.M1() 
+    {
+        System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            var compilation5 = CreateStandardCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidateMethodImplementationInDerived_01(compilation5.SourceModule);
+
+            compilation5.VerifyDiagnostics(
+                // (8,13): error CS0122: 'I4.M1()' is inaccessible due to its protection level
+                //     void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13),
+                // (4,13): error CS0122: 'I2.M1()' is inaccessible due to its protection level
+                //     void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13)
+                );
+
+            var compilation6 = CreateStandardCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidateMethodImplementationInDerived_01(compilation6.SourceModule);
+
+            compilation6.VerifyDiagnostics(
+                // (8,13): error CS0122: 'I4.M1()' is inaccessible due to its protection level
+                //     void I4.M1() 
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1()").WithLocation(8, 13),
+                // (4,13): error CS0122: 'I2.M1()' is inaccessible due to its protection level
+                //     void I2.M1() 
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1()").WithLocation(4, 13)
+                );
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_12()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1(){ throw null; } 
+}
+
+public interface I2 : I1
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""I2.I1.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""I3.I1.M1"");
+    }
+}
+
+public interface I4 : I1
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""I4.I1.M1"");
+    }
+}
+
+public interface I5 : I2, I3
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""I5.I1.M1"");
+    }
+}
+
+public interface I6 : I1, I2, I3, I5
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = FindType(m, "I1");
+                var i1m1 = i1.GetMember<MethodSymbol>("M1");
+                var i2 = FindType(m, "I2");
+                var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+                var i5 = FindType(m, "I5");
+                var i5m1 = i5.GetMember<MethodSymbol>("I1.M1");
+                var i6 = FindType(m, "I6");
+
+                ValidateExplicitImplementation(i2m1);
+                ValidateExplicitImplementation(i5m1);
+
+                Assert.Same(i1m1, i1.FindImplementationForInterfaceMember(i1m1));
+                Assert.Same(i2m1, i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Same(i5m1, i5.FindImplementationForInterfaceMember(i1m1));
+                Assert.Same(i5m1, i6.FindImplementationForInterfaceMember(i1m1));
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
+
+            var source2 = @"
+public interface I7 : I2, I3
+{}
+
+public interface I8 : I1, I2, I3, I5, I4
+{}
+";
+
+            var source3 =
+@"
+class Test1 : I2, I3
+{}
+
+class Test2 : I7
+{}
+
+class Test3 : I1, I2, I3, I4
+{}
+
+class Test4 : I1, I2, I3, I5, I4
+{}
+
+class Test5 : I8
+{}
+";
+
+            var source4 =
+@"
+class Test5 : I2
+{}
+
+class Test6 : I1, I2, I3, I5
+{}
+
+class Test7 : I6
+{}
+";
+            var source5 = @"
+class Test8 : I2, I3
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""Test8.I1.M1"");
+    }
+}
+
+class Test9 : I7
+{
+    void I1.M1() 
+    {
+        System.Console.WriteLine(""Test9.I1.M1"");
+    }
+}
+
+class Test10 : I1, I2, I3, I4
+{
+    public void M1() 
+    {
+        System.Console.WriteLine(""Test10.M1"");
+    }
+}
+
+class Test11 : I1, I2, I3, I5, I4
+{
+    public void M1() 
+    {
+        System.Console.WriteLine(""Test11.M1"");
+    }
+}
+
+class Test12 : I8
+{
+    public virtual void M1() 
+    {
+        System.Console.WriteLine(""Test12.M1"");
+    }
+}
+";
+
+            foreach (var ref1 in refs1)
+            {
+                var compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                // PROTOTYPE(DefaultInterfaceImplementation): Proposal says there should be errors, but that would mean that we wouldn't
+                //                                            be able to compile source like that under CSharp7 language version just because
+                //                                            base interfaces have default implementations. At the same time, old compiler 
+                //                                            will be able to do this just fine. I think this would be bad.
+                //                                            Need to discuss this at LDM.
+                compilation2.VerifyDiagnostics();
+                Validate2(compilation2.SourceModule);
+
+                void Validate2(ModuleSymbol m)
+                {
+                    Validate1(m);
+
+                    var i1 = FindType(m, "I1");
+                    var i1m1 = i1.GetMember<MethodSymbol>("M1");
+                    var i7 = FindType(m, "I7");
+                    var i8 = FindType(m, "I8");
+
+                    Assert.Null(i7.FindImplementationForInterfaceMember(i1m1));
+                    Assert.Null(i8.FindImplementationForInterfaceMember(i1m1));
+                }
+
+                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+
+                compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                compilation2.VerifyDiagnostics();
+                Validate2(compilation2.SourceModule);
+
+                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+
+                var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
+
+                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                compilation4.VerifyDiagnostics();
+                Validate4(compilation4.SourceModule);
+
+                void Validate4(ModuleSymbol m)
+                {
+                    Validate1(m);
+
+                    var i1 = FindType(m, "I1");
+                    var i1m1 = i1.GetMember<MethodSymbol>("M1");
+                    var i2 = FindType(m, "I2");
+                    var i2m1 = i2.GetMember<MethodSymbol>("I1.M1");
+                    var i5 = FindType(m, "I5");
+                    var i5m1 = i5.GetMember<MethodSymbol>("I1.M1");
+                    var test5 = FindType(m, "Test5");
+                    var test6 = FindType(m, "Test6");
+                    var test7 = FindType(m, "Test7");
+
+                    Assert.Same(i2m1, test5.FindImplementationForInterfaceMember(i1m1));
+                    Assert.Same(i5m1, test6.FindImplementationForInterfaceMember(i1m1));
+                    Assert.Same(i5m1, test7.FindImplementationForInterfaceMember(i1m1));
+                }
+
+                CompileAndVerify(compilation4, verify: false, symbolValidator: Validate4);
+
+                foreach (var ref2 in refs2)
+                {
+                    var compilation3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                    Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                    compilation3.VerifyDiagnostics(
+                // (2,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
+                // (5,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // class Test2 : I7
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(5, 15),
+                // (8,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // class Test3 : I1, I2, I3, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(8, 15),
+                // (11,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
+                // class Test4 : I1, I2, I3, I5, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(11, 15),
+                // (14,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
+                // class Test5 : I8
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(14, 15)
+                        );
+
+                    Validate3(compilation3.SourceModule);
+
+                    void Validate3(ModuleSymbol m)
+                    {
+                        Validate1(m);
+                        Validate2(m);
+
+                        var i1 = FindType(m, "I1");
+                        var i1m1 = i1.GetMember<MethodSymbol>("M1");
+                        var test1 = FindType(m, "Test1");
+                        var test2 = FindType(m, "Test2");
+                        var test3 = FindType(m, "Test3");
+                        var test4 = FindType(m, "Test4");
+                        var test5 = FindType(m, "Test5");
+
+                        Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Null(test2.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Null(test3.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Null(test4.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Null(test5.FindImplementationForInterfaceMember(i1m1));
+                    }
+
+                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                    Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                    compilation5.VerifyDiagnostics();
+
+                    Validate5(compilation5.SourceModule);
+
+                    void Validate5(ModuleSymbol m)
+                    {
+                        var i1 = FindType(m, "I1");
+                        var i1m1 = i1.GetMember<MethodSymbol>("M1");
+                        var test8 = FindType(m, "Test8");
+                        var test9 = FindType(m, "Test9");
+                        var test10 = FindType(m, "Test10");
+                        var test11 = FindType(m, "Test11");
+                        var test12 = FindType(m, "Test12");
+
+                        Assert.Same(test8.GetMember<MethodSymbol>("I1.M1"), test8.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Same(test9.GetMember<MethodSymbol>("I1.M1"), test9.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Same(test10.GetMember<MethodSymbol>("M1"), test10.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Same(test11.GetMember<MethodSymbol>("M1"), test11.FindImplementationForInterfaceMember(i1m1));
+                        Assert.Same(test12.GetMember<MethodSymbol>("M1"), test12.FindImplementationForInterfaceMember(i1m1));
+                    }
+
+                    CompileAndVerify(compilation5, verify: false, symbolValidator: Validate5);
+                }
+            }
+        }
+
+        private static NamedTypeSymbol FindType(ModuleSymbol m, string name)
+        {
+            var result = m.GlobalNamespace.GetMember<NamedTypeSymbol>(name);
+            if ((object)result != null)
+            {
+                return result;
+            }
+
+            foreach (var assembly in m.ReferencedAssemblySymbols)
+            {
+                result = assembly.Modules[0].GlobalNamespace.GetMember<NamedTypeSymbol>(name);
+                if ((object)result != null)
+                {
+                    return result;
+                }
+            }
+
+            Assert.NotNull(result);
+            return result;
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    void M1(); 
+}
+
+public interface I2 : I1
+{
+    void I1.M1() 
+    {
+    }
+}
+
+public interface I3 : I1
+{
+    void I1.M1() 
+    {
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+    public int M1() => 1;
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(
+                // (2,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(2, 15)
+                );
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1()", "Test1.M1()", "void").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void MethodImplementationInDerived_14()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    void M1()
+    {
+        System.Console.WriteLine(""I1.M1"");
+    }
+    void M2<S>()
+    {
+        System.Console.WriteLine(""I1.M2"");
+    }
+}
+
+public interface I2<T> : I1<T>
+{
+    void I1<T>.M1() 
+    {
+        System.Console.WriteLine(""I2.I1.M1"");
+    }
+    void I1<T>.M2<S>() 
+    {
+        System.Console.WriteLine(""I2.I1.M2"");
+    }
+}
+
+public interface I3<T> : I1<T>
+{}
+";
+
+            var source2 =
+@"
+class Test1 : I1<int>
+{}
+class Test2 : I2<long>
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var i1 = FindType(m, "I1");
+                var i1m1 = i1.GetMember<MethodSymbol>("M1");
+                var i1m2 = i1.GetMember<MethodSymbol>("M2");
+                var i2 = FindType(m, "I2");
+                var i2m1 = i2.GetMember<MethodSymbol>("I1<T>.M1");
+                var i2m2 = i2.GetMember<MethodSymbol>("I1<T>.M2");
+                var i2i1 = i2.Interfaces.Single();
+                var i2i1m1 = i2i1.GetMember<MethodSymbol>("M1");
+                var i2i1m2 = i2i1.GetMember<MethodSymbol>("M2");
+                var i3 = FindType(m, "I3");
+                var i3i1 = i3.Interfaces.Single();
+                var i3i1m1 = i3i1.GetMember<MethodSymbol>("M1");
+                var i3i1m2 = i3i1.GetMember<MethodSymbol>("M2");
+
+                Assert.Same(i1m1, i1.FindImplementationForInterfaceMember(i1m1));
+                Assert.Same(i1m2, i1.FindImplementationForInterfaceMember(i1m2));
+
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(i2.FindImplementationForInterfaceMember(i1m2));
+                Assert.Null(i2.FindImplementationForInterfaceMember(i3i1m1));
+                Assert.Null(i2.FindImplementationForInterfaceMember(i3i1m2));
+                Assert.Same(i2m1, i2.FindImplementationForInterfaceMember(i2i1m1));
+                Assert.Same(i2m2, i2.FindImplementationForInterfaceMember(i2i1m2));
+
+                Assert.Null(i3.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(i3.FindImplementationForInterfaceMember(i1m2));
+                Assert.Null(i3.FindImplementationForInterfaceMember(i2i1m1));
+                Assert.Null(i3.FindImplementationForInterfaceMember(i2i1m2));
+                Assert.Same(i3i1m1, i3.FindImplementationForInterfaceMember(i3i1m1));
+                Assert.Same(i3i1m2, i3.FindImplementationForInterfaceMember(i3i1m2));
+
+                ValidateExplicitImplementation(i2m1);
+                ValidateExplicitImplementation(i2m2);
+
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var test1i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
+                var test1i1m1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).GetMember<MethodSymbol>("M1");
+                var test1i1m2 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)).GetMember<MethodSymbol>("M2");
+                var test2 = m.GlobalNamespace.GetTypeMember("Test2");
+                var test2i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64));
+                var test2i1m1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)).GetMember<MethodSymbol>("M1");
+                var test2i1m2 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)).GetMember<MethodSymbol>("M2");
+                var test2i2 = i2.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64));
+                var test2i2m1 = i2.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)).GetMember<MethodSymbol>("I1<T>.M1");
+                var test2i2m2 = i2.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)).GetMember<MethodSymbol>("I1<T>.M2");
+
+                Assert.NotSame(test1i1, test1i1m1.ContainingType);
+                Assert.NotSame(test1i1, test1i1m2.ContainingType);
+                Assert.NotSame(test2i1, test2i1m1.ContainingType);
+                Assert.NotSame(test2i1, test2i1m2.ContainingType);
+                Assert.NotSame(test2i2, test2i2m1.ContainingType);
+                Assert.NotSame(test2i2, test2i2m2.ContainingType);
+
+                Assert.Null(test1i1.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1i1.FindImplementationForInterfaceMember(i1m2));
+                Assert.Equal(test1i1m1, test1i1.FindImplementationForInterfaceMember(test1i1m1));
+                Assert.Equal(test1i1m2, test1i1.FindImplementationForInterfaceMember(test1i1m2));
+                Assert.Equal(test2i1m1, test2i1.FindImplementationForInterfaceMember(test2i1m1));
+                Assert.Equal(test2i1m2, test2i1.FindImplementationForInterfaceMember(test2i1m2));
+                Assert.Null(test2i2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test2i2.FindImplementationForInterfaceMember(i1m2));
+                Assert.Equal(test2i2m1, test2i2.FindImplementationForInterfaceMember(test2i1m1));
+                Assert.Equal(test2i2m2, test2i2.FindImplementationForInterfaceMember(test2i1m2));
+
+                ValidateExplicitImplementation(test2i2m1);
+                ValidateExplicitImplementation(test2i2m2);
+
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test1.FindImplementationForInterfaceMember(i1m2));
+                Assert.Equal(test1i1m1, test1.FindImplementationForInterfaceMember(test1i1m1));
+                Assert.Equal(test1i1m2, test1.FindImplementationForInterfaceMember(test1i1m2));
+                Assert.Null(test2.FindImplementationForInterfaceMember(i1m1));
+                Assert.Null(test2.FindImplementationForInterfaceMember(i1m2));
+                Assert.Equal(test2i2m1, test2.FindImplementationForInterfaceMember(test2i1m1));
+                Assert.Equal(test2i2m2, test2.FindImplementationForInterfaceMember(test2i1m2));
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            Validate(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Validate(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_01()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get;} 
+}
+
+public interface I4
+{
+    int M1 {set;} 
+}
+
+public interface I5 : I4
+{
+}
+
+public interface I1 : I2, I5
+{
+    int I2.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+    }
+    int I4.M1 
+    {
+        set => System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+            ValidatePropertyImplementationInDerived_01(source1);
+        }
+
+        private void ValidatePropertyImplementationInDerived_01(string source1)
+        {
+
+            var source2 =
+@"
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+        }
+
+        private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m)
+        {
+            var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+            var i1 = test1.Interfaces.Where(i => i.Name == "I1").Single();
+            var i1i2m1 = i1.GetMembers().OfType<PropertySymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
+            var i1i4m1 = i1.GetMembers().OfType<PropertySymbol>().Where(p => p.Name.StartsWith("I4.")).Single();
+            var i2 = i1.Interfaces.Where(i => i.Name == "I2").Single();
+            var i2m1 = i2.GetMembers().OfType<PropertySymbol>().Single();
+            var i4 = i1.AllInterfaces.Where(i => i.Name == "I4").Single();
+            var i4m1 = i4.GetMembers().OfType<PropertySymbol>().Single();
+            var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+
+            Assert.True(i1.IsAbstract);
+            Assert.True(i1.IsMetadataAbstract);
+
+            ValidateExplicitImplementation(i1i2m1);
+            ValidateExplicitImplementation(i1i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(i1i2m1, test1, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, test1, i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i1, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i1, i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(null, i2, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(null, i4, i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i3, i4m1);
+        }
+
+        private static void VerifyFindImplementationForInterfaceMemberSame(PropertySymbol expected, NamedTypeSymbol implementingType, PropertySymbol interfaceProperty)
+        {
+            Assert.Same(expected, implementingType.FindImplementationForInterfaceMember(interfaceProperty));
+            ValidateAccessor(expected?.GetMethod, interfaceProperty.GetMethod);
+            ValidateAccessor(expected?.SetMethod, interfaceProperty.SetMethod);
+
+            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            {
+                if ((object)interfaceAccessor != null)
+                {
+                    Assert.Same(accessor, implementingType.FindImplementationForInterfaceMember(interfaceAccessor));
+                }
+                else
+                {
+                    Assert.Null(accessor);
+                }
+            }
+        }
+
+        private static void VerifyFindImplementationForInterfaceMemberEqual(PropertySymbol expected, NamedTypeSymbol implementingType, PropertySymbol interfaceProperty)
+        {
+            Assert.Equal(expected, implementingType.FindImplementationForInterfaceMember(interfaceProperty));
+            ValidateAccessor(expected?.GetMethod, interfaceProperty.GetMethod);
+            ValidateAccessor(expected?.SetMethod, interfaceProperty.SetMethod);
+
+            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            {
+                if ((object)interfaceAccessor != null)
+                {
+                    Assert.Equal(accessor, implementingType.FindImplementationForInterfaceMember(interfaceAccessor));
+                }
+                else
+                {
+                    Assert.Null(accessor);
+                }
+            }
+        }
+
+        private static void ValidateExplicitImplementation(PropertySymbol m1)
+        {
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+
+            ValidateAccessor(m1.GetMethod);
+            ValidateAccessor(m1.SetMethod);
+
+            void ValidateAccessor(MethodSymbol accessor)
+            {
+                if ((object)accessor != null)
+                {
+                    ValidateExplicitImplementation(accessor);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_02()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get;} 
+}
+
+public interface I4
+{
+    int M1 {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.M1 => Getter();
+
+    private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+
+    int I4.M1 
+    {
+        set 
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_02(source1,
+                new DiagnosticDescription[]
+                {
+                // (14,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     int I2.M1 => Getter();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter()").WithArguments("default interface implementation", "7.1").WithLocation(14, 18),
+                // (16,17): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private int Getter()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter").WithArguments("default interface implementation", "7.1").WithLocation(16, 17),
+                // (24,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         set 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(24, 9)
+                },
+                // (6,15): error CS8506: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_02(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected1);
+
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(expected2);
+
+            ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_03()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get; set;} 
+}
+
+public interface I4
+{
+    int M1 {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.M1 
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+
+    int I4.M1 
+    {
+        set 
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_03(source1,
+                new DiagnosticDescription[]
+                {
+                // (16,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         get
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(16, 9),
+                // (21,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         set
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(21, 9),
+                // (29,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         set 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(29, 9)
+                },
+                // (6,15): error CS8502: 'I1.I2.M1.set' cannot implement interface member 'I2.M1.set' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.set", "I2.M1.set", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1").WithLocation(6, 15)
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_03(string source1, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
+        {
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation1.VerifyDiagnostics(expected1);
+
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(expected2);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_04()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get;} 
+}
+
+public interface I4
+{
+    int M1 {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.M1 {get;} 
+    int I4.M1 {set;} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,16): error CS0501: 'I1.I2.M1.get' must declare a body because it is not marked abstract, extern, or partial
+                //     int I2.M1 {get;} 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.I2.M1.get").WithLocation(14, 16),
+                // (15,16): error CS0501: 'I1.I4.M1.set' must declare a body because it is not marked abstract, extern, or partial
+                //     int I4.M1 {set;} 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.I4.M1.set").WithLocation(15, 16)
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_04(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_05()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get;} 
+}
+
+public interface I4
+{
+    int M1 {set;} 
+}
+
+public interface I1
+{
+    int I2.M1 {get => throw null;} 
+    int I4.M1 {set => throw null;} 
+}
+";
+
+            ValidatePropertyImplementationInDerived_05(source1,
+                // (14,9): error CS0540: 'I1.I2.M1': containing type does not implement interface 'I2'
+                //     int I2.M1 {get => throw null;} 
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1", "I2").WithLocation(14, 9),
+                // (15,9): error CS0540: 'I1.I4.M1': containing type does not implement interface 'I4'
+                //     int I4.M1 {set => throw null;} 
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I4").WithArguments("I1.I4.M1", "I4").WithLocation(15, 9)
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_05(string source1, params DiagnosticDescription[] expected)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_06()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get; set;} 
+}
+
+public interface I4
+{
+    int M1 {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    public static int I2.M1 
+    {
+        internal get => throw null;
+        set => throw null;
+    }
+    internal virtual int I4.M1
+    {
+        public get => throw null;
+        set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,26): error CS0106: The modifier 'static' is not valid for this item
+                //     public static int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("static").WithLocation(14, 26),
+                // (14,26): error CS0106: The modifier 'public' is not valid for this item
+                //     public static int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 26),
+                // (16,18): error CS0106: The modifier 'internal' is not valid for this item
+                //         internal get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("internal").WithLocation(16, 18),
+                // (19,29): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal virtual int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(19, 29),
+                // (19,29): error CS0106: The modifier 'virtual' is not valid for this item
+                //     internal virtual int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(19, 29),
+                // (21,16): error CS0106: The modifier 'public' is not valid for this item
+                //         public get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("public").WithLocation(21, 16)
+                );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_07()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get; set;} 
+}
+
+public interface I4
+{
+    int M1 {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    private sealed int I2.M1 
+    {
+        private get => throw null;
+        set => throw null;
+    }
+    protected abstract int I4.M1
+    {
+        get => throw null;
+        protected set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,27): error CS0106: The modifier 'sealed' is not valid for this item
+                //     private sealed int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 27),
+                // (14,27): error CS0106: The modifier 'private' is not valid for this item
+                //     private sealed int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 27),
+                // (16,17): error CS0106: The modifier 'private' is not valid for this item
+                //         private get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(16, 17),
+                // (19,31): error CS0106: The modifier 'abstract' is not valid for this item
+                //     protected abstract int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(19, 31),
+                // (19,31): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected abstract int I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 31),
+                // (22,19): error CS0106: The modifier 'protected' is not valid for this item
+                //         protected set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(22, 19)
+                );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_08()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get; set;} 
+}
+
+public interface I4
+{
+    int M1 {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    private protected int I2.M1 
+    {
+        private protected get => throw null;
+        set => throw null;
+    }
+    internal protected override int I4.M1 
+    {
+        get => throw null;
+        internal protected set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,13): error CS0107: More than one protection modifier
+                //     private protected int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "protected").WithLocation(14, 13),
+                // (16,17): error CS0107: More than one protection modifier
+                //         private protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "protected").WithLocation(16, 17),
+                // (14,30): error CS0106: The modifier 'protected' is not valid for this item
+                //     private protected int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(14, 30),
+                // (14,30): error CS0106: The modifier 'private' is not valid for this item
+                //     private protected int I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 30),
+                // (16,27): error CS0106: The modifier 'protected' is not valid for this item
+                //         private protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected").WithLocation(16, 27),
+                // (16,27): error CS0106: The modifier 'private' is not valid for this item
+                //         private protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(16, 27),
+                // (19,40): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     internal protected override int I4.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 40),
+                // (19,40): error CS0106: The modifier 'override' is not valid for this item
+                //     internal protected override int I4.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(19, 40),
+                // (22,28): error CS0106: The modifier 'protected internal' is not valid for this item
+                //         internal protected set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected internal").WithLocation(22, 28)
+                );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_09()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int M1 {get;} 
+}
+
+public interface I1 : I2
+{
+    extern int I2.M1 {get;} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var source2 =
+@"
+public interface I2
+{
+    int M1 {set;} 
+}
+
+public interface I1 : I2
+{
+    extern int I2.M1
+    { set {}} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_09(source1, source2,
+                new DiagnosticDescription[]
+                {
+                // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
+                },
+                new DiagnosticDescription[]
+                {
+                // (9,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(9, 23),
+                // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
+                },
+                new DiagnosticDescription[]
+                {
+                // (9,23): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 23),
+                // (9,23): warning CS0626: Method, operator, or accessor 'I1.I2.M1.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int I2.M1 {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.M1.get").WithLocation(9, 23)
+                },
+                // (10,7): error CS0179: 'I1.I2.M1.set' cannot be extern and declare a body
+                //     { set {}} 
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I1.I2.M1.set").WithLocation(10, 7)
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_09(string source1, string source2, 
+            DiagnosticDescription[] expected1, DiagnosticDescription[] expected2, 
+            DiagnosticDescription[] expected3, params DiagnosticDescription[] expected4)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected1);
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var i1 = test1.Interfaces.Where(i => i.Name == "I1").Single();
+                var i1i2m1 = GetSingleProperty(i1);
+                var i2 = i1.Interfaces.Where(i => i.Name == "I2").Single();
+                var i2m1 = GetSingleProperty(i2);
+                var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+
+                Assert.True(i1.IsAbstract);
+                Assert.True(i1.IsMetadataAbstract);
+
+                ValidateExplicitExternImplementation(i1i2m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
+                VerifyFindImplementationForInterfaceMemberSame(i1i2m1, test1,i2m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i2m1);
+                VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i1, i2m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, i2, i2m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected2);
+
+            Validate1(compilation2.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation3.VerifyDiagnostics(expected3);
+
+            Validate1(compilation3.SourceModule);
+
+            var compilation4 = CreateStandardCompilation(source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(expected4);
+
+            Validate1(compilation4.SourceModule);
+        }
+
+        private static void ValidateExplicitExternImplementation(PropertySymbol m1)
+        {
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.NotEqual(m1.OriginalDefinition is PEPropertySymbol, m1.IsExtern);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+
+            ValidateAccessor(m1.GetMethod);
+            ValidateAccessor(m1.SetMethod);
+
+            void ValidateAccessor(MethodSymbol accessor)
+            {
+                if ((object)accessor != null)
+                {
+                    ValidateExplicitExternImplementation(accessor);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_10()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int M1 {get;set;} 
+    int M2 {get;set;} 
+}
+
+public interface I2 : I1
+{
+    int I1.M1
+    {
+        get => throw null;
+    }
+    int I1.M2 
+    {
+        set => throw null;
+    }
+}
+
+class Test1 : I2
+{}
+
+public interface I3
+{
+    int M1 {get;} 
+    int M2 {set;} 
+    int M3 {get;set;} 
+    int M4 {get;set;} 
+}
+
+public interface I4 : I3
+{
+    int I3.M1
+    {
+        get => throw null;
+        set => throw null;
+    }
+    int I3.M2 
+    {
+        get => throw null;
+        set => throw null;
+    }
+    int I3.M3 {get; set;}
+    int I3.M4 {get; set;} = 0;
+}
+
+class Test2 : I4
+{}
+";
+
+            ValidatePropertyImplementationInDerived_05(source1, 
+                // (10,12): error CS0551: Explicit interface implementation 'I2.I1.M1' is missing accessor 'I1.M1.set'
+                //     int I1.M1
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M1").WithArguments("I2.I1.M1", "I1.M1.set").WithLocation(10, 12),
+                // (14,12): error CS0551: Explicit interface implementation 'I2.I1.M2' is missing accessor 'I1.M2.get'
+                //     int I1.M2 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "M2").WithArguments("I2.I1.M2", "I1.M2.get").WithLocation(14, 12),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1.set'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1.set").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2.get'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2.get").WithLocation(20, 15),
+                // (36,9): error CS0550: 'I4.I3.M1.set' adds an accessor not found in interface member 'I3.M1'
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I4.I3.M1.set", "I3.M1").WithLocation(36, 9),
+                // (40,9): error CS0550: 'I4.I3.M2.get' adds an accessor not found in interface member 'I3.M2'
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I4.I3.M2.get", "I3.M2").WithLocation(40, 9),
+                // (43,16): error CS0501: 'I4.I3.M3.get' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.M3 {get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.M3.get").WithLocation(43, 16),
+                // (43,21): error CS0501: 'I4.I3.M3.set' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.M3 {get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.M3.set").WithLocation(43, 21),
+                // (44,12): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                //     int I3.M4 {get; set;} = 0;
+                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
+                // (44,16): error CS0501: 'I4.I3.M4.get' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.M4 {get; set;} = 0;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.M4.get").WithLocation(44, 16),
+                // (44,21): error CS0501: 'I4.I3.M4.set' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.M4 {get; set;} = 0;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.M4.set").WithLocation(44, 21)
+                );
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_11()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    internal int M1 {get;} 
+}
+
+public interface I4
+{
+    int M1 {get; internal set;} 
+}
+
+public interface I5 : I4
+{
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    int I2.M1 => Getter();
+
+    private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+    int I4.M1 
+    {
+        get 
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            ValidatePropertyImplementationInDerived_11(source1, source2,
+                // (4,12): error CS0122: 'I2.M1' is inaccessible due to its protection level
+                //     int I2.M1 => Getter();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 12),
+                // (11,12): error CS0122: 'I4.M1.set' is inaccessible due to its protection level
+                //     int I4.M1 
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I4.M1.set").WithLocation(11, 12)
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_11(string source1, string source2, params DiagnosticDescription[] expected)
+        {
+            var source3 =
+@"
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+
+            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+
+            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            var compilation5 = CreateStandardCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidatePropertyImplementationInDerived_01(compilation5.SourceModule);
+
+            compilation5.VerifyDiagnostics(expected);
+
+            var compilation6 = CreateStandardCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidatePropertyImplementationInDerived_01(compilation6.SourceModule);
+
+            compilation6.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_12()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int M1 { get => throw null; set => throw null;} 
+}
+
+public interface I2 : I1
+{
+    int I1.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+    int I1.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I3.I1.M1"");
+        }
+    }
+}
+
+public interface I4 : I1
+{
+    int I1.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I4.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I4.I1.M1"");
+        }
+    }
+}
+
+public interface I5 : I2, I3
+{
+    int I1.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I5.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I5.I1.M1"");
+        }
+    }
+}
+
+public interface I6 : I1, I2, I3, I5
+{}
+";
+
+            var source5 = @"
+class Test8 : I2, I3
+{
+    int I1.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test8.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test8.I1.M1"");
+        }
+    }
+}
+
+class Test9 : I7
+{
+    int I1.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test9.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test9.I1.M1"");
+        }
+    }
+}
+
+class Test10 : I1, I2, I3, I4
+{
+    public int M1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test10.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test10.M1"");
+        }
+    }
+}
+
+class Test11 : I1, I2, I3, I5, I4
+{
+    public int M1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test11.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test11.M1"");
+        }
+    }
+}
+
+class Test12 : I8
+{
+    public virtual int M1
+    {
+        get
+        {
+            System.Console.WriteLine(""Test12.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test12.M1"");
+        }
+    }
+}
+";
+            ValidatePropertyImplementationInDerived_12(source1, source5,
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
+                // (5,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test2 : I7
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(5, 15),
+                // (8,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test3 : I1, I2, I3, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(8, 15),
+                // (11,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // class Test4 : I1, I2, I3, I5, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(11, 15),
+                // (14,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // class Test5 : I8
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(14, 15)
+                }
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_12(string source1, string source5, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = FindType(m, "I1");
+                var i1m1 = GetSingleProperty(i1);
+                var i2 = FindType(m, "I2");
+                var i2m1 = GetSingleProperty(i2);
+                var i5 = FindType(m, "I5");
+                var i5m1 = GetSingleProperty(i5);
+                var i6 = FindType(m, "I6");
+
+                ValidateExplicitImplementation(i2m1);
+                ValidateExplicitImplementation(i5m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(i1m1, i1, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i2m1, i2, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i5m1, i5, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
+
+            var source2 = @"
+public interface I7 : I2, I3
+{}
+
+public interface I8 : I1, I2, I3, I5, I4
+{}
+";
+
+            var source3 =
+@"
+class Test1 : I2, I3
+{}
+
+class Test2 : I7
+{}
+
+class Test3 : I1, I2, I3, I4
+{}
+
+class Test4 : I1, I2, I3, I5, I4
+{}
+
+class Test5 : I8
+{}
+";
+
+            var source4 =
+@"
+class Test5 : I2
+{}
+
+class Test6 : I1, I2, I3, I5
+{}
+
+class Test7 : I6
+{}
+";
+
+            foreach (var ref1 in refs1)
+            {
+                var compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                // PROTOTYPE(DefaultInterfaceImplementation): Proposal says there should be errors, but that would mean that we wouldn't
+                //                                            be able to compile source like that under CSharp7 language version just because
+                //                                            base interfaces have default implementations. At the same time, old compiler 
+                //                                            will be able to do this just fine. I think this would be bad.
+                //                                            Need to discuss this at LDM.
+                compilation2.VerifyDiagnostics();
+                Validate2(compilation2.SourceModule);
+
+                void Validate2(ModuleSymbol m)
+                {
+                    Validate1(m);
+
+                    var i1 = FindType(m, "I1");
+                    var i1m1 = GetSingleProperty(i1);
+                    var i7 = FindType(m, "I7");
+                    var i8 = FindType(m, "I8");
+
+                    VerifyFindImplementationForInterfaceMemberSame(null, i7, i1m1);
+                    VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
+                }
+
+                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+
+                compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                compilation2.VerifyDiagnostics();
+                Validate2(compilation2.SourceModule);
+
+                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+
+                var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
+
+                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                compilation4.VerifyDiagnostics();
+                Validate4(compilation4.SourceModule);
+
+                void Validate4(ModuleSymbol m)
+                {
+                    Validate1(m);
+
+                    var i1 = FindType(m, "I1");
+                    var i1m1 = GetSingleProperty(i1);
+                    var i2 = FindType(m, "I2");
+                    var i2m1 = GetSingleProperty(i2);
+                    var i5 = FindType(m, "I5");
+                    var i5m1 = GetSingleProperty(i5);
+                    var test5 = FindType(m, "Test5");
+                    var test6 = FindType(m, "Test6");
+                    var test7 = FindType(m, "Test7");
+
+                    VerifyFindImplementationForInterfaceMemberSame(i2m1, test5, i1m1);
+                    VerifyFindImplementationForInterfaceMemberSame(i5m1, test6, i1m1);
+                    VerifyFindImplementationForInterfaceMemberSame(i5m1, test7, i1m1);
+                }
+
+                CompileAndVerify(compilation4, verify: false, symbolValidator: Validate4);
+
+                foreach (var ref2 in refs2)
+                {
+                    var compilation3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
+                                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                    Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                    compilation3.VerifyDiagnostics(ref1 is CompilationReference ? expected1 : expected2 ?? expected1);
+
+                    Validate3(compilation3.SourceModule);
+
+                    void Validate3(ModuleSymbol m)
+                    {
+                        Validate1(m);
+                        Validate2(m);
+
+                        var i1 = FindType(m, "I1");
+                        var i1m1 = GetSingleProperty(i1);
+                        var test1 = FindType(m, "Test1");
+                        var test2 = FindType(m, "Test2");
+                        var test3 = FindType(m, "Test3");
+                        var test4 = FindType(m, "Test4");
+                        var test5 = FindType(m, "Test5");
+
+                        VerifyFindImplementationForInterfaceMemberSame(null, test1, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test2, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test3, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test4, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test5, i1m1);
+                    }
+
+                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                    Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                    compilation5.VerifyDiagnostics();
+
+                    Validate5(compilation5.SourceModule);
+
+                    void Validate5(ModuleSymbol m)
+                    {
+                        var i1 = FindType(m, "I1");
+                        var i1m1 = GetSingleProperty(i1);
+                        var test8 = FindType(m, "Test8");
+                        var test9 = FindType(m, "Test9");
+                        var test10 = FindType(m, "Test10");
+                        var test11 = FindType(m, "Test11");
+                        var test12 = FindType(m, "Test12");
+
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleProperty(test8), test8,i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleProperty(test9), test9,i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleProperty(test10), test10, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleProperty(test11), test11, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleProperty(test12), test12, i1m1);
+                    }
+
+                    CompileAndVerify(compilation5, verify: false, symbolValidator: Validate5);
+                }
+            }
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int M1 {get;} 
+}
+
+public interface I2 : I1
+{
+    int I1.M1 => throw null; 
+}
+
+public interface I3 : I1
+{
+    int I1.M1 => throw null; 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+    public long M1 => 1;
+}
+";
+
+            ValidatePropertyImplementationInDerived_13(source1, source2,
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1'. 'Test1.M1' cannot implement 'I1.M1' because it does not have the matching return type of 'int'.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1", "Test1.M1", "int").WithLocation(2, 15)
+                }
+                );
+        }
+
+        private void ValidatePropertyImplementationInDerived_13(string source1, string source2, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
+        {
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(expected1);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation3.VerifyDiagnostics(expected2 ?? expected1);
+        }
+
+        [Fact]
+        public void PropertyImplementationInDerived_14()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    int M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I1.M1"");
+    }
+}
+
+public interface I2<T> : I1<T>
+{
+    int I1<T>.M1
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I2.I1.M1"");
+    }
+}
+
+public interface I3<T> : I1<T>
+{}
+";
+
+            ValidatePropertyImplementationInDerived_14(source1);
+        }
+
+        private void ValidatePropertyImplementationInDerived_14(string source1)
+        {
+            var source2 =
+@"
+class Test1 : I1<int>
+{}
+class Test2 : I2<long>
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var i1 = FindType(m, "I1");
+                var i1m1 = GetSingleProperty(i1);
+                var i2 = FindType(m, "I2");
+                var i2m1 = GetSingleProperty(i2);
+                var i2i1 = i2.Interfaces.Single();
+                var i2i1m1 = GetSingleProperty(i2i1);
+                var i3 = FindType(m, "I3");
+                var i3i1 = i3.Interfaces.Single();
+                var i3i1m1 = GetSingleProperty(i3i1);
+
+                VerifyFindImplementationForInterfaceMemberSame(i1m1, i1, i1m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, i2, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, i2, i3i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i2m1, i2, i2i1m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, i3, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, i3, i2i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(i3i1m1, i3, i3i1m1);
+
+                ValidateExplicitImplementation(i2m1);
+
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var test1i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
+                var test1i1m1 = GetSingleProperty(i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)));
+                var test2 = m.GlobalNamespace.GetTypeMember("Test2");
+                var test2i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64));
+                var test2i1m1 = GetSingleProperty(i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)));
+                var test2i2 = i2.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64));
+                var test2i2m1 = GetSingleProperty(i2.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)));
+
+                Assert.NotSame(test1i1, test1i1m1.ContainingType);
+                Assert.NotSame(test2i1, test2i1m1.ContainingType);
+                Assert.NotSame(test2i2, test2i2m1.ContainingType);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, test1i1, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test1i1m1, test1i1, test1i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test2i1m1, test2i1, test2i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, test2i2, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2i2, test2i1m1);
+
+                ValidateExplicitImplementation(test2i2m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, test1, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test1i1m1, test1, test1i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, test2, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2, test2i1m1);
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            Validate(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Validate(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate);
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_01()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1; 
+}
+
+public interface I4
+{
+    event System.Action M1; 
+}
+
+public interface I5 : I4
+{
+}
+
+public interface I1 : I2, I5
+{
+    event System.Action I2.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+    event System.Action I4.M1 
+    {
+        add => System.Console.WriteLine(""I2.M1"");
+        remove => System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source2 =
+@"
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidateEventImplementationInDerived_01(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+        }
+
+        private static void ValidateEventImplementationInDerived_01(ModuleSymbol m)
+        {
+            var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+            var i1 = test1.Interfaces.Where(i => i.Name == "I1").Single();
+            var i1i2m1 = i1.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I2.")).Single();
+            var i1i4m1 = i1.GetMembers().OfType<EventSymbol>().Where(p => p.Name.StartsWith("I4.")).Single();
+            var i2 = i1.Interfaces.Where(i => i.Name == "I2").Single();
+            var i2m1 = i2.GetMembers().OfType<EventSymbol>().Single();
+            var i4 = i1.AllInterfaces.Where(i => i.Name == "I4").Single();
+            var i4m1 = i4.GetMembers().OfType<EventSymbol>().Single();
+            var i3 = i1.ContainingNamespace.GetTypeMember("I3");
+
+            Assert.True(i1.IsAbstract);
+            Assert.True(i1.IsMetadataAbstract);
+
+            ValidateExplicitImplementation(i1i2m1);
+            ValidateExplicitImplementation(i1i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(null, test1, i1i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(i1i2m1, test1, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, test1, i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(null, i1, i1i4m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i1, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i1, i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(null, i2, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(null, i4, i4m1);
+
+            VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
+            VerifyFindImplementationForInterfaceMemberSame(i1i4m1, i3, i4m1);
+        }
+
+        private static void VerifyFindImplementationForInterfaceMemberSame(EventSymbol expected, NamedTypeSymbol implementingType, EventSymbol interfaceEvent)
+        {
+            Assert.Same(expected, implementingType.FindImplementationForInterfaceMember(interfaceEvent));
+            ValidateAccessor(expected?.AddMethod, interfaceEvent.AddMethod);
+            ValidateAccessor(expected?.RemoveMethod, interfaceEvent.RemoveMethod);
+
+            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            {
+                if ((object)interfaceAccessor != null)
+                {
+                    Assert.Same(accessor, implementingType.FindImplementationForInterfaceMember(interfaceAccessor));
+                }
+                else
+                {
+                    Assert.Null(accessor);
+                }
+            }
+        }
+
+        private static void VerifyFindImplementationForInterfaceMemberEqual(EventSymbol expected, NamedTypeSymbol implementingType, EventSymbol interfaceEvent)
+        {
+            Assert.Equal(expected, implementingType.FindImplementationForInterfaceMember(interfaceEvent));
+            ValidateAccessor(expected?.AddMethod, interfaceEvent.AddMethod);
+            ValidateAccessor(expected?.RemoveMethod, interfaceEvent.RemoveMethod);
+
+            void ValidateAccessor(MethodSymbol accessor, MethodSymbol interfaceAccessor)
+            {
+                if ((object)interfaceAccessor != null)
+                {
+                    Assert.Equal(accessor, implementingType.FindImplementationForInterfaceMember(interfaceAccessor));
+                }
+                else
+                {
+                    Assert.Null(accessor);
+                }
+            }
+        }
+
+        private static void ValidateExplicitImplementation(EventSymbol m1)
+        {
+            Assert.False(m1.IsAbstract);
+            Assert.False(m1.IsVirtual);
+            Assert.False(m1.IsSealed);
+            Assert.False(m1.IsStatic);
+            Assert.False(m1.IsExtern);
+            Assert.False(m1.IsOverride);
+            Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
+
+            ValidateAccessor(m1.AddMethod);
+            ValidateAccessor(m1.RemoveMethod);
+
+            void ValidateAccessor(MethodSymbol accessor)
+            {
+                if ((object)accessor != null)
+                {
+                    ValidateExplicitImplementation(accessor);
+                }
+            }
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_02()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1; 
+}
+
+public interface I4
+{
+    event System.Action M1; 
+}
+
+public interface I1 : I2, I4
+{
+    event System.Action I2.M1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+
+    event System.Action I4.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (16,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(16, 9),
+                // (17,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(17, 9),
+                // (22,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(22, 9),
+                // (23,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(23, 9)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8506: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_03()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1;
+}
+
+public interface I4
+{
+    event System.Action M1; 
+}
+
+public interface I1 : I2, I4
+{
+    event System.Action I2.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+
+    event System.Action I4.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            compilation1.VerifyDiagnostics(
+                // (16,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(16, 9),
+                // (17,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(17, 9),
+                // (22,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "add").WithLocation(22, 9),
+                // (23,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "remove").WithLocation(23, 9)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+
+            var source2 = @"
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation2 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(
+                // (6,15): error CS8502: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_04()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1;
+}
+
+public interface I4
+{
+    event System.Action M1;
+}
+
+public interface I1 : I2, I4
+{
+    event System.Action I2.M1
+    {
+        add; 
+        remove;
+    } 
+    event System.Action I4.M1 
+    {
+        add; 
+        remove {}
+    } 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (16,12): error CS0073: An add or remove accessor must have a body
+                //         add; 
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(16, 12),
+                // (17,15): error CS0073: An add or remove accessor must have a body
+                //         remove;
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(17, 15),
+                // (21,12): error CS0073: An add or remove accessor must have a body
+                //         add; 
+                Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(21, 12)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_05()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1; 
+}
+
+public interface I1
+{
+    event System.Action I2.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    } 
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (9,25): error CS0540: 'I1.I2.M1': containing type does not implement interface 'I2'
+                //     event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.M1", "I2").WithLocation(9, 25)
+                );
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_06()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1; 
+}
+
+public interface I4
+{
+    event System.Action M1; 
+}
+
+public interface I1 : I2, I4
+{
+    public static event System.Action I2.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+    internal virtual event System.Action I4.M1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,42): error CS0106: The modifier 'static' is not valid for this item
+                //     public static event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("static").WithLocation(14, 42),
+                // (14,42): error CS0106: The modifier 'public' is not valid for this item
+                //     public static event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("public").WithLocation(14, 42),
+                // (19,45): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal virtual event System.Action I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("internal").WithLocation(19, 45),
+                // (19,45): error CS0106: The modifier 'virtual' is not valid for this item
+                //     internal virtual event System.Action I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("virtual").WithLocation(19, 45)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_07()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1;
+}
+
+public interface I4
+{
+    event System.Action M1; 
+}
+
+public interface I1 : I2, I4
+{
+    private sealed event System.Action I2.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+    protected abstract event System.Action I4.M1
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,43): error CS0106: The modifier 'sealed' is not valid for this item
+                //     private sealed event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("sealed").WithLocation(14, 43),
+                // (14,43): error CS0106: The modifier 'private' is not valid for this item
+                //     private sealed event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 43),
+                // (19,47): error CS0106: The modifier 'abstract' is not valid for this item
+                //     protected abstract event System.Action I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("abstract").WithLocation(19, 47),
+                // (19,47): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected abstract event System.Action I4.M1
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(19, 47)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_08()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    event System.Action M1; 
+}
+
+public interface I4
+{
+    event System.Action M1;
+}
+
+public interface I1 : I2, I4
+{
+    private protected extern event System.Action I2.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+    internal protected override event System.Action I4.M1 
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (14,13): error CS0107: More than one protection modifier
+                //     private protected extern event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "protected").WithLocation(14, 13),
+                // (14,53): error CS0106: The modifier 'protected' is not valid for this item
+                //     private protected extern event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected").WithLocation(14, 53),
+                // (14,53): error CS0106: The modifier 'private' is not valid for this item
+                //     private protected extern event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("private").WithLocation(14, 53),
+                // (14,53): error CS0106: The modifier 'extern' is not valid for this item
+                //     private protected extern event System.Action I2.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("extern").WithLocation(14, 53),
+                // (19,56): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     internal protected override event System.Action I4.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("protected internal").WithLocation(19, 56),
+                // (19,56): error CS0106: The modifier 'override' is not valid for this item
+                //     internal protected override event System.Action I4.M1 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "M1").WithArguments("override").WithLocation(19, 56)
+                );
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_10()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action M1; 
+    event System.Action M2;
+}
+
+public interface I2 : I1
+{
+    event System.Action I1.M1
+    {
+        add => throw null;
+    }
+    event System.Action I1.M2 
+    {
+        remove => throw null;
+    }
+}
+
+class Test1 : I2
+{}
+
+public interface I3
+{
+    event System.Action M1; 
+}
+
+public interface I4 : I3
+{
+    event System.Action I3.M1;
+}
+
+class Test2 : I4
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (30,27): error CS0071: An explicit interface implementation of an event must use event accessor syntax
+                //     event System.Action I3.M1;
+                Diagnostic(ErrorCode.ERR_ExplicitEventFieldImpl, ".").WithLocation(30, 27),
+                // (30,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     event System.Action I3.M1;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(30, 30),
+                // (30,30): error CS1519: Invalid token ';' in class, struct, or interface member declaration
+                //     event System.Action I3.M1;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(30, 30),
+                // (30,28): error CS0539: 'I4.' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     event System.Action I3.M1;
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "").WithArguments("I4.").WithLocation(30, 28),
+                // (30,28): error CS0065: 'I4.': event property must have both add and remove accessors
+                //     event System.Action I3.M1;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "").WithArguments("I4.").WithLocation(30, 28),
+                // (10,28): error CS0065: 'I2.I1.M1': event property must have both add and remove accessors
+                //     event System.Action I1.M1
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M1").WithArguments("I2.I1.M1").WithLocation(10, 28),
+                // (14,28): error CS0065: 'I2.I1.M2': event property must have both add and remove accessors
+                //     event System.Action I1.M2 
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "M2").WithArguments("I2.I1.M2").WithLocation(14, 28),
+                // (33,15): error CS0535: 'Test2' does not implement interface member 'I3.M1'
+                // class Test2 : I4
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I3.M1").WithLocation(33, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M1.remove'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1.remove").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.M2.add'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M2.add").WithLocation(20, 15)
+                );
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_11()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    internal event System.Action M1;
+}
+
+public interface I4
+{
+    event System.Action M1;
+}
+
+public interface I5 : I4
+{
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    event System.Action I2.M1
+    {
+        add 
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+        remove => System.Console.WriteLine(""I2.M1"");
+    }
+    event System.Action I4.M1 
+    {
+        add 
+        {
+            System.Console.WriteLine(""I4.M1"");
+        }
+        remove => System.Console.WriteLine(""I4.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            var source3 =
+@"
+class Test1 : I1
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            ValidateEventImplementationInDerived_01(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+
+            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidateEventImplementationInDerived_01(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+
+            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidateEventImplementationInDerived_01(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+
+            var compilation5 = CreateStandardCompilation(source2 + source3, new[] { compilation4.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            ValidateEventImplementationInDerived_01(compilation5.SourceModule);
+
+            compilation5.VerifyDiagnostics(
+                // (4,28): error CS0122: 'I2.M1' is inaccessible due to its protection level
+                //     event System.Action I2.M1
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28)
+                );
+
+            var compilation6 = CreateStandardCompilation(source2 + source3, new[] { compilation4.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            ValidateEventImplementationInDerived_01(compilation6.SourceModule);
+
+            compilation6.VerifyDiagnostics(
+                // (4,28): error CS0122: 'I2.M1' is inaccessible due to its protection level
+                //     event System.Action I2.M1
+                Diagnostic(ErrorCode.ERR_BadAccess, "M1").WithArguments("I2.M1").WithLocation(4, 28)
+                );
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_12()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action M1 { add => throw null; remove => throw null;} 
+}
+
+public interface I2 : I1
+{
+    event System.Action I1.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+    event System.Action I1.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""I3.I1.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""I3.I1.M1"");
+        }
+    }
+}
+
+public interface I4 : I1
+{
+    event System.Action I1.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""I4.I1.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""I4.I1.M1"");
+        }
+    }
+}
+
+public interface I5 : I2, I3
+{
+    event System.Action I1.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""I5.I1.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""I5.I1.M1"");
+        }
+    }
+}
+
+public interface I6 : I1, I2, I3, I5
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            Validate1(compilation1.SourceModule);
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = FindType(m, "I1");
+                var i1m1 = GetSingleEvent(i1);
+                var i2 = FindType(m, "I2");
+                var i2m1 = GetSingleEvent(i2);
+                var i5 = FindType(m, "I5");
+                var i5m1 = GetSingleEvent(i5);
+                var i6 = FindType(m, "I6");
+
+                ValidateExplicitImplementation(i2m1);
+                ValidateExplicitImplementation(i5m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(i1m1, i1, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i2m1, i2, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i5m1, i5, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+
+            var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
+
+            var source2 = @"
+public interface I7 : I2, I3
+{}
+
+public interface I8 : I1, I2, I3, I5, I4
+{}
+";
+
+            var source3 =
+@"
+class Test1 : I2, I3
+{}
+
+class Test2 : I7
+{}
+
+class Test3 : I1, I2, I3, I4
+{}
+
+class Test4 : I1, I2, I3, I5, I4
+{}
+
+class Test5 : I8
+{}
+";
+
+            var source4 =
+@"
+class Test5 : I2
+{}
+
+class Test6 : I1, I2, I3, I5
+{}
+
+class Test7 : I6
+{}
+";
+            var source5 = @"
+class Test8 : I2, I3
+{
+    event System.Action I1.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""Test8.I1.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""Test8.I1.M1"");
+        }
+    }
+}
+
+class Test9 : I7
+{
+    event System.Action I1.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""Test9.I1.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""Test9.I1.M1"");
+        }
+    }
+}
+
+class Test10 : I1, I2, I3, I4
+{
+    public event System.Action M1
+    {
+        add
+        {
+            System.Console.WriteLine(""Test10.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""Test10.M1"");
+        }
+    }
+}
+
+class Test11 : I1, I2, I3, I5, I4
+{
+    public event System.Action M1
+    {
+        add
+        {
+            System.Console.WriteLine(""Test11.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""Test11.M1"");
+        }
+    }
+}
+
+class Test12 : I8
+{
+    public virtual event System.Action M1
+    {
+        add
+        {
+            System.Console.WriteLine(""Test12.M1"");
+        }
+        remove
+        {
+            System.Console.WriteLine(""Test12.M1"");
+        }
+    }
+}
+";
+
+            foreach (var ref1 in refs1)
+            {
+                var compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                // PROTOTYPE(DefaultInterfaceImplementation): Proposal says there should be errors, but that would mean that we wouldn't
+                //                                            be able to compile source like that under CSharp7 language version just because
+                //                                            base interfaces have default implementations. At the same time, old compiler 
+                //                                            will be able to do this just fine. I think this would be bad.
+                //                                            Need to discuss this at LDM.
+                compilation2.VerifyDiagnostics();
+                Validate2(compilation2.SourceModule);
+
+                void Validate2(ModuleSymbol m)
+                {
+                    Validate1(m);
+
+                    var i1 = FindType(m, "I1");
+                    var i1m1 = GetSingleEvent(i1);
+                    var i7 = FindType(m, "I7");
+                    var i8 = FindType(m, "I8");
+
+                    VerifyFindImplementationForInterfaceMemberSame(null, i7, i1m1);
+                    VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
+                }
+
+                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+
+                compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+                Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                compilation2.VerifyDiagnostics();
+                Validate2(compilation2.SourceModule);
+
+                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+
+                var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
+
+                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugDll,
+                                                             parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                compilation4.VerifyDiagnostics();
+                Validate4(compilation4.SourceModule);
+
+                void Validate4(ModuleSymbol m)
+                {
+                    Validate1(m);
+
+                    var i1 = FindType(m, "I1");
+                    var i1m1 = GetSingleEvent(i1);
+                    var i2 = FindType(m, "I2");
+                    var i2m1 = GetSingleEvent(i2);
+                    var i5 = FindType(m, "I5");
+                    var i5m1 = GetSingleEvent(i5);
+                    var test5 = FindType(m, "Test5");
+                    var test6 = FindType(m, "Test6");
+                    var test7 = FindType(m, "Test7");
+
+                    VerifyFindImplementationForInterfaceMemberSame(i2m1, test5, i1m1);
+                    VerifyFindImplementationForInterfaceMemberSame(i5m1, test6, i1m1);
+                    VerifyFindImplementationForInterfaceMemberSame(i5m1, test7, i1m1);
+                }
+
+                CompileAndVerify(compilation4, verify: false, symbolValidator: Validate4);
+
+                foreach (var ref2 in refs2)
+                {
+                    var compilation3 = CreateStandardCompilation(source3, new[] { ref1, ref2 }, options: TestOptions.DebugDll.WithConcurrentBuild(false),
+                                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                    Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                    compilation3.VerifyDiagnostics(
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
+                // (5,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test2 : I7
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(5, 15),
+                // (8,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test3 : I1, I2, I3, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(8, 15),
+                // (11,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // class Test4 : I1, I2, I3, I5, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(11, 15),
+                // (14,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // class Test5 : I8
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(14, 15)
+                        );
+
+                    Validate3(compilation3.SourceModule);
+
+                    void Validate3(ModuleSymbol m)
+                    {
+                        Validate1(m);
+                        Validate2(m);
+
+                        var i1 = FindType(m, "I1");
+                        var i1m1 = GetSingleEvent(i1);
+                        var test1 = FindType(m, "Test1");
+                        var test2 = FindType(m, "Test2");
+                        var test3 = FindType(m, "Test3");
+                        var test4 = FindType(m, "Test4");
+                        var test5 = FindType(m, "Test5");
+
+                        VerifyFindImplementationForInterfaceMemberSame(null, test1, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test2, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test3, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test4, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(null, test5, i1m1);
+                    }
+
+                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                    Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+                    compilation5.VerifyDiagnostics();
+
+                    Validate5(compilation5.SourceModule);
+
+                    void Validate5(ModuleSymbol m)
+                    {
+                        var i1 = FindType(m, "I1");
+                        var i1m1 = GetSingleEvent(i1);
+                        var test8 = FindType(m, "Test8");
+                        var test9 = FindType(m, "Test9");
+                        var test10 = FindType(m, "Test10");
+                        var test11 = FindType(m, "Test11");
+                        var test12 = FindType(m, "Test12");
+
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleEvent(test8), test8, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleEvent(test9), test9, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleEvent(test10), test10, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleEvent(test11), test11, i1m1);
+                        VerifyFindImplementationForInterfaceMemberSame(GetSingleEvent(test12), test12, i1m1);
+                    }
+
+                    CompileAndVerify(compilation5, verify: false, symbolValidator: Validate5);
+                }
+            }
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    event System.Action M1; 
+}
+
+public interface I2 : I1
+{
+    event System.Action I1.M1
+    { add => throw null; remove => throw null;} 
+}
+
+public interface I3 : I1
+{
+    event System.Action I1.M1 
+    { add => throw null; remove => throw null;} 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+    public event System.Action<object> M1
+    { add => throw null; remove => throw null;} 
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation2.VerifyDiagnostics(
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1'. 'Test1.M1' cannot implement 'I1.M1' because it does not have the matching return type of 'Action'.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1", "Test1.M1", "System.Action").WithLocation(2, 15)
+                );
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            compilation3.VerifyDiagnostics(
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1'. 'Test1.M1' cannot implement 'I1.M1' because it does not have the matching return type of 'Action'.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.M1", "Test1.M1", "System.Action").WithLocation(2, 15)
+                );
+        }
+
+        [Fact]
+        public void EventImplementationInDerived_14()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    event System.Action M1
+    {
+        add
+        {
+            System.Console.WriteLine(""I1.M1"");
+        }
+        remove => System.Console.WriteLine(""I1.M1"");
+    }
+}
+
+public interface I2<T> : I1<T>
+{
+    event System.Action I1<T>.M1
+    {
+        add
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+        }
+        remove => System.Console.WriteLine(""I2.I1.M1"");
+    }
+}
+
+public interface I3<T> : I1<T>
+{}
+";
+
+            var source2 =
+@"
+class Test1 : I1<int>
+{}
+class Test2 : I2<long>
+{}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            Validate(compilation1.SourceModule);
+
+            void Validate(ModuleSymbol m)
+            {
+                var i1 = FindType(m, "I1");
+                var i1m1 = GetSingleEvent(i1);
+                var i2 = FindType(m, "I2");
+                var i2m1 = GetSingleEvent(i2);
+                var i2i1 = i2.Interfaces.Single();
+                var i2i1m1 = GetSingleEvent(i2i1);
+                var i3 = FindType(m, "I3");
+                var i3i1 = i3.Interfaces.Single();
+                var i3i1m1 = GetSingleEvent(i3i1);
+
+                VerifyFindImplementationForInterfaceMemberSame(i1m1, i1, i1m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, i2, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, i2, i3i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(i2m1, i2, i2i1m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, i3, i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, i3, i2i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(i3i1m1, i3, i3i1m1);
+
+                ValidateExplicitImplementation(i2m1);
+
+                var test1 = m.GlobalNamespace.GetTypeMember("Test1");
+                var test1i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32));
+                var test1i1m1 = GetSingleEvent(i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int32)));
+                var test2 = m.GlobalNamespace.GetTypeMember("Test2");
+                var test2i1 = i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64));
+                var test2i1m1 = GetSingleEvent(i1.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)));
+                var test2i2 = i2.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64));
+                var test2i2m1 = GetSingleEvent(i2.Construct(m.ContainingAssembly.GetSpecialType(SpecialType.System_Int64)));
+
+                Assert.NotSame(test1i1, test1i1m1.ContainingType);
+                Assert.NotSame(test2i1, test2i1m1.ContainingType);
+                Assert.NotSame(test2i2, test2i2m1.ContainingType);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, test1i1, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test1i1m1, test1i1, test1i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test2i1m1, test2i1, test2i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, test2i2, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2i2, test2i1m1);
+
+                ValidateExplicitImplementation(test2i2m1);
+
+                VerifyFindImplementationForInterfaceMemberSame(null, test1, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test1i1m1, test1, test1i1m1);
+                VerifyFindImplementationForInterfaceMemberSame(null, test2, i1m1);
+                VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2, test2i1m1);
+            }
+
+            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            Validate(compilation2.SourceModule);
+
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            Validate(compilation3.SourceModule);
+
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate);
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_01()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get;} 
+}
+
+public interface I4
+{
+    int this[int x] {set;} 
+}
+
+public interface I5 : I4
+{
+}
+
+public interface I1 : I2, I5
+{
+    int I2.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+    }
+    int I4.this[int x] 
+    {
+        set => System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+            ValidatePropertyImplementationInDerived_01(source1);
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_02()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get;} 
+}
+
+public interface I4
+{
+    int this[int x] {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.this[int x] => Getter();
+
+    private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+
+    int I4.this[int x] 
+    {
+        set 
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_02(source1,
+                new DiagnosticDescription[]
+                {
+                // (16,17): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private int Getter()
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter").WithArguments("default interface implementation", "7.1").WithLocation(16, 17),
+                // (14,27): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     int I2.this[int x] => Getter();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Getter()").WithArguments("default interface implementation", "7.1").WithLocation(14, 27),
+                // (24,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         set 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(24, 9)
+                },
+                // (6,15): error CS8506: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                // (6,15): error CS8506: 'I1.I4.this[int].set' cannot implement interface member 'I4.this[int].set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_03()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get; set;} 
+}
+
+public interface I4
+{
+    int this[int x] {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.this[int x] 
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+
+    int I4.this[int x] 
+    {
+        set 
+        {
+            System.Console.WriteLine(""I2.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_03(source1,
+                new DiagnosticDescription[]
+                {
+                // (16,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         get
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(16, 9),
+                // (21,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         set
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(21, 9),
+                // (29,9): error CS8501: Target runtime doesn't support default interface implementation.
+                //         set 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(29, 9)
+                },
+                // (6,15): error CS8502: 'I1.I2.this[int].set' cannot implement interface member 'I2.this[int].set' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].set", "I2.this[int].set", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1").WithLocation(6, 15),
+                // (6,15): error CS8502: 'I1.I4.this[int].set' cannot implement interface member 'I4.this[int].set' in type 'Test1' because the target runtime doesn't support default interface implementation.
+                // class Test1 : I1
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_04()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get;} 
+}
+
+public interface I4
+{
+    int this[int x] {set;} 
+}
+
+public interface I1 : I2, I4
+{
+    int I2.this[int x] {get;} 
+    int I4.this[int x] {set;} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,25): error CS0501: 'I1.I2.this[int].get' must declare a body because it is not marked abstract, extern, or partial
+                //     int I2.this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.I2.this[int].get").WithLocation(14, 25),
+                // (15,25): error CS0501: 'I1.I4.this[int].set' must declare a body because it is not marked abstract, extern, or partial
+                //     int I4.this[int x] {set;} 
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.I4.this[int].set").WithLocation(15, 25)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_05()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get;} 
+}
+
+public interface I4
+{
+    int this[int x] {set;} 
+}
+
+public interface I1
+{
+    int I2.this[int x] {get => throw null;} 
+    int I4.this[int x] {set => throw null;} 
+}
+";
+
+            ValidatePropertyImplementationInDerived_05(source1,
+                // (14,9): error CS0540: 'I1.I2.this[int]': containing type does not implement interface 'I2'
+                //     int I2.this[int x] {get => throw null;} 
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I2").WithArguments("I1.I2.this[int]", "I2").WithLocation(14, 9),
+                // (15,9): error CS0540: 'I1.I4.this[int]': containing type does not implement interface 'I4'
+                //     int I4.this[int x] {set => throw null;} 
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I4").WithArguments("I1.I4.this[int]", "I4").WithLocation(15, 9)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_06()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get; set;} 
+}
+
+public interface I4
+{
+    int this[int x] {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    public static int I2.this[int x] 
+    {
+        internal get => throw null;
+        set => throw null;
+    }
+    internal virtual int I4.this[int x]
+    {
+        public get => throw null;
+        set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,26): error CS0106: The modifier 'static' is not valid for this item
+                //     public static int I2.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(14, 26),
+                // (14,26): error CS0106: The modifier 'public' is not valid for this item
+                //     public static int I2.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("public").WithLocation(14, 26),
+                // (16,18): error CS0106: The modifier 'internal' is not valid for this item
+                //         internal get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("internal").WithLocation(16, 18),
+                // (19,29): error CS0106: The modifier 'internal' is not valid for this item
+                //     internal virtual int I4.this[int x]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("internal").WithLocation(19, 29),
+                // (19,29): error CS0106: The modifier 'virtual' is not valid for this item
+                //     internal virtual int I4.this[int x]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("virtual").WithLocation(19, 29),
+                // (21,16): error CS0106: The modifier 'public' is not valid for this item
+                //         public get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("public").WithLocation(21, 16)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_07()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get; set;} 
+}
+
+public interface I4
+{
+    int this[int x] {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    private sealed int I2.this[int x] 
+    {
+        private get => throw null;
+        set => throw null;
+    }
+    protected abstract int I4.this[int x]
+    {
+        get => throw null;
+        protected set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,27): error CS0106: The modifier 'sealed' is not valid for this item
+                //     private sealed int I2.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("sealed").WithLocation(14, 27),
+                // (14,27): error CS0106: The modifier 'private' is not valid for this item
+                //     private sealed int I2.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("private").WithLocation(14, 27),
+                // (16,17): error CS0106: The modifier 'private' is not valid for this item
+                //         private get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(16, 17),
+                // (19,31): error CS0106: The modifier 'abstract' is not valid for this item
+                //     protected abstract int I4.this[int x]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("abstract").WithLocation(19, 31),
+                // (19,31): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected abstract int I4.this[int x]
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(19, 31),
+                // (22,19): error CS0106: The modifier 'protected' is not valid for this item
+                //         protected set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected").WithLocation(22, 19)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_08()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get; set;} 
+}
+
+public interface I4
+{
+    int this[int x] {get; set;} 
+}
+
+public interface I1 : I2, I4
+{
+    private protected int I2.this[int x] 
+    {
+        private protected get => throw null;
+        set => throw null;
+    }
+    internal protected override int I4.this[int x] 
+    {
+        get => throw null;
+        internal protected set => throw null;
+    }
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_04(source1,
+                // (14,13): error CS0107: More than one protection modifier
+                //     private protected int I2.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "protected").WithLocation(14, 13),
+                // (16,17): error CS0107: More than one protection modifier
+                //         private protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "protected").WithLocation(16, 17),
+                // (14,30): error CS0106: The modifier 'protected' is not valid for this item
+                //     private protected int I2.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(14, 30),
+                // (14,30): error CS0106: The modifier 'private' is not valid for this item
+                //     private protected int I2.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("private").WithLocation(14, 30),
+                // (16,27): error CS0106: The modifier 'protected' is not valid for this item
+                //         private protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected").WithLocation(16, 27),
+                // (16,27): error CS0106: The modifier 'private' is not valid for this item
+                //         private protected get => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("private").WithLocation(16, 27),
+                // (19,40): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     internal protected override int I4.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected internal").WithLocation(19, 40),
+                // (19,40): error CS0106: The modifier 'override' is not valid for this item
+                //     internal protected override int I4.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(19, 40),
+                // (22,28): error CS0106: The modifier 'protected internal' is not valid for this item
+                //         internal protected set => throw null;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("protected internal").WithLocation(22, 28)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_09()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    int this[int x] {get;} 
+}
+
+public interface I1 : I2
+{
+    extern int I2.this[int x] {get;} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            var source2 =
+@"
+public interface I2
+{
+    int this[int x] {set;} 
+}
+
+public interface I1 : I2
+{
+    extern int I2.this[int x]
+    { set {}} 
+}
+
+public interface I3 : I1
+{
+}
+
+class Test1 : I1
+{}
+";
+
+            ValidatePropertyImplementationInDerived_09(source1, source2,
+                new DiagnosticDescription[]
+                {
+                // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int I2.this[int x] {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
+                },
+                new DiagnosticDescription[]
+                {
+                // (9,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     extern int I2.this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "get").WithArguments("default interface implementation", "7.1").WithLocation(9, 32),
+                // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int I2.this[int x] {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
+                },
+                new DiagnosticDescription[]
+                {
+                // (9,32): error CS8501: Target runtime doesn't support default interface implementation.
+                //     extern int I2.this[int x] {get;} 
+                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(9, 32),
+                // (9,32): warning CS0626: Method, operator, or accessor 'I1.I2.this[int].get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     extern int I2.this[int x] {get;} 
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("I1.I2.this[int].get").WithLocation(9, 32)
+                },
+                // (10,7): error CS0179: 'I1.I2.this[int].set' cannot be extern and declare a body
+                //     { set {}} 
+                Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I1.I2.this[int].set").WithLocation(10, 7)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_10()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int x] {get;set;} 
+    int this[long x] {get;set;} 
+}
+
+public interface I2 : I1
+{
+    int I1.this[int x]
+    {
+        get => throw null;
+    }
+    int I1.this[long x] 
+    {
+        set => throw null;
+    }
+}
+
+class Test1 : I2
+{}
+
+public interface I3
+{
+    int this[int x] {get;} 
+    int this[long x] {set;} 
+    int this[byte x] {get;set;} 
+    int this[short x] {get;set;} 
+}
+
+public interface I4 : I3
+{
+    int I3.this[int x]
+    {
+        get => throw null;
+        set => throw null;
+    }
+    int I3.this[long x] 
+    {
+        get => throw null;
+        set => throw null;
+    }
+    int I3.this[byte x] {get; set;}
+    int I3.this[short x] {get; set;} = 0;
+}
+
+class Test2 : I4
+{}
+";
+
+            ValidatePropertyImplementationInDerived_05(source1,
+                // (44,38): error CS1519: Invalid token '=' in class, struct, or interface member declaration
+                //     int I3.this[short x] {get; set;} = 0;
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(44, 38),
+                // (10,12): error CS0551: Explicit interface implementation 'I2.I1.this[int]' is missing accessor 'I1.this[int].set'
+                //     int I1.this[int x]
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.I1.this[int]", "I1.this[int].set").WithLocation(10, 12),
+                // (14,12): error CS0551: Explicit interface implementation 'I2.I1.this[long]' is missing accessor 'I1.this[long].get'
+                //     int I1.this[long x] 
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyMissingAccessor, "this").WithArguments("I2.I1.this[long]", "I1.this[long].get").WithLocation(14, 12),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.this[long].get'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[long].get").WithLocation(20, 15),
+                // (20,15): error CS0535: 'Test1' does not implement interface member 'I1.this[int].set'
+                // class Test1 : I2
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.this[int].set").WithLocation(20, 15),
+                // (36,9): error CS0550: 'I4.I3.this[int].set' adds an accessor not found in interface member 'I3.this[int]'
+                //         set => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "set").WithArguments("I4.I3.this[int].set", "I3.this[int]").WithLocation(36, 9),
+                // (40,9): error CS0550: 'I4.I3.this[long].get' adds an accessor not found in interface member 'I3.this[long]'
+                //         get => throw null;
+                Diagnostic(ErrorCode.ERR_ExplicitPropertyAddingAccessor, "get").WithArguments("I4.I3.this[long].get", "I3.this[long]").WithLocation(40, 9),
+                // (43,26): error CS0501: 'I4.I3.this[byte].get' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.this[byte x] {get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.this[byte].get").WithLocation(43, 26),
+                // (43,31): error CS0501: 'I4.I3.this[byte].set' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.this[byte x] {get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.this[byte].set").WithLocation(43, 31),
+                // (44,27): error CS0501: 'I4.I3.this[short].get' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.this[short x] {get; set;} = 0;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I4.I3.this[short].get").WithLocation(44, 27),
+                // (44,32): error CS0501: 'I4.I3.this[short].set' must declare a body because it is not marked abstract, extern, or partial
+                //     int I3.this[short x] {get; set;} = 0;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.this[short].set").WithLocation(44, 32)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_11()
+        {
+            var source1 =
+@"
+public interface I2
+{
+    internal int this[int x] {get;} 
+}
+
+public interface I4
+{
+    int this[int x] {get; internal set;} 
+}
+
+public interface I5 : I4
+{
+}
+";
+            var source2 =
+@"
+public interface I1 : I2, I5
+{
+    int I2.this[int x] => Getter();
+
+    private int Getter()
+    {
+        System.Console.WriteLine(""I2.M1"");
+        return 1;
+    }
+    int I4.this[int x] 
+    {
+        get 
+        {
+            System.Console.WriteLine(""I2.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I2.M1"");
+    }
+}
+
+public interface I3 : I1
+{
+}
+";
+
+            ValidatePropertyImplementationInDerived_11(source1, source2,
+                // (4,12): error CS0122: 'I2.this[int]' is inaccessible due to its protection level
+                //     int I2.this[int x] => Getter();
+                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I2.this[int]").WithLocation(4, 12),
+                // (11,12): error CS0122: 'I4.this[int].set' is inaccessible due to its protection level
+                //     int I4.this[int x] 
+                Diagnostic(ErrorCode.ERR_BadAccess, "this").WithArguments("I4.this[int].set").WithLocation(11, 12)
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_12()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int x] { get => throw null; set => throw null;} 
+}
+
+public interface I2 : I1
+{
+    int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+        }
+    }
+}
+
+public interface I3 : I1
+{
+    int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I3.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I3.I1.M1"");
+        }
+    }
+}
+
+public interface I4 : I1
+{
+    int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I4.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I4.I1.M1"");
+        }
+    }
+}
+
+public interface I5 : I2, I3
+{
+    int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I5.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""I5.I1.M1"");
+        }
+    }
+}
+
+public interface I6 : I1, I2, I3, I5
+{}
+";
+
+            var source5 = @"
+class Test8 : I2, I3
+{
+    int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test8.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test8.I1.M1"");
+        }
+    }
+}
+
+class Test9 : I7
+{
+    int I1.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test9.I1.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test9.I1.M1"");
+        }
+    }
+}
+
+class Test10 : I1, I2, I3, I4
+{
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test10.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test10.M1"");
+        }
+    }
+}
+
+class Test11 : I1, I2, I3, I5, I4
+{
+    public int this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test11.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test11.M1"");
+        }
+    }
+}
+
+class Test12 : I8
+{
+    public virtual int this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""Test12.M1"");
+            return 1;
+        }
+        set
+        {
+            System.Console.WriteLine(""Test12.M1"");
+        }
+    }
+}
+";
+            ValidatePropertyImplementationInDerived_12(source1, source5,
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15),
+                // (5,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test2 : I7
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(5, 15),
+                // (8,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test3 : I1, I2, I3, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(8, 15),
+                // (11,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.this[int]', nor 'I4.I1.this[int]' are most specific.
+                // class Test4 : I1, I2, I3, I5, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I5.I1.this[int]", "I4.I1.this[int]").WithLocation(11, 15),
+                // (14,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.this[int]', nor 'I4.I1.this[int]' are most specific.
+                // class Test5 : I8
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.this[int]", "I5.I1.this[int]", "I4.I1.this[int]").WithLocation(14, 15)
+                },
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15),
+                // (5,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test2 : I7
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(5, 15),
+                // (8,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test3 : I1, I2, I3, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(8, 15),
+                // (11,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.Item[int]', nor 'I4.I1.Item[int]' are most specific.
+                // class Test4 : I1, I2, I3, I5, I4
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I5.I1.Item[int]", "I4.I1.Item[int]").WithLocation(11, 15),
+                // (14,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.Item[int]', nor 'I4.I1.Item[int]' are most specific.
+                // class Test5 : I8
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.this[int]", "I5.I1.Item[int]", "I4.I1.Item[int]").WithLocation(14, 15)
+                }
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int this[int x] {get;} 
+}
+
+public interface I2 : I1
+{
+    int I1.this[int x] => throw null; 
+}
+
+public interface I3 : I1
+{
+    int I1.this[int x] => throw null; 
+}
+";
+
+            var source2 =
+@"
+class Test1 : I2, I3
+{
+    public long this[int x] => 1;
+}
+";
+
+            ValidatePropertyImplementationInDerived_13(source1, source2,
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15),
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
+                },
+                new DiagnosticDescription[]
+                {
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15),
+                // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
+                // class Test1 : I2, I3
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, "I2").WithArguments("Test1", "I1.this[int]", "Test1.this[int]", "int").WithLocation(2, 15)
+                }
+                );
+        }
+
+        [Fact]
+        public void IndexerImplementationInDerived_14()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    int this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I1.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I1.M1"");
+    }
+}
+
+public interface I2<T> : I1<T>
+{
+    int I1<T>.this[int x]
+    {
+        get
+        {
+            System.Console.WriteLine(""I2.I1.M1"");
+            return 1;
+        }
+        set => System.Console.WriteLine(""I2.I1.M1"");
+    }
+}
+
+public interface I3<T> : I1<T>
+{}
+";
+
+            ValidatePropertyImplementationInDerived_14(source1);
+        }
+
     }
 }

@@ -1496,6 +1496,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This PR can be used to find the relevant code and test files: https://github.com/dotnet/roslyn/pull/18045.
         ERR_DefaultInterfaceImplementationModifier = 8503,
         ERR_ImplicitImplementationOfNonPublicInterfaceMember = 8504,
+        ERR_MostSpecificImplementationIsNotFound = 8505,
 
+        // PROTOTYPE(DefaultInterfaceImplementation): Should add this error code to the list monitored by the UpgradeProject code fixer.
+        // This PR can be used to find the relevant code and test files: https://github.com/dotnet/roslyn/pull/18045.
+        ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8506,
     }
 }

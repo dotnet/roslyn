@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             syntax.ReturnType.SkipRef(out _refKind);
 
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, location, hasBody, diagnostics);
+
             if (hasBody)
             {
                 CheckModifiersForBody(syntax, location, diagnostics);
@@ -765,13 +767,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, bool hasBody, Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            bool isExplicitInterfaceImplementation = methodKind == MethodKind.ExplicitInterfaceImplementation;
+            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Partial | DeclarationModifiers.Unsafe;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
-            if (methodKind != MethodKind.ExplicitInterfaceImplementation)
+            if (!isExplicitInterfaceImplementation)
             {
                 allowedModifiers |= DeclarationModifiers.New |
                                     DeclarationModifiers.Sealed |
@@ -793,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // check it against language version below.
                     defaultAccess = DeclarationModifiers.None;
 
-                    allowedModifiers |= allowedAccess | DeclarationModifiers.Extern | DeclarationModifiers.Async;
+                    allowedModifiers |= allowedAccess;
                     defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
                                                                DeclarationModifiers.Abstract |
                                                                DeclarationModifiers.Static |
@@ -804,11 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!isInterface)
-            {
-                allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async;
-            }
+            allowedModifiers |= DeclarationModifiers.Extern | DeclarationModifiers.Async;
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
@@ -828,7 +827,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (containingTypeIsInterface)
             {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, hasBody,
+                                                                         methodKind == MethodKind.ExplicitInterfaceImplementation);
             }
             else if (methodKind == MethodKind.ExplicitInterfaceImplementation)
             {

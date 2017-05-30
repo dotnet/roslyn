@@ -43,6 +43,13 @@ class Test1 : I1
 
 - Declaring types within interfaces. **Protected** and **protected internal** accessibility is not supported.
 
+- Implementing interface methods in derived interfaces by using explicit implementation syntax, accessibility is private, allowed modifiers: **extern** and **async**.
+
+- Implementing interface properties and indexers in derived interfaces by using explicit implementation syntax, accessibility is private, allowed modifiers: **extern**.
+
+- Implementing interface events in derived interfaces by using explicit implementation syntax, accessibility is private, no allowed modifiers.
+
+
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.
 
 **Parts of ECMA-335 that become obsolete/inaccurate/incomplete**

@@ -743,7 +743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                    Location location, DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && !isExplicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
             var allowedModifiers = DeclarationModifiers.Unsafe;
@@ -775,7 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // check it against language version below.
                     defaultAccess = DeclarationModifiers.None;
 
-                    allowedModifiers |= allowedAccess | DeclarationModifiers.Extern;
+                    allowedModifiers |= allowedAccess;
                     defaultInterfaceImplementationModifiers |= DeclarationModifiers.Sealed |
                                                                DeclarationModifiers.Abstract |
                                                                (isIndexer ? 0 : DeclarationModifiers.Static) |
@@ -785,11 +785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (!isInterface)
-            {
-                allowedModifiers |=
-                    DeclarationModifiers.Extern;
-            }
+            allowedModifiers |= DeclarationModifiers.Extern;
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
 
@@ -803,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, accessorsHaveImplementation, isExplicitInterfaceImplementation);
             }
 
             if (isIndexer)

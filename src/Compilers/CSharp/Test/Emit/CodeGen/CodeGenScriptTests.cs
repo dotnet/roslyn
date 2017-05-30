@@ -606,5 +606,37 @@ public abstract class C
                 // error CS0656: Missing compiler required member 'Task.GetAwaiter'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1));
         }
+
+        [Fact]
+        public void ExplicitImplementation()
+        {
+            string test = @"
+interface I1
+{
+    void M();
+}
+
+void I1.M() {}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script);
+
+            var compilation = CreateCompilationWithMscorlib45(
+                new[] { tree },
+                options: TestOptions.ReleaseExe.WithScriptClassName("Script"));
+
+            compilation.VerifyDiagnostics(
+                // (7,6): error CS0540: 'I1.M()': containing type does not implement interface 'I1'
+                // void I1.M() {}
+                Diagnostic(ErrorCode.ERR_ClassDoesntImplementInterface, "I1").WithArguments("I1.M()", "I1").WithLocation(7, 6)
+                );
+
+            var s = CreateSubmission(test);
+
+            s.VerifyDiagnostics(
+                // (7,9): error CS0541: 'M()': explicit interface declaration can only be declared in a class, struct or interface
+                // void I1.M() {}
+                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "M").WithArguments("M()").WithLocation(7, 9)
+                );
+        }
     }
 }
