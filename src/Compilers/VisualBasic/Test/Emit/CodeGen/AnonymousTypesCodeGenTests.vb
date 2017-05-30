@@ -156,14 +156,21 @@ End Module
     </file>
                          </compilation>
 
+            Dim innerCount = 10
+            Dim streamList = new List(Of MemoryStream)()
+            For i = 0 To innerCount - 1
+                streamList.Add(new MemoryStream())
+            Next
+
             For i = 0 To 100
                 Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
 
-                Dim tasks(10) As Task
-                For jj = 0 To tasks.Length - 1
+                Dim tasks(innerCount - 1) As Task
+                For jj = 0 To innerCount - 1
                     Dim j = jj
                     tasks(j) = Task.Run(Sub()
-                                            Dim stream = New MemoryStream()
+                                            Dim stream = streamList(j)
+                                            stream.Position = 0
                                             Dim result = compilation.Emit(stream, options:=New EmitOptions(metadataOnly:=j Mod 2 = 0))
                                             result.Diagnostics.Verify()
                                         End Sub)
