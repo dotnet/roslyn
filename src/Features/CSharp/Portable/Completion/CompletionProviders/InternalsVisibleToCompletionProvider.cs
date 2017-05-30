@@ -4,8 +4,10 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal sealed class InternalsVisibleToCompletionProvider : CommonCompletionProvider
     {
-        private const string PublicKeyPropertyKey = "PublicKey";
+        private const string ProjectIdKey = "ProjectId";
 
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
@@ -43,56 +45,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     var lastName = nameParts[nameParts.Count - 1];
                     if (lastName == "InternalsVisibleTo" || lastName == "InternalsVisibleToAttribute")
                     {
-                        await AddAssemblyCompletionItems(context, cancellationToken).ConfigureAwait(false);
+                        AddAssemblyCompletionItems(context, cancellationToken);
                     }
                 }
             }
         }
 
-        private static async Task AddAssemblyCompletionItems(CompletionContext context, CancellationToken cancellationToken)
-        {
-            var currentProject = context.Document.Project;
-            foreach (var p in context.Document.Project.Solution.Projects)
-            {
-                if (p == currentProject)
-                {
-                    continue;
-                }
-                var publicKey = await GetPublicKeyOfProject(p, cancellationToken).ConfigureAwait(false);
-                var item = string.IsNullOrEmpty(publicKey)
-                    ? CompletionItem.Create(displayText: p.AssemblyName)
-                    : CompletionItem.Create(displayText: p.AssemblyName, properties: ImmutableDictionary.Create<string, string>().Add(PublicKeyPropertyKey, publicKey));
-                context.AddItem(item);
-            }
-        }
-
-        private static async Task<string> GetPublicKeyOfProject(Project p, CancellationToken cancellationToken)
-        {
-            var compilationOptions = p.CompilationOptions;
-            if (string.IsNullOrEmpty(compilationOptions.CryptoKeyFile) && string.IsNullOrEmpty(compilationOptions.CryptoKeyContainer))
-            {
-                return string.Empty;
-            }
-            var c = await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (c.Assembly?.Identity?.IsStrongName ?? false)
-            {
-                return GetPublicKeyAsHexString(c.Assembly.Identity.PublicKey);
-            }
-            return string.Empty;
-        }
-
-        private static string GetPublicKeyAsHexString(ImmutableArray<byte> publicKey)
-        {
-            var sb = new StringBuilder(capacity: publicKey.Length * 2);
-            foreach (var b in publicKey)
-            {
-                sb.Append(b.ToString("x2"));
-            }
-            return sb.ToString();
-        }
-
         private static AttributeSyntax GetAttributeSyntaxOfToken(SyntaxToken token)
         {
+            //Supported cases:
+            //[Attribute("|
+            //[Attribute(parameterName:"Text|")
+            //Also supported but excluded by syntaxTree.IsEntirelyWithinStringLiteral in ProvideCompletionsAsync
+            //[Attribute(""|
+            //[Attribute("Text"|)
             var node = token.Parent;
             if (node is LiteralExpressionSyntax && node.Kind() == SyntaxKind.StringLiteralExpression)
             {
@@ -109,13 +75,71 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return default(AttributeSyntax);
         }
 
-        protected override Task<TextChange?> GetTextChangeAsync(CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        private static void AddAssemblyCompletionItems(CompletionContext context, CancellationToken cancellationToken)
         {
-            var assemblyName = selectedItem.DisplayText;
-            if (selectedItem.Properties.TryGetValue(PublicKeyPropertyKey, out string publicKey))
-                assemblyName += ", PublicKey=" + publicKey;
-            TextChange? tc = new TextChange(selectedItem.Span, assemblyName);
-            return Task.FromResult(tc);
+            var currentProject = context.Document.Project;
+            foreach (var p in context.Document.Project.Solution.Projects)
+            {
+                if (p == currentProject)
+                {
+                    continue;
+                }
+                var completionItem = CompletionItem.Create(displayText: p.AssemblyName,
+                    properties: ImmutableDictionary.Create<string, string>().Add(ProjectIdKey, p.Id.Id.ToString()));
+                context.AddItem(completionItem);
+            }
+        }
+
+        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (item.Properties.TryGetValue(ProjectIdKey, out var projectId))
+            {
+                var assemblyName = item.DisplayText;
+                var project = document.Project.Solution.GetProject(ProjectId.CreateFromSerialized(new System.Guid(projectId)));
+                var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                if (!string.IsNullOrEmpty(publicKey))
+                {
+                    assemblyName += ", PublicKey=" + publicKey;
+                }
+                var tc = new TextChange(item.Span, assemblyName);
+                return CompletionChange.Create(tc);
+            }
+            Debug.Fail("Project can't be found by projectId.");
+            return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<string> GetPublicKeyOfProjectAsync(Project p, CancellationToken cancellationToken)
+        {
+            var compilationOptions = p.CompilationOptions;
+            if (compilationOptions == null ||
+                (string.IsNullOrEmpty(compilationOptions.CryptoKeyFile) && string.IsNullOrEmpty(compilationOptions.CryptoKeyContainer)))
+            {
+                return string.Empty;
+            }
+            var c = await p.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            if (c.Assembly?.Identity?.IsStrongName ?? false)
+            {
+                return GetPublicKeyAsHexString(c.Assembly.Identity.PublicKey);
+            }
+            return string.Empty;
+        }
+
+        private static string GetPublicKeyAsHexString(ImmutableArray<byte> publicKey)
+        {
+            var builder = SharedPools.Default<StringBuilder>().Allocate();
+            try
+            {
+                builder.Clear();
+                foreach (var b in publicKey)
+                {
+                    builder.Append(b.ToString("x2"));
+                }
+                return builder.ToString();
+            }
+            finally
+            {
+                SharedPools.Default<StringBuilder>().ClearAndFree(builder);
+            }
         }
     }
 }
