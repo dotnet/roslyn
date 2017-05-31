@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     ProjectId projectReferenceToAdd)
                     : this(contextDocument, textChanges, title, tags, priority)
                 {
+                    // We only want to add a project reference if the project the import references
+                    // is different from the project we started from.
                     if (projectReferenceToAdd != contextDocument.Project.Id)
                     {
                         _projectReferenceToAdd = projectReferenceToAdd;
