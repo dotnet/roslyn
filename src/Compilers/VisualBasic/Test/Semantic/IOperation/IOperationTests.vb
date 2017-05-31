@@ -420,6 +420,9 @@ End Module
         <Fact>
         Public Sub UsingDeclarationExistingVariableNonNullSyntax()
             ' TODO: This will need to be removed when https://github.com/dotnet/roslyn/issues/19887 is fixed.
+            ' The docs for IUsingStatement.Declaration state that it should be returning null when the
+            ' using statement does not declare any variables. However, it currently does not. When that is
+            ' fixed, this test should be updated to correctly reflect that assertion.
 
             Dim source = <compilation>
                              <file name="c.vb">

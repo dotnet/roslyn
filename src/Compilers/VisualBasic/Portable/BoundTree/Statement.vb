@@ -1491,7 +1491,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _variables As ImmutableArray(Of IVariableDeclaration)
             Private ReadOnly _syntax As SyntaxNode
 
-            Public Sub New(variables As ImmutableArray(Of IVariableDeclaration), syntax As SyntaxNode)
+            Public Sub New(variables As ImmutableArray(Of IVariableDeclaration), syntax As UsingStatementSyntax)
                 _variables = variables
                 _syntax = syntax
             End Sub
