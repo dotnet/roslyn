@@ -28,17 +28,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// The document before we added the import. Used so we can roll back if installing
                 /// the package failed.
                 /// </summary>
-                public readonly Document OldDocument;
+                private readonly Document OldDocument;
 
                 /// <summary>
                 /// The document after the import has been added.
                 /// </summary>
-                public readonly Document NewDocument;
+                private readonly Document NewDocument;
 
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
-                public readonly InstallPackageDirectlyCodeActionOperation InstallOperation;
+                private readonly InstallPackageDirectlyCodeActionOperation InstallOperation;
 
                 public InstallPackageAndAddImportCodeAction(
                     string title, 
