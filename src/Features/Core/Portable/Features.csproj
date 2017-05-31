@@ -229,7 +229,7 @@
     <Compile Include="RQName\SimpleTree\SimpleLeafNode.cs" />
     <Compile Include="RQName\SimpleTree\SimpleTreeNode.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
-    <Compile Include="AddImport\CodeActions\SymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
     <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
     <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
     <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
