@@ -1677,9 +1677,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates an expression that denotes a tuple type.
         /// </summary>
-        public abstract SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements);
-
-        protected static void ValidateTupleElements(IEnumerable<SyntaxNode> elements)
+        public SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements)
         {
             if (elements == null)
             {
@@ -1689,7 +1687,11 @@ namespace Microsoft.CodeAnalysis.Editing
             {
                 throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));
             }
+
+            return CreateTupleType(elements);
         }
+
+        protected abstract SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements);
 
         /// <summary>
         /// Creates an expression that denotes a tuple type.

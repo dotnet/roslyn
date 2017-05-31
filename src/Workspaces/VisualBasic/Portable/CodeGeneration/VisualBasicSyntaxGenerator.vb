@@ -531,9 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Public Overrides Function TupleTypeExpression(elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            ValidateTupleElements(elements)
-
+        Public Overrides Function CreateTupleType(elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast(Of TupleElementSyntax)()))
         End Function
 

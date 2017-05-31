@@ -3977,12 +3977,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        public override SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements)
-        {
-            ValidateTupleElements(elements);
-
-            return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
-        }
+        public override SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements)
+            => SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
 
         public override SyntaxNode TupleElementExpression(SyntaxNode type, string name = null)
             => SyntaxFactory.TupleElement((TypeSyntax)type, name?.ToIdentifierToken() ?? default(SyntaxToken));
