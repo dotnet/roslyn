@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
 
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             if (TryFindInvocation(context.Span, root, semanticModel, formatMethods, syntaxFactsService, context.CancellationToken, out var invocation, out var invocationSymbol) &&
-                IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocation), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, context.CancellationToken))
+                IsArgumentListCorrect(syntaxFactsService.GetArgumentsOfInvocationExpression(invocation).CastDown<TArgumentSyntax>(), invocationSymbol, formatMethods, semanticModel, syntaxFactsService, context.CancellationToken))
             {
                 context.RegisterRefactoring(
                     new ConvertToInterpolatedStringCodeAction(
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.ConvertToInterpolatedString
             CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation);
+            var arguments = syntaxFactsService.GetArgumentsOfInvocationExpression(invocation).CastDown<TArgumentSyntax>();
             var literalExpression = syntaxFactsService.GetExpressionOfArgument(arguments[0]) as TLiteralExpressionSyntax;
             var text = literalExpression.GetFirstToken().ToString();
             var syntaxGenerator = document.Project.LanguageServices.GetService<SyntaxGenerator>();

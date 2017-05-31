@@ -592,9 +592,16 @@ namespace Microsoft.CodeAnalysis
             return new SeparatedSyntaxList<SyntaxNode>(nodes._list);
         }
 
+        [Obsolete("Implicit downcast is not safe. Use CastDown<TNode>() instead", error: true)]
         public static implicit operator SeparatedSyntaxList<TNode>(SeparatedSyntaxList<SyntaxNode> nodes)
         {
             return new SeparatedSyntaxList<TNode>(nodes._list);
+        }
+
+        public SeparatedSyntaxList<TDerived> CastDown<TDerived>()
+            where TDerived : TNode
+        {
+            return new SeparatedSyntaxList<TDerived>(_list);
         }
     }
 }
