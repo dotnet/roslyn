@@ -73,13 +73,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property BaseTypeNoUseSiteDiagnostics As NamedTypeSymbol
             Get
-                Throw New NotImplementedException(NameOf(BaseTypeNoUseSiteDiagnostics))
+                Return Nothing
             End Get
         End Property
 
         Friend Overrides ReadOnly Property InterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
-                Throw New NotImplementedException(NameOf(InterfacesNoUseSiteDiagnostics))
+                Return ImmutableArray(Of NamedTypeSymbol).Empty
             End Get
         End Property
 
@@ -88,8 +88,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Nothing
             End Get
         End Property
-
-
 
         Public Overrides Function GetMembers() As ImmutableArray(Of Symbol)
             Return ImmutableArray(Of Symbol).Empty
@@ -133,7 +131,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
         Friend Overrides Function GetUnificationUseSiteDiagnosticRecursive(owner As Symbol, ByRef checkedTypes As HashSet(Of TypeSymbol)) As DiagnosticInfo
             Throw New NotImplementedException(NameOf(GetUnificationUseSiteDiagnosticRecursive))
-
         End Function
 
         Public Function Types() As ImmutableArray(Of ITypeSymbol) Implements ITypeArraySymbol.Types
