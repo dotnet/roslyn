@@ -40,9 +40,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var newDocument = await this.provider.AddImportAsync(
                     node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
+                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                    newDocument, cancellationToken).ConfigureAwait(false);
 
-                return new AssemblyReferenceCodeAction(
-                    this, originalDocument, newDocument, placeSystemNamespaceFirst);
+                return new AssemblyReferenceCodeAction(this, originalDocument, cleanedDocument);
             }
 
             public override bool Equals(object obj)
@@ -73,8 +74,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public AssemblyReferenceCodeAction(
                     AssemblyReference reference,
                     Document document,
-                    Document newDocument,
-                    bool placeSystemNamespaceFirst)
+                    Document newDocument)
                 {
                     _reference = reference;
                     _document = document;

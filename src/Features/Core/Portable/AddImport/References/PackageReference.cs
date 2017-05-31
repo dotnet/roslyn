@@ -43,7 +43,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var newDocument = await this.provider.AddImportAsync(
                     node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                return new ParentCodeAction(this, originalDocument, newDocument);
+                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                    newDocument, cancellationToken).ConfigureAwait(false);
+
+                return new ParentCodeAction(this, originalDocument, cleanedDocument);
             }
 
             public override bool Equals(object obj)
