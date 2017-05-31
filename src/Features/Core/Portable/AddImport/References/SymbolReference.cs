@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -43,25 +45,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             public override int GetHashCode()
-            {
-                return Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
-            }
+                => Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
 
-            private async Task<CodeActionOperation> GetOperationAsync(
-                Document document, SyntaxNode node, 
-                bool placeSystemNamespaceFirst, bool hasExistingImport,
-                CancellationToken cancellationToken)
-            {
-                var newDocument = await UpdateDocumentAsync(
-                    document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
-                var updatedSolution = GetUpdatedSolution(newDocument);
+            //private async Task<CodeActionOperation> GetOperationAsync(
+            //    Document document, SyntaxNode node, 
+            //    bool placeSystemNamespaceFirst, bool hasExistingImport,
+            //    CancellationToken cancellationToken)
+            //{
+            //    var newDocument = await UpdateDocumentAsync(
+            //        document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
+            //    var updatedSolution = GetUpdatedSolution(newDocument);
 
-                var operation = new ApplyChangesOperation(updatedSolution);
-                return operation;
-            }
+            //    var operation = new ApplyChangesOperation(updatedSolution);
+            //    return operation;
+            //}
 
-            protected virtual Solution GetUpdatedSolution(Document newDocument)
-                => newDocument.Project.Solution;
+            //protected virtual Solution GetUpdatedSolution(Document newDocument)
+            //    => newDocument.Project.Solution;
 
             private async Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
             }
 
-            public override async Task<CodeAction> CreateCodeActionAsync(
+            public sealed override async Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node,
                 bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
@@ -105,22 +105,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     description = $"{this.SearchResult.DesiredName} - {description}";
                 }
 
-                var getOperation = new AsyncLazy<CodeActionOperation>(
-                    c => this.GetOperationAsync(document, node, placeSystemNamespaceFirst, hasExistingImport, c),
-                    cacheResult: true);
+                var updatedDocument = await UpdateDocumentAsync(
+                    document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
 
-                return new SymbolReferenceCodeAction(
-                    description, GetTags(document), GetPriority(document),
-                    getOperation,
-                    this.GetIsApplicableCheck(document.Project));
+                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                    updatedDocument, cancellationToken).ConfigureAwait(false);
+
+                var textChanges = await cleanedDocument.GetTextChangesAsync(
+                    document, cancellationToken).ConfigureAwait(false);
+
+                return CreateCodeAction(
+                    document, textChanges.ToImmutableArray(), description,
+                    GetTags(document), GetPriority(document));
             }
+
+            protected abstract CodeAction CreateCodeAction(
+                Document document, ImmutableArray<TextChange> textChanges, 
+                string description, ImmutableArray<string> tags, CodeActionPriority priority);
 
             protected abstract CodeActionPriority GetPriority(Document document);
-
-            protected virtual Func<Workspace, bool> GetIsApplicableCheck(Project project)
-            {
-                return null;
-            }
 
             protected virtual (string description, bool hasExistingImport) GetDescription(
                 Document document, SyntaxNode node,

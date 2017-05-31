@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return new MetadataSymbolReference(
                     provider,
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
+                    _assemblyProjectId,
                     _metadataReference);
             }
 
