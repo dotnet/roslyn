@@ -32,11 +32,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _versionOpt = versionOpt;
             }
 
-            public override Task<CodeAction> CreateCodeActionAsync(
+            public override async Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                return Task.FromResult<CodeAction>(new ParentCodeAction(
-                    this, document, node, placeSystemNamespaceFirst));
+                (node, document) = await this.ReplaceNameNodeAsync(
+                    node, document, cancellationToken).ConfigureAwait(false);
+
+                var newDocument = await this.provider.AddImportAsync(
+                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                return new ParentCodeAction(
+                    this, document, newDocument, placeSystemNamespaceFirst);
             }
 
             public override bool Equals(object obj)

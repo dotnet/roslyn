@@ -38,18 +38,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public ParentCodeAction(
                     PackageReference reference,
                     Document document,
-                    SyntaxNode node,
+                    Document newDocument,
                     bool placeSystemNamespaceFirst)
                     : base(string.Format(FeaturesResources.Install_package_0, reference._packageName), 
-                           CreateNestedActions(reference, document, node, placeSystemNamespaceFirst),
+                           CreateNestedActions(reference, document, newDocument, placeSystemNamespaceFirst),
                            isInlinable: false)
                 {
                     _reference = reference;
                 }
 
                 private static ImmutableArray<CodeAction> CreateNestedActions(
-                    PackageReference reference, Document document, 
-                    SyntaxNode node, bool placeSystemNamespaceFirst)
+                    PackageReference reference,
+                    Document document, 
+                    Document newDocument,
+                    bool placeSystemNamespaceFirst)
                 {
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
@@ -59,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                     // First add the actions to install a specific version.
                     codeActions.AddRange(installedVersions.Select(
-                        v => CreateCodeAction(reference, document, node, placeSystemNamespaceFirst, versionOpt: v, isLocal: true)));
+                        v => CreateCodeAction(reference, document, newDocument, placeSystemNamespaceFirst, versionOpt: v, isLocal: true)));
 
                     // Now add the action to install the specific version.
                     var preferredVersion = reference._versionOpt;
                     if (preferredVersion == null || !installedVersions.Contains(preferredVersion))
                     {
-                        codeActions.Add(CreateCodeAction(reference, document, node, placeSystemNamespaceFirst,
+                        codeActions.Add(CreateCodeAction(reference, document, newDocument, placeSystemNamespaceFirst,
                             versionOpt: reference._versionOpt, isLocal: false));
                     }
 
@@ -77,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private static CodeAction CreateCodeAction(
                     PackageReference reference,
                     Document document,
-                    SyntaxNode node,
+                    Document newDocument,
                     bool placeSystemNamespaceFirst,
                     string versionOpt,
                     bool isLocal)
@@ -89,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
                     var installData = new AsyncLazy<InstallPackageAndAddImportData>(
-                        c => GetInstallDataAsync(reference, versionOpt, isLocal, document, node, placeSystemNamespaceFirst, c),
+                        c => GetInstallDataAsync(reference, versionOpt, isLocal, document, newDocument, placeSystemNamespaceFirst, c),
                         cacheResult: true);
 
                     // Nuget hits should always come after other results.
@@ -102,16 +104,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     string versionOpt, 
                     bool isLocal,
                     Document document, 
-                    SyntaxNode node, 
+                    Document newDocument,
                     bool placeSystemNamespaceFirst, 
                     CancellationToken cancellationToken)
                 {
                     var oldDocument = document;
-                    (node, document) = await reference.ReplaceNameNodeAsync(
-                        node, document, cancellationToken).ConfigureAwait(false);
-
-                    var newDocument = await reference.provider.AddImportAsync(
-                        node, reference.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                     // We're going to be manually applying this new document to the workspace
                     // (so we can roll it back ourselves if installing the nuget package fails).
