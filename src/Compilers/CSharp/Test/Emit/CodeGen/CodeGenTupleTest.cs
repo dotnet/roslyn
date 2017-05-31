@@ -7133,19 +7133,19 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(long c, long d)").WithLocation(7, 48),
-                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(long c, long d)").WithLocation(7, 54),
                 // (7,29): error CS0266: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'. An explicit conversion exists (are you missing a cast?)
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
-                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(int c, int d)").WithLocation(9, 50),
-                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(int c, int d)").WithLocation(9, 56),
                 // (9,33): error CS0266: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'. An explicit conversion exists (are you missing a cast?)
@@ -23189,6 +23189,156 @@ class C
   IL_0023:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string) y = (e, null); // the only conversion we find is an explicit conversion
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0029: Cannot implicitly convert type 'int?' to 'int'
+                //         (int, string) y = (e, null);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 28)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion2()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
+                //         (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string)?").WithLocation(7, 28)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String)?", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion3()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string, int) y = (e, null); // no conversion found
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,32): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string, int)'.
+                //         (int, string, int) y = (e, null); // no conversion found
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string, int)").WithLocation(7, 32)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypedTupleWithNoConversion()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string, int) y = (e, """"); // no conversion found
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,32): error CS0029: Cannot implicitly convert type '(int? e, string)' to '(int, string, int)'
+                //         (int, string, int) y = (e, ""); // no conversion found
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(e, """")").WithArguments("(int? e, string)", "(int, string, int)").WithLocation(7, 32)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Equal("(System.Int32? e, System.String)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
         }
     }
 }
