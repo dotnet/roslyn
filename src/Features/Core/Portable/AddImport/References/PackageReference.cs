@@ -39,7 +39,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var textChanges = await GetTextChangesAsync(
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                return new ParentCodeAction(this, document, textChanges);
+                return new ParentInstallPackageCodeAction(
+                    _installerService, _source, _packageName, _versionOpt, document, textChanges);
             }
 
             public override bool Equals(object obj)
