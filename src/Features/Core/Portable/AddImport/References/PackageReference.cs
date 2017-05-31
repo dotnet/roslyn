@@ -36,21 +36,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override async Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                var originalDocument = document;
+                var textChanges = await GetTextChangesAsync(
+                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                (node, document) = await this.ReplaceNameNodeAsync(
-                    node, document, cancellationToken).ConfigureAwait(false);
-
-                var newDocument = await this.provider.AddImportAsync(
-                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-
-                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                    newDocument, cancellationToken).ConfigureAwait(false);
-
-                var textChanges = await cleanedDocument.GetTextChangesAsync(
-                    originalDocument, cancellationToken).ConfigureAwait(false);
-
-                return new ParentCodeAction(this, originalDocument, textChanges.ToImmutableArray());
+                return new ParentCodeAction(this, document, textChanges);
             }
 
             public override bool Equals(object obj)

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -31,19 +32,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override async Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                var originalDocument = document;
+                var textChanges = await GetTextChangesAsync(
+                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                // First add the "using/import" directive in the code.
-                (node, document) = await this.ReplaceNameNodeAsync(
-                    node, document, cancellationToken).ConfigureAwait(false);
-
-                var newDocument = await this.provider.AddImportAsync(
-                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-
-                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                    newDocument, cancellationToken).ConfigureAwait(false);
-
-                return new AssemblyReferenceCodeAction(this, originalDocument, cleanedDocument);
+                return new AssemblyReferenceCodeAction(this, document, textChanges);
             }
 
             public override bool Equals(object obj)
@@ -63,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private readonly AssemblyReference _reference;
                 private readonly string _title;
                 private readonly Document _document;
-                private readonly Document _newDocument;
+                private readonly ImmutableArray<TextChange> _textChanges;
 
                 public override string Title => _title;
 
@@ -74,11 +66,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public AssemblyReferenceCodeAction(
                     AssemblyReference reference,
                     Document document,
-                    Document newDocument)
+                    ImmutableArray<TextChange> textChanges)
                 {
                     _reference = reference;
                     _document = document;
-                    _newDocument = newDocument;
+                    _textChanges = textChanges;
 
                     _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._referenceAssemblyWithType.AssemblyName)})";
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
@@ -106,19 +98,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return !string.IsNullOrWhiteSpace(_lazyResolvedPath.Value);
                 }
 
-                protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+                protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
                 {
                     var service = _document.Project.Solution.Workspace.Services.GetService<IMetadataService>();
                     var resolvedPath = _lazyResolvedPath.Value;
                     var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
 
+                    var oldText = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = oldText.WithChanges(_textChanges);
+
+                    var newDocument = _document.WithText(newText);
+
                     // Now add the actual assembly reference.
-                    var newProject = _newDocument.Project;
+                    var newProject = newDocument.Project;
                     newProject = newProject.WithMetadataReferences(
                         newProject.MetadataReferences.Concat(reference));
 
                     var operation = new ApplyChangesOperation(newProject.Solution);
-                    return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation));
+                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
                 }
             }
         }

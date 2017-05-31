@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override int GetHashCode()
                 => Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
 
-            private async Task<Document> UpdateDocumentAsync(
+            private async Task<ImmutableArray<TextChange>> GetTextChangesAsync(
                 Document document, SyntaxNode contextNode, 
                 bool placeSystemNamespaceFirst, bool hasExistingImport,
                 CancellationToken cancellationToken)
@@ -52,15 +52,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // Defer to the language to add the actual import/using.
                 if (hasExistingImport)
                 {
-                    return document;
+                    return ImmutableArray<TextChange>.Empty;
                 }
 
                 (var newContextNode, var newDocument) = await ReplaceNameNodeAsync(
                     contextNode, document, cancellationToken).ConfigureAwait(false);
 
-                return await provider.AddImportAsync(
+                var updatedDocument = await provider.AddImportAsync(
                     newContextNode, this.SymbolResult.Symbol, newDocument, 
                     placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
+                    updatedDocument, cancellationToken).ConfigureAwait(false);
+
+                var textChanges = await cleanedDocument.GetTextChangesAsync(
+                    document, cancellationToken).ConfigureAwait(false);
+
+                return textChanges.ToImmutableArray();
             }
 
             public sealed override async Task<CodeAction> CreateCodeActionAsync(
@@ -86,14 +94,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     description = $"{this.SearchResult.DesiredName} - {description}";
                 }
 
-                var updatedDocument = await UpdateDocumentAsync(
+                var textChanges = await GetTextChangesAsync(
                     document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
-
-                var cleanedDocument = await CodeAction.CleanupDocumentAsync(
-                    updatedDocument, cancellationToken).ConfigureAwait(false);
-
-                var textChanges = await cleanedDocument.GetTextChangesAsync(
-                    document, cancellationToken).ConfigureAwait(false);
 
                 return CreateCodeAction(
                     document, textChanges.ToImmutableArray(), description,
