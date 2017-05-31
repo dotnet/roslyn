@@ -29,7 +29,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var textChanges = await GetTextChangesAsync(
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                return new AssemblyReferenceCodeAction(this, document, textChanges);
+                var title = $"{this.provider.GetDescription(this.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
+
+                return new AssemblyReferenceCodeAction(title, _referenceAssemblyWithType, document, textChanges);
             }
 
             public override bool Equals(object obj)
