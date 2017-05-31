@@ -28,11 +28,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _referenceAssemblyWithType = referenceAssemblyWithType;
             }
 
-            public override Task<CodeAction> CreateCodeActionAsync(
+            public override async Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                return Task.FromResult<CodeAction>(new AssemblyReferenceCodeAction(
-                    this, document, node, placeSystemNamespaceFirst));
+                var originalDocument = document;
+
+                // First add the "using/import" directive in the code.
+                (node, document) = await this.ReplaceNameNodeAsync(
+                    node, document, cancellationToken).ConfigureAwait(false);
+
+                var newDocument = await this.provider.AddImportAsync(
+                    node, this.SearchResult.NameParts, document, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+
+                return new AssemblyReferenceCodeAction(
+                    this, originalDocument, newDocument, placeSystemNamespaceFirst);
             }
 
             public override bool Equals(object obj)
@@ -52,8 +62,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private readonly AssemblyReference _reference;
                 private readonly string _title;
                 private readonly Document _document;
-                private readonly SyntaxNode _node;
-                private readonly bool _placeSystemNamespaceFirst;
+                private readonly Document _newDocument;
 
                 public override string Title => _title;
 
@@ -64,13 +73,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public AssemblyReferenceCodeAction(
                     AssemblyReference reference,
                     Document document,
-                    SyntaxNode node,
+                    Document newDocument,
                     bool placeSystemNamespaceFirst)
                 {
                     _reference = reference;
                     _document = document;
-                    _node = node;
-                    _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
+                    _newDocument = newDocument;
 
                     _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._referenceAssemblyWithType.AssemblyName)})";
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
@@ -98,26 +106,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return !string.IsNullOrWhiteSpace(_lazyResolvedPath.Value);
                 }
 
-                protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+                protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
                 {
                     var service = _document.Project.Solution.Workspace.Services.GetService<IMetadataService>();
                     var resolvedPath = _lazyResolvedPath.Value;
                     var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
 
-                    // First add the "using/import" directive in the code.
-                    (SyntaxNode node, Document document) = await _reference.ReplaceNameNodeAsync(
-                        _node, _document, cancellationToken).ConfigureAwait(false);
-
-                    var newDocument = await _reference.provider.AddImportAsync(
-                        node, _reference.SearchResult.NameParts, document, _placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-
                     // Now add the actual assembly reference.
-                    var newProject = newDocument.Project;
+                    var newProject = _newDocument.Project;
                     newProject = newProject.WithMetadataReferences(
                         newProject.MetadataReferences.Concat(reference));
 
                     var operation = new ApplyChangesOperation(newProject.Solution);
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation);
+                    return Task.FromResult(SpecializedCollections.SingletonEnumerable<CodeActionOperation>(operation));
                 }
             }
         }

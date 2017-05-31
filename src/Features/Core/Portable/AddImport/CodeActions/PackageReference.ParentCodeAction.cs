@@ -38,10 +38,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public ParentCodeAction(
                     PackageReference reference,
                     Document document,
-                    Document newDocument,
-                    bool placeSystemNamespaceFirst)
+                    Document newDocument)
                     : base(string.Format(FeaturesResources.Install_package_0, reference._packageName), 
-                           CreateNestedActions(reference, document, newDocument, placeSystemNamespaceFirst),
+                           CreateNestedActions(reference, document, newDocument),
                            isInlinable: false)
                 {
                     _reference = reference;
@@ -50,8 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private static ImmutableArray<CodeAction> CreateNestedActions(
                     PackageReference reference,
                     Document document, 
-                    Document newDocument,
-                    bool placeSystemNamespaceFirst)
+                    Document newDocument)
                 {
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
@@ -61,13 +59,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                     // First add the actions to install a specific version.
                     codeActions.AddRange(installedVersions.Select(
-                        v => CreateCodeAction(reference, document, newDocument, placeSystemNamespaceFirst, versionOpt: v, isLocal: true)));
+                        v => CreateCodeAction(reference, document, newDocument, versionOpt: v, isLocal: true)));
 
                     // Now add the action to install the specific version.
                     var preferredVersion = reference._versionOpt;
                     if (preferredVersion == null || !installedVersions.Contains(preferredVersion))
                     {
-                        codeActions.Add(CreateCodeAction(reference, document, newDocument, placeSystemNamespaceFirst,
+                        codeActions.Add(CreateCodeAction(reference, document, newDocument,
                             versionOpt: reference._versionOpt, isLocal: false));
                     }
 
@@ -80,7 +78,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     PackageReference reference,
                     Document document,
                     Document newDocument,
-                    bool placeSystemNamespaceFirst,
                     string versionOpt,
                     bool isLocal)
                 {
@@ -91,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
                     var installData = new AsyncLazy<InstallPackageAndAddImportData>(
-                        c => GetInstallDataAsync(reference, versionOpt, isLocal, document, newDocument, placeSystemNamespaceFirst, c),
+                        c => GetInstallDataAsync(reference, versionOpt, isLocal, document, newDocument, c),
                         cacheResult: true);
 
                     // Nuget hits should always come after other results.
@@ -105,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     bool isLocal,
                     Document document, 
                     Document newDocument,
-                    bool placeSystemNamespaceFirst, 
                     CancellationToken cancellationToken)
                 {
                     var oldDocument = document;
