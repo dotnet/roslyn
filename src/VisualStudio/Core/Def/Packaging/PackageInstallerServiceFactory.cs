@@ -457,8 +457,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var installedPackageMetadata = _packageServices.GetInstalledPackages(dteProject);
                 foreach (var metadata in installedPackageMetadata)
                 {
-                    installedPackages.Add(metadata.Id, metadata.VersionString);
+                    if (metadata.VersionString != null)
+                    {
+                        installedPackages.Add(metadata.Id, metadata.VersionString);
+                    }
                 }
+
                 isEnabled = true;
             }
             catch (ArgumentException e) when (IsKnownNugetIssue(e))
