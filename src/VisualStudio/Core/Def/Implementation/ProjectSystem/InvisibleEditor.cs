@@ -28,15 +28,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private OLE.Interop.IOleUndoManager _manager;
         private readonly bool _needsUndoRestored;
 
-        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, bool needsSave, bool needsUndoDisabled)
+        public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVisualStudioHostProject projectOpt, bool needsSave, bool needsUndoDisabled)
         {
             _serviceProvider = serviceProvider;
             _filePath = filePath;
             _needsSave = needsSave;
 
             var invisibleEditorManager = (IIntPtrReturningVsInvisibleEditorManager)serviceProvider.GetService(typeof(SVsInvisibleEditorManager));
+            var vsProject = projectOpt?.Hierarchy as IVsProject;
             var invisibleEditorPtr = IntPtr.Zero;
-            Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, null, 0, null, out invisibleEditorPtr));
+            Marshal.ThrowExceptionForHR(invisibleEditorManager.RegisterInvisibleEditor(filePath, vsProject, 0, null, out invisibleEditorPtr));
 
             try
             {
