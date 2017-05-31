@@ -2334,15 +2334,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void NoteFieldAccess(FieldSymbol field, bool read, bool write)
         {
+            // Make sure we're not marking a constructed field as used
+            field = field.OriginalDefinition;
+
             var container = field.ContainingType as SourceMemberContainerTypeSymbol;
             if ((object)container == null)
             {
                 // field is not in source.
                 return;
             }
-
-            // Make sure we're not marking a constructed field as used
-            field = field.OriginalDefinition;
 
             container.EnsureFieldDefinitionsNoted();
 

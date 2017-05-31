@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _writtenVariables.Add(variable);
                 if ((object)_sourceAssembly != null && variable.Kind == SymbolKind.Field)
                 {
-                    var field = (FieldSymbol)variable.OriginalDefinition;
+                    var field = (FieldSymbol)variable;
                     _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.Type, value), write: true);
                 }
 
@@ -642,8 +642,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var fieldAccess = (BoundFieldAccess)n;
                             if ((object)_sourceAssembly != null)
                             {
-                                var field = fieldAccess.FieldSymbol.OriginalDefinition;
-                                _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(fieldAccess.FieldSymbol.Type, value), write: true);
+                                var field = fieldAccess.FieldSymbol;
+                                _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(field.Type, value), write: true);
                             }
 
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
@@ -669,8 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if ((object)_sourceAssembly != null)
                                 {
-                                    var field = associatedField.OriginalDefinition;
-                                    _sourceAssembly.NoteFieldAccess(field, read: value == null || WriteConsideredUse(associatedField.Type, value), write: true);
+                                    _sourceAssembly.NoteFieldAccess(associatedField, read: value == null || WriteConsideredUse(associatedField.Type, value), write: true);
                                 }
 
                                 if (MayRequireTracking(eventAccess.ReceiverOpt, associatedField))
@@ -1128,7 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.FieldAccess:
                         {
                             var fieldAccess = (BoundFieldAccess)expression;
-                            var fieldSymbol = fieldAccess.FieldSymbol.OriginalDefinition;
+                            var fieldSymbol = fieldAccess.FieldSymbol;
                             if ((object)_sourceAssembly != null) _sourceAssembly.NoteFieldAccess(fieldSymbol, true, true);
                             if (fieldSymbol.ContainingType.IsReferenceType || fieldSymbol.IsStatic) return null;
                             expression = fieldAccess.ReceiverOpt;
@@ -2017,7 +2016,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
-                            FieldSymbol field = (FieldSymbol)symbol.OriginalDefinition;
+                            FieldSymbol field = (FieldSymbol)symbol;
                             assembly.NoteFieldAccess(field, read: true, write: true);
                             MarkFieldsUsed(field.Type);
                         }
