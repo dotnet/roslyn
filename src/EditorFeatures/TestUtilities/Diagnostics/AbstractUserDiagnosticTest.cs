@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 // Simple code fix.
                 foreach (var diagnostic in diagnostics)
                 {
+                    // to support diagnostics without fixers
                     if (fixer == null)
                     {
                         result.Add(Tuple.Create(diagnostic, (CodeFixCollection)null));

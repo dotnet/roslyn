@@ -1,28 +1,26 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Threading;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.ValidateFormatString
 {
-    internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKind> :
-        DiagnosticAnalyzer
+    internal abstract class AbstractValidateFormatStringDiagnosticAnalyzer<TSyntaxKind> 
+        : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
-        private static Regex s_removeEscapedBracketsRegex = new Regex("{{");
-        private static Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
+        private const string DiagnosticID = IDEDiagnosticIds.ValidateFormatStringDiagnosticID;
 
-        private const string DiagnosticId = IDEDiagnosticIds.ValidateFormatStringDiagnosticID;
         private static readonly LocalizableString Title = new LocalizableResourceString(
             nameof(FeaturesResources.Invalid_format_string),
             FeaturesResources.ResourceManager,
             typeof(FeaturesResources));
 
         private static readonly LocalizableString MessageFormat = new LocalizableResourceString(
-            nameof(FeaturesResources.Format_string_0_contains_invalid_placeholder_1),
+            nameof(FeaturesResources.Format_string_contains_invalid_placeholder_0),
             FeaturesResources.ResourceManager,
             typeof(FeaturesResources));
 
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             typeof(FeaturesResources));
 
         private static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            DiagnosticId,
+            DiagnosticID,
             Title,
             MessageFormat,
             DiagnosticCategory.Compiler,
@@ -43,18 +41,20 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Rule);
 
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory()
-            => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        // this regex is used to remove escaped brackets from
+        // the format string before looking for valid {} pairs
+        private static Regex s_removeEscapedBracketsRegex = new Regex("{{");
+
+        // this regex is used to extract the text between the
+        // brackets and save the contents in a MatchCollection
+        private static Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
 
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract TSyntaxKind GetInvocationExpressionSyntaxKind();
-        protected abstract string GetLiteralExpressionSyntaxAsString(SyntaxNode syntaxNode);
-        protected abstract int GetLiteralExpressionSyntaxSpanStart(SyntaxNode syntaxNode);
-        protected abstract bool TryGetFormatStringLiteralExpressionSyntax(
-            SemanticModel semanticModel,
-            SeparatedSyntaxList<SyntaxNode> arguments,
-            ImmutableArray<IParameterSymbol> parameters,
-            out SyntaxNode formatStringLiteralExpressionSyntax);
+        protected abstract SyntaxNode GetArgumentExpression(SyntaxNode syntaxNode);
+        protected abstract ITypeSymbol GetArgumentExpressionType(SemanticModel semanticModel, SyntaxNode argsArgument);
+        protected abstract SyntaxNode GetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
+        protected abstract bool ArgumentExpressionIsStringLiteral(SyntaxNode syntaxNode);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -67,17 +67,32 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     return;
                 }
 
-                startContext.RegisterSyntaxNodeAction(c => AnalyzeNode(c, formatProviderType),
+                startContext.RegisterSyntaxNodeAction(
+                    c => AnalyzeNode(c, formatProviderType),
                     GetInvocationExpressionSyntaxKind());
             });
         }
 
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
+            var optionSet = context.Options.GetDocumentOptionSetAsync(
+                context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
+            if (optionSet == null)
+            {
+                return;
+            }
+
+            if (optionSet.GetOption(
+                ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, 
+                context.SemanticModel.Language) == false)
+            {
+                return;
+            };
+
             var syntaxFacts = GetSyntaxFactsService();
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(context.Node);
 
-            if (GetMethodName(syntaxFacts, expression) != nameof(string.Format))
+            if (!IsValidFormatMethod(syntaxFacts, expression))
             {
                 return;
             }
@@ -103,12 +118,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
-            if (!TryGetFormatStringLiteralExpressionSyntax(
+            var formatStringLiteralExpressionSyntax = TryGetFormatStringLiteralExpressionSyntax(
                 context.SemanticModel,
                 arguments,
-                parameters,
-                out var formatStringLiteralExpressionSyntax))
-            {
+                parameters);
+
+            if (formatStringLiteralExpressionSyntax == null)
+            { 
                 return;
             }
 
@@ -125,7 +141,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             // empty params array.
             var numberOfPlaceholderArguments = numberOfArguments - (hasIFormatProvider ? 2 : 1);
 
-            var formatString = GetLiteralExpressionSyntaxAsString(formatStringLiteralExpressionSyntax);
+            var formatString = formatStringLiteralExpressionSyntax.ToString();
 
             if (FormatCallWorksAtRuntime(formatString, numberOfPlaceholderArguments))
             {
@@ -133,23 +149,29 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             }
             
             ValidateAndReportDiagnostic(context, numberOfPlaceholderArguments,
-                formatString, GetLiteralExpressionSyntaxSpanStart(formatStringLiteralExpressionSyntax));
+                formatString, formatStringLiteralExpressionSyntax.SpanStart);
         }
 
-        private string GetMethodName(ISyntaxFactsService syntaxFacts, SyntaxNode expression)
+        private bool IsValidFormatMethod(ISyntaxFactsService syntaxFacts, SyntaxNode expression)
         {
+            // When calling string.Format(...), the expression will be MemberAccessExpressionSyntax
             if (syntaxFacts.IsSimpleMemberAccessExpression(expression))
             {
                 var nameOfMemberAccessExpression = syntaxFacts.GetNameOfMemberAccessExpression(expression);
-                return syntaxFacts.GetIdentifierOfSimpleName(nameOfMemberAccessExpression).ValueText;
+                return !syntaxFacts.IsGenericName(nameOfMemberAccessExpression)
+                    && syntaxFacts.GetIdentifierOfSimpleName(nameOfMemberAccessExpression).
+                    ValueText.Equals(nameof(string.Format));
             }
 
+            // When using static System.String and calling Format(...), the expression will be 
+            // IdentifierNameSyntax
             if (syntaxFacts.IsIdentifierName(expression))
             {
-                return syntaxFacts.GetIdentifierOfSimpleName(expression).ValueText;
+                return syntaxFacts.GetIdentifierOfSimpleName(expression).ValueText.Equals(
+                    nameof(string.Format));
             }
-
-            return null;
+            
+            return false;
         }
 
         private bool ArgsIsArrayOfReferenceTypes(
@@ -171,11 +193,99 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return argsArray.ElementType.IsReferenceType;
         }
 
-        internal abstract bool TryGetArgsArgumentType(
+        private bool TryGetArgsArgumentType(
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters,
-            out ITypeSymbol argsArgumentType);
+            out ITypeSymbol argsArgumentType)
+        {
+            var nameOfArgsParameter = "args";
+            if (!TryGetArgument(
+                semanticModel, 
+                nameOfArgsParameter, 
+                arguments, 
+                parameters, 
+                out var argsArgument))
+            {
+                argsArgumentType = null;
+                return false;
+            }
+
+            argsArgumentType = GetArgumentExpressionType(semanticModel, argsArgument);
+            return true;
+        }
+
+        protected bool TryGetArgument(
+            SemanticModel semanticModel,
+            string searchArgumentName,
+            SeparatedSyntaxList<SyntaxNode> arguments,
+            ImmutableArray<IParameterSymbol> parameters,
+            out SyntaxNode argumentSyntax)
+        {
+            argumentSyntax = null;
+
+            // First, look for a named argument that matches
+            var namedArguments = GetMatchingNamedArgument(arguments, searchArgumentName);
+
+            if (namedArguments != null)
+            {
+                argumentSyntax = namedArguments;
+                return true;
+            }
+
+            // If no named argument exists, look for the named parameter
+            // and return the corresponding argument
+            var namedParameters = parameters.Where(p => p.Name.Equals(searchArgumentName));
+
+            if (namedParameters.Count() != 1)
+            {
+                return false;
+            }
+
+            var namedParameter = namedParameters.Single();
+
+            // For the case string.Format("Test string"), there is only one argument
+            // but the compiler created an empty parameter array to bind to an overload
+            if (namedParameter.Ordinal >= arguments.Count)
+            {
+                return false;
+            }
+
+            // Multiple arguments could have been converted to a single params array, 
+            // so there wouldn't be a corresponding argument
+            if (namedParameter.IsParams && parameters.Length != arguments.Count)
+            {
+                return false;
+            }
+
+            argumentSyntax = arguments[namedParameter.Ordinal];
+            return true;
+        }
+
+        protected SyntaxNode TryGetFormatStringLiteralExpressionSyntax(
+            SemanticModel semanticModel,
+            SeparatedSyntaxList<SyntaxNode> arguments,
+            ImmutableArray<IParameterSymbol> parameters)
+        {
+            var nameOfFormatParameter = "format";
+
+            if (!TryGetArgument(
+                semanticModel, 
+                nameOfFormatParameter, 
+                arguments, 
+                parameters, 
+                out var formatArgumentSyntax))
+            {
+                return null;
+            }
+
+            if (!ArgumentExpressionIsStringLiteral(formatArgumentSyntax))
+            {
+                return null;
+            }
+
+            return GetArgumentExpression(formatArgumentSyntax);
+        }
 
         protected static bool TryGetValidFormatMethodSymbol(
             SyntaxNodeAnalysisContext context,
@@ -195,10 +305,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return false;
             }
 
-            if (!(symbolInfo.Symbol.ContainingSymbol is INamedTypeSymbol containingType))
-            {
-                return false;
-            }
+            var containingType = (INamedTypeSymbol)symbolInfo.Symbol.ContainingSymbol;
 
             if (containingType.SpecialType != SpecialType.System_String)
             {
@@ -235,7 +342,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return true;
         }
 
-        protected static void ValidateAndReportDiagnostic(
+        protected void ValidateAndReportDiagnostic(
             SyntaxNodeAnalysisContext context,
             int numberOfPlaceholderArguments,
             string formatString,
@@ -253,11 +360,12 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     var invalidPlaceholderText = "{" + textInsideBrackets + "}";
                     var invalidPlaceholderLocation = Location.Create(
                         context.Node.SyntaxTree,
-                        new Text.TextSpan(formatStringPosition + match.Index, invalidPlaceholderText.Length));
+                        new Text.TextSpan(
+                            formatStringPosition + match.Index, 
+                            invalidPlaceholderText.Length));
                     var diagnostic = Diagnostic.Create(
-                        Rule, 
+                        Rule,
                         invalidPlaceholderLocation, 
-                        formatString.Replace("\n", "\\n").Replace("\r", "\\r"),
                         invalidPlaceholderText);
                     context.ReportDiagnostic(diagnostic);
                 }
@@ -267,7 +375,9 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         private static string RemoveEscapedBrackets(string formatString)
             => s_removeEscapedBracketsRegex.Replace(formatString, "  ");
 
-        private static bool PlaceholderIndexIsValid(string textInsideBrackets, int numberOfPlaceholderArguments)
+        private static bool PlaceholderIndexIsValid(
+            string textInsideBrackets, 
+            int numberOfPlaceholderArguments)
         {
             var placeholderIndexText = (textInsideBrackets.IndexOf(",") > 0)
                 ? textInsideBrackets.Split(',')[0]

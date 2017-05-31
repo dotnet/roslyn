@@ -784,6 +784,7 @@
     <Compile Include="UseObjectInitializer\AbstractUseObjectInitializerCodeFixProvider.cs" />
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameDiagnosticAnalyzer.cs" />
     <Compile Include="ValidateFormatString\AbstractValidateFormatStringDiagnosticAnalyzer.cs" />
+    <Compile Include="ValidateFormatString\ValidateFormatStringOption.cs" />
     <Compile Include="Workspace\BackgroundCompiler.cs" />
     <Compile Include="Workspace\BackgroundParser.cs" />
     <Compile Include="Workspace\ProjectCacheService.cs" />

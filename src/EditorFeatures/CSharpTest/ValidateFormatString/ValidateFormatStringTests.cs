@@ -1,22 +1,40 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.ValidateFormatString;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.ValidateFormatString;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
+
     public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (new CSharpValidateFormatStringDiagnosticAnalyzer(), null);
-        
+
+        private IDictionary<OptionKey, object> CSharpOptionOffVBOptionOn()
+        {
+            var optionsSet = new Dictionary<OptionKey, object>();
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp) , false);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), true);
+            return optionsSet;
+        }
+
+        private IDictionary<OptionKey, object> CSharpOptionOnVBOptionOff()
+        {
+            var optionsSet = new Dictionary<OptionKey, object>();
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp), true);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), false);
+            return optionsSet;
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task OnePlaceholder()
         {
@@ -460,10 +478,83 @@ class Program
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task DuplicateNamedArgs()
+        {
+            await TestDiagnosticMissingAsync(@" class Program
+{
+    static void Main(string[] args)
+    {
+        string.Format(format:""This [||] "", format:"" test ""); 
+    }     
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task GenericIdentifier()
+        {
+            await TestDiagnosticMissingAsync(@"using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Generics_CSharp
+{
+    public class MyList<T> 
+    {
+        public void Format<T>(string teststr)
+        {
+            Console.WriteLine(teststr);
+        }
+    }
+    
+    class Generics
+    {
+        static void Main(string[] args)
+        {
+            MyList<int> testList = new MyList<int>();
+            testList.Format<int>(""Test[||]String"");
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task WarningTurnedOff()
+        {
+            await TestDiagnosticMissingAsync(@" class Program
+{
+    static void Main(string[] args)
+    {
+        string.Format(""This {1[||]} works"", ""test""); 
+    }   
+}
+", new TestParameters(options: CSharpOptionOffVBOptionOn()));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task WarningTuredOn()
+        {
+            var diagnosticMessage = string.Format(
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
+            await TestDiagnosticInfoAsync(@" class Program
+{
+    static void Main(string[] args)
+    {
+        string.Format(""This [|{1}|] is my test"", ""teststring1"");
+    }     
+}",
+                options: CSharpOptionOnVBOptionOff(),
+                diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
+                diagnosticSeverity: DiagnosticSeverity.Warning,
+                diagnosticMessage: diagnosticMessage);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
         public async Task OnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {1} is my test\"", "{1}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -481,7 +572,7 @@ class Program
         public async Task TwoPlaceholdersWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {2} is my test\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -499,7 +590,7 @@ class Program
         public async Task ThreePlaceholdersWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This{0}{1}{2}{3} is my test\"", "{3}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{3}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -517,7 +608,7 @@ class Program
         public async Task FourPlaceholdersWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This{0}{1}{2}{3}{4} is my test\"", "{4}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{4}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -536,7 +627,7 @@ class Program
         public async Task iFormatProviderAndOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {1} is my test\"", "{1}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
             await TestDiagnosticInfoAsync(@" using System.Globalization; 
 class Program
 {
@@ -555,7 +646,7 @@ class Program
         public async Task iFormatProviderAndTwoPlaceholdersWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {2} is my test\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" using System.Globalization; 
 class Program
 {
@@ -574,8 +665,7 @@ class Program
         public async Task IFormatProviderAndThreePlaceholdersWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, 
-                "\"This{0}{1}{2}{3} is my test\"", "{3}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{3}");
             await TestDiagnosticInfoAsync(@" using System.Globalization; 
 class Program
 {
@@ -595,8 +685,7 @@ class Program
         public async Task IFormatProviderAndFourPlaceholdersWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, 
-                "\"This{0}{1}{2}{3}{4} is my test\"", "{4}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{4}");
             await TestDiagnosticInfoAsync(@" using System.Globalization; 
 class Program
 {
@@ -616,7 +705,7 @@ class Program
         public async Task PlaceholderAtBeginningWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"{1}is my test\"", "{1}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -634,7 +723,7 @@ class Program
         public async Task PlaceholderAtEndWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"is my test {2}\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -652,7 +741,7 @@ class Program
         public async Task DoubleBracesAtBeginningWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"}}is my test {2}\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -670,7 +759,7 @@ class Program
         public async Task DoubleBracesAtEndWithOnePlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"is my test {2}{{\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -688,7 +777,7 @@ class Program
         public async Task NamedParametersOneOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {2} works\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" using System.Globalization; 
 class Program
 {
@@ -707,7 +796,7 @@ class Program
         public async Task NamedParametersWithIFormatProviderOneOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {2} works\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" using System.Globalization; 
 class Program
 {
@@ -726,7 +815,7 @@ class Program
         public async Task FormatOnly_NoStringDot_OneOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {2} squiggles\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" using static System.String
 class Program
 {
@@ -762,7 +851,7 @@ class Program
             </Workspace>";
 
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {1} is my test\"", "{1}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
             await TestDiagnosticInfoAsync(input,
                 options: null,
                 diagnosticId: IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
@@ -774,7 +863,7 @@ class Program
         public async Task VerbatimMultipleLinesPlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "@\"This {0} \\r\\n{1} {3} works\"", "{3}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{3}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -793,7 +882,7 @@ class Program
         public async Task IntArrayOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {1} {2} works\"", "{1}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -812,7 +901,7 @@ class Program
         public async Task FirstPlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {1} {2} works\"", "{1}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -831,7 +920,7 @@ class Program
         public async Task SecondPlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {1} {2} works\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -850,7 +939,7 @@ class Program
         public async Task FirstOfMultipleSameNamedPlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {2} {2} works\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -869,7 +958,7 @@ class Program
         public async Task SecondOfMultipleSameNamedPlaceholderOutOfBounds()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {0} {2} {2} works\"", "{2}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)
@@ -888,7 +977,7 @@ class Program
         public async Task EmptyPlaceholder()
         {
             var diagnosticMessage = string.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, "\"This {} \"", "{}");
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{}");
             await TestDiagnosticInfoAsync(@" class Program
 {
     static void Main(string[] args)

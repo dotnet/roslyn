@@ -1247,8 +1247,8 @@ This version used in: {2}</value>
   <data name="default_expression_can_be_simplified" xml:space="preserve">
     <value>'default' expression can be simplified</value>
   </data>
-  <data name="Format_string_0_contains_invalid_placeholder_1" xml:space="preserve">
-    <value>Format string '{0}' contains invalid placeholder '{1}'</value>
+  <data name="Format_string_contains_invalid_placeholder_0" xml:space="preserve">
+    <value>Format string contains invalid placeholder '{0}'</value>
   </data>
   <data name="Invalid_format_string" xml:space="preserve">
     <value>Invalid format string</value>

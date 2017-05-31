@@ -1231,6 +1231,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warn on invalid string.Format method calls.
+        /// </summary>
+        internal static string Warn_on_invalid_string_dot_format_calls {
+            get {
+                return ResourceManager.GetString("Warn_on_invalid_string_dot_format_calls", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When on single line.
         /// </summary>
         internal static string When_on_single_line {

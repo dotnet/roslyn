@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.Structure
 Imports Microsoft.CodeAnalysis.SymbolSearch
+Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -54,6 +55,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(prefer_throwing_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.VisualBasic)
             BindToOption(prefer_auto_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.VisualBasic)
+
+            BindToOption(Warn_on_invalid_string_dot_format_calls, ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

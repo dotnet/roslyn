@@ -1,18 +1,39 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.ValidateFormatString
 Imports Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
-Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatString
     Public Class ValidateFormatStringTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(
+                workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicValidateFormatStringDiagnosticAnalyzer, Nothing)
+        End Function
+
+        Private Function VBOptionOnCSharpOptionOff() As IDictionary(Of OptionKey, Object)
+            Dim optionsSet = New Dictionary(Of OptionKey, Object) From
+            {
+                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp), False},
+                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), True}
+            }
+
+            Return optionsSet
+        End Function
+
+        Private Function VBOptionOffCSharpOptionOn() As IDictionary(Of OptionKey, Object)
+            Dim optionsSet = New Dictionary(Of OptionKey, Object) From
+            {
+                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp), True},
+                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), False}
+            }
+
+            Return optionsSet
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -49,7 +70,8 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function OnePlaceholderOutOfBounds() As Task
-            Dim diagnosticMessage = String.Format(FeaturesResources.Format_string_0_contains_invalid_placeholder_1, """This {1} is my test""", "{1}")
+            Dim diagnosticMessage = String.Format(
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}")
             Await TestDiagnosticInfoAsync("
 Class C
      Sub Main 
@@ -65,7 +87,7 @@ End Class",
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function FourPlaceholdersWithOnePlaceholderOutOfBounds() As Task
             Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, """This{0}{1}{2}{3}{4} is my test""", "{4}")
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{4}")
             Await TestDiagnosticInfoAsync("
 Class C
      Sub Main 
@@ -81,7 +103,7 @@ End Class",
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function IFormatProviderAndTwoPlaceholdersWithOnePlaceholderOutOfBounds() As Task
             Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, """This {2} is my test""", "{2}")
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}")
             Await TestDiagnosticInfoAsync("
 Imports System.Globalization
 Class C
@@ -109,7 +131,7 @@ End Class")
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function NamedParametersOneOutOfBounds() As Task
             Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_0_contains_invalid_placeholder_1, """This {0} {2} works""", "{2}")
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}")
             Await TestDiagnosticInfoAsync("
 Class C
      Sub Main 
@@ -199,7 +221,6 @@ Class C
 End Class")
         End Function
 
-
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function ParenthesesOnly() As Task
             Await TestDiagnosticMissingAsync("
@@ -220,7 +241,47 @@ Class C
 End Class")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function FormatMethodOnGenericIdentifier() As Task
+            Await TestDiagnosticMissingAsync("
+Class G(Of T)
+    Function Format(Of T)(foo as String)
+        Return True
+    End Function
+End Class
+
+Class C
+    Sub Foo()
+        Dim q As G(Of Integer)
+        q.Format(Of Integer)(""TestStr[||]ing"")
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function WarningTurnedOff() As Task
+            Await TestDiagnosticMissingAsync("
+Class C
+     Sub Main 
+        string.Format(""This {0} {1} {[||]2} works"", New Object  { ""test"", ""test2"", ""test3"" })
+    End Sub
+End Class", New TestParameters(options:=VBOptionOffCSharpOptionOn))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function WarningTurnedOn() As Task
+            Dim diagnosticMessage = String.Format(
+                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}")
+            Await TestDiagnosticInfoAsync("
+Class C
+     Sub Main 
+        string.Format(""This {0} [|{2}|] works"", ""test"", ""also"")
+    End Sub
+End Class",
+        options:=VBOptionOnCSharpOptionOff,
+        diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
+        diagnosticSeverity:=DiagnosticSeverity.Warning,
+        diagnosticMessage:=diagnosticMessage)
+        End Function
     End Class
-
 End Namespace
-

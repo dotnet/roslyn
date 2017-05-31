@@ -522,5 +522,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
             End Get
         End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Warn on invalid string.Format method calls.
+        '''</summary>
+        Friend Shared ReadOnly Property Warn_on_invalid_string_dot_format_calls() As String
+            Get
+                Return ResourceManager.GetString("Warn_on_invalid_string_dot_format_calls", resourceCulture)
+            End Get
+        End Property
     End Class
 End Namespace
