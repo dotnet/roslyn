@@ -44,6 +44,7 @@ try
         "dev15.3-preview2" { }
         "master" { } 
         "post-dev15" { } 
+        "fastInitialTaggingMaster" { } 
         default
         {
             if (-not $test)
