@@ -376,7 +376,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
@@ -408,7 +408,7 @@ End Module
                              </file>
                          </compilation>
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
             Dim tree = comp.SyntaxTrees.Single()
             Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
             Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
@@ -417,5 +417,38 @@ End Module
             Assert.Equal("Using", op.Declaration.Syntax.ToString())
         End Sub
 
+        <Fact>
+        Public Sub UsingDeclarationExistingVariableNonNullSyntax()
+            ' TODO: This will need to be removed when https://github.com/dotnet/roslyn/issues/19887 is fixed.
+
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Imports System
+Module Module1
+    Class C1
+        Implements IDisposable
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Throw New NotImplementedException()
+        End Sub
+    End Class
+    Sub S1()
+        Dim x = New C1()
+        Using x
+        End Using
+    End Sub
+End Module
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of UsingBlockSyntax).Single()
+            Dim op = DirectCast(comp.GetSemanticModel(tree).GetOperationInternal(node), IUsingStatement)
+
+            Assert.NotNull(op.Declaration.Syntax)
+            Assert.Equal("Using x", op.Declaration.Syntax.ToString())
+        End Sub
     End Class
 End Namespace
