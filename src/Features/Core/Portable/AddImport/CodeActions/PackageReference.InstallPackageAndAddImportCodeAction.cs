@@ -18,12 +18,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private class InstallPackageAndAddImportCodeAction : CodeAction
             {
-                private readonly string _title;
-                private readonly CodeActionPriority _priority;
-
-                public override string Title => _title;
-                public override string EquivalenceKey => _title;
-                internal override CodeActionPriority Priority => _priority;
+                public override string Title { get; }
+                public override string EquivalenceKey => Title;
+                internal override CodeActionPriority Priority { get; }
 
                 /// <summary>
                 /// The document before we added the import. Used so we can roll back if installing
@@ -48,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     ImmutableArray<TextChange> textChanges,
                     InstallPackageDirectlyCodeActionOperation installOperation)
                 {
-                    _title = title;
-                    _priority = priority;
+                    Title = title;
+                    Priority = priority;
                     _oldDocument = oldDocument;
                     _textChanges = textChanges;
                     _installOperation = installOperation;
