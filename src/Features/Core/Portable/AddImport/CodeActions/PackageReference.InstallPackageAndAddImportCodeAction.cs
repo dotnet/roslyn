@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -31,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private readonly Document _oldDocument;
 
                 /// <summary>
-                /// The document after the import has been added.
+                /// The changes to make to <see cref="_oldDocument"/> to add the import.
                 /// </summary>
-                private readonly Document _newDocument;
+                private readonly ImmutableArray<TextChange> _textChanges;
 
                 /// <summary>
                 /// The operation that will actually install the nuget package.
@@ -43,13 +44,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public InstallPackageAndAddImportCodeAction(
                     string title, 
                     CodeActionPriority priority,
-                    Document oldDocument, Document newDocument,
+                    Document oldDocument,
+                    ImmutableArray<TextChange> textChanges,
                     InstallPackageDirectlyCodeActionOperation installOperation)
                 {
                     _title = title;
                     _priority = priority;
                     _oldDocument = oldDocument;
-                    _newDocument = newDocument;
+                    _textChanges = textChanges;
                     _installOperation = installOperation;
                 }
 
@@ -64,12 +66,20 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     // Make a SolutionChangeAction.  This way we can let it generate the diff
                     // preview appropriately.
                     var solutionChangeAction = new SolutionChangeAction(
-                        "", c => Task.FromResult(_newDocument.Project.Solution));
+                        "", c => GetUpdatedSolutionAsync(c));
 
                     var result = ArrayBuilder<CodeActionOperation>.GetInstance();
                     result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
                     result.Add(_installOperation);
                     return result.ToImmutableAndFree();
+                }
+
+                private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)
+                {
+                    var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = oldText.WithChanges(_textChanges);
+
+                    return _oldDocument.WithText(newText).Project.Solution;
                 }
 
                 /// <summary>
@@ -81,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     CancellationToken cancellationToken)
                 {
                     var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = await _newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = oldText.WithChanges(_textChanges);
 
                     return ImmutableArray.Create<CodeActionOperation>(
                         new InstallPackageAndAddImportOperation(

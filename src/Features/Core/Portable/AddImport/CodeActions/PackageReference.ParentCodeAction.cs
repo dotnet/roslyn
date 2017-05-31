@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -38,9 +39,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 public ParentCodeAction(
                     PackageReference reference,
                     Document document,
-                    Document newDocument)
+                    ImmutableArray<TextChange> textChanges)
                     : base(string.Format(FeaturesResources.Install_package_0, reference._packageName), 
-                           CreateNestedActions(reference, document, newDocument),
+                           CreateNestedActions(reference, document, textChanges),
                            isInlinable: false)
                 {
                     _reference = reference;
@@ -48,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 private static ImmutableArray<CodeAction> CreateNestedActions(
                     PackageReference reference,
-                    Document document, 
-                    Document newDocument)
+                    Document document,
+                    ImmutableArray<TextChange> textChanges)
                 {
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
@@ -59,13 +60,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                     // First add the actions to install a specific version.
                     codeActions.AddRange(installedVersions.Select(
-                        v => CreateCodeAction(reference, document, newDocument, versionOpt: v, isLocal: true)));
+                        v => CreateCodeAction(reference, document, textChanges, versionOpt: v, isLocal: true)));
 
                     // Now add the action to install the specific version.
                     var preferredVersion = reference._versionOpt;
                     if (preferredVersion == null || !installedVersions.Contains(preferredVersion))
                     {
-                        codeActions.Add(CreateCodeAction(reference, document, newDocument,
+                        codeActions.Add(CreateCodeAction(reference, document, textChanges,
                             versionOpt: reference._versionOpt, isLocal: false));
                     }
 
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private static CodeAction CreateCodeAction(
                     PackageReference reference,
                     Document document,
-                    Document newDocument,
+                    ImmutableArray<TextChange> textChanges,
                     string versionOpt,
                     bool isLocal)
                 {
@@ -95,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     // Nuget hits should always come after other results.
                     return new InstallPackageAndAddImportCodeAction(
                         title, CodeActionPriority.Low, 
-                        document, newDocument, installOperation);
+                        document, textChanges, installOperation);
                 }
             }
         }

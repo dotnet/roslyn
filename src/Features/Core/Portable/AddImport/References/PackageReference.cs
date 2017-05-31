@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -46,7 +47,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var cleanedDocument = await CodeAction.CleanupDocumentAsync(
                     newDocument, cancellationToken).ConfigureAwait(false);
 
-                return new ParentCodeAction(this, originalDocument, cleanedDocument);
+                var textChanges = await cleanedDocument.GetTextChangesAsync(
+                    originalDocument, cancellationToken).ConfigureAwait(false);
+
+                return new ParentCodeAction(this, originalDocument, textChanges.ToImmutableArray());
             }
 
             public override bool Equals(object obj)
