@@ -28,17 +28,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// The document before we added the import. Used so we can roll back if installing
                 /// the package failed.
                 /// </summary>
-                private readonly Document OldDocument;
+                private readonly Document _oldDocument;
 
                 /// <summary>
                 /// The document after the import has been added.
                 /// </summary>
-                private readonly Document NewDocument;
+                private readonly Document _newDocument;
 
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
-                private readonly InstallPackageDirectlyCodeActionOperation InstallOperation;
+                private readonly InstallPackageDirectlyCodeActionOperation _installOperation;
 
                 public InstallPackageAndAddImportCodeAction(
                     string title, 
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     _title = title;
                     _priority = priority;
-                    OldDocument = oldDocument;
-                    NewDocument = newDocument;
-                    InstallOperation = installOperation;
+                    _oldDocument = oldDocument;
+                    _newDocument = newDocument;
+                    _installOperation = installOperation;
                 }
 
                 /// <summary>
@@ -64,11 +64,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     // Make a SolutionChangeAction.  This way we can let it generate the diff
                     // preview appropriately.
                     var solutionChangeAction = new SolutionChangeAction(
-                        "", c => Task.FromResult(NewDocument.Project.Solution));
+                        "", c => Task.FromResult(_newDocument.Project.Solution));
 
                     var result = ArrayBuilder<CodeActionOperation>.GetInstance();
                     result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
-                    result.Add(InstallOperation);
+                    result.Add(_installOperation);
                     return result.ToImmutableAndFree();
                 }
 
@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                     CancellationToken cancellationToken)
                 {
-                    var oldText = await OldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = await NewDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await _newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return ImmutableArray.Create<CodeActionOperation>(
                         new InstallPackageAndAddImportOperation(
-                            OldDocument.Id, oldText, newText, InstallOperation));
+                            _oldDocument.Id, oldText, newText, _installOperation));
                 }
             }
 
