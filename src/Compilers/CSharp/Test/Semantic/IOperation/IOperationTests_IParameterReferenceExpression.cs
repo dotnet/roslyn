@@ -850,5 +850,48 @@ IOperation:  (OperationKind.None) (Syntax: 'x is int y')
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(19902, "https://github.com/dotnet/roslyn/issues/19902")]
+        public void ParameterReference_LocalFunctionStatement()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+
+class Class
+{
+    static IEnumerable<T> MyIterator<T>(IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        /*<bind>*/IEnumerable<T> Iterator()
+        {
+            foreach (var element in source)
+                if (predicate(element))
+                    yield return element;
+        }/*</bind>*/
+
+        return Iterator();
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'IEnumerable ... }')
+  Children(1): IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+      IForEachLoopStatement (Iteration variable: T element) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... rn element;')
+        Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+            IParameterReferenceExpression: source (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+        Body: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (predica ... rn element;')
+            Condition: IInvocationExpression (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'predicate(element)')
+                Instance Receiver: IParameterReferenceExpression: predicate (OperationKind.ParameterReferenceExpression, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
+                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'element')
+                    ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+            IfTrue: IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return element;')
+                ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+      YieldBreakStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<LocalFunctionStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
