@@ -1293,7 +1293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             }
         }
 
-        private Lazy<ISymUnmanagedReader3> MarshalPdbReader(IDebugUpdateInMemoryPE2 updater)
+        private static Lazy<ISymUnmanagedReader3> MarshalPdbReader(IDebugUpdateInMemoryPE2 updater)
         {
             // ISymUnmanagedReader can only be accessed from an MTA thread, however, we need
             // fetch the IUnknown instance (call IENCSymbolReaderProvider.GetSymbolReader) here
