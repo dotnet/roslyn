@@ -1615,7 +1615,7 @@ End Module").Path
             Assert.Equal(False, parsedArgs.CompilationOptions.OptionInfer)
         End Sub
 
-        Private Const s_VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
+        Private ReadOnly s_VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
 
         <Fact>
         Public Sub LanguageVersionAdded_Canary()
@@ -1625,7 +1625,6 @@ End Module").Path
             ' - update the IDE drop-down for selecting Language Version (not yet supported in VB)
             ' - update all the tests that call this canary
             ' - update the command-line documentation (CommandLine.md)
-            ' - update the current version number (<see cref="PredefinedPreprocessorSymbols.CurrentVersionNumber"/>)
             AssertEx.SetEqual({"default", "9", "10", "11", "12", "14", "15", "15.3", "15.6", "latest"},
                 System.Enum.GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString()))
             ' For minor versions, the format should be "x.y", such as "15.3"
