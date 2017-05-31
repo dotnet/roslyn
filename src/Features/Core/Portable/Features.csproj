@@ -99,6 +99,8 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\AddImportOptions.cs" />
+    <Compile Include="AddImport\AddImportSymbolTreeInfoService.cs" />
     <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
@@ -146,6 +148,11 @@
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
     <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
+    <Compile Include="FindUsages\FindUsagesOptions.cs" />
+    <Compile Include="FindUsages\IRemoteFindUsages.cs" />
+    <Compile Include="FindUsages\SerializableClassifiedSpansAndHighlightSpan.cs" />
+    <Compile Include="FindUsages\SerializableDefinitionItem.cs" />
+    <Compile Include="FindUsages\SerializableSourceReferenceItem.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -162,7 +169,6 @@
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService.cs" />
-    <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService_Remote.cs" />
     <Compile Include="DocumentHighlighting\IDocumentHighlightsService.cs" />
     <Compile Include="DocumentHighlighting\IRemoteDocumentHighlights.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />

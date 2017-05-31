@@ -2,14 +2,14 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.DocumentHighlighting
+namespace Microsoft.CodeAnalysis.FindUsages
 {
-    internal static class DocumentHighlightingOptions
+    internal static class FindUsagesOptions
     {
-        private const string LocalRegistryPath = @"Roslyn\Features\DocumentHighlighting\";
+        private const string LocalRegistryPath = @"Roslyn\Features\FindUsages\";
 
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(DocumentHighlightingOptions), nameof(OutOfProcessAllowed), defaultValue: true,
+            nameof(FindUsagesOptions), nameof(OutOfProcessAllowed), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
     }
 }

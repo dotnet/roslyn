@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Storage
                 return false;
             }
 
-            var size = _solutionSizeTracker.GetSolutionSize(solution.Workspace, solution.Id);
+            var size = _solutionSizeTracker.GetSolutionSize(workspace, solution.Id);
             var threshold = this.OptionService.GetOption(StorageOptions.SolutionSizeThreshold);
             return size >= threshold;
         }

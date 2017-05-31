@@ -9,8 +9,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     public static partial class SymbolFinder
     {
-        internal static Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
-            Solution solution, CancellationToken cancellationToken)
+        internal static Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(Solution solution, CancellationToken cancellationToken)
             => TryGetRemoteSessionAsync(solution, serverCallback: null, cancellationToken: cancellationToken);
 
         private static Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(

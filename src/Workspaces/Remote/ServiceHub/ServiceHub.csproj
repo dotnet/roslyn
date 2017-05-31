@@ -72,8 +72,10 @@
       <Link>Shared\JsonRpcMessageHandler.cs</Link>
     </Compile>
     <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
+    <Compile Include="Services\CodeAnalysisService_SymbolTreeInfoCache.cs" />
     <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
     <Compile Include="Services\CodeAnalysisService_DocumentHighlights.cs" />
+    <Compile Include="Services\CodeAnalysisService_FindUsages.cs" />
     <Compile Include="Services\CodeAnalysisService_TodoComments.cs" />
     <Compile Include="Services\CodeAnalysisService_SymbolFinder.cs" />
     <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />

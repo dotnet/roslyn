@@ -12,8 +12,7 @@ namespace Microsoft.CodeAnalysis.SQLite
 {
     internal partial class SQLitePersistentStorageService : AbstractPersistentStorageService
     {
-        private const string StorageExtension = "sqlite3";
-        private const string PersistentStorageFileName = "storage.ide";
+        private const string PersistentStorageFileName = "storage.sqlite3";
 
         public SQLitePersistentStorageService(
             IOptionService optionService,
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         protected override string GetDatabaseFilePath(string workingFolderPath)
         {
             Contract.ThrowIfTrue(string.IsNullOrWhiteSpace(workingFolderPath));
-            return Path.Combine(workingFolderPath, StorageExtension, PersistentStorageFileName);
+            return Path.Combine(workingFolderPath, PersistentStorageFileName);
         }
 
         protected override AbstractPersistentStorage OpenDatabase(Solution solution, string workingFolderPath, string databaseFilePath)

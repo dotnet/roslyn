@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -18,14 +19,127 @@ namespace Microsoft.CodeAnalysis.Remote
             return new SerializableTaggedText { Tag = taggedText.Tag, Text = taggedText.Text };
         }
 
-        internal static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> displayTaggedParts)
+        public static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> array)
         {
-            return displayTaggedParts.Select(Dehydrate).ToArray();
+            if (array.IsDefaultOrEmpty)
+            {
+                return null;
+            }
+
+            var result = new SerializableTaggedText[array.Length];
+            int index = 0;
+            foreach (var tt in array)
+            {
+                result[index] = Dehydrate(tt);
+                index++;
+            }
+
+            return result;
         }
 
         public TaggedText Rehydrate()
+            => new TaggedText(Tag, Text);
+
+        public static ImmutableArray<TaggedText> Rehydrate(SerializableTaggedText[] array)
         {
-            return new TaggedText(Tag, Text);
+            if (array == null)
+            {
+                return ImmutableArray<TaggedText>.Empty;
+            }
+
+            var result = ArrayBuilder<TaggedText>.GetInstance(array.Length);
+            foreach (var tt in array)
+            {
+                result.Add(tt.Rehydrate());
+            }
+
+            return result.ToImmutableAndFree();
+        }
+    }
+
+    internal class SerializableDocumentSpan
+    {
+        public DocumentId DocumentId;
+        public TextSpan SourceSpan;
+        public SerializableClassifiedSpansAndHighlightSpan ClassifiedSpansAndHighlightSpan;
+
+        public static SerializableDocumentSpan Dehydrate(DocumentSpan documentSpan)
+        {
+            return new SerializableDocumentSpan
+            {
+                DocumentId = documentSpan.Document.Id,
+                SourceSpan = documentSpan.SourceSpan,
+                ClassifiedSpansAndHighlightSpan = Dehydrate(documentSpan.Properties),
+            };
+        }
+
+        private static SerializableClassifiedSpansAndHighlightSpan Dehydrate(ImmutableDictionary<string, object> properties)
+        {
+            if (properties != null)
+            {
+                foreach (var kvp in properties)
+                {
+                    if (kvp.Value is ClassifiedSpansAndHighlightSpan classifiedSpans)
+                    {
+                        return SerializableClassifiedSpansAndHighlightSpan.Dehydrate(classifiedSpans);
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static bool TryConvert(string key, object value, out object converted)
+        {
+            if (value is ClassifiedSpansAndHighlightSpan classifiedSpans)
+            {
+                converted = SerializableClassifiedSpansAndHighlightSpan.Dehydrate(classifiedSpans);
+                return true;
+            }
+
+            converted = null;
+            return false;
+        }
+
+        public static SerializableDocumentSpan[] Dehydrate(ImmutableArray<DocumentSpan> documentSpans)
+        {
+            var result = new SerializableDocumentSpan[documentSpans.Length];
+            int index = 0;
+            foreach (var ds in documentSpans)
+            {
+                result[index] = Dehydrate(ds);
+                index++;
+            }
+
+            return result;
+        }
+
+        public DocumentSpan Rehydrate(Solution solution)
+        {
+            var properties = Rehydrate(ClassifiedSpansAndHighlightSpan);
+            return new DocumentSpan(solution.GetDocument(DocumentId), SourceSpan);
+        }
+
+        private static ImmutableDictionary<string, object> Rehydrate(SerializableClassifiedSpansAndHighlightSpan dehydrated)
+        {
+            if (dehydrated == null)
+            {
+                return null;
+            }
+
+            return ImmutableDictionary<string, object>.Empty.Add(
+                FindUsages.ClassifiedSpansAndHighlightSpan.Key, dehydrated.Rehydrate());
+        }
+
+        public static ImmutableArray<DocumentSpan> Rehydrate(Solution solution, SerializableDocumentSpan[] array)
+        {
+            var result = ArrayBuilder<DocumentSpan>.GetInstance(array.Length);
+            foreach (var ds in array)
+            {
+                result.Add(ds.Rehydrate(solution));
+            }
+
+            return result.ToImmutableAndFree();
         }
     }
 

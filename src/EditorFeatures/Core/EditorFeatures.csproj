@@ -152,7 +152,10 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FindUsages\AbstractFindUsagesService_Remote.cs" />
+    <Compile Include="FindUsages\AbstractFindUsagesService_FindImplementations.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
+    <Compile Include="FindUsages\AbstractFindUsagesService.FindUsagesCallback.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.DefinitionTrackingContext.cs" />
     <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpanFactory.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />

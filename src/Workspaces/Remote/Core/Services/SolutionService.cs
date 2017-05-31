@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.NavigateTo;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -53,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var solution = await CreateSolution_NoLockAsync(solutionChecksum, fromPrimaryBranch, s_primaryWorkspace.CurrentSolution, cancellationToken).ConfigureAwait(false);
-                s_lastSolution = Tuple.Create(solutionChecksum, solution);
 
+                s_lastSolution = Tuple.Create(solutionChecksum, solution);
                 return solution;
             }
         }

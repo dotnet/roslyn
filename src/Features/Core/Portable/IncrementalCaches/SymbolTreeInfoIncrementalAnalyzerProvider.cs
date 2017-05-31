@@ -4,15 +4,19 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -133,10 +137,16 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             public async Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
-                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo) &&
-                    projectInfo.Checksum == await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false))
+                if (_projectToInfo.TryGetValue(project.Id, out var projectInfo))
                 {
-                    return projectInfo;
+                    var projectStateChecksum = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+                    var currentChecksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(
+                        project, projectStateChecksum, cancellationToken).ConfigureAwait(false);
+
+                    if (projectInfo.Checksum == currentChecksum)
+                    {
+                        return projectInfo;
+                    }
                 }
 
                 return null;
@@ -187,25 +197,36 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (project.Solution.Workspace.Kind != WorkspaceKind.Test &&
-                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
-                    project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
+                var workspace = project.Solution.Workspace;
+
+                if (workspace.Kind != WorkspaceKind.Test &&
+                    workspace.Kind != WorkspaceKind.RemoteWorkspace)
                 {
-                    // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
-                    return;
+                    // If we're in the local workspace, only precalculate the index if we're not
+                    // using the remote service.
+                    if (workspace.IsOutOfProcessEnabled(AddImportOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) &&
+                        workspace.IsOutOfProcessEnabled(NavigateToOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) &&
+                        workspace.IsOutOfProcessEnabled(FindUsagesOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) &&
+                        workspace.IsOutOfProcessEnabled(SymbolFinderOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed) &&
+                        workspace.IsOutOfProcessEnabled(DocumentHighlightingOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed))
+                    {
+                        return;
+                    }
                 }
 
+                var projectStateChecksums = await project.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+
                 // Produce the indices for the source and metadata symbols in parallel.
-                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
-                var referencesTask = UpdateReferencesAync(project, cancellationToken);
+                var projectTask = UpdateSourceSymbolTreeInfoAsync(project, projectStateChecksums, cancellationToken);
+                var referencesTask = UpdateReferencesAync(project, projectStateChecksums, cancellationToken);
 
                 await Task.WhenAll(projectTask, referencesTask).ConfigureAwait(false);
             }
 
-            private async Task UpdateSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
+            private async Task UpdateSourceSymbolTreeInfoAsync(
+                Project project, ProjectStateChecksums checksums, CancellationToken cancellationToken)
             {
-                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, cancellationToken).ConfigureAwait(false);
+                var checksum = await SymbolTreeInfo.GetSourceSymbolsChecksumAsync(project, checksums, cancellationToken).ConfigureAwait(false);
                 if (!_projectToInfo.TryGetValue(project.Id, out var projectInfo) ||
                     projectInfo.Checksum != checksum)
                 {
@@ -221,18 +242,27 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 }
             }
 
-            private Task UpdateReferencesAync(Project project, CancellationToken cancellationToken)
+            private Task UpdateReferencesAync(
+                Project project, ProjectStateChecksums projectStateChecksums, CancellationToken cancellationToken)
             {
-                // Process all metadata references in parallel.
-                var tasks = project.MetadataReferences.OfType<PortableExecutableReference>()
-                                   .Select(r => UpdateReferenceAsync(project, r, cancellationToken))
-                                   .ToArray();
+                var tasks = new List<Task>();
+
+                for (int i = 0, n = project.MetadataReferences.Count; i < n; i++)
+                {
+                    var reference = project.MetadataReferences[i] as PortableExecutableReference;
+                    if (reference != null)
+                    {
+                        var checksum = projectStateChecksums.MetadataReferences[i];
+                        tasks.Add(UpdateReferenceAsync(project, reference, checksum, cancellationToken));
+                    }
+                }
 
                 return Task.WhenAll(tasks);
             }
 
             private async Task UpdateReferenceAsync(
-                Project project, PortableExecutableReference reference, CancellationToken cancellationToken)
+                Project project, PortableExecutableReference reference,
+                Checksum checksum, CancellationToken cancellationToken)
             {
                 var key = GetReferenceKey(reference);
                 if (key == null)
@@ -240,7 +270,6 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                var checksum = SymbolTreeInfo.GetMetadataChecksum(project.Solution, reference, cancellationToken);
                 if (!_metadataPathToInfo.TryGetValue(key, out var metadataInfo) ||
                     metadataInfo.SymbolTreeInfo.Checksum != checksum)
                 {

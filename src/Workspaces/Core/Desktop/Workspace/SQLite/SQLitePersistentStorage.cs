@@ -211,6 +211,30 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 var connection = pooledConnection.Connection;
 
+                // Cache up to 20MB of the DB in ram. 
+                connection.ExecuteCommand("PRAGMA cache_size=-20000;");
+
+                // For performance, we turn on WriteAheadLogging (WAL) 
+                // And "Normal" synchronization.
+
+                // https://www.sqlite.org/pragma.html#pragma_synchronous
+                //
+                // "If durability is not a concern, then synchronous=NORMAL is normally all one 
+                // needs in WAL mode."
+
+                // For Roslyn, we use the persistence service as a cache.  Do we don't need durability.
+                // i.e. even if we've written something to the DB, if the system crashes, we're ok with
+                // what we've written not actually making it to do the DB once the system comes up again.
+
+                using (var resettableStatement = connection.GetResettableStatement("PRAGMA journal_mode=WAL;"))
+                {
+                    // journal_mode is a steppable statement.  So we can't call .ExecuteCommand (since
+                    // that throws if it does not get 'Done' back).
+                    resettableStatement.Statement.Step();
+                }
+
+                connection.ExecuteCommand("PRAGMA synchronous=NORMAL;");
+
                 // First, create all our tables
                 connection.ExecuteCommand(
 $@"create table if not exists ""{StringInfoTableName}"" (
