@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -16,8 +15,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private partial class PackageReference
         {
-            private struct InstallPackageAndAddImportData
+            private class InstallPackageAndAddImportCodeAction : CodeAction
             {
+                private readonly string _title;
+                private readonly CodeActionPriority _priority;
+
+                public override string Title => _title;
+                public override string EquivalenceKey => _title;
+                internal override CodeActionPriority Priority => _priority;
+
                 /// <summary>
                 /// The document before we added the import. Used so we can roll back if installing
                 /// the package failed.
@@ -34,33 +40,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// </summary>
                 public readonly InstallPackageDirectlyCodeActionOperation InstallOperation;
 
-                public InstallPackageAndAddImportData(
+                public InstallPackageAndAddImportCodeAction(
+                    string title, 
+                    CodeActionPriority priority,
                     Document oldDocument, Document newDocument,
                     InstallPackageDirectlyCodeActionOperation installOperation)
                 {
+                    _title = title;
+                    _priority = priority;
                     OldDocument = oldDocument;
                     NewDocument = newDocument;
                     InstallOperation = installOperation;
-                }
-            }
-
-            private class InstallPackageAndAddImportCodeAction : CodeAction
-            {
-                private readonly string _title;
-                private readonly CodeActionPriority _priority;
-                private readonly AsyncLazy<InstallPackageAndAddImportData> _installData;
-
-                public override string Title => _title;
-                public override string EquivalenceKey => _title;
-                internal override CodeActionPriority Priority => _priority;
-
-                public InstallPackageAndAddImportCodeAction(
-                    string title, CodeActionPriority priority,
-                    AsyncLazy<InstallPackageAndAddImportData> installData)
-                {
-                    _title = title;
-                    _priority = priority;
-                    _installData = installData;
                 }
 
                 /// <summary>
@@ -71,16 +61,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// </summary>
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
                 {
-                    var installData = await _installData.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
                     // Make a SolutionChangeAction.  This way we can let it generate the diff
                     // preview appropriately.
                     var solutionChangeAction = new SolutionChangeAction(
-                        "", c => Task.FromResult(installData.NewDocument.Project.Solution));
+                        "", c => Task.FromResult(NewDocument.Project.Solution));
 
                     var result = ArrayBuilder<CodeActionOperation>.GetInstance();
                     result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
-                    result.Add(installData.InstallOperation);
+                    result.Add(InstallOperation);
                     return result.ToImmutableAndFree();
                 }
 
@@ -92,14 +80,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                     CancellationToken cancellationToken)
                 {
-                    var installData = await _installData.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
-                    var oldText = await installData.OldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = await installData.NewDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var oldText = await OldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await NewDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return ImmutableArray.Create<CodeActionOperation>(
                         new InstallPackageAndAddImportOperation(
-                            installData.OldDocument.Id, oldText, newText, installData.InstallOperation));
+                            OldDocument.Id, oldText, newText, InstallOperation));
                 }
             }
 

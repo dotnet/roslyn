@@ -87,39 +87,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                             ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
                             : string.Format(FeaturesResources.Install_version_0, versionOpt);
 
-                    var installData = new AsyncLazy<InstallPackageAndAddImportData>(
-                        c => GetInstallDataAsync(reference, versionOpt, isLocal, document, newDocument, c),
-                        cacheResult: true);
+                    var installOperation = new InstallPackageDirectlyCodeActionOperation(
+                        reference._installerService, document, reference._source,
+                        reference._packageName, versionOpt,
+                        includePrerelease: false, isLocal: isLocal);
 
                     // Nuget hits should always come after other results.
                     return new InstallPackageAndAddImportCodeAction(
-                        title, CodeActionPriority.Low, installData);
-                }
-
-                private static async Task<InstallPackageAndAddImportData> GetInstallDataAsync(
-                    PackageReference reference,
-                    string versionOpt, 
-                    bool isLocal,
-                    Document document, 
-                    Document newDocument,
-                    CancellationToken cancellationToken)
-                {
-                    var oldDocument = document;
-
-                    // We're going to be manually applying this new document to the workspace
-                    // (so we can roll it back ourselves if installing the nuget package fails).
-                    // As such, we need to do the postprocessing ourselves of tihs document to 
-                    // ensure things like formatting/simplification happen to it.
-                    newDocument = await CleanupDocumentAsync(
-                        newDocument, cancellationToken).ConfigureAwait(false);
-
-                    var installOperation = new InstallPackageDirectlyCodeActionOperation(
-                        reference._installerService, document, reference._source, 
-                        reference._packageName, versionOpt, 
-                        includePrerelease: false, isLocal: isLocal);
-
-                    return new InstallPackageAndAddImportData(
-                        oldDocument, newDocument, installOperation);
+                        title, CodeActionPriority.Low, 
+                        document, newDocument, installOperation);
                 }
             }
         }
