@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             "Correctness",
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         internal static readonly DiagnosticDescriptor OverrideCodeActionEquivalenceKeyRule = new DiagnosticDescriptor(
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
             "Correctness",
             DiagnosticHelpers.DefaultDiagnosticSeverity,
             description: s_localizableCodeActionNeedsEquivalenceKeyDescription,
-            isEnabledByDefault: true,
+            isEnabledByDefault: DiagnosticHelpers.EnabledByDefaultIfNotBuildingVSIX,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
