@@ -33,8 +33,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 private readonly Document _contextDocument;
                 private readonly ImmutableArray<TextChange> _textChanges;
+
+                /// <summary>
+                /// The optional id for a <see cref="Project"/> we'd like to add a reference to.
+                /// </summary>
                 private readonly ProjectId _projectReferenceToAdd;
+
+                /// <summary>
+                /// If we're adding <see cref="_portableExecutableReferenceFilePathToAdd"/> then this
+                /// is the id for the <see cref="Project"/> we can find that <see cref="PortableExecutableReference"/>
+                /// referenced from.
+                /// </summary>
                 private readonly ProjectId _portableExecutableReferenceProjectId;
+
+                /// <summary>
+                /// If we want to add a <see cref="PortableExecutableReference"/> metadata reference, this 
+                /// is the <see cref="PortableExecutableReference.FilePath"/> for it.
+                /// </summary>
                 private readonly string _portableExecutableReferenceFilePathToAdd;
 
                 private SymbolReferenceCodeAction(
@@ -58,7 +73,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     ProjectId projectReferenceToAdd)
                     : this(contextDocument, textChanges, title, tags, priority)
                 {
-                    _projectReferenceToAdd = projectReferenceToAdd;
+                    if (projectReferenceToAdd != contextDocument.Project.Id)
+                    {
+                        _projectReferenceToAdd = projectReferenceToAdd;
+                    }
                 }
 
                 public SymbolReferenceCodeAction(
@@ -82,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                     var updatedProject = _contextDocument.WithText(newText).Project;
 
-                    if (WillAddProjectReference())
+                    if (_projectReferenceToAdd != null)
                     {
                         updatedProject = updatedProject.AddProjectReference(new ProjectReference(_projectReferenceToAdd));
                     }
@@ -100,14 +118,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return updatedSolution;
                 }
 
-                private bool WillAddProjectReference()
-                    => _projectReferenceToAdd != null && _contextDocument.Project.Id != _projectReferenceToAdd;
-
                 internal override bool PerformFinalApplicabilityCheck
-                    => WillAddProjectReference();
+                    => _projectReferenceToAdd != null;
 
                 internal override bool IsApplicable(Workspace workspace)
-                    => WillAddProjectReference() && workspace.CanAddProjectReference(_contextDocument.Project.Id, _projectReferenceToAdd);
+                    => _projectReferenceToAdd != null && workspace.CanAddProjectReference(_contextDocument.Project.Id, _projectReferenceToAdd);
             }
         }
     }
