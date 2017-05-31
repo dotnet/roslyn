@@ -485,6 +485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(node, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
             }
 
+            if ((left.IsLiteralDefault() || right.IsLiteralDefault()) && !isEquality)
+            {
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
+                return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Empty, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
+            }
+
             // SPEC: For an operation of one of the forms x == null, null == x, x != null, null != x,
             // SPEC: where x is an expression of nullable type, if operator overload resolution
             // SPEC: fails to find an applicable operator, the result is instead computed from
@@ -2185,7 +2191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Dev10 does not allow unary prefix operators to be applied to the null literal
                 // (or other typeless expressions).
-                Error(diagnostics, ErrorCode.ERR_BadUnaryOpOnNullOrDefault, node, operatorText, operand.Display);
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorText, operand.Display);
             }
 
             // If the operand is bad, avoid generating cascading errors.

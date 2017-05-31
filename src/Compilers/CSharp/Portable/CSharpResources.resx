@@ -426,7 +426,7 @@
   <data name="ERR_BadUnaryOp" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand of type '{1}'</value>
   </data>
-  <data name="ERR_BadUnaryOpOnNullOrDefault" xml:space="preserve">
+  <data name="ERR_BadOpOnNullOrDefault" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand '{1}'</value>
   </data>
   <data name="ERR_ThisInStaticMeth" xml:space="preserve">

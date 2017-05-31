@@ -1736,6 +1736,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_BadOpOnNullOrDefault {
+            get {
+                return ResourceManager.GetString("ERR_BadOpOnNullOrDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to  The parameter modifier &apos;out&apos; cannot be used with &apos;this&apos; .
         /// </summary>
         internal static string ERR_BadOutWithThis {
@@ -1966,15 +1975,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadUnaryOperatorSignature {
             get {
                 return ResourceManager.GetString("ERR_BadUnaryOperatorSignature", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
-        /// </summary>
-        internal static string ERR_BadUnaryOpOnNullOrDefault {
-            get {
-                return ResourceManager.GetString("ERR_BadUnaryOpOnNullOrDefault", resourceCulture);
             }
         }
         
