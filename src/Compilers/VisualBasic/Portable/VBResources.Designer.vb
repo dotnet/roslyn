@@ -1369,6 +1369,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Named argument &apos;{0}&apos; is used out-of-position but is followed by an unnamed argument.
+        '''</summary>
+        Friend ReadOnly Property ERR_BadNonTrailingNamedArgument() As String
+            Get
+                Return ResourceManager.GetString("ERR_BadNonTrailingNamedArgument", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Nullable types are not allowed in conditional compilation expressions..
         '''</summary>
         Friend ReadOnly Property ERR_BadNullTypeInCCExpression() As String
@@ -4251,7 +4260,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Named argument expected..
+        '''  Looks up a localized string similar to Named argument expected. Please use language version {0} or greater to use non-trailing named arguments..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedNamedArgument() As String
             Get

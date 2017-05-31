@@ -181,6 +181,7 @@
     <Compile Include="Semantics\SyntaxTreeRootTests.vb" />
     <Compile Include="Semantics\TooLongNameTests.vb" />
     <Compile Include="Semantics\TypeArgumentInference.vb" />
+    <Compile Include="Semantics\NonTrailingNamedArgumentsTests.vb" />
     <Compile Include="Semantics\TypeOfTests.vb" />
     <Compile Include="Semantics\UnaryOperators.vb" />
     <Compile Include="Semantics\UnstructuredExceptionHandling.vb" />

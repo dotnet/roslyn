@@ -675,7 +675,6 @@ End Class
             Assert.Same(TestClass1_M5, result.Candidates(1).Candidate.UnderlyingSymbol)
             Assert.False(result.BestResult.HasValue)
 
-            'error BC30241: Named argument expected.
             'TestClass1.M4(x:=intVal, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
@@ -688,9 +687,9 @@ End Class
 
             Assert.False(result.ResolutionIsLateBound)
             Assert.Equal(1, result.Candidates.Length)
-            Assert.Equal(CandidateAnalysisResultState.ArgumentMismatch, result.Candidates(0).State)
+            Assert.Equal(CandidateAnalysisResultState.Applicable, result.Candidates(0).State)
             Assert.Same(TestClass1_M4, result.Candidates(0).Candidate.UnderlyingSymbol)
-            Assert.False(result.BestResult.HasValue)
+            Assert.True(result.BestResult.HasValue)
 
             'error BC30057: Too many arguments to 'Public Shared Sub M2(Of T)()'.
             'TestClass1.M2(Of TestClass1)(intVal)
@@ -3937,7 +3936,7 @@ End Class
 BC30201: Expression expected.
         F4(y:=Nothing,)
                       ~
-BC30241: Named argument expected.
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
         F4(y:=Nothing,)
                       ~
 BC30198: ')' expected.

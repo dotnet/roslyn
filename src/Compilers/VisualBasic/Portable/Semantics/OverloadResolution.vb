@@ -2704,8 +2704,14 @@ Done:
 
             For i As Integer = 0 To arguments.Length - 1 Step 1
 
-                If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                    ' First named argument
+                If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing AndAlso
+                    NamedArgumentMustBeTrailing(candidate.Candidate, argumentNames(i), paramIndex) Then
+
+                    If Not AreTrailingArgumentsNamed(argumentNames, paramIndex) Then
+                        candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                        GoTo Bailout
+                    End If
+
                     Exit For
                 End If
 
@@ -2736,8 +2742,6 @@ Done:
                     paramIndex += 1
                 End If
             Next
-
-            Debug.Assert(argumentNames.IsDefault OrElse positionalArguments < arguments.Length)
 
             '§11.8.2 Applicable Methods
             '2.	Next, match each named argument to a parameter with the given name. 
@@ -2812,6 +2816,29 @@ Bailout:
 
         End Sub
 
+        Friend Shared Function NamedArgumentMustBeTrailing(candidate As Candidate, argumentName As String, paramIndex As Integer) As Boolean
+            Dim correspondingParamIndex As Integer
+            If Not candidate.TryGetNamedParamIndex(argumentName, correspondingParamIndex) Then
+                Return True
+            End If
+
+            ' Named arguments on a ParamArray parameter must be trailing
+            If paramIndex < candidate.ParameterCount AndAlso candidate.Parameters(paramIndex).IsParamArray Then
+                Return True
+            End If
+
+            ' Out-of-position named arguments must be trailing
+            Return correspondingParamIndex <> paramIndex
+        End Function
+
+        Friend Shared Function AreTrailingArgumentsNamed(argumentNames As ImmutableArray(Of String), paramIndex As Integer) As Boolean
+            For j As Integer = paramIndex + 1 To argumentNames.Length - 1 Step 1
+                If argumentNames(j) Is Nothing Then
+                    Return False
+                End If
+            Next
+            Return True
+        End Function
 
         ''' <summary>
         ''' Match candidate's parameters to arguments §11.8.2 Applicable Methods.

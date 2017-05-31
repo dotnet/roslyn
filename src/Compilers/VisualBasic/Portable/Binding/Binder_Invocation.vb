@@ -2026,8 +2026,14 @@ ProduceBoundNode:
 
                 For i As Integer = 0 To arguments.Length - 1 Step 1
 
-                    If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                        ' First named argument
+                    If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing AndAlso
+                        OverloadResolution.NamedArgumentMustBeTrailing(candidate, argumentNames(i), paramIndex) Then
+
+                        If Not OverloadResolution.AreTrailingArgumentsNamed(argumentNames, paramIndex) Then
+                            ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_BadNonTrailingNamedArgument, argumentNames(i))
+                            Return
+                        End If
+
                         Exit For
                     End If
 
@@ -2079,8 +2085,6 @@ ProduceBoundNode:
                     positionalArguments += 1
                 Next
 
-                Debug.Assert(argumentNames.IsDefault OrElse positionalArguments < arguments.Length)
-
                 Dim skippedSomeArguments As Boolean = False
 
                 '§11.8.2 Applicable Methods
@@ -2092,7 +2096,9 @@ ProduceBoundNode:
 
                     Debug.Assert(argumentNames(i) Is Nothing OrElse argumentNames(i).Length > 0)
 
-                    If argumentNames(i) Is Nothing Then
+                    If argumentNames(i) Is Nothing AndAlso
+                        Not Me.Compilation.LanguageVersion.AllowNonTrailingNamedArguments() Then
+
                         ' Unnamed argument follows named arguments, parser should have detected an error.
                         Debug.Assert(arguments(i).Syntax.Parent.ContainsDiagnostics)
                         Return
@@ -2437,7 +2443,6 @@ ProduceBoundNode:
                 parameterToArgumentMap.Free()
             End Try
         End Sub
-
 
         ''' <summary>
         ''' Should be in sync with OverloadResolution.MatchArgumentToByRefParameter
@@ -3010,6 +3015,8 @@ ProduceBoundNode:
                                 End If
 
                                 argumentNamesLocationsBuilder.Add(id.GetLocation())
+                            ElseIf argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
                             End If
 
                         Case SyntaxKind.OmittedArgument

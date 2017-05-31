@@ -1399,60 +1399,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Do
                 ' Check for the first keyword argument.
 
+                Dim isNamed As Boolean = False
                 If (CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
                     PeekToken(1).Kind = SyntaxKind.ColonEqualsToken Then
 
-                    ParseNamedArguments(arguments)
-                    Exit Do
+                    If _scanner.Options.LanguageVersion.AllowNonTrailingNamedArguments() Then
+                        ' After VB15.6 it is possible to use named arguments in non-trailing position
+                        isNamed = True
+                    Else
+                        ParseNamedArguments(arguments)
+                        Exit Do
+                    End If
 
                 End If
 
                 Dim comma As PunctuationSyntax = Nothing
+                If isNamed Then
+                    Dim argumentName As IdentifierNameSyntax = ParseIdentifierNameAllowingKeyword()
+                    Dim colonEquals As PunctuationSyntax = Nothing
+                    TryGetTokenAndEatNewLine(SyntaxKind.ColonEqualsToken, colonEquals)
+                    Dim namedArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpressionCore())
+                    arguments.Add(namedArgument)
 
-                Select Case CurrentToken.Kind
-                    Case SyntaxKind.CommaToken
-                        TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
+                ElseIf CurrentToken.Kind = SyntaxKind.CommaToken Then
+                    TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
+                    arguments.Add(InternalSyntaxFactory.OmittedArgument())
+                    arguments.AddSeparator(comma)
+                    Continue Do
+
+                ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken Then
+                    If arguments.Count > 0 Then
                         arguments.Add(InternalSyntaxFactory.OmittedArgument())
+                    End If
+                    Exit Do
+
+                Else
+                    Dim argument = ParseArgument(RedimOrNewParent)
+                    arguments.Add(argument)
+                End If
+
+                If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
+                    arguments.AddSeparator(comma)
+                    Continue Do
+
+                ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
+                    Exit Do
+
+                Else
+                    ' There is a syntax error of some kind.
+
+                    Dim skipped = ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}).Node
+                    If skipped IsNot Nothing Then
+                        skipped = ReportSyntaxError(skipped, ERRID.ERR_ArgumentSyntax)
+                    End If
+
+                    If CurrentToken.Kind = SyntaxKind.CommaToken Then
+                        comma = DirectCast(CurrentToken, PunctuationSyntax)
+                        comma = comma.AddLeadingSyntax(skipped)
                         arguments.AddSeparator(comma)
-                        Continue Do
-
-                    Case SyntaxKind.CloseParenToken
-                        If arguments.Count > 0 Then
-                            arguments.Add(InternalSyntaxFactory.OmittedArgument())
-                        End If
+                        GetNextToken()
+                    Else
+                        unexpected = skipped
                         Exit Do
-
-                    Case Else
-                        Dim argument = ParseArgument(RedimOrNewParent)
-                        arguments.Add(argument)
-
-                        If TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
-                            arguments.AddSeparator(comma)
-                            Continue Do
-
-                        ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
-                            Exit Do
-
-                        Else
-                            ' There is a syntax error of some kind.
-
-                            Dim skipped = ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}).Node
-                            If skipped IsNot Nothing Then
-                                skipped = ReportSyntaxError(skipped, ERRID.ERR_ArgumentSyntax)
-                            End If
-
-                            If CurrentToken.Kind = SyntaxKind.CommaToken Then
-                                comma = DirectCast(CurrentToken, PunctuationSyntax)
-                                comma = comma.AddLeadingSyntax(skipped)
-                                arguments.AddSeparator(comma)
-                                GetNextToken()
-                            Else
-                                unexpected = skipped
-                                Exit Do
-                            End If
-                        End If
-
-                End Select
+                    End If
+                End If
 
             Loop
 
@@ -1489,7 +1499,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 If hasError Then
-                    argumentName = ReportSyntaxError(argumentName, ERRID.ERR_ExpectedNamedArgument)
+                    argumentName = ReportSyntaxError(argumentName, ERRID.ERR_ExpectedNamedArgument,
+                       New VisualBasicRequiredLanguageVersion(Feature.NonTrailingNamedArguments.GetLanguageVersion()))
                 End If
 
                 Dim namedArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpressionCore())

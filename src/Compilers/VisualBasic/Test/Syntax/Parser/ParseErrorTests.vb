@@ -1739,6 +1739,18 @@ BC30306: Array subscript expression missing.
                              </errors>)
     End Sub
 
+    <Fact()>
+    Public Sub BC30241ERR_ExpectedNamedArgument_VB15_6()
+        Dim code = <![CDATA[
+<Attr1(1, b:=2, 3, e:="Scen1")>
+Class Class1
+
+End Class
+            ]]>.Value
+
+        ParseAndVerify(code, LanguageVersion.VisualBasic15_6, False, Nothing) ' No parsing errors
+    End Sub
+
     ' old name - ParseInvalidDirective_ERR_ExpectedConditionalDirective
     <WorkItem(883737, "DevDiv/Personal")>
     <Fact()>
