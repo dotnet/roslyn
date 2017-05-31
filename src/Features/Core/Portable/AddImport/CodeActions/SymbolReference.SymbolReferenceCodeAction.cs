@@ -31,7 +31,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 public override string EquivalenceKey => this.Title;
 
+                /// <summary>
+                /// The <see cref="Document"/> we started the add-import analysis in.
+                /// </summary>
                 private readonly Document _contextDocument;
+
+                /// <summary>
+                /// The changes to make to <see cref="_contextDocument"/> to add the import.
+                /// </summary>
                 private readonly ImmutableArray<TextChange> _textChanges;
 
                 /// <summary>
