@@ -520,12 +520,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
-            // Suppress diagnostics on the import we create.  Because we only get here when we are 
-            // adding a nuget package, it is certainly the case that in the preview this will not
-            // bind properly.  It will look silly to show such an error, so we just suppress things.
             var usingDirective = SyntaxFactory.UsingDirective(
-                CreateNameSyntax(namespaceParts, namespaceParts.Count - 1)).WithAdditionalAnnotations(
-                    SuppressDiagnosticsAnnotation.Create());
+                CreateNameSyntax(namespaceParts, namespaceParts.Count - 1));
 
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IAddImportsService>();

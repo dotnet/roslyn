@@ -149,9 +149,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             }
 
             private bool IsSuppressed(NormalizedSnapshotSpanCollection suppressedSpans, SnapshotSpan span)
-            {
-                return suppressedSpans != null && suppressedSpans.IntersectsWith(span);
-            }
+                => suppressedSpans != null && suppressedSpans.IntersectsWith(span);
 
             internal void OnDiagnosticsUpdated(DiagnosticsUpdatedArgs e, SourceText sourceText, ITextSnapshot editorSnapshot)
             {

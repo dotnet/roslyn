@@ -76,7 +76,16 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var newText = oldText.WithChanges(_textChanges);
 
-                    return _oldDocument.WithText(newText).Project.Solution;
+                    var newDocument = _oldDocument.WithText(newText);
+                    var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Suppress diagnostics on the import we create.  Because we only get here when we are 
+                    // adding a nuget package, it is certainly the case that in the preview this will not
+                    // bind properly.  It will look silly to show such an error, so we just suppress things.
+                    var updatedRoot = newRoot.WithAdditionalAnnotations(SuppressDiagnosticsAnnotation.Create());
+                    var updatedDocument = newDocument.WithSyntaxRoot(updatedRoot);
+
+                    return updatedDocument.Project.Solution;
                 }
 
                 /// <summary>

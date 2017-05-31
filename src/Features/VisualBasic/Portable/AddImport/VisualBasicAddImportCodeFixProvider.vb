@@ -381,11 +381,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
             Dim importsStatement = GetImportsStatement(nameSyntax)
 
-            ' Suppress diagnostics on the import we create.  Because we only get here when we are 
-            ' adding a NuGet package, it is certainly the case that in the preview this will not
-            ' bind properly.  It will look silly to show such an error, so we just suppress things.
-            importsStatement = importsStatement.WithAdditionalAnnotations(SuppressDiagnosticsAnnotation.Create())
-
             Return AddImportAsync(
                 contextNode, Document, placeSystemNamespaceFirst,
                 importsStatement, cancellationToken)
