@@ -44,22 +44,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             public override int GetHashCode()
                 => Hash.Combine(this.SymbolResult.DesiredName, base.GetHashCode());
 
-            //private async Task<CodeActionOperation> GetOperationAsync(
-            //    Document document, SyntaxNode node, 
-            //    bool placeSystemNamespaceFirst, bool hasExistingImport,
-            //    CancellationToken cancellationToken)
-            //{
-            //    var newDocument = await UpdateDocumentAsync(
-            //        document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
-            //    var updatedSolution = GetUpdatedSolution(newDocument);
-
-            //    var operation = new ApplyChangesOperation(updatedSolution);
-            //    return operation;
-            //}
-
-            //protected virtual Solution GetUpdatedSolution(Document newDocument)
-            //    => newDocument.Project.Solution;
-
             private async Task<Document> UpdateDocumentAsync(
                 Document document, SyntaxNode contextNode, 
                 bool placeSystemNamespaceFirst, bool hasExistingImport,
