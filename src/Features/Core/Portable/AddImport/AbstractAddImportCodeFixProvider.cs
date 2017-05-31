@@ -12,13 +12,14 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> 
+    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
         : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
         private async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
+            ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
             var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             var seenReferences = new HashSet<PortableExecutableReference>(comparer: this);
             seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>());
 
-            var newReferences = GetUnreferencedMetadataReferences(project, seenReferences);
+            var newReferences = GetUnreferencedMetadataReferences(project, seenReferences, cancellationToken);
 
             // Search all metadata references in parallel.
             var findTasks = new HashSet<Task<ImmutableArray<SymbolReference>>>();
@@ -263,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             using (var nestedTokenSource = new CancellationTokenSource())
             using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(nestedTokenSource.Token, cancellationToken))
             {
-                foreach (var (referenceProjectId, reference) in newReferences)
+                foreach (var (referenceProjectId, reference, checksum) in newReferences)
                 {
                     var compilation = referenceToCompilation.GetOrAdd(
                         reference, r => CreateCompilation(project, r));
@@ -274,7 +275,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     if (assembly != null)
                     {
                         findTasks.Add(finder.FindInMetadataSymbolsAsync(
-                            assembly, referenceProjectId, reference, exact, linkedTokenSource.Token));
+                            assembly, referenceProjectId, reference, checksum,
+                            exact, linkedTokenSource.Token));
                     }
                 }
 
@@ -287,11 +289,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// by this project.  The set returned will be tuples containing the PEReference, and the project-id
         /// for the project we found the pe-reference in.
         /// </summary>
-        private ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
-            Project project, HashSet<PortableExecutableReference> seenReferences)
+        private ImmutableArray<(ProjectId, PortableExecutableReference, Checksum)> GetUnreferencedMetadataReferences(
+            Project project, HashSet<PortableExecutableReference> seenReferences, CancellationToken cancellationToken)
         {
-            var result = ArrayBuilder<(ProjectId, PortableExecutableReference)>.GetInstance();
-
+            var result = ArrayBuilder<(ProjectId, PortableExecutableReference, Checksum)>.GetInstance();
             var solution = project.Solution;
             foreach (var p in solution.Projects)
             {
@@ -300,18 +301,33 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     continue;
                 }
 
-                foreach (var reference in p.MetadataReferences)
+                MetadataReferenceChecksumCollection checksumCollection = null;
+
+                for (int i = 0, n = p.MetadataReferences.Count; i < n; i++)
                 {
-                    if (reference is PortableExecutableReference peReference &&
+                    if (p.MetadataReferences[i] is PortableExecutableReference peReference &&
                         !IsInPackagesDirectory(peReference) &&
                         seenReferences.Add(peReference))
                     {
-                        result.Add((p.Id, peReference));
+                        checksumCollection = checksumCollection ?? GetChecksumCollection(p, cancellationToken);
+                        var checksum = checksumCollection[i];
+
+                        result.Add((p.Id, peReference, checksum));
                     }
                 }
             }
 
-            return result.ToImmutableAndFree();
+            return result.ToImmutableArray();
+        }
+
+        private MetadataReferenceChecksumCollection GetChecksumCollection(
+            Project project, CancellationToken cancellationToken)
+        {
+            var serializer = new Serializer(project.Solution.Workspace);
+            var collection = ChecksumCache.GetOrCreate<MetadataReferenceChecksumCollection>(
+                project.MetadataReferences, _ => new MetadataReferenceChecksumCollection(
+                    project.MetadataReferences.Select(r => serializer.CreateChecksum(r, cancellationToken)).ToArray()));
+            return collection;
         }
 
         private async Task WaitForTasksAsync(

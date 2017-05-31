@@ -89,12 +89,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             internal Task<ImmutableArray<SymbolReference>> FindInMetadataSymbolsAsync(
-                IAssemblySymbol assembly, ProjectId assemblyProjectId, PortableExecutableReference metadataReference,
+                IAssemblySymbol assembly, ProjectId assemblyProjectId,
+                PortableExecutableReference metadataReference, Checksum metadataChecksum,
                 bool exact, CancellationToken cancellationToken)
             {
                 var searchScope = new MetadataSymbolsSearchScope(
-                    _owner, _document.Project.Solution, assembly, assemblyProjectId, 
-                    metadataReference, exact, cancellationToken);
+                    _owner, _document.Project.Solution, assembly, assemblyProjectId,
+                    metadataReference, metadataChecksum, exact, cancellationToken);
                 return DoAsync(searchScope);
             }
 
@@ -160,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return ImmutableArray<SymbolReference>.Empty;
                 }
 
-                CalculateContext(nameNode, _syntaxFacts, 
+                CalculateContext(nameNode, _syntaxFacts,
                     out var name, out var arity,
                     out var inAttributeContext, out var hasIncompleteParentMember);
 
@@ -253,10 +254,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 if (_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
-                        // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
-                        // 'Black' did not bind.  We want to find a type called 'Color' that will actually
-                        // allow 'Black' to bind.
-                        var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
+                    // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
+                    // 'Black' did not bind.  We want to find a type called 'Color' that will actually
+                    // allow 'Black' to bind.
+                    var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
                     if (syntaxFacts.IsNameOfMemberAccessExpression(nameNode))
                     {
                         var expression =

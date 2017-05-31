@@ -3,8 +3,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly IAssemblySymbol _assembly;
             private readonly ProjectId _assemblyProjectId;
             private readonly PortableExecutableReference _metadataReference;
+            private readonly Checksum _metadataChecksum;
 
             public MetadataSymbolsSearchScope(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
@@ -23,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 IAssemblySymbol assembly,
                 ProjectId assemblyProjectId,
                 PortableExecutableReference metadataReference,
+                Checksum metadataChecksum,
                 bool exact,
                 CancellationToken cancellationToken)
                 : base(provider, exact, cancellationToken)
@@ -31,6 +33,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _assembly = assembly;
                 _assemblyProjectId = assemblyProjectId;
                 _metadataReference = metadataReference;
+                _metadataChecksum = metadataChecksum;
             }
 
             public override SymbolReference CreateReference<T>(SymbolResult<T> searchResult)
@@ -44,18 +47,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
                 SymbolFilter filter, SearchQuery searchQuery)
             {
-                var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
-                if (info == null)
-                {
-                    return ImmutableArray<ISymbol>.Empty;
-                }
+                var result = await AddImportSymbolTreeInfoService.TryFindMetadataSymbolsAsync(
+                    _solution, _metadataReference, _metadataChecksum, _assembly,
+                    _assemblyProjectId, filter, searchQuery, CancellationToken).ConfigureAwait(false);
 
-                var declarations = await info.FindAsync(
-                    searchQuery, _assembly, _assemblyProjectId,
-                    filter, CancellationToken).ConfigureAwait(false);
-
-                return declarations.SelectAsArray(d => d.Symbol);
+                return result.SelectAsArray(s => s.Symbol);
             }
         }
     }
