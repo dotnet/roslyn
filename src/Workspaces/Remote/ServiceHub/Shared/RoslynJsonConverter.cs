@@ -55,34 +55,43 @@ namespace Microsoft.CodeAnalysis.Remote
             return builder.ToImmutable();
         }
 
-        private abstract class BaseJsonConverter : JsonConverter
+        private abstract class BaseJsonConverter<T> : JsonConverter
         {
-            protected static T ReadProperty<T>(JsonSerializer serializer, JsonReader reader)
+            public sealed override bool CanConvert(Type objectType) => typeof(T) == objectType;
+
+            public sealed override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+                => ReadValue(reader, objectType, existingValue, serializer);
+
+            public sealed override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+                => WriteValue(writer, (T)value, serializer);
+
+            protected abstract T ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer);
+            protected abstract void WriteValue(JsonWriter writer, T value, JsonSerializer serializer);
+
+            protected static U ReadProperty<U>(JsonSerializer serializer, JsonReader reader)
             {
                 // read property
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.PropertyName);
 
                 Contract.ThrowIfFalse(reader.Read());
-                return serializer.Deserialize<T>(reader);
+                return serializer.Deserialize<U>(reader);
             }
 
-            protected static T ReadProperty<T>(JsonReader reader)
+            protected static U ReadProperty<U>(JsonReader reader)
             {
                 // read property
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.PropertyName);
 
                 Contract.ThrowIfFalse(reader.Read());
-                return (T)reader.Value;
+                return (U)reader.Value;
             }
         }
 
-        private class TextSpanJsonConverter : BaseJsonConverter
+        private class TextSpanJsonConverter : BaseJsonConverter<TextSpan>
         {
-            public override bool CanConvert(Type objectType) => typeof(TextSpan) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TextSpan ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -96,10 +105,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return new TextSpan((int)start, (int)length);
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            protected override void WriteValue(JsonWriter writer, TextSpan span, JsonSerializer serializer)
             {
-                var span = (TextSpan)value;
-
                 writer.WriteStartObject();
 
                 writer.WritePropertyName("start");
@@ -112,15 +119,49 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private class SymbolKeyJsonConverter : BaseJsonConverter
+        private class TextChangeJsonConverter : BaseJsonConverter<TextChange>
         {
-            public override bool CanConvert(Type objectType) => typeof(SymbolKey) == objectType;
+            protected override TextChange ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+                // all integer is long
+                var start = ReadProperty<long>(reader);
+                var length = ReadProperty<long>(reader);
+                var newText = ReadProperty<string>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new TextChange(new TextSpan((int)start, (int)length), newText);
+            }
+
+            protected override void WriteValue(JsonWriter writer, TextChange change, JsonSerializer serializer)
+            {
+                var span = change.Span;
+
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("start");
+                writer.WriteValue(span.Start);
+
+                writer.WritePropertyName("length");
+                writer.WriteValue(span.Length);
+
+                writer.WritePropertyName("newText");
+                writer.WriteValue(change.NewText);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class SymbolKeyJsonConverter : BaseJsonConverter<SymbolKey>
+        {
+            protected override SymbolKey ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
                 => new SymbolKey((string)reader.Value);
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
-                writer.WriteValue(value.ToString());
+            protected override void WriteValue(JsonWriter writer, SymbolKey value, JsonSerializer serializer)
+                => writer.WriteValue(value.ToString());
         }
 
         private class ChecksumJsonConverter : JsonConverter
