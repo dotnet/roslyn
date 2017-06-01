@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     using static ScriptTestFixtures;
 
-
     public class ScriptSemanticsTests : CSharpTestBase
     {
         private static CompilationReference TaskFacadeAssembly()
