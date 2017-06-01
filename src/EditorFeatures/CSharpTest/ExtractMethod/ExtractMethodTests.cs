@@ -10079,6 +10079,47 @@ namespace ClassLibrary9
             await TestExtractMethodAsync(code, expected, dontPutOutOrRefOnStruct: true);
         }
 
+        [Theory]
+        [InlineData("add", "remove")]
+        [InlineData("remove", "add")]
+        [WorkItem(17474, "https://github.com/dotnet/roslyn/issues/17474")]
+        [Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestExtractMethodEventAccessorUnresolvedName(string testedAccessor, string untestedAccessor)
+        {
+            // This code intentionally omits a 'using System;'
+            var code =
+$@"namespace ClassLibrary9
+{{
+    public class Class
+    {{
+        public event EventHandler Event
+        {{
+            {testedAccessor} {{ [|throw new NotImplementedException();|] }}
+            {untestedAccessor} {{ throw new NotImplementedException(); }}
+        }}
+    }}
+}}";
+            var expected =
+$@"namespace ClassLibrary9
+{{
+    public class Class
+    {{
+        public event EventHandler Event
+        {{
+            {testedAccessor} {{ NewMethod(); }}
+            {untestedAccessor} {{ throw new NotImplementedException(); }}
+        }}
+
+        private static void NewMethod()
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod_Argument1()
         {
