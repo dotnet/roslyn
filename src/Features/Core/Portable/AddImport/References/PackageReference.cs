@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Packaging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -11,21 +10,18 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         private partial class PackageReference : Reference
         {
-            private readonly IPackageInstallerService _installerService;
             private readonly string _source;
             private readonly string _packageName;
             private readonly string _versionOpt;
 
             public PackageReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
-                IPackageInstallerService installerService,
                 SearchResult searchResult,
                 string source,
                 string packageName,
                 string versionOpt)
                 : base(provider, searchResult)
             {
-                _installerService = installerService;
                 _source = source;
                 _packageName = packageName;
                 _versionOpt = versionOpt;

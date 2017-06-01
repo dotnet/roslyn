@@ -9,7 +9,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -31,11 +33,15 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> _owner;
 
             private readonly SyntaxNode _node;
+            private readonly ISymbolSearchService _symbolSearchService;
+            private readonly ImmutableArray<PackageSource> _packageSources;
 
             public SymbolReferenceFinder(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> owner,
                 Document document, SemanticModel semanticModel,
                 string diagnosticId, SyntaxNode node,
+                ISymbolSearchService symbolSearchService,
+                ImmutableArray<PackageSource> packageSources,
                 CancellationToken cancellationToken)
             {
                 _owner = owner;
@@ -43,6 +49,8 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _semanticModel = semanticModel;
                 _diagnosticId = diagnosticId;
                 _node = node;
+                _symbolSearchService = symbolSearchService;
+                _packageSources = packageSources;
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;

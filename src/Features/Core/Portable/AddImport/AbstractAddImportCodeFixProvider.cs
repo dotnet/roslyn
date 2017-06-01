@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -67,7 +68,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             var resultCount = 0;
             foreach (var diagnostic in context.Diagnostics)
             {
-                resultCount += await HandleDiagnosticAsync(context, diagnostic).ConfigureAwait(false);
+                var codeActions = await GetCodeActionsAsync(context, diagnostic).ConfigureAwait(false);
+                context.RegisterFixes(codeActions, diagnostic);
+
+                resultCount += codeActions.Length;
                 if (resultCount >= MaxResults)
                 {
                     break;
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
         }
 
-        private async Task<int> HandleDiagnosticAsync(CodeFixContext context, Diagnostic diagnostic)
+        private async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(CodeFixContext context, Diagnostic diagnostic)
         {
             var document = context.Document;
             var span = context.Span;
@@ -85,7 +89,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var node = root.FindToken(span.Start, findInsideTrivia: true)
                            .GetAncestor(n => n.Span.Contains(span) && n != root);
 
-            var count = 0;
+            var result = ArrayBuilder<CodeAction>.GetInstance();
             if (node != null)
             {
                 var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -107,22 +111,19 @@ namespace Microsoft.CodeAnalysis.AddImport
                                 cancellationToken.ThrowIfCancellationRequested();
 
                                 var fixData = await reference.GetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                                if (fixData != null)
-                                {
-                                    var codeAction = CreateCodeAction(document, fixData);
-                                    context.RegisterCodeFix(codeAction, diagnostic);
-                                    count++;
-                                }
+                                var codeAction = TryCreateCodeAction(document, fixData);
+
+                                result.AddIfNotNull(codeAction);
                             }
                         }
                     }
                 }
             }
 
-            return count;
+            return result.ToImmutableAndFree();
         }
 
-        private CodeAction CreateCodeAction(
+        private CodeAction TryCreateCodeAction(
             Document document, AddImportFixData fixData)
         {
             switch (fixData.Kind)
@@ -133,20 +134,17 @@ namespace Microsoft.CodeAnalysis.AddImport
                 case AddImportFixKind.MetadataSymbol:
                     return new MetadataSymbolReferenceCodeAction(document, fixData);
 
-                case AddImportFixKind.PackageSymbol:
-                    return new ParentInstallPackageCodeAction(document, fixData, GetPackageInstallerService(document));
-
                 case AddImportFixKind.ReferenceAssemblySymbol:
                     return new AssemblyReferenceCodeAction(document, fixData);
+
+                case AddImportFixKind.PackageSymbol:
+                    var packageInstaller = GetPackageInstallerService(document);
+                    return !packageInstaller.IsInstalled(document.Project.Solution.Workspace, document.Project.Id, fixData.PackageName)
+                        ? new ParentInstallPackageCodeAction(document, fixData, GetPackageInstallerService(document))
+                        : null;
             }
 
             throw ExceptionUtilities.Unreachable;
-        }
-
-        private IPackageInstallerService GetPackageInstallerService(Document document)
-        {
-            var workspaceServices = document.Project.Solution.Workspace.Services;
-            return _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -158,7 +156,15 @@ namespace Microsoft.CodeAnalysis.AddImport
             var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
             var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
-            var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnosticId, node, cancellationToken);
+            var language = document.Project.Language;
+            var options = document.Project.Solution.Options;
+
+            var symbolSearchService = GetSymbolSearchService(document);
+            var packageSources = GetPackageSources(document, symbolSearchService);
+
+            var finder = new SymbolReferenceFinder(
+                this, document, semanticModel, diagnosticId, node,
+                symbolSearchService, packageSources, cancellationToken);
 
             // Look for exact matches first:
             var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -179,6 +185,30 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             return fuzzyReferences;
+        }
+
+        private ISymbolSearchService GetSymbolSearchService(Document document) 
+            => document.Project.Solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language)
+                ? _symbolSearchService ?? document.Project.Solution.Workspace.Services.GetService<ISymbolSearchService>()
+                : null;
+
+        private IPackageInstallerService GetPackageInstallerService(Document document)
+            => document.Project.Solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language)
+                ? _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>()
+                : null;
+
+        private ImmutableArray<PackageSource> GetPackageSources(Document document, ISymbolSearchService searchService)
+        {
+            if (searchService != null)
+            {
+                var installerService = GetPackageInstallerService(document);
+                if (installerService?.IsEnabled(document.Project.Id) == true)
+                {
+                    return installerService.PackageSources;
+                }
+            }
+
+            return ImmutableArray<PackageSource>.Empty;
         }
 
         private static bool IsHostOrTestWorkspace(Project project)
