@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// <summary>
         /// The optional id for a <see cref="Project"/> we'd like to add a reference to.
         /// </summary>
-        public readonly ProjectId ProjectReferenceToAdd;
+        public ProjectId ProjectReferenceToAdd { get; private set; }
 
         #endregion
 
@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 Title = title,
                 Tags = tags,
-                Priority = priority
+                Priority = priority,
+                ProjectReferenceToAdd = projectReferenceToAdd
             };
         }
 
