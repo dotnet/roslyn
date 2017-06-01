@@ -114,6 +114,7 @@
     <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Completion\FileSystemCompletionHelper.cs" />
+    <Compile Include="Completion\Providers\AbstractInternalsVisibleToCompletionProvider.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
