@@ -98,6 +98,7 @@
     <Compile Include="UtilityTest\BKTreeTests.cs" />
     <Compile Include="UtilityTest\FilePathUtilitiesTests.cs" />
     <Compile Include="UtilityTest\SpellCheckerTests.cs" />
+    <Compile Include="WorkspaceServiceTests\ReferenceCountedDisposableTests.cs" />
     <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
     <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
     <Compile Include="Differencing\MatchTests.cs" />
