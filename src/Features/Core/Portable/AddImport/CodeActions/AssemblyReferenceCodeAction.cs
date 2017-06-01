@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     AddImportFixData fixData)
                     : base(originalDocument, fixData)
                 {
+                    Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
                 }
 

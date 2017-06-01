@@ -7,14 +7,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal enum AddImportFixKind
-    {
-        ProjectSymbol,
-        MetadataSymbol,
-        PackageSymbol,
-        ReferenceAssemblySymbol,
-    }
-
     internal class AddImportFixData
     {
         public AddImportFixKind Kind { get; }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     InstallPackageDirectlyCodeActionOperation installOperation)
                     : base(originalDocument, fixData, title)
                 {
+                    Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
                     _installOperation = installOperation;
                 }
 

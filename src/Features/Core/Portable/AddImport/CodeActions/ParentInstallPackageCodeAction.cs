@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Tags;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                            CreateNestedActions(document, fixData, installerService),
                            isInlinable: false)
                 {
+                    Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
                 }
 
                 private static ImmutableArray<CodeAction> CreateNestedActions(
