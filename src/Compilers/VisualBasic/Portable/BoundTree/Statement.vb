@@ -1461,7 +1461,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return s_variablesMappings.GetValue(
                     Me,
                     Function(BoundUsing)
-                        Dim usingStatementSyntax = Syntax.ChildNodes().OfType(Of UsingStatementSyntax).SingleOrDefault()
+                        If (BoundUsing.ResourceList.IsDefault) Then
+                            Return Nothing
+                        End If
+                        Dim usingStatementSyntax = DirectCast(Syntax.ChildNodes()(0), UsingStatementSyntax)
                         Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration), usingStatementSyntax)
                     End Function)
             End Get
