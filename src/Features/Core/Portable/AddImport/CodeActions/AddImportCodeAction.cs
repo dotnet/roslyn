@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             protected readonly AddImportFixData FixData;
 
-            public sealed override string Title { get; }
+            public override string Title { get; }
             public sealed override ImmutableArray<string> Tags { get; }
             internal sealed override CodeActionPriority Priority { get; }
 
@@ -38,13 +38,12 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected AddImportCodeAction(
                 Document originalDocument,
-                AddImportFixData fixData,
-                string titleOpt = null)
+                AddImportFixData fixData)
             {
                 OriginalDocument = originalDocument;
                 FixData = fixData;
 
-                Title = titleOpt ?? fixData.Title;
+                Title = fixData.Title;
                 Tags = fixData.Tags;
                 Priority = fixData.Priority;
                 _textChanges = fixData.TextChanges;

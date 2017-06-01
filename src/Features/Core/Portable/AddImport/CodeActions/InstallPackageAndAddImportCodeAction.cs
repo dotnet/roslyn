@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
             private class InstallPackageAndAddImportCodeAction : AddImportCodeAction
             {
+                public override string Title { get; }
+
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
@@ -26,9 +28,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                     AddImportFixData fixData,
                     string title,
                     InstallPackageDirectlyCodeActionOperation installOperation)
-                    : base(originalDocument, fixData, title)
+                    : base(originalDocument, fixData)
                 {
                     Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
+                    Title = title;
                     _installOperation = installOperation;
                 }
 
