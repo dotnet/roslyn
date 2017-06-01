@@ -1043,9 +1043,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.Assignable:
                     return ErrorCode.ERR_AssgReadonlyLocal;
@@ -1058,11 +1055,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.IncrementDecrement:
                     return ErrorCode.ERR_IncrementLvalueExpected;
-
-                case BindValueKind.RefReturn:
-                case BindValueKind.ReturnableReference:
-                    return ErrorCode.ERR_RefReturnStructThis;
             }
+
+            if (RequiresReturnableReference(kind))
+            {
+                return ErrorCode.ERR_RefReturnStructThis;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(kind);
         }
 
         private static ErrorCode GetRangeLvalueError(BindValueKind kind)
@@ -1077,9 +1077,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
 
-                case BindValueKind.RefReturn:
-                case BindValueKind.ReturnableReference:
-                    return ErrorCode.ERR_RefReturnRangeVariable;
+            }
+
+            if (RequiresReturnableReference(kind))
+            {
+                return ErrorCode.ERR_RefReturnRangeVariable;
             }
 
             if (RequiresReferenceToLocation(kind))
@@ -1108,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         static private ErrorCode GetStandardLvalueError(BindValueKind kind)
         {
-            switch (kind)
+           switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.Assignable:
@@ -1122,10 +1124,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.FixedReceiver:
                     return ErrorCode.ERR_FixedNeedsLvalue;
+            }
 
-                case BindValueKind.RefReturn:
-                case BindValueKind.ReturnableReference:
-                    return ErrorCode.ERR_RefReturnLvalueExpected;
+            if (RequiresReturnableReference(kind))
+            {
+                return ErrorCode.ERR_RefReturnLvalueExpected;
             }
 
             if (RequiresReferenceToLocation(kind))
