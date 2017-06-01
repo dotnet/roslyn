@@ -30,8 +30,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                 var title = $"{this.provider.GetDescription(this.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
+                var fullyQualifiedTypeName = string.Join(
+                    ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
 
-                return new AssemblyReferenceCodeAction(title, _referenceAssemblyWithType, document, textChanges);
+                return new AssemblyReferenceCodeAction(
+                    document, textChanges, title, _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
             }
 
             public override bool Equals(object obj)

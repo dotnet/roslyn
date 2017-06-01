@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -18,9 +17,11 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
             private class AssemblyReferenceCodeAction : CodeAction
             {
-                private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
+                private readonly string _assemblyName;
+                private readonly string _fullyQualifiedTypeName;
+
                 private readonly string _title;
-                private readonly Document _document;
+                private readonly Document _originalDocument;
                 private readonly ImmutableArray<TextChange> _textChanges;
 
                 public override string Title => _title;
@@ -30,16 +31,18 @@ namespace Microsoft.CodeAnalysis.AddImport
                 private readonly Lazy<string> _lazyResolvedPath;
 
                 public AssemblyReferenceCodeAction(
+                    Document originalDocument,
+                    ImmutableArray<TextChange> textChanges,
                     string title,
-                    ReferenceAssemblyWithTypeResult referenceAssemblyWithType,
-                    Document document,
-                    ImmutableArray<TextChange> textChanges)
+                    string assemblyName,
+                    string fullyQualifiedTypeName)
                 {
-                    _referenceAssemblyWithType = referenceAssemblyWithType;
-                    _document = document;
+                    _originalDocument = originalDocument;
                     _textChanges = textChanges;
-
                     _title = title;
+                    _assemblyName = assemblyName;
+                    _fullyQualifiedTypeName = fullyQualifiedTypeName;
+
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
                 }
 
@@ -48,13 +51,10 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 private string ResolvePath()
                 {
-                    var assemblyResolverService = _document.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
-
-                    var fullyQualifiedName = string.Join(
-                        ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
+                    var assemblyResolverService = _originalDocument.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
 
                     var assemblyPath = assemblyResolverService?.ResolveAssemblyPath(
-                        _document.Project.Id, _referenceAssemblyWithType.AssemblyName, fullyQualifiedName);
+                        _originalDocument.Project.Id, _assemblyName, _fullyQualifiedTypeName);
 
                     return assemblyPath;
                 }
@@ -67,14 +67,14 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
                 {
-                    var service = _document.Project.Solution.Workspace.Services.GetService<IMetadataService>();
+                    var service = _originalDocument.Project.Solution.Workspace.Services.GetService<IMetadataService>();
                     var resolvedPath = _lazyResolvedPath.Value;
                     var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
 
-                    var oldText = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var oldText = await _originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                     var newText = oldText.WithChanges(_textChanges);
 
-                    var newDocument = _document.WithText(newText);
+                    var newDocument = _originalDocument.WithText(newText);
 
                     // Now add the actual assembly reference.
                     var newProject = newDocument.Project;

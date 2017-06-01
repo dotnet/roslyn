@@ -26,13 +26,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly string _portableExecutableReferenceFilePathToAdd;
 
             public MetadataSymbolReferenceCodeAction(
-                Document contextDocument,
+                Document originalDocument,
                 ImmutableArray<TextChange> textChanges,
                 string title, ImmutableArray<string> tags,
                 CodeActionPriority priority,
                 ProjectId portableExecutableReferenceProjectId,
                 string portableExecutableReferenceFilePathToAdd)
-                    : base(contextDocument, textChanges, title, tags, priority)
+                    : base(originalDocument, textChanges, title, tags, priority)
             {
                 _portableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
                 _portableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;

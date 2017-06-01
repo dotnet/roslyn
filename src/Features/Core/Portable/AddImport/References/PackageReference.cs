@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                 return new ParentInstallPackageCodeAction(
-                    _installerService, _source, _packageName, _versionOpt, document, textChanges);
+                    document, textChanges, _installerService, _source, _packageName, _versionOpt);
             }
 
             public override bool Equals(object obj)
