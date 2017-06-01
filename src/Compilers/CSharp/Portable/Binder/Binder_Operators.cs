@@ -479,16 +479,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool leftNull = left.IsLiteralNull();
             bool rightNull = right.IsLiteralNull();
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
-
             if (isEquality && leftNull && rightNull)
             {
                 return new BoundLiteral(node, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
-            }
-
-            if ((left.IsLiteralDefault() || right.IsLiteralDefault()) && !isEquality)
-            {
-                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, node.OperatorToken.Text, "default");
-                return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, LookupResultKind.Empty, GetBinaryOperatorErrorType(kind, diagnostics, node), true);
             }
 
             // SPEC: For an operation of one of the forms x == null, null == x, x != null, null != x,
@@ -631,6 +624,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
+            if (resultKind == LookupResultKind.OverloadResolutionFailure && (left.IsLiteralDefault() || right.IsLiteralDefault()))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorToken.Text, "default");
+                return;
+            }
+
             ErrorCode errorCode = resultKind == LookupResultKind.Ambiguous ?
                 ErrorCode.ERR_AmbigBinaryOps : // Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'
                 ErrorCode.ERR_BadBinaryOps;    // Operator '{0}' cannot be applied to operands of type '{1}' and '{2}'
@@ -1029,6 +1028,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BinaryOperatorAnalysisResult BinaryOperatorOverloadResolution(BinaryOperatorKind kind, BoundExpression left, BoundExpression right, CSharpSyntaxNode node, DiagnosticBag diagnostics, out LookupResultKind resultKind, out ImmutableArray<MethodSymbol> originalUserDefinedOperators)
         {
+            bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
+            if (!isEquality && (left.IsLiteralDefault() || right.IsLiteralDefault()))
+            {
+                resultKind = LookupResultKind.OverloadResolutionFailure;
+                originalUserDefinedOperators = default(ImmutableArray<MethodSymbol>);
+                return default(BinaryOperatorAnalysisResult);
+            }
+
             var result = BinaryOperatorOverloadResolutionResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.OverloadResolution.BinaryOperatorOverloadResolution(kind, left, right, result, ref useSiteDiagnostics);

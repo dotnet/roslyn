@@ -848,11 +848,17 @@ class C
                 //         var n = default <= default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default <= default").WithArguments("<=", "default").WithLocation(19, 17),
                 // (20,17): error CS0034: Operator '==' is ambiguous on operands of type 'default' and 'default'
-                //         var o = default == default;
+                //         var o = default == default; // ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default == default").WithArguments("==", "default", "default").WithLocation(20, 17),
                 // (21,17): error CS0034: Operator '!=' is ambiguous on operands of type 'default' and 'default'
-                //         var p = default != default;
+                //         var p = default != default; // ambiguous
                 Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default != default").WithArguments("!=", "default", "default").WithLocation(21, 17),
+                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'default'
+                //         var q = default && default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default && default").WithArguments("&&", "default").WithLocation(22, 17),
+                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
+                //         var r = default || default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || default").WithArguments("||", "default").WithLocation(23, 17),
                 // (24,17): error CS0019: Operator '??' cannot be applied to operands of type 'default' and 'default'
                 //         var s = default ?? default;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "default ?? default").WithArguments("??", "default", "default").WithLocation(24, 17)
@@ -933,12 +939,12 @@ class C
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = default <= 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default <= 1").WithArguments("<=", "default").WithLocation(19, 17),
-                // (22,17): error CS0019: Operator '&&' cannot be applied to operands of type 'default' and 'int'
+                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'default'
                 //         var q = default && 1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default && 1").WithArguments("&&", "default", "int").WithLocation(22, 17),
-                // (23,17): error CS0019: Operator '||' cannot be applied to operands of type 'default' and 'int'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default && 1").WithArguments("&&", "default").WithLocation(22, 17),
+                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = default || 1;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default || 1").WithArguments("||", "default", "int").WithLocation(23, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || 1").WithArguments("||", "default").WithLocation(23, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = default == 1; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1022,12 +1028,12 @@ class C
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = 1 <= default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 <= default").WithArguments("<=", "default").WithLocation(19, 17),
-                // (22,17): error CS0019: Operator '&&' cannot be applied to operands of type 'int' and 'default'
+                // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'default'
                 //         var q = 1 && default;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 && default").WithArguments("&&", "int", "default").WithLocation(22, 17),
-                // (23,17): error CS0019: Operator '||' cannot be applied to operands of type 'int' and 'default'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 && default").WithArguments("&&", "default").WithLocation(22, 17),
+                // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = 1 || default;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 || default").WithArguments("||", "int", "default").WithLocation(23, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 || default").WithArguments("||", "default").WithLocation(23, 17),
                 // (24,17): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'default'
                 //         var s = 1 ?? default;
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? default").WithArguments("??", "int", "default").WithLocation(24, 17),
@@ -1050,26 +1056,26 @@ struct S
     static void Main()
     {
         S s = new S(40);
-        s += new S(2);
         s += default;
-        System.Console.Write(s);
     }
     S(int i) { field = i; }
     public static S operator +(S left, S right) => new S(left.field + right.field);
-    public override string ToString() => field.ToString();
 }
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
-            CompileAndVerify(comp, expectedOutput: "42");
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                //         s += default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "s += default").WithArguments("+=", "default").WithLocation(8, 9)
+                );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var defaultLiteral = nodes.OfType<LiteralExpressionSyntax>().ElementAt(2);
+            var defaultLiteral = nodes.OfType<LiteralExpressionSyntax>().ElementAt(1);
             Assert.Equal("s += default", defaultLiteral.Parent.ToString());
-            Assert.Equal("S", model.GetTypeInfo(defaultLiteral).Type.ToTestDisplayString());
+            Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
         }
 
         [Fact]
@@ -1157,6 +1163,12 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
+                // (9,13): error CS8310: Operator '+=' cannot be applied to operand 'default'
+                //             i += default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "i += default").WithArguments("+=", "default").WithLocation(9, 13),
+                // (11,13): error CS8310: Operator '&=' cannot be applied to operand 'default'
+                //             b &= default;
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "b &= default").WithArguments("&=", "default").WithLocation(11, 13),
                 // (12,37): error CS8310: Operator '|' cannot be applied to operand 'default'
                 //             System.Console.Write($"{true | default} {i} {b}");
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "true | default").WithArguments("|", "default").WithLocation(12, 37),
