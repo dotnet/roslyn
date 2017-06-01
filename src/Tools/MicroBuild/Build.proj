@@ -32,7 +32,7 @@
 
     <MSBuild Projects="$(RepoRoot)src\Setup\SetupStep1.proj" Properties="DeployExtension=false" />
 
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)run-gitlink.ps1 &quot;$(Configuration)&quot;" Condition="'$(SkipGitLink)' != 'true'" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)post-build.ps1 &quot;$(Configuration)&quot;" />
     <Exec Command="$(NuGetPackageRoot)\RoslynTools.Microsoft.SignTool\$(RoslynToolsMicrosoftSignToolVersion)\tools\SignTool.exe $(SignRoslynArgs) &quot;$(BinariesPath)&quot;" WorkingDirectory="$(RepoRoot)" />
 
     <MSBuild Projects="$(RepoRoot)src\NuGet\NuGet.proj" />
