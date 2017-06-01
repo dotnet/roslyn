@@ -37,14 +37,22 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
 
             // NOTE: Anycode gives us the project references as if they were command line arguments with
             // "/ProjectReference:" prepended.  Strip that off here.
-            var result = ImmutableDictionary.CreateRange(
-                commandLineInfos.Select(kvp => KeyValuePair.Create(
-                    kvp.Key,
-                    new DeferredProjectInformation(
-                        kvp.Value.TargetPath,
-                        kvp.Value.CommandLineArgs,
-                        kvp.Value.ProjectReferences.Select(p => p.Substring("/ProjectReference:".Length)).ToImmutableArray()))));
-            return result;
+            var builder = ImmutableDictionary.CreateBuilder<string, DeferredProjectInformation>();
+            foreach (var (path, cli) in commandLineInfos)
+            {
+                if (string.IsNullOrEmpty(cli.TargetPath) ||
+                    cli.CommandLineArgs.IsDefault)
+                {
+                    continue;
+                }
+
+                builder.Add(path, new DeferredProjectInformation(
+                    cli.TargetPath,
+                    cli.CommandLineArgs,
+                    cli.ProjectReferences.Select(p => p.Substring("/ProjectReference:".Length)).ToImmutableArray()));
+            }
+
+            return builder.ToImmutableDictionary();
         }
     }
 }
