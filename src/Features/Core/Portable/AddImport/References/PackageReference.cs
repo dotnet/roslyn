@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
                 return AddImportFixData.CreateForPackageSymbol(
-                    document, textChanges, _source, _packageName, _versionOpt);
+                    textChanges, _source, _packageName, _versionOpt);
             }
 
             public override bool Equals(object obj)

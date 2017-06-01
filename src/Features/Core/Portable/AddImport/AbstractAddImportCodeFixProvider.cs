@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                                 var fixData = await reference.GetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
                                 if (fixData != null)
                                 {
-                                    var codeAction = CreateCodeAction(fixData);
+                                    var codeAction = CreateCodeAction(document, fixData);
                                     context.RegisterCodeFix(codeAction, diagnostic);
                                     count++;
                                 }
@@ -122,9 +122,40 @@ namespace Microsoft.CodeAnalysis.AddImport
             return count;
         }
 
-        private CodeAction CreateCodeAction(AddImportFixData fixData)
+        private CodeAction CreateCodeAction(
+            Document document, AddImportFixData fixData)
         {
-            throw new NotImplementedException();
+            switch (fixData.Kind)
+            {
+                case AddImportFixKind.ProjectSymbol:
+                    return new ProjectSymbolReferenceCodeAction(
+                        document, fixData.TextChanges, fixData.Title, fixData.Tags,
+                        fixData.Priority, fixData.ProjectReferenceToAdd);
+
+                case AddImportFixKind.MetadataSymbol:
+                    return new MetadataSymbolReferenceCodeAction(
+                        document, fixData.TextChanges, fixData.Title, fixData.Tags, fixData.Priority,
+                        fixData.PortableExecutableReferenceProjectId, fixData.PortableExecutableReferenceFilePathToAdd);
+
+                case AddImportFixKind.PackageSymbol:
+                    return new ParentInstallPackageCodeAction(
+                        document, fixData.TextChanges, GetPackageInstallerService(document), 
+                        fixData.PackageSource, fixData.PackageName, fixData.PackageVersionOpt);
+
+                case AddImportFixKind.ReferenceAssemblySymbol:
+                    return new AssemblyReferenceCodeAction(
+                        document, fixData.TextChanges, fixData.Title, 
+                        fixData.AssemblyReferenceAssemblyName,
+                        fixData.AssemblyReferenceFullyQualifiedTypeName);
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private IPackageInstallerService GetPackageInstallerService(Document document)
+        {
+            var workspaceServices = document.Project.Solution.Workspace.Services;
+            return _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(

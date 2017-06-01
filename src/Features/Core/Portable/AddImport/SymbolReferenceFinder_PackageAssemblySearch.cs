@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
 
                 var symbolSearchService = _owner._symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
-                var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
+                var installerService = _owner.GetPackageInstallerService(_document);
 
                 var language = _document.Project.Language;
 

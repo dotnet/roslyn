@@ -20,12 +20,6 @@ namespace Microsoft.CodeAnalysis.AddImport
         public AddImportFixKind Kind { get; }
 
         /// <summary>
-        /// The document where we started the Add-Import operation from.  (Also the document that
-        /// will have the import added to it).  
-        /// </summary>
-        public Document OriginalDocument { get; }
-
-        /// <summary>
         /// Text changes to make to the document.  Usually just the import to add.  May also
         /// include a change to the name node the feature was invoked on to fix the casing of it.
         /// May be empty for fixes that don't need to add an import and only do something like
@@ -91,17 +85,15 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private AddImportFixData(
             AddImportFixKind kind,
-            Document originalDocument,
             ImmutableArray<TextChange> textChanges)
         {
             Kind = kind;
-            OriginalDocument = originalDocument;
             TextChanges = textChanges;
         }
 
-        public static AddImportFixData CreateForProjectSymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
+        public static AddImportFixData CreateForProjectSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
         {
-            return new AddImportFixData(AddImportFixKind.ProjectSymbol, originalDocument, textChanges)
+            return new AddImportFixData(AddImportFixKind.ProjectSymbol, textChanges)
             {
                 Title = title,
                 Tags = tags,
@@ -109,9 +101,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             };
         }
 
-        public static AddImportFixData CreateForMetadataSymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
+        public static AddImportFixData CreateForMetadataSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
         {
-            return new AddImportFixData(AddImportFixKind.MetadataSymbol, originalDocument, textChanges)
+            return new AddImportFixData(AddImportFixKind.MetadataSymbol, textChanges)
             {
                 Title = title,
                 Tags = tags,
@@ -121,9 +113,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             };
         }
 
-        public static AddImportFixData CreateForReferenceAssemblySymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string title, string assemblyReferenceAssemblyName, string assemblyReferenceFullyQualifiedTypeName)
+        public static AddImportFixData CreateForReferenceAssemblySymbol(ImmutableArray<TextChange> textChanges, string title, string assemblyReferenceAssemblyName, string assemblyReferenceFullyQualifiedTypeName)
         {
-            return new AddImportFixData(AddImportFixKind.ReferenceAssemblySymbol, originalDocument, textChanges)
+            return new AddImportFixData(AddImportFixKind.ReferenceAssemblySymbol, textChanges)
             {
                 Title = title,
                 AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName,
@@ -131,9 +123,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             };
         }
 
-        public static AddImportFixData CreateForPackageSymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string packageSource, string packageName, string packageVersionOpt)
+        public static AddImportFixData CreateForPackageSymbol(ImmutableArray<TextChange> textChanges, string packageSource, string packageName, string packageVersionOpt)
         {
-            return new AddImportFixData(AddImportFixKind.PackageSymbol, originalDocument, textChanges)
+            return new AddImportFixData(AddImportFixKind.PackageSymbol, textChanges)
             {
                 PackageSource = packageSource,
                 PackageName = packageName,

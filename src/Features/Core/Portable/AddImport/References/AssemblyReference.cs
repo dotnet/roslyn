@@ -33,8 +33,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
 
                 return AddImportFixData.CreateForReferenceAssemblySymbol(
-                    document, textChanges, title,
-                    _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
+                    textChanges, title, _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
             }
 
             public override bool Equals(object obj)

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ImmutableArray<string> tags, CodeActionPriority priority)
             {
                 return AddImportFixData.CreateForProjectSymbol(
-                    document, textChanges, description, tags, priority, _project.Id);
+                    textChanges, description, tags, priority, _project.Id);
             }
 
             protected override (string description, bool hasExistingImport) GetDescription(

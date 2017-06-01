@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ImmutableArray<string> tags, CodeActionPriority priority)
             {
                 return AddImportFixData.CreateForMetadataSymbol(
-                    document, textChanges, description, tags, priority,
+                    textChanges, description, tags, priority,
                     _referenceProjectId, _reference.FilePath);
             }
 
