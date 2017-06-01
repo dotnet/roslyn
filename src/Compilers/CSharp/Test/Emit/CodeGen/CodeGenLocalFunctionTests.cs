@@ -31,6 +31,107 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        public void IntermediateStructClosures()
+        {
+            CompileAndVerify(@"
+using System;
+class C
+{
+    int _x = 0;
+
+    public static void Main() => new C().M();
+
+    public void M()
+    {
+        int var1 = 0;
+        void L1()
+        {
+            void L2()
+            {
+                void L3()
+                {   
+                    void L4()
+                    {
+                        int var2 = 0;
+                        void L5()
+                        {
+                            int L6() => var2 + _x++;
+                            L6();
+                        }
+                        L5();
+                    }
+                    L4();
+                }
+                L3();
+            }
+            L2();
+            int L8() => var1;
+        }
+        Console.WriteLine(_x);
+        L1();
+        Console.WriteLine(_x);
+    }
+}", expectedOutput: 
+@"0
+1");
+        }
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        public void Repro18814()
+        {
+            CompileAndVerify(@"
+class Program
+{
+    private void ResolvingPackages()
+    {
+        string outerScope(int a) => """";
+
+        void C1(int cabinetIdx)
+        {
+            void modifyState()
+            {
+                var no = outerScope(cabinetIdx);
+            }
+
+            modifyState();
+        }
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void Repro18918()
+        {
+            CompileAndVerify(@"
+public class Test
+{
+    private int _field;
+
+    public void OuterMethod(int outerParam)
+    {
+        void InnerMethod1()
+        {
+            void InnerInnerMethod(int innerInnerParam)
+            {
+                InnerInnerInnerMethod();
+                
+                bool InnerInnerInnerMethod()
+                {
+                    return innerInnerParam != _field;
+                }
+            }
+
+            void InnerMethod2()
+            {
+                var temp = outerParam;
+            }  
+        }
+    }
+}");
+        }
+
+        [Fact]
         [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
         public void Repro17719()
         {
