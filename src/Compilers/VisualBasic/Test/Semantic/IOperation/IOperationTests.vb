@@ -16,24 +16,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                              <file name="c.vb">
                                  <![CDATA[
 Public Class B2
-    Public Shared Operator +(x As B2, y As B2) As B2
+    Public Shared Operator +(x As B2, y As B2) As B2 
         System.Console.WriteLine("+")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2
+    Public Shared Operator -(x As B2) As B2 
         System.Console.WriteLine("-")
         Return x
     End Operator
 
-    Public Shared Operator -(x As B2) As B2
+    Public Shared Operator -(x As B2) As B2 
         System.Console.WriteLine("-")
         Return x
     End Operator
 End Class
 
 Module Module1
-    Sub Main()
+    Sub Main() 
         Dim x, y As New B2()
         x = x + 10
         x = x + y
@@ -142,7 +142,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
                              <file name="c.vb">
                                  <![CDATA[
 Public Class B2
-    Public Shared Operator +(x As B2, y As B2) As B2
+    Public Shared Operator +(x As B2, y As B2) As B2 
         System.Console.WriteLine("+")
         Return x
     End Operator
@@ -150,7 +150,7 @@ End Class
 
 Module Module1
     Sub Main()
-        Dim x, y As Integer
+        Dim x, y As Integer 
         Dim a, b As New B2()
         x += y
         a += b
@@ -291,7 +291,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
                              <file name="c.vb">
                                  <![CDATA[
 Module Module1
-    Sub Main()
+    Sub Main() 
         Test1(Nothing)
         Test2(New System.Guid(), Nothing)
         Test1(AddressOf Main)
