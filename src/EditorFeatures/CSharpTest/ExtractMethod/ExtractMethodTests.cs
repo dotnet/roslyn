@@ -10121,6 +10121,114 @@ $@"namespace ClassLibrary9
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(19958, "https://github.com/dotnet/roslyn/issues/19958")]
+        public async Task TestExtractMethodRefPassThrough()
+        {
+            var code =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal class ClassExtensions
+    {
+        public static int OtherMethod(ref int x) => x;
+
+        public static void Method(ref int x)
+            => Console.WriteLine(OtherMethod(ref [|x|]));
+    }
+}";
+            var expected =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal class ClassExtensions
+    {
+        public static int OtherMethod(ref int x) => x;
+
+        public static void Method(ref int x)
+            => Console.WriteLine(OtherMethod(ref $x$));
+
+        public static ref int NewMethod(ref int x)
+        {
+            return ref x;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, temporaryFailing: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WorkItem(19958, "https://github.com/dotnet/roslyn/issues/19958")]
+        public async Task TestExtractMethodRefPassThroughDuplicateVariable()
+        {
+            var code =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal interface IClass
+    {
+        bool InterfaceMethod(ref Guid x, out IOtherClass y);
+    }
+    internal interface IOtherClass
+    {
+        bool OtherInterfaceMethod();
+    }
+
+    internal static class ClassExtensions
+    {
+        public static void Method(this IClass instance, Guid guid)
+        {
+            var r = instance.InterfaceMethod(ref [|guid|], out IOtherClass guid);
+            if (!r)
+                return;
+
+            r = guid.OtherInterfaceMethod();
+            if (r)
+                throw null;
+        }
+    }
+}";
+            var expected =
+@"using System;
+
+namespace ClassLibrary9
+{
+    internal interface IClass
+    {
+        bool InterfaceMethod(ref Guid x, out IOtherClass y);
+    }
+    internal interface IOtherClass
+    {
+        bool OtherInterfaceMethod();
+    }
+
+    internal static class ClassExtensions
+    {
+        public static void Method(this IClass instance, Guid guid)
+        {
+            var r = instance.InterfaceMethod(ref NewMethod(ref guid), out IOtherClass guid);
+            if (!r)
+                return;
+
+            r = guid.OtherInterfaceMethod();
+            if (r)
+                throw null;
+        }
+
+        public static ref Guid NewMethod(ref Guid guid)
+        {
+            return ref guid;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, temporaryFailing: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public async Task ExtractMethod_Argument1()
         {
             var service = new CSharpExtractMethodService();
