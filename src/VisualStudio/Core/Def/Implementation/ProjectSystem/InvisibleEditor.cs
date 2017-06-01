@@ -28,6 +28,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private OLE.Interop.IOleUndoManager _manager;
         private readonly bool _needsUndoRestored;
 
+        /// <remarks>
+        /// <para>The optional project is used to obtain an <see cref="IVsProject"/> 1nstance. When this instance is
+        /// provided, Visual Studio will use <see cref="IVsProject.IsDocumentInProject"/> to attempt to locate the
+        /// specified file within a project. If no project is specified, Visual Studio falls back to using
+        /// <see cref="IVsUIShellOpenDocument4.IsDocumentInAProject2"/>, which performs a much slower query of all
+        /// projects in the solution.</para>
+        /// </remarks>
         public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVisualStudioHostProject projectOpt, bool needsSave, bool needsUndoDisabled)
         {
             _serviceProvider = serviceProvider;
