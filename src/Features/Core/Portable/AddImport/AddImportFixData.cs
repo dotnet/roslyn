@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
