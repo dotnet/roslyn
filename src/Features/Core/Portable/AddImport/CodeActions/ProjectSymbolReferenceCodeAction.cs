@@ -16,16 +16,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly ProjectId _projectReferenceToAdd;
 
             public ProjectSymbolReferenceCodeAction(
-                Document contextDocument,
+                Document originalDocument,
                 ImmutableArray<TextChange> textChanges,
                 string title, ImmutableArray<string> tags,
                 CodeActionPriority priority,
                 ProjectId projectReferenceToAdd)
-                    : base(contextDocument, textChanges, title, tags, priority)
+                    : base(originalDocument, textChanges, title, tags, priority)
             {
                 // We only want to add a project reference if the project the import references
                 // is different from the project we started from.
-                if (projectReferenceToAdd != contextDocument.Project.Id)
+                if (projectReferenceToAdd != originalDocument.Project.Id)
                 {
                     _projectReferenceToAdd = projectReferenceToAdd;
                 }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 => _projectReferenceToAdd != null;
 
             internal override bool IsApplicable(Workspace workspace)
-                => _projectReferenceToAdd != null && workspace.CanAddProjectReference(ContextDocument.Project.Id, _projectReferenceToAdd);
+                => _projectReferenceToAdd != null && workspace.CanAddProjectReference(OriginalDocument.Project.Id, _projectReferenceToAdd);
 
             protected override Project UpdateProject(Project project)
             {

@@ -16,43 +16,23 @@ namespace Microsoft.CodeAnalysis.AddImport
             /// we want to do things like show a glyph if this will do more than just add
             /// an import.
             /// </summary>
-            private abstract class SymbolReferenceCodeAction : CodeAction
+            private abstract class SymbolReferenceCodeAction : AddImportCodeAction
             {
-                public override string Title { get; }
-                public override ImmutableArray<string> Tags { get; }
-                internal override CodeActionPriority Priority { get; }
-
-                public override string EquivalenceKey => this.Title;
-
-                /// <summary>
-                /// The <see cref="Document"/> we started the add-import analysis in.
-                /// </summary>
-                protected readonly Document ContextDocument;
-
-                /// <summary>
-                /// The changes to make to <see cref="ContextDocument"/> to add the import.
-                /// </summary>
-                private readonly ImmutableArray<TextChange> _textChanges;
-
                 protected SymbolReferenceCodeAction(
-                    Document contextDocument,
+                    Document originalDocument,
                     ImmutableArray<TextChange> textChanges,
                     string title, ImmutableArray<string> tags,
                     CodeActionPriority priority)
+                    : base(originalDocument, textChanges, title, tags, priority)
                 {
-                    ContextDocument = contextDocument;
-                    _textChanges = textChanges;
-                    Title = title;
-                    Tags = tags;
-                    Priority = priority;
                 }
 
                 protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
-                    var oldText = await ContextDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = oldText.WithChanges(_textChanges);
+                    var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = oldText.WithChanges(TextChanges);
 
-                    var updatedDocument = ContextDocument.WithText(newText);
+                    var updatedDocument = OriginalDocument.WithText(newText);
                     var updatedProject = UpdateProject(updatedDocument.Project);
                     
                     var updatedSolution = updatedProject.Solution;

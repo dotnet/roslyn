@@ -34,25 +34,25 @@ namespace Microsoft.CodeAnalysis.AddImport
                 /// top level light-bulb where it's not clear what effect they would have if invoked.
                 /// </summary>
                 public ParentInstallPackageCodeAction(
+                    Document document,
+                    ImmutableArray<TextChange> textChanges,
                     IPackageInstallerService installerService,
                     string source,
                     string packageName,
-                    string versionOpt,
-                    Document document,
-                    ImmutableArray<TextChange> textChanges)
+                    string versionOpt)
                     : base(string.Format(FeaturesResources.Install_package_0, packageName),
-                           CreateNestedActions(installerService, source, packageName, versionOpt, document, textChanges),
+                           CreateNestedActions(document, textChanges, installerService, source, packageName, versionOpt),
                            isInlinable: false)
                 {
                 }
 
                 private static ImmutableArray<CodeAction> CreateNestedActions(
+                    Document document,
+                    ImmutableArray<TextChange> textChanges,
                     IPackageInstallerService installerService,
                     string source,
                     string packageName,
-                    string versionOpt,
-                    Document document,
-                    ImmutableArray<TextChange> textChanges)
+                    string versionOpt)
                 {
                     // Determine what versions of this package are already installed in some project
                     // in this solution.  We'll offer to add those specific versions to this project,
@@ -62,17 +62,17 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                     // First add the actions to install a specific version.
                     codeActions.AddRange(installedVersions.Select(
-                        v => CreateCodeAction(
-                            installerService, source, packageName, v,
-                            document, textChanges, isLocal: true)));
+                        v => CreateCodeAction(                            
+                            document, textChanges, installerService, 
+                            source, packageName, versionOpt: v, isLocal: true)));
 
                     // Now add the action to install the specific version.
                     var preferredVersion = versionOpt;
                     if (preferredVersion == null || !installedVersions.Contains(preferredVersion))
                     {
                         codeActions.Add(CreateCodeAction(
-                            installerService, source, packageName, versionOpt,
-                            document, textChanges, isLocal: false));
+                            document, textChanges, installerService, 
+                            source, packageName, versionOpt, isLocal: false));
                     }
 
                     // And finally the action to show the package manager dialog.
@@ -81,12 +81,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 }
 
                 private static CodeAction CreateCodeAction(
+                    Document document,
+                    ImmutableArray<TextChange> textChanges,
                     IPackageInstallerService installerService,
                     string source,
                     string packageName,
                     string versionOpt,
-                    Document document,
-                    ImmutableArray<TextChange> textChanges,
                     bool isLocal)
                 {
                     var title = versionOpt == null
@@ -101,8 +101,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                     // Nuget hits should always come after other results.
                     return new InstallPackageAndAddImportCodeAction(
-                        title, CodeActionPriority.Low,
-                        document, textChanges, installOperation);
+                        document, textChanges, title, CodeActionPriority.Low, installOperation);
                 }
             }
     }

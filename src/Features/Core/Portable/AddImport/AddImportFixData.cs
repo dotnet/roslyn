@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// The document where we started the Add-Import operation from.  (Also the document that
         /// will have the import added to it).  
         /// </summary>
-        public readonly Document ContextDocument;
+        public readonly Document OriginalDocument;
 
         /// <summary>
         /// Text changes to make to the document.  Usually just the import to add.  May also
@@ -43,37 +43,38 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// <summary>
         /// The optional id for a <see cref="Project"/> we'd like to add a reference to.
         /// </summary>
-        public readonly ProjectId ProjectReferenceToAddOpt;
+        public readonly ProjectId ProjectReferenceToAdd;
 
         #endregion
 
         #region When adding a metadata reference
 
         /// <summary>
-        /// If we're adding <see cref="PortableExecutableReferenceFilePathToAddOpt"/> then this
+        /// If we're adding <see cref="PortableExecutableReferenceFilePathToAdd"/> then this
         /// is the id for the <see cref="Project"/> we can find that <see cref="PortableExecutableReference"/>
         /// referenced from.
         /// </summary>
-        public readonly ProjectId PortableExecutableReferenceProjectIdOpt;
+        public readonly ProjectId PortableExecutableReferenceProjectId;
 
         /// <summary>
         /// If we want to add a <see cref="PortableExecutableReference"/> metadata reference, this 
         /// is the <see cref="PortableExecutableReference.FilePath"/> for it.
         /// </summary>
-        public readonly string PortableExecutableReferenceFilePathToAddOpt;
+        public readonly string PortableExecutableReferenceFilePathToAdd;
 
         #endregion
 
         #region When adding an assembly reference
 
-        public readonly ReferenceAssemblyWithTypeResult ReferenceAssemblyOpt;
+        public readonly string AssemblyReferenceAssemblyName;
+        public readonly string AssemblyReferenceFullyQualifiedTypeName;
 
         #endregion
 
         #region When adding a package reference
 
-        public readonly string PackageSourceOpt;
-        public readonly string PackageNameOpt;
+        public readonly string PackageSource;
+        public readonly string PackageName;
         public readonly string PackageVersionOpt;
 
         #endregion
@@ -85,37 +86,38 @@ namespace Microsoft.CodeAnalysis.AddImport
             ImmutableArray<string> tags,
             CodeActionPriority priority)
         {
-            ContextDocument = contextDocument;
+            OriginalDocument = contextDocument;
             TextChanges = textChanges;
             Title = title;
             Tags = tags;
             Priority = priority;
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAddOpt)
+        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
             : this(contextDocument, textChanges, title, tags, priority)
         {
-            ProjectReferenceToAddOpt = projectReferenceToAddOpt;
+            ProjectReferenceToAdd = projectReferenceToAdd;
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectIdOpt, string portableExecutableReferenceFilePathToAddOpt)
+        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
             : this(contextDocument, textChanges, title, tags, priority)
         {
-            PortableExecutableReferenceProjectIdOpt = portableExecutableReferenceProjectIdOpt;
-            PortableExecutableReferenceFilePathToAddOpt = portableExecutableReferenceFilePathToAddOpt;
+            PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
+            PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ReferenceAssemblyWithTypeResult referenceAssemblyOpt)
+        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, string assemblyReferenceAssemblyName, string assemblyReferenceFullyQualifiedTypeName)
             : this(contextDocument, textChanges, title, tags, priority)
         {
-            ReferenceAssemblyOpt = referenceAssemblyOpt;
+            AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
+            AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, string packageSourceOpt, string packageNameOpt, string packageVersionOpt)
+        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, string packageSource, string packageName, string packageVersionOpt)
             : this(contextDocument, textChanges, title, tags, priority)
         {
-            PackageSourceOpt = packageSourceOpt;
-            PackageNameOpt = packageNameOpt;
+            PackageSource = packageSource;
+            PackageName = packageName;
             PackageVersionOpt = packageVersionOpt;
         }
     }

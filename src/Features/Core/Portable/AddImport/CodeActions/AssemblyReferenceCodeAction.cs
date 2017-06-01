@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -16,45 +15,33 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-            private class AssemblyReferenceCodeAction : CodeAction
+            private class AssemblyReferenceCodeAction : AddImportCodeAction
             {
-                private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
-                private readonly string _title;
-                private readonly Document _document;
-                private readonly ImmutableArray<TextChange> _textChanges;
-
-                public override string Title => _title;
-
-                public override ImmutableArray<string> Tags => WellKnownTagArrays.AddReference;
+                private readonly string _assemblyName;
+                private readonly string _fullyQualifiedTypeName;
 
                 private readonly Lazy<string> _lazyResolvedPath;
 
                 public AssemblyReferenceCodeAction(
+                    Document originalDocument,
+                    ImmutableArray<TextChange> textChanges,
                     string title,
-                    ReferenceAssemblyWithTypeResult referenceAssemblyWithType,
-                    Document document,
-                    ImmutableArray<TextChange> textChanges)
+                    string assemblyName,
+                    string fullyQualifiedTypeName)
+                    : base(originalDocument, textChanges, title, WellKnownTagArrays.AddReference, CodeActionPriority.Low)
                 {
-                    _referenceAssemblyWithType = referenceAssemblyWithType;
-                    _document = document;
-                    _textChanges = textChanges;
+                    _assemblyName = assemblyName;
+                    _fullyQualifiedTypeName = fullyQualifiedTypeName;
 
-                    _title = title;
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
                 }
 
-                // Adding a reference is always low priority.
-                internal override CodeActionPriority Priority => CodeActionPriority.Low;
-
                 private string ResolvePath()
                 {
-                    var assemblyResolverService = _document.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
-
-                    var fullyQualifiedName = string.Join(
-                        ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
+                    var assemblyResolverService = OriginalDocument.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
 
                     var assemblyPath = assemblyResolverService?.ResolveAssemblyPath(
-                        _document.Project.Id, _referenceAssemblyWithType.AssemblyName, fullyQualifiedName);
+                        OriginalDocument.Project.Id, _assemblyName, _fullyQualifiedTypeName);
 
                     return assemblyPath;
                 }
@@ -67,14 +54,11 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
                 {
-                    var service = _document.Project.Solution.Workspace.Services.GetService<IMetadataService>();
+                    var service = OriginalDocument.Project.Solution.Workspace.Services.GetService<IMetadataService>();
                     var resolvedPath = _lazyResolvedPath.Value;
                     var reference = service.GetReference(resolvedPath, MetadataReferenceProperties.Assembly);
-
-                    var oldText = await _document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = oldText.WithChanges(_textChanges);
-
-                    var newDocument = _document.WithText(newText);
+    
+                    var newDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
                     // Now add the actual assembly reference.
                     var newProject = newDocument.Project;

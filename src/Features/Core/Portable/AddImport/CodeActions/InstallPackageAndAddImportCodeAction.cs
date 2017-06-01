@@ -14,39 +14,21 @@ namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-            private class InstallPackageAndAddImportCodeAction : CodeAction
+            private class InstallPackageAndAddImportCodeAction : AddImportCodeAction
             {
-                /// <summary>
-                /// The document before we added the import. Used so we can roll back if installing
-                /// the package failed.
-                /// </summary>
-                private readonly Document _oldDocument;
-
-                /// <summary>
-                /// The changes to make to <see cref="_oldDocument"/> to add the import.
-                /// </summary>
-                private readonly ImmutableArray<TextChange> _textChanges;
-
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
                 private readonly InstallPackageDirectlyCodeActionOperation _installOperation;
 
-                public override string Title { get; }
-                public override string EquivalenceKey => Title;
-                internal override CodeActionPriority Priority { get; }
-
                 public InstallPackageAndAddImportCodeAction(
+                    Document originalDocument,
+                    ImmutableArray<TextChange> textChanges,
                     string title,
                     CodeActionPriority priority,
-                    Document oldDocument,
-                    ImmutableArray<TextChange> textChanges,
                     InstallPackageDirectlyCodeActionOperation installOperation)
+                    : base(originalDocument, textChanges, title, ImmutableArray<string>.Empty, priority)
                 {
-                    Title = title;
-                    Priority = priority;
-                    _oldDocument = oldDocument;
-                    _textChanges = textChanges;
                     _installOperation = installOperation;
                 }
 
@@ -71,10 +53,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)
                 {
-                    var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = oldText.WithChanges(_textChanges);
-
-                    var newDocument = _oldDocument.WithText(newText);
+                    var newDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
                     var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
                     // Suppress diagnostics on the import we create.  Because we only get here when we are 
@@ -94,12 +73,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                     CancellationToken cancellationToken)
                 {
-                    var oldText = await _oldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = oldText.WithChanges(_textChanges);
+                    var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = oldText.WithChanges(TextChanges);
 
                     return ImmutableArray.Create<CodeActionOperation>(
                         new InstallPackageAndAddImportOperation(
-                            _oldDocument.Id, oldText, newText, _installOperation));
+                            OriginalDocument.Id, oldText, newText, _installOperation));
                 }
             }
 
