@@ -47,17 +47,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Priority = priority;
             }
 
-            protected async Task<SourceText> GetUpdatedTextAsync(CancellationToken cancellationToken)
+            protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
                 var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
                 var newText = oldText.WithChanges(TextChanges);
-                return newText;
-            }
-
-            protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
-            {
-                var newText = await GetUpdatedTextAsync(cancellationToken).ConfigureAwait(false);
                 var newDocument = OriginalDocument.WithText(newText);
+
                 return newDocument;
             }
         }
