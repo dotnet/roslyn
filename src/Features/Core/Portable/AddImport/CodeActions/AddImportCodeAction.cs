@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             /// <summary>
             /// The changes to make to <see cref="OriginalDocument"/> to add the import.
             /// </summary>
-            protected readonly ImmutableArray<TextChange> TextChanges;
+            private readonly ImmutableArray<TextChange> _textChanges;
 
             protected AddImportCodeAction(
                 Document originalDocument,
@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.AddImport
                 CodeActionPriority priority)
             {
                 OriginalDocument = originalDocument;
-                TextChanges = textChanges;
                 Title = title;
                 Tags = tags;
                 Priority = priority;
+                _textChanges = textChanges;
             }
 
             protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)
             {
                 var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var newText = oldText.WithChanges(TextChanges);
+                var newText = oldText.WithChanges(_textChanges);
                 var newDocument = OriginalDocument.WithText(newText);
 
                 return newDocument;
