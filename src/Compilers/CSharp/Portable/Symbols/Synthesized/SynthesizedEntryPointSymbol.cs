@@ -455,7 +455,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var initializeCall = CreateParameterlessCall(syntax, scriptLocal, initializer);
                 BoundExpression getAwaiterGetResultCall;
-                binder.GetAwaitableExpressionInfo(initializeCall, out _, out _, out _, out getAwaiterGetResultCall, syntax, diagnostics);
+                if (!binder.GetAwaitableExpressionInfo(initializeCall, out _, out _, out _, out getAwaiterGetResultCall, syntax, diagnostics))
+                {
+                    return new BoundBlock(
+                        syntax: syntax,
+                        locals: ImmutableArray<LocalSymbol>.Empty,
+                        statements: ImmutableArray<BoundStatement>.Empty,
+                        hasErrors: true);
+                }
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(scriptLocal.LocalSymbol),

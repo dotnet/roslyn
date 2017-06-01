@@ -14,56 +14,129 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     using static ScriptTestFixtures;
 
+
     public class ScriptSemanticsTests : CSharpTestBase
     {
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
         public void NonStandardTaskImplementation() {
-            var newCoreSource = @"
+            var corAssembly = @"
+namespace System.Runtime.CompilerServices {
+    public interface IAsyncStateMachine {
+        void MoveNext();
+        void SetStateMachine(IAsyncStateMachine iasm);
+    }
+    public struct AsyncTaskMethodBuilder {
+        public static AsyncTaskMethodBuilder Create() { return default(AsyncTaskMethodBuilder); }
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+    }
+    public struct AsyncTaskMethodBuilder<T> {
+        public static AsyncTaskMethodBuilder<T> Create() { return default(AsyncTaskMethodBuilder<T>); }
+        public void SetStateMachine(IAsyncStateMachine stateMachine) { }
+        public System.Threading.Tasks.Task<T> Task => null;
+        public void SetException(Exception e) { }
+        public void SetResult(T result) { }
+        public void AwaitOnCompleted<A, B>(ref A a, ref B b) { }
+        public void AwaitUnsafeOnCompleted<A, B>(ref A a, ref B b) { }
+        public void Start<A>(ref A a) { }
+    }
+}
+
 namespace System.Runtime.CompilerServices {
     public class ExtensionAttribute {}
 }
 
+namespace System {
+    public delegate void Action();
+}
 namespace System.Runtime.CompilerServices {
     public interface INotifyCompletion {
-        void OnCompleted(Action action);
+        void OnCompleted(System.Action action);
     }
 }
 
 namespace System.Threading.Tasks {
     public class Awaiter<T>: System.Runtime.CompilerServices.INotifyCompletion {
         public bool IsCompleted  => true;
-        public void OnCompleted(Action action) {}
+        public void OnCompleted(System.Action action) {}
         public T GetResult() { throw new Exception(); }
     }
     public class Task<T> {}
 }
-
+namespace Hidden {
 public static class MyExtensions {
     public static System.Threading.Tasks.Awaiter<T> GetAwaiter<T>(this System.Threading.Tasks.Task<T> task) {
         return null;
     }
+}
 }";
 
-            var replacementCor = CreateStandardCompilation(newCoreSource);
-            replacementCor.VerifyDiagnostics(
-                // (22,95): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
-                //     public static System.Threading.Tasks.Awaiter<T> GetAwaiter<T>(this System.Threading.Tasks.Task<T> task) {
-                Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Task<T>").WithArguments("", "System.Threading.Tasks.Task<T>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Threading.Tasks.Task<TResult>").WithLocation(22, 95));
+            var corCompilation = CreateCompilation(corAssembly, references: new[] { MscorlibRef_v20 });
+            corCompilation.VerifyDiagnostics();
 
-            var firstSubmission = CreateSubmission(
-                code: "var a = 1 + 1;",
-                references: new MetadataReference[] { replacementCor.ToMetadataReference() });
+            var firstScript = CreateCompilation(
+                source: @" System.Console.Write(""complete"");", 
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
 
-            var secondSubmission = CreateSubmission(
-                code: "System.Console.Write(a);",
-                references: new MetadataReference[] { replacementCor.ToMetadataReference() },
-                options: TestOptions.DebugDll.WithUsings("MyExtensions"),
-                previous: firstSubmission);
+            firstScript.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
 
-            secondSubmission.VerifyEmitDiagnostics(
-                // warning CS1685: The predefined type 'Task<TResult>' is defined in multiple assemblies in the global alias; using definition from 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Threading.Tasks.Task<TResult>", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
+            var secondScript = CreateCompilation(
+                source: @" System.Console.Write(""complete"");", 
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe.WithUsings("Hidden"),
+                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
+
+            secondScript.VerifyEmitDiagnostics();
+
+            var compiled = CompileAndVerify(secondScript);
+
+            compiled.VerifyIL("<Main>", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  call       ""System.Threading.Tasks.Awaiter<object> Hidden.MyExtensions.GetAwaiter<object>(System.Threading.Tasks.Task<object>)""
+  IL_000f:  callvirt   ""object System.Threading.Tasks.Awaiter<object>.GetResult()""
+  IL_0014:  pop
+  IL_0015:  ret
+}");
+
+            var thirdScript = CreateCompilation(
+                source: @"
+using Hidden;
+new System.Threading.Tasks.Task<int>().GetAwaiter();
+System.Console.Write(""complete"");", 
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
+
+            thirdScript.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
+
+
+            var submission = CreateSubmissionWithExactReferences(
+                code: @"
+using Hidden;
+new System.Threading.Tasks.Task<int>().GetAwaiter();
+System.Console.Write(""complete"");", 
+                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 },
+                options: TestOptions.DebugDll.WithUsings("Hidden"));
+            submission.VerifyEmitDiagnostics();
+
+            var fourthScript = CSharpCompilation.CreateScriptCompilation(
+                assemblyName: GetUniqueName(),
+                syntaxTree: Parse(@"System.Console.Write(""complete"");", options: TestOptions.Script), 
+                previousScriptCompilation: submission,
+                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
+
+            fourthScript.VerifyEmitDiagnostics();
+            CompileAndVerify(fourthScript).VerifyIL("<Main>", "");
         }
 
         [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
