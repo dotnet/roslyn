@@ -3,11 +3,10 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.AddImport
 Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.AddImport
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Packaging
@@ -380,11 +379,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 cancellationToken As CancellationToken) As Task(Of Document)
             Dim nameSyntax = CreateNameSyntax(nameSpaceParts, nameSpaceParts.Count - 1)
             Dim importsStatement = GetImportsStatement(nameSyntax)
-
-            ' Suppress diagnostics on the import we create.  Because we only get here when we are 
-            ' adding a NuGet package, it is certainly the case that in the preview this will not
-            ' bind properly.  It will look silly to show such an error, so we just suppress things.
-            importsStatement = importsStatement.WithAdditionalAnnotations(SuppressDiagnosticsAnnotation.Create())
 
             Return AddImportAsync(
                 contextNode, Document, placeSystemNamespaceFirst,

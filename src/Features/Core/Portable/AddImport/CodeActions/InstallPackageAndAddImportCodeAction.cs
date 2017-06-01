@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -8,59 +9,27 @@ using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> 
+    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
-        private partial class PackageReference
-        {
-            private struct InstallPackageAndAddImportData
+            private class InstallPackageAndAddImportCodeAction : AddImportCodeAction
             {
-                /// <summary>
-                /// The document before we added the import. Used so we can roll back if installing
-                /// the package failed.
-                /// </summary>
-                public readonly Document OldDocument;
-
-                /// <summary>
-                /// The document after the import has been added.
-                /// </summary>
-                public readonly Document NewDocument;
-
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
-                public readonly InstallPackageDirectlyCodeActionOperation InstallOperation;
-
-                public InstallPackageAndAddImportData(
-                    Document oldDocument, Document newDocument,
-                    InstallPackageDirectlyCodeActionOperation installOperation)
-                {
-                    OldDocument = oldDocument;
-                    NewDocument = newDocument;
-                    InstallOperation = installOperation;
-                }
-            }
-
-            private class InstallPackageAndAddImportCodeAction : CodeAction
-            {
-                private readonly string _title;
-                private readonly CodeActionPriority _priority;
-                private readonly AsyncLazy<InstallPackageAndAddImportData> _installData;
-
-                public override string Title => _title;
-                public override string EquivalenceKey => _title;
-                internal override CodeActionPriority Priority => _priority;
+                private readonly InstallPackageDirectlyCodeActionOperation _installOperation;
 
                 public InstallPackageAndAddImportCodeAction(
-                    string title, CodeActionPriority priority,
-                    AsyncLazy<InstallPackageAndAddImportData> installData)
+                    Document originalDocument,
+                    ImmutableArray<TextChange> textChanges,
+                    string title,
+                    CodeActionPriority priority,
+                    InstallPackageDirectlyCodeActionOperation installOperation)
+                    : base(originalDocument, textChanges, title, ImmutableArray<string>.Empty, priority)
                 {
-                    _title = title;
-                    _priority = priority;
-                    _installData = installData;
+                    _installOperation = installOperation;
                 }
 
                 /// <summary>
@@ -71,17 +40,29 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 /// </summary>
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
                 {
-                    var installData = await _installData.GetValueAsync(cancellationToken).ConfigureAwait(false);
-
                     // Make a SolutionChangeAction.  This way we can let it generate the diff
                     // preview appropriately.
                     var solutionChangeAction = new SolutionChangeAction(
-                        "", c => Task.FromResult(installData.NewDocument.Project.Solution));
+                        "", c => GetUpdatedSolutionAsync(c));
 
                     var result = ArrayBuilder<CodeActionOperation>.GetInstance();
                     result.AddRange(await solutionChangeAction.GetPreviewOperationsAsync(cancellationToken).ConfigureAwait(false));
-                    result.Add(installData.InstallOperation);
+                    result.Add(_installOperation);
                     return result.ToImmutableAndFree();
+                }
+
+                private async Task<Solution> GetUpdatedSolutionAsync(CancellationToken cancellationToken)
+                {
+                    var newDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+                    var newRoot = await newDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Suppress diagnostics on the import we create.  Because we only get here when we are 
+                    // adding a nuget package, it is certainly the case that in the preview this will not
+                    // bind properly.  It will look silly to show such an error, so we just suppress things.
+                    var updatedRoot = newRoot.WithAdditionalAnnotations(SuppressDiagnosticsAnnotation.Create());
+                    var updatedDocument = newDocument.WithSyntaxRoot(updatedRoot);
+
+                    return updatedDocument.Project.Solution;
                 }
 
                 /// <summary>
@@ -92,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                     CancellationToken cancellationToken)
                 {
-                    var installData = await _installData.GetValueAsync(cancellationToken).ConfigureAwait(false);
+                    var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-                    var oldText = await installData.OldDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = await installData.NewDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = await updatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return ImmutableArray.Create<CodeActionOperation>(
                         new InstallPackageAndAddImportOperation(
-                            installData.OldDocument.Id, oldText, newText, installData.InstallOperation));
+                            OriginalDocument.Id, oldText, newText, _installOperation));
                 }
             }
 
@@ -111,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 private readonly InstallPackageDirectlyCodeActionOperation _installPackageOperation;
 
                 public InstallPackageAndAddImportOperation(
-                    DocumentId changedDocumentId, 
+                    DocumentId changedDocumentId,
                     SourceText oldText,
                     SourceText newText,
                     InstallPackageDirectlyCodeActionOperation item2)
@@ -147,6 +128,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return false;
                 }
             }
-        }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
@@ -23,11 +23,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _referenceAssemblyWithType = referenceAssemblyWithType;
             }
 
-            public override Task<CodeAction> CreateCodeActionAsync(
+            public override async Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                return Task.FromResult<CodeAction>(new AssemblyReferenceCodeAction(
-                    this, document, node, placeSystemNamespaceFirst));
+                var textChanges = await GetTextChangesAsync(
+                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                var title = $"{this.provider.GetDescription(this.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, _referenceAssemblyWithType.AssemblyName)})";
+                var fullyQualifiedTypeName = string.Join(
+                    ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
+
+                return new AssemblyReferenceCodeAction(
+                    document, textChanges, title, _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
             }
 
             public override bool Equals(object obj)

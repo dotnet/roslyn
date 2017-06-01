@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
@@ -32,11 +33,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 _versionOpt = versionOpt;
             }
 
-            public override Task<CodeAction> CreateCodeActionAsync(
+            public override async Task<CodeAction> CreateCodeActionAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
-                return Task.FromResult<CodeAction>(new ParentCodeAction(
-                    this, document, node, placeSystemNamespaceFirst));
+                var textChanges = await GetTextChangesAsync(
+                    document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+
+                return new ParentInstallPackageCodeAction(
+                    document, textChanges, _installerService, _source, _packageName, _versionOpt);
             }
 
             public override bool Equals(object obj)

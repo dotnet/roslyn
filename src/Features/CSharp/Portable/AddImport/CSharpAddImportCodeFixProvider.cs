@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -8,10 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.AddImports;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -520,12 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         {
             var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
-            // Suppress diagnostics on the import we create.  Because we only get here when we are 
-            // adding a nuget package, it is certainly the case that in the preview this will not
-            // bind properly.  It will look silly to show such an error, so we just suppress things.
             var usingDirective = SyntaxFactory.UsingDirective(
-                CreateNameSyntax(namespaceParts, namespaceParts.Count - 1)).WithAdditionalAnnotations(
-                    SuppressDiagnosticsAnnotation.Create());
+                CreateNameSyntax(namespaceParts, namespaceParts.Count - 1));
 
             var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var service = document.GetLanguageService<IAddImportsService>();
