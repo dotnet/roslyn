@@ -1464,7 +1464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If (BoundUsing.ResourceList.IsDefault) Then
                             Return Nothing
                         End If
-                        Dim usingStatementSyntax = DirectCast(Syntax.ChildNodes()(0), UsingStatementSyntax)
+                        Dim usingStatementSyntax = DirectCast(Syntax, UsingBlockSyntax).UsingStatement
                         Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration), usingStatementSyntax)
                     End Function)
             End Get
