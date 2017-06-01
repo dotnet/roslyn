@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 Document document, ImmutableArray<TextChange> textChanges, string description,
                 ImmutableArray<string> tags, CodeActionPriority priority)
             {
-                return new SymbolReferenceCodeAction(
+                return new ProjectSymbolReferenceCodeAction(
                     document, textChanges, description, tags, priority, _project.Id);
             }
 

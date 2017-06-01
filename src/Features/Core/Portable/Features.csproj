@@ -100,6 +100,8 @@
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
     <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\ProjectSymbolReferenceCodeAction.cs" />
     <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
