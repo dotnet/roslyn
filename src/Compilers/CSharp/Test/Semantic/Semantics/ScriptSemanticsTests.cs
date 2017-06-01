@@ -77,7 +77,8 @@ public static class MyExtensions {
 
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
-        public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing() {
+        public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing()
+        {
 
             var script = CreateCompilation(
                 source: @" System.Console.Write(""complete"");",
@@ -93,7 +94,8 @@ public static class MyExtensions {
 
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
-        public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing() {
+        public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing()
+        {
             var script = CreateCompilation(
                 source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
@@ -119,7 +121,8 @@ public static class MyExtensions {
 
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
-        public void NonStandardTaskImplementation_NoGlobalUsing_ScriptUsing() {
+        public void NonStandardTaskImplementation_NoGlobalUsing_ScriptUsing()
+        {
             var script = CreateCompilation(
                 source: @"
 using Hidden;
@@ -137,7 +140,8 @@ System.Console.Write(""complete"");",
 
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
-        public void NonStandardTaskImplementation_GlobalUsing_ScriptUsing() {
+        public void NonStandardTaskImplementation_GlobalUsing_ScriptUsing()
+        {
             var script = CreateCompilation(
                 source: @"
 using Hidden;
