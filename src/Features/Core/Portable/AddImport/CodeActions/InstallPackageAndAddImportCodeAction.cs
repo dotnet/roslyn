@@ -73,8 +73,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                 protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
                     CancellationToken cancellationToken)
                 {
+                    var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
+
                     var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = oldText.WithChanges(TextChanges);
+                    var newText = await updatedDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                     return ImmutableArray.Create<CodeActionOperation>(
                         new InstallPackageAndAddImportOperation(
