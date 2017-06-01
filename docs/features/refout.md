@@ -63,6 +63,11 @@ Going back to the 4 driving scenarios:
 3. For the CoreFX scenario, ref assembly source code is used as input, `EmitMetadataOnly` is set to `true`, and `IncludePrivateMembers` is set to `false`.
 4. For the MSBuild scenario, `EmitMetadataOnly` is left to `false`, a `metadataPeStream` is passed in and `IncludePrivateMembers` is set to `false`.
 
+## MSBuild
+
+* `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass /refout:). It requires opt-in. It is recommended that `Deterministic` be set, for best result.
+*	`CompileUsingReferenceAssemblies` (boolean) avoids using ref assemblies even if your references produce them. This is unset by default and only ever checked against false. It’s only there to provide an emergency escape hatch—a customer who hits a bug can set it to false and avoid the new codepaths.
+
 ## Future
 As mentioned above, there may be further refinements after C# 7.1:
 - Further reduce the metadata in ref assemblies produced by `/refout`, to match those produced by `/refonly`.
@@ -76,3 +81,5 @@ As mentioned above, there may be further refinements after C# 7.1:
 - Produce ref assemblies from command-line and msbuild (https://github.com/dotnet/roslyn/issues/2184)
 - Refine what is in reference assemblies and what diagnostics prevent generating one (https://github.com/dotnet/roslyn/issues/17612)
 - [Are private members part of the API surface?](http://blog.paranoidcoding.com/2016/02/15/are-private-members-api-surface.html)
+- MSBuild work items and design notes (https://github.com/Microsoft/msbuild/issues/1986)
+- Fast up-to-date check in project-system (https://github.com/dotnet/project-system/issues/2254)
