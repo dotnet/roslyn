@@ -1461,7 +1461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return s_variablesMappings.GetValue(
                     Me,
                     Function(BoundUsing)
-                        If (BoundUsing.ResourceList.IsDefault) Then
+                        If BoundUsing.ResourceList.IsDefault Then
                             Return Nothing
                         End If
                         Dim usingStatementSyntax = DirectCast(Syntax, UsingBlockSyntax).UsingStatement
