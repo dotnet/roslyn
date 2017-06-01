@@ -49,11 +49,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                         hasExistingImport);
             }
 
-            protected override CodeAction CreateCodeAction(
+            protected override AddImportFixData GetFixData(
                 Document document, ImmutableArray<TextChange> textChanges, string description, 
                 ImmutableArray<string> tags, CodeActionPriority priority)
             {
-                return new MetadataSymbolReferenceCodeAction(
+                return AddImportFixData.CreateForMetadataSymbol(
                     document, textChanges, description, tags, priority,
                     _referenceProjectId, _reference.FilePath);
             }

@@ -33,14 +33,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _versionOpt = versionOpt;
             }
 
-            public override async Task<CodeAction> CreateCodeActionAsync(
+            public override async Task<AddImportFixData> GetFixDataAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                return new ParentInstallPackageCodeAction(
-                    document, textChanges, _installerService, _source, _packageName, _versionOpt);
+                return AddImportFixData.CreateForPackageSymbol(
+                    document, textChanges, _source, _packageName, _versionOpt);
             }
 
             public override bool Equals(object obj)

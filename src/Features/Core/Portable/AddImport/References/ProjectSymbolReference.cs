@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return CodeActionPriority.Low;
             }
 
-            protected override CodeAction CreateCodeAction(
+            protected override AddImportFixData GetFixData(
                 Document document, ImmutableArray<TextChange> textChanges, string description,
                 ImmutableArray<string> tags, CodeActionPriority priority)
             {
-                return new ProjectSymbolReferenceCodeAction(
+                return AddImportFixData.CreateForProjectSymbol(
                     document, textChanges, description, tags, priority, _project.Id);
             }
 

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
@@ -105,9 +106,10 @@ namespace Microsoft.CodeAnalysis.AddImport
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var codeAction = await reference.CreateCodeActionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                                if (codeAction != null)
+                                var fixData = await reference.GetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                                if (fixData != null)
                                 {
+                                    var codeAction = CreateCodeAction(fixData);
                                     context.RegisterCodeFix(codeAction, diagnostic);
                                     count++;
                                 }
@@ -118,6 +120,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             return count;
+        }
+
+        private CodeAction CreateCodeAction(AddImportFixData fixData)
+        {
+            throw new NotImplementedException();
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(

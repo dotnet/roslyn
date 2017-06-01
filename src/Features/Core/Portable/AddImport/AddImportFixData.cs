@@ -7,13 +7,23 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
+    internal enum AddImportFixKind
+    {
+        ProjectSymbol,
+        MetadataSymbol,
+        PackageSymbol,
+        ReferenceAssemblySymbol,
+    }
+
     internal class AddImportFixData
     {
+        public AddImportFixKind Kind { get; }
+
         /// <summary>
         /// The document where we started the Add-Import operation from.  (Also the document that
         /// will have the import added to it).  
         /// </summary>
-        public readonly Document OriginalDocument;
+        public Document OriginalDocument { get; }
 
         /// <summary>
         /// Text changes to make to the document.  Usually just the import to add.  May also
@@ -21,22 +31,22 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// May be empty for fixes that don't need to add an import and only do something like
         /// add a project/metadata reference.
         /// </summary>
-        public readonly ImmutableArray<TextChange> TextChanges;
+        public ImmutableArray<TextChange> TextChanges { get; }
 
         /// <summary>
         /// String to display in the lightbulb menu.
         /// </summary>
-        public readonly string Title;
+        public string Title { get; private set; }
 
         /// <summary>
         /// Tags that control what glyph is displayed in the lightbulb menu.
         /// </summary>
-        public readonly ImmutableArray<string> Tags;
+        public ImmutableArray<string> Tags { get; private set; }
 
         /// <summary>
         /// The priority this item should have in the lightbulb list.
         /// </summary>
-        public readonly CodeActionPriority Priority;
+        public CodeActionPriority Priority { get; private set; }
 
         #region When adding P2P refrences.
 
@@ -54,71 +64,81 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// is the id for the <see cref="Project"/> we can find that <see cref="PortableExecutableReference"/>
         /// referenced from.
         /// </summary>
-        public readonly ProjectId PortableExecutableReferenceProjectId;
+        public ProjectId PortableExecutableReferenceProjectId { get; private set; }
 
         /// <summary>
         /// If we want to add a <see cref="PortableExecutableReference"/> metadata reference, this 
         /// is the <see cref="PortableExecutableReference.FilePath"/> for it.
         /// </summary>
-        public readonly string PortableExecutableReferenceFilePathToAdd;
+        public string PortableExecutableReferenceFilePathToAdd { get; private set; }
 
         #endregion
 
         #region When adding an assembly reference
 
-        public readonly string AssemblyReferenceAssemblyName;
-        public readonly string AssemblyReferenceFullyQualifiedTypeName;
+        public string AssemblyReferenceAssemblyName { get; private set; }
+        public string AssemblyReferenceFullyQualifiedTypeName { get; private set; }
 
         #endregion
 
         #region When adding a package reference
 
-        public readonly string PackageSource;
-        public readonly string PackageName;
-        public readonly string PackageVersionOpt;
+        public string PackageSource { get; private set; }
+        public string PackageName { get; private set; }
+        public string PackageVersionOpt { get; private set; }
 
         #endregion
 
         private AddImportFixData(
-            Document contextDocument,
-            ImmutableArray<TextChange> textChanges,
-            string title,
-            ImmutableArray<string> tags,
-            CodeActionPriority priority)
+            AddImportFixKind kind,
+            Document originalDocument,
+            ImmutableArray<TextChange> textChanges)
         {
-            OriginalDocument = contextDocument;
+            Kind = kind;
+            OriginalDocument = originalDocument;
             TextChanges = textChanges;
-            Title = title;
-            Tags = tags;
-            Priority = priority;
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
-            : this(contextDocument, textChanges, title, tags, priority)
+        public static AddImportFixData CreateForProjectSymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
         {
-            ProjectReferenceToAdd = projectReferenceToAdd;
+            return new AddImportFixData(AddImportFixKind.ProjectSymbol, originalDocument, textChanges)
+            {
+                Title = title,
+                Tags = tags,
+                Priority = priority
+            };
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
-            : this(contextDocument, textChanges, title, tags, priority)
+        public static AddImportFixData CreateForMetadataSymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId portableExecutableReferenceProjectId, string portableExecutableReferenceFilePathToAdd)
         {
-            PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
-            PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
+            return new AddImportFixData(AddImportFixKind.MetadataSymbol, originalDocument, textChanges)
+            {
+                Title = title,
+                Tags = tags,
+                Priority = priority,
+                PortableExecutableReferenceProjectId = portableExecutableReferenceProjectId,
+                PortableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd
+            };
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, string assemblyReferenceAssemblyName, string assemblyReferenceFullyQualifiedTypeName)
-            : this(contextDocument, textChanges, title, tags, priority)
+        public static AddImportFixData CreateForReferenceAssemblySymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string title, string assemblyReferenceAssemblyName, string assemblyReferenceFullyQualifiedTypeName)
         {
-            AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName;
-            AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName;
+            return new AddImportFixData(AddImportFixKind.ReferenceAssemblySymbol, originalDocument, textChanges)
+            {
+                Title = title,
+                AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName,
+                AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName
+            };
         }
 
-        public AddImportFixData(Document contextDocument, ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, string packageSource, string packageName, string packageVersionOpt)
-            : this(contextDocument, textChanges, title, tags, priority)
+        public static AddImportFixData CreateForPackageSymbol(Document originalDocument, ImmutableArray<TextChange> textChanges, string packageSource, string packageName, string packageVersionOpt)
         {
-            PackageSource = packageSource;
-            PackageName = packageName;
-            PackageVersionOpt = packageVersionOpt;
+            return new AddImportFixData(AddImportFixKind.PackageSymbol, originalDocument, textChanges)
+            {
+                PackageSource = packageSource,
+                PackageName = packageName,
+                PackageVersionOpt = packageVersionOpt,
+            };
         }
     }
 }

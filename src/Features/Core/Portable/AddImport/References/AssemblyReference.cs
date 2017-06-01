@@ -2,7 +2,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _referenceAssemblyWithType = referenceAssemblyWithType;
             }
 
-            public override async Task<CodeAction> CreateCodeActionAsync(
+            public override async Task<AddImportFixData> GetFixDataAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
@@ -33,8 +32,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var fullyQualifiedTypeName = string.Join(
                     ".", _referenceAssemblyWithType.ContainingNamespaceNames.Concat(_referenceAssemblyWithType.TypeName));
 
-                return new AssemblyReferenceCodeAction(
-                    document, textChanges, title, _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
+                return AddImportFixData.CreateForReferenceAssemblySymbol(
+                    document, textChanges, title,
+                    _referenceAssemblyWithType.AssemblyName, fullyQualifiedTypeName);
             }
 
             public override bool Equals(object obj)
