@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
@@ -63,7 +64,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             ITypeSymbol throughTypeOpt,
             out bool failedThroughTypeCheck)
         {
-            return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            try
+            {
+                return IsSymbolAccessibleCore(symbol, within, throughTypeOpt, out failedThroughTypeCheck);
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         /// <summary>
