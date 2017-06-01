@@ -592,6 +592,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case SyntaxKind.TupleType
                         lookupResult.SetFrom(LookupTupleType(DirectCast(typeSyntax, TupleTypeSyntax), binder, diagBag, suppressUseSiteError, inGetTypeContext, resolvingBaseType))
 
+                    Case SyntaxKind.TypeArray
+                        lookupResult.SetFrom(LookupTypeArrayType(DirectCast(typeSyntax, TypeArraySyntax), binder, diagBag, suppressUseSiteError, inGetTypeContext, resolvingBaseType))
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(typeSyntax.Kind)
                 End Select
@@ -835,7 +837,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                       inGetTypeContext:=inGetTypeContext)
                 Return SingleLookupResult.Good(binder.ApplyArrayRankSpecifiersToType(elementType, arrayTypeSyntax.RankSpecifiers, diagBag))
             End Function
+            ''' <summary>
+            ''' Bind array type syntax to the correct type symbol.
+            ''' </summary>
+            Private Shared Function LookupTypeArrayType(typeArrayTypeSyntax As TypeArraySyntax,
+                                                    binder As Binder,
+                                                    diagBag As DiagnosticBag,
+                                                    suppressUseSiteError As Boolean,
+                                                    inGetTypeContext As Boolean, resolvingBaseType As Boolean) As SingleLookupResult
+                Return SingleLookupResult.Good(BindTypeArray(binder, typeArrayTypeSyntax, diagBag, suppressUseSiteError, inGetTypeContext, resolvingBaseType).ExpressionSymbol)
+                'Dim elementType As TypeSymbol = binder.BindTypeSyntax(typeArrayTypeSyntax.ElementType,
+                '                                                      diagBag,
+                '                                                      suppressUseSiteError:=suppressUseSiteError,
+                '                                                      inGetTypeContext:=inGetTypeContext)
+                'Return SingleLookupResult.Good(binder.ApplyArrayRankSpecifiersToType(elementType, typeArrayTypeSyntax.RankSpecifiers, diagBag))
+            End Function
 
+            Private Shared Function BindTypeArray(binder As Binder, node As TypeArraySyntax, diagnostics As DiagnosticBag,
+                                                    suppressUseSiteError As Boolean,
+                                                    inGetTypeContext As Boolean, resolvingBaseType As Boolean) As BoundExpression
+                Dim _Targets_ As New List(Of TypeSymbol)(node._Types_.Count)
+                For i = 0 To node._Types_.Count - 1
+                    Dim target = node._Types_(i)
+                    Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(target, binder, diagnostics, suppressUseSiteError, inGetTypeContext, resolvingBaseType)
+                    Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
+                    _Targets_.Add(targetType)
+                Next
+                Dim results = _Targets_.ToImmutableArrayOrEmpty
+                Return New BoundTypeArray(node, results, New TypeArraySymbol(results))
+            End Function
             ''' <summary>
             ''' Bind Nullable (?) type syntax to the correct type symbol.
             ''' </summary>
@@ -1170,7 +1200,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case SyntaxKind.GlobalName, SyntaxKind.PredefinedType
                         Return typeSyntax.ToString
-
+                    Case SyntaxKind.TypeArray
+                        Return typeSyntax.ToString
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(typeSyntax.Kind)
                 End Select

@@ -588,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function BindNamespaceOrTypeOrExpressionSyntaxForSemanticModel(node As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
-            If (node.Kind = SyntaxKind.PredefinedType) OrElse
+            If (node.Kind = SyntaxKind.PredefinedType) OrElse (node.Kind = SyntaxKind.TypeArray) OrElse
                (((TypeOf node Is NameSyntax) OrElse node.Kind = SyntaxKind.ArrayType OrElse node.Kind = SyntaxKind.TupleType) AndAlso SyntaxFacts.IsInNamespaceOrTypeContext(node)) Then
                 Dim result As BoundExpression = Me.BindNamespaceOrTypeExpression(DirectCast(node, TypeSyntax), diagnostics)
 
