@@ -128,25 +128,16 @@ namespace Microsoft.CodeAnalysis.AddImport
             switch (fixData.Kind)
             {
                 case AddImportFixKind.ProjectSymbol:
-                    return new ProjectSymbolReferenceCodeAction(
-                        document, fixData.TextChanges, fixData.Title, fixData.Tags,
-                        fixData.Priority, fixData.ProjectReferenceToAdd);
+                    return new ProjectSymbolReferenceCodeAction(document, fixData);
 
                 case AddImportFixKind.MetadataSymbol:
-                    return new MetadataSymbolReferenceCodeAction(
-                        document, fixData.TextChanges, fixData.Title, fixData.Tags, fixData.Priority,
-                        fixData.PortableExecutableReferenceProjectId, fixData.PortableExecutableReferenceFilePathToAdd);
+                    return new MetadataSymbolReferenceCodeAction(document, fixData);
 
                 case AddImportFixKind.PackageSymbol:
-                    return new ParentInstallPackageCodeAction(
-                        document, fixData.TextChanges, GetPackageInstallerService(document), 
-                        fixData.PackageSource, fixData.PackageName, fixData.PackageVersionOpt);
+                    return new ParentInstallPackageCodeAction(document, fixData, GetPackageInstallerService(document));
 
                 case AddImportFixKind.ReferenceAssemblySymbol:
-                    return new AssemblyReferenceCodeAction(
-                        document, fixData.TextChanges, fixData.Title, 
-                        fixData.AssemblyReferenceAssemblyName,
-                        fixData.AssemblyReferenceFullyQualifiedTypeName);
+                    return new AssemblyReferenceCodeAction(document, fixData);
             }
 
             throw ExceptionUtilities.Unreachable;

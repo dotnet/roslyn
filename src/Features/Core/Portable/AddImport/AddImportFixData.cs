@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             Kind = kind;
             TextChanges = textChanges;
+            Tags = ImmutableArray<string>.Empty;
         }
 
         public static AddImportFixData CreateForProjectSymbol(ImmutableArray<TextChange> textChanges, string title, ImmutableArray<string> tags, CodeActionPriority priority, ProjectId projectReferenceToAdd)
@@ -119,6 +121,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             return new AddImportFixData(AddImportFixKind.ReferenceAssemblySymbol, textChanges)
             {
                 Title = title,
+                Tags = WellKnownTagArrays.AddReference,
+                Priority = CodeActionPriority.Low,
                 AssemblyReferenceAssemblyName = assemblyReferenceAssemblyName,
                 AssemblyReferenceFullyQualifiedTypeName = assemblyReferenceFullyQualifiedTypeName
             };
@@ -129,6 +133,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             return new AddImportFixData(AddImportFixKind.PackageSymbol, textChanges)
             {
                 PackageSource = packageSource,
+                Priority = CodeActionPriority.Low,
                 PackageName = packageName,
                 PackageVersionOpt = packageVersionOpt,
             };

@@ -23,11 +23,10 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 public InstallPackageAndAddImportCodeAction(
                     Document originalDocument,
-                    ImmutableArray<TextChange> textChanges,
+                    AddImportFixData fixData,
                     string title,
-                    CodeActionPriority priority,
                     InstallPackageDirectlyCodeActionOperation installOperation)
-                    : base(originalDocument, textChanges, title, ImmutableArray<string>.Empty, priority)
+                    : base(originalDocument, fixData, title)
                 {
                     _installOperation = installOperation;
                 }

@@ -20,10 +20,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 protected SymbolReferenceCodeAction(
                     Document originalDocument,
-                    ImmutableArray<TextChange> textChanges,
-                    string title, ImmutableArray<string> tags,
-                    CodeActionPriority priority)
-                    : base(originalDocument, textChanges, title, tags, priority)
+                    AddImportFixData fixData)
+                    : base(originalDocument, fixData)
                 {
                 }
 
