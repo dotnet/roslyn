@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return;
                 }
 
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
+                if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
                 {
                     return;
                 }

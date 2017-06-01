@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             private const string AttributeSuffix = nameof(Attribute);
 
-            private readonly Diagnostic _diagnostic;
+            private readonly string _diagnosticId;
             private readonly Document _document;
             private readonly SemanticModel _semanticModel;
 
@@ -35,13 +35,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             public SymbolReferenceFinder(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> owner,
                 Document document, SemanticModel semanticModel,
-                Diagnostic diagnostic, SyntaxNode node,
+                string diagnosticId, SyntaxNode node,
                 CancellationToken cancellationToken)
             {
                 _owner = owner;
                 _document = document;
                 _semanticModel = semanticModel;
-                _diagnostic = diagnostic;
+                _diagnosticId = diagnosticId;
                 _node = node;
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingTypesAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
+                if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
                 {
                     return ImmutableArray<SymbolReference>.Empty;
                 }
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (_owner.CanAddImportForNamespace(_diagnostic, _node, out var nameNode))
+                if (_owner.CanAddImportForNamespace(_diagnosticId, _node, out var nameNode))
                 {
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
+                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
                         // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
+                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
                     searchScope.CancellationToken.ThrowIfCancellationRequested();
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
+                if (!_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode))
                 {
                     return ImmutableArray<SymbolReference>.Empty;
                 }
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                if (_owner.CanAddImportForQuery(_diagnostic, _node))
+                if (_owner.CanAddImportForQuery(_diagnosticId, _node))
                 {
                     var type = _owner.GetQueryClauseInfo(_semanticModel, _node, searchScope.CancellationToken);
                     if (type != null)
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                if (_owner.CanAddImportForDeconstruct(_diagnostic, _node))
+                if (_owner.CanAddImportForDeconstruct(_diagnosticId, _node))
                 {
                     var type = _owner.GetDeconstructInfo(_semanticModel, _node, searchScope.CancellationToken);
                     if (type != null)
