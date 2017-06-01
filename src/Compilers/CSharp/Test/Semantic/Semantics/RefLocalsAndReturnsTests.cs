@@ -1266,6 +1266,7 @@ class TestClass
                 // (14,76): error CS8159: Cannot return the range variable 'c' by reference
                 //         var x = from c in "TestValue" select (RoRefCharDelegate)(() => ref c);
                 Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(14, 76)
+                );
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
