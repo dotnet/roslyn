@@ -6308,7 +6308,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interface member &apos;{0}&apos; does not have most specific implementation. Neither &apos;{1}&apos;, nor &apos;{2}&apos; are most specific..
+        ///   Looks up a localized string similar to Interface member &apos;{0}&apos; does not have a most specific implementation. Neither &apos;{1}&apos;, nor &apos;{2}&apos; are most specific..
         /// </summary>
         internal static string ERR_MostSpecificImplementationIsNotFound {
             get {

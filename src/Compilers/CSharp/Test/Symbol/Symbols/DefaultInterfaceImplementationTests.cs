@@ -23892,19 +23892,19 @@ class Test12 : I8
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(
-                // (2,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
-                // (5,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // (5,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
                 // class Test2 : I7
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(5, 15),
-                // (8,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // (8,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
                 // class Test3 : I1, I2, I3, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(8, 15),
-                // (11,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
+                // (11,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
                 // class Test4 : I1, I2, I3, I5, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(11, 15),
-                // (14,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
+                // (14,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I5.I1.M1()', nor 'I4.I1.M1()' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1()", "I5.I1.M1()", "I4.I1.M1()").WithLocation(14, 15)
                         );
@@ -24025,7 +24025,7 @@ class Test1 : I2, I3
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
-                // (2,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
@@ -24038,7 +24038,7 @@ class Test1 : I2, I3
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8505: Interface member 'I1.M1()' does not have most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1()' does not have a most specific implementation. Neither 'I2.I1.M1()', nor 'I3.I1.M1()' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1()", "I2.I1.M1()", "I3.I1.M1()").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implement 'I1.M1()' because it does not have the matching return type of 'void'.
@@ -25359,19 +25359,19 @@ class Test12 : I8
             ValidatePropertyImplementationInDerived_12(source1, source5,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
-                // (5,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (5,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test2 : I7
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(5, 15),
-                // (8,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (8,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test3 : I1, I2, I3, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(8, 15),
-                // (11,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // (11,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
                 // class Test4 : I1, I2, I3, I5, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(11, 15),
-                // (14,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // (14,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(14, 15)
                 }
@@ -25608,7 +25608,7 @@ class Test1 : I2, I3
             ValidatePropertyImplementationInDerived_13(source1, source2,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1'. 'Test1.M1' cannot implement 'I1.M1' because it does not have the matching return type of 'int'.
@@ -26859,19 +26859,19 @@ class Test12 : I8
                     Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
                     compilation3.VerifyDiagnostics(
-                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
-                // (5,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (5,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test2 : I7
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(5, 15),
-                // (8,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (8,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test3 : I1, I2, I3, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(8, 15),
-                // (11,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // (11,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
                 // class Test4 : I1, I2, I3, I5, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(11, 15),
-                // (14,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
+                // (14,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I5.I1.M1', nor 'I4.I1.M1' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.M1", "I5.I1.M1", "I4.I1.M1").WithLocation(14, 15)
                         );
@@ -26970,7 +26970,7 @@ class Test1 : I2, I3
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation2.VerifyDiagnostics(
-                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1'. 'Test1.M1' cannot implement 'I1.M1' because it does not have the matching return type of 'Action'.
@@ -26983,7 +26983,7 @@ class Test1 : I2, I3
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation3.VerifyDiagnostics(
-                // (2,15): error CS8505: Interface member 'I1.M1' does not have most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.M1", "I2.I1.M1", "I3.I1.M1").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.M1'. 'Test1.M1' cannot implement 'I1.M1' because it does not have the matching return type of 'Action'.
@@ -27930,37 +27930,37 @@ class Test12 : I8
             ValidatePropertyImplementationInDerived_12(source1, source5,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15),
-                // (5,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // (5,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
                 // class Test2 : I7
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(5, 15),
-                // (8,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // (8,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
                 // class Test3 : I1, I2, I3, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(8, 15),
-                // (11,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.this[int]', nor 'I4.I1.this[int]' are most specific.
+                // (11,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I5.I1.this[int]', nor 'I4.I1.this[int]' are most specific.
                 // class Test4 : I1, I2, I3, I5, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I5.I1.this[int]", "I4.I1.this[int]").WithLocation(11, 15),
-                // (14,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.this[int]', nor 'I4.I1.this[int]' are most specific.
+                // (14,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I5.I1.this[int]', nor 'I4.I1.this[int]' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.this[int]", "I5.I1.this[int]", "I4.I1.this[int]").WithLocation(14, 15)
                 },
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15),
-                // (5,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // (5,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
                 // class Test2 : I7
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I7").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(5, 15),
-                // (8,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // (8,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
                 // class Test3 : I1, I2, I3, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(8, 15),
-                // (11,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.Item[int]', nor 'I4.I1.Item[int]' are most specific.
+                // (11,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I5.I1.Item[int]', nor 'I4.I1.Item[int]' are most specific.
                 // class Test4 : I1, I2, I3, I5, I4
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I1").WithArguments("I1.this[int]", "I5.I1.Item[int]", "I4.I1.Item[int]").WithLocation(11, 15),
-                // (14,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I5.I1.Item[int]', nor 'I4.I1.Item[int]' are most specific.
+                // (14,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I5.I1.Item[int]', nor 'I4.I1.Item[int]' are most specific.
                 // class Test5 : I8
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I8").WithArguments("I1.this[int]", "I5.I1.Item[int]", "I4.I1.Item[int]").WithLocation(14, 15)
                 }
@@ -27999,7 +27999,7 @@ class Test1 : I2, I3
             ValidatePropertyImplementationInDerived_13(source1, source2,
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.this[int]", "I3.I1.this[int]").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.
@@ -28008,7 +28008,7 @@ class Test1 : I2, I3
                 },
                 new DiagnosticDescription[]
                 {
-                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
+                // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.Item[int]', nor 'I3.I1.Item[int]' are most specific.
                 // class Test1 : I2, I3
                 Diagnostic(ErrorCode.ERR_MostSpecificImplementationIsNotFound, "I2").WithArguments("I1.this[int]", "I2.I1.Item[int]", "I3.I1.Item[int]").WithLocation(2, 15),
                 // (2,15): error CS0738: 'Test1' does not implement interface member 'I1.this[int]'. 'Test1.this[int]' cannot implement 'I1.this[int]' because it does not have the matching return type of 'int'.

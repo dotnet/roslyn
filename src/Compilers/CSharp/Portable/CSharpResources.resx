@@ -5091,7 +5091,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>'{0}' does not implement interface member '{1}'. '{2}' cannot implicitly implement a non-public member.</value>
   </data>
   <data name="ERR_MostSpecificImplementationIsNotFound" xml:space="preserve">
-    <value>Interface member '{0}' does not have most specific implementation. Neither '{1}', nor '{2}' are most specific.</value>
+    <value>Interface member '{0}' does not have a most specific implementation. Neither '{1}', nor '{2}' are most specific.</value>
   </data>
   <data name="ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember" xml:space="preserve">
     <value>'{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version {5} or greater.</value>
