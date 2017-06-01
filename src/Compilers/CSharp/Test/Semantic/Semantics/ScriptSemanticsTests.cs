@@ -17,9 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class ScriptSemanticsTests : CSharpTestBase
     {
-        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
-        [Fact]
-        public void NonStandardTaskImplementation() {
+        private static CompilationReference TaskFacadeAssembly()
+        {
             var corAssembly = @"
 namespace System.Runtime.CompilerServices {
     public interface IAsyncStateMachine {
@@ -73,27 +72,82 @@ public static class MyExtensions {
 
             var corCompilation = CreateCompilation(corAssembly, references: new[] { MscorlibRef_v20 });
             corCompilation.VerifyDiagnostics();
+            return corCompilation.ToMetadataReference();
+        }
 
-            var firstScript = CreateCompilation(
-                source: @" System.Console.Write(""complete"");", 
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing() {
+
+            var script = CreateCompilation(
+                source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe,
-                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
 
-            firstScript.VerifyEmitDiagnostics(
+            script.VerifyEmitDiagnostics(
                 // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
 
-            var secondScript = CreateCompilation(
-                source: @" System.Console.Write(""complete"");", 
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing() {
+            var script = CreateCompilation(
+                source: @" System.Console.Write(""complete"");",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
-                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
 
-            secondScript.VerifyEmitDiagnostics();
+            script.VerifyEmitDiagnostics();
 
-            var compiled = CompileAndVerify(secondScript);
+            var compiled = CompileAndVerify(script);
+            compiled.VerifyIL("<Main>", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  call       ""System.Threading.Tasks.Awaiter<object> Hidden.MyExtensions.GetAwaiter<object>(System.Threading.Tasks.Task<object>)""
+  IL_000f:  callvirt   ""object System.Threading.Tasks.Awaiter<object>.GetResult()""
+  IL_0014:  pop
+  IL_0015:  ret
+}");
+        }
 
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_NoGlobalUsing_ScriptUsing() {
+            var script = CreateCompilation(
+                source: @"
+using Hidden;
+new System.Threading.Tasks.Task<int>().GetAwaiter();
+System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            script.VerifyEmitDiagnostics(
+                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
+
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_GlobalUsing_ScriptUsing() {
+            var script = CreateCompilation(
+                source: @"
+using Hidden;
+new System.Threading.Tasks.Task<int>().GetAwaiter();
+System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe.WithUsings("Hidden"),
+                references: new MetadataReference[] { TaskFacadeAssembly(), MscorlibRef_v20 });
+
+            var compiled = CompileAndVerify(script);
             compiled.VerifyIL("<Main>", @"
 {
   // Code size       22 (0x16)
@@ -106,37 +160,6 @@ public static class MyExtensions {
   IL_0015:  ret
 }");
 
-            var thirdScript = CreateCompilation(
-                source: @"
-using Hidden;
-new System.Threading.Tasks.Task<int>().GetAwaiter();
-System.Console.Write(""complete"");", 
-                parseOptions: TestOptions.Script,
-                options: TestOptions.DebugExe,
-                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
-
-            thirdScript.VerifyEmitDiagnostics(
-                // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
-
-
-            var submission = CreateSubmissionWithExactReferences(
-                code: @"
-using Hidden;
-new System.Threading.Tasks.Task<int>().GetAwaiter();
-System.Console.Write(""complete"");", 
-                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 },
-                options: TestOptions.DebugDll.WithUsings("Hidden"));
-            submission.VerifyEmitDiagnostics();
-
-            var fourthScript = CSharpCompilation.CreateScriptCompilation(
-                assemblyName: GetUniqueName(),
-                syntaxTree: Parse(@"System.Console.Write(""complete"");", options: TestOptions.Script), 
-                previousScriptCompilation: submission,
-                references: new MetadataReference[] { corCompilation.ToMetadataReference(), MscorlibRef_v20 });
-
-            fourthScript.VerifyEmitDiagnostics();
-            CompileAndVerify(fourthScript).VerifyIL("<Main>", "");
         }
 
         [WorkItem(543890, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543890")]
