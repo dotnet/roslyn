@@ -279,16 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static MethodSymbol GetRequiredMethod(TypeSymbol type, string methodName, DiagnosticBag diagnostics)
-        {
-            var method = type.GetMembers(methodName).SingleOrDefault() as MethodSymbol;
-            if ((object)method == null)
-            {
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, NoLocation.Singleton, type, methodName);
-            }
-            return method;
-        }
-
         private static BoundCall CreateParameterlessCall(CSharpSyntaxNode syntax, BoundExpression receiver, MethodSymbol method)
         {
             return new BoundCall(
