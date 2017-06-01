@@ -29,10 +29,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 protected override async Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
                 {
-                    var oldText = await OriginalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var newText = oldText.WithChanges(TextChanges);
+                    var updatedDocument = await GetUpdatedDocumentAsync(cancellationToken).ConfigureAwait(false);
 
-                    var updatedDocument = OriginalDocument.WithText(newText);
+                    // Defer to subtype to add any p2p or metadata refs as appropriate.
                     var updatedProject = UpdateProject(updatedDocument.Project);
                     
                     var updatedSolution = updatedProject.Solution;
