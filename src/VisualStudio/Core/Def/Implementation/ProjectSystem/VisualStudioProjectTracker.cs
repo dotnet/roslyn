@@ -600,14 +600,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             // already closed the solution.
             AssertIsForeground();
 
-            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
-
+            var start = DateTimeOffset.UtcNow;
             var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
             var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
 
             OutputToOutputWindow($"Getting project information - start");
-            var start = DateTimeOffset.UtcNow;
 
             var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
 
@@ -626,26 +623,68 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             cancellationToken.ThrowIfCancellationRequested();
             OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
 
+            ForceLoadProjectsWhoseDesignTimeBuildFailed(projectInfos);
+
+            CreateDeferredProjects(projectInfos, cancellationToken);
+
+            CallWithTimingLog("Pushing to workspace", FinishLoad);
+        }
+
+        private void ForceLoadProjectsWhoseDesignTimeBuildFailed(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos)
+        {
+            OutputToOutputWindow($"Loading projects whose design time builds failed - start");
+            var start = DateTimeOffset.UtcNow;
+            var solution4 = (IVsSolution4)_vsSolution;
+            var solution7 = (IVsSolution7)_vsSolution;
+            var guidsOfProjectsThatFailed = projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && !solution7.IsDeferredProjectLoadAllowed(pi.Key)).Select(pi => GetProjectGuid(pi.Key)).ToArray();
+            OutputToOutputWindow($"\tForcing load of {guidsOfProjectsThatFailed.Length} projects.");
+            OutputListToOutputWindow("\tIncluding ", projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && !solution7.IsDeferredProjectLoadAllowed(pi.Key)).Select(pi => pi.Key));
+            solution4.EnsureProjectsAreLoaded((uint)guidsOfProjectsThatFailed.Length, guidsOfProjectsThatFailed, (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
+            OutputToOutputWindow($"Loading projects whose design time builds failed - done (took {DateTimeOffset.UtcNow - start})");
+        }
+
+        private void CreateDeferredProjects(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos, CancellationToken cancellationToken)
+        {
+            AssertIsForeground();
+
             OutputToOutputWindow($"Creating projects - start");
-            start = DateTimeOffset.UtcNow;
+            var start = DateTimeOffset.UtcNow;
+
             var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
+
+            var solution7 = (IVsSolution7)_vsSolution;
             var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
-            foreach (var projectFilename in projectInfos.Keys)
+            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+            var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
+            foreach (var (projectFilename, projectInfo) in projectInfos)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                GetOrCreateProjectFromArgumentsAndReferences(
-                    workspaceProjectContextFactory,
-                    analyzerAssemblyLoader,
-                    projectFilename,
-                    projectInfos,
-                    targetPathsToProjectPaths);
-            }
-            OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
 
-            OutputToOutputWindow($"Pushing to workspace - start");
-            start = DateTimeOffset.UtcNow;
-            FinishLoad();
-            OutputToOutputWindow($"Pushing to workspace - done (took {DateTimeOffset.UtcNow - start})");
+                if (!solution7.IsDeferredProjectLoadAllowed(projectFilename))
+                {
+                    OutputToOutputWindow($"\tSkipping non-deferred project: '{projectFilename}'");
+                }
+                else if (DesignTimeBuildFailed(projectInfo))
+                {
+                    OutputToOutputWindow($"\tSkipping failed design time build project: '{projectFilename}'");
+                }
+                else
+                {
+                    GetOrCreateProjectFromArgumentsAndReferences(
+                        workspaceProjectContextFactory,
+                        analyzerAssemblyLoader,
+                        projectFilename,
+                        projectInfos,
+                        targetPathsToProjectPaths);
+                }
+            }
+
+            OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
+        }
+
+        private static bool DesignTimeBuildFailed(DeferredProjectInformation projectInfo)
+        {
+            return projectInfo.CommandLineArguments.IsDefaultOrEmpty || string.IsNullOrEmpty(projectInfo.TargetPath);
         }
 
         private static ImmutableDictionary<string, string> BuildTargetPathMap(IReadOnlyDictionary<string, DeferredProjectInformation> projectInfos)
@@ -669,10 +708,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return builder.ToImmutable();
         }
 
+        private void CallWithTimingLog(string logPrefix, Action action)
+        {
+            OutputToOutputWindow($"{logPrefix} - start");
+            var start = DateTimeOffset.UtcNow;
+            action();
+            OutputToOutputWindow($"{logPrefix} - done (took {DateTimeOffset.UtcNow - start})");
+        }
+
         [Conditional("DEBUG")]
         private void OutputToOutputWindow(string message)
         {
             _pane?.OutputString(message + Environment.NewLine);
+        }
+
+        [Conditional("DEBUG")]
+        private void OutputListToOutputWindow(string prefix, IEnumerable<string> values)
+        {
+            foreach (var s in values)
+            {
+                _pane?.OutputString(prefix + s + Environment.NewLine);
+            }
         }
 
         private AbstractProject GetOrCreateProjectFromArgumentsAndReferences(
@@ -695,23 +751,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return null;
             }
 
-            var solution5 = (IVsSolution5)_vsSolution;
-
-            // If the index is stale, it might give us a path that doesn't exist anymore that the
-            // solution doesn't know about - be resilient to that case.
-            Guid projectGuid;
-            try
-            {
-                projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
-            }
-            catch (ArgumentException)
-            {
-                var message = $"Failed to get the project guid for '{projectFilename}' from the solution, using  random guid instead.";
-                Debug.Fail(message);
-                OutputToOutputWindow(message);
-                projectGuid = Guid.NewGuid();
-            }
-
             // TODO: Should come from .sln file?
             var projectName = PathUtilities.GetFileName(projectFilename, includeExtension: false);
 
@@ -729,21 +768,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return project;
             }
 
-            var solution7 = (IVsSolution7)_vsSolution;
-            if (projectInfo.CommandLineArguments.IsDefaultOrEmpty || string.IsNullOrEmpty(projectInfo.TargetPath) || !solution7.IsDeferredProjectLoadAllowed(projectFilename))
-            {
-                // If AnyCode was unable to run a design time build for this project, let's trigger it to load fully, so that IDE features will work as expected.
-                // CONSIDER: Would we get performance benefits from using "EnsureProjectsAreLoaded" on all of these at once? Should we avoid forcing this for the deferred case
-                // unless we need it to satisfy a P2P reference?
-                var solution4 = (IVsSolution4)_vsSolution;
-                solution4.EnsureProjectIsLoaded(projectGuid, (int)__VSBSLFLAGS.VSBSLFLAGS_None);
-
-                // If that worked, our ProjectId should be in _projectMap now.
-                return _projectMap.TryGetValue(projectId, out project)
-                    ? project
-                    : null;
-            }
-
             var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
@@ -754,6 +778,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             OutputToOutputWindow($"\tCreating '{projectName}':\t{commandLineArguments.SourceFiles.Length} source files,\t{commandLineArguments.MetadataReferences.Length} references.");
 
+            var projectGuid = GetProjectGuid(projectFilename);
             var projectContext = workspaceProjectContextFactory.CreateProjectContext(
                 languageName,
                 projectName,
@@ -824,7 +849,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 else
                 {
                     // We don't know how to create this project.  Another language or something?
-                    OutputToOutputWindow($"Failed to create a project for '{projectReferencePath}'.");
+                    OutputToOutputWindow($"\t\tFailed to create a project for '{projectReferencePath}'.");
                 }
             }
 
@@ -863,6 +888,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
 
             return (AbstractProject)projectContext;
+        }
+
+        private Guid GetProjectGuid(string projectFilename)
+        {
+            var solution5 = (IVsSolution5)_vsSolution;
+            // If the index is stale, it might give us a path that doesn't exist anymore that the
+            // solution doesn't know about - be resilient to that case.
+            Guid projectGuid;
+            try
+            {
+                projectGuid = solution5.GetGuidOfProjectFile(projectFilename);
+            }
+            catch (ArgumentException)
+            {
+                var message = $"Failed to get the project guid for '{projectFilename}' from the solution, using  random guid instead.";
+                Debug.Fail(message);
+                OutputToOutputWindow(message);
+                projectGuid = Guid.NewGuid();
+            }
+
+            return projectGuid;
         }
 
         private AbstractProject TryFindExistingProjectForProjectReference(string projectReferencePath, ImmutableArray<MetadataReference> metadataReferences)
