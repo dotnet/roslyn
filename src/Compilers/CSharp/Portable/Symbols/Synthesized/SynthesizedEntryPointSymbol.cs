@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = containingType.DeclaringCompilation;
             if (compilation.IsSubmission)
             {
-                var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
+                var systemObject = Binder.GetSpecialType(compilation, SpecialType.System_Object, DummySyntax(), diagnostics);
+                var submissionArrayType = compilation.CreateArrayTypeSymbol(systemObject);
                 ReportUseSiteDiagnostics(submissionArrayType, diagnostics);
                 return new SubmissionEntryPoint(
                     containingType,
@@ -35,7 +36,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return new ScriptEntryPoint(containingType, compilation.GetSpecialType(SpecialType.System_Void));
+                var systemVoid = Binder.GetSpecialType(compilation, SpecialType.System_Void, DummySyntax(), diagnostics);
+                return new ScriptEntryPoint(containingType, systemVoid);
             }
         }
 

@@ -117,6 +117,33 @@ namespace System.Threading.Tasks {
 
         }
 
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing_VoidHidden()
+        {
+            var script = CreateCompilation(
+                source: @"class C {}",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe.WithUsings("Hidden"),
+                references: new MetadataReference[] { TaskFacadeAssembly()});
+            script.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class C {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "class C {}").WithArguments("System.Object").WithLocation(1, 1),
+                // error CS0518: Predefined type 'System.Void' is not defined or imported
+                //
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Void").WithLocation(1, 1),
+                // (1,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class C {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Object").WithLocation(1, 7),
+                // (1,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class C {}
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("object", "0").WithLocation(1, 7));
+        }
+
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing()
