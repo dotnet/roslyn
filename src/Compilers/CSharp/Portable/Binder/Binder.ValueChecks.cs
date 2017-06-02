@@ -1076,7 +1076,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BindValueKind.AddressOf:
                     return ErrorCode.ERR_InvalidAddrOp;
-
             }
 
             if (RequiresReturnableReference(kind))
@@ -1110,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         static private ErrorCode GetStandardLvalueError(BindValueKind kind)
         {
-           switch (kind)
+            switch (kind)
             {
                 case BindValueKind.CompoundAssignment:
                 case BindValueKind.Assignable:
