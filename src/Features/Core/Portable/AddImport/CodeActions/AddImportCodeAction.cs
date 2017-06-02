@@ -18,7 +18,9 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private abstract class AddImportCodeAction : CodeAction
         {
-            public sealed override string Title { get; }
+            protected readonly AddImportFixData FixData;
+
+            public override string Title { get; }
             public sealed override ImmutableArray<string> Tags { get; }
             internal sealed override CodeActionPriority Priority { get; }
 
@@ -36,15 +38,15 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             protected AddImportCodeAction(
                 Document originalDocument,
-                ImmutableArray<TextChange> textChanges,
-                string title, ImmutableArray<string> tags,
-                CodeActionPriority priority)
+                AddImportFixData fixData)
             {
                 OriginalDocument = originalDocument;
-                Title = title;
-                Tags = tags;
-                Priority = priority;
-                _textChanges = textChanges;
+                FixData = fixData;
+
+                Title = fixData.Title;
+                Tags = fixData.Tags;
+                Priority = fixData.Priority;
+                _textChanges = fixData.TextChanges;
             }
 
             protected async Task<Document> GetUpdatedDocumentAsync(CancellationToken cancellationToken)

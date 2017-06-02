@@ -540,7 +540,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             {
                 var state = kvp.Value;
                 var versionSet = state.InstalledPackageToVersion[packageName];
-                if (versionSet.Contains(packageName))
+                if (versionSet.Contains(version))
                 {
                     var project = solution.GetProject(kvp.Key);
                     if (project != null)

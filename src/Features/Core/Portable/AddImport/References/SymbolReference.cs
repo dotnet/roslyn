@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return textChanges.ToImmutableArray();
             }
 
-            public sealed override async Task<CodeAction> CreateCodeActionAsync(
+            public sealed override async Task<AddImportFixData> GetFixDataAsync(
                 Document document, SyntaxNode node,
                 bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
@@ -97,12 +97,12 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var textChanges = await GetTextChangesAsync(
                     document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
 
-                return CreateCodeAction(
+                return GetFixData(
                     document, textChanges.ToImmutableArray(), description,
                     GetTags(document), GetPriority(document));
             }
 
-            protected abstract CodeAction CreateCodeAction(
+            protected abstract AddImportFixData GetFixData(
                 Document document, ImmutableArray<TextChange> textChanges, 
                 string description, ImmutableArray<string> tags, CodeActionPriority priority);
 

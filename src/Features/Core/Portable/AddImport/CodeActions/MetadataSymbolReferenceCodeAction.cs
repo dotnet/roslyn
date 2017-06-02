@@ -1,9 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -12,38 +9,18 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
         private class MetadataSymbolReferenceCodeAction : SymbolReferenceCodeAction
         {
-            /// <summary>
-            /// If we're adding <see cref="_portableExecutableReferenceFilePathToAdd"/> then this
-            /// is the id for the <see cref="Project"/> we can find that <see cref="PortableExecutableReference"/>
-            /// referenced from.
-            /// </summary>
-            private readonly ProjectId _portableExecutableReferenceProjectId;
-
-            /// <summary>
-            /// If we want to add a <see cref="PortableExecutableReference"/> metadata reference, this 
-            /// is the <see cref="PortableExecutableReference.FilePath"/> for it.
-            /// </summary>
-            private readonly string _portableExecutableReferenceFilePathToAdd;
-
-            public MetadataSymbolReferenceCodeAction(
-                Document originalDocument,
-                ImmutableArray<TextChange> textChanges,
-                string title, ImmutableArray<string> tags,
-                CodeActionPriority priority,
-                ProjectId portableExecutableReferenceProjectId,
-                string portableExecutableReferenceFilePathToAdd)
-                    : base(originalDocument, textChanges, title, tags, priority)
+            public MetadataSymbolReferenceCodeAction(Document originalDocument, AddImportFixData fixData)
+                : base(originalDocument, fixData)
             {
-                _portableExecutableReferenceProjectId = portableExecutableReferenceProjectId;
-                _portableExecutableReferenceFilePathToAdd = portableExecutableReferenceFilePathToAdd;
+                Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.MetadataSymbol);
             }
 
             protected override Project UpdateProject(Project project)
             {
-                var projectWithReference = project.Solution.GetProject(_portableExecutableReferenceProjectId);
+                var projectWithReference = project.Solution.GetProject(FixData.PortableExecutableReferenceProjectId);
                 var reference = projectWithReference.MetadataReferences
                                                     .OfType<PortableExecutableReference>()
-                                                    .First(pe => pe.FilePath == _portableExecutableReferenceFilePathToAdd);
+                                                    .First(pe => pe.FilePath == FixData.PortableExecutableReferenceFilePathToAdd);
 
                 return project.AddMetadataReference(reference);
             }

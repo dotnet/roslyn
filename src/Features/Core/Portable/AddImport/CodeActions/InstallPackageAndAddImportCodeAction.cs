@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -9,6 +8,7 @@ using Microsoft.CodeAnalysis.AddPackage;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
             private class InstallPackageAndAddImportCodeAction : AddImportCodeAction
             {
+                public override string Title { get; }
+
                 /// <summary>
                 /// The operation that will actually install the nuget package.
                 /// </summary>
@@ -23,12 +25,13 @@ namespace Microsoft.CodeAnalysis.AddImport
 
                 public InstallPackageAndAddImportCodeAction(
                     Document originalDocument,
-                    ImmutableArray<TextChange> textChanges,
+                    AddImportFixData fixData,
                     string title,
-                    CodeActionPriority priority,
                     InstallPackageDirectlyCodeActionOperation installOperation)
-                    : base(originalDocument, textChanges, title, ImmutableArray<string>.Empty, priority)
+                    : base(originalDocument, fixData)
                 {
+                    Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.PackageSymbol);
+                    Title = title;
                     _installOperation = installOperation;
                 }
 

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -16,38 +14,30 @@ namespace Microsoft.CodeAnalysis.AddImport
         /// </summary>
         private class ProjectSymbolReferenceCodeAction : SymbolReferenceCodeAction
         {
-            /// <summary>
-            /// The optional id for a <see cref="Project"/> we'd like to add a reference to.
-            /// </summary>
-            private readonly ProjectId _projectReferenceToAdd;
-
             public ProjectSymbolReferenceCodeAction(
                 Document originalDocument,
-                ImmutableArray<TextChange> textChanges,
-                string title, ImmutableArray<string> tags,
-                CodeActionPriority priority,
-                ProjectId projectReferenceToAdd)
-                    : base(originalDocument, textChanges, title, tags, priority)
+                AddImportFixData fixData)
+                : base(originalDocument, fixData)
             {
-                // We only want to add a project reference if the project the import references
-                // is different from the project we started from.
-                if (projectReferenceToAdd != originalDocument.Project.Id)
-                {
-                    _projectReferenceToAdd = projectReferenceToAdd;
-                }
+                Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ProjectSymbol);
             }
 
+            private bool ShouldAddProjectReference()
+                => FixData.ProjectReferenceToAdd != null && FixData.ProjectReferenceToAdd != OriginalDocument.Project.Id;
+
             internal override bool PerformFinalApplicabilityCheck
-                => _projectReferenceToAdd != null;
+                => ShouldAddProjectReference();
 
             internal override bool IsApplicable(Workspace workspace)
-                => _projectReferenceToAdd != null && workspace.CanAddProjectReference(OriginalDocument.Project.Id, _projectReferenceToAdd);
+                => ShouldAddProjectReference() &&
+                   workspace.CanAddProjectReference(
+                    OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd);
 
             protected override Project UpdateProject(Project project)
             {
-                return _projectReferenceToAdd == null
-                    ? project
-                    : project.AddProjectReference(new ProjectReference(_projectReferenceToAdd));
+                return ShouldAddProjectReference()
+                    ? project.AddProjectReference(new ProjectReference(FixData.ProjectReferenceToAdd))
+                    : project;
             }
         }
     }
