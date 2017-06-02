@@ -771,6 +771,13 @@ class C
                 //         int j = checked(default + 4);
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + 4").WithArguments("+", "default").WithLocation(6, 25)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var addition = nodes.OfType<BinaryExpressionSyntax>().Single();
+            Assert.Null(model.GetSymbolInfo(addition).Symbol);
         }
 
         [Fact]
@@ -847,21 +854,21 @@ class C
                 // (19,17): error CS8310: Operator '<=' cannot be applied to operand 'default'
                 //         var n = default <= default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default <= default").WithArguments("<=", "default").WithLocation(19, 17),
-                // (20,17): error CS0034: Operator '==' is ambiguous on operands of type 'default' and 'default'
+                // (20,17): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         var o = default == default; // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default == default").WithArguments("==", "default", "default").WithLocation(20, 17),
-                // (21,17): error CS0034: Operator '!=' is ambiguous on operands of type 'default' and 'default'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==").WithLocation(20, 17),
+                // (21,17): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         var p = default != default; // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default != default").WithArguments("!=", "default", "default").WithLocation(21, 17),
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=").WithLocation(21, 17),
                 // (22,17): error CS8310: Operator '&&' cannot be applied to operand 'default'
                 //         var q = default && default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default && default").WithArguments("&&", "default").WithLocation(22, 17),
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = default || default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default || default").WithArguments("||", "default").WithLocation(23, 17),
-                // (24,17): error CS0019: Operator '??' cannot be applied to operands of type 'default' and 'default'
+                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //         var s = default ?? default;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default ?? default").WithArguments("??", "default", "default").WithLocation(24, 17)
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default").WithArguments("??", "default").WithLocation(24, 17)
                 );
         }
 
@@ -1034,9 +1041,9 @@ class C
                 // (23,17): error CS8310: Operator '||' cannot be applied to operand 'default'
                 //         var r = 1 || default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 || default").WithArguments("||", "default").WithLocation(23, 17),
-                // (24,17): error CS0019: Operator '??' cannot be applied to operands of type 'int' and 'default'
+                // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //         var s = 1 ?? default;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 ?? default").WithArguments("??", "int", "default").WithLocation(24, 17),
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 ?? default").WithArguments("??", "default").WithLocation(24, 17),
                 // (20,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = 1 == default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(20, 13),
@@ -1861,12 +1868,12 @@ class C
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (6,33): error CS0034: Operator '==' is ambiguous on operands of type 'default' and 'default'
+                // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default == default").WithArguments("==", "default", "default").WithLocation(6, 33),
-                // (6,54): error CS0034: Operator '!=' is ambiguous on operands of type 'default' and 'default'
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==").WithLocation(6, 33),
+                // (6,54): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
-                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default != default").WithArguments("!=", "default", "default").WithLocation(6, 54)
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=").WithLocation(6, 54)
                 );
         }
 

@@ -1486,6 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultLiteralNotValid = 8312,
         WRN_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
+        ERR_AmbigBinaryOpsOnDefault = 8315,
 
         #endregion diagnostics introduced for C# 7.1
     }

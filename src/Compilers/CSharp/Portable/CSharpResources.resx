@@ -453,6 +453,9 @@
   <data name="ERR_AmbigBinaryOps" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</value>
   </data>
+  <data name="ERR_AmbigBinaryOpsOnDefault" xml:space="preserve">
+    <value>Operator '{0}' is ambiguous on operands 'default' and 'default'</value>
+  </data>
   <data name="ERR_AmbigUnaryOp" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on an operand of type '{1}'</value>
   </data>
