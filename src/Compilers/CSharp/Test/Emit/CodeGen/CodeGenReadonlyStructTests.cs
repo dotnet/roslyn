@@ -60,6 +60,55 @@ class Program
         }
 
         [Fact]
+        public void InvokeOnReadOnlyStaticFieldMetadata()
+        {
+            var text1 = @"
+    public readonly struct S1
+    {
+        public string M1()
+        {
+            return ""1"";
+        }
+        public override string ToString()
+        {
+            return ""2"";
+        }
+    }
+";
+
+            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var ref1 = comp1.EmitToImageReference();
+
+            var text = @"
+class Program
+{
+    static readonly S1 sf;
+    static void Main()
+    {
+        System.Console.Write(sf.M1());
+        System.Console.Write(sf.ToString());
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1}, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"12");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  1
+  IL_0000:  ldsflda    ""S1 Program.sf""
+  IL_0005:  call       ""string S1.M1()""
+  IL_000a:  call       ""void System.Console.Write(string)""
+  IL_000f:  ldsflda    ""S1 Program.sf""
+  IL_0014:  constrained. ""S1""
+  IL_001a:  callvirt   ""string object.ToString()""
+  IL_001f:  call       ""void System.Console.Write(string)""
+  IL_0024:  ret
+}");
+        }
+
+        [Fact]
         public void InvokeOnReadOnlyInstanceField()
         {
             var text = @"
@@ -149,6 +198,61 @@ class Program
   IL_0015:  call       ""void System.Console.Write(string)""
   IL_001a:  ldflda     ""Program.S1<string> Program.f""
   IL_001f:  constrained. ""Program.S1<string>""
+  IL_0025:  callvirt   ""string object.ToString()""
+  IL_002a:  call       ""void System.Console.Write(string)""
+  IL_002f:  ret
+}");
+        }
+
+        [Fact]
+        public void InvokeOnReadOnlyInstanceFieldGenericMetadata()
+        {
+            var text1 = @"
+    readonly public struct S1<T>
+    {
+        public T M1(T arg)
+        {
+            return arg;
+        }
+
+        public override string ToString()
+        {
+            return ""2"";
+        }
+    }
+";
+
+            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var ref1 = comp1.EmitToImageReference();
+
+            var text = @"
+class Program
+{
+    readonly S1<string> f;
+
+    static void Main()
+    {
+        var p = new Program();
+        System.Console.Write(p.f.M1(""hello""));
+        System.Console.Write(p.f.ToString());
+    }
+}
+";
+
+            var comp = CompileAndVerify(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular, verify: false, expectedOutput: @"hello2");
+
+            comp.VerifyIL("Program.Main", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  IL_0000:  newobj     ""Program..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""S1<string> Program.f""
+  IL_000b:  ldstr      ""hello""
+  IL_0010:  call       ""string S1<string>.M1(string)""
+  IL_0015:  call       ""void System.Console.Write(string)""
+  IL_001a:  ldflda     ""S1<string> Program.f""
+  IL_001f:  constrained. ""S1<string>""
   IL_0025:  callvirt   ""string object.ToString()""
   IL_002a:  call       ""void System.Console.Write(string)""
   IL_002f:  ret
@@ -555,7 +659,7 @@ class Program
 
     struct S2
     {
-        public S1(int dummy)
+        public S2(int dummy)
         {
         }
 
@@ -572,7 +676,7 @@ class Program
 
     class C1
     {
-        public S1(int dummy)
+        public C1(int dummy)
         {
         }
 
@@ -666,5 +770,162 @@ class Program
             Assert.False(type.IsReadOnly);
 
         }
+
+        [Fact]
+        public void ReadOnlyStructApiMetadata()
+        {
+            var text1 = @"
+class Program
+{
+    readonly struct S1
+    {
+        public S1(int dummy)
+        {
+        }
+
+        public string M1()
+        {
+            return ""1"";
+        }
+
+        public override string ToString()
+        {
+            return ""2"";
+        }
+    }
+
+    readonly struct S1<T>
+    {
+        public S1(int dummy)
+        {
+        }
+
+        public string M1()
+        {
+            return ""1"";
+        }
+
+        public override string ToString()
+        {
+            return ""2"";
+        }
+    }
+
+    struct S2
+    {
+        public S2(int dummy)
+        {
+        }
+
+        public string M1()
+        {
+            return ""1"";
+        }
+
+        public override string ToString()
+        {
+            return ""2"";
+        }
+    }
+
+    class C1
+    {
+        public C1(int dummy)
+        {
+        }
+
+        public string M1()
+        {
+            return ""1"";
+        }
+
+        public override string ToString()
+        {
+            return ""2"";
+        }
+    }  
+
+    delegate int D1();
+}
+";
+            var comp1 = CreateStandardCompilation(text1, assemblyName: "A");
+            var ref1 = comp1.EmitToImageReference();
+
+            var comp = CreateStandardCompilation("//NO CODE HERE", new[] { ValueTupleRef, SystemRuntimeFacadeRef, ref1 }, parseOptions: TestOptions.Regular);
+
+            // S1
+            NamedTypeSymbol namedType = comp.GetTypeByMetadataName("Program+S1");
+            Assert.True(namedType.IsReadOnly);
+            Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+
+            // S1<T>
+            namedType = comp.GetTypeByMetadataName("Program+S1`1");
+            Assert.True(namedType.IsReadOnly);
+            Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+
+            // T
+            TypeSymbol type = namedType.TypeParameters[0];
+            Assert.True(namedType.IsReadOnly);
+            Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+
+            // S1<object>
+            namedType = namedType.Construct(comp.ObjectType);
+            Assert.True(namedType.IsReadOnly);
+            Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.RefReadOnly, namedType.GetMethod("ToString").ThisParameter.RefKind);
+
+            // S2
+            namedType = comp.GetTypeByMetadataName("Program+S2");
+            Assert.False(namedType.IsReadOnly);
+            Assert.Equal(RefKind.Out, namedType.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.Ref, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.Ref, namedType.GetMethod("ToString").ThisParameter.RefKind);
+
+            // C1
+            namedType = comp.GetTypeByMetadataName("Program+C1");
+            Assert.False(namedType.IsReadOnly);
+            Assert.Equal(RefKind.None, namedType.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.None, namedType.GetMethod("M1").ThisParameter.RefKind);
+            Assert.Equal(RefKind.None, namedType.GetMethod("ToString").ThisParameter.RefKind);
+
+            // D1
+            namedType = comp.GetTypeByMetadataName("Program+D1");
+            Assert.False(namedType.IsReadOnly);
+            Assert.Equal(RefKind.None, namedType.Constructors[0].ThisParameter.RefKind);
+            Assert.Equal(RefKind.None, namedType.GetMethod("Invoke").ThisParameter.RefKind);
+
+            // object[]
+            type = comp.CreateArrayTypeSymbol(comp.ObjectType);
+            Assert.False(type.IsReadOnly);
+
+            // dynamic
+            type = comp.DynamicType;
+            Assert.False(type.IsReadOnly);
+
+            // object
+            type = comp.ObjectType;
+            Assert.False(type.IsReadOnly);
+
+            // anonymous type
+            type = (TypeSymbol)comp.CreateAnonymousTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType), ImmutableArray.Create("qq"));
+            Assert.False(type.IsReadOnly);
+
+            // pointer type
+            type = (TypeSymbol)comp.CreatePointerTypeSymbol(comp.ObjectType);
+            Assert.False(type.IsReadOnly);
+
+            // tuple type
+            type = (TypeSymbol)comp.CreateTupleTypeSymbol(ImmutableArray.Create<ITypeSymbol>(comp.ObjectType, comp.ObjectType));
+            Assert.False(type.IsReadOnly);
+
+        }
+
     }
 }

@@ -1354,6 +1354,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilationForIsByRefLike: true);
             }
+
+            if (this.IsReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilationForRefReadOnly: true);
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(DiagnosticBag diagnostics)

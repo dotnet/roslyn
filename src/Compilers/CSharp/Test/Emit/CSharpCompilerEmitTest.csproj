@@ -67,6 +67,7 @@
     <Compile Include="Attributes\AttributeTests_Dynamic.cs" />
     <Compile Include="Attributes\AttributeTests_Experimental.cs" />
     <Compile Include="Attributes\AttributeTests_Embedded.cs" />
+    <Compile Include="Attributes\AttributeTests_ReadOnlyStruct.cs" />
     <Compile Include="Attributes\AttributeTests_IsByRefLike.cs" />
     <Compile Include="Attributes\AttributeTests_RefReadOnly.cs" />
     <Compile Include="Attributes\AttributeTests_Locations.cs" />
