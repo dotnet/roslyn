@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // things like the Interactive workspace as this will cause us to 
             // create expensive bk-trees which we won't even be able to save for 
             // future use.
-            if (!IsHostOrTestWorkspace(project))
+            if (!IsHostOrTestOrRemoteWorkspace(project))
             {
                 return ImmutableArray<Reference>.Empty;
             }
@@ -156,10 +156,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             return fuzzyReferences;
         }
 
-        private static bool IsHostOrTestWorkspace(Project project)
+        private static bool IsHostOrTestOrRemoteWorkspace(Project project)
         {
             return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
-                   project.Solution.Workspace.Kind == WorkspaceKind.Test;
+                   project.Solution.Workspace.Kind == WorkspaceKind.Test ||
+                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // things like the Interactive workspace as we can't even add project
             // references to the interactive window.  We could consider adding metadata
             // references with #r in the future.
-            if (IsHostOrTestWorkspace(project))
+            if (IsHostOrTestOrRemoteWorkspace(project))
             {
                 // Now search unreferenced projects, and see if they have any source symbols that match
                 // the search string.
