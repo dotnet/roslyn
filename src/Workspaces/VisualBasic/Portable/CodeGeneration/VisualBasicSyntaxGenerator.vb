@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Protected Overrides Function CreateTupleType(elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Friend Overrides Function CreateTupleType(elements As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast(Of TupleElementSyntax)()))
         End Function
 

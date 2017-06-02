@@ -3977,7 +3977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        protected override SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements)
+        internal override SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements)
             => SyntaxFactory.TupleType(SyntaxFactory.SeparatedList(elements.Cast<TupleElementSyntax>()));
 
         public override SyntaxNode TupleElementExpression(SyntaxNode type, string name = null)
