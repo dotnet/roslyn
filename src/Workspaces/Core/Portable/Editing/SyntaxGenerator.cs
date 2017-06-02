@@ -1691,7 +1691,7 @@ namespace Microsoft.CodeAnalysis.Editing
             return CreateTupleType(elements);
         }
 
-        protected abstract SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements);
+        internal abstract SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements);
 
         /// <summary>
         /// Creates an expression that denotes a tuple type.
@@ -1715,10 +1715,11 @@ namespace Microsoft.CodeAnalysis.Editing
                 {
                     throw new ArgumentException("The number of element names must match the cardinality of the tuple.", nameof(elementNames));
                 }
-                return TupleTypeExpression(elementTypes.Zip(elementNames, AsTupleElement));
+
+                return TupleTypeExpression(elementTypes.Zip(elementNames, (type, name) => TupleElementExpression(type, name)));
             }
 
-            return TupleTypeExpression(elementTypes.Select(AsTupleElement));
+            return TupleTypeExpression(elementTypes.Select(type => TupleElementExpression(type, name: null)));
         }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
@@ -1733,12 +1734,6 @@ namespace Microsoft.CodeAnalysis.Editing
         public SyntaxNode TupleElementExpression(ITypeSymbol type, string name = null)
             => TupleElementExpression(TypeExpression(type), name);
 #pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
-
-        private SyntaxNode AsTupleElement(ITypeSymbol type)
-            => TupleElementExpression(type, name: null);
-
-        private SyntaxNode AsTupleElement(ITypeSymbol type, string name)
-            => TupleElementExpression(type, name);
 
         /// <summary>
         /// Creates an expression that denotes an assignment from the right argument to left argument.
