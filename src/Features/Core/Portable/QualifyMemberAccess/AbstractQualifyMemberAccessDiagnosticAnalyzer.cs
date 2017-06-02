@@ -38,10 +38,10 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
         protected abstract string GetLanguageName();
 
         /// <summary>
-        /// Reports on whether the specified member is suitable for qualification. Some member access expressions cannot be qualififed;
+        /// Reports on whether the specified member is suitable for qualification. Some member access expressions cannot be qualified;
         /// for instance if they begin with <c>base.</c>, <c>MyBase.</c>, or <c>MyClass.</c>.
         /// </summary>
-        /// <returns>True if the member access can be qualfied; otherwise, False.</returns>
+        /// <returns>True if the member access can be qualified; otherwise, False.</returns>
         protected abstract bool CanMemberAccessBeQualified(SyntaxNode node);
 
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
