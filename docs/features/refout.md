@@ -63,9 +63,14 @@ Going back to the 4 driving scenarios:
 3. For the CoreFX scenario, ref assembly source code is used as input, `EmitMetadataOnly` is set to `true`, and `IncludePrivateMembers` is set to `false`.
 4. For the MSBuild scenario, `EmitMetadataOnly` is left to `false`, a `metadataPeStream` is passed in and `IncludePrivateMembers` is set to `false`.
 
+### Determinism
+
+It is recommended that ref assemblies in conjunction with determinism. This minimizes the rate of change for the ref assembly, thereby maximizing the benefits their realize.
+That said, even if determinism isn't set, compilation of ref assemblies is largely deterministic by default. The main exception is when using `AssemblyVersionAttribute` with a wildcard (for example, `[assembly: System.Reflection.AssemblyVersion("1.0.*")]`). In such case, the compilation is necessarily non-deterministic and therefore ref assemblies don't provide any benefits.
+
 ## MSBuild
 
-* `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass /refout:). It requires opt-in. It is recommended that `Deterministic` be set, for best result.
+* `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass `/refout:`). It requires opt-in. It is recommended that `Deterministic` be set for best result (see details above).
 *	`CompileUsingReferenceAssemblies` (boolean) avoids using ref assemblies even if your references produce them. This is unset by default and only ever checked against false. It’s only there to provide an emergency escape hatch—a customer who hits a bug can set it to false and avoid the new codepaths.
 
 ## Future
