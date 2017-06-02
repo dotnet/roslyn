@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return textChanges.ToImmutableArray();
             }
 
-            public sealed override async Task<AddImportFixData> GetFixDataAsync(
+            public sealed override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node,
                 bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {

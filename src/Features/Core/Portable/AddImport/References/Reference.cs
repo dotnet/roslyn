@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return (newContextNode, newDocument);
             }
 
-            public abstract Task<AddImportFixData> GetFixDataAsync(
+            public abstract Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken);
 
             protected async Task<ImmutableArray<TextChange>> GetTextChangesAsync(

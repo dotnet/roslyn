@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _referenceAssemblyWithType = referenceAssemblyWithType;
             }
 
-            public override async Task<AddImportFixData> GetFixDataAsync(
+            public override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
