@@ -71,7 +71,7 @@ That said, even if determinism isn't set, compilation of ref assemblies is large
 ## MSBuild
 
 * `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass `/refout:`). It requires opt-in. It is recommended that `Deterministic` be set for best result (see details above).
-*	`CompileUsingReferenceAssemblies` (boolean) avoids using ref assemblies even if your references produce them. This is unset by default and only ever checked against false. It’s only there to provide an emergency escape hatch—a customer who hits a bug can set it to false and avoid the new codepaths.
+* `CompileUsingReferenceAssemblies` (boolean) avoids using ref assemblies even if your references produce them. This is unset by default and only ever checked against false. It’s only there to provide an emergency escape hatch—a customer who hits a bug can set it to false and avoid the new codepaths.
 
 ## Future
 As mentioned above, there may be further refinements after C# 7.1:
