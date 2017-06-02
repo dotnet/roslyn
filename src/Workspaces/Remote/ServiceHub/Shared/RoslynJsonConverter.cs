@@ -20,39 +20,41 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public override bool CanConvert(Type objectType)
-        {
-            return _map.ContainsKey(objectType);
-        }
+            => _map.ContainsKey(objectType);
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            return _map[objectType].ReadJson(reader, objectType, existingValue, serializer);
-        }
+            => _map[objectType].ReadJson(reader, objectType, existingValue, serializer);
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            _map[value.GetType()].WriteJson(writer, value, serializer);
-        }
+            => _map[value.GetType()].WriteJson(writer, value, serializer);
 
-        // this type is shared by multiple teams such as Razor, LUT and etc which have either separated/shared/shim repo
-        // so some types might not available to those context. this partial method let us add Roslyn specific types
-        // without breaking them
+        // this type is shared by multiple teams such as Razor, LUT and etc which have either 
+        // separated/shared/shim repo so some types might not available to those context. this 
+        // partial method let us add Roslyn specific types without breaking them
         partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder);
 
         private ImmutableDictionary<Type, JsonConverter> CreateConverterMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, JsonConverter>();
 
-            builder.Add(typeof(Checksum), new ChecksumJsonConverter());
-            builder.Add(typeof(SolutionId), new SolutionIdJsonConverter());
-            builder.Add(typeof(ProjectId), new ProjectIdJsonConverter());
-            builder.Add(typeof(DocumentId), new DocumentIdJsonConverter());
-            builder.Add(typeof(TextSpan), new TextSpanJsonConverter());
-            builder.Add(typeof(SymbolKey), new SymbolKeyJsonConverter());
+            Add(builder, new ChecksumJsonConverter());
+            Add(builder, new SolutionIdJsonConverter());
+            Add(builder, new ProjectIdJsonConverter());
+            Add(builder, new DocumentIdJsonConverter());
+            Add(builder, new TextSpanJsonConverter());
+            Add(builder, new TextChangeJsonConverter());
+            Add(builder, new SymbolKeyJsonConverter());
 
             AppendRoslynSpecificJsonConverters(builder);
 
             return builder.ToImmutable();
+        }
+
+        private static void Add<T>(
+            ImmutableDictionary<Type, JsonConverter>.Builder builder,
+            BaseJsonConverter<T> converter)
+        {
+            builder.Add(typeof(T), converter);
         }
 
         private abstract class BaseJsonConverter<T> : JsonConverter
@@ -60,12 +62,12 @@ namespace Microsoft.CodeAnalysis.Remote
             public sealed override bool CanConvert(Type objectType) => typeof(T) == objectType;
 
             public sealed override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-                => ReadValue(reader, objectType, existingValue, serializer);
+                => ReadValue(reader, serializer);
 
             public sealed override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
                 => WriteValue(writer, (T)value, serializer);
 
-            protected abstract T ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer);
+            protected abstract T ReadValue(JsonReader reader, JsonSerializer serializer);
             protected abstract void WriteValue(JsonWriter writer, T value, JsonSerializer serializer);
 
             protected static U ReadProperty<U>(JsonSerializer serializer, JsonReader reader)
@@ -91,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private class TextSpanJsonConverter : BaseJsonConverter<TextSpan>
         {
-            protected override TextSpan ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TextSpan ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private class TextChangeJsonConverter : BaseJsonConverter<TextChange>
         {
-            protected override TextChange ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TextChange ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -157,27 +159,23 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private class SymbolKeyJsonConverter : BaseJsonConverter<SymbolKey>
         {
-            protected override SymbolKey ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override SymbolKey ReadValue(JsonReader reader, JsonSerializer serializer)
                 => new SymbolKey((string)reader.Value);
 
             protected override void WriteValue(JsonWriter writer, SymbolKey value, JsonSerializer serializer)
                 => writer.WriteValue(value.ToString());
         }
 
-        private class ChecksumJsonConverter : JsonConverter
+        private class ChecksumJsonConverter : BaseJsonConverter<Checksum>
         {
-            public override bool CanConvert(Type objectType) => typeof(Checksum) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 var value = (string)reader.Value;
                 return value == null ? null : new Checksum(Convert.FromBase64String(value));
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-            {
-                writer.WriteValue(value?.ToString());
-            }
+            protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)
+                => writer.WriteValue(value?.ToString());
         }
     }
 }

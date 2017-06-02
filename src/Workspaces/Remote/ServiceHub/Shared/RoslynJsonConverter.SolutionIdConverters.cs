@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private class SolutionIdJsonConverter : WorkspaceIdJsonConverter<SolutionId>
         {
-            protected override SolutionId ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override SolutionId ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 var (id, debugName) = ReadFromJsonObject(reader);
                 return SolutionId.CreateFromSerialized(id, debugName);
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private class ProjectIdJsonConverter : WorkspaceIdJsonConverter<ProjectId>
         {
-            protected override ProjectId ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override ProjectId ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 var (id, debugName) = ReadFromJsonObject(reader);
                 return ProjectId.CreateFromSerialized(id, debugName);
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private class DocumentIdJsonConverter : WorkspaceIdJsonConverter<DocumentId>
         {
-            protected override DocumentId ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override DocumentId ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
