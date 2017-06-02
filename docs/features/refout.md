@@ -65,13 +65,13 @@ Going back to the 4 driving scenarios:
 
 ### Determinism
 
-It is recommended that ref assemblies in conjunction with determinism. This minimizes the rate of change for the ref assembly, thereby maximizing the benefits their realize.
+We recommend that you always use determinism with reference assemblies. This minimizes the rate of change for the ref assembly, thereby maximizing the benefits they realize.
 That said, even if determinism isn't set, compilation of ref assemblies is largely deterministic by default. The main exception is when using `AssemblyVersionAttribute` with a wildcard (for example, `[assembly: System.Reflection.AssemblyVersion("1.0.*")]`). In such case, the compilation is necessarily non-deterministic and therefore ref assemblies don't provide any benefits.
 
 ## MSBuild
 
 * `ProduceReferenceAssembly` (boolean) controls whether to create the item passed to the compiler task (and thus pass `/refout:`). It requires opt-in. It is recommended that `Deterministic` be set for best result (see details above).
-* `CompileUsingReferenceAssemblies` (boolean) avoids using ref assemblies even if your references produce them. This is unset by default and only ever checked against false. It’s only there to provide an emergency escape hatch—a customer who hits a bug can set it to false and avoid the new codepaths.
+* If you encounter a problem using reference assemblies, you can set the boolean property `CompileUsingReferenceAssemblies` to `false` to avoid using ref assemblies even if the projects you reference produce them. This is unset by default and only ever checked against `false`. It is only there to provide an emergency escape hatch; a customer who hits a bug can set it to `false` and avoid the new codepaths.
 
 ## Future
 As mentioned above, there may be further refinements after C# 7.1:
