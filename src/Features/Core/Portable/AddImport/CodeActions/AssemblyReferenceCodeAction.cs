@@ -2,13 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Tags;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
@@ -17,22 +14,14 @@ namespace Microsoft.CodeAnalysis.AddImport
     {
             private class AssemblyReferenceCodeAction : AddImportCodeAction
             {
-                private readonly string _assemblyName;
-                private readonly string _fullyQualifiedTypeName;
-
                 private readonly Lazy<string> _lazyResolvedPath;
 
                 public AssemblyReferenceCodeAction(
                     Document originalDocument,
-                    ImmutableArray<TextChange> textChanges,
-                    string title,
-                    string assemblyName,
-                    string fullyQualifiedTypeName)
-                    : base(originalDocument, textChanges, title, WellKnownTagArrays.AddReference, CodeActionPriority.Low)
+                    AddImportFixData fixData)
+                    : base(originalDocument, fixData)
                 {
-                    _assemblyName = assemblyName;
-                    _fullyQualifiedTypeName = fullyQualifiedTypeName;
-
+                    Contract.ThrowIfFalse(fixData.Kind == AddImportFixKind.ReferenceAssemblySymbol);
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
                 }
 
@@ -41,7 +30,9 @@ namespace Microsoft.CodeAnalysis.AddImport
                     var assemblyResolverService = OriginalDocument.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
 
                     var assemblyPath = assemblyResolverService?.ResolveAssemblyPath(
-                        OriginalDocument.Project.Id, _assemblyName, _fullyQualifiedTypeName);
+                        OriginalDocument.Project.Id, 
+                        FixData.AssemblyReferenceAssemblyName, 
+                        FixData.AssemblyReferenceFullyQualifiedTypeName);
 
                     return assemblyPath;
                 }

@@ -174,11 +174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         }
 
         protected override bool CanAddImportForMethod(
-            Diagnostic diagnostic, ISyntaxFactsService syntaxFacts, SyntaxNode node, out SimpleNameSyntax nameNode)
+            string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
 
-            switch (diagnostic.Id)
+            switch (diagnosticId)
             {
                 case CS7036:
                 case CS0428:
@@ -264,18 +264,18 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return true;
         }
 
-        protected override bool CanAddImportForDeconstruct(Diagnostic diagnostic, SyntaxNode node)
-            => diagnostic.Id == CS8129;
+        protected override bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node)
+            => diagnosticId == CS8129;
 
-        protected override bool CanAddImportForNamespace(Diagnostic diagnostic, SyntaxNode node, out SimpleNameSyntax nameNode)
+        protected override bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
             return false;
         }
 
-        protected override bool CanAddImportForQuery(Diagnostic diagnostic, SyntaxNode node)
+        protected override bool CanAddImportForQuery(string diagnosticId, SyntaxNode node)
         {
-            if (diagnostic.Id != CS1935)
+            if (diagnosticId != CS1935)
             {
                 return false;
             }
@@ -283,10 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             return node.AncestorsAndSelf().Any(n => n is QueryExpressionSyntax && !(n.Parent is QueryContinuationSyntax));
         }
 
-        protected override bool CanAddImportForType(Diagnostic diagnostic, SyntaxNode node, out SimpleNameSyntax nameNode)
+        protected override bool CanAddImportForType(string diagnosticId, SyntaxNode node, out SimpleNameSyntax nameNode)
         {
             nameNode = null;
-            switch (diagnostic.Id)
+            switch (diagnosticId)
             {
                 case CS0103:
                 case CS0246:

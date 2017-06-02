@@ -120,11 +120,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function CanAddImportForMethod(
-                diagnostic As Diagnostic,
+                diagnosticId As String,
                 syntaxFacts As ISyntaxFactsService,
                 node As SyntaxNode,
                 ByRef nameNode As SimpleNameSyntax) As Boolean
-            Select Case diagnostic.Id
+            Select Case diagnosticId
                 Case BC30456, BC30390, BC42309, BC30451
                     Exit Select
                 Case BC30512
@@ -177,8 +177,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return True
         End Function
 
-        Protected Overrides Function CanAddImportForNamespace(diagnostic As Diagnostic, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
-            Select Case diagnostic.Id
+        Protected Overrides Function CanAddImportForNamespace(diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
+            Select Case diagnosticId
                 Case BC30002, BC30451
                     Exit Select
                 Case Else
@@ -188,13 +188,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
             Return CanAddImportForTypeOrNamespaceCore(node, nameNode)
         End Function
 
-        Protected Overrides Function CanAddImportForDeconstruct(diagnostic As Diagnostic, node As SyntaxNode) As Boolean
+        Protected Overrides Function CanAddImportForDeconstruct(diagnosticId As String, node As SyntaxNode) As Boolean
             ' Not supported yet.
             Return False
         End Function
 
-        Protected Overrides Function CanAddImportForQuery(diagnostic As Diagnostic, node As SyntaxNode) As Boolean
-            If diagnostic.Id <> BC36593 Then
+        Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
+            If diagnosticId <> BC36593 Then
                 Return False
             End If
 
@@ -208,8 +208,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function CanAddImportForType(
-                diagnostic As Diagnostic, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
-            Select Case diagnostic.Id
+                diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
+            Select Case diagnosticId
                 Case BC30002, BC30451, BC32042, BC32045, BC30389, BC31504, BC36610, BC30182
                     Exit Select
                 Case BC42309

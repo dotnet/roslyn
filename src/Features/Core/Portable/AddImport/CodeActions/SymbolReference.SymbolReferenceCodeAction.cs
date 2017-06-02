@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
@@ -20,10 +17,8 @@ namespace Microsoft.CodeAnalysis.AddImport
             {
                 protected SymbolReferenceCodeAction(
                     Document originalDocument,
-                    ImmutableArray<TextChange> textChanges,
-                    string title, ImmutableArray<string> tags,
-                    CodeActionPriority priority)
-                    : base(originalDocument, textChanges, title, tags, priority)
+                    AddImportFixData fixData)
+                    : base(originalDocument, fixData)
                 {
                 }
 

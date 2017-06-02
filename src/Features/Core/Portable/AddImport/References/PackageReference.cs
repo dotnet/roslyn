@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
 using Roslyn.Utilities;
 
@@ -33,14 +31,14 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _versionOpt = versionOpt;
             }
 
-            public override async Task<CodeAction> CreateCodeActionAsync(
+            public override async Task<AddImportFixData> GetFixDataAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(
                     document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
 
-                return new ParentInstallPackageCodeAction(
-                    document, textChanges, _installerService, _source, _packageName, _versionOpt);
+                return AddImportFixData.CreateForPackageSymbol(
+                    textChanges, _source, _packageName, _versionOpt);
             }
 
             public override bool Equals(object obj)

@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
@@ -40,11 +41,11 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool CanAddImportForMethod(Diagnostic diagnostic, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
-        protected abstract bool CanAddImportForNamespace(Diagnostic diagnostic, SyntaxNode node, out TSimpleNameSyntax nameNode);
-        protected abstract bool CanAddImportForDeconstruct(Diagnostic diagnostic, SyntaxNode node);
-        protected abstract bool CanAddImportForQuery(Diagnostic diagnostic, SyntaxNode node);
-        protected abstract bool CanAddImportForType(Diagnostic diagnostic, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
+        protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
+        protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
 
         protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
         protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
@@ -98,16 +99,17 @@ namespace Microsoft.CodeAnalysis.AddImport
                         if (this.CanAddImport(node, cancellationToken))
                         {
                             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                            var allSymbolReferences = await FindResultsAsync(document, semanticModel, diagnostic, node, cancellationToken).ConfigureAwait(false);
+                            var allSymbolReferences = await FindResultsAsync(document, semanticModel, diagnostic.Id, node, cancellationToken).ConfigureAwait(false);
 
                             // Nothing found at all. No need to proceed.
                             foreach (var reference in allSymbolReferences)
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var codeAction = await reference.CreateCodeActionAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                                if (codeAction != null)
+                                var fixData = await reference.GetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                                if (fixData != null)
                                 {
+                                    var codeAction = CreateCodeAction(document, fixData);
                                     context.RegisterCodeFix(codeAction, diagnostic);
                                     count++;
                                 }
@@ -120,8 +122,35 @@ namespace Microsoft.CodeAnalysis.AddImport
             return count;
         }
 
+        private CodeAction CreateCodeAction(
+            Document document, AddImportFixData fixData)
+        {
+            switch (fixData.Kind)
+            {
+                case AddImportFixKind.ProjectSymbol:
+                    return new ProjectSymbolReferenceCodeAction(document, fixData);
+
+                case AddImportFixKind.MetadataSymbol:
+                    return new MetadataSymbolReferenceCodeAction(document, fixData);
+
+                case AddImportFixKind.PackageSymbol:
+                    return new ParentInstallPackageCodeAction(document, fixData, GetPackageInstallerService(document));
+
+                case AddImportFixKind.ReferenceAssemblySymbol:
+                    return new AssemblyReferenceCodeAction(document, fixData);
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private IPackageInstallerService GetPackageInstallerService(Document document)
+        {
+            var workspaceServices = document.Project.Solution.Workspace.Services;
+            return _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
+        }
+
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
-            Document document, SemanticModel semanticModel, Diagnostic diagnostic, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, CancellationToken cancellationToken)
         {
             // Caches so we don't produce the same data multiple times while searching 
             // all over the solution.
@@ -129,7 +158,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
             var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
-            var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnostic, node, cancellationToken);
+            var finder = new SymbolReferenceFinder(this, document, semanticModel, diagnosticId, node, cancellationToken);
 
             // Look for exact matches first:
             var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);

@@ -99,6 +99,8 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\AddImportFixData.cs" />
+    <Compile Include="AddImport\AddImportFixKind.cs" />
     <Compile Include="AddImport\CodeActions\AddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />

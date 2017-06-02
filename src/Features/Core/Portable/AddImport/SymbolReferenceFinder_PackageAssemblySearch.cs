@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     return;
                 }
 
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
+                if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
                 {
                     return;
                 }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
 
                 var symbolSearchService = _owner._symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
-                var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
+                var installerService = _owner.GetPackageInstallerService(_document);
 
                 var language = _document.Project.Language;
 
