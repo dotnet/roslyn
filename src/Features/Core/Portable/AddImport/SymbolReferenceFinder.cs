@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private partial class SymbolReferenceFinder
         {
@@ -30,17 +30,19 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly ISymbol _containingTypeOrAssembly;
             private readonly ISet<INamespaceSymbol> _namespacesInScope;
             private readonly ISyntaxFactsService _syntaxFacts;
-            private readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> _owner;
+            private readonly AbstractAddImportFeatureService<TSimpleNameSyntax> _owner;
 
             private readonly SyntaxNode _node;
             private readonly ISymbolSearchService _symbolSearchService;
+            private readonly bool _searchReferenceAssemblies;
             private readonly ImmutableArray<PackageSource> _packageSources;
 
             public SymbolReferenceFinder(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> owner,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> owner,
                 Document document, SemanticModel semanticModel,
                 string diagnosticId, SyntaxNode node,
                 ISymbolSearchService symbolSearchService,
+                bool searchReferenceAssemblies,
                 ImmutableArray<PackageSource> packageSources,
                 CancellationToken cancellationToken)
             {
@@ -49,8 +51,15 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _semanticModel = semanticModel;
                 _diagnosticId = diagnosticId;
                 _node = node;
+
                 _symbolSearchService = symbolSearchService;
+                _searchReferenceAssemblies = searchReferenceAssemblies;
                 _packageSources = packageSources;
+
+                if (_searchReferenceAssemblies || packageSources.Length> 0)
+                {
+                    Contract.ThrowIfNull(symbolSearchService);
+                }
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;

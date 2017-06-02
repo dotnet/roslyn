@@ -13,15 +13,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private abstract class Reference : IEquatable<Reference>
         {
-            protected readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider;
+            protected readonly AbstractAddImportFeatureService<TSimpleNameSyntax> provider;
             public readonly SearchResult SearchResult;
 
             protected Reference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SearchResult searchResult)
             {
                 this.provider = provider;

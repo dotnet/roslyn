@@ -7,14 +7,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private partial class AssemblyReference : Reference
         {
             private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
 
             public AssemblyReference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SearchResult searchResult,
                 ReferenceAssemblyWithTypeResult referenceAssemblyWithType)
                 : base(provider, searchResult)

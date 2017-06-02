@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private partial class SymbolReferenceFinder
         {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 ArrayBuilder<Reference> allReferences, TSimpleNameSyntax nameNode,
                 string name, int arity, bool isAttributeSearch, CancellationToken cancellationToken)
             {
-                if (_symbolSearchService != null)
+                if (_searchReferenceAssemblies)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyTypeReferencesAsync(

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -147,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
     }
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddImport), Shared]
-    internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider<SimpleNameSyntax>
+    internal class CSharpAddImportCodeFixProvider : AbstractAddImportCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => AddImportDiagnosticIds.FixableDiagnosticIds;
 
@@ -162,7 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
             : base(installerService, symbolSearchService)
         {
         }
+    }
 
+    [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
+    internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<SimpleNameSyntax>
+    {
         protected override bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken)
         {
             if (cancellationToken.IsCancellationRequested)

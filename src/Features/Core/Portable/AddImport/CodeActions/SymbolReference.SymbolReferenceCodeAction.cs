@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportCodeFixProvider
     {
             /// <summary>
             /// Code action we use when just adding a using, possibly with a project or
