@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -26,6 +25,46 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Async Function CodeCompletionContainsOtherAssembliesOfSolutionAsync() As Task
             Dim text = "<Assembly:System.Runtime.CompilerServices.InternalsVisibleTo(""$$"")>"
             Await VerifyItemExistsAsync(text, "ClassLibrary1")
+        End Function
+
+        <Theory, Trait(Traits.Feature, Traits.Features.Completion)>
+        <InlineData("<Assembly: InternalsVisibleToAttribute(""$$"")>", True)>
+        <InlineData("<Assembly: InternalsVisibleTo(""$$"")>", True)>
+        <InlineData("<Assembly: InternalsVisibleTo(""$$)>", True)>
+        <InlineData("<Assembly: InternalsVisibleTo(""$$", True)>
+        <InlineData("<Assembly: InternalsVisibleTo(""Test$$)>", True)>
+        <InlineData("<Assembly: InternalsVisibleTo(""Test"", ""$$", True)>
+        <InlineData("<Assembly: InternalsVisibleTo(""Test""$$", False)>
+        <InlineData("<Assembly: InternalsVisibleTo(""""$$", False)>
+        <InlineData("<Assembly: InternalsVisibleTo($$)>", False)>
+        <InlineData("<Assembly: InternalsVisibleTo($$", False)>
+        <InlineData("<Assembly: InternalsVisibleTo$$", False)>
+        <InlineData("<Assembly: InternalsVisibleTo(""$$, AllInternalsVisible := True)>", True)>
+        <InlineData("<Assembly: InternalsVisibleTo(""$$"", AllInternalsVisible := True)>", True)>
+        <InlineData("<Assembly: AssemblyVersion(""$$"")>", False)>
+        <InlineData("<Assembly: AssemblyVersion(""$$", False)>
+        <InlineData("
+            <Assembly: AssemblyVersion(""1.0.0.0"")> 
+            <Assembly: InternalsVisibleTo(""$$", True)>
+        <InlineData("
+            <Assembly: InternalsVisibleTo(""$$
+            <Assembly: AssemblyVersion(""1.0.0.0"")>
+            <Assembly: AssemblyCompany(""Test"")>", True)>
+        <InlineData("
+            <Assembly: InternalsVisibleTo(""$$
+            Namespace A
+                Public Class A
+                End Class
+            End Namespace", True)>
+        Public Async Function CodeCompletionListHasItems(code As String, hasItems As Boolean) As Task
+            code = "Imports System.Runtime.CompilerServices
+                    Imports System.Reflection
+                   " + code
+            If hasItems Then
+                Await VerifyAnyItemExistsAsync(code)
+            Else
+                Await VerifyNoItemsExistAsync(code)
+            End If
         End Function
     End Class
 End Namespace

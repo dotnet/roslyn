@@ -1,15 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -18,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
 
         protected abstract bool IsPositionEntirelyWithinStringLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-        protected abstract string GetAttributeNameOfAttributeSyntaxNode(SyntaxNode attributeSyntaxNode);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
@@ -34,13 +31,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     return;
                 }
 
-                var attributeName = GetAttributeNameOfAttributeSyntaxNode(attributeSyntaxNode);
-                if (attributeName == "InternalsVisibleTo" || attributeName == nameof(InternalsVisibleToAttribute))
+                if (await CheckTypeInfoOfAttributeAsync(context, attributeSyntaxNode).ConfigureAwait(false))
                 {
-                    if (await CheckTypeInfoOfAttributeAsync(context, attributeSyntaxNode).ConfigureAwait(false))
-                    {
-                        AddAssemblyCompletionItems(context, cancellationToken);
-                    }
+                    AddAssemblyCompletionItems(context, cancellationToken);
                 }
             }
         }
@@ -50,15 +43,21 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             //Supported cases:
             //[Attribute("|
             //[Attribute(parameterName:"Text|")
-            //Also supported but excluded by syntaxTree.IsEntirelyWithinStringLiteral in ProvideCompletionsAsync
+            //Also supported but excluded by IsPositionEntirelyWithinStringLiteral in ProvideCompletionsAsync
             //[Attribute(""|
             //[Attribute("Text"|)
             var node = token.Parent;
             if (syntaxFactsService.IsStringLiteralExpression(node))
             {
-                // LiteralExpressionSyntax -> AttributeArgumentSyntax -> AttributeArgumentListSyntax -> AttributeSyntax
+                // Edge case: ElementAccessExpressionSyntax is present if the following statement is another attribute:
+                //   [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("|
+                //   [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
+                //   [assembly: System.Reflection.AssemblyCompany("Test")]
+                while (syntaxFactsService.IsElementAccessExpression(node.Parent))
+                    node = node.Parent;
+                // node -> AttributeArgumentSyntax -> AttributeArgumentListSyntax -> AttributeSyntax
                 var attributeSyntaxNodeCandidate = node.Parent?.Parent?.Parent;
-                if (attributeSyntaxNodeCandidate != null && syntaxFactsService.IsAttribute(attributeSyntaxNodeCandidate))
+                if (syntaxFactsService.IsAttribute(attributeSyntaxNodeCandidate))
                 {
                     return attributeSyntaxNodeCandidate;
                 }
@@ -77,11 +76,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            //TODO there must be better ways to do the check type equality.
-            var typeName = type.ToDisplayString(new SymbolDisplayFormat(typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces));
-            var assemblyName = type.ContainingAssembly.ToSignatureDisplayString();
-            var internalsVisibleToQualifiedName = typeof(InternalsVisibleToAttribute).AssemblyQualifiedName;
-            return typeName + ", " + assemblyName == internalsVisibleToQualifiedName;
+            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
+            var internalsVisibleToAttributeSymbol = compilation.GetTypeByMetadataName(typeof(InternalsVisibleToAttribute).FullName);
+            return type.Equals(internalsVisibleToAttributeSymbol);
         }
 
         private static void AddAssemblyCompletionItems(CompletionContext context, CancellationToken cancellationToken)
@@ -106,21 +103,17 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (item.Properties.TryGetValue(ProjectGuidKey, out var projectId))
+            var projectIdGuid = item.Properties[ProjectGuidKey];
+            var projectId = ProjectId.CreateFromSerialized(new System.Guid(projectIdGuid));
+            var project = document.Project.Solution.GetProject(projectId);
+            var assemblyName = item.DisplayText;
+            var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);
+            if (!string.IsNullOrEmpty(publicKey))
             {
-                var assemblyName = item.DisplayText;
-                var project = document.Project.Solution.GetProject(ProjectId.CreateFromSerialized(new System.Guid(projectId)));
-                var publicKey = await GetPublicKeyOfProjectAsync(project, cancellationToken).ConfigureAwait(false);
-                if (!string.IsNullOrEmpty(publicKey))
-                {
-                    assemblyName += ", PublicKey=" + publicKey;
-                }
-                var textChange = new TextChange(item.Span, assemblyName);
-                return CompletionChange.Create(textChange);
+                assemblyName += ", PublicKey=" + publicKey;
             }
-
-            Debug.Fail("Project can't be found by projectId.");
-            return await base.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+            var textChange = new TextChange(item.Span, assemblyName);
+            return CompletionChange.Create(textChange);
         }
 
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)

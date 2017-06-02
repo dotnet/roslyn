@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Immutable;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
@@ -39,7 +38,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             ws.ChangeSolution(solution);
         }
 
-        internal override CompletionProvider CreateCompletionProvider() => new InternalsVisibleToCompletionProvider();
+        internal override CompletionProvider CreateCompletionProvider()
+            => new InternalsVisibleToCompletionProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CodeCompletionContainsOtherAssembliesOfSolution()
@@ -52,13 +52,59 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemExistsAsync(text, "ClassLibrary3");
         }
 
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [InlineData(@"[assembly: InternalsVisibleToAttribute(""$$"")]", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""$$"")]", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""$$)]", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""$$", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""Test$$)]", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""Test"", ""$$", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""Test""$$", false)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""""$$", false)]
+        [InlineData(@"[assembly: InternalsVisibleTo($$)]", false)]
+        [InlineData(@"[assembly: InternalsVisibleTo($$", false)]
+        [InlineData(@"[assembly: InternalsVisibleTo$$", false)]
+        [InlineData(@"[assembly: InternalsVisibleTo(""$$, AllInternalsVisible = true)]", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(assemblyName: ""$$, AllInternalsVisible = true)]", true)]
+        [InlineData(@"[assembly: InternalsVisibleTo(assemblyName: ""$$"", AllInternalsVisible = true)]", true)]
+        [InlineData(@"[assembly: AssemblyVersion(""$$"")]", false)]
+        [InlineData(@"[assembly: AssemblyVersion(""$$", false)]
+        [InlineData(@"[assembly: AssemblyVersion(""1.0.0.0""), InternalsVisibleTo(""$$", true)]
+        [InlineData(@"
+            [assembly: AssemblyVersion(""1.0.0.0"")]
+            [assembly: InternalsVisibleTo(""$$
+        ", true)]
+        [InlineData(@"
+            [assembly: InternalsVisibleTo(""$$
+            [assembly: AssemblyVersion(""1.0.0.0"")]
+            [assembly: AssemblyCompany(""Test"")]
+        ", true)]
+        [InlineData(@"
+            [assembly: InternalsVisibleTo(""$$
+            namespace A {            
+                public class A { }
+            }
+        ", true)]
+        public async Task CodeCompletionListHasItems(string code, bool hasItems)
+        {
+            code = @"
+using System.Runtime.CompilerServices;
+using System.Reflection;
+" + code;
+            if (hasItems)
+                await VerifyAnyItemExistsAsync(code);
+            else
+                await VerifyNoItemsExistAsync(code);
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CodeCompletionIsEmptyAtClosingDoubleQuote()
+        public async Task CodeCompletionHasItemsIfInteralVisibleToIsReferencedByTypeAlias()
         {
             var text = @"
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""""$$)]
+using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
+[assembly: IVT(""$$
 ";
-            await VerifyNoItemsExistAsync(text);
+            await VerifyAnyItemExistsAsync(text);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -119,7 +165,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task CodeCompletetionIsCanceledIfAttributeIsNotTheBCLAttribute()
+        public async Task CodeCompletionListIsEmptyIfAttributeIsNotTheBCLAttribute()
         {
             var text = @"
 [assembly: Test.InternalsVisibleTo(""$$"")]
