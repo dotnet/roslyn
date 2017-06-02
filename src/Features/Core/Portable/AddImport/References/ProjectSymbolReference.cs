@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// Handles references to source symbols both from the current project the user is invoking
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly Project _project;
 
             public ProjectSymbolReference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SymbolResult<INamespaceOrTypeSymbol> symbolResult,
                 Project project)
                 : base(provider, symbolResult)

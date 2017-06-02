@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private class MetadataSymbolsSearchScope : SearchScope
         {
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly PortableExecutableReference _metadataReference;
 
             public MetadataSymbolsSearchScope(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 Solution solution,
                 IAssemblySymbol assembly,
                 ProjectId assemblyProjectId,

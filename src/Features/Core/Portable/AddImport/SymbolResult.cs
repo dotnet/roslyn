@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private struct SearchResult
         {

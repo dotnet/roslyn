@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.CaseCorrection
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.Simplification
@@ -17,7 +18,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.AddImport), [Shared]>
     Friend Class VisualBasicAddImportCodeFixProvider
-        Inherits AbstractAddImportCodeFixProvider(Of SimpleNameSyntax)
+        Inherits AbstractAddImportCodeFixProvider
 
         Public Sub New()
         End Sub
@@ -110,6 +111,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 Return ImmutableArray.Create(BC30002, BC30451, BC30456, BC32042, BC36593, BC32045, BC30389, BC31504, BC32016, BC36610, BC36719, BC30512, BC30390, BC42309, BC30182)
             End Get
         End Property
+    End Class
+
+    <ExportLanguageService(GetType(IAddImportFeatureService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicAddImportFeatureService
+        Inherits AbstractAddImportFeatureService(Of SimpleNameSyntax)
 
         Protected Overrides Function CanAddImport(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
             If node.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing Then
@@ -125,9 +131,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                 node As SyntaxNode,
                 ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
-                Case BC30456, BC30390, BC42309, BC30451
+                Case VisualBasicAddImportCodeFixProvider.BC30456,
+                     VisualBasicAddImportCodeFixProvider.BC30390,
+                     VisualBasicAddImportCodeFixProvider.BC42309,
+                     VisualBasicAddImportCodeFixProvider.BC30451
                     Exit Select
-                Case BC30512
+                Case VisualBasicAddImportCodeFixProvider.BC30512
                     ' look up its corresponding method name
                     Dim parent = node.GetAncestor(Of InvocationExpressionSyntax)()
                     If parent Is Nothing Then
@@ -140,13 +149,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
                         node = parent.Expression
                     End If
                     Exit Select
-                Case BC36719
+                Case VisualBasicAddImportCodeFixProvider.BC36719
                     If node.IsKind(SyntaxKind.ObjectCollectionInitializer) Then
                         Return True
                     End If
 
                     Return False
-                Case BC32016
+                Case VisualBasicAddImportCodeFixProvider.BC32016
                     Dim memberAccessName = TryCast(node, MemberAccessExpressionSyntax)?.Name
                     Dim conditionalAccessName = TryCast(TryCast(TryCast(node, ConditionalAccessExpressionSyntax)?.WhenNotNull, InvocationExpressionSyntax)?.Expression, MemberAccessExpressionSyntax)?.Name
 
@@ -179,7 +188,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
 
         Protected Overrides Function CanAddImportForNamespace(diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
-                Case BC30002, BC30451
+                Case VisualBasicAddImportCodeFixProvider.BC30002,
+                     VisualBasicAddImportCodeFixProvider.BC30451
                     Exit Select
                 Case Else
                     Return False
@@ -194,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Protected Overrides Function CanAddImportForQuery(diagnosticId As String, node As SyntaxNode) As Boolean
-            If diagnosticId <> BC36593 Then
+            If diagnosticId <> VisualBasicAddImportCodeFixProvider.BC36593 Then
                 Return False
             End If
 
@@ -210,9 +220,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         Protected Overrides Function CanAddImportForType(
                 diagnosticId As String, node As SyntaxNode, ByRef nameNode As SimpleNameSyntax) As Boolean
             Select Case diagnosticId
-                Case BC30002, BC30451, BC32042, BC32045, BC30389, BC31504, BC36610, BC30182
+                Case VisualBasicAddImportCodeFixProvider.BC30002,
+                     VisualBasicAddImportCodeFixProvider.BC30451,
+                     VisualBasicAddImportCodeFixProvider.BC32042,
+                     VisualBasicAddImportCodeFixProvider.BC32045,
+                     VisualBasicAddImportCodeFixProvider.BC30389,
+                     VisualBasicAddImportCodeFixProvider.BC31504,
+                     VisualBasicAddImportCodeFixProvider.BC36610,
+                     VisualBasicAddImportCodeFixProvider.BC30182
                     Exit Select
-                Case BC42309
+                Case VisualBasicAddImportCodeFixProvider.BC42309
                     Select Case node.Kind
                         Case SyntaxKind.XmlCrefAttribute
                             node = CType(node, XmlCrefAttributeSyntax).Reference.DescendantNodes().OfType(Of IdentifierNameSyntax).FirstOrDefault()

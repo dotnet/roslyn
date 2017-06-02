@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private partial class PackageReference : Reference
         {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly string _versionOpt;
 
             public PackageReference(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 SearchResult searchResult,
                 string source,
                 string packageName,

@@ -13,17 +13,15 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> 
-        : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
-        where TSimpleNameSyntax : SyntaxNode
+    internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvider
     {
         private const int MaxResults = 3;
 
@@ -41,87 +39,61 @@ namespace Microsoft.CodeAnalysis.AddImport
             _symbolSearchService = symbolSearchService;
         }
 
-        protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
-        protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
-        protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
-        protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
-        protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
-
-        protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
-        protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
-
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
-        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
-
-        internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
-
-        protected abstract string GetDescription(IReadOnlyList<string> nameParts);
-        protected abstract (string description, bool hasExistingImport) GetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
-
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            // We might have multiple different diagnostics covering the same span.  Have to
-            // process them all as we might produce different fixes for each diagnostic.
-            var resultCount = 0;
-            foreach (var diagnostic in context.Diagnostics)
-            {
-                var codeActions = await GetCodeActionsAsync(context, diagnostic).ConfigureAwait(false);
-                context.RegisterFixes(codeActions, diagnostic);
-
-                resultCount += codeActions.Length;
-                if (resultCount >= MaxResults)
-                {
-                    break;
-                }
-            }
-        }
-
-        private async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(CodeFixContext context, Diagnostic diagnostic)
         {
             var document = context.Document;
             var span = context.Span;
             var cancellationToken = context.CancellationToken;
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var node = root.FindToken(span.Start, findInsideTrivia: true)
-                           .GetAncestor(n => n.Span.Contains(span) && n != root);
+            var addImportService = document.GetLanguageService<IAddImportFeatureService>();
 
-            var result = ArrayBuilder<CodeAction>.GetInstance();
-            if (node != null)
+            var solution = document.Project.Solution;
+            var options = solution.Options;
+
+            var searchReferenceAssemblies = options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language);
+            var searchNuGetPackages = options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language);
+
+            var symbolSearchService = searchReferenceAssemblies || searchNuGetPackages
+                ? _symbolSearchService ?? solution.Workspace.Services.GetService<ISymbolSearchService>()
+                : null;
+
+            var packageSources = symbolSearchService != null && searchNuGetPackages
+                ? GetPackageSources(document)
+                : ImmutableArray<PackageSource>.Empty;
+
+            // We might have multiple different diagnostics covering the same span.  Have to
+            // process them all as we might produce different fixes for each diagnostic.
+
+            foreach (var diagnostic in context.Diagnostics)
             {
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = documentOptions.GetOption(
-                    GenerationOptions.PlaceSystemNamespaceFirst);
+                var fixes = await addImportService.GetFixesAsync(
+                    document, span, diagnostic.Id, symbolSearchService,
+                    searchReferenceAssemblies, packageSources,
+                    cancellationToken).ConfigureAwait(false);
 
-                using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
+                var codeActions = ArrayBuilder<CodeAction>.GetInstance();
+
+                foreach (var fix in fixes)
                 {
-                    if (!cancellationToken.IsCancellationRequested)
+                    var codeAction = TryCreateCodeAction(document, fix);
+                    codeActions.AddIfNotNull(codeAction);
+
+                    if (codeActions.Count >= MaxResults)
                     {
-                        if (this.CanAddImport(node, cancellationToken))
-                        {
-                            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                            var allSymbolReferences = await FindResultsAsync(document, semanticModel, diagnostic.Id, node, cancellationToken).ConfigureAwait(false);
-
-                            // Nothing found at all. No need to proceed.
-                            foreach (var reference in allSymbolReferences)
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-
-                                var fixData = await reference.TryGetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
-                                var codeAction = TryCreateCodeAction(document, fixData);
-
-                                result.AddIfNotNull(codeAction);
-                            }
-                        }
+                        break;
                     }
                 }
-            }
 
-            return result.ToImmutableAndFree();
+                context.RegisterFixes(codeActions, diagnostic);
+                codeActions.Free();
+            }
         }
+
+        private IPackageInstallerService GetPackageInstallerService(Document document)
+            => _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
+
+        private ImmutableArray<PackageSource> GetPackageSources(Document document)
+            => GetPackageInstallerService(document)?.PackageSources ?? ImmutableArray<PackageSource>.Empty;
 
         private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData)
         {
@@ -150,9 +122,94 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             throw ExceptionUtilities.Unreachable;
         }
+    }
+
+    internal interface IAddImportFeatureService : ILanguageService
+    {
+        Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
+            Document document, TextSpan span, string diagnosticId, ISymbolSearchService symbolSearchService,
+            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+    }
+
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax> 
+        : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
+        where TSimpleNameSyntax : SyntaxNode
+    {
+        private const int MaxResults = 3;
+
+        /// <summary>
+        /// Values for these parameters can be provided (during testing) for mocking purposes.
+        /// </summary> 
+        protected AbstractAddImportFeatureService()
+        {
+        }
+
+        protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract bool CanAddImportForMethod(string diagnosticId, ISyntaxFactsService syntaxFacts, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForNamespace(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
+        protected abstract bool CanAddImportForDeconstruct(string diagnosticId, SyntaxNode node);
+        protected abstract bool CanAddImportForQuery(string diagnosticId, SyntaxNode node);
+        protected abstract bool CanAddImportForType(string diagnosticId, SyntaxNode node, out TSimpleNameSyntax nameNode);
+
+        protected abstract ISet<INamespaceSymbol> GetImportNamespacesInScope(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract ITypeSymbol GetDeconstructInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract ITypeSymbol GetQueryClauseInfo(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken);
+        protected abstract bool IsViableExtensionMethod(IMethodSymbol method, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
+
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
+        protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
+
+        internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
+
+        protected abstract string GetDescription(IReadOnlyList<string> nameParts);
+        protected abstract (string description, bool hasExistingImport) GetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
+
+        public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
+            Document document, TextSpan span, string diagnosticId, ISymbolSearchService symbolSearchService,
+            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources,
+            CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var node = root.FindToken(span.Start, findInsideTrivia: true)
+                           .GetAncestor(n => n.Span.Contains(span) && n != root);
+
+            var result = ArrayBuilder<AddImportFixData>.GetInstance();
+            if (node != null)
+            {
+                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                var placeSystemNamespaceFirst = documentOptions.GetOption(
+                    GenerationOptions.PlaceSystemNamespaceFirst);
+
+                using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
+                {
+                    if (!cancellationToken.IsCancellationRequested)
+                    {
+                        if (this.CanAddImport(node, cancellationToken))
+                        {
+                            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                            var allSymbolReferences = await FindResultsAsync(
+                                document, semanticModel, diagnosticId, node, symbolSearchService, 
+                                searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+
+                            // Nothing found at all. No need to proceed.
+                            foreach (var reference in allSymbolReferences)
+                            {
+                                cancellationToken.ThrowIfCancellationRequested();
+
+                                var fixData = await reference.TryGetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                                result.AddIfNotNull(fixData);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return result.ToImmutableAndFree();
+        }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
-            Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, CancellationToken cancellationToken)
+            Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, ISymbolSearchService symbolSearchService, 
+            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             // Caches so we don't produce the same data multiple times while searching 
             // all over the solution.
@@ -160,15 +217,9 @@ namespace Microsoft.CodeAnalysis.AddImport
             var projectToAssembly = new ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>>(concurrencyLevel: 2, capacity: project.Solution.ProjectIds.Count);
             var referenceToCompilation = new ConcurrentDictionary<PortableExecutableReference, Compilation>(concurrencyLevel: 2, capacity: project.Solution.Projects.Sum(p => p.MetadataReferences.Count));
 
-            var language = document.Project.Language;
-            var options = document.Project.Solution.Options;
-
-            var symbolSearchService = GetSymbolSearchService(document);
-            var packageSources = GetPackageSources(document, symbolSearchService);
-
             var finder = new SymbolReferenceFinder(
-                this, document, semanticModel, diagnosticId, node,
-                symbolSearchService, packageSources, cancellationToken);
+                this, document, semanticModel, diagnosticId, node, symbolSearchService,
+                searchReferenceAssemblies, packageSources, cancellationToken);
 
             // Look for exact matches first:
             var exactReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: true, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -189,30 +240,6 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var fuzzyReferences = await FindResultsAsync(projectToAssembly, referenceToCompilation, project, finder, exact: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             return fuzzyReferences;
-        }
-
-        private ISymbolSearchService GetSymbolSearchService(Document document) 
-            => document.Project.Solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInReferenceAssemblies, document.Project.Language)
-                ? _symbolSearchService ?? document.Project.Solution.Workspace.Services.GetService<ISymbolSearchService>()
-                : null;
-
-        private IPackageInstallerService GetPackageInstallerService(Document document)
-            => document.Project.Solution.Options.GetOption(SymbolSearchOptions.SuggestForTypesInNuGetPackages, document.Project.Language)
-                ? _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>()
-                : null;
-
-        private ImmutableArray<PackageSource> GetPackageSources(Document document, ISymbolSearchService searchService)
-        {
-            if (searchService != null)
-            {
-                var installerService = GetPackageInstallerService(document);
-                if (installerService?.IsEnabled(document.Project.Id) == true)
-                {
-                    return installerService.PackageSources;
-                }
-            }
-
-            return ImmutableArray<PackageSource>.Empty;
         }
 
         private static bool IsHostOrTestWorkspace(Project project)

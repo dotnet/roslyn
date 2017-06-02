@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// SearchScope used for searching *only* the source symbols contained within a project/compilation.
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             private readonly ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> _projectToAssembly;
 
             public SourceSymbolsProjectSearchScope(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 ConcurrentDictionary<Project, AsyncLazy<IAssemblySymbol>> projectToAssembly,
                 Project project, bool ignoreCase, CancellationToken cancellationToken)
                 : base(provider, project, ignoreCase, cancellationToken)

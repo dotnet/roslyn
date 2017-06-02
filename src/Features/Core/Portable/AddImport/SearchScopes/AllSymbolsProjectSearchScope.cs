@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         /// <summary>
         /// SearchScope used for searching *all* the symbols contained within a project/compilation.
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         private class AllSymbolsProjectSearchScope : ProjectSearchScope
         {
             public AllSymbolsProjectSearchScope(
-                AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
+                AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
                 Project project,
                 bool exact,
                 CancellationToken cancellationToken)
