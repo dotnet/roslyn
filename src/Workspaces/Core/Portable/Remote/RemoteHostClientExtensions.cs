@@ -57,17 +57,17 @@ namespace Microsoft.CodeAnalysis.Remote
                 return false;
             }
 
-             // Treat experiments as always on in tests.
-             //if (experimentName != null && workspace.Kind != WorkspaceKind.Test)
-             //{
-             //    var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
-             //    if (!experimentEnabled.IsExperimentEnabled(experimentName))
-             //    {
-             //        return false;
-             //    }
-             //}
- 
-             return true;
+            // Treat experiments as always on in tests.
+            if (experimentName != null && workspace.Kind != WorkspaceKind.Test)
+            {
+                var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
+                if (!experimentEnabled.IsExperimentEnabled(experimentName))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
