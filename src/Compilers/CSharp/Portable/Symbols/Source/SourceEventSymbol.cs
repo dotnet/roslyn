@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                    DiagnosticBag diagnostics, out bool modifierErrors)
         {
             bool isInterface = this.ContainingType.IsInterface;
-            var defaultAccess = isInterface ? DeclarationModifiers.Public : DeclarationModifiers.Private;
+            var defaultAccess = isInterface && !explicitInterfaceImplementation ? DeclarationModifiers.Public : DeclarationModifiers.Private;
             var defaultInterfaceImplementationModifiers = DeclarationModifiers.None;
 
             // Check that the set of modifiers is allowed
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Proper errors must have been reported by now.
             if (isInterface)
             {
-                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike);
+                mods = ModifierUtils.AdjustModifiersForAnInterfaceMember(mods, !isFieldLike, explicitInterfaceImplementation);
             }
 
             return mods;

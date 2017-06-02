@@ -80,9 +80,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
-            if (inInterfaceType && !this.IsAbstract && !this.IsExtern)
+            if (inInterfaceType)
             {
-                diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+                if (this.IsExtern)
+                {
+                    if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Locations[0]);
+                    }
+                }
+                else if (!this.IsAbstract)
+                {
+                    diagnostics.Add(ErrorCode.ERR_EventNeedsBothAccessors, this.Locations[0], this);
+                }
             }
 
             // Accessors will assume that Type is available.

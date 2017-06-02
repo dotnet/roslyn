@@ -4040,7 +4040,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: explicit interface declaration can only be declared in a class or struct.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: explicit interface declaration can only be declared in a class, struct or interface.
         /// </summary>
         internal static string ERR_ExplicitInterfaceImplementationInNonClassOrStruct {
             get {
@@ -5831,6 +5831,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because feature &apos;{3}&apos; is not available in C# {4}. Please use language version {5} or greater..
+        /// </summary>
+        internal static string ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember {
+            get {
+                return ResourceManager.GetString("ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to { expected.
         /// </summary>
         internal static string ERR_LbraceExpected {
@@ -5935,15 +5944,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_LookupInTypeVariable {
             get {
                 return ResourceManager.GetString("ERR_LookupInTypeVariable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an entry point cannot be marked with the &apos;async&apos; modifier.
-        /// </summary>
-        internal static string ERR_MainCantBeAsync {
-            get {
-                return ResourceManager.GetString("ERR_MainCantBeAsync", resourceCulture);
             }
         }
         
@@ -6304,6 +6304,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ModuleEmitFailure {
             get {
                 return ResourceManager.GetString("ERR_ModuleEmitFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Interface member &apos;{0}&apos; does not have a most specific implementation. Neither &apos;{1}&apos;, nor &apos;{2}&apos; are most specific..
+        /// </summary>
+        internal static string ERR_MostSpecificImplementationIsNotFound {
+            get {
+                return ResourceManager.GetString("ERR_MostSpecificImplementationIsNotFound", resourceCulture);
             }
         }
         
@@ -6882,18 +6891,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_NonInvocableMemberCalled", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Async Main methods must return Task or Task&lt;int&gt;.
+        ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
-        internal static string ERR_NonTaskMainCantBeAsync
-        {
-            get
-            {
+        internal static string ERR_NonTaskMainCantBeAsync {
+            get {
                 return ResourceManager.GetString("ERR_NonTaskMainCantBeAsync", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
@@ -9899,7 +9906,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("IDS_Covariantly", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to 
         ///                              Visual C# Compiler Options
@@ -9913,10 +9920,8 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                               /t:winexe)
         /// /target:library        [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string IDS_CSCHelp
-        {
-            get
-            {
+        internal static string IDS_CSCHelp {
+            get {
                 return ResourceManager.GetString("IDS_CSCHelp", resourceCulture);
             }
         }

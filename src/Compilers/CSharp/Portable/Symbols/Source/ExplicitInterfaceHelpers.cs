@@ -176,12 +176,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var memberLocation = implementingMember.Locations[0];
             var containingType = implementingMember.ContainingType;
-            var containingTypeKind = containingType.TypeKind;
 
-            if (containingTypeKind != TypeKind.Class && containingTypeKind != TypeKind.Struct)
+            switch (containingType.TypeKind)
             {
-                diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
-                return null;
+                case TypeKind.Class:
+                case TypeKind.Struct:
+                case TypeKind.Interface:
+                    break;
+
+                default:
+                    diagnostics.Add(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, memberLocation, implementingMember);
+                    return null;
             }
 
             if (!explicitInterfaceType.IsInterfaceType())

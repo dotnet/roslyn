@@ -9426,13 +9426,19 @@ public class Clx
     }
 }
 ";
-            CreateStandardCompilation(text).VerifyDiagnostics(
-                // (12,19): error CS0541: 'x.IFace2.P': explicit interface declaration can only be declared in a class or struct
-                //         int IFace.P { set; } //CS0541
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "P").WithArguments("x.IFace2.P"),
-                // (11,20): error CS0541: 'x.IFace2.F()': explicit interface declaration can only be declared in a class or struct
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (11,20): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //         void IFace.F();   // CS0541
-                Diagnostic(ErrorCode.ERR_ExplicitInterfaceImplementationInNonClassOrStruct, "F").WithArguments("x.IFace2.F()")
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F").WithArguments("default interface implementation", "7.1").WithLocation(11, 20),
+                // (12,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         int IFace.P { set; } //CS0541
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "set").WithArguments("default interface implementation", "7.1").WithLocation(12, 23),
+                // (12,23): error CS0501: 'IFace2.IFace.P.set' must declare a body because it is not marked abstract, extern, or partial
+                //         int IFace.P { set; } //CS0541
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("x.IFace2.x.IFace.P.set").WithLocation(12, 23),
+                // (11,20): error CS0501: 'IFace2.IFace.F()' must declare a body because it is not marked abstract, extern, or partial
+                //         void IFace.F();   // CS0541
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "F").WithArguments("x.IFace2.x.IFace.F()").WithLocation(11, 20)
                 );
         }
 
