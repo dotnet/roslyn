@@ -79,7 +79,7 @@ Going back to the 4 driving scenarios:
 
 We recommend that you always use determinism with reference assemblies. This minimizes the rate of change for the ref assembly, thereby maximizing the benefits they realize.
 
-That said, even if determinism isn't set, compilation of ref assemblies is largely deterministic by default. The main exception is when using `AssemblyVersionAttribute` with a wildcard (for example, `[assembly: System.Reflection.AssemblyVersion("1.0.*")]`). In such case, the compilation is necessarily non-deterministic and therefore ref assemblies don't provide any benefits.
+That said, even if determinism isn't set, compilation of ref assemblies is [largely deterministic](http://blog.paranoidcoding.com/2016/04/05/deterministic-builds-in-roslyn.html) by default. The main exception is when using `AssemblyVersionAttribute` with a wildcard (for example, `[assembly: System.Reflection.AssemblyVersion("1.0.*")]`). In such case, the compilation is necessarily non-deterministic and therefore ref assemblies don't provide any benefits.
 
 ## MSBuild
 
