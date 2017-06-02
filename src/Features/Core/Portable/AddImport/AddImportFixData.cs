@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
@@ -127,6 +129,30 @@ namespace Microsoft.CodeAnalysis.AddImport
                 Priority = CodeActionPriority.Low,
                 PackageName = packageName,
                 PackageVersionOpt = packageVersionOpt,
+            };
+        }
+
+        public SerializableAddImportFixData Dehydrate()
+        {
+            return new SerializableAddImportFixData
+            {
+                Kind = Kind,
+                TextChanges = TextChanges.ToArray(),
+                Title = Title,
+                Tags = Tags.NullToEmpty().ToArray(),
+                Priority = Priority,
+
+                ProjectReferenceToAdd = ProjectReferenceToAdd,
+
+                PortableExecutableReferenceProjectId = PortableExecutableReferenceProjectId,
+                PortableExecutableReferenceFilePathToAdd = PortableExecutableReferenceFilePathToAdd,
+
+                AssemblyReferenceAssemblyName = AssemblyReferenceAssemblyName,
+                AssemblyReferenceFullyQualifiedTypeName = AssemblyReferenceFullyQualifiedTypeName,
+
+                PackageSource = PackageSource,
+                PackageName = PackageName,
+                PackageVersionOpt = PackageVersionOpt
             };
         }
     }

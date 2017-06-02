@@ -100,6 +100,7 @@
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
     <Compile Include="AddImport\AbstractAddImportFeatureService.cs" />
+    <Compile Include="AddImport\Remote\AbstractAddImportFeatureService_Remote.cs" />
     <Compile Include="AddImport\AddImportFixData.cs" />
     <Compile Include="AddImport\AddImportFixKind.cs" />
     <Compile Include="AddImport\AddImportOptions.cs" />
@@ -108,6 +109,8 @@
     <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\ProjectSymbolReferenceCodeAction.cs" />
     <Compile Include="AddImport\IAddImportFeatureService.cs" />
+    <Compile Include="AddImport\Remote\SerializableAddImportFixData.cs" />
+    <Compile Include="AddImport\Remote\IRemoteAddImportFeatureService.cs" />
     <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
