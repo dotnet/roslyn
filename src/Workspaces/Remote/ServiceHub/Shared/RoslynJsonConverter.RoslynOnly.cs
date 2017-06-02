@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
@@ -12,13 +13,14 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder)
         {
-            builder.Add(typeof(TodoCommentDescriptor), new TodoCommentDescriptorJsonConverter());
-            builder.Add(typeof(TodoComment), new TodoCommentJsonConverter());
+            Add(builder, new TodoCommentDescriptorJsonConverter());
+            Add(builder, new TodoCommentJsonConverter());
+            Add(builder, new PackageSourceJsonConverter());
         }
 
         private class TodoCommentDescriptorJsonConverter : BaseJsonConverter<TodoCommentDescriptor>
         {
-            protected override TodoCommentDescriptor ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TodoCommentDescriptor ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -48,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
         private class TodoCommentJsonConverter : BaseJsonConverter<TodoComment>
         {
-            protected override TodoComment ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TodoComment ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -75,6 +77,35 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName("position");
                 writer.WriteValue(todoComment.Position);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class PackageSourceJsonConverter : BaseJsonConverter<PackageSource>
+        {
+            protected override PackageSource ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                var name = ReadProperty<string>(reader);
+                var source = ReadProperty<string>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new PackageSource(name, source);
+            }
+
+            protected override void WriteValue(JsonWriter writer, PackageSource source, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("name");
+                writer.WriteValue(source.Name);
+
+                writer.WritePropertyName("source");
+                writer.WriteValue(source.Source);
 
                 writer.WriteEndObject();
             }
