@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 _versionOpt = versionOpt;
             }
 
-            public override async Task<AddImportFixData> GetFixDataAsync(
+            public override async Task<AddImportFixData> TryGetFixDataAsync(
                 Document document, SyntaxNode node, bool placeSystemNamespaceFirst, CancellationToken cancellationToken)
             {
                 var textChanges = await GetTextChangesAsync(

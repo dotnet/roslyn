@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                             {
                                 cancellationToken.ThrowIfCancellationRequested();
 
-                                var fixData = await reference.GetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
+                                var fixData = await reference.TryGetFixDataAsync(document, node, placeSystemNamespaceFirst, cancellationToken).ConfigureAwait(false);
                                 var codeAction = TryCreateCodeAction(document, fixData);
 
                                 result.AddIfNotNull(codeAction);
@@ -123,9 +123,13 @@ namespace Microsoft.CodeAnalysis.AddImport
             return result.ToImmutableAndFree();
         }
 
-        private CodeAction TryCreateCodeAction(
-            Document document, AddImportFixData fixData)
+        private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData)
         {
+            if (fixData == null)
+            {
+                return null;
+            }
+
             switch (fixData.Kind)
             {
                 case AddImportFixKind.ProjectSymbol:
