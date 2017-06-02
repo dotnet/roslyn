@@ -911,6 +911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
 #if !DEBUG
+            // Don't optimize in DEBUG for better coverage for the GetInterfaceLocation function. 
             if (useSiteDiagnostics != null)
 #endif
             {
@@ -953,8 +954,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)conflict1 != null)
             {
-                Debug.Assert(((object)implicitImpl == null));
-                Debug.Assert(((object)conflict1 != null));
+                Debug.Assert((object)implicitImpl == null);
+                Debug.Assert((object)conflict2 != null);
                 diagnostics.Add(ErrorCode.ERR_MostSpecificImplementationIsNotFound, GetInterfaceLocation(interfaceMember, implementingType),
                                 interfaceMember, conflict1, conflict2);
             }
