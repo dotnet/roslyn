@@ -9,10 +9,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         {
             private const string AttributeSuffix = nameof(Attribute);
 
-            private readonly Diagnostic _diagnostic;
+            private readonly string _diagnosticId;
             private readonly Document _document;
             private readonly SemanticModel _semanticModel;
 
@@ -31,18 +33,24 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private readonly AbstractAddImportCodeFixProvider<TSimpleNameSyntax> _owner;
 
             private readonly SyntaxNode _node;
+            private readonly ISymbolSearchService _symbolSearchService;
+            private readonly ImmutableArray<PackageSource> _packageSources;
 
             public SymbolReferenceFinder(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> owner,
                 Document document, SemanticModel semanticModel,
-                Diagnostic diagnostic, SyntaxNode node,
+                string diagnosticId, SyntaxNode node,
+                ISymbolSearchService symbolSearchService,
+                ImmutableArray<PackageSource> packageSources,
                 CancellationToken cancellationToken)
             {
                 _owner = owner;
                 _document = document;
                 _semanticModel = semanticModel;
-                _diagnostic = diagnostic;
+                _diagnosticId = diagnosticId;
                 _node = node;
+                _symbolSearchService = symbolSearchService;
+                _packageSources = packageSources;
 
                 _containingType = semanticModel.GetEnclosingNamedType(node.SpanStart, cancellationToken);
                 _containingTypeOrAssembly = _containingType ?? (ISymbol)semanticModel.Compilation.Assembly;
@@ -155,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingTypesAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForType(_diagnostic, _node, out var nameNode))
+                if (!_owner.CanAddImportForType(_diagnosticId, _node, out var nameNode))
                 {
                     return ImmutableArray<SymbolReference>.Empty;
                 }
@@ -223,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (_owner.CanAddImportForNamespace(_diagnostic, _node, out var nameNode))
+                if (_owner.CanAddImportForNamespace(_diagnosticId, _node, out var nameNode))
                 {
                     _syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out var name, out var arity);
 
@@ -250,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
+                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
                         // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
@@ -310,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForMatchingExtensionMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode) &&
+                if (_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode) &&
                     nameNode != null)
                 {
                     searchScope.CancellationToken.ThrowIfCancellationRequested();
@@ -368,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             private async Task<ImmutableArray<SymbolReference>> GetReferencesForCollectionInitializerMethodsAsync(SearchScope searchScope)
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
-                if (!_owner.CanAddImportForMethod(_diagnostic, _syntaxFacts, _node, out var nameNode))
+                if (!_owner.CanAddImportForMethod(_diagnosticId, _syntaxFacts, _node, out var nameNode))
                 {
                     return ImmutableArray<SymbolReference>.Empty;
                 }
@@ -403,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                if (_owner.CanAddImportForQuery(_diagnostic, _node))
+                if (_owner.CanAddImportForQuery(_diagnosticId, _node))
                 {
                     var type = _owner.GetQueryClauseInfo(_semanticModel, _node, searchScope.CancellationToken);
                     if (type != null)
@@ -426,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 searchScope.CancellationToken.ThrowIfCancellationRequested();
 
-                if (_owner.CanAddImportForDeconstruct(_diagnostic, _node))
+                if (_owner.CanAddImportForDeconstruct(_diagnosticId, _node))
                 {
                     var type = _owner.GetDeconstructInfo(_semanticModel, _node, searchScope.CancellationToken);
                     if (type != null)

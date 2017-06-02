@@ -27,7 +27,7 @@
     <MicrosoftCodeAnalysisCSharpWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisCSharpWorkspacesVersion>
     <MicrosoftCodeAnalysisEditorFeaturesTextVersion>1.0.1</MicrosoftCodeAnalysisEditorFeaturesTextVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6</MicrosoftCodeAnalysisElfieVersion>
-    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.0-pre-20160714</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
+    <MicrosoftCodeAnalysisTestResourcesProprietaryVersion>2.0.0-pre-20170517</MicrosoftCodeAnalysisTestResourcesProprietaryVersion>
     <MicrosoftCodeAnalysisVisualBasicVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicVersion>
     <MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>1.0.1</MicrosoftCodeAnalysisVisualBasicWorkspacesVersion>
     <MicrosoftCodeAnalysisWorkspacesCommonVersion>1.0.1</MicrosoftCodeAnalysisWorkspacesCommonVersion>
@@ -38,8 +38,8 @@
     <MicrosoftDiaSymReaderVersion>1.1.0</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderConverterXmlVersion>1.0.0-beta1-61708-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.6.0-beta2-25304</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.3.0-beta1-61619-01</MicrosoftDiaSymReaderPortablePdbVersion>
-    <MicrosoftDotNetIBCMerge>4.7.1-alpha-00001</MicrosoftDotNetIBCMerge>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.3.0</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
     <MicrosoftIdentityModelClientsActiveDirectoryVersion>3.13.8</MicrosoftIdentityModelClientsActiveDirectoryVersion>
     <MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>15.0.26507-alpha</MicrosoftInternalPerformanceCodeMarkersDesignTimeVersion>
     <MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>14.3.25407-alpha</MicrosoftInternalVisualStudioShellInterop140DesignTimeVersion>
@@ -162,7 +162,7 @@
     <SystemIdentityModelTokensJwtVersion>5.0.0</SystemIdentityModelTokensJwtVersion>
     <SystemIOVersion>4.3.0</SystemIOVersion>
     <SystemIOCompressionVersion>4.3.0</SystemIOCompressionVersion>
-    <SystemIOCompressionZipFileVersion>4.0.1</SystemIOCompressionZipFileVersion>
+    <SystemIOCompressionZipFileVersion>4.3.0</SystemIOCompressionZipFileVersion>
     <SystemIOFileSystemVersion>4.3.0</SystemIOFileSystemVersion>
     <SystemIOFileSystemDriveInfoVersion>4.3.0</SystemIOFileSystemDriveInfoVersion>
     <SystemIOFileSystemPrimitivesVersion>4.3.0</SystemIOFileSystemPrimitivesVersion>

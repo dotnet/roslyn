@@ -10,7 +10,6 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -100,6 +99,12 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\AddImportFixData.cs" />
+    <Compile Include="AddImport\AddImportFixKind.cs" />
+    <Compile Include="AddImport\CodeActions\AddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\ProjectSymbolReferenceCodeAction.cs" />
     <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
@@ -118,8 +123,8 @@
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\InstallPackageAndAddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
@@ -184,7 +189,7 @@
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\ParentInstallPackageCodeAction.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="RQName\Nodes\ResolvedRQNode.cs" />
     <Compile Include="RQName\Nodes\RQArrayOrPointerType.cs" />

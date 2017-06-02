@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return new MetadataSymbolReference(
                     provider,
                     searchResult.WithSymbol<INamespaceOrTypeSymbol>(searchResult.Symbol),
+                    _assemblyProjectId,
                     _metadataReference);
             }
 
