@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                 : null;
 
             var packageSources = symbolSearchService != null && searchNuGetPackages
-                ? GetPackageInstallerService(document).PackageSources
+                ? GetPackageSources(document)
                 : ImmutableArray<PackageSource>.Empty;
 
             // We might have multiple different diagnostics covering the same span.  Have to
@@ -91,6 +91,9 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         private IPackageInstallerService GetPackageInstallerService(Document document)
             => _packageInstallerService ?? document.Project.Solution.Workspace.Services.GetService<IPackageInstallerService>();
+
+        private ImmutableArray<PackageSource> GetPackageSources(Document document)
+            => GetPackageInstallerService(document)?.PackageSources ?? ImmutableArray<PackageSource>.Empty;
 
         private CodeAction TryCreateCodeAction(Document document, AddImportFixData fixData)
         {
