@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class ScriptSemanticsTests : CSharpTestBase
     {
-        private static CompilationReference TaskFacadeAssembly()
+        private static CompilationReference TaskFacadeAssembly(bool includeNamespaceAroundTaskExtension = true)
         {
             var corAssembly = @"
 namespace System.Runtime.CompilerServices {
@@ -61,13 +61,24 @@ namespace System.Threading.Tasks {
     }
     public class Task<T> {}
 }
-namespace Hidden {
-public static class MyExtensions {
-    public static System.Threading.Tasks.Awaiter<T> GetAwaiter<T>(this System.Threading.Tasks.Task<T> task) {
-        return null;
+";
+            var extensionSource = @"
+    public static class MyExtensions {
+        public static System.Threading.Tasks.Awaiter<T> GetAwaiter<T>(this System.Threading.Tasks.Task<T> task) {
+            return null;
+        }
     }
-}
-}";
+";
+
+            if (includeNamespaceAroundTaskExtension)
+            {
+                corAssembly = corAssembly + $"\nnamespace Hidden {{\n{extensionSource}\n }}";
+            }
+            else
+            {
+                corAssembly = corAssembly + "\n" + extensionSource;
+            }
+
 
             var corCompilation = CreateCompilation(corAssembly, references: new[] { MscorlibRef_v20 });
             corCompilation.VerifyDiagnostics();
@@ -88,6 +99,21 @@ public static class MyExtensions {
             script.VerifyEmitDiagnostics(
                 // error CS1061: 'Task<object>' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type 'Task<object>' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "").WithArguments("System.Threading.Tasks.Task<object>", "GetAwaiter").WithLocation(1, 1));
+
+        }
+
+        [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
+        [Fact]
+        public void NonStandardTaskImplementation_NoGlobalUsing_NoScriptUsing_NoNamespace()
+        {
+
+            var script = CreateCompilation(
+                source: @" System.Console.Write(""complete"");",
+                parseOptions: TestOptions.Script,
+                options: TestOptions.DebugExe,
+                references: new MetadataReference[] { TaskFacadeAssembly(false), MscorlibRef_v20 });
+
+            script.VerifyEmitDiagnostics();
 
         }
 

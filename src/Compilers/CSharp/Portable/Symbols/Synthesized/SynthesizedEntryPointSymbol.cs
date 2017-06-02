@@ -433,6 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     container: null,
                     next: new BuckStopsHereBinder(compilation),
                     imports: compilation.GlobalImports);
+                binder = new InContainerBinder(compilation.GlobalNamespace, binder);
 
                 var ctor = _containingType.GetScriptConstructor();
                 Debug.Assert(ctor.ParameterCount == 0);
