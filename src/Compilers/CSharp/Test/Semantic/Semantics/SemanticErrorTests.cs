@@ -1055,19 +1055,27 @@ namespace X
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
                 // (9,17): error CS0023: Operator '!' cannot be applied to operand of type 'object'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!q").WithArguments("!", "object"),
-                // (12,26): error CS0023: Operator '-' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-null").WithArguments("-", "<null>"),
-                // (13,19): error CS0023: Operator '!' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!null").WithArguments("!", "<null>"),
-                // (14,19): error CS0023: Operator '~' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "~null").WithArguments("~", "<null>"),
+                //             if (!q) // CS0023
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!q").WithArguments("!", "object").WithLocation(9, 17),
+                // (12,26): error CS8310: Operator '-' cannot be applied to operand '<null>'
+                //             object obj = -null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(12, 26),
+                // (13,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
+                //             obj = !null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(13, 19),
+                // (14,19): error CS8310: Operator '~' cannot be applied to operand '<null>'
+                //             obj = ~null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(14, 19),
                 // (16,13): error CS0023: Operator '++' cannot be applied to operand of type 'object'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "obj++").WithArguments("++", "object"),
+                //             obj++; // CS0023
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "obj++").WithArguments("++", "object").WithLocation(16, 13),
                 // (17,13): error CS0023: Operator '--' cannot be applied to operand of type 'object'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "--obj").WithArguments("--", "object"),
-                // (18,20): error CS0023: Operator '+' cannot be applied to operand of type '<null>'
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+null").WithArguments("+", "<null>"));
+                //             --obj; // CS0023
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "--obj").WithArguments("--", "object").WithLocation(17, 13),
+                // (18,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
+                //             return +null; // CS0023
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(18, 20)
+                );
         }
 
         [WorkItem(539590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
@@ -1092,18 +1100,19 @@ public class Test
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (6,19): error CS0023: Operator '!' cannot be applied to operand of type '<null>'
+                // (6,19): error CS8310: Operator '!' cannot be applied to operand '<null>'
                 //         bool? b = !null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "!null").WithArguments("!", "<null>"),
-                // (7,18): error CS0023: Operator '~' cannot be applied to operand of type '<null>'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "!null").WithArguments("!", "<null>").WithLocation(6, 19),
+                // (7,18): error CS8310: Operator '~' cannot be applied to operand '<null>'
                 //         int? n = ~null;    // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "~null").WithArguments("~", "<null>"),
-                // (8,20): error CS0023: Operator '+' cannot be applied to operand of type '<null>'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "~null").WithArguments("~", "<null>").WithLocation(7, 18),
+                // (8,20): error CS8310: Operator '+' cannot be applied to operand '<null>'
                 //         float? f = +null;  // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "+null").WithArguments("+", "<null>"),
-                // (9,19): error CS0023: Operator '-' cannot be applied to operand of type '<null>'
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "+null").WithArguments("+", "<null>").WithLocation(8, 20),
+                // (9,19): error CS8310: Operator '-' cannot be applied to operand '<null>'
                 //         long? u = -null;   // CS0023
-                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-null").WithArguments("-", "<null>"));
+                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "-null").WithArguments("-", "<null>").WithLocation(9, 19)
+                );
         }
 
         [WorkItem(539590, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539590")]
