@@ -903,41 +903,50 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slot >= this.State.Assigned.Capacity) Normalize(ref this.State);
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
-                        ReportUnassigned(symbol, node);
+                        ReportUnassignedIfOutsideLocalFunction(slot, node);
                     }
                 }
             }
         }
 
-        /// <param name="symbol">Symbol to variable that is unassigned.</param>
-        /// <param name="node">Syntax where read occurs.</param>
-        /// <param name="slotOpt">Optional slot where variable is located.</param>
-        /// <param name="skipIfUseBeforeDeclaration">
-        /// True if error reporting should consider the location where the
-        /// variable is declared (for instance, eliding errors about reading
-        /// variables that have not yet been declared).
-        /// </param>
-        private void ReportUnassigned(Symbol symbol, SyntaxNode node, int? slotOpt, bool skipIfUseBeforeDeclaration = true)
+        private void ReportUnassignedIfOutsideLocalFunction(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration = true)
         {
-            int slot = slotOpt ?? VariableSlot(symbol);
-            if (slot <= 0) return;
-
-            // If this is a constant, constants are always definitely assigned
-            // so we should skip reporting. This can happen in a local function
-            // where we use a constant before we actually visit its definition
-            // (since local function declarations are visited before other statements).
-            if (symbol.Kind == SymbolKind.Local && ((LocalSymbol)symbol).IsConst)
-            {
-                return;
-            }
+            var symbol = variableBySlot[slot].Symbol;
 
             // If the symbol is captured by the nearest
             // local function, record the read and skip the diagnostic
-            if (IsCapturedInLocalFunction(slot))
+            if ((object)GetNearestLocalFunctionOpt(currentMethodOrLambda) != null)
             {
-                RecordReadInLocalFunction(slot);
-                return;
+                // If this is a constant, constants are always definitely assigned
+                // so we should skip reporting. This can happen in a local function
+                // where we use a constant before we actually visit its definition
+                // (since local function declarations are visited before other statements).
+                if (symbol is LocalSymbol local && local.IsConst)
+                {
+                    return;
+                }
+                else if (IsCapturedInLocalFunction(slot))
+                {
+                    RecordReadInLocalFunction(slot);
+                    return;
+                }
             }
+
+            ReportUnassigned(slot, node, skipIfUseBeforeDeclaration);
+        }
+
+        /// <summary>
+        /// Report a given variable as not definitely assigned.  Once a variable has been so
+        /// reported, we suppress further reports of that variable.
+        /// </summary>
+        protected virtual void ReportUnassigned(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration = true)
+            => ReportUnassignedHelper(slot, node, skipIfUseBeforeDeclaration: skipIfUseBeforeDeclaration);
+
+        private void ReportUnassignedHelper(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration = true)
+        {
+            if (slot <= 0) return;
+
+            var symbol = variableBySlot[slot].Symbol;
 
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
             if (skipIfUseBeforeDeclaration &&
@@ -992,20 +1001,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             _alreadyReported[slot] = true;
         }
 
-        /// <summary>
-        /// Report a given variable as not definitely assigned.  Once a variable has been so
-        /// reported, we suppress further reports of that variable.
-        /// </summary>
-        protected virtual void ReportUnassigned(Symbol symbol,
-                                                SyntaxNode node) =>
-            ReportUnassigned(symbol, node, slotOpt: null);
-
         protected virtual void CheckAssigned(BoundExpression expr, FieldSymbol fieldSymbol, SyntaxNode node)
         {
-            int unassignedSlot;
-            if (this.State.Reachable && !IsAssigned(expr, out unassignedSlot))
+            if (this.State.Reachable && !IsAssigned(expr, out int unassignedSlot))
             {
-                ReportUnassigned(fieldSymbol, unassignedSlot, node);
+                ReportUnassignedIfOutsideLocalFunction(unassignedSlot, node);
             }
 
             NoteRead(expr);
@@ -1102,13 +1102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(unassignedSlot > 0);
             return this.State.IsAssigned(unassignedSlot);
         }
-
-        /// <summary>
-        /// Report a given variable as not definitely assigned.  Once a variable has been so
-        /// reported, we suppress further reports of that variable.
-        /// </summary>
-        protected virtual void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node) =>
-            ReportUnassigned(fieldSymbol, node, slotOpt: unassignedSlot);
 
         protected Symbol GetNonFieldSymbol(int slot)
         {
@@ -2168,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int unassignedSlot;
                         if (this.State.Reachable && !IsAssigned(node, out unassignedSlot))
                         {
-                            ReportUnassigned(backingField, unassignedSlot, node.Syntax);
+                            ReportUnassignedIfOutsideLocalFunction(unassignedSlot, node.Syntax);
                         }
                     }
                 }

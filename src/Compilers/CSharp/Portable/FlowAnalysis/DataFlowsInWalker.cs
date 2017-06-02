@@ -91,15 +91,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
+        protected override void ReportUnassigned(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration = true)
         {
             // TODO: how to handle fields of structs?
-            if (RegionContains(node.Span) && !(symbol is FieldSymbol))
+            var symbol = variableBySlot[slot].Symbol;
+            if (symbol.Kind == SymbolKind.Field)
+            {
+                symbol = GetNonFieldSymbol(slot);
+            }
+
+            if (RegionContains(node.Span))
             {
                 _dataFlowsIn.Add(symbol);
             }
 
-            base.ReportUnassigned(symbol, node);
+            base.ReportUnassigned(slot, node);
         }
 
         protected override void ReportUnassignedOutParameter(
@@ -113,18 +119,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             base.ReportUnassignedOutParameter(parameter, node, location);
-        }
-
-        protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, SyntaxNode node)
-        {
-            if (RegionContains(node.Span))
-            {
-                //  if the field access is reported as unassigned it should mean the original local 
-                //  or parameter flows in, so we should get the symbol associated with the expression
-                _dataFlowsIn.Add(GetNonFieldSymbol(unassignedSlot));
-            }
-
-            base.ReportUnassigned(fieldSymbol, unassignedSlot, node);
         }
     }
 }
