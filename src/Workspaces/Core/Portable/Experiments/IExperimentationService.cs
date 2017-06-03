@@ -19,6 +19,6 @@ namespace Microsoft.CodeAnalysis.Experiments
 
     internal static class WellKnownExperimentNames
     {
-        public const string OutOfProcessAllowed = nameof(OutOfProcessAllowed);
+        public const string RoslynFeatureOOP = nameof(RoslynFeatureOOP);
     }
 }

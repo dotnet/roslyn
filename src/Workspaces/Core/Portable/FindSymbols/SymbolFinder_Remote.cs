@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution, object serverCallback, CancellationToken cancellationToken)
         {
             return solution.TryCreateCodeAnalysisServiceSessionAsync(
-                SymbolFinderOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed, serverCallback, cancellationToken);
+                SymbolFinderOptions.OutOfProcessAllowed, WellKnownExperimentNames.RoslynFeatureOOP, serverCallback, cancellationToken);
         }
     }
 }

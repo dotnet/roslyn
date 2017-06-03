@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private static Task<RemoteHostClient.Session> GetRemoteHostSessionAsync(Project project, CancellationToken cancellationToken)
         {
             return project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
-                NavigateToOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed, cancellationToken);
+                NavigateToOptions.OutOfProcessAllowed, WellKnownExperimentNames.RoslynFeatureOOP, cancellationToken);
         }
     }
 }
