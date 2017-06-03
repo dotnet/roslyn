@@ -124,11 +124,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<PackageWithTypeResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<SerializablePackageWithTypeResult[]>(
+                var results = await session.InvokeAsync<PackageWithTypeResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     source, name, arity).ConfigureAwait(false);
 
-                return results.Select(r => r.Rehydrate()).ToImmutableArray();
+                return results.ToImmutableArray();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
@@ -141,11 +141,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<PackageWithAssemblyResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<SerializablePackageWithAssemblyResult[]>(
+                var results = await session.InvokeAsync<PackageWithAssemblyResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     source, assemblyName).ConfigureAwait(false);
 
-                return results.Select(r => r.Rehydrate()).ToImmutableArray();
+                return results.ToImmutableArray();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
@@ -158,11 +158,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
                 }
 
-                var results = await session.InvokeAsync<SerializableReferenceAssemblyWithTypeResult[]>(
+                var results = await session.InvokeAsync<ReferenceAssemblyWithTypeResult[]>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     name, arity).ConfigureAwait(false);
 
-                return results.Select(r => r.Rehydrate()).ToImmutableArray();
+                return results.ToImmutableArray();
             }
 
             public async Task UpdateContinuouslyAsync(

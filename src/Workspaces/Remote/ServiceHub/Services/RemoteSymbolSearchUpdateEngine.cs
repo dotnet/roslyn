@@ -26,27 +26,27 @@ namespace Microsoft.CodeAnalysis.Remote
             return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
         }
 
-        public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity)
+        public async Task<PackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
                 source, name, arity).ConfigureAwait(false);
-            var serializedResults = results.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
+            var serializedResults = results.ToArray();
             return serializedResults;
         }
 
-        public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string assemblyName)
+        public async Task<PackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string assemblyName)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
                 source, assemblyName).ConfigureAwait(false);
-            var serializedResults = results.Select(SerializablePackageWithAssemblyResult.Dehydrate).ToArray();
+            var serializedResults = results.ToArray();
             return serializedResults;
         }
 
-        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity)
+        public async Task<ReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
                 name, arity).ConfigureAwait(false);
-            var serializedResults = results.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
+            var serializedResults = results.ToArray();
             return serializedResults;
         }
 

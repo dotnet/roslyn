@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
     internal struct SerializableDocumentHighlights
     {
         public DocumentId DocumentId;
-        public SerializableHighlightSpan[] HighlightSpans;
+        public HighlightSpan[] HighlightSpans;
 
         public static ImmutableArray<DocumentHighlights> Rehydrate(SerializableDocumentHighlights[] array, Solution solution)
         {
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private DocumentHighlights Rehydrate(Solution solution)
-            => new DocumentHighlights(solution.GetDocument(DocumentId), SerializableHighlightSpan.Rehydrate(HighlightSpans));
+            => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans.ToImmutableArray());
 
         public static SerializableDocumentHighlights[] Dehydrate(ImmutableArray<DocumentHighlights> array)
         {
@@ -48,47 +48,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             => new SerializableDocumentHighlights
             {
                 DocumentId = highlights.Document.Id,
-                HighlightSpans = SerializableHighlightSpan.Dehydrate(highlights.HighlightSpans)
+                HighlightSpans = highlights.HighlightSpans.ToArray()
             };
-    }
-
-    internal struct SerializableHighlightSpan
-    {
-        public TextSpan TextSpan;
-        public HighlightSpanKind Kind;
-
-        internal static SerializableHighlightSpan[] Dehydrate(ImmutableArray<HighlightSpan> array)
-        {
-            var result = new SerializableHighlightSpan[array.Length];
-            var index = 0;
-            foreach (var span in array)
-            {
-                result[index] = Dehydrate(span);
-                index++;
-            }
-
-            return result;
-        }
-
-        private static SerializableHighlightSpan Dehydrate(HighlightSpan span)
-            => new SerializableHighlightSpan
-            {
-                Kind = span.Kind,
-                TextSpan = span.TextSpan
-            };
-
-        internal static ImmutableArray<HighlightSpan> Rehydrate(SerializableHighlightSpan[] array)
-        {
-            var result = ArrayBuilder<HighlightSpan>.GetInstance(array.Length);
-            foreach (var dehydrated in array)
-            {
-                result.Push(dehydrated.Rehydrate());
-            }
-
-            return result.ToImmutableAndFree();
-        }
-
-        private HighlightSpan Rehydrate()
-            => new HighlightSpan(TextSpan, Kind);
     }
 }

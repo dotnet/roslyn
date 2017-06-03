@@ -8,27 +8,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal class SerializableTaggedText
-    {
-        public string Tag;
-        public string Text;
-
-        public static SerializableTaggedText Dehydrate(TaggedText taggedText)
-        {
-            return new SerializableTaggedText { Tag = taggedText.Tag, Text = taggedText.Text };
-        }
-
-        internal static SerializableTaggedText[] Dehydrate(ImmutableArray<TaggedText> displayTaggedParts)
-        {
-            return displayTaggedParts.Select(Dehydrate).ToArray();
-        }
-
-        public TaggedText Rehydrate()
-        {
-            return new TaggedText(Tag, Text);
-        }
-    }
-
     #region NavigateTo
 
     internal class SerializableNavigateToSearchResult
@@ -104,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public Glyph Glyph;
 
-        public SerializableTaggedText[] DisplayTaggedParts;
+        public TaggedText[] DisplayTaggedParts;
 
         public bool DisplayFileLocation;
 
@@ -120,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return new SerializableNavigableItem
             {
                 Glyph = item.Glyph,
-                DisplayTaggedParts = SerializableTaggedText.Dehydrate(item.DisplayTaggedParts),
+                DisplayTaggedParts = item.DisplayTaggedParts.ToArray(),
                 DisplayFileLocation = item.DisplayFileLocation,
                 IsImplicitlyDeclared = item.IsImplicitlyDeclared,
                 Document = item.Document.Id,
@@ -140,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 ? ImmutableArray<INavigableItem>.Empty
                 : ChildItems.Select(c => c.Rehydrate(solution)).ToImmutableArray();
             return new NavigableItem(
-                Glyph, DisplayTaggedParts.Select(p => p.Rehydrate()).ToImmutableArray(),
+                Glyph, DisplayTaggedParts.ToImmutableArray(),
                 DisplayFileLocation, IsImplicitlyDeclared,
                 solution.GetDocument(Document),
                 SourceSpan,

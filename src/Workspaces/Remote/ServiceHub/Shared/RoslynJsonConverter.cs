@@ -111,10 +111,10 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 writer.WriteStartObject();
 
-                writer.WritePropertyName("start");
+                writer.WritePropertyName(nameof(TextSpan.Start));
                 writer.WriteValue(span.Start);
 
-                writer.WritePropertyName("length");
+                writer.WritePropertyName(nameof(TextSpan.Length));
                 writer.WriteValue(span.Length);
 
                 writer.WriteEndObject();
@@ -144,13 +144,13 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WriteStartObject();
 
-                writer.WritePropertyName("start");
+                writer.WritePropertyName(nameof(TextSpan.Start));
                 writer.WriteValue(span.Start);
 
-                writer.WritePropertyName("length");
+                writer.WritePropertyName(nameof(TextSpan.Length));
                 writer.WriteValue(span.Length);
 
-                writer.WritePropertyName("newText");
+                writer.WritePropertyName(nameof(TextChange.NewText));
                 writer.WriteValue(change.NewText);
 
                 writer.WriteEndObject();
