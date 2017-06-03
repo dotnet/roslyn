@@ -15,23 +15,21 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentInRemoteProcessAsync(
             RemoteHostClient.Session session, Document document, string searchPattern, CancellationToken cancellationToken)
         {
-            var serializableResults = await session.InvokeAsync<SerializableNavigateToSearchResult[]>(
+            var serializableResults = await session.InvokeAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                 new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-            serializableResults = serializableResults ?? Array.Empty<SerializableNavigateToSearchResult>();
-            return serializableResults.Select(r => r.Rehydrate(document.Project.Solution)).ToImmutableArray();
+            return serializableResults.SelectAsArray(r => r.Rehydrate(document.Project.Solution));
         }
 
         private async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectInRemoteProcessAsync(
             RemoteHostClient.Session session, Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            var serializableResults = await session.InvokeAsync<SerializableNavigateToSearchResult[]>(
+            var serializableResults = await session.InvokeAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                 new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
-            serializableResults = serializableResults ?? Array.Empty<SerializableNavigateToSearchResult>();
-            return serializableResults.Select(r => r.Rehydrate(project.Solution)).ToImmutableArray();
+            return serializableResults.SelectAsArray(r => r.Rehydrate(project.Solution));
         }
 
         private static Task<RemoteHostClient.Session> GetRemoteHostSessionAsync(Project project, CancellationToken cancellationToken)

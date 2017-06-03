@@ -239,7 +239,7 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             installerServiceMock.Verify()
         End Function
 
-        Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As IReadOnlyList(Of String)) As Task(Of ImmutableArray(Of PackageWithTypeResult))
+        Private Function CreateSearchResult(packageName As String, typeName As String, nameParts As ImmutableArray(Of String)) As Task(Of ImmutableArray(Of PackageWithTypeResult))
             Return CreateSearchResult(New PackageWithTypeResult(
                 packageName:=packageName,
                 typeName:=typeName,
@@ -252,8 +252,8 @@ End Class", fixProviderData:=New ProviderData(installerServiceMock.Object, packa
             Return Task.FromResult(ImmutableArray.Create(results))
         End Function
 
-        Private Function CreateNameParts(ParamArray parts As String()) As IReadOnlyList(Of String)
-            Return parts
+        Private Function CreateNameParts(ParamArray parts As String()) As ImmutableArray(Of String)
+            Return parts.ToImmutableArray()
         End Function
     End Class
 End Namespace
