@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             CancellationToken cancellationToken)
         {
             var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
-                AddImportOptions.OutOfProcessAllowed, WellKnownExperimentNames.OutOfProcessAllowed, 
+                AddImportOptions.OutOfProcessAllowed, WellKnownExperimentNames.RoslynFeatureOOP, 
                 new RemoteSymbolSearchService(symbolSearchService, cancellationToken), cancellationToken).ConfigureAwait(false);
             using (session)
             {
