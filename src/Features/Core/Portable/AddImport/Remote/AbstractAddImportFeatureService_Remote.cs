@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             RemoteHostClient.Session session, Document document, TextSpan span, string diagnosticId,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources)
         {
-            var result = await session.InvokeAsync<SerializableAddImportFixData[]>(
+            var result = await session.InvokeAsync<ImmutableArray<AddImportFixData>>(
                 nameof(IRemoteAddImportFeatureService.GetFixesAsync),
-                new object[] { document.Id, span, diagnosticId, searchReferenceAssemblies, packageSources.ToArray() }).ConfigureAwait(false);
+                new object[] { document.Id, span, diagnosticId, searchReferenceAssemblies, packageSources }).ConfigureAwait(false);
 
-            return result.Select(d => d.Rehydrate()).ToImmutableArray();
+            return result;
         }
 
         /// <summary>
@@ -54,31 +54,31 @@ namespace Microsoft.CodeAnalysis.AddImport
                 throw new NotImplementedException();
             }
 
-            public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(
+            public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity)
             {
                 var result = await _symbolSearchService.FindPackagesWithTypeAsync(
                     source, name, arity, _cancellationToken).ConfigureAwait(false);
 
-                return result.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
+                return result;
             }
 
-            public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(
+            public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string name)
             {
                 var result = await _symbolSearchService.FindPackagesWithAssemblyAsync(
                     source, name, _cancellationToken).ConfigureAwait(false);
 
-                return result.Select(SerializablePackageWithAssemblyResult.Dehydrate).ToArray();
+                return result;
             }
 
-            public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(
+            public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {
                 var result = await _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
                     name, arity, _cancellationToken).ConfigureAwait(false);
 
-                return result.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
+                return result;
             }
         }
     }

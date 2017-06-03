@@ -131,29 +131,5 @@ namespace Microsoft.CodeAnalysis.AddImport
                 PackageVersionOpt = packageVersionOpt,
             };
         }
-
-        public SerializableAddImportFixData Dehydrate()
-        {
-            return new SerializableAddImportFixData
-            {
-                Kind = Kind,
-                TextChanges = TextChanges.ToArray(),
-                Title = Title,
-                Tags = Tags.NullToEmpty().ToArray(),
-                Priority = Priority,
-
-                ProjectReferenceToAdd = ProjectReferenceToAdd,
-
-                PortableExecutableReferenceProjectId = PortableExecutableReferenceProjectId,
-                PortableExecutableReferenceFilePathToAdd = PortableExecutableReferenceFilePathToAdd,
-
-                AssemblyReferenceAssemblyName = AssemblyReferenceAssemblyName,
-                AssemblyReferenceFullyQualifiedTypeName = AssemblyReferenceFullyQualifiedTypeName,
-
-                PackageSource = PackageSource,
-                PackageName = PackageName,
-                PackageVersionOpt = PackageVersionOpt
-            };
-        }
     }
 }
