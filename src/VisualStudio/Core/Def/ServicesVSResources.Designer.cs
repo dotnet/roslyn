@@ -198,6 +198,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analysis.
+        /// </summary>
+        internal static string Analysis {
+            get {
+                return ResourceManager.GetString("Analysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Analyzer assemblies &apos;{0}&apos; and &apos;{1}&apos; both have identity &apos;{2}&apos; but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly..
         /// </summary>
         internal static string Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly {
@@ -619,6 +628,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Enable_and_ignore_future_errors {
             get {
                 return ResourceManager.GetString("Enable_and_ignore_future_errors", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enable full solution _analysis.
+        /// </summary>
+        internal static string Enable_full_solution_analysis {
+            get {
+                return ResourceManager.GetString("Enable_full_solution_analysis", resourceCulture);
             }
         }
         
@@ -1454,6 +1472,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Path_cannot_have_empty_filename {
             get {
                 return ResourceManager.GetString("Path_cannot_have_empty_filename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perform editor feature analysis in external process.
+        /// </summary>
+        internal static string Perform_editor_feature_analysis_in_external_process {
+            get {
+                return ResourceManager.GetString("Perform_editor_feature_analysis_in_external_process", resourceCulture);
             }
         }
         

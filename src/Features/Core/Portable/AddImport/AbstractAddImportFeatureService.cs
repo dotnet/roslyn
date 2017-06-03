@@ -59,9 +59,10 @@ namespace Microsoft.CodeAnalysis.AddImport
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
         {
+            var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
             var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
-                AddImportOptions.OutOfProcessAllowed, WellKnownExperimentNames.RoslynFeatureOOP, 
-                new RemoteSymbolSearchService(symbolSearchService, cancellationToken), cancellationToken).ConfigureAwait(false);
+                RemoteFeatureOptions.AddImportEnabled, callbackTarget, cancellationToken).ConfigureAwait(false);
+
             using (session)
             {
                 if (session == null)

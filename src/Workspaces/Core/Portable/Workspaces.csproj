@@ -205,6 +205,7 @@
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="Remote\RemoteFeatureOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
@@ -456,7 +457,6 @@
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
-    <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindLiteralReferences.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />

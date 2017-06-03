@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
@@ -19,14 +20,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
             Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
         {
-            var outOfProcessAllowed = workspace.Options.GetOption(SymbolSearchOptions.OutOfProcessAllowed);
-            if (outOfProcessAllowed)
+            var client = await workspace.TryGetRemoteHostClientAsync(
+                RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (client != null)
-                {
-                    return new RemoteUpdateEngine(workspace, client, logService, cancellationToken);
-                }
+                return new RemoteUpdateEngine(workspace, client, logService, cancellationToken);
             }
 
             // Couldn't go out of proc.  Just do everything inside the current process.

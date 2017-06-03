@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -187,15 +188,11 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return;
                 }
 
-                if (project.Solution.Workspace.Kind != WorkspaceKind.Test &&
-                    project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
-                    project.Solution.Workspace.Options.GetOption(NavigateToOptions.OutOfProcessAllowed))
+                if (!RemoteFeatureOptions.ShouldComputeIndex(project.Solution.Workspace))
                 {
-                    // if GoTo feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
                     return;
                 }
-
+ 
                 // Produce the indices for the source and metadata symbols in parallel.
                 var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
                 var referencesTask = UpdateReferencesAync(project, cancellationToken);

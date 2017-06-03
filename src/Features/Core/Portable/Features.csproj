@@ -103,7 +103,6 @@
     <Compile Include="AddImport\Remote\AbstractAddImportFeatureService_Remote.cs" />
     <Compile Include="AddImport\AddImportFixData.cs" />
     <Compile Include="AddImport\AddImportFixKind.cs" />
-    <Compile Include="AddImport\AddImportOptions.cs" />
     <Compile Include="AddImport\CodeActions\AddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
@@ -142,7 +141,6 @@
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
-    <Compile Include="DocumentHighlighting\DocumentHighlightingOptions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
     <Compile Include="Experimentation\AnalyzerABTestLogger.cs" />
     <Compile Include="Experimentation\AnalyzerABTestOptions.cs" />
@@ -173,7 +171,6 @@
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService.cs" />
-    <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService_Remote.cs" />
     <Compile Include="DocumentHighlighting\IDocumentHighlightsService.cs" />
     <Compile Include="DocumentHighlighting\IRemoteDocumentHighlights.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
@@ -189,7 +186,6 @@
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
     <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
     <Compile Include="NavigateTo\INavigateToSearchService.cs" />
-    <Compile Include="NavigateTo\NavigateToOptions.cs" />
     <Compile Include="Navigation\INavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
