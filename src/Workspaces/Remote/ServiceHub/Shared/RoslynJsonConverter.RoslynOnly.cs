@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var typeName = ReadProperty<string>(reader);
                 var version = ReadProperty<string>(reader);
                 var rank = (int)ReadProperty<long>(reader);
-                var containingNamespaceNames = ReadProperty<string[]>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<ImmutableArray<string>>(serializer, reader);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 writer.WriteValue(source.Rank);
 
                 writer.WritePropertyName(nameof(PackageWithTypeResult.ContainingNamespaceNames));
-                writer.WriteValue(source.ContainingNamespaceNames.ToArray());
+                serializer.Serialize(writer, source.ContainingNamespaceNames);
 
                 writer.WriteEndObject();
             }
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var assemblyName = ReadProperty<string>(reader);
                 var typeName = ReadProperty<string>(reader);
-                var containingNamespaceNames = ReadProperty<string[]>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<ImmutableArray<string>>(serializer, reader);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 writer.WriteValue(source.TypeName);
 
                 writer.WritePropertyName(nameof(ReferenceAssemblyWithTypeResult.ContainingNamespaceNames));
-                writer.WriteValue(source.ContainingNamespaceNames.ToArray());
+                serializer.Serialize(writer, source.ContainingNamespaceNames);
 
                 writer.WriteEndObject();
             }
