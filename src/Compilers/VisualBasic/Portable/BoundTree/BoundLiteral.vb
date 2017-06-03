@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
-
+    <DebuggerDisplay("{GetDebuggerDisplay(), nq}")>
     Friend Partial Class BoundLiteral
         Public Overrides ReadOnly Property ConstantValueOpt As ConstantValue
             Get
@@ -14,6 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
 #If DEBUG Then
+        Private Function GetDebuggerDisplay() As String
+            Return Me.Value.ToString
+        End Function
         Private Sub Validate()
             ValidateConstantValue()
         End Sub

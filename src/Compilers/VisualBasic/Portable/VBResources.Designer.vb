@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     '''<summary>
     '''  A strongly-typed resource class, for looking up localized strings, etc.
     '''</summary>
-    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0"),  _
+    <Global.System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0"),  _
      Global.System.Diagnostics.DebuggerNonUserCodeAttribute(),  _
      Global.System.Runtime.CompilerServices.CompilerGeneratedAttribute(),  _
      Global.Microsoft.VisualBasic.HideModuleNameAttribute()>  _
@@ -12069,6 +12069,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_NullPropagatingOperator() As String
             Get
                 Return ResourceManager.GetString("FEATURE_NullPropagatingOperator", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to FEATURE_OptionalParameterDefault.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_OptionalParameterDefault() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_OptionalParameterDefault", resourceCulture)
             End Get
         End Property
         
