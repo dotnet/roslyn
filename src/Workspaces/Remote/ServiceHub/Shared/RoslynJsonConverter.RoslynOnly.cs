@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.AddImport;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -27,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Remote
             Add(builder, new PackageWithTypeResultJsonConverter());
             Add(builder, new PackageWithAssemblyResultJsonConverter());
             Add(builder, new ReferenceAssemblyWithTypeResultJsonConverter());
+
+            Add(builder, new AddImportFixDataJsonConverter());
         }
 
         private class TodoCommentDescriptorJsonConverter : BaseJsonConverter<TodoCommentDescriptor>
@@ -282,6 +286,98 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName(nameof(TaggedText.Text));
                 writer.WriteValue(source.Text);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class AddImportFixDataJsonConverter : BaseJsonConverter<AddImportFixData>
+        {
+            protected override AddImportFixData ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                var kind = (AddImportFixKind)ReadProperty<long>(reader);
+                var textChanges = ReadProperty<ImmutableArray<TextChange>>(serializer, reader);
+                var title = ReadProperty<string>(reader);
+                var tags = ReadProperty<ImmutableArray<string>>(serializer, reader);
+                var priority = (CodeActionPriority)ReadProperty<long>(reader);
+
+                var projectReferenceToAdd = ReadProperty<ProjectId>(serializer, reader);
+
+                var portableExecutableReferenceProjectId = ReadProperty<ProjectId>(serializer, reader);
+                var portableExecutableReferenceFilePathToAdd = ReadProperty<string>(reader);
+
+                var assemblyReferenceAssemblyName = ReadProperty<string>(reader);
+                var assemblyReferenceFullyQualifiedTypeName = ReadProperty<string>(reader);
+
+                var packageSource = ReadProperty<string>(reader);
+                var packageName = ReadProperty<string>(reader);
+                var packageVersionOpt = ReadProperty<string>(reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                switch (kind)
+                {
+                    case AddImportFixKind.ProjectSymbol:
+                        return AddImportFixData.CreateForProjectSymbol(textChanges, title, tags, priority, projectReferenceToAdd);
+
+                    case AddImportFixKind.MetadataSymbol:
+                        return AddImportFixData.CreateForMetadataSymbol(textChanges, title, tags, priority, portableExecutableReferenceProjectId, portableExecutableReferenceFilePathToAdd);
+
+                    case AddImportFixKind.PackageSymbol:
+                        return AddImportFixData.CreateForPackageSymbol(textChanges, packageSource, packageName, packageVersionOpt);
+
+                    case AddImportFixKind.ReferenceAssemblySymbol:
+                        return AddImportFixData.CreateForReferenceAssemblySymbol(textChanges, title, assemblyReferenceAssemblyName, assemblyReferenceFullyQualifiedTypeName);
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+
+            protected override void WriteValue(JsonWriter writer, AddImportFixData source, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(AddImportFixData.Kind));
+                writer.WriteValue((int)source.Kind);
+
+                writer.WritePropertyName(nameof(AddImportFixData.TextChanges));
+                serializer.Serialize(writer, source.TextChanges);
+
+                writer.WritePropertyName(nameof(AddImportFixData.Title));
+                writer.WriteValue(source.Title);
+
+                writer.WritePropertyName(nameof(AddImportFixData.Tags));
+                serializer.Serialize(writer, source.Tags.NullToEmpty());
+
+                writer.WritePropertyName(nameof(AddImportFixData.Priority));
+                writer.WriteValue((int)source.Priority);
+
+                writer.WritePropertyName(nameof(AddImportFixData.ProjectReferenceToAdd));
+                serializer.Serialize(writer, source.ProjectReferenceToAdd);
+
+                writer.WritePropertyName(nameof(AddImportFixData.PortableExecutableReferenceProjectId));
+                serializer.Serialize(writer, source.PortableExecutableReferenceProjectId);
+
+                writer.WritePropertyName(nameof(AddImportFixData.PortableExecutableReferenceFilePathToAdd));
+                writer.WriteValue(source.PortableExecutableReferenceFilePathToAdd);
+
+                writer.WritePropertyName(nameof(AddImportFixData.AssemblyReferenceAssemblyName));
+                writer.WriteValue(source.AssemblyReferenceAssemblyName);
+
+                writer.WritePropertyName(nameof(AddImportFixData.AssemblyReferenceFullyQualifiedTypeName));
+                writer.WriteValue(source.AssemblyReferenceFullyQualifiedTypeName);
+
+                writer.WritePropertyName(nameof(AddImportFixData.PackageSource));
+                writer.WriteValue(source.PackageSource);
+
+                writer.WritePropertyName(nameof(AddImportFixData.PackageName));
+                writer.WriteValue(source.PackageName);
+
+                writer.WritePropertyName(nameof(AddImportFixData.PackageVersionOpt));
+                writer.WriteValue(source.PackageVersionOpt);
 
                 writer.WriteEndObject();
             }

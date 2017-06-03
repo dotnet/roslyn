@@ -8,10 +8,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
@@ -56,6 +58,30 @@ namespace Microsoft.CodeAnalysis.AddImport
             Document document, TextSpan span, string diagnosticId, ISymbolSearchService symbolSearchService,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources,
             CancellationToken cancellationToken)
+        {
+            var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
+                AddImportOptions.OutOfProcessAllowed, WellKnownExperimentNames.RoslynFeatureOOP, 
+                new RemoteSymbolSearchService(symbolSearchService, cancellationToken), cancellationToken).ConfigureAwait(false);
+            using (session)
+            {
+                if (session == null)
+                {
+                    return await GetFixesInCurrentProcessAsync(
+                        document, span, diagnosticId, symbolSearchService,
+                        searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    return await GetFixesInRemoteProcessAsync(
+                        session, document, span, diagnosticId,
+                        searchReferenceAssemblies, packageSources).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
+            Document document, TextSpan span, string diagnosticId, ISymbolSearchService symbolSearchService,
+            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(span.Start, findInsideTrivia: true)
@@ -121,7 +147,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // things like the Interactive workspace as this will cause us to 
             // create expensive bk-trees which we won't even be able to save for 
             // future use.
-            if (!IsHostOrTestWorkspace(project))
+            if (!IsHostOrTestOrRemoteWorkspace(project))
             {
                 return ImmutableArray<Reference>.Empty;
             }
@@ -130,10 +156,11 @@ namespace Microsoft.CodeAnalysis.AddImport
             return fuzzyReferences;
         }
 
-        private static bool IsHostOrTestWorkspace(Project project)
+        private static bool IsHostOrTestOrRemoteWorkspace(Project project)
         {
             return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
-                   project.Solution.Workspace.Kind == WorkspaceKind.Test;
+                   project.Solution.Workspace.Kind == WorkspaceKind.Test ||
+                   project.Solution.Workspace.Kind == WorkspaceKind.RemoteWorkspace;
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -152,7 +179,7 @@ namespace Microsoft.CodeAnalysis.AddImport
             // things like the Interactive workspace as we can't even add project
             // references to the interactive window.  We could consider adding metadata
             // references with #r in the future.
-            if (IsHostOrTestWorkspace(project))
+            if (IsHostOrTestOrRemoteWorkspace(project))
             {
                 // Now search unreferenced projects, and see if they have any source symbols that match
                 // the search string.
