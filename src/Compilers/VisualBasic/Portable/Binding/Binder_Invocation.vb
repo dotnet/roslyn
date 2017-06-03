@@ -3070,165 +3070,144 @@ ProduceBoundNode:
 
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
-            Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
+            Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), ConstantValue.Null)
+            ' Do we have a default constant value?
             If defaultConstantValue IsNot Nothing Then
-
-                If callerInfoOpt IsNot Nothing AndAlso
-                   callerInfoOpt.SyntaxTree IsNot Nothing AndAlso
-                   Not callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree() AndAlso
-                   Not SuppressCallerInfo Then
-
-                    Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
-                    Dim isCallerMemberName As Boolean = param.IsCallerMemberName
-                    Dim isCallerFilePath As Boolean = param.IsCallerFilePath
-
-                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath Then
-                        Dim callerInfoValue As ConstantValue = Nothing
-
-                        If isCallerLineNumber Then
-                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(GetCallerLocation(callerInfoOpt)))
-                        ElseIf isCallerMemberName Then
-                            Dim container As Symbol = ContainingMember
-
-                            While container IsNot Nothing
-                                Select Case container.Kind
-                                    Case SymbolKind.Field, SymbolKind.Property, SymbolKind.Event
-                                        Exit While
-
-                                    Case SymbolKind.Method
-                                        If container.IsLambdaMethod Then
-                                            container = container.ContainingSymbol
-                                        Else
-                                            Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedSymbol
-
-                                            If propertyOrEvent IsNot Nothing Then
-                                                container = propertyOrEvent
-                                            End If
-
-                                            Exit While
-                                        End If
-
-                                    Case Else
-                                        container = container.ContainingSymbol
-                                End Select
-                            End While
-
-                            If container IsNot Nothing AndAlso container.Name IsNot Nothing Then
-                                callerInfoValue = ConstantValue.Create(container.Name)
-                            End If
-                        Else
-                            Debug.Assert(isCallerFilePath)
-                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
-                        End If
-
-                        If callerInfoValue IsNot Nothing Then
-                            ' Use the value only if it will not cause errors.
-                            Dim ignoreDiagnostics = DiagnosticBag.GetInstance()
-                            Dim literal As BoundLiteral
-
-                            If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then
-                                literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_Int32, syntax, ignoreDiagnostics))
-                            Else
-                                Debug.Assert(callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.String)
-                                literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_String, syntax, ignoreDiagnostics))
-                            End If
-
-                            Dim convertedValue As BoundExpression = ApplyImplicitConversion(syntax, param.Type, literal, ignoreDiagnostics)
-
-                            If Not convertedValue.HasErrors AndAlso Not ignoreDiagnostics.HasAnyErrors Then
-                                ' Dev11 #248795: Caller info should be omitted if user defined conversion is involved.
-                                If Not (convertedValue.Kind = BoundKind.Conversion AndAlso (DirectCast(convertedValue, BoundConversion).ConversionKind And ConversionKind.UserDefined) <> 0) Then
-                                    defaultConstantValue = callerInfoValue
-                                End If
-                            End If
-
-                            ignoreDiagnostics.Free()
-                        End If
-                    End If
-                End If
-
-                ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
-                ' is a possible outcome of running an obfuscator over a valid DLL 
-                If defaultConstantValue.IsBad Then
-                    defaultConstantValue = ConstantValue.Null
-                End If
-
-                Dim defaultSpecialType = defaultConstantValue.SpecialType
-                Dim defaultArgumentType As TypeSymbol = Nothing
-
-                ' Constant has a type.
-                Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
-
-                If param.HasOptionCompare Then
-
-                    ' If the argument has the OptionCompareAttribute
-                    ' then use the setting for Option Compare [Binary|Text]
-                    ' Other languages will use the default value specified.
-
-                    If Me.OptionCompareText Then
-                        defaultConstantValue = ConstantValue.Create(1)
-                    Else
-                        defaultConstantValue = ConstantValue.Default(SpecialType.System_Int32)
-                    End If
-
-                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = SpecialType.System_Int32 Then
-                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                    Else
-                        defaultArgumentType = GetSpecialType(SpecialType.System_Int32, syntax, diagnostics)
-                    End If
-
-                ElseIf defaultSpecialType <> SpecialType.None Then
-                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
-                        ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
-                        ' use the parameter's enum type.
-                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                    Else
-                        'Use the primitive type.
-                        defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
-                    End If
-                Else
-                    ' No type in constant.  Constant should be nothing
-                    Debug.Assert(defaultConstantValue.IsNothing)
-                End If
-
-                defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
-
+                defaultArgument = OptionalParameterWithExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
             ElseIf param.IsOptional Then
+                defaultArgument = OptionalParameterWithoutExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
+            End If
+            Return defaultArgument
+        End Function
 
-                ' Handle optional object type argument when no default value is specified.
-                ' Section 3 of §11.8.2 Applicable Methods
+        Private Function OptionalParameterWithExplicitDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As SyntaxNode, ByRef defaultConstantValue As ConstantValue) As BoundExpression
+            defaultConstantValue = CheckForCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
+            ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
+            ' is a possible outcome of running an obfuscator over a valid DLL 
+            If (defaultConstantValue Is Nothing) OrElse defaultConstantValue.IsBad Then defaultConstantValue = ConstantValue.Null
 
-                If param.Type.SpecialType = SpecialType.System_Object Then
+            Dim defaultSpecialType = defaultConstantValue.SpecialType
+            Dim defaultArgumentType As TypeSymbol = Nothing
+            ' Constant has a type.
+            Dim paramNullableUnderlyingTypeOrSelf As TypeSymbol = param.Type.GetNullableUnderlyingTypeOrSelf()
+            If param.HasOptionCompare Then
+                ' If the argument has the OptionCompareAttribute then use the setting for Option Compare [Binary|Text]
+                ' Other languages will use the default value specified.
+                defaultConstantValue = If(Me.OptionCompareText, ConstantValue.Create(1), ConstantValue.Default(SpecialType.System_Int32))
+                defaultArgumentType = EnumSpecial(syntax, diagnostics, SpecialType.System_Int32, paramNullableUnderlyingTypeOrSelf)
+            ElseIf defaultSpecialType <> SpecialType.None Then
+                defaultArgumentType = EnumSpecial(syntax, diagnostics, defaultSpecialType, paramNullableUnderlyingTypeOrSelf)
+            Else
+                ' No type in constant.  Constant should be nothing
+                Debug.Assert(defaultConstantValue.IsNothing)
+            End If
+            Return New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
+        End Function
 
-                    Dim methodSymbol As MethodSymbol = Nothing
-                    If param.IsMarshalAsObject Then
-                        ' Nothing
-                        defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
-                    ElseIf param.IsIDispatchConstant Then
-                        ' new DispatchWrapper(nothing)
-                        methodSymbol = DirectCast(GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor, syntax, diagnostics), MethodSymbol)
-                    ElseIf param.IsIUnknownConstant Then
-                        ' new UnknownWrapper(nothing)
-                        methodSymbol = DirectCast(GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor, syntax, diagnostics), MethodSymbol)
-                    Else
-                        defaultArgument = New BoundOmittedArgument(syntax, param.Type)
-                    End If
-
-                    If methodSymbol IsNot Nothing Then
-                        Dim argument = New BoundLiteral(syntax, ConstantValue.Null, param.Type)
-                        defaultArgument = New BoundObjectCreationExpression(syntax, methodSymbol,
-                                                                            ImmutableArray.Create(Of BoundExpression)(argument),
-                                                                            Nothing,
-                                                                            methodSymbol.ContainingType)
-                    End If
-
-                Else
+        Private Function OptionalParameterWithoutExplicitDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As SyntaxNode, ByRef defaultConstantValue As ConstantValue) As BoundExpression
+            Dim defaultArgument As BoundExpression = Nothing
+            If param.Type.SpecialType = SpecialType.System_Object Then
+                Dim methodSymbol As MethodSymbol = Nothing
+                If param.IsMarshalAsObject Then
+                    ' Nothing
                     defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
+                ElseIf param.IsIDispatchConstant Then
+                    ' new DispatchWrapper(nothing)
+                    methodSymbol = DirectCast(GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_DispatchWrapper__ctor, syntax, diagnostics), MethodSymbol)
+                ElseIf param.IsIUnknownConstant Then
+                    ' new UnknownWrapper(nothing)
+                    methodSymbol = DirectCast(GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_UnknownWrapper__ctor, syntax, diagnostics), MethodSymbol)
+                Else
+                    defaultArgument = New BoundOmittedArgument(syntax, param.Type)
                 End If
 
+                If methodSymbol IsNot Nothing Then
+                    Dim argument = New BoundLiteral(syntax, ConstantValue.Null, param.Type)
+                    defaultArgument = New BoundObjectCreationExpression(syntax, methodSymbol, ImmutableArray.Create(Of BoundExpression)(argument),
+                                                                        Nothing, methodSymbol.ContainingType)
+                End If
+            Else
+                defaultArgument = OptionalParameterWithExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
             End If
+            If defaultArgument Is Nothing Then defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
 
             Return defaultArgument
+        End Function
+
+        Private Function EnumSpecial(syntax As SyntaxNode, diagnostics As DiagnosticBag, defaultSpecialType As SpecialType, paramNullableUnderlyingTypeOrSelf As TypeSymbol) As TypeSymbol
+            If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
+                ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
+                ' use the parameter's enum type.
+                Return paramNullableUnderlyingTypeOrSelf
+            Else
+                'Use the primitive type.
+                Return GetSpecialType(defaultSpecialType, syntax, diagnostics)
+            End If
+        End Function
+
+        Private Function CheckForCallerInfoAttributes(param As ParameterSymbol, syntax As SyntaxNode, callerInfoOpt As SyntaxNode, defaultConstantValue As ConstantValue) As ConstantValue
+
+            If (callerInfoOpt Is Nothing) OrElse
+               (callerInfoOpt.SyntaxTree Is Nothing) OrElse
+               (callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree) OrElse
+               (SuppressCallerInfo) Then Return defaultConstantValue
+
+            Dim isCallerLineNumber = param.IsCallerLineNumber
+            Dim isCallerMemberName = param.IsCallerMemberName
+            Dim isCallerFilePath = param.IsCallerFilePath
+
+            If isCallerLineNumber Or isCallerMemberName Or isCallerFilePath Then
+
+                Dim callerInfoValue As ConstantValue = Nothing
+                If isCallerLineNumber Then
+                    callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(GetCallerLocation(callerInfoOpt)))
+                ElseIf isCallerMemberName Then
+                    Dim container As Symbol = ContainingMember
+                    While container IsNot Nothing
+                        Select Case container.Kind
+                            Case SymbolKind.Field, SymbolKind.Property, SymbolKind.Event
+                                Exit While
+                            Case SymbolKind.Method
+                                If container.IsLambdaMethod Then
+                                    container = container.ContainingSymbol
+                                Else
+                                    Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedSymbol
+                                    If propertyOrEvent IsNot Nothing Then container = propertyOrEvent
+                                    Exit While
+                                End If
+                            Case Else
+                                container = container.ContainingSymbol
+                        End Select
+                    End While
+                    If (container IsNot Nothing) AndAlso (container.Name IsNot Nothing) Then callerInfoValue = ConstantValue.Create(container.Name)
+                Else
+                    Debug.Assert(isCallerFilePath)
+                    callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
+                End If
+
+                If callerInfoValue IsNot Nothing Then
+                    ' Use the value only if it will not cause errors.
+                    Dim ignoreDiagnostics = DiagnosticBag.GetInstance()
+                    Dim literal As BoundLiteral
+                    If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then
+                        literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_Int32, syntax, ignoreDiagnostics))
+                    Else
+                        Debug.Assert(callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.String)
+                        literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_String, syntax, ignoreDiagnostics))
+                    End If
+                    Dim convertedValue As BoundExpression = ApplyImplicitConversion(syntax, param.Type, literal, ignoreDiagnostics)
+                    If Not convertedValue.HasErrors AndAlso Not ignoreDiagnostics.HasAnyErrors Then
+                        ' Dev11 #248795: Caller info should be omitted if user defined conversion is involved.
+                        If Not (convertedValue.Kind = BoundKind.Conversion AndAlso
+                                  (DirectCast(convertedValue, BoundConversion).ConversionKind And ConversionKind.UserDefined) <> 0) Then
+                            defaultConstantValue = callerInfoValue
+                        End If
+                    End If
+
+                    ignoreDiagnostics.Free()
+                End If
+            End If
+            Return defaultConstantValue
         End Function
 
         Private Shared Function GetCallerLocation(syntax As SyntaxNode) As TextSpan

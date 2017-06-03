@@ -1076,7 +1076,7 @@
     <!-- Parameter receiving the value. -->
     <Field Name="Parameter" Type="ParameterSymbol" Null="disallow"/>
     <!-- Expression representing the value. -->
-    <Field Name="Value" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Value" Type="BoundExpression" Null="allow"/>
   </Node>
 
   <!--
