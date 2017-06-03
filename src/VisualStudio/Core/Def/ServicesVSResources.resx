@@ -931,6 +931,6 @@ Additional information: {1}</value>
     <value>Enable full solution _analysis</value>
   </data>
   <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
-    <value>Perform editor _feature analysis in external process</value>
+    <value>Perform editor _feature analysis in external process (experimental)</value>
   </data>
 </root>
