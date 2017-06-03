@@ -174,7 +174,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_LeadingDigitSeparator
                 Case Feature.PrivateProtected
                     Return ERRID.FEATURE_PrivateProtected
-
                 Case Feature.OptionalParameterDefault ' PROTOTYPE: VB Language Feature
                     Return ERRID.FEATURE_OptionalParameterDefault
 
