@@ -48,12 +48,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
                 }
 
-                var result = await session.InvokeAsync<SerializableDocumentHighlights[]>(
+                var result = await session.InvokeAsync<ImmutableArray<SerializableDocumentHighlights>>(
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     document.Id,
                     position,
                     documentsToSearch.Select(d => d.Id).ToArray()).ConfigureAwait(false);
-                return (true, SerializableDocumentHighlights.Rehydrate(result, document.Project.Solution));
+                return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
             }
         }
 

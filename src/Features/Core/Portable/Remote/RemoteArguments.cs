@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Remote
         public NavigateToMatchKind MatchKind;
         public bool IsCaseSensitive;
         public string Name;
-        public TextSpan[] NameMatchSpans;
+        public ImmutableArray<TextSpan> NameMatchSpans;
         public string SecondarySort;
         public string Summary;
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 MatchKind = result.MatchKind,
                 IsCaseSensitive = result.IsCaseSensitive,
                 Name = result.Name,
-                NameMatchSpans = result.NameMatchSpans.ToArray(),
+                NameMatchSpans = result.NameMatchSpans,
                 SecondarySort = result.SecondarySort,
                 Summary = result.Summary,
                 NavigableItem = SerializableNavigableItem.Dehydrate(result.NavigableItem)

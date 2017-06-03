@@ -258,7 +258,7 @@ class C
         }
 
         private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(
-            string packageName, string typeName, IReadOnlyList<string> containingNamespaceNames)
+            string packageName, string typeName, ImmutableArray<string> containingNamespaceNames)
         {
             return CreateSearchResult(new PackageWithTypeResult(
                 packageName: packageName, typeName: typeName, version: null,
@@ -268,6 +268,6 @@ class C
         private Task<ImmutableArray<PackageWithTypeResult>> CreateSearchResult(params PackageWithTypeResult[] results)
             => Task.FromResult(ImmutableArray.Create(results));
 
-        private IReadOnlyList<string> CreateNameParts(params string[] parts) => parts;
+        private ImmutableArray<string> CreateNameParts(params string[] parts) => parts.ToImmutableArray();
     }
 }
