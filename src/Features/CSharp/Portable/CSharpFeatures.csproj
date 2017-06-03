@@ -59,6 +59,7 @@
     <Compile Include="..\..\..\Compilers\CSharp\Portable\Syntax\LambdaUtilities.cs">
       <Link>InternalUtilities\LambdaUtilities.cs</Link>
     </Compile>
+    <Compile Include="AddImport\CSharpAddImportFeatureService.cs" />
     <Compile Include="AddPackage\CSharpAddSpecificPackageCodeFixProvider.cs" />
     <Compile Include="AddParameter\CSharpAddParameterCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\CSharpRemoveUnusedVariableCodeFixProvider.cs" />

@@ -99,12 +99,14 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\AbstractAddImportFeatureService.cs" />
     <Compile Include="AddImport\AddImportFixData.cs" />
     <Compile Include="AddImport\AddImportFixKind.cs" />
     <Compile Include="AddImport\CodeActions\AddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\ProjectSymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\IAddImportFeatureService.cs" />
     <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />

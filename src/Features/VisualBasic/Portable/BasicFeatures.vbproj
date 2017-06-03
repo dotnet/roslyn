@@ -64,6 +64,7 @@
     <Compile Include="..\..\..\Compilers\VisualBasic\Portable\Syntax\LambdaUtilities.vb">
       <Link>InternalUtilities\LambdaUtilities.vb</Link>
     </Compile>
+    <Compile Include="AddImport\VisualBasicAddImportFeatureService.vb" />
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
     <Compile Include="DocumentHighlighting\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.vb" />
