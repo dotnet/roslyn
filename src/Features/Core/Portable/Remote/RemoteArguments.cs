@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public Glyph Glyph;
 
-        public TaggedText[] DisplayTaggedParts;
+        public ImmutableArray<TaggedText> DisplayTaggedParts;
 
         public bool DisplayFileLocation;
 
@@ -92,32 +91,27 @@ namespace Microsoft.CodeAnalysis.Remote
         public DocumentId Document;
         public TextSpan SourceSpan;
 
-        SerializableNavigableItem[] ChildItems;
+        ImmutableArray<SerializableNavigableItem> ChildItems;
 
         public static SerializableNavigableItem Dehydrate(INavigableItem item)
         {
             return new SerializableNavigableItem
             {
                 Glyph = item.Glyph,
-                DisplayTaggedParts = item.DisplayTaggedParts.ToArray(),
+                DisplayTaggedParts = item.DisplayTaggedParts,
                 DisplayFileLocation = item.DisplayFileLocation,
                 IsImplicitlyDeclared = item.IsImplicitlyDeclared,
                 Document = item.Document.Id,
                 SourceSpan = item.SourceSpan,
-                ChildItems = SerializableNavigableItem.Dehydrate(item.ChildItems)
+                ChildItems = item.ChildItems.SelectAsArray(Dehydrate)
             };
-        }
-
-        private static SerializableNavigableItem[] Dehydrate(ImmutableArray<INavigableItem> childItems)
-        {
-            return childItems.Select(Dehydrate).ToArray();
         }
 
         public INavigableItem Rehydrate(Solution solution)
         {
             var childItems = ChildItems == null
                 ? ImmutableArray<INavigableItem>.Empty
-                : ChildItems.Select(c => c.Rehydrate(solution)).ToImmutableArray();
+                : ChildItems.SelectAsArray(c => c.Rehydrate(solution));
             return new NavigableItem(
                 Glyph, DisplayTaggedParts.ToImmutableArray(),
                 DisplayFileLocation, IsImplicitlyDeclared,
