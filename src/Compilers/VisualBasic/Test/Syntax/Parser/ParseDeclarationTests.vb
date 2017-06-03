@@ -345,7 +345,7 @@ End Enum
     <Fact>
     Public Sub ParseInterfaceSingleLine()
         ParseAndVerify(<![CDATA[
-            Interface IVariance(Of Out T) : Function Goo() As T : End Interface
+            Interface IVariance(Of Out T) : Function Foo() As T : End Interface
         ]]>)
     End Sub
 
@@ -370,7 +370,7 @@ End Enum
     Public Sub TraverseEmptyBlocks()
         ParseAndVerify(
             "Module M1" & vbCrLf &
-            "Sub Goo" & vbCrLf &
+            "Sub Foo" & vbCrLf &
             "Try" & vbCrLf &
             "Catch" & vbCrLf &
             "Finally" & vbCrLf &
@@ -386,7 +386,7 @@ End Enum
     Public Sub ParseMustOverrideInsideModule()
         ParseAndVerify(<![CDATA[
 Module M1
-Mustoverride Sub Goo()
+Mustoverride Sub Foo()
 End Sub
 End Module
         ]]>, <errors>
@@ -411,7 +411,7 @@ End Class
         ParseAndVerify(<![CDATA[
 Public Class C1
     <Obsolete1()> 
-    goo
+    foo
 
     <Obsolete2()> 
     if true then :
@@ -461,7 +461,7 @@ End Class
     <Fact>
     Public Sub BC30001ERR_NoParseError()
         ParseAndVerify(<![CDATA[
-                Property Goo As Integer
+                Property Foo As Integer
              
                 Namespace Namespace1
                 End Namespace
@@ -473,7 +473,7 @@ End Class
     Public Sub BC30025ERR_EndProp()
         ParseAndVerify(<![CDATA[
                 Structure Struct1
-                    Default Public Property Goo(ByVal x) As Integer
+                    Default Public Property Foo(ByVal x) As Integer
                     End Function
                 End Structure
             ]]>,
@@ -684,10 +684,11 @@ Property Scen4(
 p1 as vb$anonymous1
 ) a
 ]]>,
-            Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1"),
             Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
 p1 as vb$anonymous1
-)]]>.Value))
+)]]>.Value).WithLocation(2, 15),
+        Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1").WithLocation(3, 10))
+
     End Sub
 
     <Fact>
@@ -734,7 +735,7 @@ p1 as vb$anonymous1
     Public Sub BC30603ERR_InvInsideInterface_ParseInterfaceWithSubWithEndSub()
         ParseAndVerify(<![CDATA[
             Interface i1
-              Sub goo()
+              Sub foo()
               end sub
             End Interface
 ]]>,
@@ -839,7 +840,7 @@ p1 as vb$anonymous1
     Public Sub BC30984ERR_ExpectedAssignmentOperatorInInit_AndExpectedRbrace()
         ParseAndVerify(<![CDATA[
                         Module Module1
-                         Sub Goo()
+                         Sub Foo()
                             Dim scen2b = New With {.prop = 10, .321prop = 9, .567abc = -10}
                             Dim scen3 = New With {.$123prop=1}
                          End Sub
@@ -907,7 +908,7 @@ p1 as vb$anonymous1
     Public Sub BC31140ERR_InvalidUseOfCustomModifier_ExpectedSpecifierAndInvalidEndSub()
         ParseAndVerify(<![CDATA[
                       Module Module1
-                       Custom sub goo()
+                       Custom sub foo()
                        End Sub
                       End Module
 

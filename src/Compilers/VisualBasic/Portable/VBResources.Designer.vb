@@ -12116,6 +12116,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ResourceManager.GetString("FEATURE_NullPropagatingOperator", resourceCulture)
             End Get
         End Property
+                
+        '''<summary>
+        '''  Looks up a localized string similar to Optional Parameter Default.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_OptionalParameterDefault() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_OptionalParameterDefault", resourceCulture)
+            End Get
+        End Property
         
         '''<summary>
         '''  Looks up a localized string similar to partial interfaces.
