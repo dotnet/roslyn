@@ -102,6 +102,7 @@
     <Compile Include="AddImport\AbstractAddImportFeatureService.cs" />
     <Compile Include="AddImport\AddImportFixData.cs" />
     <Compile Include="AddImport\AddImportFixKind.cs" />
+    <Compile Include="AddImport\AddImportOptions.cs" />
     <Compile Include="AddImport\CodeActions\AddImportCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
     <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
