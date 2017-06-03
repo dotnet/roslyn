@@ -66,14 +66,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             // Otherwise we check if the user is in the AB experiment enabling OOP.
 
-            // Treat experiments as always on in tests.
-            if (workspace.Kind != WorkspaceKind.Test)
+            var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
+            if (!experimentEnabled.IsExperimentEnabled(WellKnownExperimentNames.RoslynFeatureOOP))
             {
-                var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
-                if (!experimentEnabled.IsExperimentEnabled(WellKnownExperimentNames.RoslynFeatureOOP))
-                {
-                    return false;
-                }
+                return false;
             }
 
             return true;
