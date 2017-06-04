@@ -17,10 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
             nameof(RemoteFeatureOptions), nameof(OutOfProcessAllowed), defaultValue: false,
-            storageLocations: new OptionStorageLocation[] {
-                new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)),
-                new RoamingProfileStorageLocation("TextEditor.Roslyn.Features.OutOfProcessAllowed")
-            });
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
 
         // Individual feature switches.  Not exposed to the user.  Supplied as an escape hatch for
         // features if necessary.  If all features use OOP then no indices will need to be built
