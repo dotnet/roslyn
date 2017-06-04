@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case feature.IOperation
+                Case Feature.IOperation
                     Return "IOperation"
                 Case Feature.IOperation
                     Return "OptionalParameterDefault"
@@ -159,6 +159,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.InterpolatedStrings
+                    Return ERRID.FEATURE_InterpolatedStrings
 
                 Case Feature.OptionalParameterDefault
                     Return ERRID.FEATURE_OptionalParameterDefault
