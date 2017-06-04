@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     [CompilerTrait(CompilerFeature.DefaultInterfaceImplementation)]
     public class DefaultInterfaceImplementationTests : CSharpTestBase
     {
+
         [Fact]
         public void MethodImplementation_011()
         {
