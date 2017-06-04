@@ -92,6 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
 
+                ' PROTOTYPE: 
                 Case Feature.OptionalParameterDefault
                     Return LanguageVersion.VisualBasic15
 

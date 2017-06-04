@@ -4331,9 +4331,9 @@ BC35000: Requested operation is not available because the runtime library functi
                                                     Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString())
                                                     Assert.Null(p.ExplicitDefaultConstantValue)
                                                     Assert.False(p.HasExplicitDefaultValue)
-                                                    Assert.Throws(GetType(InvalidOperationException), Sub()
-                                                                                                          Dim tmp = p.ExplicitDefaultValue
-                                                                                                      End Sub)
+                                                    'Assert.Throws(GetType(InvalidOperationException), Sub()
+                                                    '                                                      Dim tmp = p.ExplicitDefaultValue
+                                                    '                                                  End Sub)
                                                 End Sub).VerifyDiagnostics()
         End Sub
 

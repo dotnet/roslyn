@@ -3100,6 +3100,7 @@ ProduceBoundNode:
                                                                         Nothing, methodSymbol.ContainingType)
                 End If
             Else
+                'PROTOTYPE: This needs to conditional on the availability of the Feature: OptionalParameterDefault.
                 defaultArgument = OptionalParameterWithExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
             End If
             If defaultArgument Is Nothing Then defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
