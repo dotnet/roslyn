@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly ImmutableArray<ISymbol> _dataFlowsIn;
 
+        private HashSet<Symbol> _dataFlowsOut = new HashSet<Symbol>();
+
+#if DEBUG
+        // we'd like to ensure that only variables get returned in DataFlowsOut that were assigned to inside the region.
+        private readonly HashSet<Symbol> _assignedInside = new HashSet<Symbol>();
+#endif
+
         private DataFlowsOutWalker(CSharpCompilation compilation, Symbol member, BoundNode node, BoundNode firstInRegion, BoundNode lastInRegion, HashSet<Symbol> unassignedVariables, ImmutableArray<ISymbol> dataFlowsIn)
             : base(compilation, member, node, firstInRegion, lastInRegion, unassignedVariables, trackUnassignments: true)
         {
@@ -45,13 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private readonly HashSet<Symbol> _dataFlowsOut = new HashSet<Symbol>();
-
-#if DEBUG
-        // we'd like to ensure that only variables get returned in DataFlowsOut that were assigned to inside the region.
-        private readonly HashSet<Symbol> _assignedInside = new HashSet<Symbol>();
-#endif
-
         private new HashSet<Symbol> Analyze(ref bool badRegion)
         {
             base.Analyze(ref badRegion, null);
@@ -73,6 +73,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             base.EnterRegion();
+        }
+
+        protected override void NoteRead(Symbol variable, ParameterSymbol rangeVariableUnderlyingParameter)
+        {
+            if (!(variable is FieldSymbol) && this.State.Reachable && !IsInside)
+            {
+                int slot = GetOrCreateSlot(variable);
+                if (slot > 0 && !this.State.IsAssigned(slot))
+                {
+                    _dataFlowsOut.Add(variable);
+                }
+            }
+
+            base.NoteRead(variable, rangeVariableUnderlyingParameter);
         }
 
         protected override void NoteWrite(Symbol variable, BoundExpression value, bool read)
@@ -230,6 +244,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitQueryClause(BoundQueryClause node)
         {
             return base.VisitQueryClause(node);
+        }
+
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            // Only need to save _dataFlowsOut. _assignedInside is only used when InInside is true, and if a local
+            // function appears in the analyzed region it will be marked as bad.
+            var oldDataFlowsOut = _dataFlowsOut;
+
+            try
+            {
+                _dataFlowsOut = new HashSet<Symbol>();
+                return base.VisitLocalFunctionStatement(node);
+            }
+            finally
+            {
+                _dataFlowsOut = oldDataFlowsOut;
+            }
         }
 
         protected override void ReportUnassigned(Symbol symbol, SyntaxNode node)
