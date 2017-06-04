@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             private async Task UpdateSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken)
             {
                 if (!project.SupportsCompilation)
-                {                    
+                {
                     // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
                     return;
                 }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 {
                     return;
                 }
- 
+
                 // Produce the indices for the source and metadata symbols in parallel.
                 var projectTask = UpdateSourceSymbolTreeInfoAsync(project, cancellationToken);
                 var referencesTask = UpdateReferencesAync(project, cancellationToken);
