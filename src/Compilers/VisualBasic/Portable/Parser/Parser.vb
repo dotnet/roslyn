@@ -4550,7 +4550,7 @@ checkNullable:
                     Dim paramSpecifiers As ParameterSpecifiers = 0
                     Dim modifiers = ParseParameterSpecifiers(paramSpecifiers)
                     Dim param = ParseParameter(attributes, modifiers)
-                    If CheckFeatureAvailability(Feature.OptionalParameterDefault) Then
+                    If Feature.OptionalParameterDefault.IsAvailable(Options) Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
                     Else
                         ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
@@ -4731,7 +4731,7 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-                If CheckFeatureAvailability(Feature.OptionalParameterDefault) = False Then
+                If Feature.OptionalParameterDefault.IsAvailable(Options) = False Then
                     equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
                     value = ParseExpressionCore()
                 End If

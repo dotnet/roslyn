@@ -5,6 +5,7 @@ Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureUtils
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -3099,7 +3100,7 @@ ProduceBoundNode:
                     defaultArgument = New BoundObjectCreationExpression(syntax, methodSymbol, ImmutableArray.Create(Of BoundExpression)(argument),
                                                                         Nothing, methodSymbol.ContainingType)
                 End If
-            Else
+            ElseIf InternalSyntax.Feature.OptionalParameterDefault.IsAvailable(CType(syntax.SyntaxTree.Options, VisualBasicParseOptions)) Then
                 'PROTOTYPE: This needs to conditional on the availability of the Feature: OptionalParameterDefault.
                 defaultArgument = OptionalParameterWithExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
             End If
