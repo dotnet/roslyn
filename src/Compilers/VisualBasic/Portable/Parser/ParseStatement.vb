@@ -1794,15 +1794,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim nextToken As SyntaxToken = PeekToken(1)
 
             ' change from Dev10: allowing as new with multiple variable names, e.g. "Using a, b As New C1()"
-            If nextToken.Kind = SyntaxKind.AsKeyword OrElse
-               nextToken.Kind = SyntaxKind.EqualsToken OrElse
-               nextToken.Kind = SyntaxKind.CommaToken OrElse
-               nextToken.Kind = SyntaxKind.QuestionToken Then
-
-                variables = ParseVariableDeclaration(allowAsNewWith:=True)
-            Else
-                optionalExpression = ParseExpressionCore()
-            End If
+            Select Case nextToken.Kind
+                Case SyntaxKind.AsKeyword,
+                     SyntaxKind.EqualsToken,
+                     SyntaxKind.CommaToken,
+                     SyntaxKind.QuestionToken
+                    variables = ParseVariableDeclaration(allowAsNewWith:=True)
+                Case Else
+                    optionalExpression = ParseExpressionCore()
+            End Select
 
             'TODO - not resyncing here may cause errors to differ from Dev10.
 
