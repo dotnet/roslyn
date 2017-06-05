@@ -227,33 +227,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overloads Function Equals(method1 As MethodSymbol, method2 As MethodSymbol) As Boolean _
             Implements IEqualityComparer(Of MethodSymbol).Equals
 
-            If method1 Is method2 Then
-                Return True
-            End If
+            If method1 Is method2 Then Return True
 
-            If method1 Is Nothing OrElse method2 Is Nothing Then
-                Return False
-            End If
+            If method1 Is Nothing OrElse method2 Is Nothing Then Return False
 
-            If method1.Arity <> method2.Arity Then
-                Return False
-            End If
+            If method1.Arity <> method2.Arity Then Return False
 
-            If _considerName Then
-                If Not IdentifierComparison.Equals(method1.Name, method2.Name) Then
-                    Return False
-                End If
-            End If
+            If _considerName AndAlso Not IdentifierComparison.Equals(method1.Name, method2.Name) Then Return False
 
             Dim typeSubstitution1 = GetTypeSubstitution(method1)
             Dim typeSubstitution2 = GetTypeSubstitution(method2)
-            If _considerReturnType Then
-                If Not HaveSameReturnTypes(method1, typeSubstitution1, method2, typeSubstitution2, _considerCustomModifiers, _considerTupleNames) Then
-                    Return False
-                End If
+            If _considerReturnType AndAlso Not HaveSameReturnTypes(method1, typeSubstitution1, method2, typeSubstitution2, _considerCustomModifiers, _considerTupleNames) Then
+                Return False
             End If
 
-            If method1.ParameterCount > 0 OrElse method2.ParameterCount > 0 Then
+            If (method1.ParameterCount > 0) OrElse (method2.ParameterCount > 0) Then
                 If Not HaveSameParameterTypes(method1.Parameters, typeSubstitution1, method2.Parameters, typeSubstitution2,
                                               _considerByRef, _considerCustomModifiers, _considerTupleNames) Then
                     Return False
@@ -284,9 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim _hash As Integer = 1
             If method IsNot Nothing Then
-                If _considerName Then
-                    _hash = Hash.Combine(method.Name, _hash)
-                End If
+                If _considerName Then _hash = Hash.Combine(method.Name, _hash)
 
                 If _considerReturnType AndAlso Not method.IsGenericMethod AndAlso Not _considerCustomModifiers Then
                     _hash = Hash.Combine(method.ReturnType, _hash)
@@ -313,9 +299,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim results As SymbolComparisonResults = Nothing
 
-            If method1 = method2 Then
-                Return Nothing
-            End If
+            If method1 = method2 Then Return Nothing
 
             If (comparisons And SymbolComparisonResults.ArityMismatch) <> 0 Then
                 If method1.Arity <> method2.Arity Then
@@ -433,28 +417,18 @@ Done:
 
         ' Compare two return types and return the detailed comparison of them.
         Public Shared Function DetailedReturnTypeCompare(
-                                                          returnsByRef1 As Boolean,
-                                                          type1 As TypeWithModifiers,
-                                                          refCustomModifiers1 As ImmutableArray(Of CustomModifier),
-                                                          typeSubstitution1 As TypeSubstitution,
-                                                          returnsByRef2 As Boolean,
-                                                          type2 As TypeWithModifiers,
-                                                          refCustomModifiers2 As ImmutableArray(Of CustomModifier),
-                                                          typeSubstitution2 As TypeSubstitution,
+                                                          returnsByRef1 As Boolean, type1 As TypeWithModifiers, refCustomModifiers1 As ImmutableArray(Of CustomModifier), typeSubstitution1 As TypeSubstitution,
+                                                          returnsByRef2 As Boolean, type2 As TypeWithModifiers, refCustomModifiers2 As ImmutableArray(Of CustomModifier), typeSubstitution2 As TypeSubstitution,
                                                           comparisons As SymbolComparisonResults,
                                                  Optional stopIfAny As SymbolComparisonResults = 0
                                                         ) As SymbolComparisonResults
 
-            If returnsByRef1 <> returnsByRef2 Then
-                Return SymbolComparisonResults.ReturnTypeMismatch
-            End If
+            If returnsByRef1 <> returnsByRef2 Then Return SymbolComparisonResults.ReturnTypeMismatch
 
             type1 = SubstituteType(typeSubstitution1, type1)
             type2 = SubstituteType(typeSubstitution2, type2)
 
-            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
-                Return SymbolComparisonResults.ReturnTypeMismatch
-            End If
+            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then Return SymbolComparisonResults.ReturnTypeMismatch
 
             Dim result As SymbolComparisonResults = 0
 
@@ -676,48 +650,44 @@ Done:
         End Function
 
         Private Shared Function GetTypeWithModifiers(typeSubstitution As TypeSubstitution, param As ParameterSymbol) As TypeWithModifiers
-            If typeSubstitution IsNot Nothing Then
-                Return SubstituteType(typeSubstitution, New TypeWithModifiers(param.OriginalDefinition.Type, param.OriginalDefinition.CustomModifiers))
-            Else
-                Return New TypeWithModifiers(param.Type, param.CustomModifiers)
-            End If
+            If typeSubstitution Is Nothing Then Return New TypeWithModifiers(param.Type, param.CustomModifiers)
+            Return SubstituteType(typeSubstitution, New TypeWithModifiers(param.OriginalDefinition.Type, param.OriginalDefinition.CustomModifiers))
         End Function
 
         Private Shared Function GetRefModifiers(typeSubstitution As TypeSubstitution, param As ParameterSymbol) As ImmutableArray(Of CustomModifier)
-            If typeSubstitution IsNot Nothing Then
-                Return typeSubstitution.SubstituteCustomModifiers(param.OriginalDefinition.RefCustomModifiers)
-            Else
-                Return param.RefCustomModifiers
-            End If
+            If typeSubstitution Is Nothing Then Return param.RefCustomModifiers
+            Return typeSubstitution.SubstituteCustomModifiers(param.OriginalDefinition.RefCustomModifiers)
         End Function
+
+
+        Private Shared Function AreBadConstants(cv1 As ConstantValue, cv2 As ConstantValue) As Boolean
+            Return cv1.IsBad OrElse cv2.IsBad
+        End Function
+
+        Private Shared Sub ()
+        End Sub
+
 
         Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol, constValue1 As ConstantValue, constValue2 As ConstantValue) As Boolean
 
             ' bad constants do not match
-            If constValue1.IsBad OrElse constValue2.IsBad Then
-                Return True
-            End If
+            If AreBadConstants(constValue1, constValue2) Then Return True
 
             ' Since Nothing literal essentially means the type's Default value it is equal 
             ' to zero value of types which allow zero values, for example for decimal 0;
             ' so, for signature comparison purpose we have to treat them same as zeroes.
 
             ' replace Nothing constants with corresponding Zeros if possible
-            If constValue1.IsNothing Then
-                Dim descriminator = ConstantValue.GetDiscriminator(param1.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
-                If descriminator <> ConstantValueTypeDiscriminator.Bad Then
-                    constValue1 = ConstantValue.Default(descriminator)
-                End If
-            End If
-
-            If constValue2.IsNothing Then
-                Dim descriminator = ConstantValue.GetDiscriminator(param2.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
-                If descriminator <> ConstantValueTypeDiscriminator.Bad Then
-                    constValue2 = ConstantValue.Default(descriminator)
-                End If
-            End If
+            If constValue1.IsNothing Then constValue1 = ReplaceNothingWithZeroIfPossible(param1, constValue1)
+            If constValue2.IsNothing Then constValue2 = ReplaceNothingWithZeroIfPossible(param2, constValue2)
 
             Return Not constValue1.Equals(constValue2)
+        End Function
+
+        Private Shared Function ReplaceNothingWithZeroIfPossible(param As ParameterSymbol, constValue As ConstantValue) As ConstantValue
+            Dim descriminator = ConstantValue.GetDiscriminator(param.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
+            If descriminator <> ConstantValueTypeDiscriminator.Bad Then constValue = ConstantValue.Default(descriminator)
+            Return constValue
         End Function
 
 #End Region
