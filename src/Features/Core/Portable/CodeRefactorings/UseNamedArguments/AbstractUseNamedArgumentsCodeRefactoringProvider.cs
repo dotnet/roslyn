@@ -96,10 +96,14 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 }
 
                 var argumentList = (TArgumentListSyntax)argument.Parent;
-                var (index, count) = GetArgumentListIndexAndCount(argument, argumentList);
-
                 var arguments = GetArguments(argumentList);
-                for (var i = index; i < count; i++)
+                var index = arguments.IndexOf(argument);
+                if (index == -1 || index >= parameters.Length)
+                {
+                    return;
+                }
+
+                for (var i = index; i < arguments.Count; i++)
                 {
                     if (!(arguments[i] is TArgumentSyntax))
                     {
@@ -107,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     }
                 }
 
-                if (!IsLegalToAddNamedArguments(parameters, count))
+                if (!IsLegalToAddNamedArguments(parameters, arguments.Count))
                 {
                     return;
                 }
@@ -130,12 +134,6 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 var newArgumentList = GetOrSynthesizeNamedArguments(parameters, argumentList, index);
                 var newRoot = root.ReplaceNode(argumentList, newArgumentList);
                 return Task.FromResult(document.WithSyntaxRoot(newRoot));
-            }
-
-            private (int, int) GetArgumentListIndexAndCount(TArgumentSyntax argument, TArgumentListSyntax argumentList)
-            {
-                var arguments = GetArguments(argumentList);
-                return (arguments.IndexOf(argument), arguments.Count);
             }
 
             private TArgumentListSyntax GetOrSynthesizeNamedArguments(
