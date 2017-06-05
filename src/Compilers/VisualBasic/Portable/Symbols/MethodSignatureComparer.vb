@@ -6,6 +6,7 @@ Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
     Friend Enum SymbolComparisonResults
         NameMismatch = 1 << 0
         ReturnTypeMismatch = 1 << 1
@@ -94,75 +95,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This instance is intended to reflect the definition of signature equality used by the runtime (ECMA 335 Section 8.6.1.6).
         ''' It considers return type, name, parameters, calling convention, and custom modifiers.
         ''' </summary>
-        Public Shared ReadOnly RuntimeMethodSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly RuntimeMethodSignatureComparer As New MethodSignatureComparer(
+             considerName:=True,
+             considerReturnType:=True,
+             considerTypeConstraints:=False,
+             considerByRef:=True,
+             considerCallingConvention:=True,
+             considerCustomModifiers:=True,
+             considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare all aspects.
         ''' </summary>
-        Public Shared ReadOnly AllAspectsSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=True,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=True)
+        Public Shared ReadOnly AllAspectsSignatureComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=True,
+            considerTypeConstraints:=True,
+            considerByRef:=True,
+            considerCallingConvention:=True,
+            considerCustomModifiers:=True,
+            considerTupleNames:=True)
 
         ''' <summary>
         ''' This instance is used to compare parameter and return types, including byref.
         ''' </summary>
-        Public Shared ReadOnly ParametersAndReturnTypeSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=False,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly ParametersAndReturnTypeSignatureComparer As New MethodSignatureComparer(
+            considerName:=False,
+            considerReturnType:=True,
+            considerTypeConstraints:=False,
+            considerByRef:=True,
+            considerCallingConvention:=False,
+            considerCustomModifiers:=False,
+            considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare custom modifiers, parameter and return types, including byref.
         ''' </summary>
-        Public Shared ReadOnly CustomModifiersAndParametersAndReturnTypeSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=False,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly CustomModifiersAndParametersAndReturnTypeSignatureComparer As New MethodSignatureComparer(
+            considerName:=False,
+            considerReturnType:=True,
+            considerTypeConstraints:=False,
+            considerByRef:=True,
+            considerCallingConvention:=False,
+            considerCustomModifiers:=True,
+            considerTupleNames:=False
+            )
 
         ''' <summary>
         ''' This instance is used to search for methods that have the same signature, return type,
         ''' and constraints according to the VisualBasic definition.  Custom modifiers are ignored.
         ''' </summary>
-        Public Shared ReadOnly VisualBasicSignatureAndConstraintsAndReturnTypeComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=True,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly VisualBasicSignatureAndConstraintsAndReturnTypeComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=True,
+            considerTypeConstraints:=True,
+            considerByRef:=True,
+            considerCallingConvention:=True,
+            considerCustomModifiers:=False,
+            considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to search for methods that have identical signatures in every regard.
         ''' </summary>
-        Public Shared ReadOnly RetargetedExplicitMethodImplementationComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly RetargetedExplicitMethodImplementationComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=True,
+            considerTypeConstraints:=False,
+            considerByRef:=True,
+            considerCallingConvention:=True,
+            considerCustomModifiers:=True,
+            considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare potential WinRT fake methods in type projection.
@@ -174,14 +176,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The real fix here is to establish a spec for how WinRT conflict comparison should be
         ''' performed. Once this is done we should remove these comments.
         ''' </summary>
-        Public Shared ReadOnly WinRTConflictComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=False,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=False,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly WinRTConflictComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=False,
+            considerTypeConstraints:=False,
+            considerByRef:=False,
+            considerCallingConvention:=False,
+            considerCustomModifiers:=False,
+            considerTupleNames:=False)
 
         ' Compare the "unqualified" part of the method name (no explicit part)
         Private ReadOnly _considerName As Boolean
@@ -211,13 +213,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         considerByRef As Boolean,
                         considerCustomModifiers As Boolean,
                         considerTupleNames As Boolean)
-            Me._considerName = considerName
-            Me._considerReturnType = considerReturnType
-            Me._considerTypeConstraints = considerTypeConstraints
-            Me._considerCallingConvention = considerCallingConvention
-            Me._considerByRef = considerByRef
-            Me._considerCustomModifiers = considerCustomModifiers
-            Me._considerTupleNames = considerTupleNames
+            _considerName = considerName
+            _considerReturnType = considerReturnType
+            _considerTypeConstraints = considerTypeConstraints
+            _considerCallingConvention = considerCallingConvention
+            _considerByRef = considerByRef
+            _considerCustomModifiers = considerCustomModifiers
+            _considerTupleNames = considerTupleNames
         End Sub
 
 #Region "IEqualityComparer(Of MethodSymbol) Members"
@@ -303,11 +305,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Detailed comparison functions"
         Public Shared Function DetailedCompare(
-            method1 As MethodSymbol,
-            method2 As MethodSymbol,
-            comparisons As SymbolComparisonResults,
-            Optional stopIfAny As SymbolComparisonResults = 0
-        ) As SymbolComparisonResults
+                                                method1 As MethodSymbol,
+                                                method2 As MethodSymbol,
+                                                comparisons As SymbolComparisonResults,
+                                       Optional stopIfAny As SymbolComparisonResults = 0
+                                              ) As SymbolComparisonResults
+
             Dim results As SymbolComparisonResults = Nothing
 
             If method1 = method2 Then
@@ -430,17 +433,18 @@ Done:
 
         ' Compare two return types and return the detailed comparison of them.
         Public Shared Function DetailedReturnTypeCompare(
-            returnsByRef1 As Boolean,
-            type1 As TypeWithModifiers,
-            refCustomModifiers1 As ImmutableArray(Of CustomModifier),
-            typeSubstitution1 As TypeSubstitution,
-            returnsByRef2 As Boolean,
-            type2 As TypeWithModifiers,
-            refCustomModifiers2 As ImmutableArray(Of CustomModifier),
-            typeSubstitution2 As TypeSubstitution,
-            comparisons As SymbolComparisonResults,
-            Optional stopIfAny As SymbolComparisonResults = 0
-        ) As SymbolComparisonResults
+                                                          returnsByRef1 As Boolean,
+                                                          type1 As TypeWithModifiers,
+                                                          refCustomModifiers1 As ImmutableArray(Of CustomModifier),
+                                                          typeSubstitution1 As TypeSubstitution,
+                                                          returnsByRef2 As Boolean,
+                                                          type2 As TypeWithModifiers,
+                                                          refCustomModifiers2 As ImmutableArray(Of CustomModifier),
+                                                          typeSubstitution2 As TypeSubstitution,
+                                                          comparisons As SymbolComparisonResults,
+                                                 Optional stopIfAny As SymbolComparisonResults = 0
+                                                        ) As SymbolComparisonResults
+
             If returnsByRef1 <> returnsByRef2 Then
                 Return SymbolComparisonResults.ReturnTypeMismatch
             End If
@@ -484,13 +488,14 @@ Done:
         End Function
 
         Public Shared Function DetailedParameterCompare(
-            params1 As ImmutableArray(Of ParameterSymbol),
-            <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
-            params2 As ImmutableArray(Of ParameterSymbol),
-            <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
-            comparisons As SymbolComparisonResults,
-            Optional stopIfAny As SymbolComparisonResults = 0
-        ) As SymbolComparisonResults
+                                                         params1 As ImmutableArray(Of ParameterSymbol),
+                                            <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
+                                                         params2 As ImmutableArray(Of ParameterSymbol),
+                                            <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
+                                                         comparisons As SymbolComparisonResults,
+                                                Optional stopIfAny As SymbolComparisonResults = 0
+                                                       ) As SymbolComparisonResults
+
             Dim results As SymbolComparisonResults = Nothing
 
             Dim commonParamCount As Integer
@@ -650,13 +655,13 @@ Done:
                                 ' between referencing a source assembly and referencing the corresponding metadata assembly).
 
                                 Dim comp1 = param1.DeclaringCompilation
-                            Dim comp2 = param2.DeclaringCompilation
-                            Dim areDeclaringCompilationsMatched = (comp1 IsNot Nothing) AndAlso (comp2 IsNot Nothing) AndAlso (comp1 Is comp2)
-                            optionalParameterMismatch = areDeclaringCompilationsMatched
+                                Dim comp2 = param2.DeclaringCompilation
+                                Dim areDeclaringCompilationsMatched = (comp1 IsNot Nothing) AndAlso (comp2 IsNot Nothing) AndAlso (comp1 Is comp2)
+                                optionalParameterMismatch = areDeclaringCompilationsMatched
+                            End If
                         End If
-                    End If
 
-                    If optionalParameterMismatch Then
+                        If optionalParameterMismatch Then
                             results = results Or SymbolComparisonResults.OptionalParameterValueMismatch
                             If (stopIfAny And SymbolComparisonResults.OptionalParameterValueMismatch) <> 0 Then
                                 GoTo Done
@@ -717,11 +722,13 @@ Done:
 
 #End Region
 
-        Public Shared Function HaveSameParameterTypes(params1 As ImmutableArray(Of ParameterSymbol), typeSubstitution1 As TypeSubstitution,
+        Public Shared Function HaveSameParameterTypes(
+                                                       params1 As ImmutableArray(Of ParameterSymbol), typeSubstitution1 As TypeSubstitution,
                                                        params2 As ImmutableArray(Of ParameterSymbol), typeSubstitution2 As TypeSubstitution,
                                                        considerByRef As Boolean,
                                                        considerCustomModifiers As Boolean,
-                                                       considerTupleNames As Boolean) As Boolean
+                                                       considerTupleNames As Boolean
+                                                     ) As Boolean
             Dim numParams = params1.Length
 
             If numParams <> params2.Length Then
