@@ -95,6 +95,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return p
         End Function
 
+        ''' <summary>
+        ''' 
+        ''' </summary>
+        ''' <param name="skip">Skip Position</param>
+        ''' <param name="ch">The char at the skip position, does not alter current value on false.</param>
+        ''' <returns>True - if it can get the skip position, otherwise False.</returns>
+        Private Function Peep(skip As Integer, ByRef ch As Char) As Boolean
+            If (_lineBufferOffset + skip < _bufferLen) Then
+                Debug.Assert(skip >= -MaxCharsLookBehind)
+                Dim position = _lineBufferOffset
+                Dim page = _curPage
+                position += skip
+                ch = page._arr(position And s_PAGE_MASK)
+
+                Dim start = page._pageStart
+                Dim expectedStart = position And s_NOT_PAGE_MASK
+
+                If start <> expectedStart Then
+                    page = GetPage(position)
+                    ch = page._arr(position And s_PAGE_MASK)
+                End If
+                Return True
+            Else
+                Return False
+            End If
+
+        End Function
+
         ' PERF CRITICAL
         Private Function Peek(skip As Integer) As Char
             Debug.Assert(CanGet(skip))
