@@ -627,27 +627,41 @@ Done:
                         ' default value and a source parameter symbol in method that implements or overrides a metadata method specifies a default value.
 
                         If bothHaveExplicitDefaultValue Then
-                            optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param2)
+                            optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, param2.ExplicitDefaultConstantValue)
                         Else
-                            ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
-                            ' However, the only way to know the current compilation at this point is to pass it into every method
-                            ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
-                            ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
-                            ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
-                            ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
-                            ' between referencing a source assembly and referencing the corresponding metadata assembly).
-                            Dim comp1 = param1.DeclaringCompilation
-                            Dim comp2 = param2.DeclaringCompilation
-                            optionalParameterMismatch = comp1 IsNot Nothing AndAlso comp1 Is comp2
-                        End If
+                            Dim areValuesMismatched As Boolean
+                            If param1.HasExplicitDefaultValue Then
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, ConstantValue.Nothing)
+                            ElseIf param2.HasExplicitDefaultValue Then
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, param2.ExplicitDefaultConstantValue)
+                            Else
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, ConstantValue.Nothing)
+                            End If
 
-                        If optionalParameterMismatch Then
+                            If Not areValuesMismatched Then
+                                optionalParameterMismatch = areValuesMismatched
+                            Else
+                                ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
+                                ' However, the only way to know the current compilation at this point is to pass it into every method
+                                ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
+                                ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
+                                ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
+                                ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
+                                ' between referencing a source assembly and referencing the corresponding metadata assembly).
+
+                                Dim comp1 = param1.DeclaringCompilation
+                            Dim comp2 = param2.DeclaringCompilation
+                            Dim areDeclaringCompilationsMatched = (comp1 IsNot Nothing) AndAlso (comp2 IsNot Nothing) AndAlso (comp1 Is comp2)
+                            optionalParameterMismatch = areDeclaringCompilationsMatched
+                        End If
+                    End If
+
+                    If optionalParameterMismatch Then
                             results = results Or SymbolComparisonResults.OptionalParameterValueMismatch
                             If (stopIfAny And SymbolComparisonResults.OptionalParameterValueMismatch) <> 0 Then
                                 GoTo Done
                             End If
                         End If
-
                     End If
                 Next
             End If
@@ -672,9 +686,7 @@ Done:
             End If
         End Function
 
-        Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol) As Boolean
-            Dim constValue1 As ConstantValue = param1.ExplicitDefaultConstantValue
-            Dim constValue2 As ConstantValue = param2.ExplicitDefaultConstantValue
+        Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol, constValue1 As ConstantValue, constValue2 As ConstantValue) As Boolean
 
             ' bad constants do not match
             If constValue1.IsBad OrElse constValue2.IsBad Then
