@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal partial class AbstractClassificationService
+    internal partial class AbstractSyntaxClassificationService
     {
         private struct Worker
         {
