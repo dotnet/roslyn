@@ -768,7 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Expression* .Parser::ParseCastExpression( [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseCastExpression() As ExpressionSyntax
-            Debug.Assert(SyntaxFacts.IsPredefinedCastExpressionKeyword(CurrentToken.Kind), "ParseCastExpression called with the wrong token.")
+            Debug.Assert(SyntaxFacts.IsPredefinedCastExpressionKeyword(CurrentToken.Kind), NameOf(ParseCastExpression) & " called with the wrong token.")
 
             Dim Start = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
@@ -1003,7 +1003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ) As ExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.DotToken OrElse
                   CurrentToken.Kind = SyntaxKind.ExclamationToken,
-                  "Must be on either a '.' or '!' when entering parseQualifiedExpr()")
+                  "Must be on either a '.' or '!' when entering " & NameOf(ParseQualifiedExpr) & "()")
 
             Dim DotOrBangToken As PunctuationSyntax = DirectCast(CurrentToken, PunctuationSyntax)
 
@@ -1639,7 +1639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.FunctionKeyword OrElse
                          CurrentToken.Kind = SyntaxKind.SubKeyword,
-                         "ParseFunctionLambda called on wrong token.")
+                         NameOf(ParseFunctionOrSubLambdaHeader) & " called on wrong token.")
             ' The current token is on the function or delegate's name
 
             Dim methodKeyword = DirectCast(CurrentToken, KeywordSyntax)
