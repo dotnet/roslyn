@@ -294,7 +294,12 @@ namespace Microsoft.CodeAnalysis.Emit
                     previousLocals = TryGetLocalSlotMapFromMetadata(previousHandle, debugInfo);
                     if (previousLocals.IsDefault)
                     {
-                        // TODO: Report error that metadata is not supported.
+                        // TODO: localize message & use better error code (https://github.com/dotnet/roslyn/issues/11512): 
+                        diagnostics.Add(MessageProvider.CreateDiagnostic(
+                            MessageProvider.ERR_ModuleEmitFailure,
+                            method.Locations.First(),
+                            $"Unable to read metadata of method '{MessageProvider.GetErrorDisplayString(method)}' from assembly '{MessageProvider.GetErrorDisplayString(method.ContainingAssembly)}'"));
+
                         return null;
                     }
                 }
