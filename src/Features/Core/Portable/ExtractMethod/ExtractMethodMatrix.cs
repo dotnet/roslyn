@@ -73,6 +73,13 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 {
                     key = new Key(dataFlowIn, /*dataFlowOut*/ true, alwaysAssigned, variableDeclared, readInside, writtenInside, readOutside, writtenOutside);
                 }
+
+                // interesting case in invalid code (bug #19136)
+                // variable is passed by reference, and another argument is an out variable with the same name
+                if (dataFlowIn && variableDeclared)
+                {
+                    key = new Key(/*dataFlowIn:*/ false, dataFlowOut, alwaysAssigned, variableDeclared, readInside, writtenInside, readOutside, writtenOutside);
+                }
             }
 
             Contract.ThrowIfFalse(s_matrix.ContainsKey(key));
