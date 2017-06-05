@@ -674,7 +674,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (_flags.DeclarationModifiers & DeclarationModifiers.Ref) != 0;
+                //PROTOTYPE(spans): for now consired all Span types as ByRefLike to workaround existing span types that 
+                //                  are not yet marked with ByRefLikeAttribute
+                return (_flags.DeclarationModifiers & DeclarationModifiers.Ref) != 0 || this.IsSpanType();
             }
         }
 

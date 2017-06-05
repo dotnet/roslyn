@@ -2061,7 +2061,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
-                        if (IsWellknownSpans())
+                        //PROTOTYPE(spans): for now consired all Span types as ByRefLike to workaround existing span types that 
+                        //                  are not yet marked with ByRefLikeAttribute
+                        if (this.IsSpanType())
                         {
                             isByRefLike = ThreeState.True;
                         }
@@ -2106,27 +2108,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 return uncommon.lazyIsReadOnly.Value();
             }
-        }
-
-        //PROTOTYPE(span): Span and ReadonlySpan should have spanLike marker.
-        //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
-        //                 are span-like
-        private bool IsWellknownSpans()
-        {
-            var originalDef = this.OriginalDefinition;
-
-            if (originalDef.Name != "Span" && originalDef.Name != "ReadonlySpan")
-            {
-                return false;
-            }
-
-            var ns = originalDef.ContainingSymbol as NamespaceSymbol;
-            if (ns?.Name != "System")
-            {
-                return false;
-            }
-
-            return ns.IsGlobalNamespace;
         }
 
         internal override bool HasDeclarativeSecurity
