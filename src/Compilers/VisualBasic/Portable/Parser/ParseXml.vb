@@ -2083,9 +2083,8 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlDeclarationSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, lessThanQuestionToken, xmlKeyword, node.Version, node.Encoding, node.Standalone, node.QuestionGreaterThanToken)
-            Else
-                Return node
             End If
+            Return node     
         End Function
 
         Public Overrides Function VisitXmlElementStartTag(node As XmlElementStartTagSyntax) As VisualBasicSyntaxNode
@@ -2192,9 +2191,9 @@ TryResync:
                                                           nameNew,
                                                           node.TextTokens.Node,
                                                           node.QuestionGreaterThanToken)
-            Else
-                Return node
             End If
+            Return node
+          
         End Function
 
         Public Overrides Function VisitXmlNameAttribute(node As XmlNameAttributeSyntax) As VisualBasicSyntaxNode
@@ -2209,8 +2208,6 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlNameAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.StartQuoteToken, node.Reference, node.EndQuoteToken)
-            Else
-                Return node
             End If
 
             Return node
@@ -2228,8 +2225,6 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlCrefAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.StartQuoteToken, node.Reference, node.EndQuoteToken)
-            Else
-                Return node
             End If
 
             Return node
@@ -2247,8 +2242,6 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.Value)
-            Else
-                Return node
             End If
 
             Return node
@@ -2275,8 +2268,6 @@ TryResync:
 
             If anyChanges Then
                 Return InternalSyntaxFactory.XmlBracketedName(lessThanToken, DirectCast(name, XmlNameSyntax), greaterThanToken)
-            Else
-                Return node
             End If
 
             Return node
@@ -2320,9 +2311,8 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlNameSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, prefix, localName)
-            Else
-                Return node
             End If
+            Return node
         End Function
 
         Public Overrides Function VisitXmlPrefix(node As XmlPrefixSyntax) As VisualBasicSyntaxNode
@@ -2341,9 +2331,8 @@ TryResync:
 
             If anyChanges Then
                 Return New XmlPrefixSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, name, colon)
-            Else
-                Return node
             End If
+            Return node
         End Function
 
         Public Overrides Function VisitSyntaxToken(token As SyntaxToken) As SyntaxToken
