@@ -94,6 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function GetReferenceDirectives(compilationUnit As CompilationUnitSyntax) As ImmutableArray(Of ReferenceDirective)
             Dim directiveNodes = compilationUnit.GetReferenceDirectives(
                 Function(d) Not d.File.ContainsDiagnostics AndAlso Not String.IsNullOrEmpty(d.File.ValueText))
+
             If directiveNodes.Count = 0 Then
                 Return ImmutableArray(Of ReferenceDirective).Empty
             End If
@@ -249,8 +250,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Function UnescapeIdentifier(identifier As String) As String
-            If identifier(0) = "[" Then
-                Debug.Assert(identifier(identifier.Length - 1) = "]")
+            If identifier(0) = "["c Then
+                Debug.Assert(identifier(identifier.Length - 1) = "]"c)
                 Return identifier.Substring(1, identifier.Length - 2)
             Else
                 Return identifier
@@ -560,8 +561,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.FieldDeclaration
                         anyNonTypeMembers = True
                         Dim field = DirectCast(statement, FieldDeclarationSyntax)
-                        If field.AttributeLists.Any Then
-                            anyMemberHasAttributes = True
+                        If Not anyMemberHasAttributes Then
+                            If field.AttributeLists.Any Then
+                                anyMemberHasAttributes = True
+                            End If
                         End If
 
                         For Each decl In field.Declarators
@@ -573,23 +576,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.SubBlock, SyntaxKind.FunctionBlock, SyntaxKind.ConstructorBlock, SyntaxKind.OperatorBlock
                         anyNonTypeMembers = True
                         Dim methodDecl = DirectCast(statement, MethodBlockBaseSyntax).BlockStatement
-                        If methodDecl.AttributeLists.Any Then
-                            anyMemberHasAttributes = True
+                        If Not anyMemberHasAttributes Then
+                            If methodDecl.AttributeLists.Any Then
+                                anyMemberHasAttributes = True
+                            End If
                         End If
                         AddMemberNames(methodDecl, results)
 
                     Case SyntaxKind.PropertyBlock
                         anyNonTypeMembers = True
                         Dim propertyDecl = DirectCast(statement, PropertyBlockSyntax)
-                        If propertyDecl.PropertyStatement.AttributeLists.Any Then
-                            anyMemberHasAttributes = True
-                        Else
-                            For Each a In propertyDecl.Accessors
-                                If a.BlockStatement.AttributeLists.Any Then
-                                    anyMemberHasAttributes = True
-                                End If
-                            Next
+                        If Not anyMemberHasAttributes Then
+                            If propertyDecl.PropertyStatement.AttributeLists.Any Then
+                                anyMemberHasAttributes = True
+                            Else
+                                For Each a In propertyDecl.Accessors
+                                    If a.BlockStatement.AttributeLists.Any Then
+                                        anyMemberHasAttributes = True
+                                        Exit For
+                                    End If
+                                Next
+                            End If
                         End If
+
                         AddMemberNames(propertyDecl.PropertyStatement, results)
 
                     Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement,
@@ -599,22 +608,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         anyNonTypeMembers = True
                         Dim methodDecl = DirectCast(statement, MethodBaseSyntax)
-                        If methodDecl.AttributeLists.Any Then
-                            anyMemberHasAttributes = True
+                        If Not anyMemberHasAttributes Then
+                            If methodDecl.AttributeLists.Any Then
+                                anyMemberHasAttributes = True
+                            End If
                         End If
                         AddMemberNames(methodDecl, results)
 
                     Case SyntaxKind.EventBlock
                         anyNonTypeMembers = True
                         Dim eventDecl = DirectCast(statement, EventBlockSyntax)
-                        If eventDecl.EventStatement.AttributeLists.Any Then
-                            anyMemberHasAttributes = True
-                        Else
-                            For Each a In eventDecl.Accessors
-                                If a.BlockStatement.AttributeLists.Any Then
-                                    anyMemberHasAttributes = True
-                                End If
-                            Next
+                        If Not anyMemberHasAttributes Then
+                            If eventDecl.EventStatement.AttributeLists.Any Then
+                                anyMemberHasAttributes = True
+                            Else
+                                For Each a In eventDecl.Accessors
+                                    If a.BlockStatement.AttributeLists.Any Then
+                                        anyMemberHasAttributes = True
+                                        Exit For
+                                    End If
+                                Next
+                            End If
                         End If
                         Dim name = eventDecl.EventStatement.Identifier.ValueText
                         results.Add(name)
@@ -622,8 +636,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.EventStatement
                         anyNonTypeMembers = True
                         Dim eventDecl = DirectCast(statement, EventStatementSyntax)
-                        If eventDecl.AttributeLists.Any Then
-                            anyMemberHasAttributes = True
+                        If Not anyMemberHasAttributes Then
+                            If eventDecl.AttributeLists.Any Then
+                                anyMemberHasAttributes = True
+                            End If
                         End If
                         Dim name = eventDecl.Identifier.ValueText
                         results.Add(name)
