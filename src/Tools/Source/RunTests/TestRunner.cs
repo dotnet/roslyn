@@ -160,9 +160,8 @@ namespace RunTests
             Console.WriteLine("Errors {0}: ", testResult.AssemblyName);
             Console.WriteLine(testResult.ErrorOutput);
 
-            // TODO: Put this in the log and take it off the console output to keep it simple?
-            Console.WriteLine($"Command: {testResult.CommandLine}");
-            Console.WriteLine($"xUnit output log: {outputLogPath}");
+            OutputTo($"Command: {testResult.CommandLine}", ToConsole: true, ToLog: true);
+            OutputTo($"xUnit output log: {outputLogPath}", ToConsole: true, ToLog: true);
 
             if (!string.IsNullOrEmpty(testResult.ErrorOutput))
             {
@@ -178,6 +177,13 @@ namespace RunTests
             {
                 Process.Start(testResult.ResultsFilePath);
             }
+        }
+
+        static internal void OutputTo( string text, Boolean ToConsole = true, Boolean ToLog = false)
+        {
+            if (text == null) throw new ArgumentNullException(nameof(text));
+            if (ToConsole) Console.WriteLine(text);
+            if (ToLog) Logger.Log(text);
         }
     }
 }
