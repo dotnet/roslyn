@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var document = workspace.CurrentSolution.Projects.First().Documents.First();
                 var tree = await document.GetSyntaxTreeAsync();
 
-                var service = document.GetLanguageService<IClassificationService>();
+                var service = document.GetLanguageService<ISyntaxClassificationService>();
                 var result = new List<ClassifiedSpan>();
                 service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
 
