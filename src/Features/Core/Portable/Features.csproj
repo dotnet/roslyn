@@ -10,7 +10,6 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -134,6 +133,9 @@
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
     <Compile Include="DocumentHighlighting\DocumentHighlightingOptions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
+    <Compile Include="Experimentation\AnalyzerABTestLogger.cs" />
+    <Compile Include="Experimentation\AnalyzerABTestOptions.cs" />
+    <Compile Include="Experimentation\LiveCodeAnalysisInstallStatus.cs" />
     <Compile Include="ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
@@ -143,6 +145,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -226,6 +229,9 @@
     <Compile Include="RQName\SimpleTree\SimpleTreeNode.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />

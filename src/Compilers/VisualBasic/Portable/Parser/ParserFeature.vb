@@ -34,15 +34,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
+        OptionalParameterDefault
     End Enum
 
     Friend Module FeatureExtensions
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
-                Case feature.IOperation
+                Case Feature.IOperation
                     Return "IOperation"
-
+                Case Feature.IOperation
+                    Return "OptionalParameterDefault"
                 Case Else
                     Return Nothing
             End Select
@@ -89,6 +91,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
+
+                ' PROTOTYPE: 
+                Case Feature.OptionalParameterDefault
+                    Return LanguageVersion.VisualBasic15
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -153,6 +159,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_Tuples
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.InterpolatedStrings
+                    Return ERRID.FEATURE_InterpolatedStrings
+
+                Case Feature.OptionalParameterDefault
+                    Return ERRID.FEATURE_OptionalParameterDefault
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

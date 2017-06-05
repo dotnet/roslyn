@@ -5162,6 +5162,45 @@ public class Program
 3");
         }
 
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void TypeParameterSubsumption05()
+        {
+            var program = @"
+public class Program
+{
+    static void M<T, U>(T t, U u) where T : U
+    {
+        switch(""test"")
+        {
+            case U uu:
+                break;
+            case T tt: // Produces a diagnostic about subsumption/unreachability
+                break;
+        }
+    }
+}
+";
+            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (8,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'U' in C# 7. Please use language version 7.1 or greater.
+                //             case U uu:
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "U").WithArguments("string", "U", "7", "7.1").WithLocation(8, 18),
+                // (10,18): error CS8314: An expression of type 'string' cannot be handled by a pattern of type 'T' in C# 7. Please use language version 7.1 or greater.
+                //             case T tt: // Produces a diagnostic about subsumption/unreachability
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "T").WithArguments("string", "T", "7", "7.1").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+            CreateStandardCompilation(program, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case T tt: // Produces a diagnostic about subsumption/unreachability
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "T tt").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+        }
+
         [Fact, WorkItem(17103, "https://github.com/dotnet/roslyn/issues/17103")]
         public void IsConstantPatternConversion_Positive()
         {
@@ -5925,6 +5964,238 @@ public class Program
                 //         switch (b) { case long m: break; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(14, 17)
                 );
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void GenericDynamicIsObject()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void Main(string[] args)
+    {
+        M<dynamic>(new object());
+        M<dynamic>(null);
+        M<dynamic>(""xyzzy"");
+    }
+    static void M<T>(object x)
+    {
+        switch (x)
+        {
+            case T t:
+                Console.Write(""T"");
+                break;
+            case null:
+                Console.Write(""n"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void MatchNullableTypeParameter()
+        {
+            var program = @"
+using System;
+public class Program
+{
+    static void Main(string[] args)
+    {
+        M<int>(1);
+        M<int>(null);
+        M<float>(3.14F);
+    }
+    static void M<T>(T? x) where T : struct
+    {
+        switch (x)
+        {
+            case T t:
+                Console.Write(""T"");
+                break;
+            case null:
+                Console.Write(""n"");
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"TnT");
+        }
+
+        [Fact, WorkItem(16195, "https://github.com/dotnet/roslyn/issues/16195")]
+        public void MatchRecursiveGenerics()
+        {
+            var program =
+@"using System;
+class Packet { }
+class Packet<U> : Packet { }
+public class C {
+    static void Main()
+    {
+        Console.Write(M<Packet>(null));
+        Console.Write(M<Packet>(new Packet<Packet>()));
+        Console.Write(M<Packet>(new Packet<int>()));
+        Console.Write(M<Packet<int>>(new Packet<int>()));
+    }
+    static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
+}";
+            CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
+                // (12,52): error CS8314: An expression of type 'T' cannot be handled by a pattern of type 'Packet<T>' in C# 7. Please use language version 7.1 or greater.
+                //     static bool M<T>(T p) where T : Packet => p is Packet<T> p1;
+                Diagnostic(ErrorCode.ERR_PatternWrongGenericTypeInVersion, "Packet<T>").WithArguments("T", "Packet<T>", "7", "7.1").WithLocation(12, 52)
+                );
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"FalseTrueFalseFalse");
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void MatchRestrictedTypes_Fail()
+        {
+            
+            var program =
+@"using System;
+unsafe public class C {
+    static bool M(TypedReference x, int* p, ref int z)
+    {
+        var n1 = x is TypedReference x0; // ok
+        var p1 = p is int* p0;           // syntax error 1
+        var r1 = z is ref int z0;        // syntax error 2
+
+        var b1 = x is object o1;         // not allowed 1
+        var b2 = p is object o2;         // not allowed 2
+        var b3 = z is object o3;         // ok
+
+        return b1 && b2 && b3;
+    }
+}";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugDll.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                // (6,23): error CS1525: Invalid expression term 'int'
+                //         var p1 = p is int* p0;           // syntax error 1
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 23),
+                // (7,23): error CS1525: Invalid expression term 'ref'
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(7, 23),
+                // (7,23): error CS1002: ; expected
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "ref").WithLocation(7, 23),
+                // (6,28): error CS0103: The name 'p0' does not exist in the current context
+                //         var p1 = p is int* p0;           // syntax error 1
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "p0").WithArguments("p0").WithLocation(6, 28),
+                // (7,31): error CS8174: A declaration of a by-reference variable must have an initializer
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "z0").WithLocation(7, 31),
+                // (9,23): error CS8121: An expression of type 'TypedReference' cannot be handled by a pattern of type 'object'.
+                //         var b1 = x is object o1;         // not allowed 1
+                Diagnostic(ErrorCode.ERR_PatternWrongType, "object").WithArguments("System.TypedReference", "object").WithLocation(9, 23),
+                // (10,23): error CS0244: Neither 'is' nor 'as' is valid on pointer types
+                //         var b2 = p is object o2;         // not allowed 2
+                Diagnostic(ErrorCode.ERR_PointerInAsOrIs, "object o2").WithLocation(10, 23),
+                // (7,31): warning CS0168: The variable 'z0' is declared but never used
+                //         var r1 = z is ref int z0;        // syntax error 2
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "z0").WithArguments("z0").WithLocation(7, 31)
+                );
+        }
+
+        [Fact, WorkItem(19038, "https://github.com/dotnet/roslyn/issues/19038")]
+        public void MatchRestrictedTypes_Success()
+        {
+            var program =
+@"using System;
+using System.Reflection;
+unsafe public class C {
+    public int Value;
+
+    static void Main()
+    {
+        C a = new C { Value = 12 };
+        FieldInfo info = typeof(C).GetField(""Value"");
+        TypedReference reference = __makeref(a);
+        if (!(reference is TypedReference reference0)) throw new Exception(""TypedReference"");
+        info.SetValueDirect(reference0, 34);
+        if (a.Value != 34) throw new Exception(""SetValueDirect"");
+
+        int z = 56;
+        if (CopyRefInt(ref z) != 56) throw new Exception(""ref z"");
+
+        Console.WriteLine(""ok"");
+    }
+
+    static int CopyRefInt(ref int z)
+    {
+        if (!(z is int z0)) throw new Exception(""CopyRefInt"");
+        return z0;
+    }
+}";
+            var compilation = CreateStandardCompilation(program, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: "ok");
+        }
+
+        [Fact]
+        [WorkItem(406203, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=406203")]
+        [WorkItem(406205, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=406205")]
+        public void DoubleEvaluation()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main(string[] args)
+    {
+        {
+            int? a = 0;
+            if (a++ is int b)
+            {
+                Console.WriteLine(b);
+            }
+            Console.WriteLine(a);
+        }
+        {
+            int? a = 0;
+            if (++a is int b)
+            {
+                Console.WriteLine(b);
+            }
+            Console.WriteLine(a);
+        }
+        {
+            if (Func() is int b)
+            {
+                Console.WriteLine(b);
+            }
+        }
+    }
+    public static int? Func()
+    {
+        Console.WriteLine(""Func called"");
+        return 2;
+    }
+}
+";
+            var expectedOutput = @"0
+1
+1
+1
+Func called
+2";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }

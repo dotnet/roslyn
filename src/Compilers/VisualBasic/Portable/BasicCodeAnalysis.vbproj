@@ -896,6 +896,7 @@
     <Compile Include="Syntax\VisualBasicSyntaxTree.ParsedSyntaxTree.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxTree.vb" />
     <Compile Include="Syntax\VisualBasicSyntaxWalker.vb" />
+    <Compile Include="Utilities\FeatureUtils.vb" />
     <Compile Include="Utilities\FunctionExtensions.vb" />
     <Compile Include="Utilities\TypeUnification.vb" />
     <Compile Include="Utilities\VarianceAmbiguity.vb" />

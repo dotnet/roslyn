@@ -7133,19 +7133,19 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(long c, long d)").WithLocation(7, 48),
-                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(long c, long d)").WithLocation(7, 54),
                 // (7,29): error CS0266: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'. An explicit conversion exists (are you missing a cast?)
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
-                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(int c, int d)").WithLocation(9, 50),
-                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(int c, int d)").WithLocation(9, 56),
                 // (9,33): error CS0266: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'. An explicit conversion exists (are you missing a cast?)
@@ -22916,6 +22916,111 @@ class C
         }
 
         [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInAsOperator()
+        {
+            var source =
+@"
+using System;
+
+class P
+{
+    static void Main()
+    {
+        var x1 = (1, 1) as (int, int a)?;
+        var x2 = (1, 1) as (int, int)?;
+        var x3 = (1, new object()) as (int, dynamic)?;
+        Console.Write($""{x1} {x2} {x3}"");
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, 1) (1, 1) (1, System.Object)");
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInAsOperator2()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x = (a: 1, b: 1) as (int c, int d)?;
+        var y = (1, 1) as (int, long)?;
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,17): warning CS0458: The result of the expression is always 'null' of type '(int, long)?'
+                //         var y = (1, 1) as (int, long)?;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(1, 1) as (int, long)?").WithArguments("(int, long)?").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInIsOperator()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x1 = (1, 1) is (int, int a)?;
+    }
+}";
+            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,29): error CS1525: Invalid expression term 'int'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),
+                // (6,41): error CS1525: Invalid expression term ';'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
+                // (6,41): error CS1003: Syntax error, ':' expected
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(6, 41),
+                // (6,41): error CS1525: Invalid expression term ';'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
+                // (6,34): error CS8185: A declaration is not allowed in this context.
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 34),
+                // (6,28): error CS0150: A constant value is expected
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int a)").WithLocation(6, 28),
+                // (6,34): error CS0165: Use of unassigned local variable 'a'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInIsOperator2()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x1 = (1, 1) is System.Nullable<(int, int a)>;
+    }
+}";
+            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS0183: The given expression is always of the provided ('(int, int a)?') type
+                //         var x1 = (1, 1) is System.Nullable<(int, int a)>;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "(1, 1) is System.Nullable<(int, int a)>").WithArguments("(int, int a)?").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
         [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
         public void CheckedConversions()
         {
@@ -23084,6 +23189,156 @@ class C
   IL_0023:  ret
 }
 ");
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string) y = (e, null); // the only conversion we find is an explicit conversion
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0029: Cannot implicitly convert type 'int?' to 'int'
+                //         (int, string) y = (e, null);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 28)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion2()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
+                //         (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string)?").WithLocation(7, 28)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String)?", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion3()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string, int) y = (e, null); // no conversion found
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,32): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string, int)'.
+                //         (int, string, int) y = (e, null); // no conversion found
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string, int)").WithLocation(7, 32)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypedTupleWithNoConversion()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string, int) y = (e, """"); // no conversion found
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,32): error CS0029: Cannot implicitly convert type '(int? e, string)' to '(int, string, int)'
+                //         (int, string, int) y = (e, ""); // no conversion found
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(e, """")").WithArguments("(int? e, string)", "(int, string, int)").WithLocation(7, 32)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Equal("(System.Int32? e, System.String)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
         }
     }
 }

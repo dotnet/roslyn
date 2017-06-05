@@ -482,6 +482,7 @@ End Module
 </compilation>
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:={_classLibrary})
+            ' comp.VerifyDiagnostics()
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)"))
         End Sub
 

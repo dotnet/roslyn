@@ -32,41 +32,48 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static async Task<ImmutableArray<SymbolAndProjectId>> FindOverridesAsync(
             SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            // Method can only have overrides if its a virtual, abstract or override and is not
-            // sealed.
-            var symbol = symbolAndProjectId.Symbol;
+            var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
+
+            var symbol = symbolAndProjectId.Symbol?.OriginalDefinition;
             if (symbol.IsOverridable())
             {
                 // To find the overrides, we need to walk down the type hierarchy and check all
-                // derived types.  TODO(cyrusn): This seems extremely costly.  Is there any way to
-                // speed this up?
-                var containingType = symbol.ContainingType.OriginalDefinition;
+                // derived types.
+                var containingType = symbol.ContainingType;
                 var derivedTypes = await FindDerivedClassesAsync(
                     symbolAndProjectId.WithSymbol(containingType),
                     solution, projects, cancellationToken).ConfigureAwait(false);
 
-                var results = ArrayBuilder<SymbolAndProjectId>.GetInstance();
                 foreach (var type in derivedTypes)
                 {
-                    foreach (var m in GetMembers(type, symbol.Name))
+                    foreach (var m in type.Symbol.GetMembers(symbol.Name))
                     {
                         var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
-                        var bestMember = sourceMember.Symbol != null ? sourceMember : m;
-                        var member = bestMember.Symbol;
-                        if (member != null &&
-                            member.IsOverride &&
-                            member.OverriddenMember() != null &&
-                            OriginalSymbolsMatch(member.OverriddenMember().OriginalDefinition, symbol.OriginalDefinition, solution, cancellationToken))
+                        var bestMember = sourceMember ?? m;
+                        
+                        if (IsOverride(solution, bestMember, symbol, cancellationToken))
                         {
-                            results.Add(bestMember);
+                            results.Add(new SymbolAndProjectId(bestMember, type.ProjectId));
                         }
                     }
                 }
-
-                return results.ToImmutableAndFree();
             }
 
-            return ImmutableArray<SymbolAndProjectId>.Empty;
+            return results.ToImmutableAndFree();
+        }
+
+        private static bool IsOverride(
+            Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
+        {
+            for (var current = member; current != null; current = current.OverriddenMember())
+            {
+                if (OriginalSymbolsMatch(current.OverriddenMember(), symbol.OriginalDefinition, solution, cancellationToken))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

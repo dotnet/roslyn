@@ -6,6 +6,7 @@ Imports System.Diagnostics
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+
     Friend Enum SymbolComparisonResults
         NameMismatch = 1 << 0
         ReturnTypeMismatch = 1 << 1
@@ -94,75 +95,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This instance is intended to reflect the definition of signature equality used by the runtime (ECMA 335 Section 8.6.1.6).
         ''' It considers return type, name, parameters, calling convention, and custom modifiers.
         ''' </summary>
-        Public Shared ReadOnly RuntimeMethodSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly RuntimeMethodSignatureComparer As New MethodSignatureComparer(
+             considerName:=True,
+             considerReturnType:=True,
+             considerTypeConstraints:=False,
+             considerByRef:=True,
+             considerCallingConvention:=True,
+             considerCustomModifiers:=True,
+             considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare all aspects.
         ''' </summary>
-        Public Shared ReadOnly AllAspectsSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=True,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=True)
+        Public Shared ReadOnly AllAspectsSignatureComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=True,
+            considerTypeConstraints:=True,
+            considerByRef:=True,
+            considerCallingConvention:=True,
+            considerCustomModifiers:=True,
+            considerTupleNames:=True)
 
         ''' <summary>
         ''' This instance is used to compare parameter and return types, including byref.
         ''' </summary>
-        Public Shared ReadOnly ParametersAndReturnTypeSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=False,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly ParametersAndReturnTypeSignatureComparer As New MethodSignatureComparer(
+            considerName:=False,
+            considerReturnType:=True,
+            considerTypeConstraints:=False,
+            considerByRef:=True,
+            considerCallingConvention:=False,
+            considerCustomModifiers:=False,
+            considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare custom modifiers, parameter and return types, including byref.
         ''' </summary>
-        Public Shared ReadOnly CustomModifiersAndParametersAndReturnTypeSignatureComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=False,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly CustomModifiersAndParametersAndReturnTypeSignatureComparer As New MethodSignatureComparer(
+            considerName:=False,
+            considerReturnType:=True,
+            considerTypeConstraints:=False,
+            considerByRef:=True,
+            considerCallingConvention:=False,
+            considerCustomModifiers:=True,
+            considerTupleNames:=False
+            )
 
         ''' <summary>
         ''' This instance is used to search for methods that have the same signature, return type,
         ''' and constraints according to the VisualBasic definition.  Custom modifiers are ignored.
         ''' </summary>
-        Public Shared ReadOnly VisualBasicSignatureAndConstraintsAndReturnTypeComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=True,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly VisualBasicSignatureAndConstraintsAndReturnTypeComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=True,
+            considerTypeConstraints:=True,
+            considerByRef:=True,
+            considerCallingConvention:=True,
+            considerCustomModifiers:=False,
+            considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to search for methods that have identical signatures in every regard.
         ''' </summary>
-        Public Shared ReadOnly RetargetedExplicitMethodImplementationComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=True,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=True,
-                                        considerCallingConvention:=True,
-                                        considerCustomModifiers:=True,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly RetargetedExplicitMethodImplementationComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=True,
+            considerTypeConstraints:=False,
+            considerByRef:=True,
+            considerCallingConvention:=True,
+            considerCustomModifiers:=True,
+            considerTupleNames:=False)
 
         ''' <summary>
         ''' This instance is used to compare potential WinRT fake methods in type projection.
@@ -174,14 +176,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' The real fix here is to establish a spec for how WinRT conflict comparison should be
         ''' performed. Once this is done we should remove these comments.
         ''' </summary>
-        Public Shared ReadOnly WinRTConflictComparer As MethodSignatureComparer =
-            New MethodSignatureComparer(considerName:=True,
-                                        considerReturnType:=False,
-                                        considerTypeConstraints:=False,
-                                        considerByRef:=False,
-                                        considerCallingConvention:=False,
-                                        considerCustomModifiers:=False,
-                                        considerTupleNames:=False)
+        Public Shared ReadOnly WinRTConflictComparer As New MethodSignatureComparer(
+            considerName:=True,
+            considerReturnType:=False,
+            considerTypeConstraints:=False,
+            considerByRef:=False,
+            considerCallingConvention:=False,
+            considerCustomModifiers:=False,
+            considerTupleNames:=False)
 
         ' Compare the "unqualified" part of the method name (no explicit part)
         Private ReadOnly _considerName As Boolean
@@ -211,13 +213,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         considerByRef As Boolean,
                         considerCustomModifiers As Boolean,
                         considerTupleNames As Boolean)
-            Me._considerName = considerName
-            Me._considerReturnType = considerReturnType
-            Me._considerTypeConstraints = considerTypeConstraints
-            Me._considerCallingConvention = considerCallingConvention
-            Me._considerByRef = considerByRef
-            Me._considerCustomModifiers = considerCustomModifiers
-            Me._considerTupleNames = considerTupleNames
+            _considerName = considerName
+            _considerReturnType = considerReturnType
+            _considerTypeConstraints = considerTypeConstraints
+            _considerCallingConvention = considerCallingConvention
+            _considerByRef = considerByRef
+            _considerCustomModifiers = considerCustomModifiers
+            _considerTupleNames = considerTupleNames
         End Sub
 
 #Region "IEqualityComparer(Of MethodSymbol) Members"
@@ -225,33 +227,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overloads Function Equals(method1 As MethodSymbol, method2 As MethodSymbol) As Boolean _
             Implements IEqualityComparer(Of MethodSymbol).Equals
 
-            If method1 Is method2 Then
-                Return True
-            End If
+            If method1 Is method2 Then Return True
 
-            If method1 Is Nothing OrElse method2 Is Nothing Then
-                Return False
-            End If
+            If method1 Is Nothing OrElse method2 Is Nothing Then Return False
 
-            If method1.Arity <> method2.Arity Then
-                Return False
-            End If
+            If method1.Arity <> method2.Arity Then Return False
 
-            If _considerName Then
-                If Not IdentifierComparison.Equals(method1.Name, method2.Name) Then
-                    Return False
-                End If
-            End If
+            If _considerName AndAlso Not IdentifierComparison.Equals(method1.Name, method2.Name) Then Return False
 
             Dim typeSubstitution1 = GetTypeSubstitution(method1)
             Dim typeSubstitution2 = GetTypeSubstitution(method2)
-            If _considerReturnType Then
-                If Not HaveSameReturnTypes(method1, typeSubstitution1, method2, typeSubstitution2, _considerCustomModifiers, _considerTupleNames) Then
-                    Return False
-                End If
+            If _considerReturnType AndAlso Not HaveSameReturnTypes(method1, typeSubstitution1, method2, typeSubstitution2, _considerCustomModifiers, _considerTupleNames) Then
+                Return False
             End If
 
-            If method1.ParameterCount > 0 OrElse method2.ParameterCount > 0 Then
+            If (method1.ParameterCount > 0) OrElse (method2.ParameterCount > 0) Then
                 If Not HaveSameParameterTypes(method1.Parameters, typeSubstitution1, method2.Parameters, typeSubstitution2,
                                               _considerByRef, _considerCustomModifiers, _considerTupleNames) Then
                     Return False
@@ -282,9 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim _hash As Integer = 1
             If method IsNot Nothing Then
-                If _considerName Then
-                    _hash = Hash.Combine(method.Name, _hash)
-                End If
+                If _considerName Then _hash = Hash.Combine(method.Name, _hash)
 
                 If _considerReturnType AndAlso Not method.IsGenericMethod AndAlso Not _considerCustomModifiers Then
                     _hash = Hash.Combine(method.ReturnType, _hash)
@@ -303,16 +291,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 #Region "Detailed comparison functions"
         Public Shared Function DetailedCompare(
-            method1 As MethodSymbol,
-            method2 As MethodSymbol,
-            comparisons As SymbolComparisonResults,
-            Optional stopIfAny As SymbolComparisonResults = 0
-        ) As SymbolComparisonResults
+                                                method1 As MethodSymbol,
+                                                method2 As MethodSymbol,
+                                                comparisons As SymbolComparisonResults,
+                                       Optional stopIfAny As SymbolComparisonResults = 0
+                                              ) As SymbolComparisonResults
+
             Dim results As SymbolComparisonResults = Nothing
 
-            If method1 = method2 Then
-                Return Nothing
-            End If
+            If method1 = method2 Then Return Nothing
 
             If (comparisons And SymbolComparisonResults.ArityMismatch) <> 0 Then
                 If method1.Arity <> method2.Arity Then
@@ -430,27 +417,18 @@ Done:
 
         ' Compare two return types and return the detailed comparison of them.
         Public Shared Function DetailedReturnTypeCompare(
-            returnsByRef1 As Boolean,
-            type1 As TypeWithModifiers,
-            refCustomModifiers1 As ImmutableArray(Of CustomModifier),
-            typeSubstitution1 As TypeSubstitution,
-            returnsByRef2 As Boolean,
-            type2 As TypeWithModifiers,
-            refCustomModifiers2 As ImmutableArray(Of CustomModifier),
-            typeSubstitution2 As TypeSubstitution,
-            comparisons As SymbolComparisonResults,
-            Optional stopIfAny As SymbolComparisonResults = 0
-        ) As SymbolComparisonResults
-            If returnsByRef1 <> returnsByRef2 Then
-                Return SymbolComparisonResults.ReturnTypeMismatch
-            End If
+                                                          returnsByRef1 As Boolean, type1 As TypeWithModifiers, refCustomModifiers1 As ImmutableArray(Of CustomModifier), typeSubstitution1 As TypeSubstitution,
+                                                          returnsByRef2 As Boolean, type2 As TypeWithModifiers, refCustomModifiers2 As ImmutableArray(Of CustomModifier), typeSubstitution2 As TypeSubstitution,
+                                                          comparisons As SymbolComparisonResults,
+                                                 Optional stopIfAny As SymbolComparisonResults = 0
+                                                        ) As SymbolComparisonResults
+
+            If returnsByRef1 <> returnsByRef2 Then Return SymbolComparisonResults.ReturnTypeMismatch
 
             type1 = SubstituteType(typeSubstitution1, type1)
             type2 = SubstituteType(typeSubstitution2, type2)
 
-            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then
-                Return SymbolComparisonResults.ReturnTypeMismatch
-            End If
+            If Not type1.Type.IsSameType(type2.Type, TypeCompareKind.AllIgnoreOptionsForVB) Then Return SymbolComparisonResults.ReturnTypeMismatch
 
             Dim result As SymbolComparisonResults = 0
 
@@ -484,13 +462,14 @@ Done:
         End Function
 
         Public Shared Function DetailedParameterCompare(
-            params1 As ImmutableArray(Of ParameterSymbol),
-            <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
-            params2 As ImmutableArray(Of ParameterSymbol),
-            <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
-            comparisons As SymbolComparisonResults,
-            Optional stopIfAny As SymbolComparisonResults = 0
-        ) As SymbolComparisonResults
+                                                         params1 As ImmutableArray(Of ParameterSymbol),
+                                            <[In]> ByRef lazyTypeSubstitution1 As LazyTypeSubstitution,
+                                                         params2 As ImmutableArray(Of ParameterSymbol),
+                                            <[In]> ByRef lazyTypeSubstitution2 As LazyTypeSubstitution,
+                                                         comparisons As SymbolComparisonResults,
+                                                Optional stopIfAny As SymbolComparisonResults = 0
+                                                       ) As SymbolComparisonResults
+
             Dim results As SymbolComparisonResults = Nothing
 
             Dim commonParamCount As Integer
@@ -627,18 +606,33 @@ Done:
                         ' default value and a source parameter symbol in method that implements or overrides a metadata method specifies a default value.
 
                         If bothHaveExplicitDefaultValue Then
-                            optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param2)
+                            optionalParameterMismatch = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, param2.ExplicitDefaultConstantValue)
                         Else
-                            ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
-                            ' However, the only way to know the current compilation at this point is to pass it into every method
-                            ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
-                            ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
-                            ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
-                            ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
-                            ' between referencing a source assembly and referencing the corresponding metadata assembly).
-                            Dim comp1 = param1.DeclaringCompilation
-                            Dim comp2 = param2.DeclaringCompilation
-                            optionalParameterMismatch = comp1 IsNot Nothing AndAlso comp1 Is comp2
+                            Dim areValuesMismatched As Boolean
+                            If param1.HasExplicitDefaultValue Then
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, param1.ExplicitDefaultConstantValue, ConstantValue.Nothing)
+                            ElseIf param2.HasExplicitDefaultValue Then
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, param2.ExplicitDefaultConstantValue)
+                            Else
+                                areValuesMismatched = ParameterDefaultValueMismatch(param1, param2, ConstantValue.Nothing, ConstantValue.Nothing)
+                            End If
+
+                            If Not areValuesMismatched Then
+                                optionalParameterMismatch = areValuesMismatched
+                            Else
+                                ' Strictly speaking, what we would like to check is that both parameters are from the "current" compilation.
+                                ' However, the only way to know the current compilation at this point is to pass it into every method
+                                ' signature comparison (tedious, since we can't change the signature while implementing IEqualityComparer,
+                                ' so we'd have to give up having constant instances).  Fortunately, we can make a good approximation: we can
+                                ' require that both parameters be from the same (non-nothing) compilation.  With this rule, an inexact result
+                                ' can never change the interaction between two assemblies (i.e. there will never be an observable difference
+                                ' between referencing a source assembly and referencing the corresponding metadata assembly).
+
+                                Dim comp1 = param1.DeclaringCompilation
+                                Dim comp2 = param2.DeclaringCompilation
+                                Dim areDeclaringCompilationsMatched = (comp1 IsNot Nothing) AndAlso (comp2 IsNot Nothing) AndAlso (comp1 Is comp2)
+                                optionalParameterMismatch = areDeclaringCompilationsMatched
+                            End If
                         End If
 
                         If optionalParameterMismatch Then
@@ -647,7 +641,6 @@ Done:
                                 GoTo Done
                             End If
                         End If
-
                     End If
                 Next
             End If
@@ -657,59 +650,52 @@ Done:
         End Function
 
         Private Shared Function GetTypeWithModifiers(typeSubstitution As TypeSubstitution, param As ParameterSymbol) As TypeWithModifiers
-            If typeSubstitution IsNot Nothing Then
-                Return SubstituteType(typeSubstitution, New TypeWithModifiers(param.OriginalDefinition.Type, param.OriginalDefinition.CustomModifiers))
-            Else
-                Return New TypeWithModifiers(param.Type, param.CustomModifiers)
-            End If
+            If typeSubstitution Is Nothing Then Return New TypeWithModifiers(param.Type, param.CustomModifiers)
+            Return SubstituteType(typeSubstitution, New TypeWithModifiers(param.OriginalDefinition.Type, param.OriginalDefinition.CustomModifiers))
         End Function
 
         Private Shared Function GetRefModifiers(typeSubstitution As TypeSubstitution, param As ParameterSymbol) As ImmutableArray(Of CustomModifier)
-            If typeSubstitution IsNot Nothing Then
-                Return typeSubstitution.SubstituteCustomModifiers(param.OriginalDefinition.RefCustomModifiers)
-            Else
-                Return param.RefCustomModifiers
-            End If
+            If typeSubstitution Is Nothing Then Return param.RefCustomModifiers
+            Return typeSubstitution.SubstituteCustomModifiers(param.OriginalDefinition.RefCustomModifiers)
         End Function
 
-        Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol) As Boolean
-            Dim constValue1 As ConstantValue = param1.ExplicitDefaultConstantValue
-            Dim constValue2 As ConstantValue = param2.ExplicitDefaultConstantValue
+
+        Private Shared Function AreBadConstants(cv1 As ConstantValue, cv2 As ConstantValue) As Boolean
+            Return cv1.IsBad OrElse cv2.IsBad
+        End Function
+
+
+        Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol, constValue1 As ConstantValue, constValue2 As ConstantValue) As Boolean
 
             ' bad constants do not match
-            If constValue1.IsBad OrElse constValue2.IsBad Then
-                Return True
-            End If
+            If AreBadConstants(constValue1, constValue2) Then Return True
 
             ' Since Nothing literal essentially means the type's Default value it is equal 
             ' to zero value of types which allow zero values, for example for decimal 0;
             ' so, for signature comparison purpose we have to treat them same as zeroes.
 
             ' replace Nothing constants with corresponding Zeros if possible
-            If constValue1.IsNothing Then
-                Dim descriminator = ConstantValue.GetDiscriminator(param1.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
-                If descriminator <> ConstantValueTypeDiscriminator.Bad Then
-                    constValue1 = ConstantValue.Default(descriminator)
-                End If
-            End If
-
-            If constValue2.IsNothing Then
-                Dim descriminator = ConstantValue.GetDiscriminator(param2.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
-                If descriminator <> ConstantValueTypeDiscriminator.Bad Then
-                    constValue2 = ConstantValue.Default(descriminator)
-                End If
-            End If
+            If constValue1.IsNothing Then constValue1 = ReplaceNothingWithZeroIfPossible(param1, constValue1)
+            If constValue2.IsNothing Then constValue2 = ReplaceNothingWithZeroIfPossible(param2, constValue2)
 
             Return Not constValue1.Equals(constValue2)
         End Function
 
+        Private Shared Function ReplaceNothingWithZeroIfPossible(param As ParameterSymbol, constValue As ConstantValue) As ConstantValue
+            Dim descriminator = ConstantValue.GetDiscriminator(param.Type.GetEnumUnderlyingTypeOrSelf.SpecialType)
+            If descriminator <> ConstantValueTypeDiscriminator.Bad Then constValue = ConstantValue.Default(descriminator)
+            Return constValue
+        End Function
+
 #End Region
 
-        Public Shared Function HaveSameParameterTypes(params1 As ImmutableArray(Of ParameterSymbol), typeSubstitution1 As TypeSubstitution,
+        Public Shared Function HaveSameParameterTypes(
+                                                       params1 As ImmutableArray(Of ParameterSymbol), typeSubstitution1 As TypeSubstitution,
                                                        params2 As ImmutableArray(Of ParameterSymbol), typeSubstitution2 As TypeSubstitution,
                                                        considerByRef As Boolean,
                                                        considerCustomModifiers As Boolean,
-                                                       considerTupleNames As Boolean) As Boolean
+                                                       considerTupleNames As Boolean
+                                                     ) As Boolean
             Dim numParams = params1.Length
 
             If numParams <> params2.Length Then
@@ -724,19 +710,14 @@ Done:
                 Dim type2 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution2, param2)
 
                 Dim comparison As TypeCompareKind = MakeTypeCompareKind(considerCustomModifiers, considerTupleNames)
-                If Not type1.IsSameType(type2, comparison) Then
+                If Not type1.IsSameType(type2, comparison) Then Return False
+
+                If considerCustomModifiers AndAlso Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2)) Then
                     Return False
                 End If
 
-                If considerCustomModifiers Then
-                    If Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2)) Then
-                        Return False
-                    End If
-                End If
+                If considerByRef AndAlso param1.IsByRef <> param2.IsByRef Then Return False
 
-                If considerByRef AndAlso param1.IsByRef <> param2.IsByRef Then
-                    Return False
-                End If
             Next
 
             Return True
@@ -744,12 +725,10 @@ Done:
 
         Friend Shared Function MakeTypeCompareKind(considerCustomModifiers As Boolean, considerTupleNames As Boolean) As TypeCompareKind
             Dim comparison As TypeCompareKind = TypeCompareKind.ConsiderEverything
-            If Not considerCustomModifiers Then
-                comparison = comparison Or TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds
-            End If
-            If Not considerTupleNames Then
-                comparison = comparison Or TypeCompareKind.IgnoreTupleNames
-            End If
+
+            If Not considerCustomModifiers Then comparison = comparison Or TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds
+
+            If Not considerTupleNames Then comparison = comparison Or TypeCompareKind.IgnoreTupleNames
 
             Return comparison
         End Function
@@ -760,15 +739,10 @@ Done:
             'short-circuit type map building in the easiest cases
             Dim isSub1 = method1.IsSub
             Dim isSub2 = method2.IsSub
-            If isSub1 <> isSub2 Then
-                Return False
-            ElseIf isSub1 Then
-                Return True
-            End If
+            If isSub1 <> isSub2 Then Return False
+            If isSub1 Then Return True
 
-            If method1.ReturnsByRef <> method2.ReturnsByRef Then
-                Return False
-            End If
+            If method1.ReturnsByRef <> method2.ReturnsByRef Then Return False
 
             Dim origDef1 = method1.OriginalDefinition
             Dim origDef2 = method2.OriginalDefinition
@@ -840,23 +814,21 @@ Done:
             Debug.Assert(typeParameters2.Length = arity)
 
             For i = 0 To arity - 1
-                If Not HaveSameConstraints(typeParameters1(i), typeSubstitution1, typeParameters2(i), typeSubstitution2) Then
-                    Return False
-                End If
+                If Not HaveSameConstraints(typeParameters1(i), typeSubstitution1, typeParameters2(i), typeSubstitution2) Then Return False
             Next
 
             Return True
         End Function
 
-        Friend Shared Function HaveSameConstraints(typeParameter1 As TypeParameterSymbol,
-                                                    typeSubstitution1 As TypeSubstitution,
-                                                    typeParameter2 As TypeParameterSymbol,
-                                                    typeSubstitution2 As TypeSubstitution) As Boolean
+        Friend Shared Function HaveSameConstraints(
+                                                    typeParameter1 As TypeParameterSymbol, typeSubstitution1 As TypeSubstitution,
+                                                    typeParameter2 As TypeParameterSymbol, typeSubstitution2 As TypeSubstitution
+                                                  ) As Boolean
 
             If (typeParameter1.HasConstructorConstraint <> typeParameter2.HasConstructorConstraint) OrElse
-                (typeParameter1.HasReferenceTypeConstraint <> typeParameter2.HasReferenceTypeConstraint) OrElse
-                (typeParameter1.HasValueTypeConstraint <> typeParameter2.HasValueTypeConstraint) OrElse
-                (typeParameter1.Variance <> typeParameter2.Variance) Then
+               (typeParameter1.HasReferenceTypeConstraint <> typeParameter2.HasReferenceTypeConstraint) OrElse
+               (typeParameter1.HasValueTypeConstraint <> typeParameter2.HasValueTypeConstraint) OrElse
+               (typeParameter1.Variance <> typeParameter2.Variance) Then
                 Return False
             End If
 

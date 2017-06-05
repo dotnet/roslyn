@@ -12,7 +12,6 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Syntax.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net452</PackageTargetFallback>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
