@@ -44,6 +44,7 @@ namespace myNamespace
             encapsulateField.Invoke();
             dialog.VerifyOpen(encapsulateField.DialogName);
             dialog.ClickApply(encapsulateField.DialogName);
+            VisualStudio.Workspace.WaitForAllAsyncOperations();
             VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }
 
