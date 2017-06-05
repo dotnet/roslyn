@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static CompilationReference TaskFacadeAssembly(bool includeNamespaceAroundTaskExtension = true)
         {
-            var corAssembly = @"
+            var taskAssembly = @"
 namespace System.Runtime.CompilerServices {
     public interface IAsyncStateMachine {
         void MoveNext();
@@ -72,17 +72,17 @@ namespace System.Threading.Tasks {
 
             if (includeNamespaceAroundTaskExtension)
             {
-                corAssembly = corAssembly + $"\nnamespace Hidden {{\n{extensionSource}\n }}";
+                taskAssembly = taskAssembly + $"\nnamespace Hidden {{\n{extensionSource}\n }}";
             }
             else
             {
-                corAssembly = corAssembly + "\n" + extensionSource;
+                taskAssembly = taskAssembly + "\n" + extensionSource;
             }
 
 
-            var corCompilation = CreateCompilation(corAssembly, references: new[] { MscorlibRef_v20 });
-            corCompilation.VerifyDiagnostics();
-            return corCompilation.ToMetadataReference();
+            var taskCompilation = CreateCompilation(taskAssembly, references: new[] { MscorlibRef_v20 });
+            taskCompilation.VerifyDiagnostics();
+            return taskCompilation.ToMetadataReference();
         }
 
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
@@ -114,7 +114,18 @@ namespace System.Threading.Tasks {
                 references: new MetadataReference[] { TaskFacadeAssembly(false), MscorlibRef_v20 });
 
             script.VerifyEmitDiagnostics();
-
+            var compiled = CompileAndVerify(script);
+            compiled.VerifyIL("<Main>", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  newobj     "".ctor()""
+  IL_0005:  callvirt   ""System.Threading.Tasks.Task<object> <Initialize>()""
+  IL_000a:  call       ""System.Threading.Tasks.Awaiter<object> MyExtensions.GetAwaiter<object>(System.Threading.Tasks.Task<object>)""
+  IL_000f:  callvirt   ""object System.Threading.Tasks.Awaiter<object>.GetResult()""
+  IL_0014:  pop
+  IL_0015:  ret
+}");
         }
 
 
@@ -123,7 +134,7 @@ namespace System.Threading.Tasks {
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing_VoidHidden()
         {
             var script = CreateCompilation(
-                source: @"class C {}",
+                source: @"interface I {}",
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugExe.WithUsings("Hidden"),
                 references: new MetadataReference[] { TaskFacadeAssembly()});
@@ -131,17 +142,11 @@ namespace System.Threading.Tasks {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
                 // (1,1): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class C {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "class C {}").WithArguments("System.Object").WithLocation(1, 1),
+                // interface I {}
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "interface I {}").WithArguments("System.Object").WithLocation(1, 1),
                 // error CS0518: Predefined type 'System.Void' is not defined or imported
                 //
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Void").WithLocation(1, 1),
-                // (1,7): error CS0518: Predefined type 'System.Object' is not defined or imported
-                // class C {}
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Object").WithLocation(1, 7),
-                // (1,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
-                // class C {}
-                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("object", "0").WithLocation(1, 7));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "").WithArguments("System.Void").WithLocation(1, 1));
         }
 
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
