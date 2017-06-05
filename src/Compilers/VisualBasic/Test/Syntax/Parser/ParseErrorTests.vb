@@ -1444,8 +1444,8 @@ End Class
             <errors>
                 <error id="30200"/>
                 <error id="30201"/>
-                <error id="30812"/>
             </errors>)
+        '<error id = "30812" />
     End Sub
 
     <Fact()>
@@ -2226,9 +2226,9 @@ End Module
             ]]>,
         <errors>
             <error id="30642"/>
-            <error id="30812"/>
             <error id="30201"/>
         </errors>)
+        '<error id = "30812" />
     End Sub
 
     <Fact()>
@@ -2537,10 +2537,11 @@ End Module
                     End Function
                 End Class
             ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30812"/>
-                                 <error id="30201"/>
-                             </errors>)
+        'ParseAndVerify(code, <errors>
+        '                         <error id="30812"/>
+        '                         <error id="30201"/>
+        '                     </errors>)
+        ParseAndVerify(code)
     End Sub
 
     <Fact()>

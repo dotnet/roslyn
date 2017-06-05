@@ -664,9 +664,6 @@ Done:
             Return cv1.IsBad OrElse cv2.IsBad
         End Function
 
-        Private Shared Sub ()
-        End Sub
-
 
         Private Shared Function ParameterDefaultValueMismatch(param1 As ParameterSymbol, param2 As ParameterSymbol, constValue1 As ConstantValue, constValue2 As ConstantValue) As Boolean
 
@@ -713,19 +710,14 @@ Done:
                 Dim type2 As TypeWithModifiers = GetTypeWithModifiers(typeSubstitution2, param2)
 
                 Dim comparison As TypeCompareKind = MakeTypeCompareKind(considerCustomModifiers, considerTupleNames)
-                If Not type1.IsSameType(type2, comparison) Then
+                If Not type1.IsSameType(type2, comparison) Then Return False
+
+                If considerCustomModifiers AndAlso Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2)) Then
                     Return False
                 End If
 
-                If considerCustomModifiers Then
-                    If Not GetRefModifiers(typeSubstitution1, param1).SequenceEqual(GetRefModifiers(typeSubstitution2, param2)) Then
-                        Return False
-                    End If
-                End If
+                If considerByRef AndAlso param1.IsByRef <> param2.IsByRef Then Return False
 
-                If considerByRef AndAlso param1.IsByRef <> param2.IsByRef Then
-                    Return False
-                End If
             Next
 
             Return True
@@ -733,12 +725,10 @@ Done:
 
         Friend Shared Function MakeTypeCompareKind(considerCustomModifiers As Boolean, considerTupleNames As Boolean) As TypeCompareKind
             Dim comparison As TypeCompareKind = TypeCompareKind.ConsiderEverything
-            If Not considerCustomModifiers Then
-                comparison = comparison Or TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds
-            End If
-            If Not considerTupleNames Then
-                comparison = comparison Or TypeCompareKind.IgnoreTupleNames
-            End If
+
+            If Not considerCustomModifiers Then comparison = comparison Or TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds
+
+            If Not considerTupleNames Then comparison = comparison Or TypeCompareKind.IgnoreTupleNames
 
             Return comparison
         End Function
@@ -749,15 +739,10 @@ Done:
             'short-circuit type map building in the easiest cases
             Dim isSub1 = method1.IsSub
             Dim isSub2 = method2.IsSub
-            If isSub1 <> isSub2 Then
-                Return False
-            ElseIf isSub1 Then
-                Return True
-            End If
+            If isSub1 <> isSub2 Then Return False
+            If isSub1 Then Return True
 
-            If method1.ReturnsByRef <> method2.ReturnsByRef Then
-                Return False
-            End If
+            If method1.ReturnsByRef <> method2.ReturnsByRef Then Return False
 
             Dim origDef1 = method1.OriginalDefinition
             Dim origDef2 = method2.OriginalDefinition
@@ -829,23 +814,21 @@ Done:
             Debug.Assert(typeParameters2.Length = arity)
 
             For i = 0 To arity - 1
-                If Not HaveSameConstraints(typeParameters1(i), typeSubstitution1, typeParameters2(i), typeSubstitution2) Then
-                    Return False
-                End If
+                If Not HaveSameConstraints(typeParameters1(i), typeSubstitution1, typeParameters2(i), typeSubstitution2) Then Return False
             Next
 
             Return True
         End Function
 
-        Friend Shared Function HaveSameConstraints(typeParameter1 As TypeParameterSymbol,
-                                                    typeSubstitution1 As TypeSubstitution,
-                                                    typeParameter2 As TypeParameterSymbol,
-                                                    typeSubstitution2 As TypeSubstitution) As Boolean
+        Friend Shared Function HaveSameConstraints(
+                                                    typeParameter1 As TypeParameterSymbol, typeSubstitution1 As TypeSubstitution,
+                                                    typeParameter2 As TypeParameterSymbol, typeSubstitution2 As TypeSubstitution
+                                                  ) As Boolean
 
             If (typeParameter1.HasConstructorConstraint <> typeParameter2.HasConstructorConstraint) OrElse
-                (typeParameter1.HasReferenceTypeConstraint <> typeParameter2.HasReferenceTypeConstraint) OrElse
-                (typeParameter1.HasValueTypeConstraint <> typeParameter2.HasValueTypeConstraint) OrElse
-                (typeParameter1.Variance <> typeParameter2.Variance) Then
+               (typeParameter1.HasReferenceTypeConstraint <> typeParameter2.HasReferenceTypeConstraint) OrElse
+               (typeParameter1.HasValueTypeConstraint <> typeParameter2.HasValueTypeConstraint) OrElse
+               (typeParameter1.Variance <> typeParameter2.Variance) Then
                 Return False
             End If
 
