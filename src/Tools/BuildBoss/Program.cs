@@ -13,6 +13,20 @@ namespace BuildBoss
     {
         internal static int Main(string[] args)
         {
+            try
+            {
+                return MainCore(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unhandled exception: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return 1;
+            }
+        }
+
+        private static int MainCore(string[] args)
+        { 
             if (args.Length == 0)
             { 
                 Usage();

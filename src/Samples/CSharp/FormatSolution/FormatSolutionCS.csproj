@@ -45,8 +45,8 @@
       <Name>Microsoft.CodeAnalysis.VisualBasic.Workspaces</Name>
     </ProjectReference>
     <Reference Include="System" />
-    <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
+    <PackageReference Include="System.Composition">
+      <Version>$(SystemCompositionVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />

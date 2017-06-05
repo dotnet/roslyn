@@ -301,22 +301,26 @@ Class C
 		End RaiseEvent
 	End Event
 End Class";
-                Func<SemanticModel, IEventSymbol> getExplicitInterfaceEvent = semanticModel =>
-                        {
-                            var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
-                            return new CodeGenerationEventSymbol(GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
-                                default(ImmutableArray<AttributeData>),
-                                Accessibility.Public,
-                                default(DeclarationModifiers),
-                                GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
-                                null,
-                                nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null);
-                        };
+                ImmutableArray<IEventSymbol> GetExplicitInterfaceEvent(SemanticModel semanticModel)
+                {
+                    var parameterSymbols = SpecializedCollections.EmptyList<AttributeData>();
+                    return ImmutableArray.Create<IEventSymbol>(
+                        new CodeGenerationEventSymbol(
+                            GetTypeSymbol(typeof(System.ComponentModel.INotifyPropertyChanged))(semanticModel), 
+                            default(ImmutableArray<AttributeData>),
+                            Accessibility.Public,
+                            default(DeclarationModifiers),
+                            GetTypeSymbol(typeof(System.ComponentModel.PropertyChangedEventHandler))(semanticModel),
+                            default,
+                            nameof(System.ComponentModel.INotifyPropertyChanged.PropertyChanged), null, null, null));
+                };
+
                 await TestAddEventAsync(input, expected,
-                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
-                    explicitInterfaceSymbol: getExplicitInterfaceEvent,
-                    type: typeof(System.ComponentModel.PropertyChangedEventHandler),
-                    codeGenerationOptions: new CodeGenerationOptions(addImports: false));
+                    addMethod: CodeGenerationSymbolFactory.CreateAccessorSymbol(
+                        ImmutableArray<AttributeData>.Empty, Accessibility.NotApplicable, ImmutableArray<SyntaxNode>.Empty),
+                        getExplicitInterfaceImplementations: GetExplicitInterfaceEvent,
+                        type: typeof(System.ComponentModel.PropertyChangedEventHandler),
+                        codeGenerationOptions: new CodeGenerationOptions(addImports: false));
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]
@@ -489,7 +493,7 @@ End Class";
                     name: "M",
                     returnType: typeof(void),
                     parameters: Parameters(Parameter(typeof(int), "i")),
-                    explicitInterface: s => s.LookupSymbols(input.IndexOf('M'), null, "M").First() as IMethodSymbol);
+                    getExplicitInterfaces: s => s.LookupSymbols(input.IndexOf('M'), null, "M").OfType<IMethodSymbol>().ToImmutableArray());
             }
 
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGeneration)]

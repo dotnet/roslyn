@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Editor.SymbolMapping
+namespace Microsoft.CodeAnalysis.SymbolMapping
 {
     internal interface ISymbolMappingService : IWorkspaceService
     {

@@ -4,6 +4,14 @@
   <Import Project="..\..\build\Targets\Settings.props" />
 
   <Target Name="Build">
+    <MSBuild BuildInParallel="true"
+             Projects="$(MSBuildThisFileDirectory)..\Compilers\CSharp\CscCore\CscCore.csproj"
+             Targets="Publish" />
+
+    <MSBuild BuildInParallel="true"
+             Projects="$(MSBuildThisFileDirectory)..\Compilers\VisualBasic\VbcCore\VbcCore.csproj"
+             Targets="Publish" />
+
     <!-- NuGetPerBuildPreReleaseVersion -->
     <Exec Command="$(OutputPath)Exes\csi\csi.exe $(MSBuildThisFileDirectory)BuildNuGets.csx $(OutputPath) $(NuGetPerBuildPreReleaseVersion) $(OutputPath)NuGet\PerBuildPreRelease" Condition="'$(NuGetPerBuildPreReleaseVersion)' != ''" />
 
