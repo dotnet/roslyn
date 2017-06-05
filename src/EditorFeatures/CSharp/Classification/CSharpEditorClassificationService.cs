@@ -11,7 +11,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Classification
 {
+#pragma warning disable CS0612 // Type or member is obsolete
     [ExportLanguageService(typeof(IEditorClassificationService), LanguageNames.CSharp), Shared]
+#pragma warning restore CS0612 // Type or member is obsolete
     internal class CSharpEditorClassificationService : AbstractEditorClassificationService
     {
         public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)

@@ -9,8 +9,10 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Classification
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Classification
+#Disable Warning BC40008 ' Type or member is obsolete
     <ExportLanguageService(GetType(IEditorClassificationService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEditorClassificationService
+#Enable Warning BC40008 ' Type or member is obsolete
         Inherits AbstractEditorClassificationService
 
         Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
