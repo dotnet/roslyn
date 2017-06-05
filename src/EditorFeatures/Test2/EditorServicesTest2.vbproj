@@ -245,6 +245,7 @@
     <Compile Include="FindReferences\FindReferencesTests.Tuples.vb" />
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="IntelliSense\CompletionServiceTests.vb" />
+    <Compile Include="IntelliSense\CSharpCompletionProviderInternalsVisibleToTests.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />

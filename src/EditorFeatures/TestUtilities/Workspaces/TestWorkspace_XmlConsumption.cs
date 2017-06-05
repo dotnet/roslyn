@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
                 // The document
                 var markupCode = submissionElement.NormalizedValue();
-                MarkupTestFile.GetPositionAndSpans(markupCode, 
+                MarkupTestFile.GetPositionAndSpans(markupCode,
                     out var code, out var cursorPosition, out IDictionary<string, ImmutableArray<TextSpan>> spans);
 
                 var languageServices = workspace.Services.GetLanguageServices(languageName);
@@ -462,6 +462,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var rootNamespace = new VisualBasicCompilationOptions(OutputKind.ConsoleApplication).RootNamespace;
             var globalImports = new List<GlobalImport>();
             var reportDiagnostic = ReportDiagnostic.Default;
+            var cryptoKeyFile = default(string);
+            var strongNameProvider = default(StrongNameProvider);
 
             if (compilationOptionsElement != null)
             {
@@ -478,7 +480,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     reportDiagnostic = (ReportDiagnostic)Enum.Parse(typeof(ReportDiagnostic), (string)reportDiagnosticAttribute);
                 }
-
+                var cryptoKeyFileAttribute = compilationOptionsElement.Attribute(CryptoKeyFileAttributeName);
+                if (cryptoKeyFileAttribute != null)
+                {
+                    cryptoKeyFile = (string)cryptoKeyFileAttribute;
+                }
+                var strongNameProviderAttribute = compilationOptionsElement.Attribute(StrongNameProviderAttributeName);
+                if (strongNameProviderAttribute != null)
+                {
+                    var type = Type.GetType((string)strongNameProviderAttribute);
+                    if (type == typeof(DesktopStrongNameProvider))
+                    {
+                        // DesktopStrongNameProvider does not have a default constructor but an constructor with optional parameters. Activator.CreateInstance does not work with this.
+                        strongNameProvider = new DesktopStrongNameProvider();
+                    }
+                    else
+                    {
+                        strongNameProvider = (StrongNameProvider)Activator.CreateInstance(type);
+                    }
+                }
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
                 if (outputTypeAttribute != null
                     && outputTypeAttribute.Value == "WindowsRuntimeMetadata")
@@ -512,14 +532,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithSourceReferenceResolver(SourceFileResolver.Default)
                                                    .WithXmlReferenceResolver(XmlFileResolver.Default)
                                                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, null)))
-                                                   .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
+                                                   .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
+                                                   .WithCryptoKeyFile(cryptoKeyFile)
+                                                   .WithStrongNameProvider(strongNameProvider);
 
             if (language == LanguageNames.VisualBasic)
             {
                 // VB needs Compilation.ParseOptions set (we do the same at the VS layer)
                 compilationOptions = ((VisualBasicCompilationOptions)compilationOptions).WithRootNamespace(rootNamespace)
                                                                                         .WithGlobalImports(globalImports)
-                                                                                        .WithParseOptions((VisualBasicParseOptions)parseOptions ?? 
+                                                                                        .WithParseOptions((VisualBasicParseOptions)parseOptions ??
                                                                                             VisualBasicParseOptions.Default);
             }
 
