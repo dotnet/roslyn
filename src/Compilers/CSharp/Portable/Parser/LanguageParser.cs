@@ -6518,7 +6518,15 @@ tryAgain:
                 // it as either a declaration or as an "await X();" statement that is in a non-async
                 // method. 
 
-                return ParsePossibleDeclarationOrBadAwaitStatement();
+                result = ParsePossibleDeclarationOrBadAwaitStatement();
+                if (result != null)
+                {
+                    return result;
+                }
+
+                // We failed to parse the statement as a declaration, let's recover
+                // by parsing as an expression statement.
+                return ParseExpressionStatement();
             }
             finally
             {
