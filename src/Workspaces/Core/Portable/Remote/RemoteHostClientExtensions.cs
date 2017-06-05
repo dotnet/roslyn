@@ -46,41 +46,52 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public static Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
-             this Solution solution, Option<bool> option, string experimentName, CancellationToken cancellationToken)
-             => TryCreateCodeAnalysisServiceSessionAsync(solution, option, experimentName, callbackTarget: null, cancellationToken: cancellationToken);
+             this Solution solution, Option<bool> featureOption, CancellationToken cancellationToken)
+             => TryCreateCodeAnalysisServiceSessionAsync(solution, featureOption, callbackTarget: null, cancellationToken: cancellationToken);
 
-        public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> option, string experimentName)
+        public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> featureOption)
         {
-            var outOfProcessAllowed = workspace.Options.GetOption(option);
+            // If the feature has explicitly opted out of OOP then we won't run it OOP.
+            var outOfProcessAllowed = workspace.Options.GetOption(featureOption);
             if (!outOfProcessAllowed)
             {
                 return false;
             }
 
-            // Treat experiments as always on in tests.
-            if (experimentName != null && workspace.Kind != WorkspaceKind.Test)
+            if (workspace.Options.GetOption(RemoteFeatureOptions.OutOfProcessAllowed))
             {
-                var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
-                if (!experimentEnabled.IsExperimentEnabled(experimentName))
-                {
-                    return false;
-                }
+                // If the user has explicitly enabled OOP, then the feature is allowed to run in OOP.
+                return true;
+            }
+
+            // Otherwise we check if the user is in the AB experiment enabling OOP.
+
+            var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
+            if (!experimentEnabled.IsExperimentEnabled(WellKnownExperimentNames.RoslynFeatureOOP))
+            {
+                return false;
             }
 
             return true;
         }
 
-        public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
-            this Solution solution, Option<bool> option, string experimentName, object callbackTarget, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> TryGetRemoteHostClientAsync(
+            this Workspace workspace, Option<bool> featureOption, CancellationToken cancellationToken)
         {
-            var workspace = solution.Workspace;
-
-            if (!workspace.IsOutOfProcessEnabled(option, experimentName))
+            if (!workspace.IsOutOfProcessEnabled(featureOption))
             {
                 return null;
             }
 
             var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return client;
+        }
+
+        public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+            this Solution solution, Option<bool> option, object callbackTarget, CancellationToken cancellationToken)
+        {
+            var workspace = solution.Workspace;
+            var client = await TryGetRemoteHostClientAsync(workspace, option, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return null;

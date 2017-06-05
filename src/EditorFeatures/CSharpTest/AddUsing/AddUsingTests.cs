@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -66,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
             Workspace workspace, TestParameters parameters)
         {
-            workspace.Options = workspace.Options.WithChangedOption(
-                AddImportOptions.OutOfProcessAllowed, (bool)parameters.fixProviderData);
+            workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, (bool)parameters.fixProviderData)
+                                                 .WithChangedOption(RemoteFeatureOptions.AddImportEnabled, (bool)parameters.fixProviderData);
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }

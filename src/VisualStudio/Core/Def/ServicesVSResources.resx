@@ -924,4 +924,13 @@ Additional information: {1}</value>
   <data name="Preview_pane" xml:space="preserve">
     <value>Preview pane</value>
   </data>
+  <data name="Analysis" xml:space="preserve">
+    <value>Analysis</value>
+  </data>
+  <data name="Enable_full_solution_analysis" xml:space="preserve">
+    <value>Enable full solution _analysis</value>
+  </data>
+  <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
+    <value>Perform editor _feature analysis in external process (experimental)</value>
+  </data>
 </root>

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
             var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
-                 DocumentHighlightingOptions.OutOfProcessAllowed, WellKnownExperimentNames.RoslynFeatureOOP, cancellationToken).ConfigureAwait(false);
+                 RemoteFeatureOptions.DocumentHighlightingEnabled, cancellationToken).ConfigureAwait(false);
 
             using (session)
             {

@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Remote
 Imports Microsoft.CodeAnalysis.VisualBasic.AddImport
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
@@ -42,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
         End Function
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, parameters As TestParameters) As (DiagnosticAnalyzer, CodeFixProvider)
-            workspace.Options = workspace.Options.WithChangedOption(
-                AddImportOptions.OutOfProcessAllowed, DirectCast(parameters.fixProviderData, Boolean))
+            workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, DirectCast(parameters.fixProviderData, Boolean)).
+                                                  WithChangedOption(RemoteFeatureOptions.AddImportEnabled, DirectCast(parameters.fixProviderData, Boolean))
 
             Return MyBase.CreateDiagnosticProviderAndFixer(workspace, parameters)
         End Function
