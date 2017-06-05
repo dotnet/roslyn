@@ -2705,7 +2705,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>This warning occurs if the assembly attributes AssemblyKeyFileAttribute or AssemblyKeyNameAttribute found in source conflict with the /keyfile or /keycontainer command line option or key file name or key container specified in the Project Properties.</value>
   </data>
   <data name="ERR_BadCompatMode" xml:space="preserve">
-    <value>Invalid option '{0}' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1.</value>
+    <value>Invalid option '{0}' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.2.</value>
   </data>
   <data name="ERR_DelegateOnConditional" xml:space="preserve">
     <value>Cannot create delegate with '{0}' because it or a method it overrides has a Conditional attribute</value>
@@ -4472,7 +4472,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                                form: /d)
  /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3,
-                               4, 5, 6, 7, 7.1, Default, or Latest
+                               4, 5, 6, 7.0, 7.1, 7.2, Default, or Latest
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public
@@ -5047,6 +5047,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion7_1" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 7.1. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion7_2" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 7.2. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_LanguageVersionCannotHaveLeadingZeroes" xml:space="preserve">
     <value>Specified language version '{0}' cannot have leading zeroes</value>

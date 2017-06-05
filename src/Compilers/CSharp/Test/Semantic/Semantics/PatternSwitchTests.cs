@@ -819,9 +819,9 @@ class Program
     }
 }";
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
-                // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                // (18,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case Color x when false:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7").WithLocation(18, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case Color x when false:").WithArguments("pattern matching", "7.0").WithLocation(18, 13),
                 // (11,17): warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 //                 goto case 1; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 1;").WithArguments("Color").WithLocation(11, 17),
@@ -834,9 +834,9 @@ class Program
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
-                // (18,13): error CS8070: Control cannot fall out of switch from final case label ('case Color x when false:')
-                //             case Color x when false:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case Color x when false:").WithArguments("case Color x when false:").WithLocation(18, 13)
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
                 );
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
@@ -3183,6 +3183,87 @@ static class Ex
                 source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
             compilation.VerifyDiagnostics();
             var comp = CompileAndVerify(compilation);
+        }
+
+        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        public void SemanticModelForBrokenSwitch_01()
+        {
+            // a syntax error that happens to look like a pattern switch if you squint
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        bool x = true;
+
+        switch (x) {
+            case
+
+        var q = 3;
+        var y = q/*BIND*/;
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            compilation.VerifyDiagnostics(
+                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, @"case
+
+        var q ").WithArguments("pattern matching", "7.0").WithLocation(8, 13),
+                // (10,15): error CS1003: Syntax error, ':' expected
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":", "=").WithLocation(10, 15),
+                // (10,15): error CS1525: Invalid expression term '='
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(10, 15),
+                // (13,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2),
+                // (10,9): error CS8070: Control cannot fall out of switch from final case label ('var q')
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "var q").WithArguments("var q").WithLocation(10, 9)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
+                .Single();
+            var type = model.GetTypeInfo(node);
+        }
+
+        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        public void SemanticModelForBrokenSwitch_02()
+        {
+            // a simple legal pattern switch but run in language version 6
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        bool b = true;
+        switch (b) {
+            case var q:
+                System.Console.WriteLine(q/*BIND*/);
+                break;
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            compilation.VerifyDiagnostics(
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
+                //             case var q:
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case var q:").WithArguments("pattern matching", "7.0").WithLocation(7, 13)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
+                .Single();
+            var type = model.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
     }
 }
