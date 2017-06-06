@@ -921,4 +921,7 @@ Additional information: {1}</value>
   <data name="Prefer_simple_default_expression" xml:space="preserve">
     <value>Prefer simple 'default' expression</value>
   </data>
+  <data name="Preview_pane" xml:space="preserve">
+    <value>Preview pane</value>
+  </data>
 </root>

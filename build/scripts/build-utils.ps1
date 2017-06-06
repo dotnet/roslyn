@@ -265,7 +265,7 @@ function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir)
         $filePath = Join-Path $repoDir $fileName
     }
 
-    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath }
+    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Write-Host
 }
 
 # Restore all of the projects that the repo consumes
