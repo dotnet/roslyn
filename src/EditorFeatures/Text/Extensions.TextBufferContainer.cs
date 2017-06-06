@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Text
                 Contract.ThrowIfNull(encoding);
 
                 _weakEditorBuffer = new WeakReference<ITextBuffer>(editorBuffer);
-                _currentText = new SnapshotSourceText(TextBufferMapper.ToRoslyn(editorBuffer.CurrentSnapshot), encoding, this);
+                _currentText = new SnapshotSourceText(TextBufferMapper.ToReverseMappedTextImage(editorBuffer.CurrentSnapshot), encoding, this);
             }
 
             /// <summary>
