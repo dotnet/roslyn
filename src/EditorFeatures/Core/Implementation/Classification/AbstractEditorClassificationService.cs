@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public Task AddSemanticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var classificationService = document.GetLanguageService<IClassificationService>();
+            var classificationService = document.GetLanguageService<ISyntaxClassificationService>();
 
             var extensionManager = document.Project.Solution.Workspace.Services.GetService<IExtensionManager>();
             var classifiers = classificationService.GetDefaultSyntaxClassifiers();
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
         public async Task AddSyntacticClassificationsAsync(Document document, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            var classificationService = document.GetLanguageService<IClassificationService>();
+            var classificationService = document.GetLanguageService<ISyntaxClassificationService>();
             var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             classificationService.AddSyntacticClassifications(syntaxTree, textSpan, result, cancellationToken);

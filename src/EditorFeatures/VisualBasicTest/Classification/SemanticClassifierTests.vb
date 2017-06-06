@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Dim service = document.GetLanguageService(Of IClassificationService)()
+                Dim service = document.GetLanguageService(Of ISyntaxClassificationService)()
 
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
