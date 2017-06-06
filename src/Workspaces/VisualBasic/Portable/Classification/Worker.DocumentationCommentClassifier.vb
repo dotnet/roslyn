@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 End Select
             End Sub
 
-            Private Sub ClassifyXmlTrivia(trivialList As SyntaxTriviaList, Optional whitespaceClassificationType As String = Nothing)
+            Private Sub ClassifyXmlTrivia(trivialList As SyntaxTriviaList, Optional whitespaceClassificationType As ClassificationTypeKind? = Nothing)
                 For Each t In trivialList
                     Select Case t.Kind()
                         Case SyntaxKind.DocumentationCommentExteriorTrivia
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
                     If spanStart IsNot Nothing AndAlso Char.IsWhiteSpace(ch) Then
                         Dim span = TextSpan.FromBounds(spanStart.Value, spanStart.Value + index)
-                        _worker.AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter)
+                        _worker.AddClassification(span, ClassificationTypeKind.XmlDocCommentDelimiter)
                         spanStart = Nothing
                     ElseIf spanStart Is Nothing AndAlso Not Char.IsWhiteSpace(ch) Then
                         spanStart = trivia.Span.Start + index
@@ -94,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 ' Add a final classification if we hadn't encountered anymore whitespace at the end
                 If spanStart IsNot Nothing Then
                     Dim span = TextSpan.FromBounds(spanStart.Value, trivia.Span.End)
-                    _worker.AddClassification(span, ClassificationTypeNames.XmlDocCommentDelimiter)
+                    _worker.AddClassification(span, ClassificationTypeKind.XmlDocCommentDelimiter)
                 End If
             End Sub
 
-            Private Sub AddXmlClassification(token As SyntaxToken, classificationType As String)
+            Private Sub AddXmlClassification(token As SyntaxToken, classificationType As ClassificationTypeKind)
                 If token.HasLeadingTrivia Then
                     ClassifyXmlTrivia(token.LeadingTrivia, classificationType)
                 End If
@@ -113,44 +113,44 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Private Sub ClassifyXmlTextTokens(textTokens As SyntaxTokenList)
                 For Each token In textTokens
                     If token.HasLeadingTrivia Then
-                        ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType:=ClassificationTypeNames.XmlDocCommentText)
+                        ClassifyXmlTrivia(token.LeadingTrivia, whitespaceClassificationType:=ClassificationTypeKind.XmlDocCommentText)
                     End If
 
                     ClassifyXmlTextToken(token)
 
                     If token.HasTrailingTrivia Then
-                        ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType:=ClassificationTypeNames.XmlDocCommentText)
+                        ClassifyXmlTrivia(token.TrailingTrivia, whitespaceClassificationType:=ClassificationTypeKind.XmlDocCommentText)
                     End If
                 Next token
             End Sub
 
             Private Sub ClassifyXmlTextToken(token As SyntaxToken)
                 If token.Kind = SyntaxKind.XmlEntityLiteralToken Then
-                    _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference)
+                    _worker.AddClassification(token, ClassificationTypeKind.XmlDocCommentEntityReference)
                 ElseIf token.Kind() <> SyntaxKind.DocumentationCommentLineBreakToken Then
                     Select Case token.Parent.Kind
                         Case SyntaxKind.XmlText
-                            _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentText)
+                            _worker.AddClassification(token, ClassificationTypeKind.XmlDocCommentText)
                         Case SyntaxKind.XmlString
-                            _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentAttributeValue)
+                            _worker.AddClassification(token, ClassificationTypeKind.XmlDocCommentAttributeValue)
                         Case SyntaxKind.XmlComment
-                            _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentComment)
+                            _worker.AddClassification(token, ClassificationTypeKind.XmlDocCommentComment)
                         Case SyntaxKind.XmlCDataSection
-                            _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentCDataSection)
+                            _worker.AddClassification(token, ClassificationTypeKind.XmlDocCommentCDataSection)
                         Case SyntaxKind.XmlProcessingInstruction
-                            _worker.AddClassification(token, ClassificationTypeNames.XmlDocCommentProcessingInstruction)
+                            _worker.AddClassification(token, ClassificationTypeKind.XmlDocCommentProcessingInstruction)
                     End Select
                 End If
             End Sub
 
             Private Sub ClassifyXmlName(node As XmlNameSyntax)
-                Dim classificationType As String
+                Dim classificationType As ClassificationTypeKind
                 If TypeOf node.Parent Is BaseXmlAttributeSyntax Then
-                    classificationType = ClassificationTypeNames.XmlDocCommentAttributeName
+                    classificationType = ClassificationTypeKind.XmlDocCommentAttributeName
                 ElseIf TypeOf node.Parent Is XmlProcessingInstructionSyntax Then
-                    classificationType = ClassificationTypeNames.XmlDocCommentProcessingInstruction
+                    classificationType = ClassificationTypeKind.XmlDocCommentProcessingInstruction
                 Else
-                    classificationType = ClassificationTypeNames.XmlDocCommentName
+                    classificationType = ClassificationTypeKind.XmlDocCommentName
                 End If
 
                 Dim prefix = node.Prefix
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyElementStart(node As XmlElementStartTagSyntax)
-                AddXmlClassification(node.LessThanToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.LessThanToken, ClassificationTypeKind.XmlDocCommentDelimiter)
                 ClassifyXmlNode(node.Name)
 
                 ' Note: In xml doc comments, attributes can only _be_ attributes.
@@ -182,17 +182,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     ClassifyBaseXmlAttribute(TryCast(attribute, BaseXmlAttributeSyntax))
                 Next
 
-                AddXmlClassification(node.GreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.GreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter)
             End Sub
 
             Private Sub ClassifyElementEnd(node As XmlElementEndTagSyntax)
-                AddXmlClassification(node.LessThanSlashToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.LessThanSlashToken, ClassificationTypeKind.XmlDocCommentDelimiter)
                 ClassifyXmlNode(node.Name)
-                AddXmlClassification(node.GreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.GreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter)
             End Sub
 
             Private Sub ClassifyEmptyElement(node As XmlEmptyElementSyntax)
-                AddXmlClassification(node.LessThanToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.LessThanToken, ClassificationTypeKind.XmlDocCommentDelimiter)
                 ClassifyXmlNode(node.Name)
 
                 ' Note: In xml doc comments, attributes can only _be_ attributes.
@@ -201,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     ClassifyBaseXmlAttribute(TryCast(attribute, BaseXmlAttributeSyntax))
                 Next
 
-                AddXmlClassification(node.SlashGreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.SlashGreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter)
             End Sub
 
             Private Sub ClassifyBaseXmlAttribute(attribute As BaseXmlAttributeSyntax)
@@ -221,24 +221,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             Private Sub ClassifyAttribute(attribute As XmlAttributeSyntax)
                 ClassifyXmlNode(attribute.Name)
-                AddXmlClassification(attribute.EqualsToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(attribute.EqualsToken, ClassificationTypeKind.XmlDocCommentDelimiter)
                 ClassifyXmlNode(attribute.Value)
             End Sub
 
             Private Sub ClassifyCrefAttribute(attribute As XmlCrefAttributeSyntax)
                 ClassifyXmlNode(attribute.Name)
-                AddXmlClassification(attribute.EqualsToken, ClassificationTypeNames.XmlDocCommentDelimiter)
-                AddXmlClassification(attribute.StartQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+                AddXmlClassification(attribute.EqualsToken, ClassificationTypeKind.XmlDocCommentDelimiter)
+                AddXmlClassification(attribute.StartQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes)
                 _worker.ClassifyNode(attribute.Reference)
-                AddXmlClassification(attribute.EndQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+                AddXmlClassification(attribute.EndQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes)
             End Sub
 
             Private Sub ClassifyNameAttribute(attribute As XmlNameAttributeSyntax)
                 ClassifyXmlNode(attribute.Name)
-                AddXmlClassification(attribute.EqualsToken, ClassificationTypeNames.XmlDocCommentDelimiter)
-                AddXmlClassification(attribute.StartQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+                AddXmlClassification(attribute.EqualsToken, ClassificationTypeKind.XmlDocCommentDelimiter)
+                AddXmlClassification(attribute.StartQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes)
                 _worker.ClassifyNode(attribute.Reference)
-                AddXmlClassification(attribute.EndQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+                AddXmlClassification(attribute.EndQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes)
             End Sub
 
             Private Sub ClassifyXmlText(xmlTextSyntax As XmlTextSyntax)
@@ -246,28 +246,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyString(node As XmlStringSyntax)
-                AddXmlClassification(node.StartQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+                AddXmlClassification(node.StartQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes)
                 ClassifyXmlTextTokens(node.TextTokens)
-                AddXmlClassification(node.EndQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes)
+                AddXmlClassification(node.EndQuoteToken, ClassificationTypeKind.XmlDocCommentAttributeQuotes)
             End Sub
 
             Private Sub ClassifyComment(node As XmlCommentSyntax)
-                AddXmlClassification(node.LessThanExclamationMinusMinusToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.LessThanExclamationMinusMinusToken, ClassificationTypeKind.XmlDocCommentDelimiter)
                 ClassifyXmlTextTokens(node.TextTokens)
-                AddXmlClassification(node.MinusMinusGreaterThanToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.MinusMinusGreaterThanToken, ClassificationTypeKind.XmlDocCommentDelimiter)
             End Sub
 
             Private Sub ClassifyCData(node As XmlCDataSectionSyntax)
-                AddXmlClassification(node.BeginCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.BeginCDataToken, ClassificationTypeKind.XmlDocCommentDelimiter)
                 ClassifyXmlTextTokens(node.TextTokens)
-                AddXmlClassification(node.EndCDataToken, ClassificationTypeNames.XmlDocCommentDelimiter)
+                AddXmlClassification(node.EndCDataToken, ClassificationTypeKind.XmlDocCommentDelimiter)
             End Sub
 
             Private Sub ClassifyProcessingInstruction(node As XmlProcessingInstructionSyntax)
-                AddXmlClassification(node.LessThanQuestionToken, ClassificationTypeNames.XmlDocCommentProcessingInstruction)
-                AddXmlClassification(node.Name, ClassificationTypeNames.XmlDocCommentProcessingInstruction)
+                AddXmlClassification(node.LessThanQuestionToken, ClassificationTypeKind.XmlDocCommentProcessingInstruction)
+                AddXmlClassification(node.Name, ClassificationTypeKind.XmlDocCommentProcessingInstruction)
                 ClassifyXmlTextTokens(node.TextTokens)
-                AddXmlClassification(node.QuestionGreaterThanToken, ClassificationTypeNames.XmlDocCommentProcessingInstruction)
+                AddXmlClassification(node.QuestionGreaterThanToken, ClassificationTypeKind.XmlDocCommentProcessingInstruction)
             End Sub
 
         End Class

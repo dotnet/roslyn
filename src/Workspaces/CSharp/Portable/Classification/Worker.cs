@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal partial class Worker
     {
         private readonly TextSpan _textSpan;
-        private readonly ArrayBuilder<ClassifiedSpan> _result;
+        private readonly ArrayBuilder<ClassifiedSpanSlim> _result;
         private readonly CancellationToken _cancellationToken;
 
-        private Worker(TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+        private Worker(TextSpan textSpan, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken)
         {
             _result = result;
             _textSpan = textSpan;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         internal static void CollectClassifiedSpans(
-            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken)
         {
             var worker = new Worker(textSpan, result, cancellationToken);
             foreach (var tk in tokens)
@@ -38,17 +38,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         internal static void CollectClassifiedSpans(
-            SyntaxNode node, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
+            SyntaxNode node, TextSpan textSpan, ArrayBuilder<ClassifiedSpanSlim> result, CancellationToken cancellationToken)
         {
             var worker = new Worker(textSpan, result, cancellationToken);
             worker.ClassifyNode(node);
         }
 
-        private void AddClassification(TextSpan span, string type)
+        private void AddClassification(TextSpan span, ClassificationTypeKind? type)
         {
-            if (ShouldAddSpan(span))
+            if (type != null && ShouldAddSpan(span))
             {
-                _result.Add(new ClassifiedSpan(type, span));
+                _result.Add(new ClassifiedSpanSlim(type.Value, span));
             }
         }
 
@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return span.Length > 0 && _textSpan.OverlapsWith(span);
         }
 
-        private void AddClassification(SyntaxTrivia trivia, string type)
+        private void AddClassification(SyntaxTrivia trivia, ClassificationTypeKind? type)
         {
             AddClassification(trivia.Span, type);
         }
 
-        private void AddClassification(SyntaxToken token, string type)
+        private void AddClassification(SyntaxToken token, ClassificationTypeKind? type)
         {
             AddClassification(token.Span, type);
         }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                 case SyntaxKind.ShebangDirectiveTrivia:
-                    AddClassification(trivia, ClassificationTypeNames.Comment);
+                    AddClassification(trivia, ClassificationTypeKind.Comment);
                     return;
 
                 case SyntaxKind.DisabledTextTrivia:
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     return;
 
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
-                    AddClassification(trivia, ClassificationTypeNames.XmlDocCommentDelimiter);
+                    AddClassification(trivia, ClassificationTypeKind.XmlDocCommentDelimiter);
                     return;
 
                 case SyntaxKind.ConflictMarkerTrivia:
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyConflictMarker(SyntaxTrivia trivia)
         {
-            AddClassification(trivia, ClassificationTypeNames.Comment);
+            AddClassification(trivia, ClassificationTypeKind.Comment);
         }
 
         private void ClassifyDisabledText(SyntaxTrivia trivia, SyntaxTriviaList triviaList)
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
             else
             {
-                AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
+                AddClassification(trivia, ClassificationTypeKind.ExcludedCode);
             }
         }
     }
