@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// and also make sure state is correct even if multiple threads call TryInvokeAsync at the same time. but this 
     /// is not optimized to handle highly concurrent usage. if highly concurrent usage is required, either using
-    /// <see cref="RemoteHostCLient.Session"/> direclty or using <see cref="SolutionAndSessionHolder"/> would be better choice
+    /// <see cref="RemoteHostClient.Session"/> direclty or using <see cref="SolutionAndSessionHolder"/> would be better choice
     /// </summary>
     internal sealed class KeepAliveSessionHolder
     {
