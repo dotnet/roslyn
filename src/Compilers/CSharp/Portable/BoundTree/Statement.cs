@@ -18,7 +18,221 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundBadStatement
     {
-        protected override ImmutableArray<BoundNode> Children => this.ChildBoundNodes;
+        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
+            new ConditionalWeakTable<BoundLocalDeclaration, object>();
+
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
+        {
+            get
+            {
+                return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
+                    declaration => ImmutableArray.Create<IVariableDeclaration>(new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+            }
+        }
+
+        protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitVariableDeclarationStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitVariableDeclarationStatement(this, argument);
+        }
+    }
+
+    internal partial class BoundMultipleLocalDeclarations : IVariableDeclarationStatement
+    {
+        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_variablesMappings =
+            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
+
+        ImmutableArray<IVariableDeclaration> IVariableDeclarationStatement.Declarations
+        {
+            get
+            {
+                return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(this,
+                    multipleDeclarations =>
+                        multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
+                            (IVariableDeclaration)new VariableDeclaration(declaration.LocalSymbol, declaration.InitializerOpt, declaration.Syntax)));
+            }
+        }
+
+        protected override OperationKind StatementKind => OperationKind.VariableDeclarationStatement;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitVariableDeclarationStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitVariableDeclarationStatement(this, argument);
+        }
+    }
+
+    internal partial class BoundLabelStatement : ILabelStatement
+    {
+        // These represent synthesized labels, and do not have an attached statement.
+        IOperation ILabelStatement.LabeledStatement => null;
+
+        ILabelSymbol ILabelStatement.Label => this.Label;
+
+        protected override OperationKind StatementKind => OperationKind.LabelStatement;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLabelStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLabelStatement(this, argument);
+        }
+    }
+
+    internal partial class BoundLabeledStatement : ILabelStatement
+    {
+        IOperation ILabelStatement.LabeledStatement => this.Body;
+
+        ILabelSymbol ILabelStatement.Label => this.Label;
+
+        protected override OperationKind StatementKind => OperationKind.LabelStatement;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLabelStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLabelStatement(this, argument);
+        }
+    }
+
+    internal partial class BoundExpressionStatement : IExpressionStatement
+    {
+        IOperation IExpressionStatement.Expression => this.Expression;
+
+        protected override OperationKind StatementKind => OperationKind.ExpressionStatement;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitExpressionStatement(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitExpressionStatement(this, argument);
+        }
+    }
+
+    internal partial class BoundSwitchSection
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundStatementList
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundConditionalGoto
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundSequencePoint
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundSequencePointWithSpan
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    internal partial class BoundStateMachineScope
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
+    partial class BoundLocalFunctionStatement
+    {
+        protected override OperationKind StatementKind => OperationKind.None;
+
+        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Body);
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
     }
 
     partial class BoundPatternSwitchStatement

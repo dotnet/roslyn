@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return null;
             }
 
-            using (var invisibleEditor = new InvisibleEditor(fileCodeModel.ServiceProvider, hostDocument.FilePath, needsSave: false, needsUndoDisabled: false))
+            using (var invisibleEditor = new InvisibleEditor(fileCodeModel.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave: false, needsUndoDisabled: false))
             {
                 var vsTextLines = invisibleEditor.VsTextLines;
 

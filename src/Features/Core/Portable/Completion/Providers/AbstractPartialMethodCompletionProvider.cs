@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 modifiers: MemberInsertionCompletionItem.GetModifiers(item),
                 returnType: semanticModel.Compilation.GetSpecialType(SpecialType.System_Void),
                 returnsByRef: method.ReturnsByRef,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: member.Name,
                 typeParameters: method.TypeParameters,
                 parameters: method.Parameters.SelectAsArray(p => CodeGenerationSymbolFactory.CreateParameterSymbol(p.GetAttributes(), p.RefKind, p.IsParams, p.Type, p.Name)),
