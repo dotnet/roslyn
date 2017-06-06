@@ -11,7 +11,6 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Symbol.UnitTests</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net452</PackageTargetFallback>
     <NoStdLib>true</NoStdLib>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

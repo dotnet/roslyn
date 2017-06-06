@@ -16,11 +16,9 @@ namespace Microsoft.CodeAnalysis.Remote
             builder.Add(typeof(TodoComment), new TodoCommentJsonConverter());
         }
 
-        private class TodoCommentDescriptorJsonConverter : BaseJsonConverter
+        private class TodoCommentDescriptorJsonConverter : BaseJsonConverter<TodoCommentDescriptor>
         {
-            public override bool CanConvert(Type objectType) => typeof(TodoCommentDescriptor) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TodoCommentDescriptor ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -34,10 +32,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return new TodoCommentDescriptor(text, (int)priority);
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            protected override void WriteValue(JsonWriter writer, TodoCommentDescriptor descriptor, JsonSerializer serializer)
             {
-                var descriptor = (TodoCommentDescriptor)value;
-
                 writer.WriteStartObject();
 
                 writer.WritePropertyName("text");
@@ -50,11 +46,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private class TodoCommentJsonConverter : BaseJsonConverter
+        private class TodoCommentJsonConverter : BaseJsonConverter<TodoComment>
         {
-            public override bool CanConvert(Type objectType) => typeof(TodoComment) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TodoComment ReadValue(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -69,10 +63,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 return new TodoComment(descriptor, message, (int)position);
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            protected override void WriteValue(JsonWriter writer, TodoComment todoComment, JsonSerializer serializer)
             {
-                var todoComment = (TodoComment)value;
-
                 writer.WriteStartObject();
 
                 writer.WritePropertyName("descriptor");

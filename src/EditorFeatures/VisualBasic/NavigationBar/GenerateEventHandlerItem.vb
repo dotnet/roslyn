@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 modifiers:=New DeclarationModifiers(),
                 returnType:=delegateInvokeMethod.ReturnType,
                 returnsByRef:=delegateInvokeMethod.ReturnsByRef,
-                explicitInterfaceSymbol:=Nothing,
+                explicitInterfaceImplementations:=Nothing,
                 name:=methodName,
                 typeParameters:=Nothing,
                 parameters:=delegateInvokeMethod.Parameters,

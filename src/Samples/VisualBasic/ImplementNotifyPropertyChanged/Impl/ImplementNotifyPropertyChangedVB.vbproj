@@ -65,8 +65,8 @@
     <PackageReference Include="EnvDTE">
       <Version>$(EnvDTEVersion)</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
+    <PackageReference Include="System.Composition">
+      <Version>$(SystemCompositionVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
