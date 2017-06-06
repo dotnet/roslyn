@@ -1,0 +1,5 @@
+#!/bin/sh
+
+THISDIR=$(dirname $0)
+
+dotnet $THISDIR/csc.dll "$@"
