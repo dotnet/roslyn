@@ -10921,25 +10921,31 @@ tryAgain:
         {
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
-            SyntaxToken refOrOutOrParams = IsParameterModifier(this.CurrentToken.Kind)
-                ? this.EatToken()
-                : null;
+            bool hasModifier = IsParameterModifier(this.CurrentToken.Kind);
 
-            TypeSyntax paramType = ShouldParseLambdaParameterType(refOrOutOrParams)
-                ? ParseType(ParseTypeMode.Parameter)
-                : null;
+            TypeSyntax paramType = null;
+            SyntaxListBuilder modifiers = _pool.Allocate();
+
+            if (ShouldParseLambdaParameterType(hasModifier))
+            {
+                if (hasModifier)
+                {
+                    ParseParameterModifiers(modifiers);
+                }
+
+                paramType = ParseType(ParseTypeMode.Parameter);
+            }
 
             SyntaxToken paramName = this.ParseIdentifierToken();
-            return _syntaxFactory.Parameter(
-                default(SyntaxList<AttributeListSyntax>),
-                refOrOutOrParams, paramType, paramName,
-                @default: null);
+            var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, null);
+            _pool.Free(modifiers);
+            return parameter;
         }
 
-        private bool ShouldParseLambdaParameterType(SyntaxToken refOrOutOrParams)
+        private bool ShouldParseLambdaParameterType(bool hasModifier)
         {
-            // If we have "ref/out/params" always try to parse out a type.
-            if (refOrOutOrParams != null)
+            // If we have "ref/out/in/params" always try to parse out a type.
+            if (hasModifier)
             {
                 return true;
             }

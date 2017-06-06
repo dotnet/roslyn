@@ -2715,9 +2715,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(bodyBinder != null);
 
             RefKind refKind = RefKind.None;
-            ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(
-                diagnostics, out refKind);
-            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
+            ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(diagnostics, out refKind);
+            BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
+            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -2731,7 +2731,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RefKind refKind;
             var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
-            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
+            BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
+            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 

@@ -3453,8 +3453,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundExpression BindConditionalOperator(ConditionalExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var whenTrue = node.WhenTrue.SkipRef(out var whenTrueRefKind);
-            var whenFalse = node.WhenFalse.SkipRef(out var whenFalseRefKind);
+            var whenTrue = node.WhenTrue.CheckAndUnwrapRefExpression(diagnostics, out var whenTrueRefKind);
+            var whenFalse = node.WhenFalse.CheckAndUnwrapRefExpression(diagnostics, out var whenFalseRefKind);
 
             var isRef = whenTrueRefKind == RefKind.Ref  && whenFalseRefKind == RefKind.Ref;
 

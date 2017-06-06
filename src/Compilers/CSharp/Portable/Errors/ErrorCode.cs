@@ -1493,8 +1493,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureNotAvailableInVersion7_2 = 8320,
         #endregion diagnostics introduced for C# 7.2
 
-        #endregion diagnostics for readonly-ref
-
         //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
         //                         For now it is more convenient to have a gap to avoid conflicts with other added errors
         ERR_RefConditionalAndAwait = 8401,
