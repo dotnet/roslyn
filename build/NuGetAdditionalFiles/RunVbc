@@ -1,5 +1,0 @@
-#!/bin/sh
-
-THISDIR=$(dirname $0)
-
-dotnet $THISDIR/vbc.exe "$@"

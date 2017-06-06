@@ -58,6 +58,13 @@ namespace RunTests
         /// </summary>
         public List<string> Assemblies { get; set; }
 
+        /// <summary>
+        /// Time after which the runner should kill the xunit process and exit with a failure.
+        /// </summary>
+        public TimeSpan? Timeout { get; set; }
+
+        public string ProcDumpPath { get; set; }
+
         public string XunitPath { get; set; }
 
         /// <summary>
@@ -142,6 +149,25 @@ namespace RunTests
                 else if (isOption(current, "-notrait", out value))
                 {
                     opt.NoTrait = value;
+                    index++;
+                }
+                else if (isOption(current, "-timeout", out value))
+                {
+                    if (int.TryParse(value, out var minutes))
+                    {
+                        opt.Timeout = TimeSpan.FromMinutes(minutes);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{value} is not a valid minute value for timeout");
+                        allGood = false;
+                    }
+
+                    index++;
+                }
+                else if (isOption(current, "-procdumpPath", out value))
+                {
+                    opt.ProcDumpPath = value;
                     index++;
                 }
                 else

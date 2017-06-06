@@ -2863,6 +2863,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
+        Friend Overrides Function WithExplicitInterfaceImplementations(declaration As SyntaxNode, explicitInterfaceImplementations As ImmutableArray(Of IMethodSymbol)) As SyntaxNode
+            If TypeOf declaration Is MethodStatementSyntax Then
+                Dim methodStatement = DirectCast(declaration, MethodStatementSyntax)
+
+                Dim interfaceMembers = explicitInterfaceImplementations.Select(AddressOf GenerateInterfaceMember)
+
+                Return methodStatement.WithImplementsClause(
+                    SyntaxFactory.ImplementsClause(SyntaxFactory.SeparatedList(interfaceMembers)))
+            ElseIf TypeOf declaration Is MethodBlockSyntax Then
+                Dim methodBlock = DirectCast(declaration, MethodBlockSyntax)
+                Return methodBlock.WithSubOrFunctionStatement(
+                    DirectCast(WithExplicitInterfaceImplementations(methodBlock.SubOrFunctionStatement, explicitInterfaceImplementations), MethodStatementSyntax))
+            End If
+
+            Return declaration
+        End Function
+
+        Private Function GenerateInterfaceMember(method As IMethodSymbol) As QualifiedNameSyntax
+            Dim interfaceName = method.ContainingType.GenerateTypeSyntax()
+            Return SyntaxFactory.QualifiedName(
+                DirectCast(interfaceName, NameSyntax),
+                SyntaxFactory.IdentifierName(method.Name))
+        End Function
+
         Public Overrides Function WithTypeConstraint(declaration As SyntaxNode, typeParameterName As String, kinds As SpecialTypeConstraintKind, Optional types As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
             Dim constraints = SyntaxFactory.SeparatedList(Of ConstraintSyntax)
 

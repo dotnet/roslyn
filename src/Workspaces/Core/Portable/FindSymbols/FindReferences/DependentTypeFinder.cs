@@ -106,7 +106,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
             // We only want implementing types here, not derived interfaces.
-            return derivedAndImplementingTypes.WhereAsArray(t => t.Symbol.TypeKind == TypeKind.Class);
+            return derivedAndImplementingTypes.WhereAsArray(
+                t => t.Symbol.TypeKind == TypeKind.Class || t.Symbol.TypeKind == TypeKind.Struct);
         }
 
         /// <summary>
