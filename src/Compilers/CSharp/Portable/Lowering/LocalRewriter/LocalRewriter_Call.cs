@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int i = 0;
                 for (; i < parameters.Length; ++i)
                 {
-                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], arguments[i]));
+                    argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], CSharpOperationFactory.Create(arguments[i])));
                 }
 
                 // TODO: In case of __arglist, we will have more arguments than parameters, 
@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //       https://github.com/dotnet/roslyn/issues/19673
                 for (; i < arguments.Length; ++i)
                 {
-                    argumentsBuilder.Add(BoundCall.CreateArgumentOperation(ArgumentKind.Explicit, null, arguments[i]));
+                    argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, null, CSharpOperationFactory.Create(arguments[i])));
                 }
 
                 Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
