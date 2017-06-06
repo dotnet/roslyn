@@ -3213,7 +3213,7 @@ class C
             Assert.Equal(TypeKind.Struct, mTuple.TypeKind);
             AssertTupleTypeEquality(mTuple);
             Assert.False(mTuple.IsImplicitlyDeclared);
-            Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture));
+            Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture));
             Assert.Null(mTuple.BaseType);
             Assert.False(((TupleTypeSymbol)mTuple).UnderlyingDefinitionToMemberMap.Any());
 
@@ -4135,7 +4135,6 @@ C2.M
   IL_001e:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -4155,7 +4154,7 @@ class C3
 
             var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
-                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
                 //         var x = (1, 1);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
@@ -4178,7 +4177,7 @@ class C3
                     new CSharpCompilationReference(comp2),
                     ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (4,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (4,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
                 //     public void M((int, int) x) { }
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 19)
                 );
@@ -5023,7 +5022,7 @@ class C3
             var comp = CreateStandardCompilation(source, references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() });
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
                 //         x.M1((1, 1));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
