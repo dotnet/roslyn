@@ -769,6 +769,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return project;
             }
 
+            // If the project system has opted this project out of deferred loading, or AnyCode
+            // was unable to get command line info for it, we can't create a project for it.
+            // NOTE: We need to check this even though it happened in CreateDeferredProjects
+            // because we could be in a recursive call from a project reference below.
+            var solution7 = (IVsSolution7)_vsSolution;
+            if (DesignTimeBuildFailed(projectInfo) ||
+                !solution7.IsDeferredProjectLoadAllowed(projectFilename))
+            {
+                return null;
+            }
+
             var commandLineParser = _workspaceServices.GetLanguageServices(languageName).GetService<ICommandLineParserService>();
             var projectDirectory = PathUtilities.GetDirectoryName(projectFilename);
             var commandLineArguments = commandLineParser.Parse(
