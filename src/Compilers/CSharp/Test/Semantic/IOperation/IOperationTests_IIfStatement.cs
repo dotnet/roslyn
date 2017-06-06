@@ -333,8 +333,7 @@ class P
         /*<bind>*/if (int.TryParse(s, out var i))
             System.Console.WriteLine($""i ={i}, s ={s}"");
         else
-            System.Console.WriteLine($""i ={ i}, s ={s}"");/*</bind>*/
-
+            System.Console.WriteLine($""i ={i}, s ={s}"");/*</bind>*/
     }
 }
 ";
@@ -348,23 +347,27 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");'
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
       IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... }, s ={s}"")')
         Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={i}, s ={s}""')
-            IOperation:  (OperationKind.None) (Syntax: '$""i ={i}, s ={s}""')
-              Children(4): ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
-                IOperation:  (OperationKind.None) (Syntax: '{i}')
-                  Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
-                IOperation:  (OperationKind.None) (Syntax: '{s}')
-                  Children(1): ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+            IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
+              Parts(4): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i =')
+                  Text: ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
+                  Expression: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s =')
+                  Text: ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
+                  Expression: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
   IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
       IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... }, s ={s}"")')
-        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={s}""')
-            IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={s}""')
-              Children(4): ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
-                IOperation:  (OperationKind.None) (Syntax: '{ i}')
-                  Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
-                IOperation:  (OperationKind.None) (Syntax: '{s}')
-                  Children(1): ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={i}, s ={s}""')
+            IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
+              Parts(4): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i =')
+                  Text: ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
+                  Expression: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s =')
+                  Text: ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
+                  Expression: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

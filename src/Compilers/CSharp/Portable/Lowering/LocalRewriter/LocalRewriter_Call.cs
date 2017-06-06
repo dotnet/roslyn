@@ -519,6 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
+<<<<<<< HEAD
 
                 ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
                 ArrayBuilder<IArgument> argumentsBuilder = ArrayBuilder<IArgument>.GetInstance(arguments.Length);
@@ -540,6 +541,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
 
                 return argumentsBuilder.ToImmutableAndFree();
+=======
+                return arguments.ZipAsArray(methodOrIndexer.GetParameters(), (a, p) => CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, p, CSharpOperationFactory.Create(a)));
+>>>>>>> dotnet/features/ioperation
             }                                                                                                                   
 
             return BuildArgumentsInEvaluationOrder(syntax, 
@@ -709,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), null, binder);
                 }
 
-                argumentsInEvaluationBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument)); 
+                argumentsInEvaluationBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(kind, parameter, CSharpOperationFactory.Create(argument))); 
             }    
 
             // Collect parameters with missing arguments.   
@@ -1059,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unusedDiagnostics.Free();                                                                                       
                 }                                                              
 
-                argumentsBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument));
+                argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(kind, parameter, CSharpOperationFactory.Create(argument)));
             }                                                               
         }
 

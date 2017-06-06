@@ -110,6 +110,7 @@
     <Compile Include="IOperation\IOperationTests_IArgument.vb" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.vb" />
+    <Compile Include="IOperation\IOperationTests_IInterpolatedStringExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.vb" />
     <Compile Include="IOperation\IOperationTests_InvalidStatement.vb" />
     <Compile Include="IOperation\IOperationTests_InvalidExpression.vb" />

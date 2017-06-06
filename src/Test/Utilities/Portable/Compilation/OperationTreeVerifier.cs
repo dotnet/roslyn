@@ -1094,6 +1094,32 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.MaximumValue, "Max");
         }
 
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            LogString(nameof(IInterpolatedStringExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Parts, "Parts", logElementCount: true);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            LogString(nameof(IInterpolatedStringText));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Text, "Text");
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            LogString(nameof(IInterpolation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            Visit(operation.Alignment, "Alignment");
+            Visit(operation.FormatString, "FormatString");
+        }
+
         #endregion
     }
 }

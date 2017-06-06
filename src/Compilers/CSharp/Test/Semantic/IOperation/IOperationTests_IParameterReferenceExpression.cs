@@ -588,23 +588,26 @@ internal class Class
 {
     public void M(string x, int y)
     {
-        Console.WriteLine(/*<bind>*/$""String {x, 20} and {y:D3} and constant {1}""/*</bind>*/);
+        Console.WriteLine(/*<bind>*/$""String {x,20} and {y:D3} and constant {1}""/*</bind>*/);
     }
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: '$""String {x ... nstant {1}""')
-  Children(6): ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
-    IOperation:  (OperationKind.None) (Syntax: '{x, 20}')
-      Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-        ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-    ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
-    IOperation:  (OperationKind.None) (Syntax: '{y:D3}')
-      Children(2): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
-    ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
-    IOperation:  (OperationKind.None) (Syntax: '{1}')
-      Children(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
+  Parts(6): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+      Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
+      Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
+      Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+    IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
+      Text: ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
+      Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+      FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+    IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
+      Text: ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+      Expression: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

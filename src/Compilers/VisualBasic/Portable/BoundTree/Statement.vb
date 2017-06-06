@@ -6,7 +6,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
+    Partial Friend Class BoundNode
+        Implements IBoundNodeWithIOperationChildren
 
+<<<<<<< HEAD
     Partial Friend Class BoundNode
         Implements IOperation, IOperationWithChildren
 
@@ -1467,14 +1470,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim usingStatementSyntax = DirectCast(Syntax, UsingBlockSyntax).UsingStatement
                         Return New Variables(BoundUsing.ResourceList.As(Of IVariableDeclaration), usingStatementSyntax)
                     End Function)
+=======
+        Public ReadOnly Property IBoundNodeWithIOperationChildren_Children As ImmutableArray(Of BoundNode) Implements IBoundNodeWithIOperationChildren.Children
+            Get
+                Return Me.Children
+>>>>>>> dotnet/features/ioperation
             End Get
         End Property
 
-        Private ReadOnly Property IUsingStatement_Body As IOperation Implements IUsingStatement.Body
+        ''' <summary>
+        ''' Override this property to return the child nodes if the IOperation API corresponding to this bound node is not yet designed or implemented.
+        ''' </summary>
+        ''' <remarks>
+        ''' Note that any of the child bound nodes may be null.
+        ''' </remarks>
+        Protected Overridable ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return Me.Body
+                Return ImmutableArray(Of BoundNode).Empty
             End Get
         End Property
+<<<<<<< HEAD
 
         Protected Overrides Function StatementKind() As OperationKind
             Return OperationKind.UsingStatement
@@ -1543,397 +1558,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
         End Class
+=======
+>>>>>>> dotnet/features/ioperation
     End Class
 
-    Partial Friend Class BoundExpressionStatement
-        Implements IExpressionStatement
-
-        Private ReadOnly Property IExpressionStatement_Expression As IOperation Implements IExpressionStatement.Expression
+    Partial Friend Class BoundCaseBlock
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return Me.Expression
-            End Get
-        End Property
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.ExpressionStatement
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitExpressionStatement(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitExpressionStatement(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundAddRemoveHandlerStatement
-        Implements IExpressionStatement
-
-        Protected Shared ReadOnly s_expressionsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.ExpressionStatement
-        End Function
-
-        Protected MustOverride ReadOnly Property IExpressionStatement_Expression As IOperation Implements IExpressionStatement.Expression
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitExpressionStatement(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitExpressionStatement(Me, argument)
-        End Function
-
-        Protected NotInheritable Class EventAssignmentExpression
-            Implements IEventAssignmentExpression
-
-            Private ReadOnly _statement As BoundAddRemoveHandlerStatement
-            Private ReadOnly _adds As Boolean
-
-            Public Sub New(statement As BoundAddRemoveHandlerStatement, adds As Boolean)
-                _statement = statement
-                _adds = adds
-            End Sub
-
-            Public Sub Accept(visitor As OperationVisitor) Implements IOperation.Accept
-                visitor.VisitEventAssignmentExpression(Me)
-            End Sub
-
-            Public Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult Implements IOperation.Accept
-                Return visitor.VisitEventAssignmentExpression(Me, argument)
-            End Function
-
-            Public ReadOnly Property Adds As Boolean Implements IEventAssignmentExpression.Adds
-                Get
-                    Return _adds
-                End Get
-            End Property
-
-            Public ReadOnly Property ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
-                Get
-                    Return New [Optional](Of Object)()
-                End Get
-            End Property
-
-            Public ReadOnly Property [Event] As IEventSymbol Implements IEventAssignmentExpression.Event
-                Get
-                    Dim eventAccess As BoundEventAccess = TryCast(_statement.EventAccess, BoundEventAccess)
-                    If eventAccess IsNot Nothing Then
-                        Return eventAccess.EventSymbol
-                    End If
-
-                    Return Nothing
-                End Get
-            End Property
-
-            Public ReadOnly Property EventInstance As IOperation Implements IEventAssignmentExpression.EventInstance
-                Get
-                    If [Event] Is Nothing OrElse [Event].IsStatic Then
-                        Return Nothing
-                    End If
-
-                    Dim eventAccess As BoundEventAccess = TryCast(_statement.EventAccess, BoundEventAccess)
-                    If eventAccess IsNot Nothing Then
-                        Return eventAccess.ReceiverOpt
-                    End If
-
-                    Return Nothing
-                End Get
-            End Property
-
-            Public ReadOnly Property HandlerValue As IOperation Implements IEventAssignmentExpression.HandlerValue
-                Get
-                    Return _statement.Handler
-                End Get
-            End Property
-
-            Public ReadOnly Property IsInvalid As Boolean Implements IOperation.IsInvalid
-                Get
-                    Return _statement.HasErrors
-                End Get
-            End Property
-
-            Public ReadOnly Property Kind As OperationKind Implements IOperation.Kind
-                Get
-                    Return OperationKind.EventAssignmentExpression
-                End Get
-            End Property
-
-            Public ReadOnly Property Type As ITypeSymbol Implements IOperation.Type
-                Get
-                    Return Nothing
-                End Get
-            End Property
-
-            Public ReadOnly Property Syntax As SyntaxNode Implements IOperation.Syntax
-                Get
-                    Return _statement.Syntax
-                End Get
-            End Property
-        End Class
-    End Class
-
-    Partial Friend Class BoundAddHandlerStatement
-
-        Protected Overrides ReadOnly Property IExpressionStatement_Expression As IOperation
-            Get
-                Return s_expressionsMappings.GetValue(Me, Function(statement)
-                                                              Return New EventAssignmentExpression(statement, True)
-                                                          End Function)
+                Return ImmutableArray.Create(Of BoundNode)(Me.CaseStatement, Me.Body)
             End Get
         End Property
     End Class
 
-    Partial Friend Class BoundRemoveHandlerStatement
-
-        Protected Overrides ReadOnly Property IExpressionStatement_Expression As IOperation
+    Partial Friend Class BoundCaseStatement
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return s_expressionsMappings.GetValue(Me, Function(statement)
-                                                              Return New EventAssignmentExpression(statement, False)
-                                                          End Function)
+                Return StaticCast(Of BoundNode).From(Me.CaseClauses).Add(Me.ConditionOpt)
+            End Get
+        End Property
+    End Class
+
+    Partial Friend Class BoundBadStatement
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
+            Get
+                Return Me.ChildBoundNodes
             End Get
         End Property
     End Class
 
     Partial Friend Class BoundRedimStatement
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return Me.Clauses.As(Of IOperation)
+                Return StaticCast(Of BoundNode).From(Me.Clauses)
             End Get
         End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
     End Class
 
     Partial Friend Class BoundRedimClause
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return Me.Indices.As(Of IOperation).Insert(0, Me.Operand)
+                Return StaticCast(Of BoundNode).From(Me.Indices.Insert(0, Me.Operand))
             End Get
         End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
     End Class
 
     Partial Friend Class BoundEraseStatement
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return Me.Clauses.As(Of IOperation)
+                Return StaticCast(Of BoundNode).From(Me.Clauses)
             End Get
         End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundLocalDeclaration
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundAsNewLocalDeclarations
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundInitializer
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundConditionalGoto
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundStatementList
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundRaiseEventStatement
-        Implements IExpressionStatement
-
-        Public ReadOnly Property Expression As IOperation Implements IExpressionStatement.Expression
-            Get
-                Return Me.EventInvocation
-            End Get
-        End Property
-
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.ExpressionStatement
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitExpressionStatement(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitExpressionStatement(Me, argument)
-        End Function
     End Class
 
     Partial Friend Class BoundResumeStatement
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return ImmutableArray.Create(Of IOperation)(Me.LabelExpressionOpt)
+                Return ImmutableArray.Create(Of BoundNode)(Me.LabelExpressionOpt)
             End Get
         End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
     End Class
 
     Partial Friend Class BoundOnErrorStatement
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return ImmutableArray.Create(Of IOperation)(Me.LabelExpressionOpt)
+                Return ImmutableArray.Create(Of BoundNode)(Me.LabelExpressionOpt)
             End Get
         End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
     End Class
 
     Partial Friend Class BoundUnstructuredExceptionHandlingStatement
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Protected Overrides ReadOnly Property Children As ImmutableArray(Of IOperation)
+        Protected Overrides ReadOnly Property Children As ImmutableArray(Of BoundNode)
             Get
-                Return ImmutableArray.Create(Of IOperation)(Me.Body)
+                Return ImmutableArray.Create(Of BoundNode)(Me.Body)
             End Get
         End Property
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundUnstructuredExceptionOnErrorSwitch
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
-    End Class
-
-    Partial Friend Class BoundUnstructuredExceptionResumeSwitch
-        Protected Overrides Function StatementKind() As OperationKind
-            Return OperationKind.None
-        End Function
-
-        Public Overrides Sub Accept(visitor As OperationVisitor)
-            visitor.VisitNoneOperation(Me)
-        End Sub
-
-        Public Overrides Function Accept(Of TArgument, TResult)(visitor As OperationVisitor(Of TArgument, TResult), argument As TArgument) As TResult
-            Return visitor.VisitNoneOperation(Me, argument)
-        End Function
     End Class
 End Namespace
