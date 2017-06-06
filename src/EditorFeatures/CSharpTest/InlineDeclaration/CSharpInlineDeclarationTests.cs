@@ -43,6 +43,39 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
+        public async Task InlineVariableInForEach()
+        {
+            await TestAsync(
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        [|int|] i;
+        foreach (var x in M2(out i)) { }
+    }
+    IEnumerable<object> M2(out int j)
+    {
+        throw null;
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+class C
+{
+    void M()
+    {
+        foreach (var x in M2(out int i)) { }
+    }
+    IEnumerable<object> M2(out int j)
+    {
+        throw null;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
         public async Task InlineInNestedCall()
         {
             await TestInRegularAndScriptAsync(

@@ -794,7 +794,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override ForEachStatementInfo GetForEachStatementInfo(CommonForEachStatementSyntax node)
         {
-            BoundForEachStatement boundForEach = (BoundForEachStatement)GetUpperBoundNode(node);
+            // Declaration expressions can result in having a BoundBlock associated with a given foreach statement,
+            // in addition to a BoundForEachStatement
+            BoundForEachStatement boundForEach = GetBoundNodes(node).OfType<BoundForEachStatement>().FirstOrDefault();
 
             if (boundForEach == null)
             {
