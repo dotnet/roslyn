@@ -49,10 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _result;
         }
 
-        protected override void ReportUnassigned(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             // TODO: how to handle fields of structs?
-            var symbol = variableBySlot[slot].Symbol;
             if (symbol.Kind != SymbolKind.Field)
             {
                 _result.Add(symbol);
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 symbol = GetNonFieldSymbol(slot);
                 Debug.Assert((object)symbol != null);
                 _result.Add(symbol);
-                base.ReportUnassigned(slot, node);
+                base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
             }
         }
 

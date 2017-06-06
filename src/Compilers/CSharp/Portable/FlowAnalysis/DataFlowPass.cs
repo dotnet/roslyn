@@ -903,16 +903,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slot >= this.State.Assigned.Capacity) Normalize(ref this.State);
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
-                        ReportUnassignedIfOutsideLocalFunction(slot, node);
+                        ReportUnassignedIfOutsideLocalFunction(symbol, node, slot);
                     }
                 }
             }
         }
 
-        private void ReportUnassignedIfOutsideLocalFunction(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration = true)
+        private void ReportUnassignedIfOutsideLocalFunction(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration = true)
         {
-            var symbol = variableBySlot[slot].Symbol;
-
             // If the symbol is captured by the nearest
             // local function, record the read and skip the diagnostic
             if ((object)GetNearestLocalFunctionOpt(currentMethodOrLambda) != null)
@@ -932,21 +930,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ReportUnassigned(slot, node, skipIfUseBeforeDeclaration);
+            ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
         }
 
         /// <summary>
         /// Report a given variable as not definitely assigned.  Once a variable has been so
         /// reported, we suppress further reports of that variable.
         /// </summary>
-        protected virtual void ReportUnassigned(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration = true)
-            => ReportUnassignedHelper(slot, node, skipIfUseBeforeDeclaration: skipIfUseBeforeDeclaration);
+        protected virtual void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
+            => ReportUnassignedHelper(symbol, node, slot, skipIfUseBeforeDeclaration: skipIfUseBeforeDeclaration);
 
-        private void ReportUnassignedHelper(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration = true)
+        private void ReportUnassignedHelper(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             if (slot <= 0) return;
-
-            var symbol = variableBySlot[slot].Symbol;
 
             if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
             if (skipIfUseBeforeDeclaration &&
@@ -1005,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.State.Reachable && !IsAssigned(expr, out int unassignedSlot))
             {
-                ReportUnassignedIfOutsideLocalFunction(unassignedSlot, node);
+                ReportUnassignedIfOutsideLocalFunction(fieldSymbol, node, unassignedSlot);
             }
 
             NoteRead(expr);
@@ -2161,7 +2157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int unassignedSlot;
                         if (this.State.Reachable && !IsAssigned(node, out unassignedSlot))
                         {
-                            ReportUnassignedIfOutsideLocalFunction(unassignedSlot, node.Syntax);
+                            ReportUnassignedIfOutsideLocalFunction(backingField, node.Syntax, unassignedSlot);
                         }
                     }
                 }

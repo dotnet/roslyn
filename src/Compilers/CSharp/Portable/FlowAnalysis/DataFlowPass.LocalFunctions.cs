@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Local functions can "call forward" to after a variable has
                         // been declared but before it has been assigned, so we can never
                         // consider the declaration location when reporting errors.
-                        ReportUnassignedIfOutsideLocalFunction(slot, node, skipIfUseBeforeDeclaration: false);
+                        ReportUnassignedIfOutsideLocalFunction(symbol, node, slot, skipIfUseBeforeDeclaration: false);
                     }
                 }
             }

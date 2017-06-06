@@ -224,10 +224,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetOrCreateSlot(parameter);
         }
 
-        protected override void ReportUnassigned(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
-            var symbol = variableBySlot[slot].Symbol;
-
             switch (symbol.Kind)
             {
                 case SymbolKind.Field:

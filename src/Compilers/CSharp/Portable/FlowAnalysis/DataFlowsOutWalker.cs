@@ -232,9 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitQueryClause(node);
         }
 
-        protected override void ReportUnassigned(int slot, SyntaxNode node, bool skipIfUseBeforeDeclaration)
+        protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
-            var symbol = variableBySlot[slot].Symbol;
             if (symbol.Kind == SymbolKind.Field)
             {
                 symbol = GetNonFieldSymbol(slot);
@@ -245,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _dataFlowsOut.Add(symbol);
             }
 
-            base.ReportUnassigned(slot, node);
+            base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
         }
 
         protected override void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
