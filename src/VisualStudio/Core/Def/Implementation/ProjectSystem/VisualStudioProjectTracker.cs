@@ -762,14 +762,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             project = (AbstractProject)projectContext;
             projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
 
+            var addedSourceFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var sourceFile in commandLineArguments.SourceFiles)
             {
-                projectContext.AddSourceFile(sourceFile.Path);
+                if (addedSourceFilePaths.Add(sourceFile.Path))
+                {
+                    projectContext.AddSourceFile(sourceFile.Path);
+                }
             }
 
-            foreach (var sourceFile in commandLineArguments.AdditionalFiles)
+            var addedAdditionalFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var additionalFile in commandLineArguments.AdditionalFiles)
             {
-                projectContext.AddAdditionalFile(sourceFile.Path);
+                if (addedAdditionalFilePaths.Add(additionalFile.Path))
+                {
+                    projectContext.AddAdditionalFile(additionalFile.Path);
+                }
             }
 
             var metadataReferences = commandLineArguments.ResolveMetadataReferences(project.CurrentCompilationOptions.MetadataReferenceResolver).AsImmutable();
@@ -817,6 +825,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
             }
 
+            var addedReferencePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var reference in metadataReferences)
             {
                 var path = GetReferencePath(reference);
@@ -827,9 +836,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     continue;
                 }
 
-                projectContext.AddMetadataReference(path, reference.Properties);
+                if (addedReferencePaths.Add(path))
+                {
+                    projectContext.AddMetadataReference(path, reference.Properties);
+                }
             }
 
+            var addedAnalyzerPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var reference in commandLineArguments.ResolveAnalyzerReferences(analyzerAssemblyLoader))
             {
                 var path = reference.FullPath;
@@ -840,7 +853,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                         path);
                 }
 
-                projectContext.AddAnalyzerReference(path);
+                if (addedAnalyzerPaths.Add(path))
+                {
+                    projectContext.AddAnalyzerReference(path);
+                }
             }
 
             return (AbstractProject)projectContext;

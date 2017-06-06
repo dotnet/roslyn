@@ -1278,6 +1278,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
         }
 
+        //PROTOTYPE(span): Span and ReadOnlySpan should have spanLike marker.
+        //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
+        //                 are span-like
+        internal static bool IsSpanType(this TypeSymbol type)
+        {
+            if (type.Name != "Span" && type.Name != "ReadOnlySpan")
+            {
+                return false;
+            }
+
+            var ns = type.ContainingSymbol as NamespaceSymbol;
+            if (ns?.Name != "System")
+            {
+                return false;
+            }
+
+            return ns.ContainingNamespace.IsGlobalNamespace;
+        }
+
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
         {
             var namedType = type as NamedTypeSymbol;

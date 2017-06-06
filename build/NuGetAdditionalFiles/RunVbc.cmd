@@ -1,2 +1,2 @@
 echo off
-dotnet %~dp0\vbc.exe %*
+dotnet %~dp0\vbc.dll %*
