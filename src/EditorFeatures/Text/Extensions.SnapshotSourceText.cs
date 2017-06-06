@@ -342,18 +342,15 @@ namespace Microsoft.CodeAnalysis.Text
 
             private IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImage oldImage, int oldTextLength, ITextImage newImage)
             {
-                var oldSnapshot = oldImage == null ? null : TextBufferMapper.TryFindEditorSnapshot(oldImage);
-                var newSnapshot = newImage == null ? null : TextBufferMapper.TryFindEditorSnapshot(newImage);
-
                 if (oldImage == null ||
                     newImage == null ||
-                    AreFromDifferentBuffer(oldSnapshot, newSnapshot))
+                    oldImage.Version.Identifier != newImage.Version.Identifier)
                 {
                     // Claim its all changed
                     Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, "Invalid Snapshots");
                     return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldTextLength), this.Length));
                 }
-                else if (AreSameReiteratedVersion(oldSnapshot, newSnapshot))
+                else if (AreSameReiteratedVersion(oldImage, newImage))
                 {
                     // content of two snapshot must be same even if versions are different
                     return TextChangeRange.NoChanges;
@@ -364,11 +361,13 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            private static bool AreSameReiteratedVersion(ITextSnapshot oldSnapshot, ITextSnapshot newSnapshot) 
-                => oldSnapshot != null && newSnapshot != null && oldSnapshot.Version.ReiteratedVersionNumber == newSnapshot.Version.ReiteratedVersionNumber;
+            private static bool AreSameReiteratedVersion(ITextImage oldImage, ITextImage newImage)
+            {
+                var oldSnapshot = TextBufferMapper.TryFindEditorSnapshot(oldImage);
+                var newSnapshot = TextBufferMapper.TryFindEditorSnapshot(newImage);
 
-            private bool AreFromDifferentBuffer(ITextSnapshot oldSnapshot, ITextSnapshot newSnapshot)
-                => oldSnapshot != null && newSnapshot != null && oldSnapshot.TextBuffer != newSnapshot.TextBuffer;
+                return oldSnapshot != null && newSnapshot != null && oldSnapshot.Version.ReiteratedVersionNumber == newSnapshot.Version.ReiteratedVersionNumber;
+            }
 
             private static readonly Func<ITextChange, TextChangeRange> s_forwardTextChangeRange = c => CreateTextChangeRange(c, forward: true);
             private static readonly Func<ITextChange, TextChangeRange> s_backwardTextChangeRange = c => CreateTextChangeRange(c, forward: false);
