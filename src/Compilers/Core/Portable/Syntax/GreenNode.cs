@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract string Language { get; }
 
-        #region Kind 
+        #region Kind
         public int RawKind
         {
             get { return _kind; }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        #region Slots 
+        #region Slots
         public int SlotCount
         {
             get
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        #region Flags 
+        #region Flags
         [Flags]
         internal enum NodeFlags : byte
         {
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        #region Serialization 
+        #region Serialization
         // use high-bit on Kind to identify serialization of extra info
         private const UInt16 ExtendedSerializationInfoMask = unchecked((UInt16)(1u << 15));
 
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        #region Annotations 
+        #region Annotations
         public bool HasAnnotations(string annotationKind)
         {
             var annotations = this.GetAnnotations();
@@ -642,7 +642,7 @@ namespace Microsoft.CodeAnalysis
             var stack = new Stack<(GreenNode node, bool leading, bool trailing)>();
             stack.Push((this, leading, trailing));
 
-            // Separated out stack processing logic so that it does not unintentially refer to 
+            // Separated out stack processing logic so that it does not unintentially refer to
             // "this", "leading" or "trailing.
             ProcessStack(writer, stack);
         }
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis
 
         #endregion
 
-        #region Tokens 
+        #region Tokens
 
         public virtual int RawContextualKind { get { return this.RawKind; } }
         public virtual object GetValue() { return null; }
@@ -815,7 +815,7 @@ namespace Microsoft.CodeAnalysis
         }
         #endregion
 
-        #region Equivalence 
+        #region Equivalence
         public virtual bool IsEquivalentTo(GreenNode other)
         {
             if (this == other)
@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis
 
         public abstract SyntaxNode GetStructure(SyntaxTrivia parentTrivia);
 
-        #region Factories 
+        #region Factories
 
         public abstract SyntaxToken CreateSeparator<TNode>(SyntaxNode element) where TNode : SyntaxNode;
         public abstract bool IsTriviaWithEndOfLine(); // trivia node has end of line
@@ -1034,6 +1034,10 @@ namespace Microsoft.CodeAnalysis
                 for (int i = 0; i < SlotCount; i++)
                 {
                     GreenNode child = GetSlot(i);
+                    if (child is null)
+                    {
+                        continue;
+                    }
                     foreach (var childDiagnostic in child.GetAllSyntaxErrors())
                     {
                         yield return childDiagnostic;
