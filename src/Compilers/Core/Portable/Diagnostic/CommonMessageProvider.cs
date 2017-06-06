@@ -150,6 +150,7 @@ namespace Microsoft.CodeAnalysis
         public abstract int ERR_NoSourceFile { get; }
         public abstract int ERR_CantOpenFileWrite { get; }
         public abstract int ERR_OutputWriteFailed { get; }
+        public abstract int ERR_IOException { get; }
         public abstract int WRN_NoConfigNotOnCommandLine { get; }
         public abstract int ERR_BinaryFile { get; }
         public abstract int WRN_UnableToLoadAnalyzer { get; }
@@ -229,6 +230,18 @@ namespace Microsoft.CodeAnalysis
             if (consoleOutput != null)
             {
                 var diagnostic = new DiagnosticInfo(this, ERR_OutputWriteFailed, filePath, e.Message);
+                consoleOutput.WriteLine(diagnostic.ToString(consoleOutput.FormatProvider));
+            }
+        }
+
+        /// <summary>
+        /// Takes an exception produced while writing to a file stream and produces a diagnostic.
+        /// </summary>
+        public void ReportIOException(IOException e, TextWriter consoleOutput)
+        {
+            if (consoleOutput != null)
+            {
+                var diagnostic = new DiagnosticInfo(this, ERR_IOException, e.Message);
                 consoleOutput.WriteLine(diagnostic.ToString(consoleOutput.FormatProvider));
             }
         }

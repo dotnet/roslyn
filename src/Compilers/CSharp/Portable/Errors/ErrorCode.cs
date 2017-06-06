@@ -1491,6 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 7.2
         ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        ERR_IOException = 8221,
         #endregion diagnostics introduced for C# 7.2
     }
 }

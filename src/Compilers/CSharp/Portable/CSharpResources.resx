@@ -408,6 +408,9 @@
   <data name="ERR_OutputWriteFailed" xml:space="preserve">
     <value>Could not write to output file '{0}' -- '{1}'</value>
   </data>
+  <data name="ERR_IOException" xml:space="preserve">
+    <value>Could not write to one of the output files -- '{0}'</value>
+  </data>
   <data name="ERR_MultipleEntryPoints" xml:space="preserve">
     <value>Program has more than one entry point defined. Compile with /main to specify the type that contains the entry point.</value>
   </data>
@@ -3292,6 +3295,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   </data>
   <data name="ERR_CantOpenFileWrite" xml:space="preserve">
     <value>Cannot open '{0}' for writing -- '{1}'</value>
+  </data>
+  <data name="ERR_IOException" xml:space="preserve">
+    <value>Error writing to an output file -- '{0}'</value>
   </data>
   <data name="ERR_BadBaseNumber" xml:space="preserve">
     <value>Invalid image base number '{0}'</value>

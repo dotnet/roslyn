@@ -219,6 +219,9 @@
   <data name="ERR_CantOpenFileWrite" xml:space="preserve">
     <value>can't open '{0}' for writing: {1}</value>
   </data>
+  <data name="ERR_IOException" xml:space="preserve">
+    <value>Error writing to an output file: {0}</value>
+  </data>
   <data name="ERR_BadCodepage" xml:space="preserve">
     <value>code page '{0}' is invalid or not installed</value>
   </data>

@@ -84,6 +84,11 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
+        public override int ERR_IOException
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override int WRN_NoConfigNotOnCommandLine
         {
             get { throw new NotImplementedException(); }
