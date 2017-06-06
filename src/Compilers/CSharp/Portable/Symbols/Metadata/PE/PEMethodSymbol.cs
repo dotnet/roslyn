@@ -1002,22 +1002,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            DiagnosticInfo result = null;
-
             if (!_packedFlags.IsUseSiteDiagnosticPopulated)
             {
+                DiagnosticInfo result = null;
                 CalculateUseSiteDiagnostic(ref result);
                 EnsureTypeParametersAreLoaded(ref result);
-                result = InitializeUseSiteDiagnostic(result);
+                return InitializeUseSiteDiagnostic(result);
+            }
+
+            var uncommonFields = _uncommonFields;
+            if (uncommonFields == null)
+            {
+                return null;
             }
             else
             {
-                result = _uncommonFields?._lazyUseSiteDiagnostic;
+                var result = uncommonFields._lazyUseSiteDiagnostic;
+                return CSDiagnosticInfo.IsEmpty(result)
+                       ? InterlockedOperations.Initialize(ref uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
+                       : result;
             }
-
-            return CSDiagnosticInfo.IsEmpty(result)
-                   ? InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
-                   : result;
         }
 
         private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             customModifiers = CustomModifiersTuple.Create(
                 constructedSourceMethod.ReturnTypeCustomModifiers,
-                destinationMethod.ReturnsByRef || destinationMethod.ReturnsByRefReadonly ? constructedSourceMethod.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
+                destinationMethod.RefKind != RefKind.None ? constructedSourceMethod.RefCustomModifiers : ImmutableArray<CustomModifier>.Empty);
 
             parameters = CopyParameterCustomModifiers(constructedSourceMethod.Parameters, destinationMethod.Parameters, alsoCopyParamsModifier);
 

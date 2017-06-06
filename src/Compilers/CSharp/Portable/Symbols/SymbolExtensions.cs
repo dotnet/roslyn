@@ -406,40 +406,5 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     throw ExceptionUtilities.UnexpectedValue(symbol.Kind);
             }
         }
-
-        internal static bool IsWellKnownTypeIsConst(this ISymbol symbol)
-        {
-            if (symbol is NamedTypeSymbol typeSymbol)
-            {
-                if (typeSymbol.Name != "IsConst" || typeSymbol.ContainingType != null)
-                {
-                    return false;
-                }
-
-                var compilerServicesNamespace = typeSymbol.ContainingNamespace;
-                if (compilerServicesNamespace?.Name != "CompilerServices")
-                {
-                    return false;
-                }
-
-                var runtimeNamespace = compilerServicesNamespace.ContainingNamespace;
-                if (runtimeNamespace?.Name != "Runtime")
-                {
-                    return false;
-                }
-
-                var systemNamespace = runtimeNamespace.ContainingNamespace;
-                if (systemNamespace?.Name != "System")
-                {
-                    return false;
-                }
-
-                var globalNamespace = systemNamespace.ContainingNamespace;
-
-                return globalNamespace != null && globalNamespace.IsGlobalNamespace;
-            }
-
-            return false;
-        }
     }
 }

@@ -92,7 +92,7 @@ End Class
         End Sub
 
         <Fact>
-        Public Sub ReadOnlySignaturesAreRead_Operators_Constructors()
+        Public Sub ReadOnlySignaturesAreRead_Constructors()
             Dim reference = CreateCSharpCompilation("
 public struct TestRef
 {
@@ -569,7 +569,7 @@ BC30643: Property 'TestRef.Item(p As )' is of an unsupported type.
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_Parameters()
+        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_Invoke_Parameters()
             Dim reference = CreateCSharpCompilation("
 public delegate void D(ref readonly int p);
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
@@ -596,7 +596,61 @@ BC30657: 'D' has a return type that is not supported or parameter types that are
         End Sub
 
         <Fact>
-        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_ReturnTypes()
+        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_BeginInvoke_Parameters()
+            Dim reference = CreateCSharpCompilation("
+public delegate void D(ref readonly int p);
+", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main(lambda As D) 
+        Dim x = 0
+        lambda.BeginInvoke(x, Nothing, Nothing)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30657: 'BeginInvoke' has a return type that is not supported or parameter types that are not supported.
+        lambda.BeginInvoke(x, Nothing, Nothing)
+               ~~~~~~~~~~~
+                                                </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_EndInvoke_Parameters()
+            Dim reference = CreateCSharpCompilation("
+public delegate void D(ref readonly int p);
+", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main(lambda As D) 
+        Dim x = 0
+        lambda.EndInvoke(x)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30657: 'EndInvoke' has a return type that is not supported or parameter types that are not supported.
+        lambda.EndInvoke(x)
+               ~~~~~~~~~
+                                                </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_Invoke_ReturnTypes()
             Dim reference = CreateCSharpCompilation("
 public delegate ref readonly int D();
 ", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
@@ -619,6 +673,173 @@ BC30657: 'D' has a return type that is not supported or parameter types that are
         Dim x = lambda()
                 ~~~~~~
                                                 </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub UsingLambdasOfRefReadOnlyDelegatesIsNotSupported_EndInvoke_ReturnTypes()
+            Dim reference = CreateCSharpCompilation("
+public delegate ref readonly int D();
+", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main(lambda As D) 
+        lambda.EndInvoke()
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30657: 'EndInvoke' has a return type that is not supported or parameter types that are not supported.
+        lambda.EndInvoke()
+               ~~~~~~~~~
+                                                </expected>)
+        End Sub
+
+        <Fact>
+        Public Sub OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Methods_Parameters()
+            Dim reference = CreateCSharpCompilation("
+public class TestRef
+{
+    public virtual void PrintMul(ref readonly int x)
+    {
+        System.Console.WriteLine(x * 2);
+    }
+    public void PrintMul(ref readonly long x)
+    {
+        System.Console.WriteLine(x * 4);
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main() 
+        Dim value As Integer = 5
+        Dim obj = New TestRef()
+        obj.PrintMul(value)
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+        End Sub
+
+        <Fact>
+        Public Sub OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Methods_ReturnTypes()
+            Dim reference = CreateCSharpCompilation("
+public class TestRef
+{
+    private int value = 5;
+
+    public ref readonly int PrintMul(int x)
+    {
+        value = value * 2;
+        return ref value;
+    }
+    public int PrintMul(long x)
+    {
+        value = value * 4;
+        return value;
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main() 
+        Dim obj = New TestRef()
+        System.Console.WriteLine(obj.PrintMul(0))
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+        End Sub
+
+        <Fact>
+        Public Sub OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Indexers_Parameters()
+            Dim reference = CreateCSharpCompilation("
+public class TestRef
+{
+    public virtual int this[ref readonly int x]
+    {
+        set
+        {
+            System.Console.WriteLine(x * 2);
+        }
+    }
+    public int this[ref readonly long x]
+    {
+        set
+        {
+            System.Console.WriteLine(x * 4);
+        }
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main() 
+        Dim value As Integer = 5
+        Dim obj = New TestRef()
+        obj(value) = 0
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
+        End Sub
+
+        <Fact>
+        Public Sub OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Indexers_ReturnTypes()
+            Dim reference = CreateCSharpCompilation("
+public class TestRef
+{
+    private int value = 5;
+    public ref readonly int this[int x]
+    {
+        get
+        {
+            value = value * 2;
+            return ref value;
+        }
+    }
+    public int this[long x]
+    {
+        get
+        {
+            value = value * 4;
+            return value;
+        }
+    }
+}", parseOptions:=New CSharpParseOptions(CSharp.LanguageVersion.Latest)).EmitToImageReference()
+
+            Dim source =
+                <compilation>
+                    <file>
+Class Test
+    Shared Sub Main() 
+        Dim obj = New TestRef()
+        System.Console.WriteLine(obj(0))
+    End Sub
+End Class
+    </file>
+                </compilation>
+
+            CompileAndVerify(source, additionalRefs:={reference}, expectedOutput:="20")
         End Sub
     End Class
 

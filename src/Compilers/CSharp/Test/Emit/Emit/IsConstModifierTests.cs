@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -11,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public class IsConstModifierTests : CSharpTestBase
     {
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Methods_Parameters()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Methods_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -37,7 +39,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Methods_ReturnTypes()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Methods_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -63,7 +65,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Properties()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Properties()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -86,7 +88,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Indexers_Parameters()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Indexers_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -112,7 +114,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Indexers_ReturnTypes()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Indexers_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -135,7 +137,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Delegates_Parameters()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Delegates_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public delegate void D(ref readonly int p);
@@ -160,11 +162,186 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Code_Delegates_ReturnTypes()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Delegates_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public delegate ref readonly int D();
 ").EmitToImageReference();
+
+            var code = @"
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Process(() => ref value);
+    }
+
+    private static void Process(D func)
+    {
+        System.Console.WriteLine(func());
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Methods_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    public void M(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}").ToMetadataReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj.M(value);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Methods_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    private int value = 5;
+    public ref readonly int M()
+    {
+        return ref value;
+    }
+}").ToMetadataReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Properties()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    private int value = 5;
+    public ref readonly int P => ref value;
+}").ToMetadataReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.P);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Indexers_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    public int this[ref readonly int p]
+    {
+        set { System.Console.WriteLine(p); }
+    }
+}").ToMetadataReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj[value] = 0;
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Indexers_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public class TestRef
+{
+    private int value = 5;
+    public ref readonly int this[int p] => ref value;
+}").ToMetadataReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj[0]);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Delegates_Parameters()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate void D(ref readonly int p);
+").ToMetadataReference();
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        Process((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    private static void Process(D func)
+    {
+        int value = 5;
+        func(value);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Delegates_ReturnTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+public delegate ref readonly int D();
+").ToMetadataReference();
 
             var code = @"
 public class Test
@@ -1619,13 +1796,15 @@ class Test
     public virtual void Method(ref readonly int x) { }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1637,13 +1816,15 @@ abstract class Test
     public abstract void Method(ref readonly int x);
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1656,13 +1837,15 @@ class Test
     public virtual ref readonly int Method() => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1674,13 +1857,15 @@ abstract class Test
     public abstract ref readonly int Method();
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1693,13 +1878,15 @@ class Test
     public ref readonly int Method() => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1712,13 +1899,15 @@ class Test
     public static ref readonly int Method() => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1731,13 +1920,15 @@ class Test
     public virtual ref readonly int Property => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1749,13 +1940,15 @@ abstract class Test
     public abstract ref readonly int Property { get; }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1768,13 +1961,15 @@ class Test
     public ref readonly int Property => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1787,13 +1982,15 @@ class Test
     public static ref readonly int Property => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1805,13 +2002,15 @@ class Test
     public virtual int this[ref readonly int x] => x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1823,13 +2022,15 @@ abstract class Test
     public abstract int this[ref readonly int x] { get; }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1842,13 +2043,15 @@ class Test
     public virtual ref readonly int this[int p] => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1860,13 +2063,16 @@ abstract class Test
     public abstract ref readonly int this[int p] { get; }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-            });
+                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1879,13 +2085,15 @@ class Test
     public ref readonly int this[int p] => ref x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1893,13 +2101,24 @@ class Test
         {
             var code = "public delegate void D(ref readonly int p);";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
-                var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
+                var type = module.ContainingAssembly.GetTypeByMetadataName("D");
 
-                Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+                var invokeParameter = type.DelegateInvokeMethod.Parameters.Single();
+                Assert.Empty(invokeParameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(invokeParameter.RefCustomModifiers);
+
+                var beginInvokeParameter = type.GetMethod("BeginInvoke").Parameters.First();
+                Assert.Empty(beginInvokeParameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(beginInvokeParameter.RefCustomModifiers);
+
+                var endInvokeParameter = type.GetMethod("EndInvoke").Parameters.First();
+                Assert.Empty(endInvokeParameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(endInvokeParameter.RefCustomModifiers);
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1907,13 +2126,20 @@ class Test
         {
             var code = "public delegate ref readonly int D();";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
-                var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
+                var type = module.ContainingAssembly.GetTypeByMetadataName("D");
 
-                Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
-            });
+                var invokeMethod = type.DelegateInvokeMethod;
+                Assert.Empty(invokeMethod.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(invokeMethod.RefCustomModifiers);
+
+                var endInvokeMethod = type.GetMethod("EndInvoke");
+                Assert.Empty(endInvokeMethod.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(endInvokeMethod.RefCustomModifiers);
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1925,13 +2151,15 @@ class Test
     public void Method(ref readonly int x) { }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1943,13 +2171,15 @@ class Test
     public static void Method(ref readonly int x) { }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1961,13 +2191,15 @@ class Test
     public int this[ref readonly int x] => x;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1979,13 +2211,15 @@ public class Test
     public static bool operator!(ref readonly Test obj) => false;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_LogicalNot").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -1997,7 +2231,7 @@ public class Test
     public static bool operator+(ref readonly Test obj1, ref readonly Test obj2) => false;
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameters = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("op_Addition").Parameters;
                 Assert.Equal(2, parameters.Length);
@@ -2007,7 +2241,9 @@ public class Test
 
                 Assert.Empty(parameters[1].CustomModifiers);
                 Assert.Empty(parameters[1].RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2019,13 +2255,15 @@ public class Test
     public Test(ref readonly int x) { }
 }";
 
-            CompileAndVerify(code, verify: false, symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod(".ctor").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 Assert.Empty(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
@@ -2415,10 +2653,21 @@ public abstract class Parent
             var code = @"
 public class Child : Parent
 {
-    public override void M(ref readonly int p) { }
+    public override void M(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj.M(5);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
@@ -2449,10 +2698,21 @@ public class Parent
             var code = @"
 public class Child : Parent
 {
-    public override void M(ref readonly int p) { }
+    public override void M(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj.M(5);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
@@ -2483,10 +2743,21 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public void M(ref readonly int p) { }
+    public void M(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj.M(5);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -2494,7 +2765,10 @@ public class Child : Parent
                 Assert.Empty(implicitParameter.CustomModifiers);
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
-                var explicitParameter = type.GetMethod("Parent.M").Parameters.Single();
+                var explicitImplementation = type.GetMethod("Parent.M");
+                Assert.Equal("void Parent.M(in modreq(System.Runtime.CompilerServices.IsConst) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+
+                var explicitParameter = explicitImplementation.Parameters.Single();
                 Assert.Empty(explicitParameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
             });
@@ -2521,10 +2795,21 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public virtual void M(ref readonly int p) { }
+    public virtual void M(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj.M(5);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
@@ -2555,10 +2840,21 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    void Parent.M(ref readonly int p) { }
+    void Parent.M(ref readonly int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj.M(5);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("Parent.M").Parameters.Single();
@@ -2589,10 +2885,19 @@ public abstract class Parent
             var code = @"
 public class Child : Parent
 {
-    public override ref readonly int M() { throw null; }
+    public override ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
@@ -2623,10 +2928,19 @@ public class Parent
             var code = @"
 public class Child : Parent
 {
-    public override ref readonly int M() { throw null; }
+    public override ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
@@ -2657,10 +2971,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public ref readonly int M() { throw null; }
+    public ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -2691,10 +3014,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public virtual ref readonly int M() { throw null; }
+    public virtual ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("M");
@@ -2725,10 +3057,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    ref readonly int Parent.M() { throw null; }
+    ref readonly int Parent.M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("Parent.M");
@@ -2759,10 +3100,19 @@ public abstract class Parent
             var code = @"
 public class Child : Parent
 {
-    public override ref readonly int P { get { throw null; } }
+    public override ref readonly int P => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.P);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
@@ -2793,10 +3143,19 @@ public class Parent
             var code = @"
 public class Child : Parent
 {
-    public override ref readonly int P { get { throw null; } }
+    public override ref readonly int P => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.P);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
@@ -2827,10 +3186,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public ref readonly int P { get { throw null; } }
+    public ref readonly int P => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.P);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -2861,10 +3229,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public virtual ref readonly int P { get { throw null; } }
+    public virtual ref readonly int P => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.P);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
@@ -2895,10 +3272,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    ref readonly int Parent.P { get { throw null; } }
+    ref readonly int Parent.P => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.P);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("Parent.P");
@@ -2929,10 +3315,21 @@ public abstract class Parent
             var code = @"
 public class Child : Parent
 {
-    public override int this[ref readonly int p] { set {} }
+    public override int this[ref readonly int p]
+    {
+        set { System.Console.WriteLine(p); }
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj[5] = 0;
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
@@ -2963,10 +3360,21 @@ public class Parent
             var code = @"
 public class Child : Parent
 {
-    public override int this[ref readonly int p] { set {} }
+    public override int this[ref readonly int p]
+    {
+        set { System.Console.WriteLine(p); }
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj[5] = 0;
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
@@ -2997,10 +3405,21 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public int this[ref readonly int p] { set {} }
+    public int this[ref readonly int p]
+    {
+        set { System.Console.WriteLine(p); }
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj[5] = 0;
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -3008,7 +3427,10 @@ public class Child : Parent
                 Assert.Empty(implicitParameter.CustomModifiers);
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
-                var explicitParameter = type.GetMethod("Parent.set_Item").Parameters.First();
+                var explicitImplementation = type.GetMethod("Parent.set_Item");
+                Assert.Equal("void Parent.this[in modreq(System.Runtime.CompilerServices.IsConst) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+
+                var explicitParameter = explicitImplementation.Parameters.First();
                 Assert.Empty(explicitParameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
             });
@@ -3035,10 +3457,21 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public virtual int this[ref readonly int p] { set {} }
+    public virtual int this[ref readonly int p]
+    {
+        set { System.Console.WriteLine(p); }
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj[5] = 0;
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
@@ -3069,10 +3502,21 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    int Parent.this[ref readonly int p] { set {} }
+    int Parent.this[ref readonly int p]
+    {
+        set { System.Console.WriteLine(p); }
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        obj[5] = 0;
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("Parent.Item").Parameters.Single();
@@ -3103,10 +3547,19 @@ public abstract class Parent
             var code = @"
 public class Child : Parent
 {
-    public override ref readonly int this[int p] { get { throw null; } }
+    public override ref readonly int this[int p] => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj[0]);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
@@ -3137,10 +3590,19 @@ public class Parent
             var code = @"
 public class Child : Parent
 {
-    public override ref readonly int this[int p] { get { throw null; } }
+    public override ref readonly int this[int p] => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj[0]);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
@@ -3171,10 +3633,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public ref readonly int this[int p] { get { throw null; } }
+    public ref readonly int this[int p] => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj[0]);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
@@ -3205,10 +3676,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    public virtual ref readonly int this[int p] { get { throw null; } }
+    public virtual ref readonly int this[int p] => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj[0]);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
@@ -3240,10 +3720,19 @@ public interface Parent
             var code = @"
 public class Child : Parent
 {
-    ref readonly int Parent.this[int p] { get { throw null; } }
+    ref readonly int Parent.this[int p] => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj[0]);
+    }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, symbolValidator: module =>
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("Parent.Item");
@@ -3315,6 +3804,717 @@ public class Test
 }";
 
             CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+        }
+        
+        [Fact]
+        public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameterss_DuplicateModifierTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public delegate void D(ref readonly int p);");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
+
+                Assert.Empty(parameter.CustomModifiers);
+                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+            });
+
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Test
+{
+    public static void Main()
+    {
+        Run((ref readonly int p) => System.Console.WriteLine(p));
+    }
+
+    public static void Run(D lambda)
+    {
+        lambda(value);
+    }
+
+    private static int value = 5;
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_ReturnTypes_DuplicateModifierTypes()
+        {
+            var reference = CreateStandardCompilation(@"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public delegate ref readonly int D();");
+
+            CompileAndVerify(reference, symbolValidator: module =>
+            {
+                var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
+
+                Assert.Empty(method.ReturnTypeCustomModifiers);
+                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+            });
+
+            var code = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Test
+{
+    private static int value = 5;
+
+    public static void Main()
+    {
+        Run(() => ref value);
+    }
+
+    public static void Run(D lambda)
+    {
+        System.Console.WriteLine(lambda());
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void OverridingMethodSymbolDoesNotCopyModifiersIfItWasRefKindNone_Interface()
+        {
+            var code = @"
+public interface ITest
+{
+    ref readonly int M();
+}
+public class Test : ITest
+{
+    public int M() => 0;
+}";
+
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+                // (6,21): error CS8152: 'Test' does not implement interface member 'ITest.M()'. 'Test.M()' cannot implement 'ITest.M()' because it does not have matching return by reference.
+                // public class Test : ITest
+                Diagnostic(ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongRefReturn, "ITest").WithArguments("Test", "ITest.M()", "Test.M()").WithLocation(6, 21));
+
+            var interfaceMethod = comp.GetTypeByMetadataName("ITest").GetMethod("M");
+            Assert.Equal(RefKind.RefReadOnly, interfaceMethod.RefKind);
+            Assert.Empty(interfaceMethod.ReturnTypeCustomModifiers);
+            AssertSingleIsConstRequiredModifier(interfaceMethod.RefCustomModifiers);
+
+            var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
+            Assert.Equal(RefKind.None, classMethod.RefKind);
+            Assert.Empty(classMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(classMethod.RefCustomModifiers);
+        }
+
+        [Fact]
+        public void OverridingMethodSymbolDoesNotCopyModifiersIfItWasRefKindNone_Class()
+        {
+            var code = @"
+public abstract class ParentTest
+{
+    public abstract ref readonly int M();
+}
+public class Test : ParentTest
+{
+    public override int M() => 0;
+}";
+
+            var comp = CreateStandardCompilation(code).VerifyDiagnostics(
+                // (8,25): error CS8148: 'Test.M()' must match by reference return of overridden member 'ParentTest.M()'
+                //     public override int M() => 0;
+                Diagnostic(ErrorCode.ERR_CantChangeRefReturnOnOverride, "M").WithArguments("Test.M()", "ParentTest.M()").WithLocation(8, 25));
+
+            var parentMethod = comp.GetTypeByMetadataName("ParentTest").GetMethod("M");
+            Assert.Equal(RefKind.RefReadOnly, parentMethod.RefKind);
+            Assert.Empty(parentMethod.ReturnTypeCustomModifiers);
+            AssertSingleIsConstRequiredModifier(parentMethod.RefCustomModifiers);
+
+            var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
+            Assert.Equal(RefKind.None, classMethod.RefKind);
+            Assert.Empty(classMethod.ReturnTypeCustomModifiers);
+            Assert.Empty(classMethod.RefCustomModifiers);
+        }
+
+        [Fact]
+        public void OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Methods_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot virtual
+          instance void  M(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p) cil managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       10 (0xa)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::WriteLine(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig newslot virtual
+          instance void  M(int64 p) cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  call       void [mscorlib]System.Console::WriteLine(int64)
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj.M(value);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Methods_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+   .field private int32 'value'
+  .method public hidebysig newslot virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          M(int32 p) cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldflda     int32 TestRef::'value'
+    IL_0006:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig newslot virtual
+          instance int32  M(int64 p) cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      int32 TestRef::'value'
+    IL_0006:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       15 (0xf)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  } // end of method TestRef::.ctor
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj.M(0));
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+        
+        [Fact]
+        public void OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Indexers_Parameters()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )                      // ...Item..
+  .method public hidebysig newslot specialname virtual
+          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p,
+                                  int32 'value') cil managed
+  {
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       10 (0xa)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::WriteLine(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  } // end of method TestRef::set_Item
+
+  .method public hidebysig newslot specialname virtual
+          instance void  set_Item(int64 p,
+                                  int32 'value') cil managed
+  {
+    // Code size       9 (0x9)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  call       void [mscorlib]System.Console::WriteLine(int64)
+    IL_0007:  nop
+    IL_0008:  ret
+  } // end of method TestRef::set_Item
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+  {
+    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst),
+                                         int32)
+  } // end of property TestRef::Item
+  .property instance int32 Item(int64)
+  {
+    .set instance void TestRef::set_Item(int64,
+                                         int32)
+  } // end of property TestRef::Item
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        int value = 5;
+        var obj = new TestRef();
+        obj[value] = 0;
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void OverloadResolutionShouldBeAbleToPickOverloadsWithNoModreqsOverOnesWithModreq_Indexers_ReturnTypes()
+        {
+            var ilSource = IsReadOnlyAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )                      // ...Item..
+  .field private int32 'value'
+  .method public hidebysig newslot specialname virtual
+          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          get_Item(int32 p) cil managed
+  {
+    .param [0]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       12 (0xc)
+    .maxstack  1
+    .locals init (int32& V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldflda     int32 TestRef::'value'
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  } // end of method TestRef::get_Item
+
+  .method public hidebysig newslot specialname virtual
+          instance int32  get_Item(int64 p) cil managed
+  {
+    // Code size       12 (0xc)
+    .maxstack  1
+    .locals init (int32 V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldfld      int32 TestRef::'value'
+    IL_0007:  stloc.0
+    IL_0008:  br.s       IL_000a
+
+    IL_000a:  ldloc.0
+    IL_000b:  ret
+  } // end of method TestRef::get_Item
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       15 (0xf)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  ldc.i4.5
+    IL_0002:  stfld      int32 TestRef::'value'
+    IL_0007:  ldarg.0
+    IL_0008:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_000d:  nop
+    IL_000e:  ret
+  } // end of method TestRef::.ctor
+
+  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          Item(int32)
+  {
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) TestRef::get_Item(int32)
+  } // end of property TestRef::Item
+  .property instance int32 Item(int64)
+  {
+    .get instance int32 TestRef::get_Item(int64)
+  } // end of property TestRef::Item
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        var obj = new TestRef();
+        System.Console.WriteLine(obj[0]);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_Class_Virtual()
+        {
+            var testRef = CreateStandardCompilation(@"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Parent
+{
+    public virtual ref readonly int M() { throw null; }
+}", assemblyName: "testRef");
+
+            CompileAndVerify(testRef, symbolValidator: module =>
+            {
+                var parentModifier = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", parentModifier.ContainingAssembly.Name);
+            });
+
+            var userCode = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Child : Parent
+{
+    public override ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(
+                source: userCode,
+                expectedOutput: "5",
+                additionalRefs: new[] { testRef.ToMetadataReference() },
+                options: TestOptions.ReleaseExe,
+                symbolValidator: module =>
+            {
+                var childModifier = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
+            });
+        }
+
+        [Fact]
+        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_Class_Abstract()
+        {
+            var testRef = CreateStandardCompilation(@"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public abstract class Parent
+{
+    public abstract ref readonly int M();
+}", assemblyName: "testRef");
+
+            CompileAndVerify(testRef, symbolValidator: module =>
+            {
+                var parentModifier = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", parentModifier.ContainingAssembly.Name);
+            });
+
+            var userCode = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Child : Parent
+{
+    public override ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(
+                source: userCode,
+                expectedOutput: "5",
+                additionalRefs: new[] { testRef.ToMetadataReference() },
+                options: TestOptions.ReleaseExe,
+                symbolValidator: module =>
+            {
+                var childModifier = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
+            });
+        }
+
+        [Fact]
+        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_ExplicitInterface()
+        {
+            var testRef = CreateStandardCompilation(@"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public interface Parent
+{
+    ref readonly int M();
+}", assemblyName: "testRef");
+
+            CompileAndVerify(testRef, symbolValidator: module =>
+            {
+                var parentModifier = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", parentModifier.ContainingAssembly.Name);
+            });
+
+            var userCode = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Child : Parent
+{
+    ref readonly int Parent.M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(
+                source: userCode,
+                expectedOutput: "5",
+                additionalRefs: new[] { testRef.ToMetadataReference() },
+                options: TestOptions.ReleaseExe,
+                symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var explicitModifier = type.GetMethod("Parent.M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
+            });
+        }
+
+        [Fact]
+        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_Virtual()
+        {
+            var testRef = CreateStandardCompilation(@"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public interface Parent
+{
+    ref readonly int M();
+}", assemblyName: "testRef");
+
+            CompileAndVerify(testRef, symbolValidator: module =>
+            {
+                var parentModifier = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", parentModifier.ContainingAssembly.Name);
+            });
+
+            var userCode = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Child : Parent
+{
+    public virtual ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(
+                source: userCode,
+                expectedOutput: "5",
+                additionalRefs: new[] { testRef.ToMetadataReference() },
+                options: TestOptions.ReleaseExe,
+                symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var implicitModifier = type.GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal(module.ContainingAssembly.Name, implicitModifier.ContainingAssembly.Name);
+
+                var explicitModifier = type.GetMethod("Parent.M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
+            });
+        }
+
+        [Fact]
+        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_NonVirtual()
+        {
+            var testRef = CreateStandardCompilation(@"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public interface Parent
+{
+    ref readonly int M();
+}", assemblyName: "testRef");
+
+            CompileAndVerify(testRef, symbolValidator: module =>
+            {
+                var parentModifier = module.ContainingAssembly.GetTypeByMetadataName("Parent").GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", parentModifier.ContainingAssembly.Name);
+            });
+
+            var userCode = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}
+public class Child : Parent
+{
+    public ref readonly int M() => ref value;
+    private int value = 5;
+}
+public class Program
+{
+    public static void Main()
+    {
+        Parent obj = new Child();
+        System.Console.WriteLine(obj.M());
+    }
+}";
+
+            CompileAndVerify(
+                source: userCode,
+                additionalRefs: new[] { testRef.ToMetadataReference() },
+                options: TestOptions.ReleaseExe,
+                expectedOutput: "5",
+                symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
+
+                var implicitModifier = type.GetMethod("M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal(module.ContainingAssembly.Name, implicitModifier.ContainingAssembly.Name);
+
+                var explicitModifier = type.GetMethod("Parent.M").RefCustomModifiers.Single().Modifier;
+                Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
+            });
+        }
+
+        [Fact]
+        public void DuplicateIsConstTypeInReferences()
+        {
+            var refCode = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsConst {}
+}";
+
+            var ref1 = CreateStandardCompilation(refCode).EmitToImageReference();
+            var ref2 = CreateStandardCompilation(refCode).EmitToImageReference();
+
+            var user = @"
+public class Test
+{
+    public ref readonly int M() => throw null;
+}";
+
+            CreateStandardCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
+                // (4,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                //     public ref readonly int M() => throw null;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(4, 12));
         }
 
         private void AssertSingleIsConstRequiredModifier(ImmutableArray<CustomModifier> modifiers)

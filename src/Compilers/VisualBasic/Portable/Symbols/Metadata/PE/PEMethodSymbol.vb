@@ -1083,19 +1083,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Property
 
         Friend Overrides Function GetUseSiteErrorInfo() As DiagnosticInfo
-            Dim result As DiagnosticInfo
-
             If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
                 Dim errorInfo As DiagnosticInfo = CalculateUseSiteErrorInfo()
                 EnsureTypeParametersAreLoaded(errorInfo)
-                result = InitializeUseSiteErrorInfo(errorInfo)
-            Else
-                result = _uncommonFields?._lazyUseSiteErrorInfo
+                Return InitializeUseSiteErrorInfo(errorInfo)
             End If
 
-            Return If(result Is ErrorFactory.EmptyErrorInfo,
-                InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
-                result)
+            Dim uncommonFields = _uncommonFields
+            If uncommonFields Is Nothing Then
+                Return Nothing
+            Else
+                Dim result = uncommonFields._lazyUseSiteErrorInfo
+                Return If(result Is ErrorFactory.EmptyErrorInfo,
+                    InterlockedOperations.Initialize(uncommonFields._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
+                    result)
+            End If
         End Function
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
