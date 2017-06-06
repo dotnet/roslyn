@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal partial class Worker
     {
         private readonly TextSpan _textSpan;
-        private readonly List<ClassifiedSpan> _result;
+        private readonly ArrayBuilder<ClassifiedSpan> _result;
         private readonly CancellationToken _cancellationToken;
 
-        private Worker(TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        private Worker(TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             _result = result;
             _textSpan = textSpan;
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         }
 
         internal static void CollectClassifiedSpans(
-            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+            IEnumerable<SyntaxToken> tokens, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var worker = new Worker(textSpan, result, cancellationToken);
             foreach (var tk in tokens)
@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             }
         }
 
-        internal static void CollectClassifiedSpans(SyntaxNode
-            node, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void CollectClassifiedSpans(
+            SyntaxNode node, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var worker = new Worker(textSpan, result, cancellationToken);
             worker.ClassifyNode(node);

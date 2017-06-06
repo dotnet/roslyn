@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return false;
         }
 
-        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
+        internal static void AddLexicalClassifications(SourceText text, TextSpan textSpan, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
             var text2 = text.ToString(textSpan);
             var tokens = SyntaxFactory.ParseTokens(text2, initialTokenPosition: textSpan.Start);

@@ -1,40 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal class UsingDirectiveSyntaxClassifier : AbstractSyntaxClassifier
     {
-        public override IEnumerable<ClassifiedSpan> ClassifyNode(
+        public override void AddClassifications(
             SyntaxNode syntax,
             SemanticModel semanticModel,
+            ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (syntax is UsingDirectiveSyntax usingDirective)
             {
-                return ClassifyUsingDirectiveSyntax(usingDirective, semanticModel, cancellationToken);
-            }
-
-            return null;
-        }
-
-        public override IEnumerable<Type> SyntaxNodeTypes
-        {
-            get
-            {
-                yield return typeof(UsingDirectiveSyntax);
+                ClassifyUsingDirectiveSyntax(usingDirective, semanticModel, result, cancellationToken);
             }
         }
 
-        private IEnumerable<ClassifiedSpan> ClassifyUsingDirectiveSyntax(
+        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(typeof(UsingDirectiveSyntax));
+
+        private void ClassifyUsingDirectiveSyntax(
             UsingDirectiveSyntax usingDirective,
             SemanticModel semanticModel,
+            ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             // For using aliases, we bind the target on the right of the equals and use that
@@ -48,12 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     if (classification != null)
                     {
                         var token = usingDirective.Alias.Name;
-                        return SpecializedCollections.SingletonEnumerable(new ClassifiedSpan(token.Span, classification));
+                        result.Add(new ClassifiedSpan(token.Span, classification));
                     }
                 }
             }
-
-            return null;
         }
     }
 }

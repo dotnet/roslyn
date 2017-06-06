@@ -13,7 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     internal class CSharpEditorClassificationService : AbstractClassificationService
     {
         public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
-            => ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
+        {
+            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken);
+            AddRange(temp, result);
+            temp.Free();
+        }
 
         public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
             => ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan);
