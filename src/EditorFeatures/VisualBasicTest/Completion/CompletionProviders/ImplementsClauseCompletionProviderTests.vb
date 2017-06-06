@@ -786,13 +786,13 @@ End Interface
 Class B(Of T)
     Implements I(Of Integer)
 
-    Public Sub Foo() Implements $$
+    Public Sub Foo() Implements
     End Sub
 End Class
 
    </text>.Value
 
-            Await VerifyItemExistsAsync(text, "I(Of Integer)")
+            Await VerifyItemExistsAsync(text, "I(Of wrong)")
         End Function
     End Class
 End Namespace
