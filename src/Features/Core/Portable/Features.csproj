@@ -146,6 +146,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -229,6 +230,9 @@
     <Compile Include="RQName\SimpleTree\SimpleTreeNode.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />

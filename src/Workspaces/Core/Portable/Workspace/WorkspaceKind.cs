@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis
         public const string MiscellaneousFiles = nameof(MiscellaneousFiles);
         public const string Preview = nameof(Preview);
 
+        internal const string Test = nameof(Test);
         internal const string AnyCodeRoslynWorkspace = nameof(AnyCodeRoslynWorkspace);
         internal const string RemoteWorkspace = nameof(RemoteWorkspace);
         internal const string RemoteTemporaryWorkspace = nameof(RemoteTemporaryWorkspace);

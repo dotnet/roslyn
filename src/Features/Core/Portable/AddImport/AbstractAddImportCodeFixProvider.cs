@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax> 
-        : CodeFixProvider, IEqualityComparer<(ProjectId, PortableExecutableReference)>
+        : CodeFixProvider, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
         private const int MaxResults = 3;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private static bool IsHostOrTestWorkspace(Project project)
         {
             return project.Solution.Workspace.Kind == WorkspaceKind.Host ||
-                   project.Solution.Workspace.Kind == "Test";
+                   project.Solution.Workspace.Kind == WorkspaceKind.Test;
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
@@ -250,8 +250,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // Keep track of the references we've seen (so that we don't process them multiple times
             // across many sibling projects).  Prepopulate it with our own metadata references since
             // we know we don't need to search in that.
-            var seenReferences = new HashSet<(ProjectId, PortableExecutableReference)>(comparer: this);
-            seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>().Select(r => (project.Id, r)));
+            var seenReferences = new HashSet<PortableExecutableReference>(comparer: this);
+            seenReferences.AddAll(project.MetadataReferences.OfType<PortableExecutableReference>());
 
             var newReferences = GetUnreferencedMetadataReferences(project, seenReferences);
 
@@ -288,15 +288,30 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         /// for the project we found the pe-reference in.
         /// </summary>
         private ImmutableArray<(ProjectId, PortableExecutableReference)> GetUnreferencedMetadataReferences(
-            Project project, HashSet<(ProjectId, PortableExecutableReference)> seenReferences)
+            Project project, HashSet<PortableExecutableReference> seenReferences)
         {
+            var result = ArrayBuilder<(ProjectId, PortableExecutableReference)>.GetInstance();
+
             var solution = project.Solution;
-            return solution.Projects.Where(p => p != project)
-                                    .SelectMany(p => p.MetadataReferences.OfType<PortableExecutableReference>().Select(pe => (p.Id, reference: pe)))
-                                    .Distinct(comparer: this)
-                                    .Where(t => !seenReferences.Contains(t))
-                                    .Where(t => !IsInPackagesDirectory(t.Item2))
-                                    .ToImmutableArray();
+            foreach (var p in solution.Projects)
+            {
+                if (p == project)
+                {
+                    continue;
+                }
+
+                foreach (var reference in p.MetadataReferences)
+                {
+                    if (reference is PortableExecutableReference peReference &&
+                        !IsInPackagesDirectory(peReference) &&
+                        seenReferences.Add(peReference))
+                    {
+                        result.Add((p.Id, peReference));
+                    }
+                }
+            }
+
+            return result.ToImmutableAndFree();
         }
 
         private async Task WaitForTasksAsync(
@@ -378,18 +393,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         }
 
 
-        bool IEqualityComparer<(ProjectId, PortableExecutableReference)>.Equals(
-            (ProjectId, PortableExecutableReference) x, (ProjectId, PortableExecutableReference) y)
-        {
-            return StringComparer.OrdinalIgnoreCase.Equals(
-                x.Item2.FilePath ?? x.Item2.Display,
-                y.Item2.FilePath ?? y.Item2.Display);
-        }
+        bool IEqualityComparer<PortableExecutableReference>.Equals(PortableExecutableReference x, PortableExecutableReference y)
+            => StringComparer.OrdinalIgnoreCase.Equals(x.FilePath ?? x.Display, y.FilePath ?? y.Display);
 
-        int IEqualityComparer<(ProjectId, PortableExecutableReference)>.GetHashCode((ProjectId, PortableExecutableReference) obj)
-        {
-            return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.Item2.FilePath ?? obj.Item2.Display);
-        }
+        int IEqualityComparer<PortableExecutableReference>.GetHashCode(PortableExecutableReference obj)
+            => StringComparer.OrdinalIgnoreCase.GetHashCode(obj.FilePath ?? obj.Display);
 
         private static HashSet<Project> GetViableUnreferencedProjects(Project project)
         {
