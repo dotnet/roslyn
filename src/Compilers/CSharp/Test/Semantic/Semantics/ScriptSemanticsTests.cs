@@ -128,7 +128,6 @@ namespace System.Threading.Tasks {
 }");
         }
 
-
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
         public void NonStandardTaskImplementation_GlobalUsing_NoScriptUsing_VoidHidden()
@@ -174,7 +173,6 @@ namespace System.Threading.Tasks {
   IL_0015:  ret
 }");
         }
-
 
         [WorkItem(19048, "https://github.com/dotnet/roslyn/pull/19623")]
         [Fact]
