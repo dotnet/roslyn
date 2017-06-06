@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                         _taggerProvider = new DiagnosticsSquiggleTaggerProvider(
                             DiagnosticService, _workspace.GetService<IForegroundNotificationService>(), _listeners);
                     }
-                    else if (typeof(TProvider) == typeof(DiagnosticsSquiggleTaggerProvider))
+                    else if (typeof(TProvider) == typeof(DiagnosticsSuggestionTaggerProvider))
                     {
                         _taggerProvider = new DiagnosticsSuggestionTaggerProvider(
                             _workspace.ExportProvider.GetExportedValue<IEditorFormatMapService>(), DiagnosticService, 
