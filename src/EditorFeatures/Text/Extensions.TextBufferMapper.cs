@@ -23,9 +23,15 @@ namespace Microsoft.CodeAnalysis.Text
                 var textImage = ((ITextSnapshot2)editorSnapshot).TextImage;
                 Contract.ThrowIfNull(textImage);
 
-                // put reverse entry that won't hold onto anything
-                var weakEditorSnapshot = new WeakReference<ITextSnapshot>(editorSnapshot);
-                s_roslynToEditorSnapshotMap.GetValue(textImage, _ => weakEditorSnapshot);
+                // If we're already in the map, there's nothing to update.  Do a quick check
+                // to avoid two allocations per call to ToReverseMappedTextImage.
+                if (!s_roslynToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
+                    weakReference.GetTarget() != editorSnapshot)
+                {
+                    // put reverse entry that won't hold onto anything
+                    s_roslynToEditorSnapshotMap.GetValue(
+                        textImage, _ => new WeakReference<ITextSnapshot>(editorSnapshot));
+                }
 
                 return textImage;
             }
