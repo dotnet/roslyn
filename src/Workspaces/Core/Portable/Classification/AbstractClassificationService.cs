@@ -3,16 +3,13 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
+namespace Microsoft.CodeAnalysis.Classification
 {
-#pragma warning disable CS0612 // Type or member is obsolete
-    internal abstract class AbstractEditorClassificationService : IEditorClassificationService
-#pragma warning restore CS0612 // Type or member is obsolete
+    internal abstract class AbstractClassificationService : IClassificationService
     {
         public abstract void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken);
         public abstract ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan);

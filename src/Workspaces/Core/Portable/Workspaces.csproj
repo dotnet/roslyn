@@ -207,6 +207,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Syntax\SyntaxTreeExtensions.cs">
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
+    <Compile Include="Classification\AbstractClassificationService.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
   </ItemGroup>

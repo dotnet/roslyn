@@ -3,17 +3,13 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Classification
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Classification
-#Disable Warning BC40008 ' Type or member is obsolete
-    <ExportLanguageService(GetType(IEditorClassificationService), LanguageNames.VisualBasic), [Shared]>
+Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
+    <ExportLanguageService(GetType(IClassificationService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEditorClassificationService
-#Enable Warning BC40008 ' Type or member is obsolete
-        Inherits AbstractEditorClassificationService
+        Inherits AbstractClassificationService
 
         Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
             ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)

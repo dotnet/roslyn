@@ -58,6 +58,7 @@
     <Compile Include="Classification\SyntaxClassification\ImportAliasClauseSyntaxClassifier.vb" />
     <Compile Include="Classification\SyntaxClassification\NameSyntaxClassifier.vb" />
     <Compile Include="Classification\SyntaxClassification\VisualBasicSyntaxClassificationService.vb" />
+    <Compile Include="Classification\VisualBasicClassificationService.vb" />
     <Compile Include="Classification\Worker.DocumentationCommentClassifier.vb" />
     <Compile Include="Classification\Worker.vb" />
     <Compile Include="Classification\Worker.XmlClassifier.vb" />
