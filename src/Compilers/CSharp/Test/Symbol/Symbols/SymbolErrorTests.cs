@@ -7738,14 +7738,18 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
 ";
 
             var comp = CreateStandardCompilation(source).VerifyDiagnostics(
-               // (5,40): The abstract method 'clx.M1' cannot be marked virtual
-               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "NS.clx.M1()"),
-               // (6,41): The abstract method 'clx.M2<T>' cannot be marked virtual
-               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "NS.clx.M2<T>(T)"),
-               // (7,40): The abstract property 'clx.P' cannot be marked virtual
-               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "NS.clx.P"),
-               // (8,53): The abstract event 'clx.E' cannot be marked virtual
-               Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "E").WithArguments("event", "NS.clx.E"));
+                // (7,40): error CS0503: The abstract property 'clx.P' cannot be marked virtual
+                //         virtual abstract public object P { get; set; }
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "NS.clx.P").WithLocation(7, 40),
+                // (6,41): error CS0503: The abstract method 'clx.M2<T>(T)' cannot be marked virtual
+                //         abstract virtual protected void M2<T>(T t);
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "NS.clx.M2<T>(T)").WithLocation(6, 41),
+                // (5,40): error CS0503: The abstract method 'clx.M1()' cannot be marked virtual
+                //         abstract virtual internal void M1();
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M1").WithArguments("method", "NS.clx.M1()").WithLocation(5, 40),
+                // (8,53): error CS0503: The abstract event 'clx.E' cannot be marked virtual
+                //         virtual abstract public event System.Action E;
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "E").WithArguments("event", "NS.clx.E").WithLocation(8, 53));
 
             var nsNamespace = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var clxClass = nsNamespace.GetMembers("clx").Single() as NamedTypeSymbol;
