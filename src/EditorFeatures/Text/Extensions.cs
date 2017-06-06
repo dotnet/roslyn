@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Text
             => TryGetTextBuffer(textContainer) ?? throw new ArgumentException(TextEditorResources.textContainer_is_not_a_SourceTextContainer_that_was_created_from_an_ITextBuffer, nameof(textContainer));
 
         public static ITextBuffer TryGetTextBuffer(this SourceTextContainer textContainer)
-            => (textContainer as TextBufferContainer)?.EditorTextBuffer;
+            => (textContainer as TextBufferContainer)?.TryFindEditorTextBuffer();
 
         /// <summary>
         /// Returns the ITextSnapshot behind this SourceText, or null if it wasn't created from one.
