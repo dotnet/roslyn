@@ -519,7 +519,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
-<<<<<<< HEAD
 
                 ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
                 ArrayBuilder<IArgument> argumentsBuilder = ArrayBuilder<IArgument>.GetInstance(arguments.Length);
@@ -541,9 +540,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
 
                 return argumentsBuilder.ToImmutableAndFree();
-=======
-                return arguments.ZipAsArray(methodOrIndexer.GetParameters(), (a, p) => CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, p, CSharpOperationFactory.Create(a)));
->>>>>>> dotnet/features/ioperation
             }                                                                                                                   
 
             return BuildArgumentsInEvaluationOrder(syntax, 

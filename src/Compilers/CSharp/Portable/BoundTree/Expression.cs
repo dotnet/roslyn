@@ -126,26 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundRefValueOperator
     {
-<<<<<<< HEAD
-        public override void Accept(OperationVisitor visitor)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            visitor.VisitNoneOperation(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            return visitor.VisitNoneOperation(this, argument);
-        }
-
-        // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-        protected override OperationKind ExpressionKind => OperationKind.None;
-
-        protected override ImmutableArray<IOperation> Children => ImmutableArray.Create<IOperation>(this.Expression, this.Pattern);
-=======
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Operand);
->>>>>>> dotnet/features/ioperation
     }
 
     internal partial class BoundDynamicInvocation

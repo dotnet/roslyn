@@ -389,13 +389,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
-<<<<<<< HEAD
-=======
-
-        public virtual void VisitLocalFunctionStatement(IOperation operation)
-        {
-            DefaultVisit(operation);
-        }
 
         public virtual void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
         {
@@ -411,7 +404,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
->>>>>>> dotnet/features/ioperation
     }
 
     /// <summary>
@@ -806,14 +798,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public virtual TResult VisitInvalidExpression(IInvalidExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
-        }
-<<<<<<< HEAD
-=======
-
-        public virtual TResult VisitLocalFunctionStatement(IOperation operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
+        }        
 
         public virtual TResult VisitInterpolatedStringExpression(IInterpolatedStringExpression operation, TArgument argument)
         {
@@ -829,6 +814,5 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return DefaultVisit(operation, argument);
         }
->>>>>>> dotnet/features/ioperation
     }
 }
