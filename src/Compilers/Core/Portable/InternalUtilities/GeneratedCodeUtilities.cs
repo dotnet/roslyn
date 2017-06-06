@@ -21,21 +21,23 @@ namespace Roslyn.Utilities
             // Don't check this for namespaces.  Namespaces cannot have attributes on them. And, 
             // currently, calling DeclaringSyntaxReferences on an INamespaceSymbol is more expensive
             // than is desirable.
-            if (symbol.Kind != SymbolKind.Namespace)
+            if (symbol.Kind == SymbolKind.Namespace)
             {
-                // GeneratedCodeAttribute can only be applied once on a symbol.
-                // For partial symbols with more than one definition, we must treat them as non-generated code symbols.
-                if (symbol.DeclaringSyntaxReferences.Length > 1)
-                {
-                    return false;
-                }
+                return false;
+            }
 
-                foreach (var attribute in symbol.GetAttributes())
+            // GeneratedCodeAttribute can only be applied once on a symbol.
+            // For partial symbols with more than one definition, we must treat them as non-generated code symbols.
+            if (symbol.DeclaringSyntaxReferences.Length > 1)
+            {
+                return false;
+            }
+
+            foreach (var attribute in symbol.GetAttributes())
+            {
+                if (generatedCodeAttribute == attribute.AttributeClass)
                 {
-                    if (generatedCodeAttribute.Equals(attribute.AttributeClass))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
