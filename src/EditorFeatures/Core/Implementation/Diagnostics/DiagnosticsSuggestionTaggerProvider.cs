@@ -47,10 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return diagnostic.Severity == DiagnosticSeverity.Info;
         }
 
-        protected override IErrorTag CreateTag(DiagnosticData diagnostic)
-        {
-            return new ErrorTag(PredefinedErrorTypeNames.HintedSuggestion, diagnostic.Message);
-        }
+        protected override IErrorTag CreateTag(DiagnosticData diagnostic) =>
+            new ErrorTag(PredefinedErrorTypeNames.HintedSuggestion, diagnostic.Message);
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
