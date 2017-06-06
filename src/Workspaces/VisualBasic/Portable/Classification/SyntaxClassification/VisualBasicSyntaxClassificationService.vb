@@ -1,20 +1,27 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Classification.Classifiers
-Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
-    <ExportLanguageService(GetType(IClassificationService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicClassificationService
-        Inherits AbstractClassificationService
+    <ExportLanguageService(GetType(ISyntaxClassificationService), LanguageNames.VisualBasic), [Shared]>
+    Partial Friend Class VisualBasicSyntaxClassificationService
+        Inherits AbstractSyntaxClassificationService
+
+        Private Shared ReadOnly s_defaultSyntaxClassifiers As IEnumerable(Of ISyntaxClassifier) =
+            ImmutableArray.Create(Of ISyntaxClassifier)(
+                New NameSyntaxClassifier(),
+                New ImportAliasClauseSyntaxClassifier(),
+                New IdentifierNameSyntaxClassifier())
 
         Public Overrides Function GetDefaultSyntaxClassifiers() As IEnumerable(Of ISyntaxClassifier)
-            Return SyntaxClassifier.DefaultSyntaxClassifiers
+            Return s_defaultSyntaxClassifiers
         End Function
 
         Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)

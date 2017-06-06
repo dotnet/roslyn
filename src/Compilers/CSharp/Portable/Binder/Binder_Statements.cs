@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ExpressionSyntax value)
         {
             RefKind expressionRefKind = RefKind.None;
-            value = initializer?.Value.SkipRef(out expressionRefKind);
+            value = initializer?.Value.CheckAndUnwrapRefExpression(diagnostics, out expressionRefKind);
             if (variableRefKind == RefKind.None)
             {
                 valueKind = BindValueKind.RValue;
@@ -969,11 +969,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer);
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(SingleVariableDesignationSyntax designation, TypeSyntax typeSyntax)
-        {
-            return LocateDeclaredVariableSymbol(designation.Identifier, typeSyntax, null);
-        }
-
         private SourceLocalSymbol LocateDeclaredVariableSymbol(SyntaxToken identifier, TypeSyntax typeSyntax, EqualsValueClauseSyntax equalsValue)
         {
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
@@ -1124,6 +1119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(node.Left != null);
             Debug.Assert(node.Right != null);
+
+            node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
 
             if (node.Left.Kind() == SyntaxKind.TupleExpression || node.Left.Kind() == SyntaxKind.DeclarationExpression)
             {
@@ -2240,7 +2237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindReturn(ReturnStatementSyntax syntax, DiagnosticBag diagnostics)
         {
             var refKind = RefKind.None;
-            var expressionSyntax = syntax.Expression?.SkipRef(out refKind);
+            var expressionSyntax = syntax.Expression?.CheckAndUnwrapRefExpression(diagnostics, out refKind);
             BoundExpression arg = null;
             if (expressionSyntax != null)
             {
@@ -2717,9 +2714,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(expressionBody);
             Debug.Assert(bodyBinder != null);
 
-            ExpressionSyntax expressionSyntax = expressionBody.Expression.SkipRef(out var refKind);
-            BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
-            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
+            RefKind refKind = RefKind.None;
+            ExpressionSyntax expressionSyntax = expressionBody.Expression.CheckAndUnwrapRefExpression(
+                diagnostics, out refKind);
+            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
             return bodyBinder.CreateBlockFromExpression(expressionBody, bodyBinder.GetDeclaredLocalsForScope(expressionBody), refKind, expression, expressionSyntax, diagnostics);
         }
 
@@ -2731,9 +2729,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(body);
             Debug.Assert(bodyBinder != null);
 
-            var expressionSyntax = ((ExpressionSyntax)body).SkipRef(out var refKind);
-            BindValueKind requiredValueKind = GetRequiredReturnValueKind(refKind);
-            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, requiredValueKind);
+            RefKind refKind;
+            var expressionSyntax = body.CheckAndUnwrapRefExpression(diagnostics, out refKind);
+            BoundExpression expression = bodyBinder.BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, expressionSyntax, diagnostics);
         }
 

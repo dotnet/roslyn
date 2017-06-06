@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindCompoundAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
+            node.Left.CheckDeconstructionCompatibleArgument(diagnostics);
+
             BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
@@ -1868,6 +1870,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindIncrementOperator(CSharpSyntaxNode node, ExpressionSyntax operandSyntax, SyntaxToken operatorToken, DiagnosticBag diagnostics)
         {
+            operandSyntax.CheckDeconstructionCompatibleArgument(diagnostics);
+
             BoundExpression operand = BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement);
             UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
@@ -2741,29 +2745,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal static ConstantValue GetIsOperatorConstantResult(TypeSymbol operandType, TypeSymbol targetType, ConversionKind conversionKind, ConstantValue operandConstantValue)
+        internal static ConstantValue GetIsOperatorConstantResult(
+            TypeSymbol operandType,
+            TypeSymbol targetType,
+            ConversionKind conversionKind,
+            ConstantValue operandConstantValue,
+            bool operandCouldBeNull = true)
         {
             Debug.Assert((object)targetType != null);
 
             // SPEC:    The result of the operation depends on D and T as follows:
-            // SPEC:    1)	If T is a reference type, the result is true if D and T are the same type, if D is a reference type and
+            // SPEC:    1)      If T is a reference type, the result is true if D and T are the same type, if D is a reference type and
             // SPEC:        an implicit reference conversion from D to T exists, or if D is a value type and a boxing conversion from D to T exists.
-            // SPEC:    2)	If T is a nullable type, the result is true if D is the underlying type of T.
-            // SPEC:    3)	If T is a non-nullable value type, the result is true if D and T are the same type.
-            // SPEC:    4)	Otherwise, the result is false.
+            // SPEC:    2)      If T is a nullable type, the result is true if D is the underlying type of T.
+            // SPEC:    3)      If T is a non-nullable value type, the result is true if D and T are the same type.
+            // SPEC:    4)      Otherwise, the result is false.
 
             // NOTE:    The language specification talks about the runtime evaluation of the is operation.
             // NOTE:    However, we are interested in computing the compile time constant value for the expression.
             // NOTE:    Even though BoundIsOperator and BoundAsOperator will always have no ConstantValue
             // NOTE:    (they are non-constant expressions according to Section 7.19 of the specification),
-            // NOTE:    we want to perform constant analysis of is/as expressions during binding to generate warnings (always true/false/null)
-            // NOTE:    and during rewriting for optimized codegen.
+            // NOTE:    we want to perform constant analysis of is/as expressions during binding to generate warnings
+            // NOTE:    (always true/false/null) and during rewriting for optimized codegen.
             // NOTE: 
             // NOTE:    Because the heuristic presented here is used to change codegen, it must be conservative. It is acceptable
             // NOTE:    for us to fail to report a warning in cases where humans could logically deduce that the operator will
             // NOTE:    always return false. It is not acceptable to inaccurately warn that the operator will always return false
             // NOTE:    if there are cases where it might succeed.
-            // 
+            // NOTE:
+            // NOTE:    These same heuristics are also used in pattern-matching to determine if an expression of the form
+            // NOTE:    `e is T x` is permitted. It is an error if `e` cannot be of type `T` according to this method
+            // NOTE:    returning ConstantValue.False.
+            // NOTE:    The heuristics are also used to determine if a `case T1 x1:` is subsumed by
+            // NOTE:    some previous `case T2 x2:` in a switch statement. For that purpose operandType is T1, targetType is T2,
+            // NOTE:    and operandCouldBeNull is false; the former subsumes the latter if this method returns ConstantValue.True.
+            // NOTE:    Since the heuristic is now used to produce errors in pattern-matching, making it more accurate in the
+            // NOTE:    future could be a breaking change.
 
             // To begin our heuristic: if the operand is literal null then we automatically return that the
             // result is false. You might think that we can simply check to see if the conversion is 
@@ -2777,6 +2794,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert((object)operandType != null);
+
+            operandCouldBeNull =
+                operandCouldBeNull &&
+                operandType.CanContainNull() && // a non-nullable value type is never null
+                (operandConstantValue == null || operandConstantValue == ConstantValue.Null); // a non-null constant is never null
 
             switch (conversionKind)
             {
@@ -2861,6 +2883,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitUserDefined:
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.IntPtr:
+                case ConversionKind.ExplicitTuple:
+                case ConversionKind.ImplicitTuple:
 
                     // Consider all the cases where we know that "x is T" must be false just from
                     // the conversion classification.
@@ -2906,13 +2930,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(operandType.IsNullableType());
 
                     // 3) X? --> X. In this case, this is just a different way of writing "x != null".
-                    //    We do not know what the result will be.
-                    //    CONSIDER: If we know statically that the operand is going to be null or non-null
-                    //    CONSIDER: then we could give a better result here.
-
+                    //    We only know what the result will be if the input is known not to be null.
                     if (Conversions.HasIdentityConversion(operandType.GetNullableUnderlyingType(), targetType))
                     {
-                        return null;
+                        return operandCouldBeNull ? null : ConstantValue.True;
                     }
 
                     // 4) X? --> Y where the conversion X --> Y is an implicit or explicit value type conversion.
@@ -2921,11 +2942,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ConstantValue.False;
 
                 case ConversionKind.ImplicitReference:
+                    return operandCouldBeNull ? null : ConstantValue.True;
+
                 case ConversionKind.ExplicitReference:
                 case ConversionKind.Unboxing:
                     // In these three cases, the expression type must be a reference type. Therefore,
-                    // the result cannot be determined. The expression could be null, resulting 
-                    // in false, or it could be a non-null reference to the appropriate type,
+                    // the result cannot be determined. The expression could be null or of the wrong type,
+                    // resulting in false, or it could be a non-null reference to the appropriate type,
                     // resulting in true.
                     return null;
 
@@ -2934,7 +2957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // of non-nullable value type T. If x is of reference or nullable value type then
                     // we cannot know, because again, the expression value could be null or it could be good. 
                     // If it is of pointer type then we have already given an error.
-                    return (operandType.IsValueType && !operandType.IsNullableType()) ? ConstantValue.True : null;
+                    return operandCouldBeNull ? null : ConstantValue.True;
 
                 case ConversionKind.Boxing:
 
@@ -2951,8 +2974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // In the second two cases we do not know; either the nullable value type could be
                     // null, or the type parameter could be constructed with a reference type, and it
                     // could be null.
-
-                    return operandType.IsValueType && !operandType.IsNullableType() ? ConstantValue.True : null;
+                    return operandCouldBeNull ? null : ConstantValue.True;
 
                 case ConversionKind.ImplicitNullable:
                     // We have "x is T" in one of the following situations:

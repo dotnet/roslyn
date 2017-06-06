@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
+                    CheckParanthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
                     isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
@@ -189,6 +190,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Tuple.Create(refKinds, types, names, isAsync);
         }
 
+        private void CheckParanthesizedLambdaParameters(
+            SeparatedSyntaxList<ParameterSyntax> parameterSyntaxList, DiagnosticBag diagnostics)
+        {
+            if (parameterSyntaxList.Count > 0)
+            {
+                var hasTypes = parameterSyntaxList[0].Type != null;
+
+                for (int i = 1, n = parameterSyntaxList.Count; i < n; i++)
+                {
+                    var parameter = parameterSyntaxList[i];
+
+                    // Ignore parameters with missing names.  We'll have already reported an error
+                    // about them in the parser.
+                    if (!parameter.Identifier.IsMissing)
+                    {
+                        var thisParameterHasType = parameter.Type != null;
+                        if (hasTypes != thisParameterHasType)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_InconsistentLambdaParameterUsage,
+                                parameter.Type?.GetLocation() ?? parameter.Identifier.GetLocation());
+                        }
+                    }
+                }
+            }
+        }
+
         private UnboundLambda BindAnonymousFunction(CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             Debug.Assert(syntax != null);
@@ -228,14 +255,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    if (pNames.Contains(name))
+                    if (!pNames.Add(name))
                     {
                         // The parameter name '{0}' is a duplicate
                         diagnostics.Add(ErrorCode.ERR_DuplicateParamName, lambda.ParameterLocation(i), name);
                     }
                     else
                     {
-                        pNames.Add(name);
                         binder.ValidateLambdaParameterNameConflictsInScope(lambda.ParameterLocation(i), name, diagnostics);
                     }
                 }
