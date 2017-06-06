@@ -29,6 +29,26 @@ namespace Roslyn.VisualStudio.IntegrationTests
             VisualStudio.SolutionExplorer.CreateSolution(solutionName);
             VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), projectTemplate, LanguageName);
 
+            if (projectTemplate == WellKnownProjectTemplates.CSharpNetCoreClassLibrary ||
+                projectTemplate == WellKnownProjectTemplates.CSharpNetCoreConsoleApplication ||
+                projectTemplate == WellKnownProjectTemplates.CSharpNetCoreUnitTest ||
+                projectTemplate == WellKnownProjectTemplates.CSharpNetCoreXUnitTest ||
+                projectTemplate == WellKnownProjectTemplates.VisualBasicNetCoreClassLibrary ||
+                projectTemplate == WellKnownProjectTemplates.VisualBasicNetCoreConsoleApplication)
+            {
+                // Run a build before proceeding to ensure the project system downloads and
+                // resolves the required .NET Core dependencies, then activate the editor
+                // window so we end up in the expected state.
+                VisualStudio.SolutionExplorer.BuildSolution(waitForBuildToFinish: true);
+                VisualStudio.Editor.Activate();
+
+                // Then close and reopen the solution to ensure the Error List is purged of
+                // stale warnings/errors.
+                string solutionFile = VisualStudio.SolutionExplorer.SolutionFileFullPath;
+                VisualStudio.SolutionExplorer.CloseSolution(true);
+                VisualStudio.SolutionExplorer.OpenSolution(solutionFile);
+            }
+
             // Winforms and XAML do not open text files on creation
             // so these editor tasks will not work if that is the project template being used.
             if (projectTemplate != WellKnownProjectTemplates.WinFormsApplication &&
