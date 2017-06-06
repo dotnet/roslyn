@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         {
             var result = await session.InvokeAsync<ImmutableArray<AddImportFixData>>(
                 nameof(IRemoteAddImportFeatureService.GetFixesAsync),
-                new object[] { document.Id, span, diagnosticId, searchReferenceAssemblies, packageSources }).ConfigureAwait(false);
+                document.Id, span, diagnosticId, searchReferenceAssemblies, packageSources).ConfigureAwait(false);
 
             return result;
         }

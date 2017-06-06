@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var serializableResults = await session.InvokeAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
-                new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
+                document.Id, searchPattern).ConfigureAwait(false);
 
             return serializableResults.SelectAsArray(r => r.Rehydrate(document.Project.Solution));
         }
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var serializableResults = await session.InvokeAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
-                new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
+                project.Id, searchPattern).ConfigureAwait(false);
 
             return serializableResults.SelectAsArray(r => r.Rehydrate(project.Solution));
         }
