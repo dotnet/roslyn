@@ -4,6 +4,8 @@
     <id>Microsoft.CodeAnalysis.VisualBasic</id>
     <description>
       .NET Compiler Platform ("Roslyn") support for Visual Basic, Microsoft.CodeAnalysis.VisualBasic.dll.
+
+      More details at https://github.com/dotnet/roslyn/wiki/NuGet-packages
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="$version$" />
