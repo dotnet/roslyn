@@ -636,9 +636,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var start = DateTimeOffset.UtcNow;
             var solution4 = (IVsSolution4)_vsSolution;
             var solution7 = (IVsSolution7)_vsSolution;
-            var guidsOfProjectsThatFailed = projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && !solution7.IsDeferredProjectLoadAllowed(pi.Key)).Select(pi => GetProjectGuid(pi.Key)).ToArray();
+            var projectInfosOfProjectsThatFailed = projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && !solution7.IsDeferredProjectLoadAllowed(pi.Key));
+            var guidsOfProjectsThatFailed = projectInfosOfProjectsThatFailed.Select(pi => GetProjectGuid(pi.Key)).ToArray();
             OutputToOutputWindow($"\tForcing load of {guidsOfProjectsThatFailed.Length} projects.");
-            OutputListToOutputWindow("\tIncluding ", projectInfos.Where(pi => DesignTimeBuildFailed(pi.Value) && !solution7.IsDeferredProjectLoadAllowed(pi.Key)).Select(pi => pi.Key));
+            OutputListToOutputWindow("\tIncluding ", projectInfosOfProjectsThatFailed.Select(pi => pi.Key));
             solution4.EnsureProjectsAreLoaded((uint)guidsOfProjectsThatFailed.Length, guidsOfProjectsThatFailed, (uint)__VSBSLFLAGS.VSBSLFLAGS_None);
             OutputToOutputWindow($"Loading projects whose design time builds failed - done (took {DateTimeOffset.UtcNow - start})");
         }
