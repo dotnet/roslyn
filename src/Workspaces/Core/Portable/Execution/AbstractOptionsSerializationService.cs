@@ -232,7 +232,6 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.PreferObjectInitializer, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferThrowExpression, writer, cancellationToken);
             WriteOptionTo(options, language, SimplificationOptions.NamingPreferences, writer, cancellationToken);
-            writer.WriteBoolean(options.GetOption(GenerationOptions.PlaceSystemNamespaceFirst, language));
         }
 
         protected OptionSet ReadOptionSetFrom(OptionSet options, string language, ObjectReader reader, CancellationToken cancellationToken)
@@ -253,7 +252,6 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferObjectInitializer, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferThrowExpression, reader, cancellationToken);
             options = ReadOptionFrom(options, language, SimplificationOptions.NamingPreferences, reader, cancellationToken);
-            options = options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, language, reader.ReadBoolean());
             return options;
         }
 
