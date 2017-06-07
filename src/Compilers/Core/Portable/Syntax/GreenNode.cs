@@ -1038,33 +1038,28 @@ namespace Microsoft.CodeAnalysis
                     {
                         continue;
                     }
-                    foreach (var childDiagnostic in child.GetAllSyntaxErrors())
+                    foreach (var childDiagnostic in child.GetAllSyntaxErrors(considerTrivia))
                     {
                         yield return childDiagnostic;
                     }
                 }
                 if (considerTrivia)
                 {
-                    if (HasLeadingTrivia)
+                    var leadingTrivia = GetLeadingTriviaCore();
+                    if (leadingTrivia != null)
                     {
-                        var leadingTrivia = GetLeadingTriviaCore();
-                        if (leadingTrivia != null)
+                        foreach (var triviaDiagnostic in leadingTrivia.GetAllSyntaxErrors(considerTrivia))
                         {
-                            foreach (var triviaDiagnostic in leadingTrivia.GetAllSyntaxErrors())
-                            {
-                                yield return triviaDiagnostic;
-                            }
+                            yield return triviaDiagnostic;
                         }
                     }
-                    if (HasTrailingTrivia)
+
+                    var trailingTrivia = GetTrailingTriviaCore();
+                    if (trailingTrivia != null)
                     {
-                        var trailingTrivia = GetTrailingTriviaCore();
-                        if (trailingTrivia != null)
+                        foreach (var triviaDiagnostic in trailingTrivia.GetAllSyntaxErrors(considerTrivia))
                         {
-                            foreach (var triviaDiagnostic in trailingTrivia.GetAllSyntaxErrors())
-                            {
-                                yield return triviaDiagnostic;
-                            }
+                            yield return triviaDiagnostic;
                         }
                     }
                 }
