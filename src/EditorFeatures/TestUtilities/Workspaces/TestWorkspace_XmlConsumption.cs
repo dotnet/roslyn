@@ -464,6 +464,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var reportDiagnostic = ReportDiagnostic.Default;
             var cryptoKeyFile = default(string);
             var strongNameProvider = default(StrongNameProvider);
+            var delaySign = default(bool?);
 
             if (compilationOptionsElement != null)
             {
@@ -498,6 +499,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     {
                         strongNameProvider = (StrongNameProvider)Activator.CreateInstance(type);
                     }
+                }
+                var delaySignAttribute = compilationOptionsElement.Attribute(DelaySignAttributeName);
+                if (delaySignAttribute != null)
+                {
+                    delaySign = (bool)delaySignAttribute;
                 }
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
                 if (outputTypeAttribute != null
@@ -534,7 +540,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                                                    .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, null)))
                                                    .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default)
                                                    .WithCryptoKeyFile(cryptoKeyFile)
-                                                   .WithStrongNameProvider(strongNameProvider);
+                                                   .WithStrongNameProvider(strongNameProvider)
+                                                   .WithDelaySign(delaySign);
 
             if (language == LanguageNames.VisualBasic)
             {

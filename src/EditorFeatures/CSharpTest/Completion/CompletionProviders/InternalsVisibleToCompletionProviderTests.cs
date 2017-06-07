@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         internal override CompletionProvider CreateCompletionProvider()
             => new InternalsVisibleToCompletionProvider();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionContainsOtherAssembliesOfSolution()
         {
             var text = @"
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemExistsAsync(text, "ClassLibrary3");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "1,2,4,9,10")]
         [InlineData(@"[assembly: InternalsVisibleToAttribute(""$$"")]", true)]
         [InlineData(@"[assembly: InternalsVisibleTo(""$$"")]", true)]
         [InlineData(@"[assembly: InternalsVisibleTo(""$$)]", true)]
@@ -97,7 +97,7 @@ using System.Reflection;
                 await VerifyNoItemsExistAsync(code);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionHasItemsIfInteralVisibleToIsReferencedByTypeAlias()
         {
             var text = @"
@@ -107,7 +107,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             await VerifyAnyItemExistsAsync(text);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionDoesNotContainCurrentAssembly()
         {
             var text = @"
@@ -116,7 +116,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             await VerifyItemIsAbsentAsync(text, "Test");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionInsertsAssemblyNameOnCommit()
         {
             var before = @"
@@ -128,7 +128,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             await VerifyProviderCommitAsync(before, "ClassLibrary2", after, null, "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionInsertsPublicKeyOnCommit()
         {
             var before = @"
@@ -140,7 +140,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             await VerifyProviderCommitAsync(before, "ClassLibrary1", after, null, "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionContainsPublicKeyIfKeyIsSpecifiedByAttribute()
         {
             var before = @"
@@ -152,7 +152,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             await VerifyProviderCommitAsync(before, "ClassLibrary3", after, null, "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionContainsPublicKeyIfDelayedSigningIsEnabled()
         {
             var before = @"
@@ -164,7 +164,7 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
             await VerifyProviderCommitAsync(before, "ClassLibrary4", after, null, "");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "all")]
         public async Task CodeCompletionListIsEmptyIfAttributeIsNotTheBCLAttribute()
         {
             var text = @"

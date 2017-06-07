@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         private const string ReportDiagnosticAttributeName = "ReportDiagnostic";
         private const string CryptoKeyFileAttributeName = "CryptoKeyFile";
         private const string StrongNameProviderAttributeName = "StrongNameProvider";
+        private const string DelaySignAttributeName = "DelaySign";
         private const string ParseOptionsElementName = "ParseOptions";
         private const string LanguageVersionAttributeName = "LanguageVersion";
         private const string FeaturesAttributeName = "Features";
