@@ -11,6 +11,9 @@
 
 # Language Design
 
+* [C# Language Design repo](https://github.com/dotnet/csharplang)
+* [VB Language Design repo](https://github.com/dotnet/vblang)
+* [Language Feature Status](https://github.com/dotnet/roslyn/blob/master/docs/Language%20Feature%20Status.md)
 * [Language Feature Overview for C# 6 and Visual Basic 14](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 
 # Tools
