@@ -17,7 +17,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
 
-        Private _producer As New DiagnosticTagProducer(Of DiagnosticsSuggestionTaggerProvider)
+        Private _producer As New DiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider)
 
         Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
