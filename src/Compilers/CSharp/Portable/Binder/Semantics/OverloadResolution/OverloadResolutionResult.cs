@@ -925,6 +925,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParm = parameter.RefKind;
 
+            if (arguments.IsExtensionMethodThisArgument(arg))
+            {
+                Debug.Assert(refArg == RefKind.None);
+                if (refParm == RefKind.Ref || refParm == RefKind.RefReadOnly)
+                {
+                    // For ref extension methods, we omit the "ref" modifier on the receiver arguments
+                    // Setting the correct RefKind for finding the correct diagnostics message.
+                    refArg = refParm;
+                }
+            }
+
             // If the expression is untyped because it is a lambda, anonymous method, method group or null
             // then we never want to report the error "you need a ref on that thing". Rather, we want to
             // say that you can't convert "null" to "ref int".

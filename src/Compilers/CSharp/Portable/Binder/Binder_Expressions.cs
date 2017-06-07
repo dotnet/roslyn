@@ -5815,20 +5815,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, actualArguments, overloadResolutionResult, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments);
                 diagnostics.Add(expression, useSiteDiagnostics);
-
-                if (overloadResolutionResult.Succeeded)
-                {
-                    var receiverParameter = overloadResolutionResult.BestResult.Member.Parameters.FirstOrDefault();
-                    Debug.Assert(receiverParameter != null);
-
-                    if (receiverParameter.RefKind == RefKind.Ref)
-                    {
-                        // If this was a ref extension method, the receiver argument must be checked for L-value constraints.
-                        // This helper method will also replace the symbol with a BadExpressionSymbol if it was invalid.
-                        actualArguments.Arguments.SetItem(0, CheckValue(left, BindValueKind.RefOrOut, diagnostics));
-                    }
-                }
-
                 var sealedDiagnostics = diagnostics.ToReadOnlyAndFree();
                 var result = new MethodGroupResolution(methodGroup, null, overloadResolutionResult, actualArguments, methodGroup.ResultKind, sealedDiagnostics);
 

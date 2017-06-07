@@ -1763,11 +1763,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to  The parameter modifier &apos;{0}&apos; cannot be used after the modifier &apos;{1}&apos; .
+        ///   Looks up a localized string similar to  The parameter modifier &apos;{0}&apos; cannot be used with &apos;{1}&apos; .
         /// </summary>
         internal static string ERR_BadParameterModifiers {
             get {
                 return ResourceManager.GetString("ERR_BadParameterModifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parameter modifier &apos;{0}&apos; cannot be used after the modifier &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_BadParameterModifiersOrder {
+            get {
+                return ResourceManager.GetString("ERR_BadParameterModifiersOrder", resourceCulture);
             }
         }
         
@@ -8108,7 +8117,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The receiver of the reference extension method &apos;{0}&apos; must be a value type or a generic type constrained to one..
+        ///   Looks up a localized string similar to The first parameter of the reference extension method &apos;{0}&apos; must be a value type or a generic type constrained to struct..
         /// </summary>
         internal static string ERR_RefExtensionMustBeValueTypeOrConstrainedToOne {
             get {
@@ -8180,7 +8189,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The receiver of the readonly reference extension method &apos;{0}&apos; must be a value type..
+        ///   Looks up a localized string similar to The first parameter of the readonly reference extension method &apos;{0}&apos; must be a value type..
         /// </summary>
         internal static string ERR_RefReadOnlyExtensionMustBeValueType {
             get {

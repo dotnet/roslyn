@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -13,13 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 {
     internal class ThisKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
-        private static readonly ISet<SyntaxKind> s_validModifiersBeforeThis = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.RefKeyword,
-            SyntaxKind.ReadOnlyKeyword,
-            SyntaxKind.InKeyword,
-        };
-
         public ThisKeywordRecommender()
             : base(SyntaxKind.ThisKeyword)
         {
@@ -69,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         private static bool IsExtensionMethodParameterContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             // TODO(cyrusn): lambda/anon methods can have out/ref parameters
-            if (!context.SyntaxTree.IsParameterModifierContext(context.Position, context.LeftToken, cancellationToken, s_validModifiersBeforeThis, allowableIndex: 0))
+            if (!context.SyntaxTree.IsParameterModifierContext(context.Position, context.LeftToken, cancellationToken, isThisKeyword: true))
             {
                 return false;
             }

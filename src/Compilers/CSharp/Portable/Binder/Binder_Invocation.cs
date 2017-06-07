@@ -898,32 +898,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            // Skip building up a new array if the first argument doesn't have to be modified.
             ImmutableArray<BoundExpression> args;
-            if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
+            if (invokedAsExtensionMethod)
             {
+                ParameterSymbol receiverParameter = method.Parameters.First();
                 ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
 
-                // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
-                // conversion here.
-                Debug.Assert(method.ParameterCount > 0);
-                Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
-                builder.Add(convertedReceiver);
-
-                bool first = true;
-                foreach (BoundExpression arg in analyzedArguments.Arguments)
+                BoundExpression convertedReceiver = receiver;
+                if (!ReferenceEquals(receiver, methodGroup.Receiver))
                 {
-                    if (first)
-                    {
-                        // Skip the first argument (the receiver), since we added our own.
-                        first = false;
-                    }
-                    else
-                    {
-                        builder.Add(arg);
-                    }
+                    // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
+                    Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
+                    convertedReceiver = CreateConversion(convertedReceiver, methodResult.Result.ConversionForArg(0), receiverParameter.Type, diagnostics);
                 }
+                if (receiverParameter.RefKind == RefKind.Ref)
+                {
+                    // If this was a ref extension method, the receiver argument must be checked for L-value constraints.
+                    // This helper method will also replace the symbol with a BoundBadExpression if it was invalid.
+                    convertedReceiver = CheckValue(convertedReceiver, BindValueKind.RefOrOut, diagnostics);
+                }
+
+                builder.Add(convertedReceiver);
+                builder.AddRange(analyzedArguments.Arguments.Skip(1));
                 args = builder.ToImmutableAndFree();
             }
             else

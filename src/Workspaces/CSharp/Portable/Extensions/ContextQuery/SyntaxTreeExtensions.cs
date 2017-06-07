@@ -979,8 +979,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             int position,
             SyntaxToken tokenOnLeftOfPosition,
             CancellationToken cancellationToken,
-            ISet<SyntaxKind> allowedModifiersBefore = null,
-            int? allowableIndex = null)
+            bool isThisKeyword = false)
         {
             // cases:
             //   Foo(|
@@ -992,29 +991,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             if (token.IsKind(SyntaxKind.OpenParenToken) &&
                 token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
-                if (allowableIndex.HasValue)
-                {
-                    if (allowableIndex.Value != 0)
-                    {
-                        return false;
-                    }
-                }
-
                 return true;
             }
 
             if (token.IsKind(SyntaxKind.CommaToken) &&
                 token.Parent.IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
-                if (allowableIndex.HasValue)
+                if (isThisKeyword)
                 {
                     var parameterList = token.GetAncestor<ParameterListSyntax>();
                     var commaIndex = parameterList.Parameters.GetWithSeparators().IndexOf(token);
                     var index = commaIndex / 2 + 1;
-                    if (index != allowableIndex.Value)
-                    {
-                        return false;
-                    }
+                    return index == 0;
                 }
 
                 return true;
@@ -1025,37 +1013,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 token.Parent.IsParentKind(SyntaxKind.Parameter) &&
                 token.Parent.GetParent().GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
-                if (allowableIndex.HasValue)
+                if (isThisKeyword)
                 {
                     var parameter = token.GetAncestor<ParameterSyntax>();
                     var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
 
                     int parameterIndex = parameterList.Parameters.IndexOf(parameter);
-                    if (allowableIndex.Value != parameterIndex)
-                    {
-                        return false;
-                    }
+                    return parameterIndex == 0;
                 }
 
                 return true;
             }
 
-            if (allowedModifiersBefore != null &&
-                allowedModifiersBefore.Contains(token.Kind()) &&
+            if (isThisKeyword &&
+                (token.IsKind(SyntaxKind.RefKeyword) || token.IsKind(SyntaxKind.ReadOnlyKeyword) || token.IsKind(SyntaxKind.InKeyword)) &&
                 token.Parent.GetParent().IsDelegateOrConstructorOrLocalFunctionOrMethodParameterList())
             {
-                if (allowableIndex.HasValue)
-                {
-                    var parameter = token.GetAncestor<ParameterSyntax>();
-                    var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
+                var parameter = token.GetAncestor<ParameterSyntax>();
+                var parameterList = parameter.GetAncestorOrThis<ParameterListSyntax>();
 
-                    int parameterIndex = parameterList.Parameters.IndexOf(parameter);
-                    if (allowableIndex.Value != parameterIndex)
-                    {
-                        return false;
-                    }
-                }
-                return true;
+                int parameterIndex = parameterList.Parameters.IndexOf(parameter);
+                return parameterIndex == 0;
             }
 
             return false;

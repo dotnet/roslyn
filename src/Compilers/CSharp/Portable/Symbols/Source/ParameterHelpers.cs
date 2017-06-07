@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (seenThis)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
                         }
                         else if (seenParams)
                         {
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (seenThis)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
                         }
                         else if (seenRef || seenRefReadOnly)
                         {
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (seenThis)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
                         }
                         else if (seenIn)
                         {

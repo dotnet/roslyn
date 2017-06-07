@@ -1506,5 +1506,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TypeReserved = 8413,
         ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8414,
         ERR_RefReadOnlyExtensionMustBeValueType = 8415,
+        ERR_BadParameterModifiersOrder = 8416,
     }
 }

@@ -2945,7 +2945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int argumentPosition = 0; argumentPosition < paramCount; argumentPosition++)
             {
                 BoundExpression argument = arguments.Argument(argumentPosition);
-                RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                 Conversion conversion;
 
                 if (isVararg && argumentPosition == paramCount - 1)
@@ -2965,8 +2964,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     bool isThisArgument = arguments.IsExtensionMethodThisArgument(argumentPosition);
+                    RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
-                    conversion = CheckArgumentForApplicability(candidate, argument, argumentRefKind, parameters.ParameterTypes[argumentPosition], parameterRefKind, ignoreOpenTypes, isThisArgument, ref useSiteDiagnostics);
+
+                    if (isThisArgument)
+                    {
+                        Debug.Assert(argumentRefKind == RefKind.None);
+                        if (parameterRefKind == RefKind.Ref)
+                        {
+                            // For ref extension methods, we omit the "ref" modifier on the receiver arguments
+                            // Passing the correct RefKind for finding the correct conversion.
+                            argumentRefKind = parameterRefKind;
+                        }
+                    }
+
+                    conversion = CheckArgumentForApplicability(candidate, argument, argumentRefKind, parameters.ParameterTypes[argumentPosition], parameterRefKind, ignoreOpenTypes, ref useSiteDiagnostics);
 
                     if (isThisArgument && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
@@ -3026,7 +3038,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol parameterType,
             RefKind parRefKind,
             bool ignoreOpenTypes,
-            bool isThisArgument,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Spec 7.5.3.1
@@ -3036,14 +3047,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //   exists from the argument to the type of the corresponding parameter, or
             // - for a ref or out parameter, the type of the argument is identical to the type of the corresponding parameter. 
 
-            // There are two cases where ref kind can mismatch:
-            // 1) If the ref kind is None and argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
+            // RefKind has to match unless the ref kind is None and argument expression is of the type dynamic. This is a bug in Dev11 which we also implement. 
             // The spec is correct, this is not an intended behavior. We don't fix the bug to avoid a breaking change.
-            // 2) PROTOTYPE(readonly-ref) If it was an extension method 'this' argument, and the parameter is ref or ref-readonly.
-
-            if (argRefKind != parRefKind &&
-                !(argRefKind == RefKind.None && argument.HasDynamicType()) &&
-                !(isThisArgument && (parRefKind == RefKind.Ref || parRefKind == RefKind.RefReadOnly)))
+            if (argRefKind != parRefKind && !(argRefKind == RefKind.None && argument.HasDynamicType()))
             {
                 return Conversion.NoConversion;
             }
