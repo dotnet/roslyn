@@ -7766,7 +7766,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is ambiguous (imported twice).
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeNotFound {
             get {
