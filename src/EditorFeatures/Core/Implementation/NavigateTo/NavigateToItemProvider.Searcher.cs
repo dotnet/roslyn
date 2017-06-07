@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 
                         // Search each project with an independent threadpool task.
                         var searchTasks = _solution.Projects.Select(
-                            p => Task.Run(() => SearchAsync(p))).ToArray();
+                            p => Task.Run(() => SearchAsync(p), _cancellationToken)).ToArray();
 
                         await Task.WhenAll(searchTasks).ConfigureAwait(false);
                     }

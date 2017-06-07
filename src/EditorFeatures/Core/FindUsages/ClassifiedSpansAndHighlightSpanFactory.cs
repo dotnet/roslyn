@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -12,28 +13,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.FindUsages
 {
-    internal struct ClassifiedSpansAndHighlightSpan
+    internal static class ClassifiedSpansAndHighlightSpanFactory
     {
-        private const string Key = nameof(ClassifiedSpansAndHighlightSpan);
-
-        public readonly ImmutableArray<ClassifiedSpan> ClassifiedSpans;
-        public readonly TextSpan HighlightSpan;
-
-        public ClassifiedSpansAndHighlightSpan(
-            ImmutableArray<ClassifiedSpan> classifiedSpans,
-            TextSpan highlightSpan)
-        {
-            ClassifiedSpans = classifiedSpans;
-            HighlightSpan = highlightSpan;
-        }
-
         public static async Task<DocumentSpan> GetClassifiedDocumentSpanAsync(
             Document document, TextSpan sourceSpan, CancellationToken cancellationToken)
         {
             var classifiedSpans = await ClassifyAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
-            var properties = ImmutableDictionary<string, object>.Empty.Add(Key, classifiedSpans);
+            var properties = ImmutableDictionary<string, object>.Empty.Add(
+                ClassifiedSpansAndHighlightSpan.Key, classifiedSpans);
 
             return new DocumentSpan(document, sourceSpan, properties);
         }
@@ -45,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             // can just use that.  Otherwise, go back and actually classify the text for the line
             // the document span is on.
             if (documentSpan.Properties != null &&
-                documentSpan.Properties.TryGetValue(Key, out var value))
+                documentSpan.Properties.TryGetValue(ClassifiedSpansAndHighlightSpan.Key, out var value))
             {
                 return (ClassifiedSpansAndHighlightSpan)value;
             }

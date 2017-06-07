@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Remote
     // root level service for all Roslyn services
     internal partial class CodeAnalysisService : IRemoteDocumentHighlights
     {
-        public async Task<SerializableDocumentHighlights[]> GetDocumentHighlightsAsync(
+        public async Task<ImmutableArray<SerializableDocumentHighlights>> GetDocumentHighlightsAsync(
             DocumentId documentId, int position, DocumentId[] documentIdsToSearch)
         {
             var solution = await GetSolutionAsync().ConfigureAwait(false);
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Remote
             var result = await service.GetDocumentHighlightsAsync(
                 document, position, documentsToSearch, CancellationToken).ConfigureAwait(false);
 
-            return SerializableDocumentHighlights.Dehydrate(result);
+            return result.SelectAsArray(SerializableDocumentHighlights.Dehydrate);
         }
     }
 }

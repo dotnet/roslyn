@@ -18,6 +18,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Vi
                                                           New VisualBasicCommandLineParserService())
         End Function
 
+        Public Function CreateVisualBasicProjectWithNullBinPath(environment As TestEnvironment, projectName As String) As VisualBasicProjectShimWithServices
+            Return New VisualBasicProjectShimWithServices(environment.ProjectTracker,
+                                                          MockCompilerHost.FullFrameworkCompilerHost,
+                                                          projectName,
+                                                          environment.CreateHierarchy(projectName, projectBinPath:=Nothing, projectCapabilities:="VB"),
+                                                          environment.ServiceProvider,
+                                                          New VisualBasicCommandLineParserService())
+        End Function
+
         Public Function CreateMinimalCompilerOptions(project As VisualBasicProjectShimWithServices) As VBCompilerOptions
             Dim options As VBCompilerOptions = Nothing
             options.wszExeName = project.ProjectSystemName + ".exe"

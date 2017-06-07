@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     modifiers: CreateMethodModifiers(),
                     returnType: this.AnalyzerResult.ReturnType,
                     returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    explicitInterfaceImplementations: default,
                     name: _methodName.ToString(),
                     typeParameters: CreateMethodTypeParameters(cancellationToken),
                     parameters: CreateMethodParameters(),

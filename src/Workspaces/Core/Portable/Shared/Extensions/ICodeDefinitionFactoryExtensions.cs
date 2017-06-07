@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 attributes: default(ImmutableArray<AttributeData>),
                 accessibility: overriddenEvent.ComputeResultantAccessibility(newContainingType),
                 modifiers: modifiers,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: overriddenEvent.Name);
         }
 

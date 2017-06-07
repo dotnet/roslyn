@@ -32772,6 +32772,53 @@ class C
         }
 
         [Fact]
+        [WorkItem(445600, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=445600")]
+        public void GetEnclosingBinderInternalRecovery_11()
+        {
+            var text = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach 
+        other(some().F(a => TestOutVar(out var x) ? x : 1));
+    }
+
+    static void TestOutVar(out int a)
+    {
+        a = 0;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,16): error CS1003: Syntax error, '(' expected
+                //         foreach 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "").WithLocation(6, 16),
+                // (7,60): error CS1515: 'in' expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(7, 60),
+                // (7,60): error CS0230: Type and identifier are both required in a foreach statement
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(7, 60),
+                // (7,60): error CS1525: Invalid expression term ';'
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 60),
+                // (7,60): error CS1026: ) expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(7, 60)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var xDecl = GetOutVarDeclaration(tree, "x");
+            var xRef = GetReferences(tree, "x", 1);
+            VerifyModelForOutVarWithoutDataFlow(model, xDecl, xRef);
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef[0]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
         [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
         public void ErrorRecoveryShouldIgnoreNonDelegates()
         {

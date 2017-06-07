@@ -1645,6 +1645,50 @@ internal struct AStruct
     options: PreferExpressionBodiedMethods);
         }
 
+        [WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestExplicitInterfaceImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IFoo
+{
+    int [||]Foo { get; set; }
+}
+
+class C : IFoo
+{
+    int IFoo.Foo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}",
+@"interface IFoo
+{
+    int GetFoo();
+    void SetFoo(int value);
+}
+
+class C : IFoo
+{
+    int IFoo.GetFoo()
+    {
+        throw new System.NotImplementedException();
+    }
+    void IFoo.SetFoo(int value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
+
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
             OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }

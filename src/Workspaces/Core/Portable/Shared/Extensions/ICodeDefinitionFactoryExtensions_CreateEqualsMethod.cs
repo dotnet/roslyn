@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 modifiers: new DeclarationModifiers(isOverride: true),
                 returnType: compilation.GetSpecialType(SpecialType.System_Boolean),
                 returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: EqualsName,
                 typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(compilation.GetSpecialType(SpecialType.System_Object), ObjName)),
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return CodeGenerationSymbolFactory.CreateMethodSymbol(
                     methodSymbol,
                     modifiers: new DeclarationModifiers(),
-                    explicitInterfaceSymbol: methodSymbol,
+                    explicitInterfaceImplementations: ImmutableArray.Create(methodSymbol),
                     statements: statements);
             }
             else
