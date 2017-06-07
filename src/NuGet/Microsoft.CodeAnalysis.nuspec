@@ -28,6 +28,6 @@
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="$thirdPartyNoticesPath$" target="" />
+    <file src="$additionalFilesPath$/ThirdPartyNotices.rtf" target="" />
   </files>
 </package>

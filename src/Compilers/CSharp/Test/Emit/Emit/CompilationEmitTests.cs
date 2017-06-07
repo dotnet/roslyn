@@ -4802,6 +4802,35 @@ public class X
         }
 
         [Fact]
+        public void BadPdbStreamWithPortablePdbEmit()
+        {
+            var comp = CreateStandardCompilation("class C {}");
+            var broken = new BrokenStream();
+            broken.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+            using (var peStream = new MemoryStream())
+            {
+                var portablePdbOptions = EmitOptions.Default
+                    .WithDebugInformationFormat(DebugInformationFormat.PortablePdb);
+
+                var result = comp.Emit(peStream,
+                    pdbStream: broken,
+                    options: portablePdbOptions);
+
+                Assert.False(result.Success);
+                result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1));
+
+                // Allow for cancellation
+                broken = new BrokenStream();
+                broken.BreakHow = BrokenStream.BreakHowType.CancelOnWrite;
+                Assert.Throws<OperationCanceledException>(() => comp.Emit(peStream,
+                    pdbStream: broken,
+                    options: portablePdbOptions));
+            }
+        }
+
+        [Fact]
         [WorkItem(9308, "https://github.com/dotnet/roslyn/issues/9308")]
         public void FailingEmitterAllowsCancelationExceptionsThrough()
         {

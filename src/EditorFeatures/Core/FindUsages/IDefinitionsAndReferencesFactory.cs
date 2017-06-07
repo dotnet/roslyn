@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                         {
                             var documentLocation = !includeClassifiedSpans
                                 ? new DocumentSpan(document, location.SourceSpan)
-                                : await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+                                : await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                                     document, location.SourceSpan, cancellationToken).ConfigureAwait(false);
 
                             sourceLocations.Add(documentLocation);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             var document = referenceLocation.Document;
             var sourceSpan = location.SourceSpan;
 
-            var documentSpan = await ClassifiedSpansAndHighlightSpan.GetClassifiedDocumentSpanAsync(
+            var documentSpan = await ClassifiedSpansAndHighlightSpanFactory.GetClassifiedDocumentSpanAsync(
                 document, sourceSpan, cancellationToken).ConfigureAwait(false);
 
             return new SourceReferenceItem(definitionItem, documentSpan, referenceLocation.IsWrittenTo);
