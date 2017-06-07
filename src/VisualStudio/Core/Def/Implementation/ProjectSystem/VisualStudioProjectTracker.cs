@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -596,51 +597,59 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private async Task PopulateWorkspaceFromDeferredProjectInfoAsync(
             CancellationToken cancellationToken)
         {
-            // NOTE: We need to check cancellationToken after each await, in case the user has
-            // already closed the solution.
-            AssertIsForeground();
-
-            var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
-            var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
-
-            var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
-            var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte.Solution.SolutionBuild.ActiveConfiguration;
-
-            OutputToOutputWindow($"Getting project information - start");
             var start = DateTimeOffset.UtcNow;
+            OutputToOutputWindow($"Getting project information - start");
 
-            var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
-
-            // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
-            // contain any projects.
-            if (solutionConfig != null)
+            try
             {
-                // Capture the context so that we come back on the UI thread, and do the actual project creation there.
-                var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
-                projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
-                    $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
-                    cancellationToken).ConfigureAwait(true);
-            }
+                // NOTE: We need to check cancellationToken after each await, in case the user has
+                // already closed the solution.
+                AssertIsForeground();
 
-            AssertIsForeground();
-            cancellationToken.ThrowIfCancellationRequested();
-            OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
+                var componentModel = _serviceProvider.GetService(typeof(SComponentModel)) as IComponentModel;
+                var workspaceProjectContextFactory = componentModel.GetService<IWorkspaceProjectContextFactory>();
 
-            OutputToOutputWindow($"Creating projects - start");
-            start = DateTimeOffset.UtcNow;
-            var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
-            var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
-            foreach (var projectFilename in projectInfos.Keys)
-            {
+                var dte = _serviceProvider.GetService(typeof(EnvDTE.DTE)) as EnvDTE.DTE;
+                var solutionConfig = (EnvDTE80.SolutionConfiguration2)dte?.Solution?.SolutionBuild?.ActiveConfiguration;
+
+
+                var projectInfos = SpecializedCollections.EmptyReadOnlyDictionary<string, DeferredProjectInformation>();
+
+                // Note that `solutionConfig` may be null. For example: if the solution doesn't actually
+                // contain any projects.
+                if (solutionConfig?.Name != null && solutionConfig?.PlatformName != null)
+                {
+                    // Capture the context so that we come back on the UI thread, and do the actual project creation there.
+                    var deferredProjectWorkspaceService = _workspaceServices.GetService<IDeferredProjectWorkspaceService>();
+                    projectInfos = await deferredProjectWorkspaceService.GetDeferredProjectInfoForConfigurationAsync(
+                        $"{solutionConfig.Name}|{solutionConfig.PlatformName}",
+                        cancellationToken).ConfigureAwait(true);
+                }
+
+                AssertIsForeground();
                 cancellationToken.ThrowIfCancellationRequested();
-                GetOrCreateProjectFromArgumentsAndReferences(
-                    workspaceProjectContextFactory,
-                    analyzerAssemblyLoader,
-                    projectFilename,
-                    projectInfos,
-                    targetPathsToProjectPaths);
+                OutputToOutputWindow($"Getting project information - done (took {DateTimeOffset.UtcNow - start})");
+
+                OutputToOutputWindow($"Creating projects - start");
+                start = DateTimeOffset.UtcNow;
+                var targetPathsToProjectPaths = BuildTargetPathMap(projectInfos);
+                var analyzerAssemblyLoader = _workspaceServices.GetRequiredService<IAnalyzerService>().GetLoader();
+                foreach (var projectFilename in projectInfos.Keys)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    GetOrCreateProjectFromArgumentsAndReferences(
+                        workspaceProjectContextFactory,
+                        analyzerAssemblyLoader,
+                        projectFilename,
+                        projectInfos,
+                        targetPathsToProjectPaths);
+                }
+                OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
             }
-            OutputToOutputWindow($"Creating projects - done (took {DateTimeOffset.UtcNow - start})");
+            catch (Exception ex) when (FatalError.ReportUnlessCanceled(ex))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
 
             OutputToOutputWindow($"Pushing to workspace - start");
             start = DateTimeOffset.UtcNow;
