@@ -938,13 +938,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// reported, we suppress further reports of that variable.
         /// </summary>
         protected virtual void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
-            => ReportUnassignedHelper(symbol, node, slot, skipIfUseBeforeDeclaration: skipIfUseBeforeDeclaration);
+            => ReportUnassignedHelper(symbol, node, slot, skipIfUseBeforeDeclaration);
 
         private void ReportUnassignedHelper(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
-            if (slot <= 0) return;
+            if (slot <= 0)
+            {
+                return;
+            }
 
-            if (slot >= _alreadyReported.Capacity) _alreadyReported.EnsureCapacity(nextVariableSlot);
+            if (slot >= _alreadyReported.Capacity)
+            {
+                _alreadyReported.EnsureCapacity(nextVariableSlot);
+            }
+
             if (skipIfUseBeforeDeclaration &&
                 symbol.Kind == SymbolKind.Local &&
                 (symbol.Locations.Length == 0 || node.Span.End < symbol.Locations[0].SourceSpan.Start))
