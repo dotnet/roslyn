@@ -241,11 +241,8 @@ namespace Microsoft.CodeAnalysis.Text
                     return base.WithChanges(changes);
                 }
 
-                // otherwise, create a new cloned snapshot
+                // otherwise, create a new cloned buffer and apply the changes to the buffer.
                 var buffer = factory.Clone(TextImage);
-                var baseSnapshot = buffer.CurrentSnapshot;
-
-                // apply the change to the buffer
                 using (var edit = buffer.CreateEdit())
                 {
                     foreach (var change in changes)
@@ -257,9 +254,10 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 return new ChangedSourceText(
-                    baseText: this,
-                    baseSnapshot: ((ITextSnapshot2)baseSnapshot).TextImage,
-                    currentSnapshot: ((ITextSnapshot2)buffer.CurrentSnapshot).TextImage);
+                    baseImage: this.TextImage,
+                    forkedVersion: ((ITextSnapshot2)buffer.CurrentSnapshot).TextImage.Version,
+                    currentSnapshot: ((ITextSnapshot2)buffer.CurrentSnapshot).TextImage,
+                    encoding: this.Encoding);
             }
 
             /// <summary>
@@ -267,14 +265,25 @@ namespace Microsoft.CodeAnalysis.Text
             /// </summary>
             private class ChangedSourceText : SnapshotSourceText
             {
-                private readonly SnapshotSourceText _baseText;
-                private readonly ITextImage _baseSnapshot;
+                /// <summary>
+                /// The <see cref="TextImage"/> of the original <see cref="SnapshotSourceText"/> we are
+                /// forked off of.
+                /// </summary>
+                private readonly ITextImage _baseImage;
 
-                public ChangedSourceText(SnapshotSourceText baseText, ITextImage baseSnapshot, ITextImage currentSnapshot)
-                    : base(currentSnapshot, baseText.Encoding, containerOpt: null)
+                /// <summary>
+                /// The <see cref="ITextImageVersion"/> object containing the changes that were make to
+                /// <see cref="_baseImage"/> to produce our own <see cref="TextImage"/> instance.  
+                /// As we're a fork of <see cref="_baseImage"/> this version is *not* the version that
+                /// <see cref="_baseImage"/> points to.
+                /// </summary>
+                private readonly ITextImageVersion _forkedVersion;
+
+                public ChangedSourceText(ITextImage baseImage, ITextImageVersion forkedVersion, ITextImage currentSnapshot, Encoding encoding)
+                    : base(currentSnapshot, encoding, containerOpt: null)
                 {
-                    _baseText = baseText;
-                    _baseSnapshot = baseSnapshot;
+                    _baseImage = baseImage;
+                    _forkedVersion = forkedVersion;
                 }
 
                 public override IReadOnlyList<TextChangeRange> GetChangeRanges(SourceText oldText)
@@ -290,12 +299,15 @@ namespace Microsoft.CodeAnalysis.Text
                         return TextChangeRange.NoChanges;
                     }
 
-                    if (oldText != _baseText)
+                    if (oldText is SnapshotSourceText oldSnapshot && oldSnapshot.TextImage == _baseImage)
                     {
-                        return new[] { new TextChangeRange(new TextSpan(0, oldText.Length), this.Length) };
+                        // oldText is the snapshot we were forked off of.  Just directly return the changes
+                        // between it and us.
+                        return _forkedVersion.Changes.Select(
+                            tc => new TextChangeRange(new TextSpan(tc.OldSpan.Start, tc.OldSpan.Length), tc.NewLength)).ToArray();
                     }
 
-                    return GetChangeRanges(_baseSnapshot, _baseSnapshot.Length, this.TextImage);
+                    return ImmutableArray.Create(new TextChangeRange(new TextSpan(0, oldText.Length), this.Length));
                 }
             }
 
