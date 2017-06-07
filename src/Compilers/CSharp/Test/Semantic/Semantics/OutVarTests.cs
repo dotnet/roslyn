@@ -10414,10 +10414,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out int x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out int x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -10525,10 +10522,7 @@ public class X
                 // (11,25): error CS0841: Cannot use local variable 'x4' before it is declared
                 //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
                 Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x4").WithArguments("x4").WithLocation(11, 25),
-                // (11,21): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'bool'
-                //     void Test4(bool p = x4 && TakeOutParam(4, out var x4))
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "bool").WithLocation(11, 21),
-                // (15,50): error CS0128: A local variable named 'x5' is already defined in this scope
+                // (15,50): error CS0128: A local variable or function named 'x5' is already defined in this scope
                 //                         TakeOutParam(52, out var x5) && 
                 Diagnostic(ErrorCode.ERR_LocalDuplicate, "x5").WithArguments("x5").WithLocation(15, 50),
                 // (14,25): error CS1736: Default parameter value for 'p' must be a compile-time constant
@@ -31362,9 +31356,6 @@ class C
                 // (6,61): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
-                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(M(out int z1), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 56),
                 // (7,75): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 75),
@@ -31374,9 +31365,6 @@ class C
                 // (7,61): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
-                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(M(out var z2), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
@@ -32048,9 +32036,6 @@ class C
                 // (6,69): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 69),
-                // (6,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(nameof(M(out int z1)), z1), int s2 = z1) { var t = z1; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(6, 64),
                 // (7,83): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 83),
@@ -32063,9 +32048,6 @@ class C
                 // (7,69): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 69),
-                // (7,64): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(nameof(M(out var z2)), z2), int s2 = z2) { var t = z2; }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 64),
                 // (9,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int x = z1 + z2;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(9, 17),
