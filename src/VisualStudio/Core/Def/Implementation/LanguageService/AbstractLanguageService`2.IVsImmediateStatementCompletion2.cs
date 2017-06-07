@@ -10,6 +10,7 @@ using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 {
@@ -81,6 +82,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             if (buffer != null)
             {
                 var contextBuffer = EditorAdaptersFactoryService.GetDataBuffer(buffer);
+
+                Contract.ThrowIfFalse(contextBuffer.ContentType.IsOfType(this.ContentTypeName));
+
                 var context = CreateContext(view, textView, debuggerBuffer, contextBuffer, currentStatementSpan);
                 if (context.TryInitialize())
                 {
