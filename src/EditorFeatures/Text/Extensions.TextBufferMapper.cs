@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_roslynToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
 
-            public static ITextImage ToReverseMappedTextImage(ITextSnapshot editorSnapshot)
+            public static ITextImage RecordTextSnapshotAndGetImage(ITextSnapshot editorSnapshot)
             {
                 Contract.ThrowIfNull(editorSnapshot);
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Text
                 Contract.ThrowIfNull(textImage);
 
                 // If we're already in the map, there's nothing to update.  Do a quick check
-                // to avoid two allocations per call to ToReverseMappedTextImage.
+                // to avoid two allocations per call to RecordTextSnapshotAndGetImage.
                 if (!s_roslynToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
                     weakReference.GetTarget() != editorSnapshot)
                 {

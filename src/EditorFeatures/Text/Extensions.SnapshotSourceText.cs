@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 Contract.ThrowIfNull(editorSnapshot);
 
-                this.TextImage = TextBufferMapper.ToReverseMappedTextImage(editorSnapshot);
+                this.TextImage = TextBufferMapper.RecordTextSnapshotAndGetImage(editorSnapshot);
                 _containerOpt = TextBufferContainer.From(editorSnapshot.TextBuffer);
                 _reiteratedVersion = editorSnapshot.Version.ReiteratedVersionNumber;
                 _encodingOpt = encodingOpt;
