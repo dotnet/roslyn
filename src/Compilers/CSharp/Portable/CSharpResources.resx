@@ -426,6 +426,9 @@
   <data name="ERR_BadUnaryOp" xml:space="preserve">
     <value>Operator '{0}' cannot be applied to operand of type '{1}'</value>
   </data>
+  <data name="ERR_BadOpOnNullOrDefault" xml:space="preserve">
+    <value>Operator '{0}' cannot be applied to operand '{1}'</value>
+  </data>
   <data name="ERR_ThisInStaticMeth" xml:space="preserve">
     <value>Keyword 'this' is not valid in a static property, static method, or static field initializer</value>
   </data>
@@ -449,6 +452,9 @@
   </data>
   <data name="ERR_AmbigBinaryOps" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on operands of type '{1}' and '{2}'</value>
+  </data>
+  <data name="ERR_AmbigBinaryOpsOnDefault" xml:space="preserve">
+    <value>Operator '{0}' is ambiguous on operands 'default' and 'default'</value>
   </data>
   <data name="ERR_AmbigUnaryOp" xml:space="preserve">
     <value>Operator '{0}' is ambiguous on an operand of type '{1}'</value>

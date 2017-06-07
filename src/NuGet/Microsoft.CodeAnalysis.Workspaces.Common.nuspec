@@ -11,7 +11,7 @@
     <dependencies>
       <group targetFramework="netstandard1.3">
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-        <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
+        <dependency id="System.Composition" version="$SystemCompositionVersion$" />
         <dependency id="System.Diagnostics.Contracts" version="$SystemDiagnosticsContractsVersion$" />
         <dependency id="System.Linq.Parallel" version="$SystemLinqParallelVersion$" />
         <dependency id="System.ObjectModel" version="$SystemObjectModelVersion$" />
@@ -21,7 +21,7 @@
       <group targetFramework="net46">
         <dependency id="ManagedEsent" version="$ManagedEsentVersion$" />
         <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-        <dependency id="Microsoft.Composition" version="$MicrosoftCompositionVersion$" />
+        <dependency id="System.Composition" version="$SystemCompositionVersion$" />
       </group>
     </dependencies>
 
