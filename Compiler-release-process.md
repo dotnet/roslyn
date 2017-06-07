@@ -1,6 +1,7 @@
 For each release, some steps to check:
 
 - declare the new Language Versions when a common branch becomes available (this has a checklist of its own)
+- review/triage issues that should be considered during that milestone (scrub unlabeled issues)
 - review public API changes
 - notify partners of preview and RTM packages being published to NuGet
 - remove any unused Language Version
