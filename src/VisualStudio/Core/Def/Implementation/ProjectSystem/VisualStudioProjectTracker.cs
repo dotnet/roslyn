@@ -802,19 +802,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             project = (AbstractProject)projectContext;
             projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
 
-            var addedSourceFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var addedSourceOrAdditionalFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var sourceFile in commandLineArguments.SourceFiles)
             {
-                if (addedSourceFilePaths.Add(sourceFile.Path))
+                if (addedSourceOrAdditionalFilePaths.Add(sourceFile.Path))
                 {
                     projectContext.AddSourceFile(sourceFile.Path);
                 }
             }
 
-            var addedAdditionalFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var additionalFile in commandLineArguments.AdditionalFiles)
             {
-                if (addedAdditionalFilePaths.Add(additionalFile.Path))
+                if (addedSourceOrAdditionalFilePaths.Add(additionalFile.Path))
                 {
                     projectContext.AddAdditionalFile(additionalFile.Path);
                 }
