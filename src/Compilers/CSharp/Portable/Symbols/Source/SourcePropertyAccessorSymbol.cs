@@ -94,14 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
-            }
-        }
-
         private static void GetNameAndExplicitInterfaceImplementations(
             PropertySymbol explicitlyImplementedPropertyOpt,
             string propertyName,
@@ -142,8 +134,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations,
             Location location,
             ArrowExpressionClauseSyntax syntax,
-            DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.GetReference(), location)
+            DiagnosticBag diagnostics)
+            : base(containingType,
+                   syntax.GetReference(),
+                   blockBodySyntaxOpt: null,
+                   expressionBodySyntaxOpt: syntax.GetReference(),
+                   location: location)
         {
             _property = property;
             _explicitInterfaceImplementations = explicitInterfaceImplementations;
@@ -196,7 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
             : base(containingType,
                    syntax.GetReference(),
-                   ((SyntaxNode)syntax.Body ?? syntax.ExpressionBody)?.GetReference(),
+                   syntax.Body?.GetReference(),
+                   syntax.ExpressionBody?.GetReference(),
                    location)
         {
             _property = property;

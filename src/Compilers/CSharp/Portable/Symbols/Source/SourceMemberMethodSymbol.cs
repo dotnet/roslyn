@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics) :
             base(containingType,
                  syntax.GetReference(),
-                 // Prefer a block body if both exist
-                 syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
+                 syntax.Body?.GetReference(), 
+                 syntax.ExpressionBody?.GetReference(),
                  location)
         {
             _name = name;
@@ -470,32 +470,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
+        protected override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraints
         {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
-        }
-
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
-        {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
-        }
-
-        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
-        {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            get
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                if (_lazyTypeParameterConstraints.IsDefault)
                 {
-                    this.AddDeclarationDiagnostics(diagnostics);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                    {
+                        this.AddDeclarationDiagnostics(diagnostics);
+                    }
+                    diagnostics.Free();
                 }
-                diagnostics.Free();
+                return _lazyTypeParameterConstraints;
             }
-
-            var clauses = _lazyTypeParameterConstraints;
-            return (clauses.Length > 0) ? clauses[ordinal] : null;
         }
 
         private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
@@ -753,11 +742,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return default(SyntaxList<AttributeListSyntax>);
             }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get { return _isExpressionBodied; }
         }
 
         private DeclarationModifiers MakeModifiers(SyntaxTokenList modifiers, MethodKind methodKind, Location location, DiagnosticBag diagnostics, out bool modifierErrors)

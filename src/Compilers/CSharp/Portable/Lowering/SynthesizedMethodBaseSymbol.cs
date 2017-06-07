@@ -27,7 +27,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                               Location location,
                                               string name,
                                               DeclarationModifiers declarationModifiers)
-            : base(containingType, syntaxReference, blockSyntaxReference, location)
+            : base(containingType,
+                   syntaxReference,
+                   blockSyntaxReference,
+                   expressionBodySyntaxOpt: null,
+                   location: location)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert((object)baseMethod != null);
@@ -149,11 +153,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override bool IsImplicitlyDeclared
         {
             get { return true; }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get { return false; }
         }
 
         internal override TypeSymbol IteratorElementType

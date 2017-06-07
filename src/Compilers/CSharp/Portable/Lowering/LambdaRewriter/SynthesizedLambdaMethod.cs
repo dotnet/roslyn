@@ -128,7 +128,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal int ExtraSynthesizedParameterCount => this._structClosures.IsDefault ? 0 : this._structClosures.Length;
 
         internal override bool GenerateDebugInfo => !this.IsAsync;
-        internal override bool IsExpressionBodied => false;
         internal MethodSymbol TopLevelMethod => _topLevelMethod;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)

@@ -22,9 +22,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public SourceEventAccessorSymbol(
             SourceEventSymbol @event,
             SyntaxReference syntaxReference,
-            SyntaxReference blockSyntaxReference,
+            SyntaxReference blockBodySyntaxOpt,
+            SyntaxReference expressionBodySyntaxOpt,
             ImmutableArray<Location> locations)
-            : base(@event.containingType, syntaxReference, blockSyntaxReference, locations)
+            : base(@event.containingType,
+                   syntaxReference,
+                   blockBodySyntaxOpt,
+                   expressionBodySyntaxOpt,
+                   locations)
         {
             _event = @event;
         }
@@ -195,12 +200,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return null;
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            // Events cannot be expression-bodied
-            get { return false; }
         }
     }
 }

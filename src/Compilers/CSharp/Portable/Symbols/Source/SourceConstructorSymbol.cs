@@ -30,7 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstructorDeclarationSyntax syntax,
             MethodKind methodKind,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(), ImmutableArray.Create(location))
+            base(containingType,
+                 syntax.GetReference(),
+                 syntax.Body?.GetReference(),
+                 syntax.ExpressionBody?.GetReference(),
+                 ImmutableArray.Create(location))
         {
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
@@ -233,14 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return base.AttributeOwner;
-            }
-        }
-
-        internal override bool IsExpressionBodied
-        {
-            get
-            {
-                return _isExpressionBodied;
             }
         }
 
