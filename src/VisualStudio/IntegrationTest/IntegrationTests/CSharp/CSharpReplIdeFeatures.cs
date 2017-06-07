@@ -36,7 +36,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.InteractiveWindow.Verify.CodeActionsNotShowing();
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
         public void VerifyQuickInfoOnStringDocCommentsFromMetadata()
         {
             VisualStudio.InteractiveWindow.InsertCode("static void Foo(string[] args) { }");
@@ -46,7 +46,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             Assert.Equal("class‎ System‎.String", s);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914")]
         public void International()
         {
             VisualStudio.InteractiveWindow.InsertCode(@"delegate void العربية();
