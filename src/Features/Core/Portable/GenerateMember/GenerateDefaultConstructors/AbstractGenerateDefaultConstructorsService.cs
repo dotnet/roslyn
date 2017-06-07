@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
         {
         }
 
-        protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out INamedTypeSymbol classOrStructType);
+        protected abstract bool TryInitializeState(SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken, out INamedTypeSymbol classType);
 
         public async Task<ImmutableArray<CodeAction>> GenerateDefaultConstructorsAsync(
             Document document,
