@@ -10,7 +10,7 @@
     <AssemblyName>DeplyDesktopTestRuntime_DoNotUse</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
     <RoslynUnitTestDir>UnitTests\Portable</RoslynUnitTestDir>
   </PropertyGroup>

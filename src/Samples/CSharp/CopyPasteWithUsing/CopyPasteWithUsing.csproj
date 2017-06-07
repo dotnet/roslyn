@@ -41,7 +41,7 @@
     <RootNamespace>Roslyn.Samples.CodeAction.CopyPasteWithUsing</RootNamespace>
     <AssemblyName>Roslyn.Samples.CodeAction.CopyPasteWithUsing</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <RuntimeIdentifier>win7</RuntimeIdentifier>
     <UseCodeBase>true</UseCodeBase>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
