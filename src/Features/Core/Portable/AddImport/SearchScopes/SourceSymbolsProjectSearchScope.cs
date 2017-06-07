@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.SymbolTree;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                string name, SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
                 var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);

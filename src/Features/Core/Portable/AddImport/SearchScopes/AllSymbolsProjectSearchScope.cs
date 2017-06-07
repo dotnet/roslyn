@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
+namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportCodeFixProvider<TSimpleNameSyntax>
     {
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             }
 
             protected override async Task<ImmutableArray<ISymbol>> FindDeclarationsAsync(
-                string name, SymbolFilter filter, SearchQuery searchQuery)
+                SymbolFilter filter, SearchQuery searchQuery)
             {
                 var declarations = await DeclarationFinder.FindAllDeclarationsWithNormalQueryAsync(
                     _project, searchQuery, filter, CancellationToken).ConfigureAwait(false);
