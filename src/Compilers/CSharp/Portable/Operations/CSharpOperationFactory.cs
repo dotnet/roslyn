@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             bool isInvalid = unboundLambda.HasErrors;
             SyntaxNode syntax = unboundLambda.Syntax;
-            // This matches the SemanticModel implementation. This is because in VB, anonymous lambdas, by themselves,
+            // This matches the SemanticModel implementation. This is because in VB, lambdas by themselves
             // do not have a type. To get the type of a lambda expression in the SemanticModel, you need to look at
             // TypeInfo.ConvertedType, rather than TypeInfo.Type. We replicate that behavior here. To get the type of
             // an IUnboundLambdaExpression, you need to look at the parent IConversionExpression.
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             Lazy<IBlockStatement> body = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundLambda.Body));
             bool isInvalid = boundLambda.HasErrors;
             SyntaxNode syntax = boundLambda.Syntax;
-            // This matches the SemanticModel implementation. This is because in VB, anonymous lambdas, by themselves,
+            // This matches the SemanticModel implementation. This is because in VB, lambdas by themselves
             // do not have a type. To get the type of a lambda expression in the SemanticModel, you need to look at
             // TypeInfo.ConvertedType, rather than TypeInfo.Type. We replicate that behavior here. To get the type of
             // an ILambdaExpression, you need to look at the parent IConversionExpression.
