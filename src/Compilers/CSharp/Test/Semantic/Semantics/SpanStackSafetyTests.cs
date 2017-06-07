@@ -771,7 +771,36 @@ namespace System
     public struct RegularStruct<T>
     {
     }
+
+    // arity 0 - not a span
+    public struct Span 
+    {
+    }
+
+    // arity 2 - not a span
+    public struct Span<T, U> 
+    {
+        public ref T this[int i] => throw null;
+        public override int GetHashCode() => 1;
+    }
 }
+
+// nested
+public struct S1
+{
+    public struct Span<T> 
+    {
+        public ref T this[int i] => throw null;
+        public override int GetHashCode() => 1;
+    }
+}
+
+public struct Span<T> 
+{
+    public ref T this[int i] => throw null;
+    public override int GetHashCode() => 1;
+}
+
 ";
             var reference = CreateCompilation(
                 spanSourceNoRefs,
@@ -787,9 +816,13 @@ class Program
 {
     static void Main()
     {
-        object x = new Span<int>();
+        object x = new System.Span<int>();
         object y = new ReadOnlySpan<byte>();
-        object z = new RegularStruct<byte>();
+
+        object z1 = new Span();
+        object z2 = new Span<int, int>();
+        object z3 = new S1.Span<int>();
+        object z4 = new Span<int>();
     }
 }
 ";
@@ -800,8 +833,8 @@ class Program
 
             comp.VerifyDiagnostics(
                 // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
-                //         object x = new Span<int>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
+                //         object x = new System.Span<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new System.Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
                 // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
                 //         object y = new ReadOnlySpan<byte>();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20)
