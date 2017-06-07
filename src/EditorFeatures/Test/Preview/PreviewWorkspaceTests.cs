@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<IErrorTag>(workspace);
+                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider>(workspace);
                 const string AnalzyerCount = "Analyzer Count: ";
                 Assert.Equal(AnalzyerCount + 1, AnalzyerCount + diagnosticsAndErrorsSpans.Item1.Length);
 
