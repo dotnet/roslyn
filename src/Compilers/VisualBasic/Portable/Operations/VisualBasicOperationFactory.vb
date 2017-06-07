@@ -847,7 +847,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundReturnStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyReturnStatement(returnedValue, isInvalid, syntax, type, constantValue)
+            Return New LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, isInvalid, syntax, type, constantValue)
         End Function
 
         Private Shared Function CreateBoundThrowStatementOperation(boundThrowStatement As BoundThrowStatement) As IThrowStatement
@@ -887,7 +887,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax As SyntaxNode = boundYieldStatement.Syntax
             Dim type As ITypeSymbol = Nothing
             Dim constantValue As [Optional](Of Object) = New [Optional](Of Object)()
-            Return New LazyReturnStatement(returnedValue, isInvalid, syntax, type, constantValue)
+            Return New LazyReturnStatement(OperationKind.YieldReturnStatement, returnedValue, isInvalid, syntax, type, constantValue)
         End Function
 
         Private Shared Function CreateBoundLabelStatementOperation(boundLabelStatement As BoundLabelStatement) As ILabelStatement
