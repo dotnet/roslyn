@@ -42,43 +42,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _syntaxFactory = new ContextAwareSyntax(_syntaxFactoryContext);
         }
 
-        // Special Name checks
-        private static bool IsName(CSharpSyntaxNode node, SyntaxKind kind)
-        {
-            if (node.Kind == SyntaxKind.IdentifierToken)
-            {
-                return ((SyntaxToken)node).ContextualKind == kind;
-            }
-            else if (node.Kind == SyntaxKind.IdentifierName)
-            {
-                return ((IdentifierNameSyntax)node).Identifier.ContextualKind == kind;
-            }
-            else
-            {
-                return node.ToString() == SyntaxFacts.GetText(kind);
-            }
-        }
-
-        private static bool IsNameGet(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.GetKeyword);
-        }
-
-        private static bool IsNameSet(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.SetKeyword);
-        }
-
-        private static bool IsNameAdd(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.AddKeyword);
-        }
-
-        private static bool IsNameRemove(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.RemoveKeyword);
-        }
-
         private static bool IsSomeWord(SyntaxKind kind)
         {
             return kind == SyntaxKind.IdentifierToken || SyntaxFacts.IsKeywordKind(kind);
@@ -3332,7 +3295,6 @@ parse_member_name:;
             var expression = this.ParseExpressionCore();
             if (refKeyword != default(SyntaxToken))
             {
-                expression = CheckValidLvalue(expression);
                 expression = _syntaxFactory.RefExpression(refKeyword, expression);
             }
 
@@ -4632,7 +4594,6 @@ tryAgain:
                     var init = this.ParseVariableInitializer();
                     if (refKeyword != null)
                     {
-                        init = CheckValidLvalue(init);
                         init = _syntaxFactory.RefExpression(refKeyword, init);
                     }
 
@@ -8999,11 +8960,6 @@ tryAgain:
                 newPrecedence = GetPrecedence(opKind);
                 var opToken = this.EatToken();
                 var operand = this.ParseSubExpression(newPrecedence);
-                if (SyntaxFacts.IsIncrementOrDecrementOperator(opToken.Kind))
-                {
-                    operand = CheckValidLvalue(operand);
-                }
-
                 leftOperand = _syntaxFactory.PrefixUnaryExpression(opKind, opToken, operand);
             }
             else if (IsAwaitExpression())
@@ -9133,7 +9089,6 @@ tryAgain:
                             opToken = AddTrailingSkippedSyntax(opToken, refToken);
                         }
 
-                        leftOperand = CheckValidLvalue(leftOperand);
                         leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
                     }
                     else
@@ -9424,7 +9379,6 @@ tryAgain:
 
                     case SyntaxKind.PlusPlusToken:
                     case SyntaxKind.MinusMinusToken:
-                        expr = CheckValidLvalue(expr);
                         expr = _syntaxFactory.PostfixUnaryExpression(SyntaxFacts.GetPostfixUnaryExpression(tk), expr, this.EatToken());
                         break;
 
@@ -9740,66 +9694,9 @@ tryAgain:
                 expression = (refOrOutKeyword?.Kind == SyntaxKind.OutKeyword)
                     ? ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureOutVar, permitTupleDesignation: false)
                     : ParseSubExpression(Precedence.Expression);
-
-                if (refOrOutKeyword != null && expression.Kind != SyntaxKind.DeclarationExpression)
-                {
-                    expression = CheckValidLvalue(expression);
-                }
             }
 
             return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
-        }
-
-        private ExpressionSyntax CheckValidLvalue(ExpressionSyntax expression)
-        {
-            return IsDeconstructionCompatibleArgument(expression)
-                ? this.AddError(expression, ErrorCode.ERR_VarInvocationLvalueReserved)
-                : expression;
-        }
-
-        /// <summary>
-        /// See if the expression is an invocation of a method named 'var',
-        /// I.e. something like "var(x, y)" or "var(x, (y, z))" or "var(1)".
-        /// We report an error when such an invocation is used in a certain syntactic contexts that
-        /// will require an lvalue because we may elect to support deconstruction
-        /// in the future. We need to ensure that we do not successfully interpret this as an invocation of a
-        /// ref-returning method named var.
-        /// </summary>
-        private static bool IsDeconstructionCompatibleArgument(ExpressionSyntax expression)
-        {
-            if (expression.Kind == SyntaxKind.InvocationExpression)
-            {
-                var invocation = (InvocationExpressionSyntax)expression;
-                ExpressionSyntax invocationTarget = invocation.Expression;
-
-                return invocationTarget.Kind == SyntaxKind.IdentifierName &&
-                    ((IdentifierNameSyntax)invocationTarget).Identifier.IsVar();
-            }
-
-            return false;
-        }
-
-        private bool IsPossibleOutVarDeclaration()
-        {
-            var tk = this.CurrentToken.Kind;
-            if (SyntaxFacts.IsPredefinedType(tk) && this.PeekToken(1).Kind != SyntaxKind.DotToken)
-            {
-                return true;
-            }
-
-            var resetPoint = this.GetResetPoint();
-            try
-            {
-                SyntaxToken lastTokenOfType;
-                ScanTypeFlags st = this.ScanType(out lastTokenOfType);
-
-                return st != ScanTypeFlags.NotType && this.IsTrueIdentifier();
-            }
-            finally
-            {
-                this.Reset(ref resetPoint);
-                this.Release(ref resetPoint);
-            }
         }
 
         private TypeOfExpressionSyntax ParseTypeOfExpression()
@@ -10879,59 +10776,60 @@ tryAgain:
             return _syntaxFactory.AnonymousMethodExpression(asyncToken, @delegate, parameterList, body);
         }
 
-        private ExpressionSyntax ParseLambdaExpression()
+        private LambdaExpressionSyntax ParseLambdaExpression()
         {
             bool parentScopeIsInAsync = IsInAsync;
             SyntaxToken asyncToken = null;
-            if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword && PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
+            if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
+                PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
             {
                 asyncToken = this.EatContextualToken(SyntaxKind.AsyncKeyword);
                 asyncToken = CheckFeatureAvailability(asyncToken, MessageID.IDS_FeatureAsync);
                 IsInAsync = true;
             }
 
-            ExpressionSyntax result;
+            var result = ParseLambdaExpression(asyncToken);
+
+            IsInAsync = parentScopeIsInAsync;
+            return result;
+        }
+
+        private LambdaExpressionSyntax ParseLambdaExpression(SyntaxToken asyncToken)
+        {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 var paramList = this.ParseLambdaParameterList();
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
-                CSharpSyntaxNode body;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    body = this.ParseBlock();
-                }
-                else
-                {
-                    body = this.ParsePossibleRefExpression();
-                }
+                var body = ParseLambdaBody();
 
-                result = _syntaxFactory.ParenthesizedLambdaExpression(asyncToken, paramList, arrow, body);
+                return _syntaxFactory.ParenthesizedLambdaExpression(asyncToken, paramList, arrow, body);
             }
             else
             {
                 var name = this.ParseIdentifierToken();
                 var arrow = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
                 arrow = CheckFeatureAvailability(arrow, MessageID.IDS_FeatureLambda);
-                CSharpSyntaxNode body;
-                if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
-                {
-                    body = this.ParseBlock();
-                }
-                else
-                {
-                    body = this.ParsePossibleRefExpression();
-                }
 
-                result = _syntaxFactory.SimpleLambdaExpression(
-                    asyncToken,
-                    _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>), type: null, identifier: name, @default: null),
-                    arrow,
-                    body);
+                var parameter = _syntaxFactory.Parameter(
+                    default(SyntaxList<AttributeListSyntax>), default(SyntaxList<SyntaxToken>),
+                    type: null, identifier: name, @default: null);
+                var body = ParseLambdaBody();
+
+                return _syntaxFactory.SimpleLambdaExpression(asyncToken, parameter, arrow, body);
             }
+        }
 
-            IsInAsync = parentScopeIsInAsync;
-            return result;
+        private CSharpSyntaxNode ParseLambdaBody()
+        {
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                return this.ParseBlock();
+            }
+            else
+            {
+                return this.ParsePossibleRefExpression();
+            }
         }
 
         private ParameterListSyntax ParseLambdaParameterList()
@@ -10943,15 +10841,13 @@ tryAgain:
             var nodes = _pool.AllocateSeparated<ParameterSyntax>();
             try
             {
-                bool hasTypes = false;
-
                 if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                 {
 tryAgain:
-                    if (this.IsPossibleLambdaParameter() || this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleLambdaParameter())
                     {
                         // first parameter
-                        var parameter = this.ParseLambdaParameter(isFirst: true, hasTypes: ref hasTypes);
+                        var parameter = this.ParseLambdaParameter();
                         nodes.Add(parameter);
 
                         // additional parameters
@@ -10965,7 +10861,7 @@ tryAgain:
                             else if (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.IsPossibleLambdaParameter())
                             {
                                 nodes.AddSeparator(this.EatToken(SyntaxKind.CommaToken));
-                                parameter = this.ParseLambdaParameter(false, ref hasTypes);
+                                parameter = this.ParseLambdaParameter();
                                 nodes.Add(parameter);
                                 continue;
                             }
@@ -11021,48 +10917,72 @@ tryAgain:
                 expected);
         }
 
-        private ParameterSyntax ParseLambdaParameter(bool isFirst, ref bool hasTypes)
+        private ParameterSyntax ParseLambdaParameter()
         {
-            TypeSyntax paramType = null;
-            SyntaxToken paramName = null;
-            SyntaxListBuilder modifiers = _pool.Allocate();
-
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
             bool hasModifier = IsParameterModifier(this.CurrentToken.Kind);
 
-            var pk = this.PeekToken(1).Kind;
-            if (hasModifier
-                || (pk != SyntaxKind.CommaToken && pk != SyntaxKind.CloseParenToken && (hasTypes || isFirst))
-                || (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && pk == SyntaxKind.CloseParenToken && (hasTypes || isFirst))
-                || IsPredefinedType(this.CurrentToken.Kind))
+            TypeSyntax paramType = null;
+            SyntaxListBuilder modifiers = _pool.Allocate();
+
+            if (ShouldParseLambdaParameterType(hasModifier))
             {
                 if (hasModifier)
                 {
-                    this.ParseParameterModifiers(modifiers);
+                    ParseParameterModifiers(modifiers);
                 }
 
-                paramType = this.ParseType(ParseTypeMode.Parameter);
+                paramType = ParseType(ParseTypeMode.Parameter);
             }
 
-            paramName = this.ParseIdentifierToken();
-
-            if (isFirst)
-            {
-                hasTypes = paramType != null;
-            }
-            else if (paramType != null && !hasTypes && !paramName.IsMissing)
-            {
-                paramType = this.AddError(paramType, ErrorCode.ERR_InconsistentLambdaParameterUsage);
-            }
-            else if (paramType == null && hasTypes && !paramName.IsMissing)
-            {
-                paramName = this.AddError(paramName, ErrorCode.ERR_InconsistentLambdaParameterUsage);
-            }
-
+            SyntaxToken paramName = this.ParseIdentifierToken();
             var parameter = _syntaxFactory.Parameter(default(SyntaxList<AttributeListSyntax>), modifiers.ToList(), paramType, paramName, null);
             _pool.Free(modifiers);
             return parameter;
+        }
+
+        private bool ShouldParseLambdaParameterType(bool hasModifier)
+        {
+            // If we have "ref/out/in/params" always try to parse out a type.
+            if (hasModifier)
+            {
+                return true;
+            }
+
+            // If we have "int/string/etc." always parse out a type.
+            if (IsPredefinedType(this.CurrentToken.Kind))
+            {
+                return true;
+            }
+
+            // if we have a tuple type in a lambda.
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                return true;
+            }
+
+            if (this.IsTrueIdentifier(this.CurrentToken))
+            {
+                // Don't parse out a type if we see:
+                //
+                //      (a,
+                //      (a)
+                //      (a =>
+                //      (a {
+                //
+                // In all other cases, parse out a type.
+                var peek1 = this.PeekToken(1);
+                if (peek1.Kind != SyntaxKind.CommaToken &&
+                    peek1.Kind != SyntaxKind.CloseParenToken &&
+                    peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
+                    peek1.Kind != SyntaxKind.OpenBraceToken)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private bool IsCurrentTokenQueryContextualKeyword

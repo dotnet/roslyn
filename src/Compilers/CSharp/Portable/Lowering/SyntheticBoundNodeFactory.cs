@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundAssignmentOperator AssignmentExpression(BoundExpression left, BoundExpression right, RefKind refKind = RefKind.None)
         {
-            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.IgnoreDynamicAndTupleNames) ||
+            Debug.Assert(left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
                     right.Type.IsErrorType() || left.Type.IsErrorType());
 
             return new BoundAssignmentOperator(Syntax, left, right, left.Type, refKind: refKind) { WasCompilerGenerated = true };
@@ -574,6 +574,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
         {
             return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
+        }
+
+        public BoundExpression InstanceCall(BoundExpression receiver, string name)
+        {
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray<BoundExpression>.Empty, this.Diagnostics);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)
@@ -959,6 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static BoundExpression Null(TypeSymbol type, SyntaxNode syntax)
         {
+            Debug.Assert(type.CanBeAssignedNull());
             BoundExpression nullLiteral = new BoundLiteral(syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
             return type.IsPointerType()
                 ? BoundConversion.SynthesizedNonUserDefined(syntax, nullLiteral, Conversion.NullToPointer, type)
@@ -1135,6 +1141,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Null(type);
             }
 
+            if (conversion.Kind == ConversionKind.ExplicitNullable &&
+                arg.Type.IsNullableType() &&
+                arg.Type.GetNullableUnderlyingType().Equals(type, TypeCompareKind.AllIgnoreOptions))
+            {
+                // A conversion to unbox a nullable value is produced when binding a pattern-matching
+                // operation from an operand of type T? to a pattern of type T.
+                return this.Call(arg, this.SpecialMethod(CodeAnalysis.SpecialMember.System_Nullable_T_get_Value).AsMember((NamedTypeSymbol)arg.Type));
+            }
+
             return new BoundConversion(Syntax, arg, conversion, isChecked, true, null, type) { WasCompilerGenerated = true };
         }
 
@@ -1234,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static BoundExpression NullOrDefault(TypeSymbol typeSymbol, SyntaxNode syntax)
         {
-            return typeSymbol.IsValueType ? Default(typeSymbol, syntax) : Null(typeSymbol, syntax);
+            return typeSymbol.IsReferenceType ? Null(typeSymbol, syntax) : Default(typeSymbol, syntax);
         }
 
         internal BoundExpression Not(

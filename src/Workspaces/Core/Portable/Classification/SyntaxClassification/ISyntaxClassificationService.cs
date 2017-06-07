@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal interface IClassificationService : ILanguageService
+    internal interface ISyntaxClassificationService : ILanguageService
     {
         IEnumerable<ISyntaxClassifier> GetDefaultSyntaxClassifiers();
 

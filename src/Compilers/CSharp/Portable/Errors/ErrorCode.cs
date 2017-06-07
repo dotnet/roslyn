@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         //ERR_InvalidCollectionInitializerType = 1925,  unused in Roslyn. Occurs so infrequently in real usage that it is not worth reimplementing.
         ERR_CantOpenWin32Manifest = 1926,
         WRN_CantHaveManifestForModule = 1927,
-        ERR_BadExtensionArgTypes = 1928,
+        //ERR_BadExtensionArgTypes = 1928, unused in Roslyn (replaced by ERR_BadInstanceArgType)
         ERR_BadInstanceArgType = 1929,
         ERR_QueryDuplicateRangeVariable = 1930,
         ERR_QueryRangeVariableOverrides = 1931,
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadArgTypesForCollectionAdd = 1950,
         ERR_ByRefParameterInExpressionTree = 1951,
         ERR_VarArgsInExpressionTree = 1952,
-        // ERR_MemGroupInExpressionTree = 1953, unused in roslyn (replaced by ERR_LambdaInIsAs)
+        // ERR_MemGroupInExpressionTree = 1953, unused in Roslyn (replaced by ERR_LambdaInIsAs)
         ERR_InitializerAddHasParamModifiers = 1954,
         ERR_NonInvocableMemberCalled = 1955,
         WRN_MultipleRuntimeImplementationMatches = 1956,
@@ -1468,6 +1468,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VoidInTuple = 8210,
         #endregion more stragglers for C# 7
 
+        #region diagnostics introduced for C# 7.1
+
         ERR_Merge_conflict_marker_encountered = 8300,
         ERR_InvalidPreprocessingSymbol = 8301,
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
@@ -1477,8 +1479,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleInferredNamesNotAvailable = 8306,
         ERR_TypelessTupleInAs = 8307,
 
-        #region diagnostics for C# 7.1
-
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
         // Available = 8310,
@@ -1487,7 +1487,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
 
-        #endregion diagnostics for C# 7.1
+        #endregion diagnostics introduced for C# 7.1
+
+        #region diagnostics introduced for C# 7.2
+        ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        #endregion diagnostics introduced for C# 7.2
 
         //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
         //                         For now it is more convenient to have a gap to avoid conflicts with other added errors

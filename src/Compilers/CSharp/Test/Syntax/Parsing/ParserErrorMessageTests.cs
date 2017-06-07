@@ -1004,41 +1004,42 @@ class C
     delegate T Func<T>();
     delegate T Func<A0, T>(A0 a0);
     delegate T Func<A0, A1, T>(A0 a0, A1 a1);
+    delegate T Func<A0, A1, A2, T>(A0 a0, A1 a1, A2 a2);
     delegate T Func<A0, A1, A2, A3, T>(A0 a0, A1 a1, A2 a2, A3 a3);
     static void X()
     {
-        Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-        Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-        Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-        Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-        Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-        Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
+        Func<int,int,int> f1     = (int x, y) => 1;          // err: mixed parameters
+        Func<int,int,int> f2     = (x, int y) => 1;          // err: mixed parameters
+        Func<int,int,int,int> f3 = (int x, int y, z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f4 = (int x, y, int z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f5 = (x, int y, int z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f6 = (x, y, int z) => 1;       // err: mixed parameters
     }
 }
 ";
 
-            ParseAndValidate(test,
-    // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-    // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
-    // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-    // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
+                // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
+                // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
+                // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
         }
 
         [WorkItem(535915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535915")]
@@ -2242,9 +2243,9 @@ namespace x
 }
 ";
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
@@ -2418,9 +2419,9 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 41),
                 // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
@@ -4513,9 +4514,9 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7.0").WithLocation(3, 41),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),

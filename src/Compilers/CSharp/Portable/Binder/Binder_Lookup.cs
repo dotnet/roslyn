@@ -805,13 +805,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         foreach (var sym in tmp.Symbols)
                         {
-                            if (allMembers.Contains(sym))
+                            if (!allMembers.Add(sym))
                             {
                                 conflictingMembers.Add(sym);
-                            }
-                            else
-                            {
-                                allMembers.Add(sym);
                             }
                         }
                     }

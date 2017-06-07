@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_1 = 701 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_2 = 702 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.LanguageVersionFacts
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefTypeSyntax
