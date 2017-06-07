@@ -125,6 +125,103 @@ xHe4HK9zaRZZXWf2uqzcnuo5LTzBHtLLHhY=")
             End Using
         End Function
 
+        Private Async Function AssertCompletionListHasItems(code As String, hasItems As Boolean) As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+using System.Runtime.CompilerServices;
+using System.Reflection;
+<%= code %>
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.WaitForAsynchronousOperationsAsync()
+                If hasItems Then
+                    Await state.AssertCompletionSession()
+                    Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+                Else
+                    Await state.AssertNoCompletionSession
+                End If
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_AfterSingleDoubleQuoteAndClosing() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$)]", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_AfterText() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test$$)]", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfCursorIsInSecondParameter() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test"", ""$$", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote1() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""Test""$$", False)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfCursorIsClosingDoubleQuote2() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""""$$", False)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfNamedParameterIsPresent() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$, AllInternalsVisible = true)]", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfNamedParameterAndNamedPositionalParametersArePresent() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(assemblyName: ""$$, AllInternalsVisible = true)]", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfNotInternalsVisibleToAttribute() As Task
+            Await AssertCompletionListHasItems("[assembly: AssemblyVersion(""$$"")]", False)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent1() As Task
+            Await AssertCompletionListHasItems("[assembly: AssemblyVersion(""1.0.0.0""), InternalsVisibleTo(""$$", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributeIsPresent2() As Task
+            Await AssertCompletionListHasItems("[assembly: InternalsVisibleTo(""$$""), AssemblyVersion(""1.0.0.0"")]", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreAhead() As Task
+            Await AssertCompletionListHasItems("
+                [assembly: AssemblyVersion(""1.0.0.0"")]
+                [assembly: InternalsVisibleTo(""$$", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfOtherAttributesAreFollowing() As Task
+            Await AssertCompletionListHasItems("
+            [assembly: InternalsVisibleTo(""$$
+            [assembly: AssemblyVersion(""1.0.0.0"")]
+            [assembly: AssemblyCompany(""Test"")]", True)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasItems_IfNamespaceIsFollowing() As Task
+            Await AssertCompletionListHasItems("
+            [assembly: InternalsVisibleTo(""$$
+            namespace A {            
+                public class A { }
+            }", True)
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionHasItemsIfInteralVisibleToIsReferencedByTypeAlias() As Task
             Using state = TestState.CreateTestStateFromWorkspace(

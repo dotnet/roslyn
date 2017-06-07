@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyItemExistsAsync(text, "ClassLibrary3");
         }
 
-        [Theory, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "1,2,4,9,10")]
+        [Theory, Trait(Traits.Feature, Traits.Features.Completion), Trait("Moved", "1,2,3,4,5,6,7,8,10,11,12,13,14,15,16,17,18,19,20")]
         [InlineData(@"[assembly: InternalsVisibleToAttribute(""$$"")]", true)]
         [InlineData(@"[assembly: InternalsVisibleTo(""$$"")]", true)]
         [InlineData(@"[assembly: InternalsVisibleTo(""$$)]", true)]
