@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using System.Linq;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -28,6 +29,27 @@ class C
                 // (6,17): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
                 //         int x = default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(19013, "https://github.com/dotnet/roslyn/issues/19013")]
+        public void TestCSharp7Cascade()
+        {
+            string source = @"
+using System.Threading;
+using System.Threading.Tasks;
+
+class C
+{
+    async Task M(CancellationToken t = default) { await Task.Delay(0); }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source);
+            comp.VerifyDiagnostics(
+                // (7,40): error CS8107: Feature 'default literal' is not available in C# 7. Please use language version 7.1 or greater.
+                //     async Task M(CancellationToken t = default) { await Task.Delay(0); }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "default").WithArguments("default literal", "7.1").WithLocation(7, 40)
                 );
         }
 
