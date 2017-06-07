@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
                 semanticModel As SemanticModel,
                 argsArgument As SyntaxNode) As ITypeSymbol
 
-            Dim argumentSyntax = TryCast(argsArgument, ArgumentSyntax)
+            Dim argumentSyntax = DirectCast(argsArgument, ArgumentSyntax)
             Return semanticModel.GetTypeInfo(argumentSyntax.GetArgumentExpression()).Type
         End Function
 
@@ -31,29 +31,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
                 arguments As SeparatedSyntaxList(Of SyntaxNode),
                 searchArgumentName As String) As SyntaxNode
 
-            Dim matchingArgs = arguments.Cast(Of ArgumentSyntax).Where(
-                Function(p)
-                    Return Nullable.Equals(
-                        TryCast(p,
-                        SimpleArgumentSyntax)?.NameColonEquals?.Name.Identifier.ValueText.Equals(searchArgumentName),
-                        True)
-                End Function)
+            For Each argument In arguments.Cast(Of ArgumentSyntax)
+                Dim simpleArgumentSyntax = DirectCast(argument, SimpleArgumentSyntax)
+                If simpleArgumentSyntax.NameColonEquals?.Name.Identifier.ValueText.Equals(searchArgumentName) Then
+                    Return argument
+                End If
+            Next
 
-            If matchingArgs.Count <> 1 Then
-                Return Nothing
-            End If
-
-            Return matchingArgs.Single()
-
+            Return Nothing
         End Function
 
         Protected Overrides Function ArgumentExpressionIsStringLiteral(syntaxNode As SyntaxNode) As Boolean
-            Return TryCast(syntaxNode, ArgumentSyntax).GetArgumentExpression().IsKind(
+            Return DirectCast(syntaxNode, ArgumentSyntax).GetArgumentExpression().IsKind(
                 SyntaxKind.StringLiteralExpression)
         End Function
 
         Protected Overrides Function GetArgumentExpression(syntaxNode As SyntaxNode) As SyntaxNode
-            Return TryCast(syntaxNode, ArgumentSyntax).GetArgumentExpression
+            Return DirectCast(syntaxNode, ArgumentSyntax).GetArgumentExpression
         End Function
     End Class
 End Namespace

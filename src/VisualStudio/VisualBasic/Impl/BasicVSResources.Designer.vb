@@ -443,6 +443,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; expressions.
+        '''</summary>
+        Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_expressions() As String
+            Get
+                Return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_expressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Show completion item _filters.
         '''</summary>
         Friend Shared ReadOnly Property Show_completion_item_filters() As String
@@ -520,15 +529,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Suggest_imports_for_types_in_reference_assemblies() As String
             Get
                 Return ResourceManager.GetString("Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to Warn on invalid string.Format method calls.
-        '''</summary>
-        Friend Shared ReadOnly Property Warn_on_invalid_string_dot_format_calls() As String
-            Get
-                Return ResourceManager.GetString("Warn_on_invalid_string_dot_format_calls", resourceCulture)
             End Get
         End Property
     End Class

@@ -1024,6 +1024,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Report invalid placeholders in &apos;string.Format&apos; expressions.
+        /// </summary>
+        internal static string Report_invalid_placeholders_in_string_dot_format_expressions {
+            get {
+                return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_expressions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Selection In Completion List.
         /// </summary>
         internal static string Selection_In_Completion_List {
@@ -1227,15 +1236,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string var_preferences_colon {
             get {
                 return ResourceManager.GetString("var_preferences_colon", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warn on invalid string.Format method calls.
-        /// </summary>
-        internal static string Warn_on_invalid_string_dot_format_calls {
-            get {
-                return ResourceManager.GetString("Warn_on_invalid_string_dot_format_calls", resourceCulture);
             }
         }
         

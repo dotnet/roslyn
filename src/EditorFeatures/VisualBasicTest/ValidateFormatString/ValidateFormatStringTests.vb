@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         Private Function VBOptionOnCSharpOptionOff() As IDictionary(Of OptionKey, Object)
             Dim optionsSet = New Dictionary(Of OptionKey, Object) From
             {
-                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp), False},
-                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), True}
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.CSharp), False},
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.VisualBasic), True}
             }
 
             Return optionsSet
@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         Private Function VBOptionOffCSharpOptionOn() As IDictionary(Of OptionKey, Object)
             Dim optionsSet = New Dictionary(Of OptionKey, Object) From
             {
-                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp), True},
-                {New OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), False}
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.CSharp), True},
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.VisualBasic), False}
             }
 
             Return optionsSet
@@ -166,6 +166,36 @@ Class C
         string.Format(format:= ""This {0} {1[||]} {2} works"", args:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
     End Sub
 End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function DuplicateNamedParameters() As Task
+            Await TestDiagnosticMissingAsync("
+Imports System.Globalization
+Class C
+     Sub Main 
+        Dim culture As CultureInfo = ""da - da""
+        string.Format(format:= ""This {0} {1[||]} {2} works"", format:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function DuplicateNamedParametersInNet45() As Task
+            Await TestDiagnosticMissingAsync("
+<Workspace>
+                             <Project Language=""Visual Basic"" CommonReferencesNet45=""true"">
+                                 <Document FilePath=""SourceDocument"">
+Imports System.Globalization
+Class C
+     Sub Main 
+        Dim culture As CultureInfo = ""da - da""
+        string.Format(format:= ""This {0} {1[||]} {2} works"", format:=New Object  { ""test"", ""it"", ""really"" }, provider:=culture)
+    End Sub
+End Class
+        </Document>
+            </Project>
+                </Workspace>")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>

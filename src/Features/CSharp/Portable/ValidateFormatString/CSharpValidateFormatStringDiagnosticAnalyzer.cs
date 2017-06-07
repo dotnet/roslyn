@@ -27,13 +27,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ValidateFormatString
             SeparatedSyntaxList<SyntaxNode> arguments, 
             string searchArgumentName)
         {
-            var matchingNamedArguments = arguments.Cast<ArgumentSyntax>()
-                .Where(p => p.NameColon?.Name.Identifier.ValueText.Equals(searchArgumentName) == true);
-            if (matchingNamedArguments.Count() != 1)
+            foreach (var argument in arguments.Cast<ArgumentSyntax>())
             {
-                return null;
+                if (argument.NameColon != null && argument.NameColon.Name.Identifier.ValueText.Equals(searchArgumentName))
+                {
+                return argument;
+                }
             }
-            return matchingNamedArguments.Single();
+
+            return null;
         }
 
         protected override bool ArgumentExpressionIsStringLiteral(SyntaxNode syntaxNode)

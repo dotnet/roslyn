@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
-
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(prefer_throwing_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferThrowingProperties, LanguageNames.CSharp);
             BindToOption(prefer_auto_properties, ImplementTypeOptions.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties, LanguageNames.CSharp);
 
-            BindToOption(Warn_on_invalid_string_dot_format_calls, ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp);
+            BindToOption(Report_invalid_placeholders_in_string_dot_format_expressions, ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.CSharp);
         }
     }
 }

@@ -7,8 +7,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 {
     internal class ValidateFormatStringOption
     {
-        public static PerLanguageOption<bool> WarnOnInvalidStringDotFormatCalls =
-            new PerLanguageOption<bool>(nameof(ValidateFormatStringOption), nameof(WarnOnInvalidStringDotFormatCalls), defaultValue: true,
+        public static PerLanguageOption<bool> ReportInvalidPlaceholdersInStringDotFormatExpression =
+            new PerLanguageOption<bool>(nameof(ValidateFormatStringOption), nameof(ReportInvalidPlaceholdersInStringDotFormatExpression), defaultValue: true,
                 storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.WarnOnInvalidStringDotFormatCalls"));
     }
 
@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
     internal class SplitStringLiteralOptionsProvider : IOptionProvider
     {
         public ImmutableArray<IOption> Options { get; } = ImmutableArray.Create<IOption>(
-            ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls);
+            ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression);
     }
 }

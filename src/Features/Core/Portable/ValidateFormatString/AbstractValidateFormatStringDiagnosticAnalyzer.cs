@@ -49,6 +49,9 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         // brackets and save the contents in a MatchCollection
         private static Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
 
+        private const string NameOfArgsParameter = "args";
+        private const string NameOfFormatStringParameter = "format";
+
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract TSyntaxKind GetInvocationExpressionSyntaxKind();
         protected abstract SyntaxNode GetArgumentExpression(SyntaxNode syntaxNode);
@@ -77,17 +80,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         {
             var optionSet = context.Options.GetDocumentOptionSetAsync(
                 context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
 
-            if (optionSet.GetOption(
-                ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, 
+            if (optionSet?.GetOption(
+                ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression,
                 context.SemanticModel.Language) == false)
             {
                 return;
-            };
+            }
 
             var syntaxFacts = GetSyntaxFactsService();
             var expression = syntaxFacts.GetExpressionOfInvocationExpression(context.Node);
@@ -101,7 +100,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             var numberOfArguments = arguments.Count;
             var symbolInfo = context.SemanticModel.GetSymbolInfo(expression, context.CancellationToken);
 
-            if (!TryGetValidFormatMethodSymbol(context, numberOfArguments, symbolInfo, out var method))
+            var method = TryGetValidFormatMethodSymbol(context, numberOfArguments, symbolInfo);
+            if (method == null)
             {
                 return;
             }
@@ -136,8 +136,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             var hasIFormatProvider = parameters[0].Type.Equals(formatProviderType);
 
             // We know the format string parameter exists so numberOfArguments is at least one,
-            // and at least 2 if there is also an IFormatProvider.  The result can be zero if 
-            // calling string.Format("String only with no placeholders"), where there is an 
+            // and at least 2 if there is also an IFormatProvider.  The result can be zero if
+            // calling string.Format("String only with no placeholders"), where there is an
             // empty params array.
             var numberOfPlaceholderArguments = numberOfArguments - (hasIFormatProvider ? 2 : 1);
 
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             {
                 return;
             }
-            
+
             ValidateAndReportDiagnostic(context, numberOfPlaceholderArguments,
                 formatString, formatStringLiteralExpressionSyntax.SpanStart);
         }
@@ -163,14 +163,14 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                     ValueText.Equals(nameof(string.Format));
             }
 
-            // When using static System.String and calling Format(...), the expression will be 
+            // When using static System.String and calling Format(...), the expression will be
             // IdentifierNameSyntax
             if (syntaxFacts.IsIdentifierName(expression))
             {
                 return syntaxFacts.GetIdentifierOfSimpleName(expression).ValueText.Equals(
                     nameof(string.Format));
             }
-            
+
             return false;
         }
 
@@ -179,7 +179,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters)
         {
-            if (!TryGetArgsArgumentType(semanticModel, arguments, parameters, out var argsArgumentType))
+            var argsArgumentType = TryGetArgsArgumentType(semanticModel, arguments, parameters);
+            if (argsArgumentType == null)
             {
                 return false;
             }
@@ -193,73 +194,65 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return argsArray.ElementType.IsReferenceType;
         }
 
-        private bool TryGetArgsArgumentType(
+        private ITypeSymbol TryGetArgsArgumentType(
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
-            ImmutableArray<IParameterSymbol> parameters,
-            out ITypeSymbol argsArgumentType)
+            ImmutableArray<IParameterSymbol> parameters)
         {
-            var nameOfArgsParameter = "args";
-            if (!TryGetArgument(
-                semanticModel, 
-                nameOfArgsParameter, 
-                arguments, 
-                parameters, 
-                out var argsArgument))
-            {
-                argsArgumentType = null;
-                return false;
-            }
-
-            argsArgumentType = GetArgumentExpressionType(semanticModel, argsArgument);
-            return true;
+            var argsArgument = TryGetArgument(semanticModel, NameOfArgsParameter, arguments, parameters);
+            return (argsArgument == null? null : GetArgumentExpressionType(semanticModel, argsArgument));
         }
 
-        protected bool TryGetArgument(
+        protected SyntaxNode TryGetArgument(
             SemanticModel semanticModel,
             string searchArgumentName,
             SeparatedSyntaxList<SyntaxNode> arguments,
-            ImmutableArray<IParameterSymbol> parameters,
-            out SyntaxNode argumentSyntax)
+            ImmutableArray<IParameterSymbol> parameters)
         {
-            argumentSyntax = null;
 
             // First, look for a named argument that matches
-            var namedArguments = GetMatchingNamedArgument(arguments, searchArgumentName);
-
-            if (namedArguments != null)
+            var matchingNamedArgument = GetMatchingNamedArgument(arguments, searchArgumentName);
+            if (matchingNamedArgument != null)
             {
-                argumentSyntax = namedArguments;
-                return true;
+                return matchingNamedArgument;
             }
 
             // If no named argument exists, look for the named parameter
             // and return the corresponding argument
-            var namedParameters = parameters.Where(p => p.Name.Equals(searchArgumentName));
-
-            if (namedParameters.Count() != 1)
+            var parameterWithMatchingName = GetParameterWithMatchingName(parameters, searchArgumentName);
+            if (parameterWithMatchingName == null)
             {
-                return false;
+                return null;
             }
-
-            var namedParameter = namedParameters.Single();
 
             // For the case string.Format("Test string"), there is only one argument
             // but the compiler created an empty parameter array to bind to an overload
-            if (namedParameter.Ordinal >= arguments.Count)
+            if (parameterWithMatchingName.Ordinal >= arguments.Count)
             {
-                return false;
+                return null;
             }
 
             // Multiple arguments could have been converted to a single params array, 
             // so there wouldn't be a corresponding argument
-            if (namedParameter.IsParams && parameters.Length != arguments.Count)
+            if (parameterWithMatchingName.IsParams && parameters.Length != arguments.Count)
             {
-                return false;
+                return null;
             }
 
-            argumentSyntax = arguments[namedParameter.Ordinal];
-            return true;
+            return arguments[parameterWithMatchingName.Ordinal];
+        }
+
+        private IParameterSymbol GetParameterWithMatchingName(ImmutableArray<IParameterSymbol> parameters, string searchArgumentName)
+        {
+            foreach (var p in parameters)
+            {
+                if (p.Name.Equals(searchArgumentName))
+                {
+                    return p;
+                }
+            }
+
+            return null;
         }
 
         protected SyntaxNode TryGetFormatStringLiteralExpressionSyntax(
@@ -267,14 +260,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters)
         {
-            var nameOfFormatParameter = "format";
+            var formatArgumentSyntax = TryGetArgument(
+                semanticModel,
+                NameOfFormatStringParameter,
+                arguments,
+                parameters);
 
-            if (!TryGetArgument(
-                semanticModel, 
-                nameOfFormatParameter, 
-                arguments, 
-                parameters, 
-                out var formatArgumentSyntax))
+            if (formatArgumentSyntax == null)
             {
                 return null;
             }
@@ -287,39 +279,37 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             return GetArgumentExpression(formatArgumentSyntax);
         }
 
-        protected static bool TryGetValidFormatMethodSymbol(
+        protected static IMethodSymbol TryGetValidFormatMethodSymbol(
             SyntaxNodeAnalysisContext context,
             int numberOfArguments,
-            SymbolInfo symbolInfo,
-            out IMethodSymbol method)
+            SymbolInfo symbolInfo)
         {
-            method = null;
 
             if (symbolInfo.Symbol == null)
             {
-                return false;
+                return null;
             }
 
             if (symbolInfo.Symbol.Kind != SymbolKind.Method)
             {
-                return false;
+                return null;
             }
 
             var containingType = (INamedTypeSymbol)symbolInfo.Symbol.ContainingSymbol;
 
             if (containingType.SpecialType != SpecialType.System_String)
             {
-                return false;
+                return null;
             }
 
-            method = (IMethodSymbol)symbolInfo.Symbol;
+            var method = (IMethodSymbol)symbolInfo.Symbol;
 
             if (method.Arity > 0)
             {
-                return false;
+                return null;
             }
 
-            return true;
+            return method;
         }
 
         private bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)

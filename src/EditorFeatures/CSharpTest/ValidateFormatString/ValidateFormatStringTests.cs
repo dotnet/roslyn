@@ -13,7 +13,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
 {
-
     public class ValidateFormatStringTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -22,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ValidateFormatString
         private IDictionary<OptionKey, object> CSharpOptionOffVBOptionOn()
         {
             var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp) , false);
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), true);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.CSharp) , false);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.VisualBasic), true);
             return optionsSet;
         }
 
         private IDictionary<OptionKey, object> CSharpOptionOnVBOptionOff()
         {
             var optionsSet = new Dictionary<OptionKey, object>();
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.CSharp), true);
-            optionsSet.Add(new OptionKey(ValidateFormatStringOption.WarnOnInvalidStringDotFormatCalls, LanguageNames.VisualBasic), false);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.CSharp), true);
+            optionsSet.Add(new OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.VisualBasic), false);
             return optionsSet;
         }
 
@@ -533,7 +532,7 @@ namespace Generics_CSharp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
-        public async Task WarningTuredOn()
+        public async Task WarningTurnedOn()
         {
             var diagnosticMessage = string.Format(
                 FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}");
