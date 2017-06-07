@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundYieldBreakStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyReturnStatement(OperationKind.YieldBreakStatement, returnedValue, isInvalid, syntax, type, constantValue);
+            return new LazyReturnStatement(returnedValue, isInvalid, syntax, type, constantValue);
         }
 
         private static IBranchStatement CreateBoundGotoStatementOperation(BoundGotoStatement boundGotoStatement)
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundReturnStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyReturnStatement(OperationKind.ReturnStatement, returnedValue, isInvalid, syntax, type, constantValue);
+            return new LazyReturnStatement(returnedValue, isInvalid, syntax, type, constantValue);
         }
 
         private static IReturnStatement CreateBoundYieldReturnStatementOperation(BoundYieldReturnStatement boundYieldReturnStatement)
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundYieldReturnStatement.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyReturnStatement(OperationKind.YieldReturnStatement, returnedValue, isInvalid, syntax, type, constantValue);
+            return new LazyReturnStatement(returnedValue, isInvalid, syntax, type, constantValue);
         }
 
         private static ILockStatement CreateBoundLockStatementOperation(BoundLockStatement boundLockStatement)
