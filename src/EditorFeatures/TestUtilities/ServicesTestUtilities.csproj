@@ -236,7 +236,6 @@
     <Compile Include="ExtractInterface\ExtractInterfaceTestState.cs" />
     <Compile Include="ExtractInterface\TestExtractInterfaceOptions.cs" />
     <Compile Include="GoToAdjacentMember\AbstractGoToAdjacentMemberTests.cs" />
-    <Compile Include="InProcRemoteHostClientFactory.cs" />
     <Compile Include="KeywordHighlighting\AbstractKeywordHighlighterTests.cs" />
     <Compile Include="MinimalTestExportProvider.cs" />
     <Compile Include="MoveType\AbstractMoveTypeTest.cs" />
@@ -246,6 +245,7 @@
     <Compile Include="Preview\MockPreviewPaneService.cs" />
     <Compile Include="QuickInfo\AbstractQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\AbstractSemanticQuickInfoSourceTests.cs" />
+    <Compile Include="Remote\InProcRemoteHostClientFactory.cs" />
     <Compile Include="RenameTracking\MockPreviewDialogService.cs" />
     <Compile Include="RenameTracking\MockRefactorNotifyService.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTestsBase.cs" />
