@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    [Obsolete]
+    [Obsolete("Use Microsoft.CodeAnalysis.Classification.IClassificationService instead")]
     internal interface IEditorClassificationService : ILanguageService
     {
         /// <summary>
