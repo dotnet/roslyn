@@ -4322,6 +4322,24 @@ class C
         }
 
         [Fact]
+        public void BrokenPortablePdbStream()
+        {
+            string source = @"class Foo {}";
+            var compilation = CreateStandardCompilation(source);
+
+            using (var output = new MemoryStream())
+            {
+                var pdbStream = new BrokenStream();
+                pdbStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+                var result = compilation.Emit(output, pdbStream, options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+                result.Diagnostics.Verify(
+                    // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
+                    Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(pdbStream.ThrownException.ToString()).WithLocation(1, 1)
+                    );
+            }
+        }
+
+        [Fact]
         public void BrokenPDBStream()
         {
             string source = @"class Foo {}";
