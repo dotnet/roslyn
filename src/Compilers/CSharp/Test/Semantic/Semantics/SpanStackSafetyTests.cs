@@ -28,7 +28,7 @@ namespace System
         public override int GetHashCode() => 1;
     }
 
-    public ref struct ReadonlySpan<T>
+    public ref struct ReadOnlySpan<T>
     {
         public ref readonly T this[int i] => throw null;
         public override int GetHashCode() => 2;
@@ -40,6 +40,7 @@ namespace System
     }
 }
 ";
+
         //PROTOTYPE(span): this will be updated when rules for defining span are implemented
         //                 most likely we would just pick the actual binary/corlib where
         //                 span lives.
@@ -83,7 +84,7 @@ class Program
     static void Main()
     {
         object x = new Span<int>();
-        object y = new ReadonlySpan<byte>();
+        object y = new ReadOnlySpan<byte>();
         object z = new SpanLike<int>();
     }
 }
@@ -95,9 +96,9 @@ class Program
                 // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
                 //         object x = new Span<int>();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
-                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadonlySpan<byte>' to 'object'
-                //         object y = new ReadonlySpan<byte>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadonlySpan<byte>()").WithArguments("System.ReadonlySpan<byte>", "object").WithLocation(9, 20),
+                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20),
                 // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
                 //         object z = new SpanLike<int>();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
@@ -109,9 +110,9 @@ class Program
                 // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
                 //         object x = new Span<int>();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
-                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadonlySpan<byte>' to 'object'
-                //         object y = new ReadonlySpan<byte>();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadonlySpan<byte>()").WithArguments("System.ReadonlySpan<byte>", "object").WithLocation(9, 20),
+                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20),
                 // (10,20): error CS0029: Cannot implicitly convert type 'System.SpanLike<int>' to 'object'
                 //         object z = new SpanLike<int>();
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new SpanLike<int>()").WithArguments("System.SpanLike<int>", "object")
@@ -741,6 +742,69 @@ public class Program
                 // (16,46): error CS0123: No overload for 'ToString' matches delegate 'Func<string>'
                 //         Func<string> d3 = default(Span<int>).ToString;
                 Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "ToString").WithArguments("ToString", "System.Func<string>").WithLocation(16, 46)
+            );
+        }
+
+        //PROTOTYPE(span): Span and ReadOnlySpan should have ByRefLike attribute, eventually.
+        //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
+        //                 are ByRefLike
+        [Fact]
+        public void SpanDetect()
+        {
+
+            //span structs are not marked as "ref"
+            string spanSourceNoRefs = @"
+namespace System
+{
+    public struct Span<T> 
+    {
+        public ref T this[int i] => throw null;
+        public override int GetHashCode() => 1;
+    }
+
+    public struct ReadOnlySpan<T>
+    {
+        public ref readonly T this[int i] => throw null;
+        public override int GetHashCode() => 2;
+    }
+
+    public struct RegularStruct<T>
+    {
+    }
+}
+";
+            var reference = CreateCompilation(
+                spanSourceNoRefs,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef },
+                options: TestOptions.ReleaseDll);
+
+            reference.VerifyDiagnostics();
+
+            var text = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        object x = new Span<int>();
+        object y = new ReadOnlySpan<byte>();
+        object z = new RegularStruct<byte>();
+    }
+}
+";
+            var comp = CreateCompilation(
+                text,
+                references: new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef, reference.EmitToImageReference() },
+                options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,20): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'object'
+                //         object x = new Span<int>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new Span<int>()").WithArguments("System.Span<int>", "object").WithLocation(8, 20),
+                // (9,20): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<byte>' to 'object'
+                //         object y = new ReadOnlySpan<byte>();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new ReadOnlySpan<byte>()").WithArguments("System.ReadOnlySpan<byte>", "object").WithLocation(9, 20)
             );
         }
     }
