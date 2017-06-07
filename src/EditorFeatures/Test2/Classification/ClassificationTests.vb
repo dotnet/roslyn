@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
-#Disable Warning BC40008 ' Type or member is obsolete
+#Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>
         Private Class NoCompilationEditorClassificationService
             Implements IEditorClassificationService

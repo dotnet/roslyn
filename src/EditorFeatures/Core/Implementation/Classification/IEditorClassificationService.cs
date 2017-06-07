@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor
             => service.AdjustStaleClassification(text, classifiedSpan);
     }
 
-#pragma warning disable CS0612 // Type or member is obsolete
+#pragma warning disable CS0618 // Type or member is obsolete
     internal class EditorClassificationDelegationService : IClassificationDelegationService<IEditorClassificationService>
     {
         public static readonly IClassificationDelegationService<IEditorClassificationService> Instance = new EditorClassificationDelegationService();
