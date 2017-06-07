@@ -1047,16 +1047,24 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (HasLeadingTrivia)
                     {
-                        foreach (var triviaDiagnostic in GetLeadingTriviaCore().GetAllSyntaxErrors())
+                        var leadingTrivia = GetLeadingTriviaCore();
+                        if (leadingTrivia != null)
                         {
-                            yield return triviaDiagnostic;
+                            foreach (var triviaDiagnostic in leadingTrivia.GetAllSyntaxErrors())
+                            {
+                                yield return triviaDiagnostic;
+                            }
                         }
                     }
                     if (HasTrailingTrivia)
                     {
-                        foreach (var triviaDiagnostic in GetTrailingTriviaCore().GetAllSyntaxErrors())
+                        var trailingTrivia = GetTrailingTriviaCore();
+                        if (trailingTrivia != null)
                         {
-                            yield return triviaDiagnostic;
+                            foreach (var triviaDiagnostic in trailingTrivia.GetAllSyntaxErrors())
+                            {
+                                yield return triviaDiagnostic;
+                            }
                         }
                     }
                 }
