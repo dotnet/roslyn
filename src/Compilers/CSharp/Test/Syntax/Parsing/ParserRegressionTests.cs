@@ -133,6 +133,29 @@ class A
         }
 
         [Fact]
+        [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void SameDiagonsticsWithTaskLike()
+        {
+            var sourceWithWarning = @"
+using System.Threading.Tasks;
+
+static class C {
+    public static Task X(long l) { return null; }
+   
+    public static void M() {
+       await X(5l);
+    }
+    
+    public static void Main() {
+    	   
+    }
+}";
+            var source = sourceWithWarning.Replace("5l", "5L");
+            ParseAndValidate(source);
+            ParseAndValidate(sourceWithWarning, Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(8, 17));
+        }
+
+        [Fact]
         [WorkItem(217398, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217398")]
         public void LexerTooManyBadTokens()
         {

@@ -6547,7 +6547,7 @@ tryAgain:
             result = ParseStatementNoDeclaration(allowAnyExpression: false);
             IsInAsync = false;
 
-            if (!result.ContainsDiagnostics)
+            if (!result.ContainsErrorDiagnostics(considerTrivia: false))
             {
                 // We are in case (5). We do not report that we have an "await" expression in a non-async
                 // method at parse time; rather we do that in BindAwait(), during the initial round of
@@ -6560,7 +6560,7 @@ tryAgain:
 
             this.Reset(ref resetPointBeforeStatement);
             result = ParseLocalDeclarationStatement();
-            Debug.Assert(result.ContainsDiagnostics);
+            Debug.Assert(result.ContainsErrorDiagnostics(considerTrivia: false));
 
             return result;
         }
