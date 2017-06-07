@@ -133,7 +133,7 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
                   Children(1): IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
             IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
               IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
-                ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
+                ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'cust.Name')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
                       IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
@@ -215,7 +215,7 @@ class Class
 ";
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
-  Children(1): ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: System.Action) (Syntax: '() => ... }')
+  Children(1): ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
       IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
           IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
