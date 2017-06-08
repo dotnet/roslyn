@@ -518,4 +518,20 @@
       <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
     </ItemGroup>
   </Target>
+
+  <!-- We need to run publish on our CoreCLR executables (CscCore and VbcCore) without rebuilding
+       since a rebuild may overwrite signed binaries in the output directory with unsigned binaries
+       from the intermediate output directory. -->
+  <Target Name="PublishWithoutBuilding"
+        DependsOnTargets="PreventProjectReferencesFromBuilding;
+                          ResolveReferences;
+                          ComputeAndCopyFilesToPublishDirectory;
+                          GeneratePublishDependencyFile;
+                          GeneratePublishRuntimeConfigurationFile" />                                                           
+
+  <Target Name="PreventProjectReferencesFromBuilding">
+    <PropertyGroup>
+      <BuildProjectReferences>false</BuildProjectReferences>
+    </PropertyGroup>
+  </Target>
 </Project>

@@ -2,4 +2,4 @@
 
 THISDIR=$(dirname $0)
 
-dotnet $THISDIR/vbc.exe "$@"
+dotnet $THISDIR/vbc.dll "$@"
