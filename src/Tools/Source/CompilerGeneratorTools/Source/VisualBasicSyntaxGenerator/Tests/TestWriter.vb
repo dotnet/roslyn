@@ -606,19 +606,18 @@ Public Class TestWriter
     End Function
 
     Public Sub AddHandwrittenFactoryCall(baseType As String)
-
-        Select Case baseType
-            Case "IdentifierTokenSyntax"
-                _writer.Write("new InternalSyntax.SimpleIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, ""text"",")
-                _writer.Write("InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "" ""), ")
-                _writer.Write("InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "" ""))")
-
-            Case "IntegerLiteralTokenSyntax"
-                _writer.Write("new InternalSyntax.IntegerLiteralToken(""42"", LiteralBase.Decimal, TypeCharacter.None, 42,")
-                _writer.Write("InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "" ""), ")
-                _writer.Write("InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "" ""))")
-
-        End Select
+        With _writer
+            Select Case baseType
+                Case "IdentifierTokenSyntax"
+                    .Write("new InternalSyntax.SimpleIdentifierSyntax(SyntaxKind.IdentifierToken, Nothing, Nothing, ""text"",")
+                Case "IntegerLiteralTokenSyntax"
+                    .Write("new InternalSyntax.IntegerLiteralToken(""42"", LiteralBase.Decimal, TypeCharacter.None, 42,")
+                Case Else
+                    Exit Sub
+            End Select
+            .Write("InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "" ""), ")
+            .Write("InternalSyntax.SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, "" ""))")
+        End With
     End Sub
 
 End Class
