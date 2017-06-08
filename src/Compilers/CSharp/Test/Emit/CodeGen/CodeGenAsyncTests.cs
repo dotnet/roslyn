@@ -5483,5 +5483,64 @@ namespace Test
             var expected = @"Passed";
             CompileAndVerify(source, expectedOutput: expected);
         }
+
+        [Fact, WorkItem(19905, "https://github.com/dotnet/roslyn/issues/19905")]
+        public void FinallyEnteredFromExceptionalControlFlow()
+        {
+            var source =
+@"using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+class TestCase
+{
+    public async void Run()
+    {
+        int tests = 0;
+
+        try
+        {
+            tests++;
+            try
+            {
+                var tmp = await (new { task = Task.Run<string>(async () => { await Task.Delay(1); return """"; }) }).task;
+                throw new Exception(tmp);
+            }
+            finally
+            {
+                Driver.Count++;
+            }
+        }
+        finally
+        {
+            Driver.Result = Driver.Count - tests;
+            //When test complete, set the flag.
+            Driver.CompletedSignal.Set();
+        }
+    }
+}
+
+class Driver
+{
+    public static int Result = -1;
+    public static int Count = 0;
+    public static AutoResetEvent CompletedSignal = new AutoResetEvent(false);
+    static void Main()
+    {
+        var t = new TestCase();
+        t.Run();
+
+        CompletedSignal.WaitOne();
+        // 0 - success
+        // 1 - failed (test completed)
+        // -1 - failed (test incomplete - deadlock, etc)
+        Console.WriteLine(Driver.Result);
+
+    }
+}";
+            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+        }
     }
 }
