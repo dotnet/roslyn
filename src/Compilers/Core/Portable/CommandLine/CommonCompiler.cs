@@ -845,6 +845,7 @@ namespace Microsoft.CodeAnalysis
                 if (analyzerCts != null)
                 {
                     analyzerCts.Cancel();
+                    analyzerCts.Dispose();
 
                     if (reportAnalyzer)
                     {

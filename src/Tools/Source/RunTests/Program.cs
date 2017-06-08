@@ -53,35 +53,37 @@ namespace RunTests
             }
 
             var timeoutTask = Task.Delay(options.Timeout.Value);
-            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var runTask = RunCore(options, cts.Token);
-
-            if (cancellationToken.IsCancellationRequested)
+            using (var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             {
-                return ExitFailure;
-            }
+                var runTask = RunCore(options, cts.Token);
 
-            var finishedTask = await Task.WhenAny(timeoutTask, runTask);
-            if (finishedTask == timeoutTask)
-            {
-                await HandleTimeout(options, cancellationToken);
-                cts.Cancel();
-
-                try
+                if (cancellationToken.IsCancellationRequested)
                 {
-                    // Need to await here to ensure that all of the child processes are properly 
-                    // killed before we exit.
-                    await runTask;
-                }
-                catch
-                {
-                    // Cancellation exceptions expected here. 
+                    return ExitFailure;
                 }
 
-                return ExitFailure;
-            }
+                var finishedTask = await Task.WhenAny(timeoutTask, runTask);
+                if (finishedTask == timeoutTask)
+                {
+                    await HandleTimeout(options, cancellationToken);
+                    cts.Cancel();
 
-            return await runTask;
+                    try
+                    {
+                        // Need to await here to ensure that all of the child processes are properly 
+                        // killed before we exit.
+                        await runTask;
+                    }
+                    catch
+                    {
+                        // Cancellation exceptions expected here. 
+                    }
+
+                    return ExitFailure;
+                }
+
+                return await runTask;
+            }
         }
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)

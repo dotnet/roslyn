@@ -99,10 +99,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             // Create a tasks that waits indefinitely (-1) and completes only when cancelled.
             var waitCancellationTokenSource = new CancellationTokenSource();
-            var waitTask = Task.Delay(
-                Timeout.Infinite,
-                CancellationTokenSource.CreateLinkedTokenSource(waitCancellationTokenSource.Token, cancellationToken).Token);
-            await Task.WhenAny(listenTask, waitTask).ConfigureAwait(false);
+            using (var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(waitCancellationTokenSource.Token, cancellationToken))
+            {
+                var waitTask = Task.Delay(Timeout.Infinite, linkedTokenSource.Token);
+                await Task.WhenAny(listenTask, waitTask).ConfigureAwait(false);
+            }
+
             if (listenTask.IsCompleted)
             {
                 waitCancellationTokenSource.Cancel();
