@@ -27,7 +27,6 @@
         "Dlls\\CodeAnalysis\\Microsoft.CodeAnalysis.dll",
         "Dlls\\CodeStyle\\Microsoft.CodeAnalysis.CodeStyle.dll",
         "Dlls\\CodeStyleFixes\\Microsoft.CodeAnalysis.CodeStyle.Fixes.dll",
-        "Dlls\\Diagnostics\\Roslyn.Hosting.Diagnostics.dll",
         "Dlls\\EditorFeatures.Next\\Microsoft.CodeAnalysis.EditorFeatures.Next.dll",
         "Dlls\\EditorFeatures\\Microsoft.CodeAnalysis.EditorFeatures.dll",
         "Dlls\\Features\\Microsoft.CodeAnalysis.Features.dll",
@@ -64,6 +63,9 @@
         "Vsix\\CompilerExtension\\Roslyn.Compilers.Extension.dll",
         "Vsix\\Templates\\Roslyn.Templates.dll",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.dll",
+        "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.dll",
+        "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Utilities.dll",
+        "Vsix\\VisualStudioIntegrationTestSetup\\Roslyn.Hosting.Diagnostics.dll",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.dll"
       ]
     },
@@ -99,6 +101,7 @@
         "Vsix\\Roslyn.Deployment.Full.Next\\Roslyn.Deployment.Full.Next.vsix",
         "Vsix\\VisualStudioDiagnosticsWindow\\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\\VisualStudioInteractiveComponents\\Roslyn.VisualStudio.InteractiveComponents.vsix",
+        "Vsix\\VisualStudioIntegrationTestSetup\\Microsoft.VisualStudio.IntegrationTest.Setup.vsix",
         "Vsix\\VisualStudioSetup.Next\\Roslyn.VisualStudio.Setup.Next.vsix",
         "Vsix\\VisualStudioSetup\\Roslyn.VisualStudio.Setup.vsix",
         "Vsix\\Roslyn\\RoslynDeployment.vsix",
@@ -110,6 +113,7 @@
   "exclude": [
     "Esent.Interop.dll",
     "Microsoft.CodeAnalysis.Elfie.dll",
+    "Microsoft.Diagnostics.Runtime.dll",
     "Microsoft.DiaSymReader.dll",
     "Microsoft.DiaSymReader.Native.amd64.dll",
     "Microsoft.DiaSymReader.Native.arm.dll",
@@ -162,6 +166,7 @@
     "Microsoft.Build.Tasks.Core.dll",
     "Microsoft.Build.Utilities.Core.dll",
     "Microsoft.Win32.Primitives.dll",
+    "Microsoft.VisualStudio.CodingConventions.dll",
     "Microsoft.VisualStudio.Threading.dll",
     "Microsoft.VisualStudio.Validation.dll",
     "Nerdbank.FullDuplexStream.dll",

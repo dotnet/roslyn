@@ -95,5 +95,13 @@
     <VSIXSourceItem Include="$(OutputPath)Microsoft.Diagnostics.Runtime.dll" />
     <VSIXSourceItem Include="$(OutputPath)Microsoft.VisualStudio.CodingConventions.dll" />
   </ItemGroup>
+  <Target Name="CopyPdbs" AfterTargets="Build">
+    <!-- The following PDBs need to be in the output directory so that GitLink can run, but they're not included in the final VSIX. -->
+    <ItemGroup>
+      <AdditionalFilesToCopy Include="$(BaseOutputPath)$(Configuration)\Dlls\VisualStudioIntegrationTestUtilities\Microsoft.VisualStudio.IntegrationTest.Utilities.pdb" />
+      <AdditionalFilesToCopy Include="$(BaseOutputPath)$(Configuration)\Dlls\Diagnostics\Roslyn.Hosting.Diagnostics.pdb" />
+    </ItemGroup>
+    <Copy SourceFiles="@(AdditionalFilesToCopy)" DestinationFolder="$(OutputPath)" />
+  </Target>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>
