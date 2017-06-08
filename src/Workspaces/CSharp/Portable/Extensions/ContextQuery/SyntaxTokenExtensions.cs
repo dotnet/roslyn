@@ -99,16 +99,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // lock (expr)
             //   |
 
-            // for ( ; ; Foo(), |
-
             switch (token.Kind())
             {
-                case SyntaxKind.OpenBraceToken when token.Parent.IsKind(SyntaxKind.Block):
-                    return true;
+                case SyntaxKind.OpenBraceToken:
+                    return token.Parent.IsKind(SyntaxKind.Block);
 
                 case SyntaxKind.SemicolonToken:
                     var statement = token.GetAncestor<StatementSyntax>();
-                    return statement != null && !statement.IsParentKind(SyntaxKind.GlobalStatement) &&
+                    return statement != null &&
+                           !statement.IsParentKind(SyntaxKind.GlobalStatement) &&
                            statement.GetLastToken(includeZeroWidth: true) == token;
 
                 case SyntaxKind.CloseBraceToken:
@@ -144,16 +143,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                         return true;
                     }
 
-                    return false;
+                    return true;
 
                 case SyntaxKind.ColonToken:
-                    return token.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
-                                               SyntaxKind.DefaultSwitchLabel,
+                    return token.Parent.IsKind(SyntaxKind.LabeledStatement,
+                                               SyntaxKind.CaseSwitchLabel,
                                                SyntaxKind.CasePatternSwitchLabel,
-                                               SyntaxKind.LabeledStatement);
+                                               SyntaxKind.DefaultSwitchLabel);
 
-                case SyntaxKind.DoKeyword when token.Parent.IsKind(SyntaxKind.DoStatement):
-                    return true;
+                case SyntaxKind.DoKeyword:
+                    return token.Parent.IsKind(SyntaxKind.DoStatement);
 
                 case SyntaxKind.CloseParenToken:
                     var parent = token.Parent;
