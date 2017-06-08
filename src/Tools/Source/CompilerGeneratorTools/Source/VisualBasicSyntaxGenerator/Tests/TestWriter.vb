@@ -7,6 +7,7 @@
 '-----------------------------------------------------------------------------------------------------------
 
 Imports System.IO
+Imports exts
 
 Public Class TestWriter
     Inherits WriteUtils
@@ -90,7 +91,7 @@ End Namespace")
         For Each nodeStructure In _parseTree.NodeStructures.Values
             If Not nodeStructure.Abstract AndAlso Not nodeStructure.NoFactory Then
 
-                If Not nodeStructure.Name = "KeywordSyntax" AndAlso Not nodeStructure.Name = "PunctuationSyntax" Then
+                If nodeStructure.Name.IsNoneOf("KeywordSyntax", "PunctuationSyntax") Then
                     GenerateFactoryCall(isGreen, nodeStructure)
                 End If
             End If
@@ -220,12 +221,7 @@ End Namespace")
                             End If
                         Next
 
-                        .WriteLine("            catch e as ArgumentNullException")
-                        .WriteLine("            exceptionTest = true")
-                        .WriteLine("            End Try")
-                        .WriteLine("            Debug.Assert(exceptionTest)")
-                        .WriteLine("            exceptionTest = false")
-                        .WriteLine()
+                        WriteCatchOfException()
                     Next
 
                     ' quick hack to cover more code in keyword factories ...
@@ -240,29 +236,24 @@ End Namespace")
 
                         .Write("            dim node2 = ")
                         callTokens.ForEach(AddressOf _writer.Write)
-                        .WriteLine()
-
-                        .WriteLine("            Debug.Assert(node1.GetText() = String.Empty)")
-                        .WriteLine("            Debug.Assert(node2.GetText() <> String.Empty)")
-                        .WriteLine()
-
+                        .WriteLine("
+            Debug.Assert(node1.GetText() = String.Empty)
+            Debug.Assert(node2.GetText() <> String.Empty)
+")
                         ' make parameter = nothing to cause exceptions
-                        .WriteLine("            Try")
-                        .WriteLine("            exceptionTest = false")
+                        .WriteLine("            Try
+            exceptionTest = false")
 
                         For i = 0 To callTokens.Count - 1
                             .Write(callTokens(i))
                             If i = 0 Then _writer.Write("Nothing, ")
                         Next i
-                        .WriteLine()
-
-                        .WriteLine("            catch e as ArgumentNullException")
-                        .WriteLine("            exceptionTest = true")
-                        .WriteLine("            End Try")
-                        .WriteLine("            Debug.Assert(exceptionTest)")
-                        .WriteLine()
-
-                        .WriteLine("            return node2")
+                        .WriteLine("
+            catch e as ArgumentNullException
+            exceptionTest = true
+            End Try
+            Debug.Assert(exceptionTest)
+            return node2")
                     Else
                         .Write("            return ")
                         callTokens.ForEach(AddressOf _writer.Write)
@@ -308,54 +299,46 @@ End Namespace")
 
                     Dim childNodeKind As ParseNodeKind = If(Not child Is Nothing, TryCast(child.ChildKind, ParseNodeKind), Nothing)
 
-                    If TypeOf child.ChildKind Is List(Of ParseNodeKind) Then
-                        childNodeKind = child.ChildKind(nodeKind.Name)
-                    End If
+                    If TypeOf child.ChildKind Is List(Of ParseNodeKind) Then childNodeKind = child.ChildKind(nodeKind.Name)
 
-                    If childNodeKind Is Nothing Then
-                        childNodeKind = DirectCast(child.ChildKind, List(Of ParseNodeKind)).Item(0)
-                    End If
+                    childNodeKind = If(childNodeKind, DirectCast(child.ChildKind, List(Of ParseNodeKind)).Item(0))
 
                     If child.IsList AndAlso child.IsSeparated Then
                         Dim childKindStructure = child.ParseTree.NodeStructures(childNodeKind.StructureId)
                         childKindStructure = If(Not childKindStructure.ParentStructure Is Nothing, childKindStructure.ParentStructure, childKindStructure)
-                        callTokens.Add("New " + ChildFactoryTypeRef(nodeStructure, child, isGreen, True) + "()")
+                        callTokens.Add($"New {ChildFactoryTypeRef(nodeStructure, child, isGreen, True)}()")
                     Else
                         Dim structureOfchild = child.ParseTree.NodeStructures(childNodeKind.StructureId)
                         If structureOfchild.Name = "PunctuationSyntax" OrElse structureOfchild.Name = "KeywordSyntax" Then
 
                             If isGreen Then
-                                callTokens.Add("new InternalSyntax." + structureOfchild.Name + "(")
-                                callTokens.Add("SyntaxKind." + childNodeKind.Name + ", String.Empty, Nothing, Nothing)")
+                                callTokens.Add($"new InternalSyntax.{structureOfchild.Name}(")
+                                callTokens.Add($"SyntaxKind.{childNodeKind.Name}, String.Empty, Nothing, Nothing)")
                             Else
-                                Dim token = "SyntaxFactory.Token(SyntaxKind." + childNodeKind.Name + ")"
+                                Dim token = $"SyntaxFactory.Token(SyntaxKind.{childNodeKind.Name})"
                                 If child.IsList Then
-                                    token = "SyntaxTokenList.Create(" & token & ")"
+                                    token = $"SyntaxTokenList.Create({token})"
                                 End If
                                 callTokens.Add(token)
 
                                 ' add none kind here
                                 If Not TypeOf child.ChildKind Is List(Of ParseNodeKind) Then
-                                    If child.IsOptional Then
-                                        KindNonePositions.Add(callTokens.Count - 1)
-                                    End If
+                                    If child.IsOptional Then KindNonePositions.Add(callTokens.Count - 1)
                                 Else
-                                    If Not child.IsList Then
-                                        aePositions.Add(callTokens.Count - 1)
-                                    End If
+                                    If Not child.IsList Then aePositions.Add(callTokens.Count - 1)
                                 End If
                             End If
                         Else
                             If isGreen Then
-                                callTokens.Add("GenerateGreen" + FactoryName(childNodeKind) + "()")
+                                callTokens.Add($"GenerateGreen{FactoryName(childNodeKind)}()")
                             Else
-                                Dim result = "GenerateRed" + FactoryName(childNodeKind) + "()"
+                                Dim result = $"GenerateRed{FactoryName(childNodeKind)}()"
                                 If structureOfchild.IsToken AndAlso child.IsList Then
-                                    result = "SyntaxTokenList.Create(" & result & ")"
+                                    result = $"SyntaxTokenList.Create({result})"
                                 ElseIf child.IsSeparated Then
-                                    result = String.Format("SyntaxFactory.SingletonSeparatedList(Of {0}({1})", BaseTypeReference(child), result)
+                                    result = $"SyntaxFactory.SingletonSeparatedList(Of {BaseTypeReference(child)}({result})"
                                 ElseIf child.IsList Then
-                                    result = String.Format("SyntaxFactory.SingletonList(Of {0})({1})", BaseTypeReference(child), result)
+                                    result = $"SyntaxFactory.SingletonList(Of {BaseTypeReference(child)})({result})"
                                 End If
                                 callTokens.Add(result)
                             End If
@@ -372,11 +355,12 @@ End Namespace")
                 callTokens.Add(")")
 
                 ' TODO: remove extra conditions
-                If isGreen OrElse nodeStructure.Name = "CaseBlockSyntax" OrElse nodeStructure.Name = "IfPartSyntax" OrElse nodeStructure.Name = "MultiLineIfBlockSyntax" Then
+                If isGreen OrElse nodeStructure.Name.IsAnyOf("CaseBlockSyntax", "IfPartSyntax", "MultiLineIfBlockSyntax") Then
                     .Write("            return ")
                     callTokens.ForEach(AddressOf _writer.Write)
                     .WriteLine()
                 Else
+                    _writer.WriteLine("            Dim exceptionTest as boolean = false")
 
                     WriteExceptionChecks0(callTokens, aePositions)
 
@@ -396,52 +380,42 @@ End Namespace")
         End With
     End Sub
 
-    Private Sub WriteExceptionChecks0(callTokens As List(Of String), aePositions As list(Of Integer))
-        _writer.WriteLine("            Dim exceptionTest as boolean = false")
-
-        For exceptionChecks = 0 To anePositions.Count - 1
-
-            .WriteLine("            Try")
-
-            .Write("            ")
-            For i = 0 To callTokens.Count - 1
-                If (i <> anePositions(exceptionChecks)) Then
-                    _writer.Write(callTokens(i))
-                Else
-                    _writer.Write("Nothing")
-                End If
-            Next
-            .WriteLine("
+    Private Sub WriteCatchOfException()
+        _writer.WriteLine("
             catch e as ArgumentNullException
             exceptionTest = true
             End Try
             Debug.Assert(exceptionTest)
             exceptionTest = false
 ")
-        Next
     End Sub
 
-    Private Sub WriteExceptionChecks1(callTokens As List(Of String), aePositions As List(Of Integer))
-        For exceptionChecks = 0 To aePositions.Count - 1
+    Private Sub WriteExceptionChecks(other As String, callTokens As List(Of String), anePositions As List(Of Integer))
+        With _writer
+            For exceptionChecks = 0 To anePositions.Count - 1
 
-            .WriteLine("            Try")
-            .Write("            ")
-            For i = 0 To callTokens.Count - 1
-                If (i <> aePositions(exceptionChecks)) Then
-                    _writer.Write(callTokens(i))
-                Else
-                    _writer.Write("SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword)") ' this syntaxtoken should not be legal anywhere in the tests
-                End If
+                .WriteLine("            Try")
+
+                .Write("            ")
+                For i = 0 To callTokens.Count - 1
+                    If (i <> anePositions(exceptionChecks)) Then
+                        _writer.Write(callTokens(i))
+                    Else
+                        _writer.Write(other)
+                    End If
+                Next
+                WriteCatchOfException()
             Next
-            .WriteLine("
-            catch e as ArgumentException
-            exceptionTest = true
-            End Try
-            Debug.Assert(exceptionTest)
-            exceptionTest = false
-")
+        End With
+    End Sub
 
-        Next
+    Private Sub WriteExceptionChecks0(callTokens As List(Of String), anePositions As List(Of Integer))
+        WriteExceptionChecks("Nothing", callTokens, anePositions)
+    End Sub
+
+    Private Sub WriteExceptionChecks1(callTokens As List(Of String), anePositions As List(Of Integer))
+        ' this syntaxtoken should not be legal anywhere in the tests
+        WriteExceptionChecks("SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword)", callTokens, anePositions)
     End Sub
 
     Private Sub WriteKindNodePositiions(callTokens As List(Of String), KindNonePositions As List(Of Integer))
@@ -462,7 +436,7 @@ End Namespace")
     Private Sub GenerateFactoryCallTests(isGreen As Boolean)
         For Each nodeStructure In _parseTree.NodeStructures.Values
             If Not nodeStructure.Abstract AndAlso Not nodeStructure.NoFactory Then
-                If Not nodeStructure.Name = "KeywordSyntax" AndAlso Not nodeStructure.Name = "PunctuationSyntax" Then
+                If nodeStructure.Name.IsNoneOf("KeywordSyntax", "PunctuationSyntax") Then
                     GenerateFactoryCallTest(isGreen, nodeStructure)
                 End If
             End If
@@ -479,37 +453,35 @@ End Namespace")
 
         If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then Return ' check for fix
 
-        Dim funcNamePart = If(isGreen, "Green", "Red"), factoryName = factoryName(nodeKind)
+        Dim funcNamePart = If(isGreen, "Green", "Red"), _factoryName = FactoryName(nodeKind)
         With _writer
 
             .WriteLine(
 $"        <Fact>
-        Public Sub Test{funcNamePart}{factoryName}()
-            dim objectUnderTest = Generate{funcNamePart}{factoryName}()")
+        Public Sub Test{funcNamePart}{_factoryName}()
+            dim objectUnderTest = Generate{funcNamePart}{_factoryName}()")
 
             'Dim children = GetAllChildrenOfStructure(nodeStructure)
             If isGreen Then
                 .WriteLine("            AttachAndCheckDiagnostics(objectUnderTest)")
             Else
-                Using withStat As New Text.StringBuilder()
-                    For Each child In GetAllChildrenOfStructure(nodeStructure)
-                        If Not child.IsOptional Then
-                            .WriteLine("            Assert.NotNull(objectUnderTest.{0})", LowerFirstCharacter(child.Name))
-                        End If
-                        withStat.AppendFormat(".With{0}(objectUnderTest.{0})", child.Name)
-                    Next
-                    If withStat.Length > 0 Then
-                        .WriteLine("            Dim withObj = objectUnderTest{0}", withStat.tostring)
-                        .WriteLine("            Assert.Equal(withobj, objectUnderTest)")
+                Dim withStat As New Text.StringBuilder()
+                For Each child In GetAllChildrenOfStructure(nodeStructure)
+                    If Not child.IsOptional Then
+                        .WriteLine($"            Assert.NotNull(objectUnderTest.{LowerFirstCharacter(child.Name)})")
                     End If
-                End Using
+                    withStat.AppendLine($".With{ child.Name}(objectUnderTest.{child.Name})")
+                Next
+                If withStat.Length > 0 Then
+                    .WriteLine($"            Dim withObj = objectUnderTest{withStat.ToString}
+             Assert.Equal(withobj, objectUnderTest)")
+                End If
             End If
 
             .WriteLine("        End Sub")
             .WriteLine()
         End With
     End Sub
-
 
     Private Sub GenerateRewriterTests(isGreen As Boolean)
         For Each nodeStructure In _parseTree.NodeStructures.Values
@@ -529,12 +501,12 @@ $"        <Fact>
 
         If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then Return ' check for fix
 
-        Dim funcNamePart = If(isGreen, "Green", "Red"), factoryName = factoryName(nodeKind)
+        Dim funcNamePart = If(isGreen, "Green", "Red"), _factoryName = FactoryName(nodeKind)
         With _writer
             .WriteLine(
 $"        <Fact>
-        Public Sub Test{funcNamePart}{factoryName}Rewriter()
-            Dim oldNode = Generate{funcNamePart}{factoryName}()
+        Public Sub Test{funcNamePart}{_factoryName}Rewriter()
+            Dim oldNode = Generate{funcNamePart}{_factoryName}()
             Dim rewriter = New {funcNamePart}IdentityRewriter()
             Dim newNode = rewriter.Visit(oldNode)
             Assert.Equal(oldNode, newNode)
@@ -564,12 +536,12 @@ $"        <Fact>
 
         If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then Return ' check for fix
 
-        Dim funcNamePart = If(isGreen, "Green", "Red"), factoryName = factoryName(nodeKind)
+        Dim funcNamePart = If(isGreen, "Green", "Red"), _factoryName = FactoryName(nodeKind)
         With _writer
             .WriteLine(
 $"        <Fact>
-        Public Sub Test{funcNamePart & factoryName}Visitor()
-            Dim oldNode = Generate{funcNamePart & factoryName}()
+        Public Sub Test{funcNamePart & _factoryName}Visitor()
+            Dim oldNode = Generate{funcNamePart & _factoryName}()
             Dim visitor = New {funcNamePart}NodeVisitor()
             visitor.Visit(oldNode)
         End Sub

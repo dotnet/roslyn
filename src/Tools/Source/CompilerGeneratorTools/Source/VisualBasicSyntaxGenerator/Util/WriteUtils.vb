@@ -941,3 +941,15 @@ Public MustInherit Class WriteUtils
     End Function
 
 End Class
+
+Public Module Exts
+    <System.Runtime.CompilerServices.Extension>
+    Public Function IsNoneOf(s As String, s0 As String, s1 As String) As Boolean
+        Return Not (s = s0) AndAlso Not (s = s1)
+    End Function
+    <System.Runtime.CompilerServices.Extension>
+    Public Function IsAnyOf(s As String, s0 As String, s1 As String, s2 As String) As Boolean
+        Return (s = s0) OrElse (s = s1) OrElse (s = s2)
+    End Function
+
+End Module
