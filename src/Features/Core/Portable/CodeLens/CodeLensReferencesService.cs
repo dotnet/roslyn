@@ -33,11 +33,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
                 return null;
             }
 
-            var cacheService = solution.Services.CacheService;
-            var caches = solution.GetProjectDependencyGraph().GetProjectsThatTransitivelyDependOnThisProject(document.Project.Id).Select(pid => cacheService?.EnableCaching(pid)).ToList();
-
-            try
-            {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -70,11 +65,6 @@ namespace Microsoft.CodeAnalysis.CodeLens
                         throw;
                     }
                 }
-            }
-            finally
-            {
-                caches.WhereNotNull().Do(c => c.Dispose());
-            }
         }
 
         public Task<ReferenceCount> GetReferenceCountAsync(Solution solution, DocumentId documentId, SyntaxNode syntaxNode, int maxSearchResults, CancellationToken cancellationToken)
