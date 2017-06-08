@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis
                 var documentId = documentInfo.Id;
 
                 CheckProjectIsInCurrentSolution(documentId.ProjectId);
-                CheckDocumentIsNotInCurrentSolution(documentId);
+                CheckAdditionalDocumentIsNotInCurrentSolution(documentId);
 
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.AddAdditionalDocument(documentInfo));
