@@ -52,6 +52,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 }
 
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (!root.FullSpan.Contains(span.Start))
+                {
+                    return await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                }
+
                 var token = root.FindToken(span.Start);
                 if (token.Parent == null)
                 {

@@ -114,6 +114,7 @@
     <Compile Include="FindReferencesTests.cs" />
     <Compile Include="FormattingTests.cs" />
     <Compile Include="GeneratedCodeRecognitionTests.cs" />
+    <Compile Include="WorkspaceTests\DocumentExtensionsTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
     <Compile Include="WorkspaceTests\WorkspaceReferenceTests.cs" />
