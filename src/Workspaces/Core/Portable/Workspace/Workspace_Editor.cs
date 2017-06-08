@@ -201,6 +201,15 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public virtual bool IsAdditionalDocumentOpen(DocumentId documentId)
+        {
+            using (_stateLock.DisposableWait())
+            {
+                var openDocuments = this.GetProjectOpenAdditionalDocuments_NoLock(documentId.ProjectId);
+                return openDocuments != null && openDocuments.Contains(documentId);
+            }
+        }
+
         /// <summary>
         /// Gets a list of the currently opened documents.
         /// </summary>
@@ -397,7 +406,24 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        protected void CheckAdditionalDocumentIsClosed(DocumentId documentId)
+        {
+            if (this.IsAdditionalDocumentOpen(documentId))
+            {
+                throw new ArgumentException(
+                    string.Format(WorkspacesResources._0_is_still_open,
+                    this.GetDocumentName(documentId)));
+            }
+        }
+
         private ISet<DocumentId> GetProjectOpenDocuments_NoLock(ProjectId project)
+        {
+            _stateLock.AssertHasLock();
+            _projectToOpenDocumentsMap.TryGetValue(project, out var openDocs);
+            return openDocs;
+        }
+
+        private ISet<DocumentId> GetProjectOpenAdditionalDocuments_NoLock(ProjectId project)
         {
             _stateLock.AssertHasLock();
             _projectToOpenDocumentsMap.TryGetValue(project, out var openDocs);
@@ -524,7 +550,7 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
             CheckAdditionalDocumentIsInCurrentSolution(documentId);
-            CheckDocumentIsClosed(documentId);
+            CheckAdditionalDocumentIsClosed(documentId);
 
             using (_serializationLock.DisposableWait())
             {
@@ -615,6 +641,7 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 // forget any open document info
+#warning Fix?
                 ForgetAnyOpenDocumentInfo(documentId);
 
                 var oldSolution = this.CurrentSolution;

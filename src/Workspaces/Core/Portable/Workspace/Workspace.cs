@@ -728,6 +728,11 @@ namespace Microsoft.CodeAnalysis
             CheckDocumentIsClosed(documentId);
         }
 
+        protected virtual void CheckAdditionalDocumentCanBeRemoved(DocumentId documentId)
+        {
+            CheckAdditionalDocumentIsClosed(documentId);
+        }
+
         /// <summary>
         /// Call this method when the text of a document is changed on disk.
         /// </summary>
