@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Remote
             RoslynLogger.SetLogger(AggregateLogger.Create(new VSTelemetryLogger(session), RoslynLogger.GetLogger()));
 
             // set both handler as NFW
-            FatalError.Handler = WatsonReporter.Report;
+            FatalError.Handler = FailFast.OnFatalException;
             FatalError.NonFatalHandler = WatsonReporter.Report;
         }
 
