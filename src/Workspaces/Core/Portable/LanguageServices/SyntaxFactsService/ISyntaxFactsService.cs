@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
     internal interface ISyntaxFactsService : ILanguageService
     {
         bool IsCaseSensitive { get; }
+        StringComparer StringComparer { get; }
 
         bool SupportsIndexingInitializer(ParseOptions options);
         bool SupportsThrowExpression(ParseOptions options);

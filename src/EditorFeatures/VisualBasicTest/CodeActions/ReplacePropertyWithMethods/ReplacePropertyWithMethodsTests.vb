@@ -576,5 +576,38 @@ Structure AStruct
     Private X As Integer
 End Structure", ignoreTrivia:=False)
         End Function
+
+        <WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestInterfaceReplacement1() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface IFoo
+    Property [||]Foo As Integer
+End Interface
+
+Class C
+    Implements IFoo
+
+    Public Property Foo As Integer Implements IFoo.Foo
+End Class",
+"Interface IFoo
+    Function GetFoo() As Integer
+    Sub SetFoo(Value As Integer)
+End Interface
+
+Class C
+    Implements IFoo
+
+    Private _Foo As Integer
+
+    Public Function GetFoo() As Integer Implements IFoo.GetFoo
+        Return _Foo
+    End Function
+
+    Public Sub SetFoo(AutoPropertyValue As Integer) Implements IFoo.SetFoo
+        _Foo = AutoPropertyValue
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace

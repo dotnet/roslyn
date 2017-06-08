@@ -2605,7 +2605,7 @@ namespace Microsoft.Cci
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 var association = GetEventDefinitionHandle(eventDef);
-                foreach (IMethodReference accessorMethod in eventDef.Accessors)
+                foreach (IMethodReference accessorMethod in eventDef.GetAccessors(Context))
                 {
                     MethodSemanticsAttributes semantics;
                     if (accessorMethod == eventDef.Adder)

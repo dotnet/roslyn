@@ -305,6 +305,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands &apos;default&apos; and &apos;default&apos;.
+        /// </summary>
+        internal static string ERR_AmbigBinaryOpsOnDefault {
+            get {
+                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnDefault", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The call is ambiguous between the following methods or properties: &apos;{0}&apos; and &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AmbigCall {
@@ -1232,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1..
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.2..
         /// </summary>
         internal static string ERR_BadCompatMode {
             get {
@@ -1732,6 +1741,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadOperatorSyntax {
             get {
                 return ResourceManager.GetString("ERR_BadOperatorSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_BadOpOnNullOrDefault {
+            get {
+                return ResourceManager.GetString("ERR_BadOpOnNullOrDefault", resourceCulture);
             }
         }
         
@@ -4481,6 +4499,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.2. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion7_2 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion7_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
@@ -5939,15 +5966,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an entry point cannot be marked with the &apos;async&apos; modifier.
-        /// </summary>
-        internal static string ERR_MainCantBeAsync {
-            get {
-                return ResourceManager.GetString("ERR_MainCantBeAsync", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; for Main method because it is imported.
         /// </summary>
         internal static string ERR_MainClassIsImport {
@@ -6182,7 +6200,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
+        ///   Looks up a localized string similar to No suitable Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
         /// </summary>
         internal static string ERR_MissingDeconstruct {
             get {
@@ -6882,18 +6900,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("ERR_NonInvocableMemberCalled", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to Async Main methods must return Task or Task&lt;int&gt;.
+        ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
         /// </summary>
-        internal static string ERR_NonTaskMainCantBeAsync
-        {
-            get
-            {
+        internal static string ERR_NonTaskMainCantBeAsync {
+            get {
                 return ResourceManager.GetString("ERR_NonTaskMainCantBeAsync", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
@@ -7750,7 +7766,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is ambiguous (imported twice).
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeNotFound {
             get {
@@ -9890,7 +9906,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
                 return ResourceManager.GetString("IDS_Covariantly", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to 
         ///                              Visual C# Compiler Options
@@ -9904,10 +9920,8 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                               /t:winexe)
         /// /target:library        [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string IDS_CSCHelp
-        {
-            get
-            {
+        internal static string IDS_CSCHelp {
+            get {
                 return ResourceManager.GetString("IDS_CSCHelp", resourceCulture);
             }
         }

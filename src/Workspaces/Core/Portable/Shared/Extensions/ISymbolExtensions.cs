@@ -102,12 +102,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOverridable(this ISymbol symbol)
         {
-            return
-                symbol != null &&
-                symbol.ContainingType != null &&
-                symbol.ContainingType.TypeKind == TypeKind.Class &&
-                (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
-                !symbol.IsSealed;
+            // Members can only have overrides if they are virtual, abstract or override and is not
+            // sealed.
+            return symbol?.ContainingType?.TypeKind == TypeKind.Class &&
+                   (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
+                   !symbol.IsSealed;
         }
 
         public static bool IsImplementableMember(this ISymbol symbol)

@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 modifiers: new DeclarationModifiers(isStatic: field.IsStatic, isReadOnly: field.IsReadOnly, isUnsafe: field.IsUnsafe()),
                 type: field.Type,
                 returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: propertyName,
                 parameters: ImmutableArray<IParameterSymbol>.Empty,
                 getMethod: CreateGet(fieldName, field, factory),

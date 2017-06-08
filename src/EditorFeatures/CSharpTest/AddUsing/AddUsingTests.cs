@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,34 +11,72 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
 {
-    public partial class AddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class AbstractAddUsingTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
             => (null, new CSharpAddImportCodeFixProvider());
 
-        private async Task TestAsync(
-             string initialMarkup,
-             string expected,
-             bool systemSpecialCase,
-             int index = 0,
-             object fixProviderData = null)
+        protected async Task TestAsync(
+            string initialMarkup,
+            string expected,
+            bool systemSpecialCase,
+            int index = 0)
         {
-            await TestInRegularAndScriptAsync(initialMarkup, expected, index: index, fixProviderData: fixProviderData, options: new Dictionary<OptionKey, object>
-            {
-                { new OptionKey(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp), systemSpecialCase }
-            });
+            await TestAsync(
+                initialMarkup, expected, index: index, 
+                options: Option(GenerationOptions.PlaceSystemNamespaceFirst, systemSpecialCase));
+        }
+
+        internal async Task TestAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            int index = 0,
+            bool ignoreTrivia = true,
+            CodeActionPriority? priority = null,
+            IDictionary<OptionKey, object> options = null)
+        {
+            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: false);
+            await TestAsync(initialMarkup, expectedMarkup, index, ignoreTrivia, priority, options, outOfProcess: true);
+        }
+
+        internal async Task TestAsync(
+            string initialMarkup,
+            string expectedMarkup,
+            int index,
+            bool ignoreTrivia,
+            CodeActionPriority? priority,
+            IDictionary<OptionKey, object> options,
+            bool outOfProcess)
+        {
+            await TestInRegularAndScript1Async(
+                initialMarkup, expectedMarkup, index, ignoreTrivia, priority,
+                parameters: new TestParameters(options: options, fixProviderData: outOfProcess));
+        }
+    }
+
+    public partial class AddUsingTests : AbstractAddUsingTests
+    {
+        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
+            Workspace workspace, TestParameters parameters)
+        {
+            workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, (bool)parameters.fixProviderData)
+                                                 .WithChangedOption(RemoteFeatureOptions.AddImportEnabled, (bool)parameters.fixProviderData);
+
+            return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestTypeFromMultipleNamespaces1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     [|IDictionary|] Method()
@@ -60,7 +99,7 @@ class Class
         [WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")]
         public async Task TestAddImportWithCaseChange()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace N1
 {
     public class TextBox
@@ -88,7 +127,7 @@ class Class1 : TextBox
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestTypeFromMultipleNamespaces2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     [|IDictionary|] Method()
@@ -111,7 +150,7 @@ index: 1);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericWithNoArgs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     [|List|] Method()
@@ -133,7 +172,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericWithCorrectArgs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     [|List<int>|] Method()
@@ -181,7 +220,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericInLocalDeclaration()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     void Foo()
@@ -203,7 +242,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericItemType()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -222,7 +261,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenerateWithExistingUsings()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 
 class Class
@@ -247,7 +286,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenerateInNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace N
 {
     class Class
@@ -275,7 +314,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenerateInNamespaceWithUsings()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace N
 {
     using System;
@@ -318,7 +357,7 @@ class Class
 }",
 count: 1);
 
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -344,7 +383,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingForGenericExtensionMethod()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -409,7 +448,7 @@ parseOptions: Options.Regular);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestOnEnum()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     void Foo()
@@ -451,7 +490,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestOnClassInheritance()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class : [|Class2|]
 {
 }
@@ -479,7 +518,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestOnImplementedInterface()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class : [|IFoo|]
 {
 }
@@ -507,7 +546,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAllInBaseList()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class : [|IFoo|], Class2
 {
 }
@@ -545,7 +584,7 @@ namespace B
     }
 }");
 
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B;
 
 class Class : IFoo, [|Class2|]
@@ -590,7 +629,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAttributeUnexpanded()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"[[|Obsolete|]]
 class Class
 {
@@ -606,7 +645,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAttributeExpanded()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"[[|ObsoleteAttribute|]]
 class Class
 {
@@ -623,7 +662,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAfterNew()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     void Foo()
@@ -647,7 +686,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestArgumentsInMethodCall()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     void Test()
@@ -669,7 +708,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestCallSiteArgs()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Class
 {
     void Test([|DateTime|] dt)
@@ -689,7 +728,7 @@ class Class
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestUsePartialClass()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace A
 {
     public class Class
@@ -725,7 +764,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestGenericClassInNestedNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace A
 {
     namespace B
@@ -768,7 +807,7 @@ namespace C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestExtensionMethods()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Foo
@@ -796,7 +835,7 @@ class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestQueryPatterns()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections.Generic;
 
 class Foo
@@ -828,7 +867,7 @@ class Foo
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSimplePresortedUsings1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B;
 using C;
 
@@ -875,7 +914,7 @@ namespace D
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSimplePresortedUsings2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B;
 using C;
 
@@ -922,7 +961,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSimpleUnsortedUsings1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using C;
 using B;
 
@@ -969,7 +1008,7 @@ namespace A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestSimpleUnsortedUsings2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using D;
 using B;
 
@@ -1016,7 +1055,7 @@ namespace C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestMultiplePresortedUsings1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B.X;
 using B.Y;
 
@@ -1063,7 +1102,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestMultiplePresortedUsings2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B.X;
 using B.Y;
 
@@ -1110,7 +1149,7 @@ namespace B.A
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestMultiplePresortedUsings3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B.X;
 using B.Y;
 
@@ -1163,7 +1202,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestMultipleUnsortedUsings1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B.Y;
 using B.X;
 
@@ -1216,7 +1255,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestMultipleUnsortedUsings2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using B.Y;
 using B.X;
 
@@ -1745,7 +1784,7 @@ namespace B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingForFieldWithFormatting()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C { [|DateTime|] t; }",
 @"using System;
 
@@ -1757,7 +1796,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task BugFix5688()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Program { static void Main ( string [ ] args ) { [|Console|] . Out . NewLine = ""\r\n\r\n"" ; } } ",
 @"using System ; class Program { static void Main ( string [ ] args ) { Console . Out . NewLine = ""\r\n\r\n"" ; } } ");
         }
@@ -1777,7 +1816,7 @@ parseOptions: GetScriptOptions());
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterDefineDirective1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define foo
 
 using System.Collections.Generic;
@@ -1810,7 +1849,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterDefineDirective2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define foo
 
 class Program
@@ -1837,7 +1876,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterDefineDirective3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define foo
 
 /// Foo
@@ -1865,7 +1904,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterDefineDirective4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define foo
 
 // Foo
@@ -1894,7 +1933,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterExistingBanner()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"// Banner
 // Banner
 
@@ -1923,7 +1962,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterExternAlias1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define foo
 
 extern alias Foo;
@@ -1954,7 +1993,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddAfterExternAlias2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define foo
 
 extern alias Foo;
@@ -2009,7 +2048,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAssemblyAttribute()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"[assembly: [|InternalsVisibleTo|](""Project"")]",
 @"using System.Runtime.CompilerServices;
 
@@ -2036,7 +2075,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddToVisibleRegion()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#line default
 using System.Collections.Generic;
 
@@ -2094,7 +2133,7 @@ ignoreTrivia: false);
             var input = @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ";
             await TestActionCountAsync(input, 1);
 
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 input,
 @"using System.Runtime.InteropServices;
 
@@ -2126,7 +2165,7 @@ input,
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingForGenericArgument()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace ConsoleApplication10
 {
     class Program
@@ -2170,7 +2209,7 @@ namespace ConsoleApplication10
         public async Task ShouldTriggerOnCS0308()
         {
             // CS0308: The non-generic type 'A' cannot be used with type arguments
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections;
 
 class Test
@@ -2235,7 +2274,7 @@ systemSpecialCase: true);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestConflictedAttributeName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"[[|Description|]]
 class Description
 {
@@ -2252,7 +2291,7 @@ class Description
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestConflictedGenericName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using Task = System.AccessViolationException;
 
 class X
@@ -2285,7 +2324,7 @@ class X
     }
 }", count: 1);
 
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class C
 {
     void M(P p)
@@ -2383,7 +2422,7 @@ namespace ExternAliases
     }
 } 
 ";
-            await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText);
+            await TestAsync(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
@@ -2445,7 +2484,7 @@ namespace ExternAliases
     }
 } 
 ";
-            await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText);
+            await TestAsync(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
@@ -2495,14 +2534,14 @@ namespace ExternAliases
     }
 } 
 ";
-            await TestInRegularAndScriptAsync(InitialWorkspace, ExpectedDocumentText);
+            await TestAsync(InitialWorkspace, ExpectedDocumentText);
         }
 
         [WorkItem(875899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/875899")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingsNoExternFilterGlobalAlias()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class Program
 {
     static void Main(string[] args)
@@ -2690,7 +2729,7 @@ public static class Outer
 class Test
 {}";
 
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
@@ -2734,14 +2773,14 @@ public static class Outer
 class Test
 {}";
 
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(773614, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773614")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddStaticType3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 
 public static class Outer
@@ -2822,14 +2861,14 @@ public static class Outer
 class Test
 {}";
 
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(991463, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991463")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddInsideUsingDirective1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace ns
 {
     using B = [|Byte|];
@@ -2846,7 +2885,7 @@ namespace ns
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddInsideUsingDirective2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Collections;
 
 namespace ns
@@ -2866,7 +2905,7 @@ namespace ns
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddInsideUsingDirective3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace ns2
 {
     namespace ns3
@@ -2903,7 +2942,7 @@ namespace ns2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddInsideUsingDirective4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace ns2
 {
     using System.Collections;
@@ -2937,7 +2976,7 @@ namespace ns2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddInsideUsingDirective5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.IO;
 
 namespace ns2
@@ -3018,7 +3057,7 @@ public class C
         C x = a?.B();
     }
 }";
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(1064748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1064748")]
@@ -3070,14 +3109,14 @@ public class C
     {
     }
 }";
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(1089138, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089138")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAmbiguousUsingName()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace ClassLibrary1
 {
     using System;
@@ -3138,7 +3177,7 @@ namespace ClassLibrary1.SubNamespaceName
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingInDirective()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define DEBUG
 #if DEBUG
 using System;
@@ -3175,7 +3214,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingInDirective2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define DEBUG
 using System;
 using System.Collections.Generic;
@@ -3200,7 +3239,7 @@ class Program { static void Main ( string [ ] args ) { var a = File . OpenRead (
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingInDirective3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define DEBUG
 using System;
 using System.Collections.Generic;
@@ -3226,7 +3265,7 @@ class Program { static void Main ( string [ ] args ) { var a = File . OpenRead (
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingInDirective4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"#define DEBUG
 #if DEBUG
 using System;
@@ -3281,7 +3320,7 @@ namespace N2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingForProperty()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3319,7 +3358,7 @@ class Program
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingForField()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -3422,7 +3461,7 @@ namespace A.C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithOtherExtensionsInScope()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Linq;
 using System.Collections;
 using X;
@@ -3494,7 +3533,7 @@ public class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithOtherExtensionsInScope2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Linq;
 using System.Collections;
 using X;
@@ -3566,7 +3605,7 @@ public class B
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithOtherExtensionsInScope3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Linq;
 
 class C
@@ -3602,7 +3641,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithOtherExtensionsInScope4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.Linq;
 
 class C
@@ -3646,7 +3685,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNestedNamespaceSimplified()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace Microsoft.MyApp
 {
     using Win32;
@@ -3678,7 +3717,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNestedNamespaceSimplified2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace Microsoft.MyApp
 {
     using Zin32;
@@ -3710,7 +3749,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNestedNamespaceSimplified3()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace Microsoft.MyApp
 {
     using System;
@@ -3744,7 +3783,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNestedNamespaceSimplified4()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace Microsoft.MyApp
 {
     using System;
@@ -3778,7 +3817,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNestedNamespaceSimplified5()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace Microsoft.MyApp
 {
 #if true
@@ -3816,7 +3855,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestNestedNamespaceSimplified6()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace Microsoft.MyApp
 {
     using System;
@@ -3856,7 +3895,7 @@ namespace X
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingOrdinalUppercase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace A
 {
     class A
@@ -3912,7 +3951,7 @@ namespace Uppercase
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingOrdinalLowercase()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace A
 {
     class A
@@ -3969,7 +4008,7 @@ namespace Uppercase
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestWithExistingIncompatibleExtension()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using N;
 
 class C
@@ -4017,7 +4056,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestIncompleteCatchBlockInLambda()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"class A
 {
     System.Action a = () => {
@@ -4056,7 +4095,7 @@ static void Main(string[] args)
 {
     Func<int> f = () => { List<int>.}
 }";
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
@@ -4079,7 +4118,7 @@ static void Main(string[] args)
 {
     Func<int> f = () => { List<int>}
 }";
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
@@ -4110,7 +4149,7 @@ static void Main(string[] args)
         return a;
         };
 }";
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(1033612, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1033612")]
@@ -4141,7 +4180,7 @@ static void Main(string[] args)
         return a;
         };
 }";
-            await TestInRegularAndScriptAsync(initialText, expectedText);
+            await TestAsync(initialText, expectedText);
         }
 
         [WorkItem(860648, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/860648")]
@@ -4149,7 +4188,7 @@ static void Main(string[] args)
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestIncompleteParenthesizedLambdaExpression()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System;
 
 class Test
@@ -4179,7 +4218,7 @@ class Test
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestExtensionWithIncompatibleInstance()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"using System.IO;
 
 namespace Namespace1
@@ -4233,7 +4272,7 @@ namespace Namespace2
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestFormattingForNamespaceUsings()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace N
 {
     using System;
@@ -4325,7 +4364,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 /// Copyright 2016 - MyCompany 
 /// All Rights Reserved 
@@ -4354,7 +4393,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfUsing2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 /// Copyright 2016 - MyCompany 
 /// All Rights Reserved 
@@ -4385,7 +4424,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestAddUsingWithLeadingDocCommentInFrontOfClass1()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 /// Copyright 2016 - MyCompany 
 /// All Rights Reserved 
@@ -4409,7 +4448,7 @@ ignoreTrivia: false);
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestPlaceUsingWithUsings_NotWithAliases()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 using System;
 
@@ -4447,7 +4486,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestPreferSystemNamespaceFirst()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 namespace Microsoft
 {
@@ -4492,7 +4531,7 @@ namespace N
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestPreferSystemNamespaceFirst2()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"
 namespace Microsoft
 {
@@ -4559,7 +4598,7 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
         public async Task TestChangeCaseWithUsingsInNestedNamespace()
         {
-            await TestInRegularAndScriptAsync(
+            await TestAsync(
 @"namespace VS
 {
     interface IVsStatusbar

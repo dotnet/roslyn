@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                         nameof(IRemoteSymbolFinder.FindSolutionSourceDeclarationsWithNormalQueryAsync),
                         name, ignoreCase, criteria).ConfigureAwait(false);
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                         nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
                         project.Id, name, ignoreCase, criteria).ConfigureAwait(false);
 
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                         nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
                         project.Id, pattern, criteria).ConfigureAwait(false);
 

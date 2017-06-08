@@ -8,8 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -36,20 +38,22 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            using (var session = await TryGetRemoteSessionAsync(
-                document.Project.Solution, cancellationToken).ConfigureAwait(false))
+            var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
+                 RemoteFeatureOptions.DocumentHighlightingEnabled, cancellationToken).ConfigureAwait(false);
+
+            using (session)
             {
                 if (session == null)
                 {
                     return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
                 }
 
-                var result = await session.InvokeAsync<SerializableDocumentHighlights[]>(
+                var result = await session.InvokeAsync<ImmutableArray<SerializableDocumentHighlights>>(
                     nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     document.Id,
                     position,
                     documentsToSearch.Select(d => d.Id).ToArray()).ConfigureAwait(false);
-                return (true, SerializableDocumentHighlights.Rehydrate(result, document.Project.Solution));
+                return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
             }
         }
 
@@ -76,8 +80,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             // Get unique tags for referenced symbols
             return await GetTagsForReferencedSymbolAsync(
-                new SymbolAndProjectId(symbol, document.Project.Id), documentsToSearch,
-                solution, cancellationToken).ConfigureAwait(false);
+                new SymbolAndProjectId(symbol, document.Project.Id),
+                document, documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<ISymbol> GetSymbolToSearchAsync(Document document, int position, SemanticModel semanticModel, ISymbol symbol, CancellationToken cancellationToken)
@@ -95,8 +99,8 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
         private async Task<ImmutableArray<DocumentHighlights>> GetTagsForReferencedSymbolAsync(
             SymbolAndProjectId symbolAndProjectId,
+            Document document,
             IImmutableSet<Document> documentsToSearch,
-            Solution solution,
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
@@ -106,11 +110,11 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var progress = new StreamingProgressCollector(
                     StreamingFindReferencesProgress.Instance);
                 await SymbolFinder.FindReferencesAsync(
-                    symbolAndProjectId, solution, progress,
+                    symbolAndProjectId, document.Project.Solution, progress,
                     documentsToSearch, cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
-                    progress.GetReferencedSymbols(), solution, documentsToSearch, 
+                    progress.GetReferencedSymbols(), document, documentsToSearch,
                     symbol, cancellationToken).ConfigureAwait(false);
             }
 
@@ -142,10 +146,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> FilterAndCreateSpansAsync(
-            IEnumerable<ReferencedSymbol> references, Solution solution, 
-            IImmutableSet<Document> documentsToSearch, ISymbol symbol, 
+            IEnumerable<ReferencedSymbol> references, Document startingDocument,
+            IImmutableSet<Document> documentsToSearch, ISymbol symbol,
             CancellationToken cancellationToken)
         {
+            var solution = startingDocument.Project.Solution;
+
             references = references.FilterToItemsToShow();
             references = references.FilterNonMatchingMethodNames(solution, symbol);
             references = references.FilterToAliasMatches(symbol as IAliasSymbol);
@@ -157,13 +163,20 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
 
             var additionalReferences = new List<Location>();
 
-            foreach (var document in documentsToSearch)
+            foreach (var currentDocument in documentsToSearch)
             {
-                additionalReferences.AddRange(await GetAdditionalReferencesAsync(document, symbol, cancellationToken).ConfigureAwait(false));
+                // 'documentsToSearch' may contain documents from languages other than our own
+                // (for example cshtml files when we're searching the cs document).  Since we're
+                // delegating to a virtual method for this language type, we have to make sure
+                // we only process the document if it's also our language.
+                if (currentDocument.Project.Language == startingDocument.Project.Language)
+                {
+                    additionalReferences.AddRange(await GetAdditionalReferencesAsync(currentDocument, symbol, cancellationToken).ConfigureAwait(false));
+                }
             }
 
             return await CreateSpansAsync(
-                solution, symbol, references, additionalReferences, 
+                solution, symbol, references, additionalReferences,
                 documentsToSearch, cancellationToken).ConfigureAwait(false);
         }
 

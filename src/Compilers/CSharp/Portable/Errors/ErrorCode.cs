@@ -1468,6 +1468,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_VoidInTuple = 8210,
         #endregion more stragglers for C# 7
 
+        #region diagnostics introduced for C# 7.1
+
         ERR_Merge_conflict_marker_encountered = 8300,
         ERR_InvalidPreprocessingSymbol = 8301,
         ERR_FeatureNotAvailableInVersion7_1 = 8302,
@@ -1477,16 +1479,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleInferredNamesNotAvailable = 8306,
         ERR_TypelessTupleInAs = 8307,
 
-        #region diagnostics for C# 7.1
-
         ERR_NoRefOutWhenRefOnly = 8308,
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 8309,
-        // Available = 8310,
+        ERR_BadOpOnNullOrDefault = 8310,
         ERR_BadDynamicMethodArgDefaultLiteral = 8311,
         ERR_DefaultLiteralNotValid = 8312,
         WRN_DefaultInSwitch = 8313,
         ERR_PatternWrongGenericTypeInVersion = 8314,
+        ERR_AmbigBinaryOpsOnDefault = 8315,
 
-        #endregion diagnostics for C# 7.1
+        #endregion diagnostics introduced for C# 7.1
+
+        #region diagnostics introduced for C# 7.2
+        ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        #endregion diagnostics introduced for C# 7.2
     }
 }
