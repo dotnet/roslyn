@@ -829,6 +829,10 @@ namespace Microsoft.CodeAnalysis
                     return Failed;
                 }
             }
+            catch (IOException e)
+            {
+                MessageProvider.ReportIOException(e, consoleOutput);
+            }
             finally
             {
                 // At this point analyzers are already complete in which case this is a no-op.  Or they are 

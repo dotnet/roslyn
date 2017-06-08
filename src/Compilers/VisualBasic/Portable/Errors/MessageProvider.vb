@@ -183,6 +183,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_IOException As Integer
+            Get
+                Return ERRID.ERR_IOException
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property WRN_NoConfigNotOnCommandLine As Integer
             Get
                 Return ERRID.WRN_NoConfigInResponseFile

@@ -1734,6 +1734,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NoRefOutWhenRefOnly = 37300
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
 
+        ERR_IOException = 37302
+
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000
         WRN_InvalidOverrideDueToTupleNames2 = 40001

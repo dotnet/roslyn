@@ -5813,6 +5813,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Error writing to an output file -- &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_IOException {
+            get {
+                return ResourceManager.GetString("ERR_IOException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Yield statements may not appear at the top level in interactive code..
         /// </summary>
         internal static string ERR_IteratorInInteractive {

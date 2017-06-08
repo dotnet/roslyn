@@ -137,6 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_NoSourceFile => (int)ErrorCode.ERR_NoSourceFile;
         public override int ERR_CantOpenFileWrite => (int)ErrorCode.ERR_CantOpenFileWrite;
         public override int ERR_OutputWriteFailed => (int)ErrorCode.ERR_OutputWriteFailed;
+        public override int ERR_IOException => (int)ErrorCode.ERR_IOException;
         public override int WRN_NoConfigNotOnCommandLine => (int)ErrorCode.WRN_NoConfigNotOnCommandLine;
         public override int ERR_BinaryFile => (int)ErrorCode.ERR_BinaryFile;
         public override int WRN_AnalyzerCannotBeCreated => (int)ErrorCode.WRN_AnalyzerCannotBeCreated;
