@@ -12,6 +12,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Logging;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -185,13 +186,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         buildManager.CancelAllSubmissions();
                         buildManager.EndBuild();
-                        registration.Dispose();
                     }
                     finally
                     {
                         taskSource.TrySetCanceled();
                     }
                 });
+
+                // Dispose of the registration as soon as we no longer need it
+                var _ = DisposeWhenCompleteAsync(taskSource.Task, registration);
             }
 
             // execute build async
@@ -204,7 +207,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     {
                         var result = sub.BuildResult;
                         buildManager.EndBuild();
-                        registration.Dispose();
                         taskSource.TrySetResult(result);
                     }
                     catch (Exception e)
@@ -219,6 +221,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             return taskSource.Task;
+
+            /*
+             * Local functions:
+             */
+
+            async Task DisposeWhenCompleteAsync<T>(Task task, T disposable)
+                where T : IDisposable
+            {
+                try
+                {
+                    await task.ConfigureAwait(false);
+                }
+                finally
+                {
+                    try
+                    {
+                        disposable?.Dispose();
+                    }
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                    {
+                        throw ExceptionUtilities.Unreachable;
+                    }
+                }
+            }
         }
 
         protected virtual string GetOutputDirectory()

@@ -852,6 +852,8 @@ namespace Microsoft.CodeAnalysis
                         ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
                     }
                 }
+
+                analyzerDriver?.Dispose();
             }
 
             return Succeeded;

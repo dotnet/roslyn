@@ -61,23 +61,19 @@ namespace Microsoft.CodeAnalysis.Interactive
                         return new InitializedRemoteService(remoteService, new RemoteExecutionResult(success: true));
                     }
 
-                    bool initializing = true;
-                    cancellationToken.Register(() =>
+                    RemoteExecutionResult initializationResult;
+
+                    // On cancellation during initialization, kill the process without triggering auto-reset
+                    Action cancellationBehavior = () => remoteService.Dispose(joinThreads: false);
+
+                    using (cancellationToken.Register(cancellationBehavior))
                     {
-                        if (initializing)
+                        // try to execute initialization script:
+                        initializationResult = await Async<RemoteExecutionResult>(remoteService, (service, operation) =>
                         {
-                            // kill the process without triggering auto-reset:
-                            remoteService.Dispose(joinThreads: false);
-                        }
-                    });
-
-                    // try to execute initialization script:
-                    var initializationResult = await Async<RemoteExecutionResult>(remoteService, (service, operation) =>
-                    {
-                        service.InitializeContextAsync(operation, Options.InitializationFile, isRestarting: InstanceId > 1);
-                    }).ConfigureAwait(false);
-
-                    initializing = false;
+                            service.InitializeContextAsync(operation, Options.InitializationFile, isRestarting: InstanceId > 1);
+                        }).ConfigureAwait(false);
+                    }
 
                     if (!initializationResult.Success)
                     {

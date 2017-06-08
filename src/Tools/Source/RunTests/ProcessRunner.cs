@@ -92,7 +92,9 @@ namespace RunTests
                     });
                 };
 
-            var registration = cancellationToken.Register(() =>
+            if (cancellationToken.CanBeCanceled)
+            {
+                var registration = cancellationToken.Register(() =>
                 {
                     if (taskCompletionSource.TrySetCanceled())
                     {
@@ -110,6 +112,10 @@ namespace RunTests
                         }
                     }
                 });
+
+                // Dispose of the registration as soon as we no longer need it
+                taskCompletionSource.Task.ContinueWith(_ => registration.Dispose(), CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            }
 
             process.Start();
 
