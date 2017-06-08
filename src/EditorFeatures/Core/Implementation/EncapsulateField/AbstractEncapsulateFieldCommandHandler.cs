@@ -136,8 +136,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EncapsulateField
                     undoTransaction.Complete();
                 }
 
-                System.Threading.Thread.Sleep(10000);
-
                 return true;
             }
         }
