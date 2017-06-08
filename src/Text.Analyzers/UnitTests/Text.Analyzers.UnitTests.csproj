@@ -1,21 +1,12 @@
 ﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\build\Targets\Analyzers.Settings.targets" />
-  </ImportGroup>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net46</TargetFramework>
-    <TestProject>true</TestProject>
-    <RootNamespace>Text.Analyzers.UnitTests</RootNamespace>
-    <AssemblyName>Text.Analyzers.UnitTests</AssemblyName>
   </PropertyGroup>
-  <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj" />
-    <ProjectReference Include="..\Core\Text.Analyzers.Core.csproj" />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Test.Utilities\Test.Utilities.csproj" />
+    <ProjectReference Include="..\Core\Text.Analyzers.csproj" />
     <ProjectReference Include="..\CSharp\Text.CSharp.Analyzers.csproj" />
     <ProjectReference Include="..\VisualBasic\Text.VisualBasic.Analyzers.vbproj" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />
-  </ImportGroup>
 </Project>

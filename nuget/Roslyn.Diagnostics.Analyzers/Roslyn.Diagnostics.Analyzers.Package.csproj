@@ -1,0 +1,32 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Roslyn.Diagnostics.Analyzers</NuspecPackageId>
+    <Description>Roslyn.Diagnostics Analyzers</Description>
+    <Summary>Roslyn.Diagnostics Analyzers</Summary>
+    <ReleaseNotes>Roslyn.Diagnostics Analyzers</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Note that we need to use the binaries from locations where they are signed -->
+    <AnalyzerNupkgFile Include="Roslyn.Diagnostics.Analyzers\netstandard1.3\Roslyn.Diagnostics.Analyzers.dll" />
+    <AnalyzerNupkgFile Include="Roslyn.Diagnostics.CSharp.Analyzers\netstandard1.3\Roslyn.Diagnostics.CSharp.Analyzers.dll" />
+    <AnalyzerNupkgFile Include="Roslyn.Diagnostics.VisualBasic.Analyzers\netstandard1.3\Roslyn.Diagnostics.VisualBasic.Analyzers.dll" />
+    <AnalyzerNupkgFile Include="Analyzer.Utilities\netstandard1.3\Analyzer.Utilities.dll" />
+
+    <AnalyzerNupkgFile Include="$(MSBuildThisFileDirectory)Roslyn.Diagnostics.Analyzers.props" />
+    <AnalyzerNupkgFile Include="$(MSBuildThisFileDirectory)Roslyn.Diagnostics.CSharp.Analyzers.props" />
+    <AnalyzerNupkgFile Include="$(MSBuildThisFileDirectory)Roslyn.Diagnostics.VisualBasic.Analyzers.props" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Roslyn.Diagnostics.Analyzers\Core\Roslyn.Diagnostics.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Roslyn.Diagnostics.Analyzers\CSharp\Roslyn.Diagnostics.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Roslyn.Diagnostics.Analyzers\VisualBasic\Roslyn.Diagnostics.VisualBasic.Analyzers.vbproj" />
+  </ItemGroup>
+</Project>

@@ -3,8 +3,8 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="65c816b1-04f9-4b1a-b767-078f8ccd627e" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>Text Analyzers Setup</DisplayName>
-    <Description xml:space="preserve">Text Analyzers Setup</Description>
+    <DisplayName>Text Analyzers</DisplayName>
+    <Description xml:space="preserve">Text Analyzers</Description>
   </Metadata>
   <Installation>
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[14.0,]" />
