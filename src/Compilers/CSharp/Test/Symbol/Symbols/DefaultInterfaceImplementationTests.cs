@@ -30,14 +30,20 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
+}
 ";
             ValidateMethodImplementation_011(source1);
         }
 
         private void ValidateMethodImplementation_011(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -49,15 +55,23 @@ class Test1 : I1
 
             Validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify:false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, 
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var source2 =
 @"
 class Test2 : I1
-{}
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        x.M1();
+    }
+}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -69,15 +83,19 @@ class Test2 : I1
             Validate2(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation2, 
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate2(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation3,
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
         }
 
         private static void ValidateMethodImplementationTest1_011(ModuleSymbol m, string expectedImplementation)
@@ -140,9 +158,14 @@ class Test1 : I1
     {
         System.Console.WriteLine(""Test1 M1"");
     }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -154,7 +177,9 @@ class Test1 : I1
 
             Validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test1 M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var source2 =
 @"
@@ -164,10 +189,15 @@ class Test2 : I1
     {
         System.Console.WriteLine(""Test2 M1"");
     }
+    static void Main()
+    {
+        I1 x = new Test2();
+        x.M1();
+    }
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -178,14 +208,18 @@ class Test2 : I1
             Validate2(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation2,
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation3,
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
         }
 
         [Fact]
@@ -207,9 +241,14 @@ class Test1 : I1
     {
         System.Console.WriteLine(""Test1 M1"");
     }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -221,7 +260,9 @@ class Test1 : I1
 
             Validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test1 M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var source2 =
 @"
@@ -231,10 +272,15 @@ class Test2 : I1
     {
         System.Console.WriteLine(""Test2 M1"");
     }
+    static void Main()
+    {
+        I1 x = new Test2();
+        x.M1();
+    }
 }
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll);
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             void Validate2(ModuleSymbol m)
@@ -245,15 +291,19 @@ class Test2 : I1
             Validate2(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation2,
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe);
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation3,
+                             expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2 M1" : null,
+                             verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
         }
 
         [Fact]
@@ -263,8 +313,14 @@ class Test2 : I1
 @"
 interface I1
 {
-    void M1() {}
-    void M2() {}
+    void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+    void M2() 
+    {
+        System.Console.WriteLine(""M2"");
+    }
 }
 
 class Base
@@ -275,11 +331,17 @@ class Base
 class Derived : Base, I1
 {
     void M2() { }
+    static void Main()
+    {
+        I1 x = new Derived();
+        x.M1();
+        x.M2();
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -297,7 +359,11 @@ class Test : I1 {}
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : 
+@"M1
+M2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -314,8 +380,14 @@ class Test : I1 {}
 @"
 interface I1
 {
-    void M1() {}
-    void M2() {}
+    void M1() 
+    {
+        System.Console.WriteLine(""M1"");
+    }
+    void M2() 
+    {
+        System.Console.WriteLine(""M2"");
+    }
 }
 
 class Base : Test
@@ -326,11 +398,17 @@ class Base : Test
 class Derived : Base, I1
 {
     void M2() { }
+    static void Main()
+    {
+        I1 x = new Derived();
+        x.M1();
+        x.M2();
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -348,7 +426,11 @@ class Test : I1 {}
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"M1
+M2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -377,15 +459,27 @@ class Base : Test
 class Derived : Base, I1
 {
     void M2() { }
+    static void Main()
+    {
+        I1 x = new Derived();
+        x.M1();
+        x.M2();
+    }
 }
 
 class Test : I1 
 {
-    void I1.M1() {}
-    void I1.M2() {}
+    void I1.M1()
+    {
+        System.Console.WriteLine(""Test.M1"");
+    }
+    void I1.M2()
+    {
+        System.Console.WriteLine(""Test.M2"");
+    }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -403,7 +497,11 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"Test.M1
+Test.M2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -432,15 +530,27 @@ class Base : Test
 class Derived : Base, I1
 {
     new void M2() { }
+    static void Main()
+    {
+        I1 x = new Derived();
+        x.M1();
+        x.M2();
+    }
 }
 
 class Test : I1 
 {
-    public void M1() {}
-    public void M2() {}
+    public void M1()
+    {
+        System.Console.WriteLine(""Test.M1"");
+    }
+    public void M2()
+    {
+        System.Console.WriteLine(""Test.M2"");
+    }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -458,7 +568,11 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"Test.M1
+Test.M2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -475,17 +589,25 @@ class Test : I1
 @"
 interface I1
 {
-    void M1() {}
+    void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
 }
 
 class Test1 : I1
 {
     public static void M1() { }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
 }
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -495,7 +617,9 @@ class Test2 : I1 {}
 
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -510,17 +634,25 @@ class Test2 : I1 {}
 @"
 interface I1
 {
-    void M1() {}
+    void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
 }
 
 class Test1 : Test2, I1
 {
     public static void M1() { }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
 }
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -530,7 +662,9 @@ class Test2 : I1 {}
 
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -551,14 +685,22 @@ interface I1
 class Test1 : Test2, I1
 {
     public static void M1() { }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
 }
 
 class Test2 : I1 
 {
-    void I1.M1() {}
+    void I1.M1()
+    {
+        System.Console.WriteLine(""Test2.M1"");
+    }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -568,7 +710,9 @@ class Test2 : I1
 
             Assert.Equal("void Test2.I1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2.M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -589,14 +733,22 @@ interface I1
 class Test1 : Test2, I1
 {
     new public static void M1() { }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
 }
 
 class Test2 : I1 
 {
-    public void M1() {}
+    public void M1()
+    {
+        System.Console.WriteLine(""Test2.M1"");
+    }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -606,7 +758,9 @@ class Test2 : I1
 
             Assert.Equal("void Test2.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "Test2.M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -621,19 +775,28 @@ class Test2 : I1
 @"
 interface I1
 {
-    void M1() {}
-    int M2() => 1; 
+    void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+    int M2() => 2; 
 }
 
 class Test1 : I1
 {
     public int M1() { return 0; }
     public ref int M2() { throw null; }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+        System.Console.WriteLine(x.M2());
+    }
 }
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -646,7 +809,11 @@ class Test2 : I1 {}
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
             Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : 
+@"M1
+2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -661,19 +828,28 @@ class Test2 : I1 {}
 @"
 interface I1
 {
-    void M1() {}
-    int M2() => 1; 
+    void M1()
+    {
+        System.Console.WriteLine(""M1"");
+    }
+    int M2() => 2; 
 }
 
 class Test1 : Test2, I1
 {
     public int M1() { return 0; }
     public ref int M2() { throw null; }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+        System.Console.WriteLine(x.M2());
+    }
 }
 
 class Test2 : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -686,7 +862,11 @@ class Test2 : I1 {}
             Assert.Same(m1, test1.FindImplementationForInterfaceMember(m1));
             Assert.Same(m2, test1.FindImplementationForInterfaceMember(m2));
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"M1
+2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -709,15 +889,24 @@ class Test1 : Test2, I1
 {
     public int M1() { return 0; }
     public ref int M2() { throw null; }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+        System.Console.WriteLine(x.M2());
+    }
 }
 
 class Test2 : I1 
 {
-    void I1.M1() {}
-    int I1.M2() => 1; 
+    void I1.M1()
+    {
+        System.Console.WriteLine(""Test2.M1"");
+    }
+    int I1.M2() => 2; 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -730,7 +919,11 @@ class Test2 : I1
             Assert.Equal("void Test2.I1.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
             Assert.Equal("System.Int32 Test2.I1.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"Test2.M1
+2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -753,15 +946,24 @@ class Test1 : Test2, I1
 {
     new public int M1() { return 0; }
     new public ref int M2() { throw null; }
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+        System.Console.WriteLine(x.M2());
+    }
 }
 
 class Test2 : I1 
 {
-    public void M1() {}
-    public int M2() => 1; 
+    public void M1()
+    {
+        System.Console.WriteLine(""Test2.M1"");
+    }
+    public int M2() => 2; 
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -774,7 +976,11 @@ class Test2 : I1
             Assert.Equal("void Test2.M1()", test1.FindImplementationForInterfaceMember(m1).ToTestDisplayString());
             Assert.Equal("System.Int32 Test2.M2()", test1.FindImplementationForInterfaceMember(m2).ToTestDisplayString());
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"Test2.M1
+2",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test1Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test1");
@@ -1172,9 +1378,15 @@ public interface I2 : I1
 {}
 
 class Test1 : I2
-{}
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
+}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1190,7 +1402,9 @@ class Test1 : I2
             compilation1.VerifyDiagnostics();
             Assert.True(m1.IsMetadataVirtual());
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var i1 = m.GlobalNamespace.GetTypeMember("I1");
@@ -1216,10 +1430,16 @@ class Test1 : I2
             var source2 =
 @"
 class Test2 : I2
-{}
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        x.M1();
+    }
+}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation2.GetMember<MethodSymbol>("I1.M1");
@@ -1228,7 +1448,9 @@ class Test2 : I2
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false,
+            CompileAndVerify(compilation2,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -1238,7 +1460,7 @@ class Test2 : I2
                     Assert.Equal("I1", interfaces[1].ToTestDisplayString());
                 });
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1247,7 +1469,9 @@ class Test2 : I2
             Assert.Same(m1, test2.FindImplementationForInterfaceMember(m1));
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false,
+            CompileAndVerify(compilation3,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var test2Result = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Test2");
@@ -1276,19 +1500,29 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+}
 ";
             ValidatePropertyImplementation_101(source1);
         }
 
         private void ValidatePropertyImplementation_101(string source1)
         {
-            ValidatePropertyImplementation_101(source1, "P1", haveGet: true, haveSet: false);
+            ValidatePropertyImplementation_101(source1, "P1", haveGet: true, haveSet: false,
+                accessCode: @"
+        _ = i1.P1;
+",
+                expectedOutput: "get P1");
         }
 
-        private void ValidatePropertyImplementation_101(string source1, string propertyName, bool haveGet, bool haveSet)
+        private void ValidatePropertyImplementation_101(string source1, string propertyName, bool haveGet, bool haveSet, string accessCode, string expectedOutput)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1299,15 +1533,24 @@ class Test1 : I1
             }
 
             Validate1(compilation1.SourceModule);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? expectedOutput : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             var source2 =
 @"
 class Test2 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test2();
+" + accessCode + @"
+    }
+}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -1318,15 +1561,21 @@ class Test2 : I1
 
             Validate2(compilation2.SourceModule);
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation2,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? expectedOutput : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation3,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? expectedOutput : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate2);
         }
 
         private static void ValidatePropertyImplementationTest1_101(ModuleSymbol m, string propertyName, bool haveGet, bool haveSet)
@@ -1453,14 +1702,26 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = i1.P1;
+    }
+}
 ";
             ValidatePropertyImplementation_102(source1);
         }
 
         private void ValidatePropertyImplementation_102(string source1)
         {
-            ValidatePropertyImplementation_101(source1, "P1", haveGet: true, haveSet: true);
+            ValidatePropertyImplementation_101(source1, "P1", haveGet: true, haveSet: true,
+                accessCode: @"
+        i1.P1 = i1.P1;
+", 
+                expectedOutput:
+@"get P1
+set P1");
         }
 
         [Fact]
@@ -1480,14 +1741,24 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+}
 ";
             ValidatePropertyImplementation_103(source1);
         }
 
         private void ValidatePropertyImplementation_103(string source1)
         {
-            ValidatePropertyImplementation_101(source1, "P1", haveGet: false, haveSet: true);
+            ValidatePropertyImplementation_101(source1, "P1", haveGet: false, haveSet: true,
+                accessCode: @"
+        i1.P1 = 1;
+",
+                expectedOutput: "set P1");
         }
 
         [Fact]
@@ -1497,11 +1768,22 @@ class Test1 : I1
 @"
 public interface I1
 {
-    int P1 => 0;
+    int P1 => Test1.GetInt();
 }
 
 class Test1 : I1
-{}
+{
+    public static int GetInt()
+    {
+        System.Console.WriteLine(""get P1"");
+        return 0;
+    }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+}
 ";
             ValidatePropertyImplementation_101(source1);
         }
@@ -1763,8 +2045,8 @@ interface I1
     int P4 { get => 4; }
     int P5 { set => System.Console.WriteLine(5); }
     int P6 { set => System.Console.WriteLine(6); }
-    int P7 { get { return 7;} set {} }
-    int P8 { get { return 8;} set {} }
+    int P7 { get { return 7;} set {System.Console.WriteLine(71);} }
+    int P8 { get { return 8;} set {System.Console.WriteLine(81);} }
 }
 
 class Base
@@ -1781,18 +2063,46 @@ class Derived : Base, I1
     int P4 { get => 40; }
     int P6 { set => System.Console.WriteLine(60); }
     int P8 { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1.P1);
+        System.Console.WriteLine(i1.P2);
+        System.Console.WriteLine(i1.P3);
+        System.Console.WriteLine(i1.P4);
+        i1.P5 = 0;
+        i1.P6 = 0;
+        System.Console.WriteLine(i1.P7);
+        i1.P7 = 0;
+        System.Console.WriteLine(i1.P8);
+        i1.P8 = 0;
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidatePropertyImplementation_201(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"1
+2
+3
+4
+5
+6
+7
+71
+8
+81
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -1849,8 +2159,8 @@ interface I1
     int P4 { get => 4; }
     int P5 { set => System.Console.WriteLine(5); }
     int P6 { set => System.Console.WriteLine(6); }
-    int P7 { get { return 7;} set {} }
-    int P8 { get { return 8;} set {} }
+    int P7 { get { return 7;} set {System.Console.WriteLine(71);} }
+    int P8 { get { return 8;} set {System.Console.WriteLine(81);} }
 }
 
 class Base : Test
@@ -1867,18 +2177,46 @@ class Derived : Base, I1
     int P4 { get => 40; }
     int P6 { set => System.Console.WriteLine(60); }
     int P8 { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1.P1);
+        System.Console.WriteLine(i1.P2);
+        System.Console.WriteLine(i1.P3);
+        System.Console.WriteLine(i1.P4);
+        i1.P5 = 0;
+        i1.P6 = 0;
+        System.Console.WriteLine(i1.P7);
+        i1.P7 = 0;
+        System.Console.WriteLine(i1.P8);
+        i1.P8 = 0;
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidatePropertyImplementation_201(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"1
+2
+3
+4
+5
+6
+7
+71
+8
+81
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -1919,6 +2257,21 @@ class Derived : Base, I1
     int P4 { get => 40; }
     int P6 { set => System.Console.WriteLine(60); }
     int P8 { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1.P1);
+        System.Console.WriteLine(i1.P2);
+        System.Console.WriteLine(i1.P3);
+        System.Console.WriteLine(i1.P4);
+        i1.P5 = 0;
+        i1.P6 = 0;
+        System.Console.WriteLine(i1.P7);
+        i1.P7 = 0;
+        System.Console.WriteLine(i1.P8);
+        i1.P8 = 0;
+    }
 }
 
 class Test : I1 
@@ -1929,11 +2282,11 @@ class Test : I1
     int I1.P4 { get => 400; }
     int I1.P5 { set => System.Console.WriteLine(500); }
     int I1.P6 { set => System.Console.WriteLine(600); }
-    int I1.P7 { get { return 700;} set {} }
-    int I1.P8 { get { return 800;} set {} }
+    int I1.P7 { get { return 700;} set {System.Console.WriteLine(701);} }
+    int I1.P8 { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -1974,7 +2327,20 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"100
+200
+300
+400
+500
+600
+700
+701
+800
+801
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -2015,6 +2381,21 @@ class Derived : Base, I1
     new int P4 { get => 40; }
     new int P6 { set => System.Console.WriteLine(60); }
     new int P8 { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1.P1);
+        System.Console.WriteLine(i1.P2);
+        System.Console.WriteLine(i1.P3);
+        System.Console.WriteLine(i1.P4);
+        i1.P5 = 0;
+        i1.P6 = 0;
+        System.Console.WriteLine(i1.P7);
+        i1.P7 = 0;
+        System.Console.WriteLine(i1.P8);
+        i1.P8 = 0;
+    }
 }
 
 class Test : I1 
@@ -2025,11 +2406,11 @@ class Test : I1
     public int P4 { get => 400; }
     public int P5 { set => System.Console.WriteLine(500); }
     public int P6 { set => System.Console.WriteLine(600); }
-    public int P7 { get { return 700;} set {} }
-    public int P8 { get { return 800;} set {} }
+    public int P7 { get { return 700;} set {System.Console.WriteLine(701);} }
+    public int P8 { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -2070,7 +2451,20 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"100
+200
+300
+400
+500
+600
+700
+701
+800
+801
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -2629,14 +3023,24 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+}
 ";
             ValidateIndexerImplementation_101(source1);
         }
 
         private void ValidateIndexerImplementation_101(string source1)
         {
-            ValidatePropertyImplementation_101(source1, "this[]", haveGet: true, haveSet: false);
+            ValidatePropertyImplementation_101(source1, "this[]", haveGet: true, haveSet: false,
+                accessCode: @"
+        _ = i1[0];
+",
+                expectedOutput: "get P1");
         }
 
         [Fact]
@@ -2661,14 +3065,26 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = i1[0];
+    }
+}
 ";
             ValidateIndexerImplementation_102(source1);
         }
 
         private void ValidateIndexerImplementation_102(string source1)
         {
-            ValidatePropertyImplementation_101(source1, "this[]", haveGet: true, haveSet: true);
+            ValidatePropertyImplementation_101(source1, "this[]", haveGet: true, haveSet: true,
+                accessCode: @"
+        i1[0] = i1[0];
+",
+                expectedOutput:
+@"get P1
+set P1");
         }
 
         [Fact]
@@ -2688,14 +3104,24 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+}
 ";
             ValidateIndexerImplementation_103(source1);
         }
 
         private void ValidateIndexerImplementation_103(string source1)
         {
-            ValidatePropertyImplementation_101(source1, "this[]", haveGet: false, haveSet: true);
+            ValidatePropertyImplementation_101(source1, "this[]", haveGet: false, haveSet: true,
+                accessCode: @"
+        i1[0] = 1;
+",
+                expectedOutput: "set P1");
         }
 
         [Fact]
@@ -2705,11 +3131,22 @@ class Test1 : I1
 @"
 public interface I1
 {
-    int this[int i] => 0;
+    int this[int i] => Test1.GetInt();
 }
 
 class Test1 : I1
-{}
+{
+    public static int GetInt()
+    {
+        System.Console.WriteLine(""get P1"");
+        return 0;
+    }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+}
 ";
             ValidateIndexerImplementation_101(source1);
         }
@@ -2971,8 +3408,8 @@ interface I1
     int this[ushort i] { get => 4; }
     int this[int i] { set => System.Console.WriteLine(5); }
     int this[uint i] { set => System.Console.WriteLine(6); }
-    int this[long i] { get { return 7;} set {} }
-    int this[ulong i] { get { return 8;} set {} }
+    int this[long i] { get { return 7;} set {System.Console.WriteLine(71);} }
+    int this[ulong i] { get { return 8;} set {System.Console.WriteLine(81);} }
 }
 
 class Base
@@ -2989,18 +3426,46 @@ class Derived : Base, I1
     int this[ushort i] { get => 40; }
     int this[uint i] { set => System.Console.WriteLine(60); }
     int this[ulong i] { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1[(sbyte)0]);
+        System.Console.WriteLine(i1[(byte)0]);
+        System.Console.WriteLine(i1[(short)0]);
+        System.Console.WriteLine(i1[(ushort)0]);
+        i1[(int)0] = 0;
+        i1[(uint)0] = 0;
+        System.Console.WriteLine(i1[(long)0]);
+        i1[(long)0] = 0;
+        System.Console.WriteLine(i1[(ulong)0]);
+        i1[(ulong)0] = 0;
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidateIndexerImplementation_201(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"1
+2
+3
+4
+5
+6
+7
+71
+8
+81
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -3059,8 +3524,8 @@ interface I1
     int this[ushort i] { get => 4; }
     int this[int i] { set => System.Console.WriteLine(5); }
     int this[uint i] { set => System.Console.WriteLine(6); }
-    int this[long i] { get { return 7;} set {} }
-    int this[ulong i] { get { return 8;} set {} }
+    int this[long i] { get { return 7;} set {System.Console.WriteLine(71);} }
+    int this[ulong i] { get { return 8;} set {System.Console.WriteLine(81);} }
 }
 
 class Base : Test
@@ -3077,18 +3542,46 @@ class Derived : Base, I1
     int this[ushort i] { get => 40; }
     int this[uint i] { set => System.Console.WriteLine(60); }
     int this[ulong i] { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1[(sbyte)0]);
+        System.Console.WriteLine(i1[(byte)0]);
+        System.Console.WriteLine(i1[(short)0]);
+        System.Console.WriteLine(i1[(ushort)0]);
+        i1[(int)0] = 0;
+        i1[(uint)0] = 0;
+        System.Console.WriteLine(i1[(long)0]);
+        i1[(long)0] = 0;
+        System.Console.WriteLine(i1[(ulong)0]);
+        i1[(ulong)0] = 0;
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidateIndexerImplementation_201(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"1
+2
+3
+4
+5
+6
+7
+71
+8
+81
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -3129,6 +3622,21 @@ class Derived : Base, I1
     int this[ushort i] { get => 40; }
     int this[uint i] { set => System.Console.WriteLine(60); }
     int this[ulong i] { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1[(sbyte)0]);
+        System.Console.WriteLine(i1[(byte)0]);
+        System.Console.WriteLine(i1[(short)0]);
+        System.Console.WriteLine(i1[(ushort)0]);
+        i1[(int)0] = 0;
+        i1[(uint)0] = 0;
+        System.Console.WriteLine(i1[(long)0]);
+        i1[(long)0] = 0;
+        System.Console.WriteLine(i1[(ulong)0]);
+        i1[(ulong)0] = 0;
+    }
 }
 
 class Test : I1 
@@ -3139,11 +3647,11 @@ class Test : I1
     int I1.this[ushort i] { get => 400; }
     int I1.this[int i] { set => System.Console.WriteLine(500); }
     int I1.this[uint i] { set => System.Console.WriteLine(600); }
-    int I1.this[long i] { get { return 700;} set {} }
-    int I1.this[ulong i] { get { return 800;} set {} }
+    int I1.this[long i] { get { return 700;} set {System.Console.WriteLine(701);} }
+    int I1.this[ulong i] { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3204,7 +3712,20 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"100
+200
+300
+400
+500
+600
+700
+701
+800
+801
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -3245,6 +3766,21 @@ class Derived : Base, I1
     new int this[ushort i] { get => 40; }
     new int this[uint i] { set => System.Console.WriteLine(60); }
     new int this[ulong i] { get { return 80;} set {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        System.Console.WriteLine(i1[(sbyte)0]);
+        System.Console.WriteLine(i1[(byte)0]);
+        System.Console.WriteLine(i1[(short)0]);
+        System.Console.WriteLine(i1[(ushort)0]);
+        i1[(int)0] = 0;
+        i1[(uint)0] = 0;
+        System.Console.WriteLine(i1[(long)0]);
+        i1[(long)0] = 0;
+        System.Console.WriteLine(i1[(ulong)0]);
+        i1[(ulong)0] = 0;
+    }
 }
 
 class Test : I1 
@@ -3255,11 +3791,11 @@ class Test : I1
     public int this[ushort i] { get => 400; }
     public int this[int i] { set => System.Console.WriteLine(500); }
     public int this[uint i] { set => System.Console.WriteLine(600); }
-    public int this[long i] { get { return 700;} set {} }
-    public int this[ulong i] { get { return 800;} set {} }
+    public int this[long i] { get { return 700;} set {System.Console.WriteLine(701);} }
+    public int this[ulong i] { get { return 800;} set {System.Console.WriteLine(801);} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -3302,7 +3838,20 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"100
+200
+300
+400
+500
+600
+700
+701
+800
+801
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -3884,6 +4433,7 @@ class Test2 : I1
 
             Validate2(compilation2.SourceModule);
             compilation2.VerifyDiagnostics();
+            Assert.NotEmpty(expected);
             CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
         }
 
@@ -4004,14 +4554,21 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.E1 += null;
+        i1.E1 -= null;
+    }
+}
 ";
             ValidateEventImplementation_102(source1);
         }
 
         private void ValidateEventImplementation_102(string source1)
         {
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -4023,15 +4580,28 @@ class Test1 : I1
 
             Validate1(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"add E1
+remove E1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             var source2 =
 @"
 class Test2 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test2();
+        i1.E1 += null;
+        i1.E1 -= null;
+    }
+}
 ";
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4043,16 +4613,28 @@ class Test2 : I1
             Validate2(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"add E1
+remove E1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate2);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate2(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate2);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"add E1
+remove E1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate2);
         }
 
         [Fact]
@@ -4289,8 +4871,8 @@ class Test1 : I1
 @"
 interface I1
 {
-    event System.Action E7 { add {} remove {} }
-    event System.Action E8 { add {} remove {} }
+    event System.Action E7 { add {System.Console.WriteLine(""add E7"");} remove {System.Console.WriteLine(""remove E7"");} }
+    event System.Action E8 { add {System.Console.WriteLine(""add E8"");} remove {System.Console.WriteLine(""remove E8"");} }
 }
 
 class Base
@@ -4301,11 +4883,20 @@ class Base
 class Derived : Base, I1
 {
     event System.Action E8 { add {} remove {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        i1.E7 += null;
+        i1.E7 -= null;
+        i1.E8 += null;
+        i1.E8 -= null;
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -4316,7 +4907,13 @@ class Test : I1 {}
 
             ValidateEventImplementation_201(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"add E7
+remove E7
+add E8
+remove E8",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -4349,8 +4946,8 @@ class Test : I1 {}
 @"
 interface I1
 {
-    event System.Action E7 { add {} remove {} }
-    event System.Action E8 { add {} remove {} }
+    event System.Action E7 { add {System.Console.WriteLine(""add E7"");} remove {System.Console.WriteLine(""remove E7"");} }
+    event System.Action E8 { add {System.Console.WriteLine(""add E8"");} remove {System.Console.WriteLine(""remove E8"");} }
 }
 
 class Base : Test
@@ -4361,11 +4958,20 @@ class Base : Test
 class Derived : Base, I1
 {
     event System.Action E8 { add {} remove {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        i1.E7 += null;
+        i1.E7 -= null;
+        i1.E8 += null;
+        i1.E8 -= null;
+    }
 }
 
 class Test : I1 {}
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -4376,7 +4982,13 @@ class Test : I1 {}
 
             ValidateEventImplementation_201(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"add E7
+remove E7
+add E8
+remove E8",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -4405,15 +5017,24 @@ class Base : Test
 class Derived : Base, I1
 {
     event System.Action E8 { add {} remove {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        i1.E7 += null;
+        i1.E7 -= null;
+        i1.E8 += null;
+        i1.E8 -= null;
+    }
 }
 
 class Test : I1 
 {
-    event System.Action I1.E7 { add {} remove {} }
-    event System.Action I1.E8 { add {} remove {} }
+    event System.Action I1.E7 { add {System.Console.WriteLine(""add E7"");} remove {System.Console.WriteLine(""remove E7"");} }
+    event System.Action I1.E8 { add {System.Console.WriteLine(""add E8"");} remove {System.Console.WriteLine(""remove E8"");} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -4440,7 +5061,13 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"add E7
+remove E7
+add E8
+remove E8",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -4469,15 +5096,24 @@ class Base : Test
 class Derived : Base, I1
 {
     new event System.Action E8 { add {} remove {} }
+
+    static void Main()
+    {
+        I1 i1 = new Derived();
+        i1.E7 += null;
+        i1.E7 -= null;
+        i1.E8 += null;
+        i1.E8 -= null;
+    }
 }
 
 class Test : I1 
 {
-    public event System.Action E7 { add {} remove {} }
-    public event System.Action E8 { add {} remove {} }
+    public event System.Action E7 { add {System.Console.WriteLine(""add E7"");} remove {System.Console.WriteLine(""remove E7"");} }
+    public event System.Action E8 { add {System.Console.WriteLine(""add E8"");} remove {System.Console.WriteLine(""remove E8"");} }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -4504,7 +5140,13 @@ class Test : I1
 
             Validate(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false,
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"add E7
+remove E7
+add E8
+remove E8",
+                verify: CoreClrShim.IsRunningOnCoreClr,
                 symbolValidator: (m) =>
                 {
                     var derivedResult = (PENamedTypeSymbol)m.GlobalNamespace.GetTypeMember("Derived");
@@ -5058,14 +5700,13 @@ class Test1 : I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            CompileAndVerify(compilation1, verify: false);
-
-/* Expected output
-I2.M2
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M2
 123
 I1.M1
 I1.get_P1
@@ -5125,7 +5766,8 @@ I2.get_P3
 I2.set_P3
 I2.add_E3
 I2.remove_E3
-*/
+",
+                verify: CoreClrShim.IsRunningOnCoreClr);
         }
 
         [Fact]
@@ -5332,16 +5974,15 @@ class Test1 : I2
     }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             compilation1.VerifyDiagnostics();
 
-            CompileAndVerify(compilation1, verify: false);
-
-/* Expected output
-I2.M2
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M2
 123
 I1.M1
 I1.get_P1
@@ -5401,7 +6042,8 @@ I2.get_P3
 I2.set_P3
 I2.add_E3
 I2.remove_E3
-*/
+",
+                verify: CoreClrShim.IsRunningOnCoreClr);
         }
 
         [Fact]
@@ -5765,7 +6407,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 x = new Test1();
+        x.M1();
+    }
+}
 ";
             ValidateMethodImplementation_011(source1);
         }
@@ -6071,7 +6719,7 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"M4
-M1", verify:false, symbolValidator: Validate);
+M1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -6439,7 +7087,7 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, expectedOutput: "M1", verify: false, symbolValidator: ValidateMethodModifiersExplicit_10);
+            CompileAndVerify(compilation1, expectedOutput: "M1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateMethodModifiersExplicit_10);
 
             ValidateMethodModifiersExplicit_10(compilation1.SourceModule);
 
@@ -6710,7 +7358,7 @@ class Test1 : Test2, I1
             var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: false, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
+            CompileAndVerify(compilation1, expectedOutput: "Test2.M1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
             ValidateMethodModifiersExplicitInTest2_10(compilation1.SourceModule);
 
@@ -6724,14 +7372,14 @@ class Test1 : Test2, I1
             var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: false, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
+            CompileAndVerify(compilation3, expectedOutput: "Test2.M1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
             ValidateMethodModifiersExplicitInTest2_10(compilation3.SourceModule);
 
             var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: false, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
+            CompileAndVerify(compilation4, expectedOutput: "Test2.M1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateMethodModifiersExplicitInTest2_10);
 
             ValidateMethodModifiersExplicitInTest2_10(compilation4.SourceModule);
         }
@@ -7010,7 +7658,7 @@ class Test1 : I1
                 Assert.Null(test1.FindImplementationForInterfaceMember(m1));
             }
 
-            CompileAndVerify(compilation1, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1, expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate);
             Validate(compilation1.SourceModule);
         }
 
@@ -7223,7 +7871,7 @@ class Test2 : I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -7724,7 +8372,10 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, 
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null, 
+                verify: CoreClrShim.IsRunningOnCoreClr, 
+                symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
 
@@ -7765,14 +8416,20 @@ class Test1 : I1
             var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation3/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation3,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation4/*, expectedOutput:"M1"*/, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation4,
+                expectedOutput: CoreClrShim.IsRunningOnCoreClr ? "M1" : null,
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
         }
@@ -8633,7 +9290,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
+}
 ");
 
             ValidatePropertyImplementation_101(@"
@@ -8652,6 +9315,11 @@ class Test1 : I1
         System.Console.WriteLine(""get P1"");
         return 0;
     }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
+    }
 }
 ");
 
@@ -8667,6 +9335,11 @@ class Test1 : I1
     {
         System.Console.WriteLine(""get P1"");
         return 0;
+    }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1.P1;
     }
 }
 ");
@@ -8689,7 +9362,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = i1.P1;
+    }
+}
 ");
 
             ValidatePropertyImplementation_102(@"
@@ -8709,6 +9388,11 @@ class Test1 : I1
         System.Console.WriteLine(""get P1"");
         return 0;
     }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = i1.P1;
+    }
 }
 ");
 
@@ -8725,7 +9409,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+}
 ");
 
             ValidatePropertyImplementation_103(@"
@@ -8738,7 +9428,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.P1 = 1;
+    }
+}
 ");
         }
 
@@ -9422,7 +10118,20 @@ class Test1 : I1, I2, I3, I4, I5, I6, I7
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+get_P2
+set_P2
+set_P3
+get_P4
+get_P5
+set_P5
+set_P6
+get_P7
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -9968,7 +10677,7 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
-set_P1", verify: false, symbolValidator: ValidatePropertyImplementation_11);
+set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidatePropertyImplementation_11);
 
             ValidatePropertyImplementation_11(compilation1.SourceModule);
 
@@ -10337,7 +11046,7 @@ class Test1 : Test2, I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: false, symbolValidator: ValidatePropertyImplementationByBase_11);
+Test2.set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
 
             ValidatePropertyImplementationByBase_11(compilation1.SourceModule);
 
@@ -10351,7 +11060,7 @@ Test2.set_P1", verify: false, symbolValidator: ValidatePropertyImplementationByB
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: false, symbolValidator: ValidatePropertyImplementationByBase_11);
+Test2.set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
 
             ValidatePropertyImplementationByBase_11(compilation3.SourceModule);
 
@@ -10360,7 +11069,7 @@ Test2.set_P1", verify: false, symbolValidator: ValidatePropertyImplementationByB
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: false, symbolValidator: ValidatePropertyImplementationByBase_11);
+Test2.set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidatePropertyImplementationByBase_11);
 
             ValidatePropertyImplementationByBase_11(compilation4.SourceModule);
         }
@@ -10816,7 +11525,20 @@ class Test7 : I7
                 }
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+get_P2
+set_P2
+set_P3
+get_P4
+get_P5
+set_P5
+set_P6
+get_P7
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
             Validate(compilation1.SourceModule);
         }
 
@@ -11336,7 +12058,7 @@ class Test2 : I1, I2, I3, I4, I5
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -12018,7 +12740,13 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
 
@@ -12081,14 +12809,26 @@ class Test1 : I1
             var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation4, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation4,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
         }
@@ -12350,7 +13090,8 @@ class Test1 : I1, I2, I3, I4, I5, I6, I7, I8
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, /*expectedOutput:
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
 @"get_P1
 set_P1
 get_P2
@@ -12366,7 +13107,10 @@ set_P6
 get_P7
 set_P7
 get_P8
-set_P8",*/ symbolValidator: Validate, verify: false);
+set_P8
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -12448,7 +13192,7 @@ public interface I3
             System.Console.WriteLine(""get_P3"");
             return 0;
         } 
-        set {}
+        set {System.Console.WriteLine(""set_P3"");}
     }
 
     void M2()
@@ -12460,7 +13204,7 @@ public interface I4
 {
     int P4
     {
-        get {throw null;} 
+        get {System.Console.WriteLine(""get_P4""); return 0;} 
         private set {System.Console.WriteLine(""set_P4"");}
     }
 
@@ -12474,7 +13218,7 @@ public interface I5
     int P5
     {
         private get => GetP5();
-        set => throw null;
+        set => System.Console.WriteLine(""set_P5"");
     }
 
     private int GetP5()
@@ -12492,8 +13236,14 @@ public interface I6
 {
     int P6
     {
-        get => throw null;
+        get => GetP6();
         private set => System.Console.WriteLine(""set_P6"");
+    }
+
+    private int GetP6()
+    {
+        System.Console.WriteLine(""get_P6"");
+        return 0;
     }
 
     void M2()
@@ -12529,7 +13279,7 @@ class Test3 : I3
         }
         set
         {
-            System.Console.WriteLine(""set_P3"");
+            throw null;
         }
     }
 }
@@ -12539,8 +13289,7 @@ class Test4 : I4
     {
         get
         {
-            System.Console.WriteLine(""get_P4"");
-            return 0;
+            throw null;
         }
         set
         {
@@ -12558,7 +13307,7 @@ class Test5 : I5
         }
         set
         {
-            System.Console.WriteLine(""set_P5"");
+            throw null;
         }
     }
 }
@@ -12568,8 +13317,7 @@ class Test6 : I6
     {
         get
         {
-            System.Console.WriteLine(""get_P6"");
-            return 0;
+            throw null;
         }
         set
         {
@@ -12586,7 +13334,19 @@ class Test6 : I6
             var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P3
+set_P3
+get_P4
+set_P4
+get_P5
+set_P5
+get_P6
+set_P6
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
 
@@ -12615,7 +13375,19 @@ class Test6 : I6
                                                          options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P3
+set_P3
+get_P4
+set_P4
+get_P5
+set_P5
+get_P6
+set_P6
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
 
@@ -12623,7 +13395,19 @@ class Test6 : I6
                                                          options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation4, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation4,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P3
+set_P3
+get_P4
+set_P4
+get_P5
+set_P5
+get_P6
+set_P6
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
         }
@@ -13917,7 +14701,13 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
 
@@ -13980,14 +14770,26 @@ class Test1 : I1
             var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation4, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation4,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
         }
@@ -14801,7 +15603,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
+}
 ");
 
             ValidateIndexerImplementation_101(@"
@@ -14820,6 +15628,11 @@ class Test1 : I1
         System.Console.WriteLine(""get P1"");
         return 0;
     }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
+    }
 }
 ");
 
@@ -14835,6 +15648,11 @@ class Test1 : I1
     {
         System.Console.WriteLine(""get P1"");
         return 0;
+    }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        _ = i1[0];
     }
 }
 ");
@@ -14857,7 +15675,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = i1[0];
+    }
+}
 ");
 
             ValidateIndexerImplementation_102(@"
@@ -14877,6 +15701,11 @@ class Test1 : I1
         System.Console.WriteLine(""get P1"");
         return 0;
     }
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = i1[0];
+    }
 }
 ");
 
@@ -14893,7 +15722,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+}
 ");
 
             ValidateIndexerImplementation_103(@"
@@ -14906,7 +15741,13 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1[0] = 1;
+    }
+}
 ");
         }
 
@@ -16825,7 +17666,7 @@ public interface I3
             System.Console.WriteLine(""get_P3"");
             return 0;
         } 
-        set {}
+        set {System.Console.WriteLine(""set_P3"");}
     }
 
     void M2()
@@ -16837,7 +17678,7 @@ public interface I4
 {
     int this[int x]
     {
-        get {throw null;} 
+        get {System.Console.WriteLine(""get_P4""); return 0;} 
         private set {System.Console.WriteLine(""set_P4"");}
     }
 
@@ -16851,7 +17692,7 @@ public interface I5
     int this[int x]
     {
         private get => GetP5();
-        set => throw null;
+        set => System.Console.WriteLine(""set_P5"");
     }
 
     private int GetP5()
@@ -16869,8 +17710,14 @@ public interface I6
 {
     int this[int x]
     {
-        get => throw null;
+        get => GetP6();
         private set => System.Console.WriteLine(""set_P6"");
+    }
+
+    private int GetP6()
+    {
+        System.Console.WriteLine(""get_P6"");
+        return 0;
     }
 
     void M2()
@@ -16906,7 +17753,7 @@ class Test3 : I3
         }
         set
         {
-            System.Console.WriteLine(""set_P3"");
+            throw null;
         }
     }
 }
@@ -16916,8 +17763,7 @@ class Test4 : I4
     {
         get
         {
-            System.Console.WriteLine(""get_P4"");
-            return 0;
+            throw null;
         }
         set
         {
@@ -16935,7 +17781,7 @@ class Test5 : I5
         }
         set
         {
-            System.Console.WriteLine(""set_P5"");
+            throw null;
         }
     }
 }
@@ -16945,8 +17791,7 @@ class Test6 : I6
     {
         get
         {
-            System.Console.WriteLine(""get_P6"");
-            return 0;
+            throw null;
         }
         set
         {
@@ -18837,7 +19682,14 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.E1 += null;
+        i1.E1 -= null;
+    }
+}
 ");
             ValidateEventImplementation_102(@"
 public interface I1
@@ -18850,7 +19702,14 @@ public interface I1
 }
 
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        i1.E1 += null;
+        i1.E1 -= null;
+    }
+}
 ");
         }
 
@@ -19578,7 +20437,15 @@ class Test1 : I1, I2
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+get_P2
+set_P2
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -20128,7 +20995,7 @@ class Test1 : I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
 @"get_P1
-set_P1", verify: false, symbolValidator: ValidateEventImplementation_11);
+set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateEventImplementation_11);
 
             ValidateEventImplementation_11(compilation1.SourceModule);
 
@@ -20503,7 +21370,7 @@ class Test1 : Test2, I1
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation1, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: false, symbolValidator: ValidateEventImplementationByBase_11);
+Test2.set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
 
             ValidateEventImplementationByBase_11(compilation1.SourceModule);
 
@@ -20517,7 +21384,7 @@ Test2.set_P1", verify: false, symbolValidator: ValidateEventImplementationByBase
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation3, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: false, symbolValidator: ValidateEventImplementationByBase_11);
+Test2.set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
 
             ValidateEventImplementationByBase_11(compilation3.SourceModule);
 
@@ -20526,7 +21393,7 @@ Test2.set_P1", verify: false, symbolValidator: ValidateEventImplementationByBase
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             CompileAndVerify(compilation4, expectedOutput:
 @"Test2.get_P1
-Test2.set_P1", verify: false, symbolValidator: ValidateEventImplementationByBase_11);
+Test2.set_P1", verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: ValidateEventImplementationByBase_11);
 
             ValidateEventImplementationByBase_11(compilation4.SourceModule);
         }
@@ -20868,7 +21735,15 @@ class Test2 : I2
                 }
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+get_P2
+set_P2
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
             Validate(compilation1.SourceModule);
         }
 
@@ -21361,7 +22236,7 @@ class Test2 : I1, I2, I3, I4, I5
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate);
 
             Validate(compilation1.SourceModule);
 
@@ -22140,7 +23015,13 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation1.SourceModule);
 
@@ -22201,14 +23082,26 @@ class Test1 : I1
             var compilation3 = CreateStandardCompilation(source2, new[] { compilation2.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation3.SourceModule);
 
             var compilation4 = CreateStandardCompilation(source2, new[] { compilation2.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            CompileAndVerify(compilation4, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation4,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"get_P1
+set_P1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
 
             Validate1(compilation4.SourceModule);
         }
@@ -22813,7 +23706,7 @@ public interface I1 : I2, I5
     }
     void I4.M1() 
     {
-        System.Console.WriteLine(""I2.M1"");
+        System.Console.WriteLine(""I4.M1"");
     }
 }
 
@@ -22825,34 +23718,60 @@ public interface I3 : I1
             var source2 =
 @"
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I2 i2 = new Test1();
+        i2.M1();
+        I4 i4 = new Test1();
+        i4.M1();
+    }
+}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
         }
 
         private static void ValidateMethodImplementationInDerived_01(ModuleSymbol m)
@@ -23377,7 +24296,7 @@ class Test1 : I1
                 Assert.Same(i1i2m1, i3.FindImplementationForInterfaceMember(i2m1));
             }
             
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
@@ -23500,7 +24419,7 @@ class Test1 : I1
 }
 ";
 
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll,
+            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugExe,
                                                                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -23554,7 +24473,10 @@ class Test1 : I1
                 }
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null : "I2.M1",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate1);
         }
 
         [Fact]
@@ -23575,6 +24497,15 @@ public interface I4
 public interface I5 : I4
 {
 }
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        i2.M1();
+        i4.M1();
+    }
+}
 ";
             var source2 =
 @"
@@ -23586,7 +24517,7 @@ public interface I1 : I2, I5
     }
     void I4.M1() 
     {
-        System.Console.WriteLine(""I2.M1"");
+        System.Console.WriteLine(""I4.M1"");
     }
 }
 
@@ -23598,34 +24529,57 @@ public interface I3 : I1
             var source3 =
 @"
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        TestHelper.Test(new Test1(), new Test1());
+    }
+}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidateMethodImplementationInDerived_01(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateMethodImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateMethodImplementationInDerived_01);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateMethodImplementationInDerived_01);
 
             var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
@@ -23663,13 +24617,14 @@ class Test1 : I1
         }
 
         [Fact]
+        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void MethodImplementationInDerived_12()
         {
             var source1 =
 @"
 public interface I1
 {
-    void M1(){ throw null; } 
+    void M1(){ System.Console.WriteLine(""Unexpected!!!""); } 
 }
 
 public interface I2 : I1
@@ -23734,7 +24689,7 @@ public interface I6 : I1, I2, I3, I5
                 Assert.Same(i5m1, i6.FindImplementationForInterfaceMember(i1m1));
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -23773,7 +24728,18 @@ class Test6 : I1, I2, I3, I5
 {}
 
 class Test7 : I6
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test5();
+        i1.M1();
+        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
+        //i1 = new Test6();
+        //i1.M1();
+        //i1 = new Test7();
+        //i1.M1();
+    }
+}
 ";
             var source5 = @"
 class Test8 : I2, I3
@@ -23781,6 +24747,19 @@ class Test8 : I2, I3
     void I1.M1() 
     {
         System.Console.WriteLine(""Test8.I1.M1"");
+    }
+    static void Main()
+    {
+        I1 i1 = new Test8();
+        i1.M1();
+        i1 = new Test9();
+        i1.M1();
+        i1 = new Test10();
+        i1.M1();
+        i1 = new Test11();
+        i1.M1();
+        i1 = new Test12();
+        i1.M1();
     }
 }
 
@@ -23844,7 +24823,7 @@ class Test12 : I8
                     Assert.Null(i8.FindImplementationForInterfaceMember(i1m1));
                 }
 
-                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
@@ -23853,11 +24832,11 @@ class Test12 : I8
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
-                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugDll,
+                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23883,7 +24862,17 @@ class Test12 : I8
                     Assert.Same(i5m1, test7.FindImplementationForInterfaceMember(i1m1));
                 }
 
-                CompileAndVerify(compilation4, verify: false, symbolValidator: Validate4);
+                CompileAndVerify(compilation4,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.I1.M1"
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
+//+ @"
+//I5.I1.M1
+//I5.I1.M1
+//"
+,
+                    verify: CoreClrShim.IsRunningOnCoreClr,
+                    symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
                 {
@@ -23931,7 +24920,7 @@ class Test12 : I8
                         Assert.Null(test5.FindImplementationForInterfaceMember(i1m1));
                     }
 
-                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -23956,7 +24945,16 @@ class Test12 : I8
                         Assert.Same(test12.GetMember<MethodSymbol>("M1"), test12.FindImplementationForInterfaceMember(i1m1));
                     }
 
-                    CompileAndVerify(compilation5, verify: false, symbolValidator: Validate5);
+                    CompileAndVerify(compilation5,
+                        expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"Test8.I1.M1
+Test9.I1.M1
+Test10.M1
+Test11.M1
+Test12.M1
+",
+                        verify: CoreClrShim.IsRunningOnCoreClr,
+                        symbolValidator: Validate5);
                 }
             }
         }
@@ -24048,6 +25046,7 @@ class Test1 : I2, I3
         }
 
         [Fact]
+        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void MethodImplementationInDerived_14()
         {
             var source1 =
@@ -24083,12 +25082,22 @@ public interface I3<T> : I1<T>
             var source2 =
 @"
 class Test1 : I1<int>
-{}
+{
+    static void Main()
+    {
+        I1<int> i1Int = new Test1();
+        i1Int.M1();
+        i1Int.M2<int>();
+        I1<long> i1Long = new Test2();
+        i1Long.M1();
+        i1Long.M2<int>();
+    }
+}
 class Test2 : I2<long>
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -24174,24 +25183,51 @@ class Test2 : I2<long>
                 Assert.Equal(test2i2m2, test2.FindImplementationForInterfaceMember(test2i1m2));
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1,
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1
+//I1.M2
+//I2.I1.M1
+//I2.I1.M2
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation2,
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1
+//I1.M2
+//I2.I1.M1
+//I2.I1.M2
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation3,
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1
+//I1.M2
+//I2.I1.M1
+//I2.I1.M2
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
         }
 
         [Fact]
@@ -24225,7 +25261,7 @@ public interface I1 : I2, I5
     }
     int I4.M1 
     {
-        set => System.Console.WriteLine(""I2.M1"");
+        set => System.Console.WriteLine(""I4.M1"");
     }
 }
 
@@ -24233,42 +25269,68 @@ public interface I3 : I1
 {
 }
 ";
-            ValidatePropertyImplementationInDerived_01(source1);
-        }
-
-        private void ValidatePropertyImplementationInDerived_01(string source1)
-        {
-
             var source2 =
 @"
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I2 i2 = new Test1();
+        _ = i2.M1;
+        I4 i4 = new Test1();
+        i4.M1 = 0;
+    }
+}
 ";
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+
+            ValidatePropertyImplementationInDerived_01(source1, source2);
+        }
+
+        private void ValidatePropertyImplementationInDerived_01(string source1, string source2)
+        {
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidatePropertyImplementationInDerived_01);
         }
 
         private static void ValidatePropertyImplementationInDerived_01(ModuleSymbol m)
@@ -24945,7 +26007,7 @@ class Test1 : I1
                 VerifyFindImplementationForInterfaceMemberSame(i1i2m1, i3, i2m1);
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var compilation2 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
@@ -25104,6 +26166,15 @@ public interface I4
 public interface I5 : I4
 {
 }
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        _ = i2.M1;
+        i4.M1 = i4.M1;
+    }
+}
 ";
             var source2 =
 @"
@@ -25120,10 +26191,10 @@ public interface I1 : I2, I5
     {
         get 
         {
-            System.Console.WriteLine(""I2.M1"");
+            System.Console.WriteLine(""I4.M1"");
             return 1;
         }
-        set => System.Console.WriteLine(""I2.M1"");
+        set => System.Console.WriteLine(""I4.M1.set"");
     }
 }
 
@@ -25147,34 +26218,60 @@ public interface I3 : I1
             var source3 =
 @"
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        TestHelper.Test(new Test1(), new Test1());
+    }
+}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidatePropertyImplementationInDerived_01(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+I4.M1.set
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidatePropertyImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+I4.M1.set
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidatePropertyImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidatePropertyImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidatePropertyImplementationInDerived_01);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1
+I4.M1
+I4.M1.set
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidatePropertyImplementationInDerived_01);
 
             var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
@@ -25198,6 +26295,7 @@ class Test1 : I1
         }
 
         [Fact]
+        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void PropertyImplementationInDerived_12()
         {
             var source1 =
@@ -25213,12 +26311,12 @@ public interface I2 : I1
     {
         get
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.set"");
         }
     }
 }
@@ -25229,12 +26327,12 @@ public interface I3 : I1
     {
         get
         {
-            System.Console.WriteLine(""I3.I1.M1"");
+            System.Console.WriteLine(""I3.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I3.I1.M1"");
+            System.Console.WriteLine(""I3.I1.M1.set"");
         }
     }
 }
@@ -25245,12 +26343,12 @@ public interface I4 : I1
     {
         get
         {
-            System.Console.WriteLine(""I4.I1.M1"");
+            System.Console.WriteLine(""I4.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I4.I1.M1"");
+            System.Console.WriteLine(""I4.I1.M1.set"");
         }
     }
 }
@@ -25261,12 +26359,12 @@ public interface I5 : I2, I3
     {
         get
         {
-            System.Console.WriteLine(""I5.I1.M1"");
+            System.Console.WriteLine(""I5.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I5.I1.M1"");
+            System.Console.WriteLine(""I5.I1.M1.set"");
         }
     }
 }
@@ -25274,7 +26372,28 @@ public interface I5 : I2, I3
 public interface I6 : I1, I2, I3, I5
 {}
 ";
+            var source4 =
+@"
+class Test5 : I2
+{}
 
+class Test6 : I1, I2, I3, I5
+{}
+
+class Test7 : I6
+{
+    static void Main()
+    {
+        I1 i1 = new Test5();
+        i1.M1 = i1.M1;
+        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
+        //i1 = new Test6();
+        //i1.M1 = i1.M1;
+        //i1 = new Test7();
+        //i1.M1 = i1.M1;
+    }
+}
+";
             var source5 = @"
 class Test8 : I2, I3
 {
@@ -25282,13 +26401,26 @@ class Test8 : I2, I3
     {
         get
         {
-            System.Console.WriteLine(""Test8.I1.M1"");
+            System.Console.WriteLine(""Test8.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test8.I1.M1"");
+            System.Console.WriteLine(""Test8.I1.M1.set"");
         }
+    }
+    static void Main()
+    {
+        I1 i1 = new Test8();
+        i1.M1 = i1.M1;
+        i1 = new Test9();
+        i1.M1 = i1.M1;
+        i1 = new Test10();
+        i1.M1 = i1.M1;
+        i1 = new Test11();
+        i1.M1 = i1.M1;
+        i1 = new Test12();
+        i1.M1 = i1.M1;
     }
 }
 
@@ -25298,12 +26430,12 @@ class Test9 : I7
     {
         get
         {
-            System.Console.WriteLine(""Test9.I1.M1"");
+            System.Console.WriteLine(""Test9.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test9.I1.M1"");
+            System.Console.WriteLine(""Test9.I1.M1.set"");
         }
     }
 }
@@ -25314,12 +26446,12 @@ class Test10 : I1, I2, I3, I4
     {
         get
         {
-            System.Console.WriteLine(""Test10.M1"");
+            System.Console.WriteLine(""Test10.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test10.M1"");
+            System.Console.WriteLine(""Test10.M1.set"");
         }
     }
 }
@@ -25330,12 +26462,12 @@ class Test11 : I1, I2, I3, I5, I4
     {
         get
         {
-            System.Console.WriteLine(""Test11.M1"");
+            System.Console.WriteLine(""Test11.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test11.M1"");
+            System.Console.WriteLine(""Test11.M1.set"");
         }
     }
 }
@@ -25346,17 +26478,17 @@ class Test12 : I8
     {
         get
         {
-            System.Console.WriteLine(""Test12.M1"");
+            System.Console.WriteLine(""Test12.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test12.M1"");
+            System.Console.WriteLine(""Test12.M1.set"");
         }
     }
 }
 ";
-            ValidatePropertyImplementationInDerived_12(source1, source5,
+            ValidatePropertyImplementationInDerived_12(source1, source4, source5,
                 new DiagnosticDescription[]
                 {
                 // (2,15): error CS8505: Interface member 'I1.M1' does not have a most specific implementation. Neither 'I2.I1.M1', nor 'I3.I1.M1' are most specific.
@@ -25378,7 +26510,7 @@ class Test12 : I8
                 );
         }
 
-        private void ValidatePropertyImplementationInDerived_12(string source1, string source5, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
+        private void ValidatePropertyImplementationInDerived_12(string source1, string source4, string source5, DiagnosticDescription[] expected1, DiagnosticDescription[] expected2 = null)
         {
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
@@ -25406,7 +26538,7 @@ class Test12 : I8
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -25433,18 +26565,6 @@ class Test4 : I1, I2, I3, I5, I4
 {}
 
 class Test5 : I8
-{}
-";
-
-            var source4 =
-@"
-class Test5 : I2
-{}
-
-class Test6 : I1, I2, I3, I5
-{}
-
-class Test7 : I6
 {}
 ";
 
@@ -25475,7 +26595,7 @@ class Test7 : I6
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
@@ -25484,11 +26604,11 @@ class Test7 : I6
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
-                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugDll,
+                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25514,7 +26634,20 @@ class Test7 : I6
                     VerifyFindImplementationForInterfaceMemberSame(i5m1, test7, i1m1);
                 }
 
-                CompileAndVerify(compilation4, verify: false, symbolValidator: Validate4);
+                CompileAndVerify(compilation4,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.I1.M1.get
+I2.I1.M1.set"
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
+//+ @"
+//I5.I1.M1.get
+//I5.I1.M1.set
+//I5.I1.M1.get
+//I5.I1.M1.set
+//"
+,
+                    verify: CoreClrShim.IsRunningOnCoreClr,
+                    symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
                 {
@@ -25546,7 +26679,7 @@ class Test7 : I6
                         VerifyFindImplementationForInterfaceMemberSame(null, test5, i1m1);
                     }
 
-                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -25571,7 +26704,21 @@ class Test7 : I6
                         VerifyFindImplementationForInterfaceMemberSame(GetSingleProperty(test12), test12, i1m1);
                     }
 
-                    CompileAndVerify(compilation5, verify: false, symbolValidator: Validate5);
+                    CompileAndVerify(compilation5,
+                        expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"Test8.I1.M1.get
+Test8.I1.M1.set
+Test9.I1.M1.get
+Test9.I1.M1.set
+Test10.M1.get
+Test10.M1.set
+Test11.M1.get
+Test11.M1.set
+Test12.M1.get
+Test12.M1.set
+",
+                        verify: CoreClrShim.IsRunningOnCoreClr,
+                        symbolValidator: Validate5);
                 }
             }
         }
@@ -25639,6 +26786,7 @@ class Test1 : I2, I3
         }
 
         [Fact]
+        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void PropertyImplementationInDerived_14()
         {
             var source1 =
@@ -25649,10 +26797,10 @@ public interface I1<T>
     {
         get
         {
-            System.Console.WriteLine(""I1.M1"");
+            System.Console.WriteLine(""I1.M1.get"");
             return 1;
         }
-        set => System.Console.WriteLine(""I1.M1"");
+        set => System.Console.WriteLine(""I1.M1.set"");
     }
 }
 
@@ -25662,31 +26810,38 @@ public interface I2<T> : I1<T>
     {
         get
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.get"");
             return 1;
         }
-        set => System.Console.WriteLine(""I2.I1.M1"");
+        set => System.Console.WriteLine(""I2.I1.M1.set"");
     }
 }
 
 public interface I3<T> : I1<T>
 {}
 ";
-
-            ValidatePropertyImplementationInDerived_14(source1);
-        }
-
-        private void ValidatePropertyImplementationInDerived_14(string source1)
-        {
             var source2 =
 @"
 class Test1 : I1<int>
-{}
+{
+    static void Main()
+    {
+        I1<int> i1Int = new Test1();
+        i1Int.M1 = i1Int.M1;
+        I1<long> i1Long = new Test2();
+        i1Long.M1 = i1Long.M1;
+    }
+}
 class Test2 : I2<long>
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+            ValidatePropertyImplementationInDerived_14(source1, source2);
+        }
+
+        private void ValidatePropertyImplementationInDerived_14(string source1, string source2)
+        {
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -25744,24 +26899,51 @@ class Test2 : I2<long>
                 VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2, test2i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1,
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1.get
+//I1.M1.set
+//I2.I1.M1.get
+//I2.I1.M1.set
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation2, 
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1.get
+//I1.M1.set
+//I2.I1.M1.get
+//I2.I1.M1.set
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation3, 
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1.get
+//I1.M1.set
+//I2.I1.M1.get
+//I2.I1.M1.set
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
         }
 
         [Fact]
@@ -25789,17 +26971,17 @@ public interface I1 : I2, I5
     {
         add
         {
-            System.Console.WriteLine(""I2.M1"");
+            System.Console.WriteLine(""I2.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""I2.M1"");
+            System.Console.WriteLine(""I2.M1.remove"");
         }
     }
     event System.Action I4.M1 
     {
-        add => System.Console.WriteLine(""I2.M1"");
-        remove => System.Console.WriteLine(""I2.M1"");
+        add => System.Console.WriteLine(""I4.M1.add"");
+        remove => System.Console.WriteLine(""I4.M1.remove"");
     }
 }
 
@@ -25811,34 +26993,68 @@ public interface I3 : I1
             var source2 =
 @"
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        I2 i2 = new Test1();
+        i2.M1 += null;
+        i2.M1 -= null;
+        I4 i4 = new Test1();
+        i4.M1 += null;
+        i4.M1 -= null;
+    }
+}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
         }
 
         private static void ValidateEventImplementationInDerived_01(ModuleSymbol m)
@@ -26477,6 +27693,17 @@ public interface I4
 public interface I5 : I4
 {
 }
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        i2.M1 += null;
+        i2.M1 -= null;
+        i4.M1 += null;
+        i4.M1 -= null;
+    }
+}
 ";
             var source2 =
 @"
@@ -26486,17 +27713,17 @@ public interface I1 : I2, I5
     {
         add 
         {
-            System.Console.WriteLine(""I2.M1"");
+            System.Console.WriteLine(""I2.M1.add"");
         }
-        remove => System.Console.WriteLine(""I2.M1"");
+        remove => System.Console.WriteLine(""I2.M1.remove"");
     }
     event System.Action I4.M1 
     {
         add 
         {
-            System.Console.WriteLine(""I4.M1"");
+            System.Console.WriteLine(""I4.M1.add"");
         }
-        remove => System.Console.WriteLine(""I4.M1"");
+        remove => System.Console.WriteLine(""I4.M1.remove"");
     }
 }
 
@@ -26508,34 +27735,63 @@ public interface I3 : I1
             var source3 =
 @"
 class Test1 : I1
-{}
+{
+    static void Main()
+    {
+        TestHelper.Test(new Test1(), new Test1());
+    }
+}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1 + source2 + source3, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
 
             ValidateEventImplementationInDerived_01(compilation1.SourceModule);
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+            CompileAndVerify(compilation1,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source3, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+            CompileAndVerify(compilation2,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
 
-            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source3, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             ValidateEventImplementationInDerived_01(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: ValidateEventImplementationInDerived_01);
+            CompileAndVerify(compilation3,
+                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.M1.add
+I2.M1.remove
+I4.M1.add
+I4.M1.remove
+",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: ValidateEventImplementationInDerived_01);
 
             var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
@@ -26567,6 +27823,7 @@ class Test1 : I1
         }
 
         [Fact]
+        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void EventImplementationInDerived_12()
         {
             var source1 =
@@ -26582,11 +27839,11 @@ public interface I2 : I1
     {
         add
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.remove"");
         }
     }
 }
@@ -26597,11 +27854,11 @@ public interface I3 : I1
     {
         add
         {
-            System.Console.WriteLine(""I3.I1.M1"");
+            System.Console.WriteLine(""I3.I1.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""I3.I1.M1"");
+            System.Console.WriteLine(""I3.I1.M1.remove"");
         }
     }
 }
@@ -26612,11 +27869,11 @@ public interface I4 : I1
     {
         add
         {
-            System.Console.WriteLine(""I4.I1.M1"");
+            System.Console.WriteLine(""I4.I1.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""I4.I1.M1"");
+            System.Console.WriteLine(""I4.I1.M1.remove"");
         }
     }
 }
@@ -26627,11 +27884,11 @@ public interface I5 : I2, I3
     {
         add
         {
-            System.Console.WriteLine(""I5.I1.M1"");
+            System.Console.WriteLine(""I5.I1.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""I5.I1.M1"");
+            System.Console.WriteLine(""I5.I1.M1.remove"");
         }
     }
 }
@@ -26666,7 +27923,7 @@ public interface I6 : I1, I2, I3, I5
                 VerifyFindImplementationForInterfaceMemberSame(i5m1, i6, i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate1);
+            CompileAndVerify(compilation1, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate1);
 
             var refs1 = new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() };
 
@@ -26705,7 +27962,21 @@ class Test6 : I1, I2, I3, I5
 {}
 
 class Test7 : I6
-{}
+{
+    static void Main()
+    {
+        I1 i1 = new Test5();
+        i1.M1 += null;
+        i1.M1 -= null;
+        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
+        //i1 = new Test6();
+        //i1.M1 += null;
+        //i1.M1 -= null;
+        //i1 = new Test7();
+        //i1.M1 += null;
+        //i1.M1 -= null;
+    }
+}
 ";
             var source5 = @"
 class Test8 : I2, I3
@@ -26714,12 +27985,30 @@ class Test8 : I2, I3
     {
         add
         {
-            System.Console.WriteLine(""Test8.I1.M1"");
+            System.Console.WriteLine(""Test8.I1.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""Test8.I1.M1"");
+            System.Console.WriteLine(""Test8.I1.M1.remove"");
         }
+    }
+    static void Main()
+    {
+        I1 i1 = new Test8();
+        i1.M1 += null;
+        i1.M1 -= null;
+        i1 = new Test9();
+        i1.M1 += null;
+        i1.M1 -= null;
+        i1 = new Test10();
+        i1.M1 += null;
+        i1.M1 -= null;
+        i1 = new Test11();
+        i1.M1 += null;
+        i1.M1 -= null;
+        i1 = new Test12();
+        i1.M1 += null;
+        i1.M1 -= null;
     }
 }
 
@@ -26729,11 +28018,11 @@ class Test9 : I7
     {
         add
         {
-            System.Console.WriteLine(""Test9.I1.M1"");
+            System.Console.WriteLine(""Test9.I1.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""Test9.I1.M1"");
+            System.Console.WriteLine(""Test9.I1.M1.remove"");
         }
     }
 }
@@ -26744,11 +28033,11 @@ class Test10 : I1, I2, I3, I4
     {
         add
         {
-            System.Console.WriteLine(""Test10.M1"");
+            System.Console.WriteLine(""Test10.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""Test10.M1"");
+            System.Console.WriteLine(""Test10.M1.remove"");
         }
     }
 }
@@ -26759,11 +28048,11 @@ class Test11 : I1, I2, I3, I5, I4
     {
         add
         {
-            System.Console.WriteLine(""Test11.M1"");
+            System.Console.WriteLine(""Test11.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""Test11.M1"");
+            System.Console.WriteLine(""Test11.M1.remove"");
         }
     }
 }
@@ -26774,11 +28063,11 @@ class Test12 : I8
     {
         add
         {
-            System.Console.WriteLine(""Test12.M1"");
+            System.Console.WriteLine(""Test12.M1.add"");
         }
         remove
         {
-            System.Console.WriteLine(""Test12.M1"");
+            System.Console.WriteLine(""Test12.M1.remove"");
         }
     }
 }
@@ -26811,7 +28100,7 @@ class Test12 : I8
                     VerifyFindImplementationForInterfaceMemberSame(null, i8, i1m1);
                 }
 
-                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
                 compilation2 = CreateStandardCompilation(source2, new[] { ref1 }, options: TestOptions.DebugDll,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
@@ -26820,11 +28109,11 @@ class Test12 : I8
                 compilation2.VerifyDiagnostics();
                 Validate2(compilation2.SourceModule);
 
-                CompileAndVerify(compilation2, verify: false, symbolValidator: Validate2);
+                CompileAndVerify(compilation2, verify: CoreClrShim.IsRunningOnCoreClr, symbolValidator: Validate2);
 
                 var refs2 = new[] { compilation2.ToMetadataReference(), compilation2.EmitToImageReference() };
 
-                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugDll,
+                var compilation4 = CreateStandardCompilation(source4, new[] { ref1 }, options: TestOptions.DebugExe,
                                                              parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                 Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26850,7 +28139,20 @@ class Test12 : I8
                     VerifyFindImplementationForInterfaceMemberSame(i5m1, test7, i1m1);
                 }
 
-                CompileAndVerify(compilation4, verify: false, symbolValidator: Validate4);
+                CompileAndVerify(compilation4,
+                    expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"I2.I1.M1.add
+I2.I1.M1.remove"
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
+//+ @"
+//I5.I1.M1.add
+//I5.I1.M1.remove
+//I5.I1.M1.add
+//I5.I1.M1.remove
+//"
+,
+                    verify: CoreClrShim.IsRunningOnCoreClr,
+                    symbolValidator: Validate4);
 
                 foreach (var ref2 in refs2)
                 {
@@ -26898,7 +28200,7 @@ class Test12 : I8
                         VerifyFindImplementationForInterfaceMemberSame(null, test5, i1m1);
                     }
 
-                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugDll,
+                    var compilation5 = CreateStandardCompilation(source5, new[] { ref1, ref2 }, options: TestOptions.DebugExe,
                                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
                     Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26923,7 +28225,21 @@ class Test12 : I8
                         VerifyFindImplementationForInterfaceMemberSame(GetSingleEvent(test12), test12, i1m1);
                     }
 
-                    CompileAndVerify(compilation5, verify: false, symbolValidator: Validate5);
+                    CompileAndVerify(compilation5,
+                        expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"Test8.I1.M1.add
+Test8.I1.M1.remove
+Test9.I1.M1.add
+Test9.I1.M1.remove
+Test10.M1.add
+Test10.M1.remove
+Test11.M1.add
+Test11.M1.remove
+Test12.M1.add
+Test12.M1.remove
+",
+                        verify: CoreClrShim.IsRunningOnCoreClr,
+                        symbolValidator: Validate5);
                 }
             }
         }
@@ -26993,6 +28309,7 @@ class Test1 : I2, I3
         }
 
         [Fact]
+        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void EventImplementationInDerived_14()
         {
             var source1 =
@@ -27003,9 +28320,9 @@ public interface I1<T>
     {
         add
         {
-            System.Console.WriteLine(""I1.M1"");
+            System.Console.WriteLine(""I1.M1.add"");
         }
-        remove => System.Console.WriteLine(""I1.M1"");
+        remove => System.Console.WriteLine(""I1.M1.remove"");
     }
 }
 
@@ -27015,9 +28332,9 @@ public interface I2<T> : I1<T>
     {
         add
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.add"");
         }
-        remove => System.Console.WriteLine(""I2.I1.M1"");
+        remove => System.Console.WriteLine(""I2.I1.M1.remove"");
     }
 }
 
@@ -27028,12 +28345,22 @@ public interface I3<T> : I1<T>
             var source2 =
 @"
 class Test1 : I1<int>
-{}
+{
+    static void Main()
+    {
+        I1<int> i1Int = new Test1();
+        i1Int.M1 += null;
+        i1Int.M1 -= null;
+        I1<long> i1Long = new Test2();
+        i1Long.M1 += null;
+        i1Long.M1 -= null;
+    }
+}
 class Test2 : I2<long>
 {}
 ";
 
-            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics();
@@ -27091,24 +28418,51 @@ class Test2 : I2<long>
                 VerifyFindImplementationForInterfaceMemberEqual(test2i2m1, test2, test2i1m1);
             }
 
-            CompileAndVerify(compilation1, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation1, 
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1.add
+//I1.M1.remove
+//I2.I1.M1.add
+//I2.I1.M1.remove
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
-            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             Validate(compilation2.SourceModule);
 
             compilation2.VerifyDiagnostics();
-            CompileAndVerify(compilation2, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation2, 
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1.add
+//I1.M1.remove
+//I2.I1.M1.add
+//I2.I1.M1.remove
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
 
-            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             Validate(compilation3.SourceModule);
 
             compilation3.VerifyDiagnostics();
-            CompileAndVerify(compilation3, verify: false, symbolValidator: Validate);
+            CompileAndVerify(compilation3, 
+// PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20084
+//                expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+//@"I1.M1.add
+//I1.M1.remove
+//I2.I1.M1.add
+//I2.I1.M1.remove
+//",
+                verify: CoreClrShim.IsRunningOnCoreClr,
+                symbolValidator: Validate);
         }
 
         [Fact]
@@ -27142,7 +28496,7 @@ public interface I1 : I2, I5
     }
     int I4.this[int x] 
     {
-        set => System.Console.WriteLine(""I2.M1"");
+        set => System.Console.WriteLine(""I4.M1"");
     }
 }
 
@@ -27150,7 +28504,20 @@ public interface I3 : I1
 {
 }
 ";
-            ValidatePropertyImplementationInDerived_01(source1);
+            var source2 =
+@"
+class Test1 : I1
+{
+    static void Main()
+    {
+        I2 i2 = new Test1();
+        _ = i2[0];
+        I4 i4 = new Test1();
+        i4[0] = 0;
+    }
+}
+";
+            ValidatePropertyImplementationInDerived_01(source1, source2);
         }
 
         [Fact]
@@ -27730,6 +29097,15 @@ public interface I4
 public interface I5 : I4
 {
 }
+
+public class TestHelper
+{
+    public static void Test(I2 i2, I4 i4)
+    {
+        _ = i2[0];
+        i4[0] = i4[0];
+    }
+}
 ";
             var source2 =
 @"
@@ -27746,10 +29122,10 @@ public interface I1 : I2, I5
     {
         get 
         {
-            System.Console.WriteLine(""I2.M1"");
+            System.Console.WriteLine(""I4.M1"");
             return 1;
         }
-        set => System.Console.WriteLine(""I2.M1"");
+        set => System.Console.WriteLine(""I4.M1.set"");
     }
 }
 
@@ -27769,6 +29145,7 @@ public interface I3 : I1
         }
 
         [Fact]
+        [WorkItem(20083, "https://github.com/dotnet/roslyn/issues/20083")]
         public void IndexerImplementationInDerived_12()
         {
             var source1 =
@@ -27784,12 +29161,12 @@ public interface I2 : I1
     {
         get
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.set"");
         }
     }
 }
@@ -27800,12 +29177,12 @@ public interface I3 : I1
     {
         get
         {
-            System.Console.WriteLine(""I3.I1.M1"");
+            System.Console.WriteLine(""I3.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I3.I1.M1"");
+            System.Console.WriteLine(""I3.I1.M1.set"");
         }
     }
 }
@@ -27816,12 +29193,12 @@ public interface I4 : I1
     {
         get
         {
-            System.Console.WriteLine(""I4.I1.M1"");
+            System.Console.WriteLine(""I4.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I4.I1.M1"");
+            System.Console.WriteLine(""I4.I1.M1.set"");
         }
     }
 }
@@ -27832,12 +29209,12 @@ public interface I5 : I2, I3
     {
         get
         {
-            System.Console.WriteLine(""I5.I1.M1"");
+            System.Console.WriteLine(""I5.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""I5.I1.M1"");
+            System.Console.WriteLine(""I5.I1.M1.set"");
         }
     }
 }
@@ -27845,7 +29222,28 @@ public interface I5 : I2, I3
 public interface I6 : I1, I2, I3, I5
 {}
 ";
+            var source4 =
+@"
+class Test5 : I2
+{}
 
+class Test6 : I1, I2, I3, I5
+{}
+
+class Test7 : I6
+{
+    static void Main()
+    {
+        I1 i1 = new Test5();
+        i1[0] = i1[0];
+        // PROTOTYPE(DefaultInterfaceImplementation): These scenarios are blocked by https://github.com/dotnet/roslyn/issues/20083
+        //i1 = new Test6();
+        //i1[0] = i1[0];
+        //i1 = new Test7();
+        //i1[0] = i1[0];
+    }
+}
+";
             var source5 = @"
 class Test8 : I2, I3
 {
@@ -27853,13 +29251,26 @@ class Test8 : I2, I3
     {
         get
         {
-            System.Console.WriteLine(""Test8.I1.M1"");
+            System.Console.WriteLine(""Test8.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test8.I1.M1"");
+            System.Console.WriteLine(""Test8.I1.M1.set"");
         }
+    }
+    static void Main()
+    {
+        I1 i1 = new Test8();
+        i1[0] = i1[0];
+        i1 = new Test9();
+        i1[0] = i1[0];
+        i1 = new Test10();
+        i1[0] = i1[0];
+        i1 = new Test11();
+        i1[0] = i1[0];
+        i1 = new Test12();
+        i1[0] = i1[0];
     }
 }
 
@@ -27869,12 +29280,12 @@ class Test9 : I7
     {
         get
         {
-            System.Console.WriteLine(""Test9.I1.M1"");
+            System.Console.WriteLine(""Test9.I1.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test9.I1.M1"");
+            System.Console.WriteLine(""Test9.I1.M1.set"");
         }
     }
 }
@@ -27885,12 +29296,12 @@ class Test10 : I1, I2, I3, I4
     {
         get
         {
-            System.Console.WriteLine(""Test10.M1"");
+            System.Console.WriteLine(""Test10.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test10.M1"");
+            System.Console.WriteLine(""Test10.M1.set"");
         }
     }
 }
@@ -27901,12 +29312,12 @@ class Test11 : I1, I2, I3, I5, I4
     {
         get
         {
-            System.Console.WriteLine(""Test11.M1"");
+            System.Console.WriteLine(""Test11.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test11.M1"");
+            System.Console.WriteLine(""Test11.M1.set"");
         }
     }
 }
@@ -27917,17 +29328,17 @@ class Test12 : I8
     {
         get
         {
-            System.Console.WriteLine(""Test12.M1"");
+            System.Console.WriteLine(""Test12.M1.get"");
             return 1;
         }
         set
         {
-            System.Console.WriteLine(""Test12.M1"");
+            System.Console.WriteLine(""Test12.M1.set"");
         }
     }
 }
 ";
-            ValidatePropertyImplementationInDerived_12(source1, source5,
+            ValidatePropertyImplementationInDerived_12(source1, source4, source5,
                 new DiagnosticDescription[]
                 {
                 // (2,15): error CS8505: Interface member 'I1.this[int]' does not have a most specific implementation. Neither 'I2.I1.this[int]', nor 'I3.I1.this[int]' are most specific.
@@ -28019,6 +29430,7 @@ class Test1 : I2, I3
         }
 
         [Fact]
+        [WorkItem(20084, "https://github.com/dotnet/roslyn/issues/20084")]
         public void IndexerImplementationInDerived_14()
         {
             var source1 =
@@ -28029,10 +29441,10 @@ public interface I1<T>
     {
         get
         {
-            System.Console.WriteLine(""I1.M1"");
+            System.Console.WriteLine(""I1.M1.get"");
             return 1;
         }
-        set => System.Console.WriteLine(""I1.M1"");
+        set => System.Console.WriteLine(""I1.M1.set"");
     }
 }
 
@@ -28042,18 +29454,33 @@ public interface I2<T> : I1<T>
     {
         get
         {
-            System.Console.WriteLine(""I2.I1.M1"");
+            System.Console.WriteLine(""I2.I1.M1.get"");
             return 1;
         }
-        set => System.Console.WriteLine(""I2.I1.M1"");
+        set => System.Console.WriteLine(""I2.I1.M1.set"");
     }
 }
 
 public interface I3<T> : I1<T>
 {}
 ";
+            var source2 =
+@"
+class Test1 : I1<int>
+{
+    static void Main()
+    {
+        I1<int> i1Int = new Test1();
+        i1Int[0] = i1Int[0];
+        I1<long> i1Long = new Test2();
+        i1Long[0] = i1Long[0];
+    }
+}
+class Test2 : I2<long>
+{}
+";
 
-            ValidatePropertyImplementationInDerived_14(source1);
+            ValidatePropertyImplementationInDerived_14(source1, source2);
         }
 
     }
