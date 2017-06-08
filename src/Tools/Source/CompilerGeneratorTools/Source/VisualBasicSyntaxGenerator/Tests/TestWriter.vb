@@ -475,40 +475,37 @@ Public Class TestWriter
 
     Private Sub GenerateFactoryCallTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
-        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
-            Return ' check for fix
-        End If
+        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then Return ' check for fix
 
-        Dim funcNamePart = If(isGreen, "Green", "Red")
+        Dim funcNamePart = If(isGreen, "Green", "Red"), factoryName = factoryName(nodeKind)
+        With _writer
 
-        _writer.WriteLine("        <Fact>")
-        _writer.Write("        Public Sub ")
+            .WriteLine(
+$"        <Fact>
+        Public Sub Test{funcNamePart}{factoryName}()
+            dim objectUnderTest = Generate{funcNamePart}{factoryName}()")
 
-        _writer.Write("Test{0}{1}", funcNamePart, FactoryName(nodeKind))
-        _writer.WriteLine("()")
-
-        _writer.WriteLine("            dim objectUnderTest = Generate{0}{1}()", funcNamePart, FactoryName(nodeKind))
-
-        'Dim children = GetAllChildrenOfStructure(nodeStructure)
-
-        If isGreen Then
-            _writer.WriteLine("            AttachAndCheckDiagnostics(objectUnderTest)")
-        Else
-            Dim withStat As String = Nothing
-            For Each child In GetAllChildrenOfStructure(nodeStructure)
-                If Not child.IsOptional Then
-                    _writer.WriteLine("            Assert.NotNull(objectUnderTest.{0})", LowerFirstCharacter(child.Name))
-                End If
-                withStat += String.Format(".With{0}(objectUnderTest.{0})", child.Name)
-            Next
-            If (withStat IsNot Nothing) Then
-                _writer.WriteLine("            Dim withObj = objectUnderTest{0}", withStat)
-                _writer.WriteLine("            Assert.Equal(withobj, objectUnderTest)")
+            'Dim children = GetAllChildrenOfStructure(nodeStructure)
+            If isGreen Then
+                .WriteLine("            AttachAndCheckDiagnostics(objectUnderTest)")
+            Else
+                Using withStat As New Text.StringBuilder()
+                    For Each child In GetAllChildrenOfStructure(nodeStructure)
+                        If Not child.IsOptional Then
+                            .WriteLine("            Assert.NotNull(objectUnderTest.{0})", LowerFirstCharacter(child.Name))
+                        End If
+                        withStat.AppendFormat(".With{0}(objectUnderTest.{0})", child.Name)
+                    Next
+                    If withStat.Length > 0 Then
+                        .WriteLine("            Dim withObj = objectUnderTest{0}", withStat.tostring)
+                        .WriteLine("            Assert.Equal(withobj, objectUnderTest)")
+                    End If
+                End Using
             End If
-        End If
 
-        _writer.WriteLine("        End Sub")
-        _writer.WriteLine()
+            .WriteLine("        End Sub")
+            .WriteLine()
+        End With
     End Sub
 
 
@@ -528,30 +525,28 @@ Public Class TestWriter
 
     Private Sub GenerateRewriterTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
-        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
-            Return ' check for fix
-        End If
+        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then Return ' check for fix
 
-        Dim funcNamePart = If(isGreen, "Green", "Red")
-
-        _writer.WriteLine("        <Fact>")
-        _writer.Write("        Public Sub ")
-
-        _writer.Write("Test{0}{1}Rewriter", funcNamePart, FactoryName(nodeKind))
-        _writer.WriteLine("()")
-
-        _writer.WriteLine("            dim oldNode = Generate{0}{1}()", funcNamePart, FactoryName(nodeKind))
-        _writer.WriteLine("            Dim rewriter = New {0}IdentityRewriter()", funcNamePart)
-        _writer.WriteLine("            Dim newNode = rewriter.Visit(oldNode)")
-        _writer.WriteLine("            Assert.Equal(oldNode, newNode)")
-        _writer.WriteLine("        End Sub")
-        _writer.WriteLine()
-
+        Dim funcNamePart = If(isGreen, "Green", "Red"), factoryName = factoryName(nodeKind)
+        With _writer
+            .WriteLine(
+$"        <Fact>
+        Public Sub Test{funcNamePart}{factoryName}Rewriter()
+            Dim oldNode = Generate{funcNamePart}{factoryName}()
+            Dim rewriter = New {funcNamePart}IdentityRewriter()
+            Dim newNode = rewriter.Visit(oldNode)
+            Assert.Equal(oldNode, newNode)
+        End Sub
+")
+        End With
     End Sub
 
     Private Sub GenerateVisitorTests(isGreen As Boolean)
         For Each nodeStructure In _parseTree.NodeStructures.Values
-            If Not nodeStructure.Abstract AndAlso Not nodeStructure.NoFactory AndAlso Not nodeStructure.IsToken AndAlso Not nodeStructure.IsTrivia Then
+            If Not nodeStructure.Abstract AndAlso
+               Not nodeStructure.NoFactory AndAlso
+               Not nodeStructure.IsToken AndAlso
+               Not nodeStructure.IsTrivia Then
                 GenerateVisitorTest(isGreen, nodeStructure)
             End If
         Next
@@ -565,23 +560,19 @@ Public Class TestWriter
 
     Private Sub GenerateVisitorTest(isGreen As Boolean, nodeStructure As ParseNodeStructure, nodeKind As ParseNodeKind)
 
-        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then
-            Return ' check for fix
-        End If
+        If nodeKind.Name.Contains(s_externalSourceDirectiveString) Then Return ' check for fix
 
-        Dim funcNamePart = If(isGreen, "Green", "Red")
-
-        _writer.WriteLine("        <Fact>")
-        _writer.Write("        Public Sub ")
-
-        _writer.Write("Test" + funcNamePart + FactoryName(nodeKind) + "Visitor")
-        _writer.WriteLine("()")
-
-        _writer.WriteLine("            Dim oldNode = Generate" + funcNamePart + FactoryName(nodeKind) + "()")
-        _writer.WriteLine("            Dim visitor = New " + funcNamePart + "NodeVisitor()")
-        _writer.WriteLine("            visitor.Visit(oldNode)")
-        _writer.WriteLine("        End Sub")
-        _writer.WriteLine()
+        Dim funcNamePart = If(isGreen, "Green", "Red"), factoryName = factoryName(nodeKind)
+        With _writer
+            .WriteLine(
+$"        <Fact>
+        Public Sub Test{funcNamePart & factoryName}Visitor()
+            Dim oldNode = Generate{funcNamePart & factoryName}()
+            Dim visitor = New {funcNamePart}NodeVisitor()
+            visitor.Visit(oldNode)
+        End Sub
+")
+        End With
     End Sub
 
     Public Function GetInitValueForType(fieldType As String) As String
