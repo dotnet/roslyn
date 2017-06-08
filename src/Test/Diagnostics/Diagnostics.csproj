@@ -36,6 +36,7 @@
     <Compile Update="PerfMargin\StatusIndicator.xaml.cs">
       <DependentUpon>StatusIndicator.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Waiters\EncapsulateFieldWaiter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
