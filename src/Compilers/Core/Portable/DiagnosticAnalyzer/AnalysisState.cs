@@ -55,12 +55,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private bool _compilationStartGenerated;
         private bool _compilationEndGenerated;
 
-        /// <summary>
-        /// Cached semantic model for the compilation trees.
-        /// PERF: This cache enables us to re-use semantic model's bound node cache across analyzer execution and diagnostic queries.
-        /// </summary>
-        private readonly ConditionalWeakTable<SyntaxTree, SemanticModel> _semanticModelsMap;
-
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
@@ -73,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
-            _semanticModelsMap = new ConditionalWeakTable<SyntaxTree, SemanticModel>();
             _treesWithGeneratedSourceEvents = new HashSet<SyntaxTree>();
             _partialSymbolsWithGeneratedSourceEvents = new HashSet<ISymbol>();
             _compilationStartGenerated = false;

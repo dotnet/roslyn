@@ -116,7 +116,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         public void Dispose()
         {
-            CompilationWithAnalyzers.ClearAnalyzerState(_workspaceAnalyzers);
         }
     }
 }

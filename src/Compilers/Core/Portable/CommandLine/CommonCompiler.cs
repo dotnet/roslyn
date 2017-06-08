@@ -839,12 +839,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     analyzerCts.Cancel();
 
-                    if (analyzerManager != null)
-                    {
-                        // Clear cached analyzer descriptors and unregister exception handlers hooked up to the LocalizableString fields of the associated descriptors.
-                        analyzerManager.ClearAnalyzerState(analyzers);
-                    }
-
                     if (reportAnalyzer)
                     {
                         ReportAnalyzerExecutionTime(consoleOutput, analyzerDriver, Culture, compilation.Options.ConcurrentBuild);
