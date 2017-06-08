@@ -183,7 +183,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
-            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
             commandLine.AppendPlusOrMinusSwitch("/nostdlib", _store, nameof(NoStandardLib));

@@ -747,14 +747,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 case SyntaxKind.IdentifierName:
                     var id = (IdentifierNameSyntax)node;
-                    return (EnumMemberDeclarationSyntax) this.EnumMember(id.Identifier.ToString(), null);
+                    return (EnumMemberDeclarationSyntax)this.EnumMember(id.Identifier.ToString(), null);
 
                 case SyntaxKind.FieldDeclaration:
                     var fd = (FieldDeclarationSyntax)node;
                     if (fd.Declaration.Variables.Count == 1)
                     {
                         var vd = fd.Declaration.Variables[0];
-                        return (EnumMemberDeclarationSyntax) this.EnumMember(vd.Identifier.ToString(), vd.Initializer);
+                        return (EnumMemberDeclarationSyntax)this.EnumMember(vd.Identifier.ToString(), vd.Initializer);
                     }
                     break;
             }
@@ -1853,6 +1853,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
+        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
+        {
+            switch (declaration)
+            {
+                case MethodDeclarationSyntax methodDeclaration:
+                    return WithAccessibility(
+                        methodDeclaration.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                        Accessibility.NotApplicable);
+            }
+
+            return declaration;
+        }
+
+        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
+            => SyntaxFactory.ExplicitInterfaceSpecifier(
+                explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
+
         public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
         {
             switch (declaration.Kind())
@@ -2501,17 +2518,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             public AddMissingTokensRewriter(bool recurse)
             {
-                this._recurse = recurse;
+                _recurse = recurse;
             }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                if (!this._recurse && !this._firstVisit)
+                if (!_recurse && !_firstVisit)
                 {
                     return node;
                 }
 
-                this._firstVisit = false;
+                _firstVisit = false;
                 return base.Visit(node);
             }
 
@@ -2981,7 +2998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
             else
             {
-                return this.WithAccessor(declaration, kind, (AccessorDeclarationSyntax) this.WithStatements(accessor, statements));
+                return this.WithAccessor(declaration, kind, (AccessorDeclarationSyntax)this.WithStatements(accessor, statements));
             }
         }
 
@@ -3823,16 +3840,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
                 case SyntaxKind.QualifiedName:
                     var qname = (QualifiedNameSyntax)expression;
-                    return qname.WithRight((SimpleNameSyntax) this.WithTypeArguments(qname.Right, typeArguments));
+                    return qname.WithRight((SimpleNameSyntax)this.WithTypeArguments(qname.Right, typeArguments));
 
                 case SyntaxKind.AliasQualifiedName:
                     var aname = (AliasQualifiedNameSyntax)expression;
-                    return aname.WithName((SimpleNameSyntax) this.WithTypeArguments(aname.Name, typeArguments));
+                    return aname.WithName((SimpleNameSyntax)this.WithTypeArguments(aname.Name, typeArguments));
 
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
                     var sma = (MemberAccessExpressionSyntax)expression;
-                    return sma.WithName((SimpleNameSyntax) this.WithTypeArguments(sma.Name, typeArguments));
+                    return sma.WithName((SimpleNameSyntax)this.WithTypeArguments(sma.Name, typeArguments));
 
                 default:
                     return expression;

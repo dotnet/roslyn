@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
-                            explicitInterfaceSymbol: null,
+                            explicitInterfaceImplementations: default,
                             name: @event.Name));
                         break;
                     case SymbolKind.Method:
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
                             returnType: method.ReturnType,
                             returnsByRef: method.ReturnsByRef,
-                            explicitInterfaceSymbol: null,
+                            explicitInterfaceImplementations: default,
                             name: method.Name,
                             typeParameters: method.TypeParameters,
                             parameters: method.Parameters));
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.IsUnsafe()),
                             type: property.Type,
                             returnsByRef: property.ReturnsByRef,
-                            explicitInterfaceSymbol: null,
+                            explicitInterfaceImplementations: default,
                             name: property.Name,
                             parameters: property.Parameters,
                             getMethod: property.GetMethod == null ? null : (property.GetMethod.DeclaredAccessibility == Accessibility.Public ? property.GetMethod : null),
