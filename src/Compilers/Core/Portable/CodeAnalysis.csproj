@@ -864,6 +864,7 @@
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis" />
     <InternalsVisibleTo Include="VBCSCompiler" />
     <InternalsVisibleTo Include="VBCSCompilerPortable" />
+    <InternalsVisibleToFSharp Include="FSharp.LanguageService" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.Emit.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.WinRT.UnitTests" />
