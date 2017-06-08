@@ -166,7 +166,7 @@ namespace Microsoft.Cci
                         }
                         catch (Exception e) when (!(e is OperationCanceledException))
                         {
-                            throw new PeWritingException(e);
+                            throw new PdbWritingException(e);
                         }
                     }
                 }

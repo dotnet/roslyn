@@ -4333,8 +4333,8 @@ class C
                 pdbStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
                 var result = compilation.Emit(output, pdbStream, options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
                 result.Diagnostics.Verify(
-                    // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
-                    Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(pdbStream.ThrownException.ToString()).WithLocation(1, 1)
+                    // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
                     );
             }
         }
