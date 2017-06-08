@@ -1597,5 +1597,28 @@ namespace System
 ";
             CreateCompilation(source).VerifyDiagnostics();
         }
+
+        [Fact]
+        public void ChainedUserDefinedImplicitConversionsOnTupleTypes()
+        {
+            string source = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        B b;
+        b = (b, 1);
+        b = ((b, 1), 1);
+        b = (((b, 1), 1), 1);
+        b = ((((b, 1), 1), 1), 1);
+    }
+}
+public struct B {
+    public static implicit operator B((B, int) e1) => default(B);
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics();
+        }
     }
 }
