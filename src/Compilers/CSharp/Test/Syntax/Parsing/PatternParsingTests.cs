@@ -156,6 +156,32 @@ class C
                 );
         }
 
+        [Fact, WorkItem(245498, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=245498")]
+        public void ThrowExpression_Bad2()
+        {
+            var test = @"using System;
+
+class Program
+{
+    static int Main(string[] args)
+    {
+        var result = Main(
+        throw new NotImplementedException();
+    }
+}";
+            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+                // (8,44): error CS1026: ) expected
+                //         throw new NotImplementedException();
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(8, 44),
+                // (8,9): error CS8115: A throw expression is not allowed in this context.
+                //         throw new NotImplementedException();
+                Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(8, 9),
+                // (5,16): error CS0161: 'Program.Main(string[])': not all code paths return a value
+                //     static int Main(string[] args)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("Program.Main(string[])").WithLocation(5, 16)
+                );
+        }
+
         [Fact]
         public void ThrowExpression()
         {
