@@ -903,13 +903,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (slot >= this.State.Assigned.Capacity) Normalize(ref this.State);
                     if (slot > 0 && !this.State.IsAssigned(slot))
                     {
-                        ReportUnassignedIfOutsideLocalFunction(symbol, node, slot);
+                        ReportUnassignedIfNotCapturedInLocalFunction(symbol, node, slot);
                     }
                 }
             }
         }
 
-        private void ReportUnassignedIfOutsideLocalFunction(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration = true)
+        private void ReportUnassignedIfNotCapturedInLocalFunction(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration = true)
         {
             // If the symbol is captured by the nearest
             // local function, record the read and skip the diagnostic
@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.State.Reachable && !IsAssigned(expr, out int unassignedSlot))
             {
-                ReportUnassignedIfOutsideLocalFunction(fieldSymbol, node, unassignedSlot);
+                ReportUnassignedIfNotCapturedInLocalFunction(fieldSymbol, node, unassignedSlot);
             }
 
             NoteRead(expr);
@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int unassignedSlot;
                         if (this.State.Reachable && !IsAssigned(node, out unassignedSlot))
                         {
-                            ReportUnassignedIfOutsideLocalFunction(backingField, node.Syntax, unassignedSlot);
+                            ReportUnassignedIfNotCapturedInLocalFunction(backingField, node.Syntax, unassignedSlot);
                         }
                     }
                 }
