@@ -29,6 +29,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public event EventHandler UpdatedOnDisk;
 
+        /// <summary>
+        /// Operations on <see cref="IVsFileChangeEx"/> synchronize on a single lock within that service, so there's no point
+        /// in us trying to have multiple threads all trying to use it at the same time. When we queue a new background thread operation
+        /// we'll just do a continuation after the previous one. Any callers of <see cref="EnsureSubscription"/> will bypass that queue
+        /// and ensure it happens quickly.
+        /// </summary>
+        private static Task s_lastBackgroundTask = Task.CompletedTask;
+
+        /// <summary>
+        /// The object to use as a monitor guarding <see cref="s_lastBackgroundTask"/>. This lock is not strictly necessary, since we don't need
+        /// to ensure the background tasks happen entirely sequentially -- if we just removed the lock, and two subscriptions happened, we end up with
+        /// a 'branching' set of continuations, but that's fine since we're generally not running things in parallel. But it's easy to write,
+        /// and easy to delete if this lock has contention itself. Given we tend to call <see cref="StartFileChangeListeningAsync"/> on the UI
+        /// thread, I don't expect to see contention.
+        /// </summary>
+        private static readonly object s_lastBackgroundTaskGate = new object();
+
         public FileChangeTracker(IVsFileChangeEx fileChangeService, string filePath)
         {
             _fileChangeService = fileChangeService;
@@ -77,8 +94,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return newCookie;
             }, LazyThreadSafetyMode.ExecutionAndPublication);
 
-            // file change service is free-threaded. start running it in background right away
-            Task.Run(() => _fileChangeCookie.Value, CancellationToken.None);
+            lock (s_lastBackgroundTaskGate)
+            {
+                s_lastBackgroundTask = s_lastBackgroundTask.ContinueWith(_ => _fileChangeCookie.Value, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+            }
         }
 
         public void StopFileChangeListening()
