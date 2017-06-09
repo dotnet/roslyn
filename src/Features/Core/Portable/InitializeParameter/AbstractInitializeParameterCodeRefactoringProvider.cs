@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
         protected abstract SyntaxNode GetTypeBlock(SyntaxNode node);
 
         protected abstract void InsertStatement(
-            SyntaxEditor editor, TMemberDeclarationSyntax memberDeclaration, IBlockStatement blockStatementOpt,
+            SyntaxEditor editor, TMemberDeclarationSyntax memberDeclaration,
             SyntaxNode statementToAddAfterOpt, TStatementSyntax statement);
 
         protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsAsync(

@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => InitializeParameterHelpers.GetBody(containingMember);
 
-        protected override void InsertStatement(SyntaxEditor editor, BaseMethodDeclarationSyntax methodDeclarationSyntax, IBlockStatement blockStatementOpt, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, methodDeclarationSyntax, blockStatementOpt, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, BaseMethodDeclarationSyntax methodDeclarationSyntax, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, methodDeclarationSyntax, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);

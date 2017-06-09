@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -26,38 +25,37 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static void InsertStatement(
             SyntaxEditor editor,
             BaseMethodDeclarationSyntax methodDeclaration,
-            IBlockStatement blockStatementOpt,
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
             var generator = editor.Generator;
 
-            var body = blockStatementOpt?.Syntax;
-            if (body is ArrowExpressionClauseSyntax arrowExpression)
+            if (methodDeclaration.ExpressionBody != null)
             {
                 // If this is a => method, then we'll have to convert the method to have a block
                 // body.  Add the new statement as the first/last statement of the new block 
                 // depending if we were asked to go after something or not.
-                var methodBase = (BaseMethodDeclarationSyntax)body.Parent;
-
                 if (statementToAddAfterOpt == null)
                 {
-                    editor.SetStatements(methodBase,
+                    editor.SetStatements(
+                        methodDeclaration,
                         ImmutableArray.Create(
                             statement,
-                            generator.ExpressionStatement(arrowExpression.Expression)));
+                            generator.ExpressionStatement(methodDeclaration.ExpressionBody.Expression)));
                 }
                 else
                 {
-                    editor.SetStatements(methodBase,
+                    editor.SetStatements(
+                        methodDeclaration,
                         ImmutableArray.Create(
-                            generator.ExpressionStatement(arrowExpression.Expression),
+                            generator.ExpressionStatement(methodDeclaration.ExpressionBody.Expression),
                             statement));
                 }
             }
-            else if (body is BlockSyntax block)
+            else if (methodDeclaration.Body != null)
             {
                 // Look for the statement we were asked to go after.
+                var block = methodDeclaration.Body;
                 var indexToAddAfter = block.Statements.IndexOf(s => s == statementToAddAfterOpt);
                 if (indexToAddAfter >= 0)
                 {

@@ -264,9 +264,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
             var statementToAddAfterOpt = TryGetStatementToAddInitializationAfter(
                 semanticModel, parameter, blockStatementOpt, cancellationToken);
 
-            InsertStatement(
-                editor, memberDeclaration, blockStatementOpt, 
-                statementToAddAfterOpt, initializationStatement);
+            InsertStatement(editor, memberDeclaration, statementToAddAfterOpt, initializationStatement);
 
             return document.WithSyntaxRoot(editor.GetChangedRoot());
         }
