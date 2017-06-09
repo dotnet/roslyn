@@ -58,9 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                symbol = GetNonFieldSymbol(slot);
-                Debug.Assert((object)symbol != null);
-                _result.Add(symbol);
+                _result.Add(GetNonFieldSymbol(slot));
                 base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
             }
         }

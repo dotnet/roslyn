@@ -98,8 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // if the field access is reported as unassigned it should mean the original local
                 // or parameter flows in, so we should get the symbol associated with the expression
-                var inSymbol = symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol;
-                _dataFlowsIn.Add(inSymbol);
+                _dataFlowsIn.Add(symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol);
             }
 
             base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
