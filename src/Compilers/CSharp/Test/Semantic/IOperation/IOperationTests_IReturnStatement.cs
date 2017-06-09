@@ -23,8 +23,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')
-";
+            string expectedOperationTree = @"IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return;')";
             var expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -41,7 +40,8 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return true;')
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return true;')
   ILiteralExpression (OperationKind.LiteralExpression, Type: System.Boolean, Constant: True) (Syntax: 'true')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -62,8 +62,10 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return 0;')
-  ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')";
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return 0;')
+  ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<YieldStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);

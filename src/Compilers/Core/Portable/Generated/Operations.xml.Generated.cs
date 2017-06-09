@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -3528,6 +3529,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         protected BaseReturnStatement(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
                     base(kind, isInvalid, syntax, type, constantValue)
         {
+            Debug.Assert(kind == OperationKind.ReturnStatement
+                      || kind == OperationKind.YieldReturnStatement
+                      || kind == OperationKind.YieldBreakStatement);
         }
         /// <summary>
         /// Value to be returned.
