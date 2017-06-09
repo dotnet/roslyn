@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
@@ -31,6 +33,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private bool _hasCurrentlyActiveContext;
 
+        private const int MaxDumpCount = 5;
+
         static VisualStudioInstanceFactory()
         {
             var majorVsProductVersion = VsProductVersion.Split('.')[0];
@@ -39,7 +43,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 throw new PlatformNotSupportedException("The Visual Studio Integration Test Framework is only supported on Visual Studio 15.0 and later.");
             }
-
         }
 
         public VisualStudioInstanceFactory()
@@ -52,8 +55,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             try
             {
-                var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
-                var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
+                var assemblyDirectory = GetAssemblyDirectory();
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
                 var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
 
@@ -143,6 +145,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             DTE dte;
             ImmutableHashSet<string> supportedPackageIds;
             string installationPath;
+            string dumpDirectoryPath;
 
             if (shouldStartNewInstance)
             {
@@ -154,6 +157,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 installationPath = instance.GetInstallationPath();
 
                 hostProcess = StartNewVisualStudioProcess(installationPath);
+                dumpDirectoryPath = StartProcDump(hostProcess.Id);
+
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
             }
@@ -169,11 +174,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 dte = _currentlyRunningInstance.Dte;
                 supportedPackageIds = _currentlyRunningInstance.SupportedPackageIds;
                 installationPath = _currentlyRunningInstance.InstallationPath;
+                dumpDirectoryPath = _currentlyRunningInstance.DumpDirectoryPath;
 
                 _currentlyRunningInstance.Close(exitHostProcess: false);
             }
 
-            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath);
+            _currentlyRunningInstance = new VisualStudioInstance(hostProcess, dte, supportedPackageIds, installationPath, dumpDirectoryPath);
         }
 
         private static ISetupConfiguration GetSetupConfiguration()
@@ -272,10 +278,92 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             IntegrationHelper.KillProcess("dexplore");
 
             var process = Process.Start(vsExeFile, VsLaunchArgs);
-
             Debug.WriteLine($"Launched a new instance of Visual Studio. (ID: {process.Id})");
 
             return process;
+        }
+
+        // Starts ProcDump against the processId.
+        // Returns the path to the dump directory.
+        private static string StartProcDump(int processId)
+        {
+            Debug.WriteLine("Ensuring ProcDump");
+            var procDumpFilePath = EnsureProcDump();
+            Debug.WriteLine("Ensured ProcDump");
+            var dumpDirectory = CreateDumpDirectory();
+            var currentDumpDirectory = Path.Combine(dumpDirectory, Guid.NewGuid().ToString());
+            if (Directory.EnumerateFiles(dumpDirectory, "*.*", SearchOption.AllDirectories).Count() < MaxDumpCount)
+            {
+                if (!Directory.Exists(currentDumpDirectory))
+                {
+                    Directory.CreateDirectory(currentDumpDirectory);
+                }
+
+                var procDumpProcess = Process.Start(procDumpFilePath, $" /accepteula -ma -e -h -t -w {processId} {currentDumpDirectory}");
+                Debug.WriteLine($"Launched ProcDump attached to {processId}");
+            }
+            else
+            {
+                Debug.WriteLine($"Dump directory created but number of dumps created by previous tests exceed the max dump count limit. No more dumps will be created during the session.");
+            }
+
+            return currentDumpDirectory;
+        }
+
+        // Ensure that procdump is available on the machine. 
+        // Returns the path to the file that contains the procdump binaries (both 32 and 64 bit)
+        private static string EnsureProcDump()
+        {
+            // Jenkins images default to having procdump installed in the root.  Use that if available to avoid
+            // an unnecessary download.
+            var defaultPath = @"c:\SysInternals\procdump.exe";
+            Debug.WriteLine($"Looking for {defaultPath}");
+            if (File.Exists(defaultPath))
+            {
+                Debug.WriteLine("Found");
+                return defaultPath;
+            }
+            Debug.WriteLine("Not found");
+
+            var assemblyDirectory = GetAssemblyDirectory();
+            var toolsDir = Path.Combine(assemblyDirectory, "Tools");
+            var outDir = Path.Combine(toolsDir, "ProcDump");
+            var filePath = Path.Combine(outDir, "procdump.exe");
+            Debug.WriteLine($"Looking for {filePath}");
+            if (!File.Exists(filePath))
+            {
+                Debug.WriteLine("Not found");
+                Debug.WriteLine($"Creating {outDir}");
+                Directory.CreateDirectory(outDir);
+                var zipFilePath = Path.Combine(toolsDir, "procdump.zip");
+                var client = new WebClient();
+                var url = "https://download.sysinternals.com/files/Procdump.zip";
+                Debug.WriteLine($"Downloading {url} to {zipFilePath}");
+                client.DownloadFile(url, zipFilePath);
+                Debug.WriteLine($"Extracting {zipFilePath} into {outDir}");
+                ZipFile.ExtractToDirectory(zipFilePath, outDir);
+            }
+            else
+            {
+                Debug.WriteLine("Found");
+            }
+
+            Debug.WriteLine($"ProcDump should be in {filePath}");
+            return filePath;
+        }
+
+        private static string CreateDumpDirectory()
+        {
+            var assemblyDirectory = GetAssemblyDirectory();
+            var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Dumps");
+            Directory.CreateDirectory(fullPath);
+            return fullPath;
+        }
+
+        private static string GetAssemblyDirectory()
+        {
+            var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
+            return Path.GetDirectoryName(assemblyPath);
         }
 
         public void Dispose()

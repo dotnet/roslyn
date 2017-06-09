@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -70,12 +72,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public string DumpDirectoryPath { get; }
+
+        private bool _exceptionHappened;
+
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, string dumpDirectoryPath)
         {
             HostProcess = hostProcess;
             Dte = dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
+            DumpDirectoryPath = dumpDirectoryPath;
+
+            _exceptionHappened = false;
+            AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
 
             StartRemoteIntegrationService(dte);
 
@@ -179,6 +189,16 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (exitHostProcess)
             {
                 CloseHostProcess();
+
+                AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
+
+                if (!_exceptionHappened)
+                {
+                    if (Directory.Exists(DumpDirectoryPath))
+                    {
+                        Directory.Delete(DumpDirectoryPath);
+                    }
+                }
             }
         }
 
@@ -249,6 +269,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             });
 
             return result;
+        }
+
+        private void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
+        {
+            _exceptionHappened = true;
         }
     }
 }
