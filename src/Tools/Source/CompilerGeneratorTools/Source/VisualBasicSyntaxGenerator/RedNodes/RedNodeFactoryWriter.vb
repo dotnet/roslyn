@@ -431,14 +431,14 @@ Friend Class RedNodeFactoryWriter
     End Function
 
     Private Sub CheckKind(structureName As String)
-        _writer.WriteLine("            If Not SyntaxFacts.Is{0}(kind) Then", structureName)
-        _writer.WriteLine("                Throw New ArgumentException(""kind"")")
+        _writer.WriteLine($"            If Not SyntaxFacts.Is{structureName}(kind) Then")
+        _writer.WriteLine("                Throw New ArgumentException(NameOf(kind))")
         _writer.WriteLine("            End If")
     End Sub
 
     Private Sub CheckParam(name As String)
-        _writer.WriteLine("            if {0} Is Nothing Then", name)
-        _writer.WriteLine("                Throw New ArgumentNullException(NameOf({0}))", name)
+        _writer.WriteLine($"            if {name} Is Nothing Then")
+        _writer.WriteLine($"                Throw New ArgumentNullException(NameOf({name}))")
         _writer.WriteLine("            End If")
     End Sub
 

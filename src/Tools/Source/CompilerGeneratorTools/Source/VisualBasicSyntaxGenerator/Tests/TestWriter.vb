@@ -282,7 +282,7 @@ End Namespace")
                         ' Hack: remove when the factory methods have been fixed to not contain overloads.
                         If nodeStructure.Name = "MemberAccessExpressionSyntax" Then
                             If first Then
-                                callTokens.Add(String.Format("CType(Nothing, {0}{1})", namespacePrefix, ChildFieldTypeRef(child)))
+                                callTokens.Add($"CType(Nothing, {namespacePrefix}{ ChildFieldTypeRef(child)})")
                             End If
                         Else
                             callTokens.Add("Nothing")

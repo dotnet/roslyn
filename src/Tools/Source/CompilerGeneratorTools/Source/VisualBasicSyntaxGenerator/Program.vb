@@ -22,18 +22,19 @@ Friend Module Program
 
             For Each arg In args
                 Dim c = arg.ToLowerInvariant()
-                If c = "/test" OrElse c = "/source" OrElse c = "/gettext" Then
-                    If outputKind IsNot Nothing Then
+                Select Case c
+                    Case "/test", "/source", "/gettext"
+                        If outputKind IsNot Nothing Then
+                            PrintUsage()
+                            Return exitWithErrors
+                        End If
+                        outputKind = c
+                    Case "/?"
                         PrintUsage()
                         Return exitWithErrors
-                    End If
-                    outputKind = c
-                ElseIf c = "/?" Then
-                    PrintUsage()
-                    Return exitWithErrors
-                Else
-                    paths.Add(arg)
-                End If
+                    Case Else
+                        paths.Add(arg)
+                End Select
             Next
 
             If paths.Count <> 2 Then

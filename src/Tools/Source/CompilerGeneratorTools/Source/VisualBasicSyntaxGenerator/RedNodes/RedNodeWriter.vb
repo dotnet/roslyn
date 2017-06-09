@@ -26,9 +26,10 @@ Friend Class RedNodeWriter
 
     Private Sub GenerateMainNamespace()
         If Not String.IsNullOrEmpty(_parseTree.NamespaceName) Then
-            _writer.WriteLine()
-            _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName))
-            _writer.WriteLine()
+            _writer.WriteLine(
+$"
+Namespace {Ident(_parseTree.NamespaceName)}
+")
         End If
 
         ' We no longer generate SyntaxKind. Instead we write it by hand to ensure we do
@@ -52,9 +53,10 @@ Friend Class RedNodeWriter
 
     Private Sub GenerateSyntaxNamespace()
         If Not String.IsNullOrEmpty(_parseTree.NamespaceName) Then
-            _writer.WriteLine()
-            _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName & ".Syntax"))
-            _writer.WriteLine()
+            _writer.WriteLine(
+$"
+Namespace {Ident(_parseTree.NamespaceName & ".Syntax")}
+")
         End If
 
         GenerateEnumTypes()
@@ -100,13 +102,13 @@ Friend Class RedNodeWriter
         ' XML comment
         GenerateXmlComment(_writer, kind, 8)
 
-        _writer.Write("        {0}", Ident(kind.Name))
+        _writer.Write($"        {Ident(kind.Name)}")
 
         For i = 1 To 35 - Ident(kind.Name).Length
             _writer.Write(" ")
         Next
 
-        _writer.Write("' {0}", StructureTypeName(kind.NodeStructure))
+        _writer.Write($"' {StructureTypeName(kind.NodeStructure)}")
 
         ' Write the list of parent classes also.
         Dim struct = kind.NodeStructure.ParentStructure
@@ -132,22 +134,25 @@ Friend Class RedNodeWriter
         '    Requires(startLocation >= 0)
         '    
         '       Select Case green.Kind
-        _writer.WriteLine("Partial Public MustInherit Class {0}", StructureTypeName(_parseTree.RootStructure))
-        _writer.WriteLine("    Friend Shared Function CreateRed(ByVal green As Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}, ByVal parent As {0}, ByVal startLocation As Integer) As {0}", StructureTypeName(_parseTree.RootStructure))
-        _writer.WriteLine("        Debug.Assert(green IsNot Nothing)")
-        _writer.WriteLine("        Debug.Assert(startLocation >= 0)")
-        _writer.WriteLine("")
-        _writer.WriteLine("        Select Case green.Kind")
+        Dim name = StructureTypeName(_parseTree.RootStructure)
+        _writer.WriteLine(
+ $"Partial Public MustInherit Class {name}
+    Friend Shared Function CreateRed(ByVal green As Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{name}, ByVal parent As {name}, ByVal startLocation As Integer) As {name}
+        Debug.Assert(green IsNot Nothing)
+        Debug.Assert(startLocation >= 0)
+
+        Select Case green.Kind")
 
         For Each nodeStructure In _parseTree.NodeStructures.Values
             GenerateFactoryCase(nodeStructure)
         Next
 
-        _writer.WriteLine("            Case Else")
-        _writer.WriteLine("                Throw New InvalidOperationException(""unexpected node kind"")")
-        _writer.WriteLine("        End Select")
-        _writer.WriteLine("    End Function")
-        _writer.WriteLine("End Class")
+        _writer.WriteLine(
+"            Case Else
+        Throw New InvalidOperationException(""unexpected node kind"")
+        End Select
+    End Function
+End Class")
 
         '       Case Else
         '        Throw New InvalidOperationException("unexpected node kind")
@@ -157,25 +162,26 @@ Friend Class RedNodeWriter
     End Sub
 
     Private Sub GenerateFactoryCase(nodeStructure As ParseNodeStructure)
-        If nodeStructure.Abstract Then
-            Return
-        End If
+        If nodeStructure.Abstract Then Return
 
         Dim kinds = nodeStructure.NodeKinds
         Dim first As Boolean = True
         For Each kind In kinds
             If first Then
-                _writer.Write("            Case SyntaxKind." & kind.Name)
+                _writer.Write(
+$"            Case SyntaxKind.{kind.Name}")
                 first = False
             Else
-                _writer.Write("," & vbCrLf)
-                _writer.Write("                 SyntaxKind." & kind.Name)
+                _writer.Write(
+$",
+                 SyntaxKind.{kind.Name}")
 
             End If
         Next
-        _writer.WriteLine("")
-        _writer.WriteLine("                Return New " & StructureTypeName(nodeStructure) & "(green, parent, startLocation)")
-        _writer.WriteLine("")
+        _writer.WriteLine(
+$"
+                Return New {StructureTypeName(nodeStructure)}(green, parent, startLocation)
+")
     End Sub
 
     Private Sub GenerateNodeStructures()
@@ -191,10 +197,8 @@ Friend Class RedNodeWriter
         ' XML comment
         GenerateXmlComment(_writer, enumeration, 4)
 
-        If enumeration.IsFlags Then
-            _writer.WriteLine("    <Flags()> _")
-        End If
-        _writer.WriteLine("    Public Enum {0}", EnumerationTypeName(enumeration))
+        If enumeration.IsFlags Then _writer.WriteLine("    <Flags()>")
+        _writer.WriteLine($"    Public Enum {EnumerationTypeName(enumeration)}")
 
         For Each enumerator In enumeration.Enumerators
             GenerateEnumeratorVariable(enumerator, enumeration.IsFlags)
@@ -212,10 +216,8 @@ Friend Class RedNodeWriter
         ' XML comment
         GenerateXmlComment(_writer, enumerator, 8)
 
-        _writer.Write("        {0}", Ident(enumerator.Name))
-        If generateValue Then
-            _writer.Write(" = {0}", GetConstantValue(enumerator.Value))
-        End If
+        _writer.Write($"        {Ident(enumerator.Name)}")
+        If generateValue Then _writer.Write($" = {GetConstantValue(enumerator.Value)}")
         _writer.WriteLine()
     End Sub
 
@@ -231,94 +233,93 @@ Friend Class RedNodeWriter
 
         ' XML comment
         GenerateXmlComment(_writer, nodeStructure, 4)
+        With _writer
+            ' Class name
+            .Write("    ")
+            If (nodeStructure.PartialClass) Then .Write("Partial ")
 
-        ' Class name
-        _writer.Write("    ")
-        If (nodeStructure.PartialClass) Then
-            _writer.Write("Partial ")
-        End If
-        If _parseTree.IsAbstract(nodeStructure) Then
-            _writer.WriteLine("Public MustInherit Class {0}", StructureTypeName(nodeStructure))
-        ElseIf Not nodeStructure.HasDerivedStructure Then
-            _writer.WriteLine("Public NotInheritable Class {0}", StructureTypeName(nodeStructure))
-        Else
-            _writer.WriteLine("Public Class {0}", StructureTypeName(nodeStructure))
-        End If
+            Dim stName = StructureTypeName(nodeStructure)
 
-        ' Base class
-        If Not IsRoot(nodeStructure) Then
-            _writer.WriteLine("        Inherits {0}", StructureTypeName(nodeStructure.ParentStructure))
-        End If
-        _writer.WriteLine()
-
-        'Create members
-        GenerateNodeStructureMembers(nodeStructure)
-
-        ' Create the constructor.
-        GenerateNodeStructureConstructor(nodeStructure)
-
-        ' Create the IsTerminal property
-        If nodeStructure.ParentStructure IsNot Nothing AndAlso nodeStructure.IsTerminal <> nodeStructure.ParentStructure.IsTerminal Then
-            GenerateIsTerminal(nodeStructure)
-        End If
-
-        ' Create the property accessor for each of the fields
-        Dim allFields = GetAllFieldsOfStructure(nodeStructure)
-        For i = 0 To allFields.Count - 1
-            GenerateNodeFieldProperty(allFields(i), StructureTypeName(nodeStructure), allFields(i).ContainingStructure IsNot nodeStructure)
-        Next
-
-        ' Create the property accessor for each of the children
-
-        Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
-        For i = 0 To allChildren.Count - 1
-            Dim child = allChildren(i)
-            If child.IsList AndAlso child.IsSeparated Then
-                GenerateNodeSeparatedListChildProperty(nodeStructure, child, i, child.ContainingStructure IsNot nodeStructure)
+            If _parseTree.IsAbstract(nodeStructure) Then
+                .WriteLine($"Public MustInherit Class {stName}")
+            ElseIf Not nodeStructure.HasDerivedStructure Then
+                .WriteLine($"Public NotInheritable Class {stName}")
             Else
-                GenerateNodeChildProperty(nodeStructure, child, i, child.ContainingStructure IsNot nodeStructure)
+                .WriteLine($"Public Class {stName}")
             End If
-            GenerateNodeWithChildProperty(child, i, nodeStructure)
 
-            If child.IsList Then
-                GenerateChildListAccessor(nodeStructure, child)
-            ElseIf HasNestedList(nodeStructure, child) Then
-                GeneratedNestedChildListAccessor(nodeStructure, child)
+            ' Base class
+            If Not IsRoot(nodeStructure) Then .WriteLine($"        Inherits {StructureTypeName(nodeStructure.ParentStructure)}")
+            _writer.WriteLine()
+
+            'Create members
+            GenerateNodeStructureMembers(nodeStructure)
+
+            ' Create the constructor.
+            GenerateNodeStructureConstructor(nodeStructure)
+
+            ' Create the IsTerminal property
+            If nodeStructure.ParentStructure IsNot Nothing AndAlso nodeStructure.IsTerminal <> nodeStructure.ParentStructure.IsTerminal Then
+                GenerateIsTerminal(nodeStructure)
             End If
-        Next
 
-        If allChildren.Count > 0 Then
-            'GenerateGetSlot(nodeStructure, allChildren)
-            GenerateGetCachedSlot(nodeStructure, allChildren)
-            GenerateGetNodeSlot(nodeStructure, allChildren)
-            'GenerateGetSlotCount(nodeStructure, allChildren)
-        End If
+            ' Create the property accessor for each of the fields
+            Dim allFields = GetAllFieldsOfStructure(nodeStructure)
+            For i = 0 To allFields.Count - 1
+                GenerateNodeFieldProperty(allFields(i), StructureTypeName(nodeStructure), allFields(i).ContainingStructure IsNot nodeStructure)
+            Next
 
-        ' Visitor accept method
-        If Not String.IsNullOrEmpty(_parseTree.VisitorName) Then
-            GenerateAccept(nodeStructure)
-        End If
+            ' Create the property accessor for each of the children
 
-        GenerateUpdate(nodeStructure)
+            Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
+            For i = 0 To allChildren.Count - 1
+                Dim child = allChildren(i)
+                If child.IsList AndAlso child.IsSeparated Then
+                    GenerateNodeSeparatedListChildProperty(nodeStructure, child, i, child.ContainingStructure IsNot nodeStructure)
+                Else
+                    GenerateNodeChildProperty(nodeStructure, child, i, child.ContainingStructure IsNot nodeStructure)
+                End If
+                GenerateNodeWithChildProperty(child, i, nodeStructure)
 
-        ' Special methods for the root node.
-        If IsRoot(nodeStructure) Then
-            GenerateRootNodeSpecialMethods(nodeStructure)
-        End If
+                If child.IsList Then
+                    GenerateChildListAccessor(nodeStructure, child)
+                ElseIf HasNestedList(nodeStructure, child) Then
+                    GeneratedNestedChildListAccessor(nodeStructure, child)
+                End If
+            Next
 
-        ' End the class
-        _writer.WriteLine("    End Class")
-        _writer.WriteLine()
+            If allChildren.Count > 0 Then
+                'GenerateGetSlot(nodeStructure, allChildren)
+                GenerateGetCachedSlot(nodeStructure, allChildren)
+                GenerateGetNodeSlot(nodeStructure, allChildren)
+                'GenerateGetSlotCount(nodeStructure, allChildren)
+            End If
+
+            ' Visitor accept method
+            If Not String.IsNullOrEmpty(_parseTree.VisitorName) Then GenerateAccept(nodeStructure)
+
+            GenerateUpdate(nodeStructure)
+
+            ' Special methods for the root node.
+            If IsRoot(nodeStructure) Then GenerateRootNodeSpecialMethods(nodeStructure)
+
+            ' End the class
+            .WriteLine(
+"    End Class
+")
+        End With
     End Sub
 
     Private Sub GenerateChildListAccessor(nodeStructure As ParseNodeStructure, child As ParseNodeChild)
         If Not _parseTree.IsAbstract(nodeStructure) Then
             Dim kindType = KindTypeStructure(child.ChildKind)
             Dim itemType = If(kindType.IsToken, "SyntaxToken", kindType.Name)
-            _writer.WriteLine("        Public Shadows Function Add{0}(ParamArray items As {1}()) As {2}", child.Name, itemType, nodeStructure.Name)
-            _writer.WriteLine("            Return Me.With{0}(Me.{0}.AddRange(items))", child.Name)
-            _writer.WriteLine("        End Function")
-            _writer.WriteLine()
+            Dim Name = child.Name
+            _writer.WriteLine(
+ $"        Public Shadows Function Add{Name}(ParamArray items As {itemType}()) As {nodeStructure.Name}
+            Return Me.With{Name}(Me.{Name}.AddRange(items))
+        End Function
+")
         End If
     End Sub
 
@@ -357,31 +358,34 @@ Friend Class RedNodeWriter
                 Dim nestedList = GetNestedList(nodeStructure, child)
                 Dim nestedListStructure = KindTypeStructure(nestedList.ChildKind)
                 Dim itemType = If(nestedListStructure.IsToken, "SyntaxToken", nestedListStructure.Name)
-
-                _writer.WriteLine("        Public Shadows Function Add{0}{1}(ParamArray items As {2}()) As {3}", child.Name, nestedList.Name, itemType, nodeStructure.Name)
-                _writer.WriteLine("            Dim _child = If (Me.{0} IsNot Nothing, Me.{0}, SyntaxFactory.{1}())", child.Name, FactoryName(childStructure))
-                _writer.WriteLine("            Return Me.With{0}(_child.Add{1}(items))", child.Name, nestedList.Name)
-                _writer.WriteLine("        End Function")
-                _writer.WriteLine()
+                Dim Name = child.Name
+                Dim ListName = nestedList.Name
+                _writer.WriteLine(
+$"        Public Shadows Function Add{Name}{ListName}(ParamArray items As {itemType}()) As {nodeStructure.Name}
+            Dim _child = If (Me.{Name} IsNot Nothing, Me.{Name}, SyntaxFactory.{FactoryName(childStructure)}())
+            Return Me.With{Name}(_child.Add{ListName}(items))
+        End Function
+")
             End If
         End If
     End Sub
 
     ' Generate IsTerminal property.
     Private Sub GenerateIsTerminal(nodeStructure As ParseNodeStructure)
-        _writer.WriteLine("        Public Overrides ReadOnly Property IsTerminal As Boolean")
-        _writer.WriteLine("            Get")
-        _writer.WriteLine("                Return {0}", If(nodeStructure.IsTerminal, "True", "False"))
-        _writer.WriteLine("            End Get")
-        _writer.WriteLine("        End Property")
-        _writer.WriteLine()
+        _writer.WriteLine(
+$"        Public Overrides ReadOnly Property IsTerminal As Boolean
+            Get
+                Return {If(nodeStructure.IsTerminal, "True", "False")}
+            End Get
+        End Property
+")
     End Sub
 
     Private Sub GenerateNodeStructureMembers(nodeStructure As ParseNodeStructure)
         Dim children = nodeStructure.Children
         For Each child In children
             If Not KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.WriteLine("        Friend {0} as {1}", ChildVarName(child), ChildPrivateFieldTypeRef(child))
+                _writer.WriteLine($"        Friend {ChildVarName(child)} as {ChildPrivateFieldTypeRef(child)}")
             End If
         Next
 
@@ -390,122 +394,110 @@ Friend Class RedNodeWriter
 
     ' Generate constructor for a node structure
     Private Sub GenerateNodeStructureConstructor(nodeStructure As ParseNodeStructure)
-        If Not IsRoot(nodeStructure) AndAlso
+        With _writer
+            If Not IsRoot(nodeStructure) AndAlso
             nodeStructure.Name <> "StructuredTriviaSyntax" Then
 
-            _writer.WriteLine("        Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)")
-            _writer.WriteLine("            MyBase.New(green, parent, startLocation)")
-            _writer.WriteLine("            Debug.Assert(green IsNot Nothing)")
-            _writer.WriteLine("            Debug.Assert(startLocation >= 0)")
-            _writer.WriteLine("        End Sub")
-            _writer.WriteLine()
-        End If
-
-        Dim allFields = GetAllFieldsOfStructure(nodeStructure)
-        If Not _parseTree.IsAbstract(nodeStructure) AndAlso StructureTypeName(nodeStructure) <> "IdentifierSyntax" Then
-            _writer.Write("        Friend Sub New(")
-
-            ' Generate each of the field parameters
-            _writer.Write("ByVal kind As {0}, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation()", NodeKindType())
-
-            If nodeStructure.IsTerminal Then
-                ' terminals have a text
-                _writer.Write(", text as String")
+                _writer.WriteLine(
+"        Friend Sub New(ByVal green As GreenNode, ByVal parent as SyntaxNode, ByVal startLocation As Integer)
+            MyBase.New(green, parent, startLocation)
+            Debug.Assert(green IsNot Nothing)
+            Debug.Assert(startLocation >= 0)
+        End Sub
+")
             End If
 
-            If nodeStructure.IsToken Then
-                ' tokens have trivia
-                _writer.Write(", precedingTrivia As SyntaxTriviaList, followingTrivia As SyntaxTriviaList", StructureTypeName(_parseTree.RootTrivia))
-            End If
+            Dim allFields = GetAllFieldsOfStructure(nodeStructure)
+            If Not _parseTree.IsAbstract(nodeStructure) AndAlso StructureTypeName(nodeStructure) <> "IdentifierSyntax" Then
+                .Write("        Friend Sub New(")
 
-            For Each field In allFields
-                _writer.Write(", ")
-                GenerateNodeStructureFieldParameter(field)
-            Next
+                ' Generate each of the field parameters
+                .Write($"ByVal kind As { NodeKindType()}, ByVal errors as DiagnosticInfo(), ByVal annotations as SyntaxAnnotation()")
 
-            For Each child In GetAllChildrenOfStructure(nodeStructure)
-                _writer.Write(", ")
-                GenerateNodeStructureChildParameter(child, Nothing)
-            Next
-            _writer.WriteLine(")")
+                If nodeStructure.IsTerminal Then .Write(", text as String") ' terminals have a text
 
-            ' Generate call to create new builder, and pass result to my private constructor.
 
-            _writer.Write("            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}(", StructureTypeName(nodeStructure))
+                If nodeStructure.IsToken Then .Write(", precedingTrivia As SyntaxTriviaList, followingTrivia As SyntaxTriviaList", StructureTypeName(_parseTree.RootTrivia))                    ' tokens have trivia
 
-            ' Generate each of the field parameters
-            _writer.Write("kind", NodeKindType())
 
-            _writer.Write(", errors, annotations")
-
-            If nodeStructure.IsTerminal Then
-                ' nonterminals have text.
-                _writer.Write(", text")
-            End If
-
-            If nodeStructure.IsToken AndAlso Not nodeStructure.IsTrivia Then
-                ' tokens havetrivia, but only if they are not trivia.
-                _writer.Write(", precedingTrivia.Node, followingTrivia.Node")
-            End If
-
-            If allFields.Count > 0 Then
-                For i = 0 To allFields.Count - 1
-                    _writer.Write(", {0}", FieldParamName(allFields(i)))
+                For Each field In allFields
+                    .Write(", ")
+                    GenerateNodeStructureFieldParameter(field)
                 Next
-            End If
 
+                For Each child In GetAllChildrenOfStructure(nodeStructure)
+                    .Write(", ")
+                    GenerateNodeStructureChildParameter(child, Nothing)
+                Next
+                .WriteLine(")")
 
-            For Each child In GetAllChildrenOfStructure(nodeStructure)
-                If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.Write(", {0}", ChildParamName(child))
+                ' Generate call to create new builder, and pass result to my private constructor.
 
-                ElseIf child.IsList Then
-                    _writer.Write(", if({0} IsNot Nothing, {0}.Green, Nothing)", ChildParamName(child))
+                .Write($"            Me.New(New Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{StructureTypeName(nodeStructure)}(")
 
-                Else
-                    If child.IsOptional Then
-                        ' optional normal child.
-                        _writer.Write(", if({0} IsNot Nothing ", ChildParamName(child))
-                    End If
+                ' Generate each of the field parameters
+                .Write("kind", NodeKindType())
 
-                    ' non-optional normal child.
-                    _writer.Write(", DirectCast({0}.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{1})", ChildParamName(child), BaseTypeReference(child))
+                .Write(", errors, annotations")
 
-                    If child.IsOptional Then
-                        ' optional normal child.
-                        _writer.Write(", Nothing) ")
-                    End If
+                If nodeStructure.IsTerminal Then .Write(", text")                ' nonterminals have text.
+
+                If nodeStructure.IsToken AndAlso Not nodeStructure.IsTrivia Then .Write(", precedingTrivia.Node, followingTrivia.Node") ' tokens havetrivia, but only if they are not trivia.
+
+                If allFields.Count > 0 Then
+                    For i = 0 To allFields.Count - 1
+                        _writer.Write(", {0}", FieldParamName(allFields(i)))
+                    Next
                 End If
-            Next
 
-            _writer.WriteLine("), Nothing, 0)")
 
-            ' Generate contracts
-            If nodeStructure.IsTerminal Then
-                ' tokens and trivia have a text
-                _writer.WriteLine("            Debug.Assert(text IsNot Nothing)")
+                For Each child In GetAllChildrenOfStructure(nodeStructure)
+
+                    Dim ParamName = ChildParamName(child)
+                    If KindTypeStructure(child.ChildKind).IsToken Then
+                        .Write($", {ParamName}")
+
+                    ElseIf child.IsList Then
+                        .Write($", if({ParamName} IsNot Nothing, {ParamName}.Green, Nothing)")
+
+                    Else
+                        If child.IsOptional Then .Write($", if({ParamName} IsNot Nothing ") ' optional normal child.
+
+
+                        ' non-optional normal child.
+                        .Write($", DirectCast({ParamName}.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{BaseTypeReference(child)})")
+
+                        If child.IsOptional Then .Write(", Nothing) ")     ' optional normal child.
+                    End If
+                Next
+
+                .WriteLine("), Nothing, 0)")
+
+                ' Generate contracts
+                If nodeStructure.IsTerminal Then .WriteLine("            Debug.Assert(text IsNot Nothing)") ' tokens and trivia have a text
+
+                ' Generate End Sub
+                .WriteLine(
+"        End Sub
+")
+
             End If
-
-            ' Generate End Sub
-            _writer.WriteLine("        End Sub")
-            _writer.WriteLine()
-
-        End If
+        End With
     End Sub
 
     ' Generate a parameter corresponding to a node structure field
     Private Sub GenerateNodeStructureFieldParameter(field As ParseNodeField, Optional conflictName As String = Nothing)
-        _writer.Write("{0} As {1}", FieldParamName(field, conflictName), FieldTypeRef(field))
+        _writer.Write($"{FieldParamName(field, conflictName)} As {FieldTypeRef(field)}")
     End Sub
 
     ' Generate a parameter corresponding to a node structure child
     Private Sub GenerateNodeStructureChildParameter(child As ParseNodeChild, Optional conflictName As String = Nothing)
-        _writer.Write("{0} As {1}", ChildParamName(child, conflictName), ChildConstructorTypeRef(child))
+        _writer.Write($"{ChildParamName(child, conflictName)} As {ChildConstructorTypeRef(child)}")
     End Sub
 
     ' Generate a parameter corresponding to a node structure child
     Private Sub GenerateFactoryChildParameter(node As ParseNodeStructure, child As ParseNodeChild, Optional conflictName As String = Nothing)
-        _writer.Write("{0} As {1}", ChildParamName(child, conflictName), ChildFactoryTypeRef(node, child, False, False))
+        _writer.Write($"{ChildParamName(child, conflictName)} As {ChildFactoryTypeRef(node, child, False, False)}")
     End Sub
 
     ' Get modifiers
@@ -533,12 +525,13 @@ Friend Class RedNodeWriter
         ' XML comment
         GenerateXmlComment(_writer, field, 8)
 
-        _writer.WriteLine("        Public {2} ReadOnly Property {0} As {1}", FieldPropertyName(field), FieldTypeRef(field), GetModifiers(field.ContainingStructure, False, field.Name))
-        _writer.WriteLine("            Get")
-        _writer.WriteLine("                Return DirectCast(Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", TypeName, FieldPropertyName(field))
-        _writer.WriteLine("            End Get")
-        _writer.WriteLine("        End Property")
-        _writer.WriteLine("")
+        _writer.WriteLine(
+ $"        Public {GetModifiers(field.ContainingStructure, False, field.Name)} ReadOnly Property {FieldPropertyName(field)} As {FieldTypeRef(field)}
+             Get
+                Return DirectCast(Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{TypeName}).{FieldPropertyName(field)}
+            End Get
+        End Property
+")
     End Sub
 
     ' Generate a public property for a child
@@ -549,62 +542,61 @@ Friend Class RedNodeWriter
         GenerateXmlComment(_writer, child, 8)
 
         If nodeStructure.HasDerivedStructure Then
-
-            _writer.WriteLine("        Public ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
-            _writer.WriteLine("            Get")
-            _writer.WriteLine("                Return Me.Get{0}Core()", child.Name, ChildPropertyTypeRef(nodeStructure, child))
-            _writer.WriteLine("            End Get")
-            _writer.WriteLine("        End Property")
-            _writer.WriteLine("")
-
-            _writer.WriteLine("        Friend {0} Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
-            _writer.WriteLine("        End Function")
-            _writer.WriteLine()
-
+            WriteOut_HasDerivedStructure(nodeStructure, child, childIndex, isOverride)
         ElseIf isOverride Then
-
-            _writer.WriteLine("        Public {0} ReadOnly Property {1} As {2}", If(isOverride, "Shadows", ""), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
-            _writer.WriteLine("            Get")
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
-            _writer.WriteLine("            End Get")
-            _writer.WriteLine("        End Property")
-            _writer.WriteLine("")
-
-            _writer.WriteLine("        Friend {0} Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
-            _writer.WriteLine("            Return Me.{0}", ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
-            _writer.WriteLine("        End Function")
-            _writer.WriteLine()
-
+            WriteOut_Overrides(nodeStructure, child, childIndex, isOverride)
         Else
-
-            _writer.WriteLine("        Public {0} ReadOnly Property {1} As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
-            _writer.WriteLine("            Get")
-            Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
-            _writer.WriteLine("            End Get")
-            _writer.WriteLine("        End Property")
-            _writer.WriteLine("")
-
+            WriteOut_ChildProperty(nodeStructure, child, childIndex, isOverride)
         End If
+    End Sub
+
+    Private Sub WriteOut_ChildProperty(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean)
+
+        _writer.WriteLine("        Public {0} ReadOnly Property {1} As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
+        _writer.WriteLine("            Get")
+        Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
+        _writer.WriteLine("            End Get")
+        _writer.WriteLine("        End Property")
+        _writer.WriteLine("")
+    End Sub
+
+    Private Sub WriteOut_Overrides(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean)
+        _writer.WriteLine("        Public {0} ReadOnly Property {1} As {2}", If(isOverride, "Shadows", ""), ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
+        _writer.WriteLine("            Get")
+        Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
+        _writer.WriteLine("            End Get")
+        _writer.WriteLine("        End Property")
+        _writer.WriteLine("")
+
+        _writer.WriteLine("        Friend {0} Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
+        _writer.WriteLine("            Return Me.{0}", ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
+        _writer.WriteLine("        End Function")
+        _writer.WriteLine()
+    End Sub
+
+    Private Sub WriteOut_HasDerivedStructure(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean)
+        _writer.WriteLine("        Public ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(nodeStructure, child))
+        _writer.WriteLine("            Get")
+        _writer.WriteLine("                Return Me.Get{0}Core()", child.Name, ChildPropertyTypeRef(nodeStructure, child))
+        _writer.WriteLine("            End Get")
+        _writer.WriteLine("        End Property")
+        _writer.WriteLine("")
+
+        _writer.WriteLine("        Friend {0} Function Get{1}Core() As {2}", GetModifiers(child.ContainingStructure, isOverride, child.Name), child.Name, ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True))
+        Me.GenerateNodeChildPropertyRedAccessLogic(nodeStructure, child, childIndex, isOverride)
+        _writer.WriteLine("        End Function")
+        _writer.WriteLine()
     End Sub
 
     Private Sub GenerateNodeChildPropertyRedAccessLogic(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean)
         If KindTypeStructure(child.ChildKind).IsToken Then
             If child.IsList Then
-                _writer.WriteLine("                Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-                _writer.WriteLine("                If slot IsNot Nothing")
-                _writer.WriteLine("                    return new SyntaxTokenList(Me, slot, {0}, {1})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
-                _writer.WriteLine("                End If")
-                _writer.WriteLine("                Return Nothing")
+                WriteOut_IsList(nodeStructure, child, childIndex)
             Else
                 If child.IsOptional Then
-                    _writer.WriteLine("                Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-                    _writer.WriteLine("                If slot IsNot Nothing")
-                    _writer.WriteLine("                    return new SyntaxToken(Me, slot, {0}, {1})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
-                    _writer.WriteLine("                End If")
-                    _writer.WriteLine("                Return Nothing")
+                    WriteOut_IsList(nodeStructure, child, childIndex)
                 Else
-                    _writer.WriteLine("                return new SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}, {2}, {3})", StructureTypeName(nodeStructure), ChildVarName(child), Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+                    _writer.WriteLine("                return New SyntaxToken(Me, DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}, {2}, {3})", StructureTypeName(nodeStructure), ChildVarName(child), Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
                 End If
             End If
         ElseIf IsListStructureType(child) Then
@@ -613,7 +605,7 @@ Friend Class RedNodeWriter
             Else
                 _writer.WriteLine("                Dim listNode = GetRed({0}, {1})", ChildVarName(child), childIndex)
             End If
-            _writer.WriteLine("                Return new {0}(listNode)", ChildPropertyTypeRef(nodeStructure, child, False))
+            _writer.WriteLine("                Return New {0}(listNode)", ChildPropertyTypeRef(nodeStructure, child, False))
         Else
             Dim type = ChildPropertyTypeRef(nodeStructure, child)
             Dim baseType = ChildPropertyTypeRef(nodeStructure, child, denyOverride:=True)
@@ -635,20 +627,24 @@ Friend Class RedNodeWriter
         End If
     End Sub
 
+    Private Sub WriteOut_IsList(nodeStructure As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer)
+        With _writer
+            .WriteLine("                Dim slot = DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
+            .WriteLine("                If slot IsNot Nothing")
+            .WriteLine("                    return New SyntaxTokenList(Me, slot, {0}, {1})", Me.GetChildPosition(childIndex), Me.GetChildIndex(childIndex))
+            .WriteLine("                End If")
+            .WriteLine("                Return Nothing")
+        End With
+    End Sub
+
     Private Function GetChildPosition(i As Integer) As String
-        If (i = 0) Then
-            Return "Me.Position"
-        Else
-            Return "Me.GetChildPosition(" & i & ")"
-        End If
+        If (i = 0) Then Return "Me.Position"
+        Return "Me.GetChildPosition(" & i & ")"
     End Function
 
     Private Function GetChildIndex(i As Integer) As String
-        If (i = 0) Then
-            Return "0"
-        Else
-            Return "Me.GetChildIndex(" & i & ")"
-        End If
+        If (i = 0) Then Return "0"
+        Return "Me.GetChildIndex(" & i & ")"
     End Function
 
     ' Generate a public property for a child
@@ -656,87 +652,98 @@ Friend Class RedNodeWriter
         'Dim isOverride As Boolean = withChild.ContainingStructure IsNot nodeStructure
         Dim hasPrevious As Boolean
 
-        If True Then ' withChild.GenerateWith Then
+        With _writer
+            If True Then ' withChild.GenerateWith Then
 
-            Dim isAbstract As Boolean = _parseTree.IsAbstract(nodeStructure)
+                Dim isAbstract As Boolean = _parseTree.IsAbstract(nodeStructure)
 
-            If Not isAbstract Then
-                ' XML comment
-                GenerateWithXmlComment(_writer, withChild, 8)
-                _writer.WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
-                _writer.Write("            return Update(")
+                If Not isAbstract Then
+                    ' XML comment
+                    GenerateWithXmlComment(_writer, withChild, 8)
+                    .WriteLine("        Public Shadows Function {0}({1} as {2}) As {3}", ChildWithFunctionName(withChild), ChildParamName(withChild), ChildPropertyTypeRef(nodeStructure, withChild), StructureTypeName(nodeStructure))
+                    .Write("            return Update(")
 
-                If nodeStructure.NodeKinds.Count >= 2 Then
-                    _writer.Write("Me.Kind")
-                    hasPrevious = True
-                End If
+                    If nodeStructure.NodeKinds.Count >= 2 Then
+                        .Write("Me.Kind")
+                        hasPrevious = True
+                    End If
 
-                Dim allFields = GetAllFieldsOfStructure(nodeStructure)
-                If allFields.Count > 0 Then
-                    For i = 0 To allFields.Count - 1
-                        If hasPrevious Then
-                            _writer.Write(", ")
+                    Dim allFields = GetAllFieldsOfStructure(nodeStructure)
+                    If allFields.Count > 0 Then
+                        For i = 0 To allFields.Count - 1
+                            If hasPrevious Then .Write(", ")
+
+                            .Write(FieldParamName(allFields(i)))
+                            hasPrevious = True
+                        Next
+                    End If
+
+                    For Each child In GetAllChildrenOfStructure(nodeStructure)
+                        If hasPrevious Then .Write(", ")
+                        If child Is withChild Then
+                            .Write(ChildParamName(child))
+                        Else
+                            .Write($"Me.{UpperFirstCharacter(child.Name)}")
                         End If
-                        _writer.Write("{0}", FieldParamName(allFields(i)))
                         hasPrevious = True
                     Next
+
+                    .WriteLine(")")
+                    .WriteLine("        End Function")
                 End If
 
-                For Each child In GetAllChildrenOfStructure(nodeStructure)
-                    If hasPrevious Then
-                        _writer.Write(", ")
-                    End If
-                    If child Is withChild Then
-                        _writer.Write("{0}", ChildParamName(child))
-                    Else
-                        _writer.Write("Me.{0}", UpperFirstCharacter(child.Name))
-                    End If
-                    hasPrevious = True
-                Next
-
-                _writer.WriteLine(")")
-                _writer.WriteLine("        End Function")
+                .WriteLine()
             End If
-
-            _writer.WriteLine("")
-        End If
+        End With
     End Sub
 
     ' Generate two public properties for a child that is a separated list
     Private Sub GenerateNodeSeparatedListChildProperty(node As ParseNodeStructure, child As ParseNodeChild, childIndex As Integer, isOverride As Boolean)
         ' XML comment
         GenerateXmlComment(_writer, child, 8)
+        Dim part0 = ChildPropertyName(child)
+        Dim part1 = ChildPropertyTypeRef(node, child)
+        Dim part2 = GetModifiers(child.ContainingStructure, isOverride, child.Name)
+        With _writer
+            .WriteLine(
+$"        Public {part2} ReadOnly Property {part0} As {part1}
+            Get
+                Dim listNode = ")
 
-        _writer.WriteLine("        Public {2} ReadOnly Property {0} As {1}", ChildPropertyName(child), ChildPropertyTypeRef(node, child), GetModifiers(child.ContainingStructure, isOverride, child.Name))
-        _writer.WriteLine("            Get")
-        If childIndex = 0 Then
-            _writer.WriteLine("                Dim listNode = GetRedAtZero({0})", ChildVarName(child), childIndex)
-        Else
-            _writer.WriteLine("                Dim listNode = GetRed({0}, {1})", ChildVarName(child), childIndex)
-        End If
-        _writer.WriteLine("                If listNode IsNot Nothing")
-        _writer.WriteLine("                    Return new {0}(listNode, {1})", ChildPropertyTypeRef(node, child), GetChildIndex(childIndex))
-        _writer.WriteLine("                End If")
-        _writer.WriteLine("                Return Nothing")
-        _writer.WriteLine("            End Get")
-        _writer.WriteLine("        End Property")
-        _writer.WriteLine("")
+            If childIndex = 0 Then
+                .WriteLine($"GetRedAtZero({ChildVarName(child)})")
+            Else
+                .WriteLine($"GetRed({ChildVarName(child)}, {childIndex})")
+            End If
+
+            .WriteLine(
+$"                If listNode IsNot Nothing
+                    Return New {ChildPropertyTypeRef(node, child)}(listNode, {GetChildIndex(childIndex)})
+                End If
+                Return Nothing
+            End Get
+        End Property
+")
+        End With
     End Sub
 
     Private Sub GenerateAccept(nodeStructure As ParseNodeStructure)
-        If _parseTree.IsAbstract(nodeStructure) Then
-            Return
-        End If
+        If _parseTree.IsAbstract(nodeStructure) Then Return
 
-        _writer.WriteLine("        Public {0} Function Accept(Of TResult)(ByVal visitor As {1}(Of TResult)) As TResult", If(IsRoot(nodeStructure), "Overridable", "Overrides"), _parseTree.VisitorName)
-        _writer.WriteLine("            Return visitor.{0}(Me)", VisitorMethodName(nodeStructure))
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
+        Dim part0 = If(IsRoot(nodeStructure), "Overridable", "Overrides")
+        Dim part1 = _parseTree.VisitorName
+        Dim part2 = VisitorMethodName(nodeStructure)
+        With _writer
+            .WriteLine(
+$"        Public {part0} Function Accept(Of TResult)(ByVal visitor As {part1}(Of TResult)) As TResult
+            Return visitor.{part2}(Me)
+        End Function
 
-        _writer.WriteLine("        Public {0} Sub Accept(ByVal visitor As {1})", If(IsRoot(nodeStructure), "Overridable", "Overrides"), _parseTree.VisitorName)
-        _writer.WriteLine("            visitor.{0}(Me)", VisitorMethodName(nodeStructure))
-        _writer.WriteLine("        End Sub")
-        _writer.WriteLine()
+        Public {part0} Sub Accept(ByVal visitor As {part1})
+            visitor.{part2}(Me)
+        End Sub
+")
+        End With
     End Sub
 
     ' Generate Update method . But only for non terminals
@@ -756,83 +763,71 @@ Friend Class RedNodeWriter
         GenerateSummaryXmlComment(_writer, String.Format("Returns a copy of this with the specified changes. Returns this instance if there are no actual changes.", nodeStructure.Name))
 
         If isMultiKind Then
-            GenerateParameterXmlComment(_writer, "kind", String.Format("The new kind.", nodeStructure.Name))
+            GenerateParameterXmlComment(_writer, "kind", String.Format("The New kind.", nodeStructure.Name))
         End If
 
         For Each child In GetAllChildrenOfStructure(nodeStructure)
             GenerateParameterXmlComment(_writer, LowerFirstCharacter(OptionalChildName(child)), String.Format("The value for the {0} property.", child.Name))
         Next
 
-        _writer.Write("        Public ")
-        If nodeStructure.ParentStructure IsNot Nothing AndAlso Not nodeStructure.ParentStructure.Abstract Then
-            _writer.Write("Shadows ")
-        End If
+        With _writer
 
-        _writer.Write("Function Update(")
+            .Write("        Public ")
+            If Not nodeStructure.ParentStructure?.Abstract Then .Write("Shadows ")
 
-        If isMultiKind Then
-            _writer.Write("kind As SyntaxKind")
-            needComma = True
-        End If
+            _writer.Write("Function Update(")
 
-        For Each child In GetAllChildrenOfStructure(nodeStructure)
-            If needComma Then
-                _writer.Write(", ")
+            If isMultiKind Then .Write("kind As SyntaxKind") : needComma = True
+
+            For Each child In GetAllChildrenOfStructure(nodeStructure)
+                If needComma Then .Write(", ")
+                GenerateFactoryChildParameter(nodeStructure, child, Nothing)
+                needComma = True
+            Next
+
+            .WriteLine($") As {structureName}")
+
+            needComma = False
+            _writer.Write("            If ")
+
+            If isMultiKind Then .Write("kind <> Me.Kind") : needComma = True
+
+            For Each child In GetAllChildrenOfStructure(nodeStructure)
+                If needComma Then .Write(" OrElse ")
+
+                If child.IsList Then
+                    .Write($"{ChildParamName(child)} <> Me.{ChildPropertyName(child)}")
+                ElseIf KindTypeStructure(child.ChildKind).IsToken Then
+                    .Write($"{ChildParamName(child)} <> Me.{ChildPropertyName(child)}")
+                Else
+                    .Write($"{ChildParamName(child)} IsNot Me.{ChildPropertyName(child)}")
+                End If
+                needComma = True
+            Next
+            .WriteLine(" Then")
+
+            needComma = False
+
+            _writer.Write($"                Dim newNode = SyntaxFactory.{factory}(")
+            If isMultiKind Then .Write("kind, ")
+
+            For Each child In GetAllChildrenOfStructure(nodeStructure)
+                If needComma Then .Write(", ")
+                .Write("{0}", ChildParamName(child))
+                needComma = True
+            Next
+            .WriteLine(
+")
+                Dim annotations = Me.GetAnnotations()
+                If annotations IsNot Nothing AndAlso annotations.Length > 0
+                    Return newNode.WithAnnotations(annotations)
+                End If
+                Return newNode
             End If
-            GenerateFactoryChildParameter(nodeStructure, child, Nothing)
-            needComma = True
-        Next
-
-        _writer.WriteLine(") As {0}", structureName)
-
-        needComma = False
-        _writer.Write("            If ")
-
-        If isMultiKind Then
-            _writer.Write("kind <> Me.Kind")
-            needComma = True
-        End If
-
-        For Each child In GetAllChildrenOfStructure(nodeStructure)
-            If needComma Then
-                _writer.Write(" OrElse ")
-            End If
-
-            If child.IsList Then
-                _writer.Write("{0} <> Me.{1}", ChildParamName(child), ChildPropertyName(child))
-            ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.Write("{0} <> Me.{1}", ChildParamName(child), ChildPropertyName(child))
-            Else
-                _writer.Write("{0} IsNot Me.{1}", ChildParamName(child), ChildPropertyName(child))
-            End If
-            needComma = True
-        Next
-        _writer.WriteLine(" Then")
-
-        needComma = False
-
-        _writer.Write("                Dim newNode = SyntaxFactory.{0}(", factory)
-        If isMultiKind Then
-            _writer.Write("kind, ")
-        End If
-        For Each child In GetAllChildrenOfStructure(nodeStructure)
-            If needComma Then
-                _writer.Write(", ")
-            End If
-            _writer.Write("{0}", ChildParamName(child))
-            needComma = True
-        Next
-        _writer.WriteLine(")")
-
-        _writer.WriteLine("                Dim annotations = Me.GetAnnotations()")
-        _writer.WriteLine("                If annotations IsNot Nothing AndAlso annotations.Length > 0")
-        _writer.WriteLine("                    return newNode.WithAnnotations(annotations)")
-        _writer.WriteLine("                End If")
-        _writer.WriteLine("                Return newNode")
-        _writer.WriteLine("            End If")
-        _writer.WriteLine("            Return Me")
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
+            Return Me
+        End Function
+")
+        End With
     End Sub
 
     ' Generate special methods and properties for the root node. These only appear in the root node.
@@ -842,191 +837,184 @@ Friend Class RedNodeWriter
 
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetSlot(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
-        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
-            Return
-        End If
+
+        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then Return
 
         Dim childrenCount = allChildren.Count
-        If childrenCount = 0 Then
-            Return
-        End If
+        If childrenCount = 0 Then Return
 
-        _writer.WriteLine("        Friend Overrides Function GetSlot(i as Integer) as IBaseSyntaxNodeExt")
+        With _writer
+            .WriteLine("        Friend Overrides Function GetSlot(i as Integer) as IBaseSyntaxNodeExt")
 
-        ' Create the property accessor for each of the children
-        Dim children = allChildren
+            ' Create the property accessor for each of the children
+            Dim children = allChildren
 
-        If childrenCount <> 1 Then
-            _writer.WriteLine("            Select case i")
+            If childrenCount <> 1 Then
+                .WriteLine("            Select case i")
 
-            For i = 0 To childrenCount - 1
-                Dim child = children(i)
-                _writer.WriteLine("                Case {0}", i)
-                If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.WriteLine("                    Return DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-                ElseIf child.IsList Then
-                    If (i = 0) Then
-                        _writer.WriteLine("                    Return GetRedAtZero({0})", ChildVarName(child))
+                For i = 0 To childrenCount - 1
+                    Dim child = children(i)
+                    .WriteLine("                Case {0}", i)
+                    If KindTypeStructure(child.ChildKind).IsToken Then
+                        .WriteLine("                    Return DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
+                    ElseIf child.IsList Then
+                        If (i = 0) Then
+                            .WriteLine("                    Return GetRedAtZero({0})", ChildVarName(child))
+                        Else
+                            .WriteLine("                    Return GetRed({0}, {1})", ChildVarName(child), i)
+                        End If
                     Else
-                        _writer.WriteLine("                    Return GetRed({0}, {1})", ChildVarName(child), i)
+                        _writer.WriteLine("                    Return Me.{0}", ChildPropertyName(child))
                     End If
-                Else
-                    _writer.WriteLine("                    Return Me.{0}", ChildPropertyName(child))
-                End If
-            Next
-            _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                     Debug.Assert(false, ""child index out of range"")")
-            _writer.WriteLine("                     Return Nothing")
-            _writer.WriteLine("            End Select")
-        Else
-            _writer.WriteLine("            If i = 0 Then")
-            Dim child = children(0)
-            If KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.WriteLine("                Return DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
-            ElseIf child.IsList Then
-                _writer.WriteLine("                Return GetRedAtZero({0})", ChildVarName(child))
+                Next
+                .WriteLine("                Case Else")
+                .WriteLine("                     Debug.Assert(false, ""child index out of range"")")
+                .WriteLine("                     Return Nothing")
+                .WriteLine("            End Select")
             Else
-                _writer.WriteLine("                Return Me.{0}", ChildPropertyName(child))
+                .WriteLine("            If i = 0 Then")
+                Dim child = children(0)
+                If KindTypeStructure(child.ChildKind).IsToken Then
+                    .WriteLine("                Return DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
+                ElseIf child.IsList Then
+                    .WriteLine("                Return GetRedAtZero({0})", ChildVarName(child))
+                Else
+                    .WriteLine("                Return Me.{0}", ChildPropertyName(child))
+                End If
+
+                .WriteLine("            Else")
+                .WriteLine("                Debug.Assert(false, ""child index out of range"")")
+                .WriteLine("                Return Nothing")
+                .WriteLine("            End If")
             End If
 
-            _writer.WriteLine("            Else")
-            _writer.WriteLine("                Debug.Assert(false, ""child index out of range"")")
-            _writer.WriteLine("                Return Nothing")
-            _writer.WriteLine("            End If")
-        End If
-
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
+            _writer.WriteLine("        End Function")
+            _writer.WriteLine()
+        End With
     End Sub
 
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetNodeSlot(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
-        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
-            Return
-        End If
+        Dim childrenCount = IsAbstractOrTokenOrZeroChildren(nodeStructure, allChildren)
+        If childrenCount.HasValue = False Then Return
 
-        Dim childrenCount = allChildren.Count
-        If childrenCount = 0 Then
-            Return
-        End If
+        With _writer
 
-        _writer.WriteLine("        Friend Overrides Function GetNodeSlot(i as Integer) as SyntaxNode")
+            .WriteLine("        Friend Overrides Function GetNodeSlot(i as Integer) as SyntaxNode")
 
-        ' Create the property accessor for each of the children
-        Dim children = allChildren
+            ' Create the property accessor for each of the children
+            Dim children = allChildren
+            If childrenCount <> 1 Then
+                .WriteLine("            Select case i")
 
-        If childrenCount <> 1 Then
-            _writer.WriteLine("            Select case i")
+                For i = 0 To childrenCount - 1
+                    Dim child = children(i)
+                    Dim VarName = ChildVarName(child)
+                    If KindTypeStructure(child.ChildKind).IsToken Then Continue For
 
-            For i = 0 To childrenCount - 1
-                Dim child = children(i)
-                If KindTypeStructure(child.ChildKind).IsToken Then
-                    Continue For
-                End If
-
-                _writer.WriteLine("                Case {0}", i)
-                If child.IsList Then
-                    If i = 0 Then
-                        _writer.WriteLine("                    Return GetRedAtZero({0})", ChildVarName(child))
+                    .WriteLine("                Case {0}", i)
+                    If child.IsList Then
+                        If i = 0 Then
+                            .WriteLine($"                    Return GetRedAtZero({VarName})")
+                        Else
+                            .WriteLine($"                    Return GetRed({VarName}, {i})")
+                        End If
                     Else
-                        _writer.WriteLine("                    Return GetRed({0}, {1})", ChildVarName(child), i)
+                        .WriteLine("                    Return Me.{0}", ChildPropertyName(child))
                     End If
+
+                Next
+                .WriteLine("                Case Else")
+                .WriteLine("                     Return Nothing")
+                .WriteLine("            End Select")
+
+            ElseIf Not KindTypeStructure(children(0).ChildKind).IsToken Then
+                .WriteLine("            If i = 0 Then")
+                Dim child = children(0)
+                If child.IsList Then
+                    .WriteLine($"               Return GetRedAtZero({ChildVarName(child)})")
                 Else
-                    _writer.WriteLine("                    Return Me.{0}", ChildPropertyName(child))
+                    .WriteLine($"                Return Me.{ChildPropertyName(child)}")
                 End If
 
-            Next
-            _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                     Return Nothing")
-            _writer.WriteLine("            End Select")
+                .WriteLine("            Else")
+                .WriteLine("                Return Nothing")
+                .WriteLine("            End If")
 
-        ElseIf Not KindTypeStructure(children(0).ChildKind).IsToken Then
-            _writer.WriteLine("            If i = 0 Then")
-            Dim child = children(0)
-            If child.IsList Then
-                _writer.WriteLine("               Return GetRedAtZero({0})", ChildVarName(child))
             Else
-                _writer.WriteLine("                Return Me.{0}", ChildPropertyName(child))
+                .WriteLine("                Return Nothing")
             End If
 
-            _writer.WriteLine("            Else")
-            _writer.WriteLine("                Return Nothing")
-            _writer.WriteLine("            End If")
-
-        Else
-            _writer.WriteLine("                Return Nothing")
-        End If
-
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
+            .WriteLine("        End Function")
+            .WriteLine()
+        End With
     End Sub
+
+    Private Function IsAbstractOrTokenOrZeroChildren(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild)) As Integer?
+        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then Return Nothing
+
+        Dim childrenCount = allChildren.Count
+        If childrenCount = 0 Then Return Nothing
+        Return childrenCount
+    End Function
 
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetCachedSlot(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
-        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
-            Return
-        End If
+        Dim childrenCount = IsAbstractOrTokenOrZeroChildren(nodeStructure, allChildren)
+        If childrenCount.HasValue = False Then Return
 
-        Dim childrenCount = allChildren.Count
-        If childrenCount = 0 Then
-            Return
-        End If
+        With _writer
+            .WriteLine("        Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode")
 
-        _writer.WriteLine("        Friend Overrides Function GetCachedSlot(i as Integer) as SyntaxNode")
+            ' Create the property accessor for each of the children
+            Dim children = allChildren
 
-        ' Create the property accessor for each of the children
-        Dim children = allChildren
+            If childrenCount <> 1 Then
+                .WriteLine("            Select case i")
 
-        If childrenCount <> 1 Then
-            _writer.WriteLine("            Select case i")
-
-            For i = 0 To childrenCount - 1
-                Dim child = children(i)
-                If Not KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.WriteLine("                Case {0}", i)
-                    _writer.WriteLine("                    Return Me.{0}", ChildVarName(child), i)
-                End If
-            Next
-            _writer.WriteLine("                Case Else")
-            _writer.WriteLine("                     Return Nothing")
-            _writer.WriteLine("            End Select")
-        Else
-            _writer.WriteLine("            If i = 0 Then")
-            Dim child = children(0)
-            If KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.WriteLine("                Return Nothing")
+                For i = 0 To childrenCount - 1
+                    Dim child = children(i)
+                    If Not KindTypeStructure(child.ChildKind).IsToken Then
+                        .WriteLine(
+$"                Case {i}
+                    Return Me.{ChildVarName(child)}")
+                    End If
+                Next
+                .WriteLine(
+"                Case Else
+                     Return Nothing
+            End Select")
             Else
-                _writer.WriteLine("                Return Me.{0}", ChildVarName(child))
+                .WriteLine("            If i = 0 Then")
+                Dim child = children(0)
+                If KindTypeStructure(child.ChildKind).IsToken Then
+                    .WriteLine("                Return Nothing")
+                Else
+                    .WriteLine($"                Return Me.{ChildVarName(child)}")
+                End If
+
+                .WriteLine(
+"            Else
+                Return Nothing
+            End If")
             End If
-
-            _writer.WriteLine("            Else")
-            _writer.WriteLine("                Return Nothing")
-            _writer.WriteLine("            End If")
-        End If
-
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
+            .WriteLine(
+"        End Function
+")
+        End With
     End Sub
 
 
     ' Generate GetChild, GetChildrenCount so members can be accessed by index
     Private Sub GenerateGetSlotCount(nodeStructure As ParseNodeStructure, allChildren As List(Of ParseNodeChild))
-        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then
-            Return
-        End If
+
+        If _parseTree.IsAbstract(nodeStructure) OrElse nodeStructure.IsToken Then Return
 
         Dim childrenCount = allChildren.Count
-        If childrenCount = 0 Then
-            Return
-        End If
-
-        _writer.WriteLine("        Friend Overrides ReadOnly Property SlotCount() As Integer")
-        _writer.WriteLine("            Get")
-        _writer.WriteLine("                Return {0}", childrenCount)
-        _writer.WriteLine("            End Get")
-        _writer.WriteLine("        End Property")
-
-        _writer.WriteLine()
+        If childrenCount = 0 Then Return
+        _writer.WriteLine(
+$"        Friend Overrides ReadOnly Property SlotCount() As Integer = {childrenCount}
+")
     End Sub
 
     ' Generate the Visitor class definition
@@ -1045,115 +1033,119 @@ Friend Class RedNodeWriter
 
     ' Generate a method in the Visitor class
     Private Sub GenerateVisitorMethod(nodeStructure As ParseNodeStructure, withResult As Boolean)
-        If nodeStructure.IsToken OrElse nodeStructure.IsTrivia Then
-            Return
-        End If
-        _writer.WriteLine("        Public Overridable {2} {0}(ByVal node As {1}){3}",
-                          VisitorMethodName(nodeStructure),
-                          StructureTypeName(nodeStructure),
-                          If(withResult, "Function", "Sub"),
-                          If(withResult, " As TResult", ""))
+        If nodeStructure.IsToken OrElse nodeStructure.IsTrivia Then Return
 
-        _writer.WriteLine("            {0}Me.DefaultVisit(node){1}", If(withResult, "Return ", ""), If(withResult, "", ": Return"))
-        _writer.WriteLine("        End {0}", If(withResult, "Function", "Sub"))
+        Dim MethodName = VisitorMethodName(nodeStructure)
+        Dim TypeName = StructureTypeName(nodeStructure)
+
+        If withResult Then
+            _writer.WriteLine(
+$"        Public Overridable Function {MethodName}(ByVal node As {TypeName}) As TResult
+            Return Me.DefaultVisit(node)
+        End Function")
+        Else
+            _writer.WriteLine(
+$"        Public Overridable Sub {MethodName}(ByVal node As {TypeName}
+            Me.DefaultVisit(node)
+        End Sub")
+        End If
     End Sub
 
 
 
     ' Generate the RewriteVisitor class definition
     Private Sub GenerateRewriteVisitorClass()
-        _writer.WriteLine("    Public MustInherit Class {0}", Ident(_parseTree.RewriteVisitorName))
-        _writer.WriteLine("        Inherits {0}(Of SyntaxNode)", Ident(_parseTree.VisitorName))
-        _writer.WriteLine()
+        _writer.WriteLine(
+$"    Public MustInherit Class {Ident(_parseTree.RewriteVisitorName)}
+        Inherits {Ident(_parseTree.VisitorName)}(Of SyntaxNode)
+")
 
         For Each nodeStructure In _parseTree.NodeStructures.Values
             GenerateRewriteVisitorMethod(nodeStructure)
         Next
 
-        _writer.WriteLine("    End Class")
-        _writer.WriteLine()
+        _writer.WriteLine(
+"    End Class
+")
     End Sub
 
     ' Generate a method in the RewriteVisitor class
     Private Sub GenerateRewriteVisitorMethod(nodeStructure As ParseNodeStructure)
-        If nodeStructure.IsToken OrElse nodeStructure.IsTrivia Then
-            Return
-        End If
-
-        If nodeStructure.Abstract Then
-            ' do nothing for abstract nodes
-            Return
-        End If
+        If nodeStructure.IsToken OrElse nodeStructure.IsTrivia Then Return
+        If nodeStructure.Abstract Then Return            ' do nothing for abstract nodes
 
         Dim methodName = VisitorMethodName(nodeStructure)
         Dim structureName = StructureTypeName(nodeStructure)
 
-        _writer.WriteLine("        Public Overrides Function {0}(ByVal node As {1}) As SyntaxNode",
-                  methodName,
-                  structureName)
+        _writer.WriteLine($"        Public Overrides Function {methodName}(ByVal node As {structureName}) As SyntaxNode")
 
         ' non-abstract non-terminals need to rewrite their children and recreate as needed.
         Dim allFields = GetAllFieldsOfStructure(nodeStructure)
         Dim allChildren = GetAllChildrenOfStructure(nodeStructure)
+        With _writer
 
-        ' create anyChanges variable
-        _writer.WriteLine("            Dim anyChanges As Boolean = False")
-        _writer.WriteLine()
+            ' create anyChanges variable
+            .WriteLine("            Dim anyChanges As Boolean = False")
+            .WriteLine()
 
-        ' visit all children
-        For i = 0 To allChildren.Count - 1
-            Dim child = allChildren(i)
-            If child.IsList Then
-                _writer.WriteLine("            Dim {0} = VisitList(node.{1})", ChildNewVarName(child), ChildPropertyName(child))
-                If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.WriteLine("            If node.{0}.Node IsNot {1}.Node Then anyChanges = True", ChildPropertyName(child), ChildNewVarName(child))
+            ' visit all children
+            For i = 0 To allChildren.Count - 1
+                Dim child = allChildren(i)
+                Dim VarName = ChildNewVarName(child)
+                Dim PropName = ChildPropertyName(child)
+                If child.IsList Then
+                    .WriteLine($"            Dim {VarName} = VisitList(node.{PropName})")
+                    If KindTypeStructure(child.ChildKind).IsToken Then
+                        .WriteLine($"            If node.{PropName}.Node IsNot {VarName}.Node Then anyChanges = True")
+                    Else
+                        .WriteLine($"            If node.{PropName} IsNot {VarName}.Node Then anyChanges = True")
+                    End If
+
+                ElseIf KindTypeStructure(child.ChildKind).IsToken Then
+                    .WriteLine(
+$"            Dim {VarName} = DirectCast(VisitToken(node.{PropName}).Node, {ChildConstructorTypeRef(child)})
+            If node.{PropName}.Node IsNot {VarName} Then anyChanges = True")
+
                 Else
-                    _writer.WriteLine("            If node.{0} IsNot {1}.Node Then anyChanges = True", ChildVarName(child), ChildNewVarName(child))
+                    .WriteLine(
+$"            Dim {VarName} = DirectCast(Visit(node.{PropName}), {ChildPropertyName(child)})
+            If node.{PropName} IsNot {VarName} Then anyChanges = True")
                 End If
+            Next
+            _writer.WriteLine()
 
-            ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.WriteLine("            Dim {0} = DirectCast(VisitToken(node.{2}).Node, {3})" + vbCrLf +
-                                  "            If node.{2}.Node IsNot {0} Then anyChanges = True",
-                                  ChildNewVarName(child), BaseTypeReference(child), ChildPropertyName(child), ChildConstructorTypeRef(child))
-            Else
-                _writer.WriteLine("            Dim {0} = DirectCast(Visit(node.{2}), {1})" + vbCrLf +
-                                  "            If node.{2} IsNot {0} Then anyChanges = True",
-                                  ChildNewVarName(child), ChildPropertyTypeRef(nodeStructure, child), ChildPropertyName(child))
-            End If
-        Next
-        _writer.WriteLine()
+            ' check if any changes.
+            .WriteLine("            If anyChanges Then")
+            .Write($"                Return New {StructureTypeName(nodeStructure)}(node.Kind, node.Green.GetDiagnostics, node.Green.GetAnnotations")
 
-        ' check if any changes.
-        _writer.WriteLine("            If anyChanges Then")
+            For Each field In allFields
+                .Write($", node.{FieldPropertyName(field)}")
+            Next
 
-        _writer.Write("                Return New {0}(node.Kind", StructureTypeName(nodeStructure))
-
-        _writer.Write(", node.Green.GetDiagnostics, node.Green.GetAnnotations")
-
-        For Each field In allFields
-            _writer.Write(", node.{0}", FieldPropertyName(field))
-        Next
-        For Each child In allChildren
-            If child.IsList Then
-                If KindTypeStructure(child.ChildKind).IsToken Then
-                    _writer.Write(", {0}.Node", ChildNewVarName(child))
+            For Each child In allChildren
+                .Write($", {ChildNewVarName(child)}")
+                If child.IsList Then
+                    'If KindTypeStructure(child.ChildKind).IsToken Then
+                    '  
+                    'Else
+                    '    _writer.Write(", {0}.Node", ChildNewVarName(child))
+                    'End If  
+                    .Write(".Node")
+                ElseIf KindTypeStructure(child.ChildKind).IsToken Then
+                    '  .Write(", {0}", ChildNewVarName(child), ChildFieldTypeRef(child))
                 Else
-                    _writer.Write(", {0}.Node", ChildNewVarName(child))
+                    ' .Write(", {0}", ChildNewVarName(child))
                 End If
-            ElseIf KindTypeStructure(child.ChildKind).IsToken Then
-                _writer.Write(", {0}", ChildNewVarName(child), ChildFieldTypeRef(child))
-            Else
-                _writer.Write(", {0}", ChildNewVarName(child))
-            End If
-        Next
-        _writer.WriteLine(")")
+            Next
+            .WriteLine(
+")
+             Else
+                Return node
+             End If
+         End Function
+ ")
 
-        _writer.WriteLine("            Else")
-        _writer.WriteLine("                Return node")
-        _writer.WriteLine("            End If")
-
-        _writer.WriteLine("        End Function")
-        _writer.WriteLine()
+        End With
     End Sub
 
 

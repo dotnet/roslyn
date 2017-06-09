@@ -23,36 +23,31 @@ Public Class SyntaxFactsWriter
     Public Sub GenerateFile(writer As TextWriter)
 
         _writer = writer
+        With _writer
+            .WriteLine($"
 
-        _writer.WriteLine()
-        _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName))
-        _writer.WriteLine()
+Namespace {Ident(_parseTree.NamespaceName)}
 
-        _writer.WriteLine("    Partial Public Class SyntaxFacts")
-        GenerateAllFactoryMethods()
-        _writer.WriteLine("    End Class")
-        _writer.WriteLine()
+    Partial Public Class SyntaxFacts")
+            GenerateAllFactoryMethods()
+            _writer.WriteLine("    End Class
 
-        _writer.WriteLine("    Public Module GeneratedExtensionSyntaxFacts")
-        GenerateAllExtensionFactoryMethods()
-        _writer.WriteLine("    End Module")
+     Public Module GeneratedExtensionSyntaxFacts")
+            GenerateAllExtensionFactoryMethods()
+            _writer.WriteLine("    End Module
 
-        _writer.WriteLine()
-        _writer.WriteLine("End Namespace")
-
+End Namespace")
+        End With
     End Sub
 
     Public Sub GenerateGetText(writer As TextWriter)
-
         _writer = writer
-
-        _writer.WriteLine()
-        _writer.WriteLine("Namespace {0}", Ident(_parseTree.NamespaceName))
-        _writer.WriteLine("    Partial Public Class SyntaxFacts")
+        _writer.WriteLine("
+Namespace {Ident(_parseTree.NamespaceName)}
+    Partial Public Class SyntaxFacts")
         GenerateGetText()
-        _writer.WriteLine("    End Class")
-        _writer.WriteLine("End Namespace")
-
+        _writer.WriteLine("    End Class
+End Namespace")
     End Sub
 
     ' Generate all factory methods for all node structures.
@@ -70,11 +65,12 @@ Public Class SyntaxFactsWriter
 
     Private Sub GenerateGetText()
 
-        _writer.WriteLine("        ''' <summary>")
-        _writer.WriteLine("        ''' Return keyword or punctuation text based on SyntaxKind")
-        _writer.WriteLine("        ''' </summary>")
-        _writer.WriteLine("        Public Shared Function GetText(kind As SyntaxKind) As String")
-        _writer.WriteLine("            Select Case kind")
+        _writer.WriteLine(
+"        ''' <summary>
+        ''' Return keyword or punctuation text based on SyntaxKind
+        ''' </summary>
+        Public Shared Function GetText(kind As SyntaxKind) As String
+            Select Case kind")
 
         For Each nodeStructure In _parseTree.NodeStructures.Values
             For Each kind In nodeStructure.NodeKinds
@@ -85,33 +81,35 @@ Public Class SyntaxFactsWriter
                 End If
 
                 If tokenText <> Nothing Then
-                    _writer.WriteLine("        Case SyntaxKind.{0}", kind.Name)
+                    _writer.WriteLine($"        Case SyntaxKind.{kind.Name}")
 
                     If tokenText.Contains("vbCrLf") Then
-                        _writer.WriteLine("            Return {0}", tokenText)
+                        _writer.WriteLine($"            Return {tokenText}")
                     Else
-                        _writer.WriteLine("            Return ""{0}""", tokenText)
+                        _writer.WriteLine($"            Return ""{tokenText}""")
                     End If
                 End If
             Next
         Next
 
-        _writer.WriteLine("            Case Else")
-        _writer.WriteLine("                 Return String.Empty")
-        _writer.WriteLine("            End Select")
-        _writer.WriteLine("        End Function")
+        _writer.WriteLine(
+ "            Case Else
+                  Return String.Empty
+             End Select
+         End Function")
 
     End Sub
 
     Private Sub GenerateExtensionGetText()
 
-        _writer.WriteLine("        ''' <summary>")
-        _writer.WriteLine("        ''' Return keyword or punctuation text based on SyntaxKind")
-        _writer.WriteLine("        ''' </summary>")
-        _writer.WriteLine("        <Extension()>")
-        _writer.WriteLine("        Public Function GetText(kind As SyntaxKind) As String")
-        _writer.WriteLine("            Return SyntaxFacts.GetText(kind)")
-        _writer.WriteLine("        End Function")
+        _writer.WriteLine(
+"        ''' <summary>
+        ''' Return keyword or punctuation text based on SyntaxKind
+        ''' </summary>
+        < Extension() >
+        Public Function GetText(kind As SyntaxKind) As String
+            Return SyntaxFacts.GetText(kind)
+        End Function")
 
     End Sub
 
@@ -154,7 +152,7 @@ Public Class SyntaxFactsWriter
         Dim needComma = False
         If nodeKinds.Count >= 2 Then
 
-            _writer.WriteLine("        {1} Shared Function Is{0}(kind As SyntaxKind) As Boolean", name, If(publicAccessibility, "Public", "Friend"))
+            _writer.WriteLine($"        {If(publicAccessibility, "Public", "Friend")} Shared Function Is{name}(kind As SyntaxKind) As Boolean")
             _writer.WriteLine("            Select Case kind")
 
             _writer.WriteLine("                Case _")
@@ -162,16 +160,16 @@ Public Class SyntaxFactsWriter
                 If needComma Then
                     _writer.WriteLine(",")
                 End If
-                _writer.Write("                SyntaxKind.{0}", kind.Name)
+                _writer.Write($"                SyntaxKind.{kind.Name}")
                 needComma = True
             Next
-            _writer.WriteLine()
-            _writer.WriteLine("                    Return True")
-
-            _writer.WriteLine("            End Select")
-            _writer.WriteLine("            Return False")
-            _writer.WriteLine("        End Function")
-            _writer.WriteLine()
+            _writer.WriteLine(
+"
+                Return True
+            End Select
+            Return False
+        End Function
+")
         End If
 
     End Sub
