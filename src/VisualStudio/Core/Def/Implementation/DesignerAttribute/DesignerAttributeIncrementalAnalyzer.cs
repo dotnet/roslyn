@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     return null;
                 }
 
-                var serializedResults = await session.InvokeAsync<DesignerAttributeDocumentData[]>(
+                var serializedResults = await session.InvokeAsync<ImmutableArray<DesignerAttributeDocumentData>>(
                     nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), project.Id).ConfigureAwait(false);
 
                 var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);

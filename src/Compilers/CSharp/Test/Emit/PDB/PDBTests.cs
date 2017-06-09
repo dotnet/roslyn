@@ -2984,6 +2984,436 @@ class Student : Person { public double GPA; }
 </symbols>");
         }
 
+        [Fact, WorkItem(17090, "https://github.com/dotnet/roslyn/issues/17090"), WorkItem(19731, "https://github.com/dotnet/roslyn/issues/19731")]
+        public void SwitchWithConstantPattern()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1();
+        M2();
+    }
+
+    static void M1()
+    {
+        switch
+            (1)
+        {
+            case 0 when true:
+                ;
+            case 1:
+                Console.Write(1);
+                break;
+            case 2:
+                ;
+        }
+    }
+
+    static void M2()
+    {
+        switch
+            (nameof(M2))
+        {
+            case nameof(M1) when true:
+                ;
+            case nameof(M2):
+                Console.Write(nameof(M2));
+                break;
+            case nameof(Main):
+                ;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "1M2");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (int V_0)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch ...           (1
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(1);
+  IL_0005:  ldc.i4.1
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  // sequence point: break;
+  IL_000c:  br.s       IL_000e
+  // sequence point: }
+  IL_000e:  ret
+}");
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       23 (0x17)
+  .maxstack  1
+  .locals init (string V_0)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch ...  (nameof(M2)
+  IL_0001:  ldstr      ""M2""
+  IL_0006:  stloc.0
+  IL_0007:  br.s       IL_0009
+  // sequence point: Console.Write(nameof(M2));
+  IL_0009:  ldstr      ""M2""
+  IL_000e:  call       ""void System.Console.Write(string)""
+  IL_0013:  nop
+  // sequence point: break;
+  IL_0014:  br.s       IL_0016
+  // sequence point: }
+  IL_0016:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "1M2");
+
+            verifier.VerifyIL("Program.M1",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.1
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
+            verifier.VerifyIL("Program.M2",
+@"{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""M2""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ret
+}");
+        }
+
+        [Fact, WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
+        public void SwitchWithConstantGenericPattern_01()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1<int>();    // 1
+        M1<long>();   // 2
+        M2<string>(); // 3
+        M2<int>();    // 4
+    }
+
+    static void M1<T>()
+    {
+        switch (1)
+        {
+            case T t:
+                Console.Write(1);
+                break;
+            case int i:
+                Console.Write(2);
+                break;
+        }
+    }
+
+    static void M2<T>()
+    {
+        switch (nameof(M2))
+        {
+            case T t:
+                Console.Write(3);
+                break;
+            case string s:
+                Console.Write(4);
+                break;
+            case null:
+                ;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "1234");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
+expectedIL: @"{
+  // Code size       80 (0x50)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                T V_2, //t
+                int V_3, //i
+                int V_4,
+                object V_5,
+                T V_6)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (1)
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.s    V_4
+  IL_0004:  ldc.i4.1
+  IL_0005:  box        ""int""
+  IL_000a:  stloc.s    V_5
+  IL_000c:  ldloc.s    V_5
+  IL_000e:  isinst     ""T""
+  IL_0013:  ldnull
+  IL_0014:  cgt.un
+  IL_0016:  dup
+  IL_0017:  brtrue.s   IL_0025
+  IL_0019:  ldloca.s   V_6
+  IL_001b:  initobj    ""T""
+  IL_0021:  ldloc.s    V_6
+  IL_0023:  br.s       IL_002c
+  IL_0025:  ldloc.s    V_5
+  IL_0027:  unbox.any  ""T""
+  IL_002c:  stloc.0
+  IL_002d:  brfalse.s  IL_0031
+  IL_002f:  br.s       IL_0035
+  IL_0031:  ldc.i4.1
+  IL_0032:  stloc.1
+  IL_0033:  br.s       IL_0042
+  // sequence point: <hidden>
+  IL_0035:  ldloc.0
+  IL_0036:  stloc.2
+  IL_0037:  br.s       IL_0039
+  // sequence point: Console.Write(1);
+  IL_0039:  ldc.i4.1
+  IL_003a:  call       ""void System.Console.Write(int)""
+  IL_003f:  nop
+  // sequence point: break;
+  IL_0040:  br.s       IL_004f
+  // sequence point: <hidden>
+  IL_0042:  ldloc.1
+  IL_0043:  stloc.3
+  IL_0044:  br.s       IL_0046
+  // sequence point: Console.Write(2);
+  IL_0046:  ldc.i4.2
+  IL_0047:  call       ""void System.Console.Write(int)""
+  IL_004c:  nop
+  // sequence point: break;
+  IL_004d:  br.s       IL_004f
+  // sequence point: }
+  IL_004f:  ret
+}");
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       87 (0x57)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1,
+                T V_2, //t
+                string V_3, //s
+                string V_4,
+                object V_5,
+                T V_6)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (nameof(M2))
+  IL_0001:  ldstr      ""M2""
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldstr      ""M2""
+  IL_000d:  stloc.s    V_5
+  IL_000f:  ldloc.s    V_5
+  IL_0011:  isinst     ""T""
+  IL_0016:  ldnull
+  IL_0017:  cgt.un
+  IL_0019:  dup
+  IL_001a:  brtrue.s   IL_0028
+  IL_001c:  ldloca.s   V_6
+  IL_001e:  initobj    ""T""
+  IL_0024:  ldloc.s    V_6
+  IL_0026:  br.s       IL_002f
+  IL_0028:  ldloc.s    V_5
+  IL_002a:  unbox.any  ""T""
+  IL_002f:  stloc.0
+  IL_0030:  brfalse.s  IL_0034
+  IL_0032:  br.s       IL_003c
+  IL_0034:  ldstr      ""M2""
+  IL_0039:  stloc.1
+  IL_003a:  br.s       IL_0049
+  // sequence point: <hidden>
+  IL_003c:  ldloc.0
+  IL_003d:  stloc.2
+  IL_003e:  br.s       IL_0040
+  // sequence point: Console.Write(3);
+  IL_0040:  ldc.i4.3
+  IL_0041:  call       ""void System.Console.Write(int)""
+  IL_0046:  nop
+  // sequence point: break;
+  IL_0047:  br.s       IL_0056
+  // sequence point: <hidden>
+  IL_0049:  ldloc.1
+  IL_004a:  stloc.3
+  IL_004b:  br.s       IL_004d
+  // sequence point: Console.Write(4);
+  IL_004d:  ldc.i4.4
+  IL_004e:  call       ""void System.Console.Write(int)""
+  IL_0053:  nop
+  // sequence point: break;
+  IL_0054:  br.s       IL_0056
+  // sequence point: }
+  IL_0056:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "1234");
+
+            verifier.VerifyIL("Program.M1<T>",
+@"{
+  // Code size       57 (0x39)
+  .maxstack  2
+  .locals init (T V_0,
+                int V_1,
+                object V_2,
+                T V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  box        ""int""
+  IL_0006:  stloc.2
+  IL_0007:  ldloc.2
+  IL_0008:  isinst     ""T""
+  IL_000d:  ldnull
+  IL_000e:  cgt.un
+  IL_0010:  dup
+  IL_0011:  brtrue.s   IL_001e
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  initobj    ""T""
+  IL_001b:  ldloc.3
+  IL_001c:  br.s       IL_0024
+  IL_001e:  ldloc.2
+  IL_001f:  unbox.any  ""T""
+  IL_0024:  stloc.0
+  IL_0025:  brtrue.s   IL_002b
+  IL_0027:  ldc.i4.1
+  IL_0028:  stloc.1
+  IL_0029:  br.s       IL_0032
+  IL_002b:  ldc.i4.1
+  IL_002c:  call       ""void System.Console.Write(int)""
+  IL_0031:  ret
+  IL_0032:  ldc.i4.2
+  IL_0033:  call       ""void System.Console.Write(int)""
+  IL_0038:  ret
+}");
+            verifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (T V_0,
+                string V_1,
+                object V_2,
+                T V_3)
+  IL_0000:  ldstr      ""M2""
+  IL_0005:  stloc.2
+  IL_0006:  ldloc.2
+  IL_0007:  isinst     ""T""
+  IL_000c:  ldnull
+  IL_000d:  cgt.un
+  IL_000f:  dup
+  IL_0010:  brtrue.s   IL_001d
+  IL_0012:  ldloca.s   V_3
+  IL_0014:  initobj    ""T""
+  IL_001a:  ldloc.3
+  IL_001b:  br.s       IL_0023
+  IL_001d:  ldloc.2
+  IL_001e:  unbox.any  ""T""
+  IL_0023:  stloc.0
+  IL_0024:  brtrue.s   IL_002e
+  IL_0026:  ldstr      ""M2""
+  IL_002b:  stloc.1
+  IL_002c:  br.s       IL_0035
+  IL_002e:  ldc.i4.3
+  IL_002f:  call       ""void System.Console.Write(int)""
+  IL_0034:  ret
+  IL_0035:  ldc.i4.4
+  IL_0036:  call       ""void System.Console.Write(int)""
+  IL_003b:  ret
+}");
+        }
+
+        [Fact, WorkItem(19734, "https://github.com/dotnet/roslyn/issues/19734")]
+        public void SwitchWithConstantGenericPattern_02()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        M2<string>(); // 6
+        M2<int>();    // 6
+    }
+
+    static void M2<T>()
+    {
+        const string x = null;
+        switch (x)
+        {
+            case T t:
+                ;
+            case string s:
+                ;
+            case null:
+                Console.Write(6);
+                break;
+        }
+    }
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            var verifier = CompileAndVerify(c, expectedOutput: "66");
+
+            verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
+expectedIL: @"{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (T V_0, //t
+                string V_1, //s
+                string V_2)
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: switch (x)
+  IL_0001:  ldnull
+  IL_0002:  stloc.2
+  IL_0003:  br.s       IL_0005
+  // sequence point: Console.Write(6);
+  IL_0005:  ldc.i4.6
+  IL_0006:  call       ""void System.Console.Write(int)""
+  IL_000b:  nop
+  // sequence point: break;
+  IL_000c:  br.s       IL_000e
+  // sequence point: }
+  IL_000e:  ret
+}");
+
+            // Check the release code generation too.
+            c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            c.VerifyDiagnostics();
+            verifier = CompileAndVerify(c, expectedOutput: "66");
+
+            verifier.VerifyIL("Program.M2<T>",
+@"{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.6
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ret
+}");
+        }
+
         #endregion
 
         #region DoStatement

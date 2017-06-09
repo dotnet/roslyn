@@ -273,11 +273,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (node.Kind())
             {
+                case SyntaxKind.LocalDeclarationStatement:
+                    // Local declarations are not legal in contexts where we need embedded statements.
+                    diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
+
+                    // fall through
+                    goto case SyntaxKind.ExpressionStatement;
+
                 case SyntaxKind.ExpressionStatement:
                 case SyntaxKind.LockStatement:
                 case SyntaxKind.IfStatement:
                 case SyntaxKind.YieldReturnStatement:
-                case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.ReturnStatement:
                 case SyntaxKind.ThrowStatement:
                     binder = this.GetBinder(node);
@@ -286,6 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.LabeledStatement:
                 case SyntaxKind.LocalFunctionStatement:
+                    // Labeled statements and local function statements are not legal in contexts where we need embedded statements.
+                    diagnostics.Add(ErrorCode.ERR_BadEmbeddedStmt, node.GetLocation());
+
                     binder = this.GetBinder(node);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesAndLocalFunctionsIfAny(node, binder.BindStatement(node, diagnostics));
@@ -295,6 +304,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = this.GetBinder(switchStatement.Expression);
                     Debug.Assert(binder != null);
                     return binder.WrapWithVariablesIfAny(switchStatement.Expression, binder.BindStatement(node, diagnostics));
+
+                case SyntaxKind.EmptyStatement:
+                    var emptyStatement = (EmptyStatementSyntax)node;
+                    if (!emptyStatement.SemicolonToken.IsMissing)
+                    {
+                        switch (node.Parent.Kind())
+                        {
+                            case SyntaxKind.ForStatement:
+                            case SyntaxKind.ForEachStatement:
+                            case SyntaxKind.ForEachVariableStatement:
+                            case SyntaxKind.WhileStatement:
+                                // For loop constructs, only warn if we see a block following the statement.
+                                // That indicates code like:  "while (x) ; { }"
+                                // which is most likely a bug.
+                                if (emptyStatement.SemicolonToken.GetNextToken().Kind() != SyntaxKind.OpenBraceToken)
+                                {
+                                    break;
+                                }
+
+                                goto default;
+
+                            default:
+                                // For non-loop constructs, always warn.  This is for code like:
+                                // "if (x) ;" which is almost certainly a bug.
+                                diagnostics.Add(ErrorCode.WRN_PossibleMistakenNullStatement, node.GetLocation());
+                                break;
+                        }
+                    }
+
+                    // fall through
+                    goto default;
 
                 default:
                     return BindStatement(node, diagnostics);
@@ -2438,6 +2478,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!isDefaultParameter)
                 {
                     GenerateImplicitConversionError(diagnostics, expression.Syntax, conversion, expression, targetType);
+                }
+
+                if (conversion.IsTupleLiteralConversion ||
+                     (conversion.IsNullable && conversion.UnderlyingConversions[0].IsTupleLiteralConversion))
+                {
+                    // Follow-up issue https://github.com/dotnet/roslyn/issues/19878
+                    // How should we represent the tuple or nullable+tuple conversion in this case?
+                    conversion = Conversion.NoConversion;
                 }
 
                 return new BoundConversion(
