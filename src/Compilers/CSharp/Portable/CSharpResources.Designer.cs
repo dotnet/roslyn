@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -787,6 +787,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AutoPropertyMustOverrideSet {
             get {
                 return ResourceManager.GetString("ERR_AutoPropertyMustOverrideSet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Instance fields of readonly structs must be readonly..
+        /// </summary>
+        internal static string ERR_AutoPropsInRoStruct {
+            get {
+                return ResourceManager.GetString("ERR_AutoPropsInRoStruct", resourceCulture);
             }
         }
         
@@ -4558,6 +4567,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FieldInitRefNonstatic {
             get {
                 return ResourceManager.GetString("ERR_FieldInitRefNonstatic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field-like events are not allowed in readonly structs..
+        /// </summary>
+        internal static string ERR_FieldlikeEventsInRoStruct {
+            get {
+                return ResourceManager.GetString("ERR_FieldlikeEventsInRoStruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Auto-implemented instance properties in readonly structs must be readonly..
+        /// </summary>
+        internal static string ERR_FieldsInRoStruct {
+            get {
+                return ResourceManager.GetString("ERR_FieldsInRoStruct", resourceCulture);
             }
         }
         

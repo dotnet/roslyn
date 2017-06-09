@@ -86,6 +86,7 @@
     <Compile Include="Semantics\PatternMatchingTests_Global.cs" />
     <Compile Include="Semantics\BindingAsyncTasklikeMoreTests.cs" />
     <Compile Include="Semantics\BindingAsyncTasklikeTests.cs" />
+    <Compile Include="Semantics\ReadOnlyStructsTests.cs" />
     <Compile Include="Semantics\TargetTypedDefaultTests.cs" />
     <Compile Include="Semantics\DeconstructionTests.cs" />
     <Compile Include="Semantics\ImportsTests.cs" />

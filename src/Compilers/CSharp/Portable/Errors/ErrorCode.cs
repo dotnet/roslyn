@@ -1508,5 +1508,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnReadonlyNotField2 = 8411,
         ERR_ExplicitReservedAttr = 8412,
         ERR_TypeReserved = 8413,
+
+        ERR_FieldsInRoStruct = 8514,
+        ERR_AutoPropsInRoStruct = 8515,
+        ERR_FieldlikeEventsInRoStruct = 8516,
     }
 }
