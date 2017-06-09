@@ -116,6 +116,7 @@
     <Compile Include="IOperation\IOperationTests_InvalidExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IBlockStatement_MethodBlocks.vb" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.vb" />
+    <Compile Include="IOperation\IOperationTests_IResturnStatement.vb" />
     <Compile Include="IOperation\IOperationTests_ISymbolInitializer.vb" />
     <Compile Include="IOperation\IOperationTests.vb" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.vb" />
