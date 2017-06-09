@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitYieldBreakStatement(IReturnStatement operation)
         {
-            LogString("YieldBreakStatement");
+            LogString(nameof(IReturnStatement));
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitYieldBreakStatement(operation);
