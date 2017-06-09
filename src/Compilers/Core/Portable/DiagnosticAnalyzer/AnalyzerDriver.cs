@@ -1369,9 +1369,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void Dispose()
         {
-            this.CompilationEventQueue?.TryComplete();
-            this.DiagnosticQueue?.TryComplete();
-            _queueRegistration.Dispose();
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                this.CompilationEventQueue?.TryComplete();
+                this.DiagnosticQueue?.TryComplete();
+                _queueRegistration.Dispose();
+            }
         }
     }
 
