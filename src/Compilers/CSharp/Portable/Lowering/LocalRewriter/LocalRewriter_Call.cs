@@ -515,12 +515,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // If neither of those are the case then we can just take an early out.
 
-
-            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var isComReceiver))
-            {                                                                                  
+            if (CanSkipRewriting(arguments, methodOrIndexer, expanded, argsToParamsOpt, invokedAsExtensionMethod, out var _))
+            {
                 // In this case, the invocation is not in expanded form and there's no named argument provided.
                 // So we just return list of arguments as is.
-                return arguments.ZipAsArray(methodOrIndexer.GetParameters(), (a, p) => CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, p, CSharpOperationFactory.Create(a)));
+
+                ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
+                ArrayBuilder<IArgument> argumentsBuilder = ArrayBuilder<IArgument>.GetInstance(arguments.Length);
+
+                int i = 0;
+                for (; i < parameters.Length; ++i)
+                {
+                    argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, parameters[i], CSharpOperationFactory.Create(arguments[i])));
+                }
+
+                // TODO: In case of __arglist, we will have more arguments than parameters, 
+                //       set the parameter to null for __arglist argument for now.
+                //       https://github.com/dotnet/roslyn/issues/19673
+                for (; i < arguments.Length; ++i)
+                {
+                    argumentsBuilder.Add(CSharpOperationFactory.CreateArgumentOperation(ArgumentKind.Explicit, null, CSharpOperationFactory.Create(arguments[i])));
+                }
+
+                Debug.Assert(methodOrIndexer.GetIsVararg() ^ parameters.Length == arguments.Length);
+
+                return argumentsBuilder.ToImmutableAndFree();
             }                                                                                                                   
 
             return BuildArgumentsInEvaluationOrder(syntax, 
@@ -558,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
                                     methodOrIndexer.ContainingType;
 
-            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport; 
+            isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
 
             return rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&

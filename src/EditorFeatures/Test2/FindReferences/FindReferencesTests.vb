@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 Imports Xunit.Abstractions
 Imports Microsoft.CodeAnalysis.Editor.FindUsages
+Imports Microsoft.CodeAnalysis.Remote
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
@@ -41,8 +42,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End If
 
             Using workspace = TestWorkspace.Create(element)
-                workspace.Options = workspace.Options.WithChangedOption(
-                    SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
 
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
@@ -165,8 +166,8 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                        uiVisibleOnly As Boolean,
                                        outOfProcess As Boolean) As Task
             Using workspace = TestWorkspace.Create(definition)
-                workspace.Options = workspace.Options.WithChangedOption(
-                    SymbolFinderOptions.OutOfProcessAllowed, outOfProcess)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess).
+                                                      WithChangedOption(RemoteFeatureOptions.SymbolFinderEnabled, outOfProcess)
 
                 workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
 
