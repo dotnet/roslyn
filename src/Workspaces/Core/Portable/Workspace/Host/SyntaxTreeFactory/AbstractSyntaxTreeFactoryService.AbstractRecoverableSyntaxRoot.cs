@@ -91,9 +91,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 if (this.TryGetValue(out var root))
                 {
-                    var result = new RecoverableSyntaxRoot<TRoot>(_service, root, containingTree);
-                    result._storage = _storage;
-                    return result;
+                    return new RecoverableSyntaxRoot<TRoot>(_service, root, containingTree);
                 }
                 else
                 {
