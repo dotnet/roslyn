@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// user visible switch to let people opt-in/out of this behavior.
         /// </summary>
         public static readonly Option<bool> OutOfProcessAllowed = new Option<bool>(
-            nameof(RemoteFeatureOptions), nameof(OutOfProcessAllowed), defaultValue: false,
+            nameof(RemoteFeatureOptions), nameof(OutOfProcessAllowed), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(OutOfProcessAllowed)));
 
         // Individual feature switches.  Not exposed to the user.  Supplied as an escape hatch for
