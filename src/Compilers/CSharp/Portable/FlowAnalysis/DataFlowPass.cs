@@ -938,9 +938,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// reported, we suppress further reports of that variable.
         /// </summary>
         protected virtual void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
-            => ReportUnassignedHelper(symbol, node, slot, skipIfUseBeforeDeclaration);
-
-        private void ReportUnassignedHelper(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             if (slot <= 0)
             {

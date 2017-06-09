@@ -94,13 +94,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             // TODO: how to handle fields of structs?
-            if (symbol.Kind == SymbolKind.Field)
-            {
-                symbol = GetNonFieldSymbol(slot);
-            }
-
             if (RegionContains(node.Span))
             {
+                // if the field access is reported as unassigned it should mean the original local
+                // or parameter flows in, so we should get the symbol associated with the expression
+                var inSymbol = symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol;
                 _dataFlowsIn.Add(symbol);
             }
 

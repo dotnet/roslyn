@@ -234,14 +234,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
-            if (symbol.Kind == SymbolKind.Field)
+            if (!IsInside)
             {
-                symbol = GetNonFieldSymbol(slot);
-            }
-
-            if (!_dataFlowsOut.Contains(symbol) && !IsInside)
-            {
-                _dataFlowsOut.Add(symbol);
+                // If the field access is reported as unassigned it should mean the original local
+                // or parameter flows out, so we should get the symbol associated with the expression
+                var outSymbol = symbol.Kind == SymbolKind.Field ? GetNonFieldSymbol(slot) : symbol;
+                if (!_dataFlowsOut.Contains(outSymbol))
+                {
+                    _dataFlowsOut.Add(outSymbol);
+                }
             }
 
             base.ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
