@@ -2700,18 +2700,12 @@ namespace System
                 // (6,61): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
-                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(6, 56),
                 // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z2), z2)").WithArguments("b").WithLocation(7, 30),
                 // (7,61): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
-                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
                 // (8,35): error CS8185: A declaration is not allowed in this context.
                 //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int z3").WithLocation(8, 35),
@@ -2721,27 +2715,18 @@ namespace System
                 // (8,76): error CS0103: The name 'z3' does not exist in the current context
                 //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(8, 76),
-                // (8,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(8, 71),
                 // (10,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(arg is var z4, z4)").WithArguments("b").WithLocation(10, 30),
                 // (10,61): error CS0103: The name 'z4' does not exist in the current context
                 //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(10, 61),
-                // (10,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(10, 56),
                 // (11,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z5), z5)").WithArguments("b").WithLocation(11, 30),
                 // (11,61): error CS0103: The name 'z5' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(11, 61),
-                // (11,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(11, 56),
                 // (12,35): error CS8185: A declaration is not allowed in this context.
                 //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var z6").WithLocation(12, 35),
@@ -2751,9 +2736,6 @@ namespace System
                 // (12,76): error CS0103: The name 'z6' does not exist in the current context
                 //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(12, 76),
-                // (12,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(12, 71),
                 // (14,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int t = z1 + z2 + z3 + z4 + z5 + z6;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(14, 17),
@@ -3089,6 +3071,53 @@ class Test : System.Attribute
             var b1Symbol = model.GetSymbolInfo(b1).Symbol;
             Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
+        }
+
+        [Fact]
+        [WorkItem(19778, "https://github.com/dotnet/roslyn/issues/19778")]
+        public void BindDynamicInvocation()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void M()
+    {
+        dynamic L<T>(Func<dynamic, T> t, object p) => p;
+        L(m => L(d => d, null), null);
+        L(m => L(d => d, m), null);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            comp.VerifyEmitDiagnostics(
+                // (8,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+                //         L(m => L(d => d, m), null);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "d => d").WithLocation(8, 18));
+        }
+
+        [Fact]
+        [WorkItem(19778, "https://github.com/dotnet/roslyn/issues/19778")]
+        public void BindDynamicInvocation_Async()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void M()
+    {
+        async Task<dynamic> L<T>(Func<dynamic, T> t, object p)
+            => await L(async m => L(async d => await d, m), p);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            comp.VerifyEmitDiagnostics(
+                // (8,37): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+                //             => await L(async m => L(async d => await d, m), p);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "async d => await d").WithLocation(8, 37),
+                // (8,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //             => await L(async m => L(async d => await d, m), p);
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 32));
         }
     }
 }

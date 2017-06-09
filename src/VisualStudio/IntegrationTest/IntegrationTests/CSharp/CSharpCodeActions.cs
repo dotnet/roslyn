@@ -185,6 +185,11 @@ public class P2 { }");
         public void GFUFuzzyMatchAfterRenameTracking()
         {
             SetUpEditor(@"
+namespace N
+{
+    class Goober { }
+}
+
 namespace NS
 {
     public class P2
@@ -196,19 +201,18 @@ namespace NS
     }
 }");
             VisualStudio.Editor.SendKeys(VirtualKey.Backspace, VirtualKey.Backspace,
-                "Steam");
+                "Foober");
 
             VisualStudio.Editor.InvokeCodeActionList();
             var expectedItems = new[]
             {
-                "Rename 'P2' to 'Steam'",
-                "Generate type 'Steam'",
-                "Generate class 'Steam' in new file",
-                "Generate class 'Steam'",
-                "Generate nested class 'Steam'",
+                "Rename 'P2' to 'Foober'",
+                "Generate type 'Foober'",
+                "Generate class 'Foober' in new file",
+                "Generate class 'Foober'",
+                "Generate nested class 'Foober'",
                 "Generate new type...",
-                "Stream - using System.IO;",
-                "IStream - using System.Runtime.InteropServices.ComTypes;",
+                "Goober - using N;",
                 "Suppress CS0168",
                 "in Source",
             };

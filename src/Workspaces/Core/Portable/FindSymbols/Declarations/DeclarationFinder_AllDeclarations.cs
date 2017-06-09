@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (session != null)
                 {
-                    var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
+                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
                         nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
                         project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
-            Solution solution, SerializableSymbolAndProjectId[] array, CancellationToken cancellationToken)
+            Solution solution, ImmutableArray<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Length);
 

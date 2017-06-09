@@ -1,0 +1,11 @@
+{
+  "profiles":
+  {
+    "CSharpCompilerSymbolTest":
+    {
+      "commandName": "Executable",
+      "executablePath": "$(XUnitPath)",
+      "commandLineArgs": "$(XUnitArguments)"
+    }
+  }
+}
