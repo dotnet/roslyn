@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Semantics;
@@ -17,19 +18,21 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         public static bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => compilation.ClassifyConversion(source: source, destination: destination).IsImplicit;
 
-        public static SyntaxNode GetLastStatement(IBlockStatement blockStatement)
-            => blockStatement.Syntax is BlockSyntax block
+        public static SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt)
+            => blockStatementOpt?.Syntax is BlockSyntax block
                 ? block.Statements.LastOrDefault()
-                : blockStatement.Syntax;
+                : blockStatementOpt?.Syntax;
 
         public static void InsertStatement(
             SyntaxEditor editor,
-            SyntaxNode body,
+            BaseMethodDeclarationSyntax methodDeclaration,
+            IBlockStatement blockStatementOpt,
             SyntaxNode statementToAddAfterOpt,
             StatementSyntax statement)
         {
             var generator = editor.Generator;
 
+            var body = blockStatementOpt?.Syntax;
             if (body is ArrowExpressionClauseSyntax arrowExpression)
             {
                 // If this is a => method, then we'll have to convert the method to have a block
@@ -77,7 +80,10 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
             }
             else
             {
-                throw new InvalidOperationException();
+                editor.ReplaceNode(
+                    methodDeclaration,
+                    methodDeclaration.WithSemicolonToken(default(SyntaxToken))
+                                     .WithBody(SyntaxFactory.Block(statement)));
             }
         }
     }
