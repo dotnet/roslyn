@@ -2,4 +2,4 @@
 
 THISDIR=$(dirname $0)
 
-dotnet $THISDIR/csc.exe "$@"
+dotnet $THISDIR/csc.dll "$@"
