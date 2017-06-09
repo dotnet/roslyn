@@ -8521,7 +8521,7 @@ tryAgain:
                 for (int i = 0; i < paramListSyntax.Count; i++)
                 {
                     // "await x(y)" still parses as a parameter list, so check to see if it's a valid parameter (like "x(t y)")
-                    forceLocalFunc |= !paramListSyntax[i].ContainsDiagnostics;
+                    forceLocalFunc |= !paramListSyntax[i].ContainsErrorDiagnostics(considerTrivia: false);
                     if (forceLocalFunc)
                         break;
                 }

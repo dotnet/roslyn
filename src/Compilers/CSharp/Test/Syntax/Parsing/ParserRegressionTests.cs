@@ -162,6 +162,31 @@ class A
 
         [Fact]
         [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void DontReportErrorForDeclaration() {
+            var test = @"
+class C {
+    public void Foo() {
+        await F(long y = 5l)
+    }
+}";
+            var testWithoutWarning = test.Replace("5l", "5L");
+
+            ParseAndValidate(testWithoutWarning,
+                // (4,26): error CS1002: ; expected
+                //     	await F(long y = 5L)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 26));
+
+            ParseAndValidate(test,
+                // (4,24): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //     	await F(long y = 5l)
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 24),
+                // (4,26): error CS1002: ; expected
+                //     	await F(long y = 5l)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(4, 26));
+        }
+
+        [Fact]
+        [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
         public void SameDiagonsticsWithTaskLike()
         {
             var sourceWithWarning = @"
