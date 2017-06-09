@@ -134,6 +134,34 @@ class A
 
         [Fact]
         [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForWarningInAttribute()
+        {
+            var test = @"[System.Obsolete(2l)]";
+
+            ParseAndValidate(test,
+                // (1,21): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // [System.Obsolete(2l)]
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(1, 21),
+                // (1,19): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // [System.Obsolete(2l)]
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 19));
+        }
+
+        [Fact]
+        [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void ReportErrorForItemInNamespace() {
+            var test = "5l";
+            ParseAndValidate(test,
+                // (1,2): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // 5l
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 2),
+                // (1,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // 5l
+                Diagnostic(ErrorCode.ERR_EOFExpected, "5l").WithLocation(1, 1));
+        }
+
+        [Fact]
+        [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
         public void SameDiagonsticsWithTaskLike()
         {
             var sourceWithWarning = @"

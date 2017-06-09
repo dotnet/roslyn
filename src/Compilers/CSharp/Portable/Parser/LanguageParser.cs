@@ -680,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                                 // eat one token and try to parse declaration or statement again:
                                 var skippedToken = EatToken();
-                                if (reportUnexpectedToken && !skippedToken.ContainsDiagnostics)
+                                if (reportUnexpectedToken && !skippedToken.ContainsErrorDiagnostics(considerTrivia: false))
                                 {
                                     skippedToken = this.AddError(skippedToken,
                                         IsScript ? ErrorCode.ERR_GlobalDefinitionOrStatementExpected : ErrorCode.ERR_EOFExpected);
