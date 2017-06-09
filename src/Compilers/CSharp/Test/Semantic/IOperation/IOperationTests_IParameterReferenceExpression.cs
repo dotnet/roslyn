@@ -890,7 +890,7 @@ IOperation:  (OperationKind.None) (Syntax: 'IEnumerable ... }')
                     ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
             IfTrue: IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return element;')
                 ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
-      YieldBreakStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
+      IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
