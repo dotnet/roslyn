@@ -5,7 +5,7 @@ Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Semantics
-    Partial Friend NotInheritable Class VisualBasicOperationFactory
+    Partial Friend Class VisualBasicOperationFactory
         Private Shared Function ConvertToOptional(value As ConstantValue) As [Optional](Of Object)
             Return If(value Is Nothing, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
         End Function
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return OperationKind.AssignmentExpression
         End Function
 
-        Private Shared Function GetUserDefinedBinaryOperatorChild([operator] As BoundUserDefinedBinaryOperator, index As Integer) As IOperation
+        Private Function GetUserDefinedBinaryOperatorChild([operator] As BoundUserDefinedBinaryOperator, index As Integer) As IOperation
             Dim child = Create(GetUserDefinedBinaryOperatorChildBoundNode([operator], index))
             If child IsNot Nothing Then
                 Return child
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return GetChildOfBadExpressionBoundNode([operator].UnderlyingExpression, index)
         End Function
 
-        Friend Shared Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
+        Friend Function DeriveArguments(boundArguments As ImmutableArray(Of BoundExpression), parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As ImmutableArray(Of IArgument)
             Dim argumentsLength As Integer = boundArguments.Length
             Debug.Assert(argumentsLength = parameters.Length)
 
@@ -69,13 +69,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return arguments.ToImmutableAndFree()
         End Function
 
-        Private Shared ReadOnly s_argumentMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundExpression, IArgument)
-
-        Private Shared Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
+        Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
-                    Return s_argumentMappings.GetValue(
-                        argument,
+                    Return _cache.GetValue(
+                        argument, NameOf(DeriveArgument),
                         Function(argumentValue)
                             Dim byRefArgument = DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)
                             Dim parameter = parameters(index)
@@ -92,8 +90,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 constantValue:=Nothing)
                         End Function)
                 Case Else
-                    Return s_argumentMappings.GetValue(
-                        argument,
+                    Return _cache.GetValue(
+                        argument, NameOf(DeriveArgument),
                         Function(argumentValue)
                             Dim lastParameterIndex = parameters.Length - 1
                             If index = lastParameterIndex AndAlso ParameterIsParamArray(parameters(lastParameterIndex)) Then
@@ -143,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return If(parameter.IsParamArray AndAlso parameter.Type.Kind = SymbolKind.ArrayType, DirectCast(parameter.Type, VisualBasic.Symbols.ArrayTypeSymbol).IsSZArray, False)
         End Function
 
-        Private Shared Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
+        Private Function GetChildOfBadExpression(parent As BoundNode, index As Integer) As IOperation
             Dim child = Create(GetChildOfBadExpressionBoundNode(parent, index))
             If child IsNot Nothing Then
                 Return child
@@ -164,14 +162,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Shared Function GetObjectCreationInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
+        Private Function GetObjectCreationInitializers(expression As BoundObjectCreationExpression) As ImmutableArray(Of IOperation)
             Return If(expression.InitializerOpt IsNot Nothing, expression.InitializerOpt.Initializers.SelectAsArray(Function(n) Create(n)), ImmutableArray(Of IOperation).Empty)
         End Function
 
-        Private Shared ReadOnly s_caseBlocksMappings As New ConditionalWeakTable(Of BoundSelectStatement, Object)
-
-        Private Shared Function GetSwitchStatementCases(statement As BoundSelectStatement) As ImmutableArray(Of ISwitchCase)
-            Dim cases = s_caseBlocksMappings.GetValue(statement,
+        Private Function GetSwitchStatementCases(statement As BoundSelectStatement) As ImmutableArray(Of ISwitchCase)
+            Dim cases = _cache.GetValue(statement, NameOf(GetSwitchStatementCases),
                 Function(boundSelect)
                     Return boundSelect.CaseBlocks.SelectAsArray(
                         Function(boundCaseBlock)
@@ -199,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             Return DirectCast(New SwitchCase(clauses, body, isInvalid, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
                         End Function)
                 End Function)
-            Return DirectCast(cases, ImmutableArray(Of ISwitchCase))
+            Return cases
         End Function
 
         Private Shared Function GetSingleValueCaseClauseValue(clause As BoundSimpleCaseClause) As BoundExpression
@@ -252,11 +248,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return Nothing
         End Function
 
-        Private Shared ReadOnly s_loopTopMappings As New ConditionalWeakTable(Of BoundForToStatement, Object)
-
-        Private Shared Function GetForLoopStatementBefore(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
-            Dim result = s_loopTopMappings.GetValue(
-                    boundForToStatement,
+        Private Function GetForLoopStatementBefore(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
+            Dim result = _cache.GetValue(
+                    boundForToStatement, NameOf(GetForLoopStatementBefore),
                     Function(boundFor)
                         Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
 
@@ -297,14 +291,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         Return statements.ToImmutableAndFree()
                     End Function)
 
-            Return DirectCast(result, ImmutableArray(Of IOperation))
+            Return result
         End Function
 
-        Private Shared ReadOnly s_loopBottomMappings As New ConditionalWeakTable(Of BoundForToStatement, Object)
-
-        Private Shared Function GetForLoopStatementAtLoopBottom(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
-            Dim result = s_loopBottomMappings.GetValue(
-                    boundForToStatement,
+        Private Function GetForLoopStatementAtLoopBottom(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
+            Dim result = _cache.GetValue(
+                    boundForToStatement, NameOf(GetForLoopStatementAtLoopBottom),
                     Function(boundFor)
                         Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
                         Dim operators As BoundForToUserDefinedOperators = boundFor.OperatorsOpt
@@ -338,15 +330,13 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         Return statements.ToImmutableAndFree()
                     End Function)
 
-            Return DirectCast(result, ImmutableArray(Of IOperation))
+            Return result
         End Function
 
-        Private Shared ReadOnly s_loopConditionMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundForToStatement, IOperation)
-
-        Private Shared Function GetForWhileUntilLoopStatmentCondition(boundForToStatement As BoundForToStatement) As IOperation
-            Return s_loopConditionMappings.GetValue(
-                boundForToStatement,
-                Function(boundFor)
+        Private Function GetForWhileUntilLoopStatmentCondition(boundForToStatement As BoundForToStatement) As IOperation
+            Return _cache.GetValue(
+                boundForToStatement, NameOf(GetForWhileUntilLoopStatmentCondition),
+                Function(boundFor) As IOperation
                     Dim operationValue = Create(boundFor.LimitValue)
                     Dim limitValue As IOperation =
                         If(boundFor.LimitValue.IsConstant,
@@ -405,23 +395,19 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Function)
         End Function
 
-        Private Shared ReadOnly s_blockStatementsMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundBlock, Object)
-
-        Private Shared Function GetBlockStatementStatements(block As BoundBlock) As ImmutableArray(Of IOperation)
+        Private Function GetBlockStatementStatements(block As BoundBlock) As ImmutableArray(Of IOperation)
             ' This is to filter out operations of kind None.
-            Dim statements = s_blockStatementsMappings.GetValue(
-                block,
+            Dim statements = _cache.GetValue(
+                block, NameOf(GetBlockStatementStatements),
                 Function(boundBlock)
                     Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
                 End Function)
-            Return DirectCast(statements, ImmutableArray(Of IOperation))
+            Return statements
         End Function
 
-        Private Shared ReadOnly s_variablesMappings As New ConditionalWeakTable(Of BoundDimStatement, Object)
-
-        Private Shared Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
-            Dim variables = s_variablesMappings.GetValue(
-                statement,
+        Private Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
+            Dim variables = _cache.GetValue(
+                statement, NameOf(GetVariableDeclarationStatementVariables),
                 Function(dimStatement)
                     Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
                     For Each base In dimStatement.LocalDeclarations
@@ -437,14 +423,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Return builder.ToImmutableAndFree()
                 End Function
                                                                )
-            Return DirectCast(variables, ImmutableArray(Of IVariableDeclaration))
+            Return variables
         End Function
 
-        Private Shared ReadOnly s_variablesDeclMappings As New ConditionalWeakTable(Of BoundUsingStatement, VariableDeclarationStatement)
-
-        Private Shared Function GetUsingStatementDeclaration(boundUsingStatement As BoundUsingStatement) As IVariableDeclarationStatement
-            Return s_variablesDeclMappings.GetValue(
-                    boundUsingStatement,
+        Private Function GetUsingStatementDeclaration(boundUsingStatement As BoundUsingStatement) As IVariableDeclarationStatement
+            Return _cache.GetValue(
+                    boundUsingStatement, NameOf(GetUsingStatementDeclaration),
                     Function(boundUsing)
                         Dim declaration = If(boundUsing.ResourceList.IsDefaultOrEmpty,
                             ImmutableArray(Of IVariableDeclaration).Empty,
@@ -458,12 +442,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     End Function)
         End Function
 
-        Private Shared ReadOnly s_expressionsMappings As New ConditionalWeakTable(Of BoundAddRemoveHandlerStatement, IEventAssignmentExpression)
-
-
-        Private Shared Function GetAddHandlerStatementExpression(handlerStatement As BoundAddHandlerStatement) As IOperation
-            Return s_expressionsMappings.GetValue(
-                handlerStatement,
+        Private Function GetAddHandlerStatementExpression(handlerStatement As BoundAddHandlerStatement) As IOperation
+            Return _cache.GetValue(
+                handlerStatement, NameOf(GetAddHandlerStatementExpression),
                 Function(statement)
                     Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
                     Dim [event] As IEventSymbol = eventAccess?.EventSymbol
@@ -474,10 +455,9 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Function)
         End Function
 
-
-        Private Shared Function GetRemoveStatementExpression(handlerStatement As BoundRemoveHandlerStatement) As IOperation
-            Return s_expressionsMappings.GetValue(
-                handlerStatement,
+        Private Function GetRemoveStatementExpression(handlerStatement As BoundRemoveHandlerStatement) As IOperation
+            Return _cache.GetValue(
+                handlerStatement, NameOf(GetRemoveStatementExpression),
                 Function(statement)
                     Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
                     Dim [event] As IEventSymbol = eventAccess?.EventSymbol
@@ -489,14 +469,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Function)
         End Function
 
-        Private Shared ReadOnly s_interpolatedStringExpressionMappings As New ConditionalWeakTable(Of BoundInterpolatedStringExpression, Object)()
-
-        Private Shared Function GetInterpolatedStringExpressionParts(boundInterpolatedString As BoundInterpolatedStringExpression) As ImmutableArray(Of IInterpolatedStringContent)
-            Return DirectCast(s_interpolatedStringExpressionMappings.GetValue(
-                boundInterpolatedString,
+        Private Function GetInterpolatedStringExpressionParts(boundInterpolatedString As BoundInterpolatedStringExpression) As ImmutableArray(Of IInterpolatedStringContent)
+            Return _cache.GetValue(
+                boundInterpolatedString, NameOf(GetInterpolatedStringExpressionParts),
                 Function(interpolatedString)
                     Return interpolatedString.Contents.SelectAsArray(Function(interpolatedStringContent) CreateBoundInterpolatedStringContentOperation(interpolatedStringContent))
-                End Function), ImmutableArray(Of IInterpolatedStringContent))
+                End Function)
         End Function
 
         Friend Class Helper

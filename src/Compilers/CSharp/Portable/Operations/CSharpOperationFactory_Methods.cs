@@ -1,24 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal static partial class CSharpOperationFactory
+    internal partial class CSharpOperationFactory
     {
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
-        private static ImmutableArray<IOperation> ToStatements(BoundStatement statement)
+        private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
-            BoundStatementList statementList = statement as BoundStatementList;
+            var statementList = statement as BoundStatementList;
             if (statementList != null)
             {
                 return statementList.Statements.SelectAsArray(n => Create(n));
@@ -31,11 +29,9 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        private static readonly ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression>();
-
-        private static ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator boundIncrementOperator)
+        private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator boundIncrementOperator)
         {
-            return s_incrementValueMappings.GetValue(boundIncrementOperator, (increment) =>
+            return _cache.GetValue(boundIncrementOperator, nameof(CreateIncrementOneLiteralExpression), (increment) =>
             {
                 string text = increment.Syntax.ToString();
                 bool isInvalid = false;
@@ -45,9 +41,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
             });
         }
-
-        private static readonly ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>> s_callToArgumentsMappings
-            = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>();
 
         internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
         {
@@ -59,10 +52,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isInvalid: parameter == null || value.IsInvalid,
                 syntax: value.Syntax,
                 type: value.Type,
-                constantValue: default(Optional<object>));
+                constantValue: default);
         }
 
-        private static ImmutableArray<IArgument> DeriveArguments(
+        private ImmutableArray<IArgument> DeriveArguments(
             BoundExpression boundNode,
             Binder binder,
             Symbol methodOrIndexer,
@@ -84,8 +77,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return ImmutableArray<IArgument>.Empty;
             }
 
-            return (ImmutableArray<IArgument>)s_callToArgumentsMappings.GetValue(
-                boundNode,
+            return _cache.GetValue(
+                boundNode, nameof(DeriveArguments),
                 (n) =>
                 {
                     //TODO: https://github.com/dotnet/roslyn/issues/18722
@@ -99,6 +92,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                     }
 
                     return LocalRewriter.MakeArgumentsInEvaluationOrder(
+                         operationFactory: this,
                          binder: binder,
                          syntax: invocationSyntax,
                          arguments: boundArguments,
@@ -110,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 });
         }
 
-        private static ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
+        private ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
         {
             return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
         }
@@ -170,25 +164,19 @@ namespace Microsoft.CodeAnalysis.Semantics
             return null;
         }
 
-        private static readonly ConditionalWeakTable<BoundBlock, object> s_blockStatementsMappings =
-            new ConditionalWeakTable<BoundBlock, object>();
-
-        private static ImmutableArray<IOperation> GetBlockStatement(BoundBlock block)
+        private ImmutableArray<IOperation> GetBlockStatement(BoundBlock block)
         {
             // This is to filter out operations of kind None.
-            return (ImmutableArray<IOperation>)s_blockStatementsMappings.GetValue(block,
+            return _cache.GetValue(block, nameof(GetBlockStatement),
                 blockStatement =>
                 {
                     return blockStatement.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray();
                 });
         }
 
-        private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
-            new ConditionalWeakTable<BoundSwitchStatement, object>();
-
-        private static ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
+        private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
-            return (ImmutableArray<ISwitchCase>)s_switchSectionsMappings.GetValue(statement,
+            return _cache.GetValue(statement, nameof(GetSwitchStatementCases),
                 switchStatement =>
                 {
                     return switchStatement.SwitchSections.SelectAsArray(switchSection =>
@@ -238,33 +226,24 @@ namespace Microsoft.CodeAnalysis.Semantics
             return BinaryOperationKind.None;
         }
 
-        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundLocalDeclaration, object>();
-
-        private static ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundLocalDeclaration decl)
+        private ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundLocalDeclaration decl)
         {
-            return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(decl,
-                declaration => ImmutableArray.Create<IVariableDeclaration>(
+            return _cache.GetValue(decl, nameof(GetVariableDeclarationStatementVariables),
+                declaration => ImmutableArray.Create(
                     OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
         }
 
-        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_multiVariablesMappings =
-            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
-
-        private static ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundMultipleLocalDeclarations decl)
+        private ImmutableArray<IVariableDeclaration> GetVariableMultipleDeclarationStatementVariables(BoundMultipleLocalDeclarations decl)
         {
-            return (ImmutableArray<IVariableDeclaration>)s_multiVariablesMappings.GetValue(decl,
+            return _cache.GetValue(decl, nameof(GetVariableMultipleDeclarationStatementVariables),
                 multipleDeclarations =>
                     multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
                         OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
         }
 
-        private static readonly ConditionalWeakTable<BoundInterpolatedString, object> s_interpolatedStringExpressionMappings =
-            new ConditionalWeakTable<BoundInterpolatedString, object>();
-
-        private static ImmutableArray<IInterpolatedStringContent> GetInterpolatedStringExpressionParts(BoundInterpolatedString boundInterpolatedString)
+        private ImmutableArray<IInterpolatedStringContent> GetInterpolatedStringExpressionParts(BoundInterpolatedString boundInterpolatedString)
         {
-            return (ImmutableArray<IInterpolatedStringContent>)s_interpolatedStringExpressionMappings.GetValue(boundInterpolatedString,
+            return _cache.GetValue(boundInterpolatedString, nameof(GetInterpolatedStringExpressionParts),
                 interpolatedString =>
                     interpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
         }
