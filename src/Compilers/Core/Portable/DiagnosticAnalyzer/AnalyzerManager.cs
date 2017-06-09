@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -22,23 +22,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly object _gate = new object();
 
         // This cache stores the analyzer execution context per-analyzer (i.e. registered actions, supported descriptors, etc.).
-        private readonly Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap =
-            new Dictionary<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+        private readonly ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
 
-        private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer)
+        public AnalyzerManager(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
-            AnalyzerExecutionContext analyzerExecutionContext;
-            lock (_gate)
+            _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(analyzers);
+        }
+
+        public AnalyzerManager(DiagnosticAnalyzer analyzer)
+        {
+            _analyzerExecutionContextMap = CreateAnalyzerExecutionContextMap(SpecializedCollections.SingletonEnumerable(analyzer));
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> CreateAnalyzerExecutionContextMap(IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerExecutionContext>();
+            foreach (var analyzer in analyzers)
             {
-                if (!_analyzerExecutionContextMap.TryGetValue(analyzer, out analyzerExecutionContext))
-                {
-                    analyzerExecutionContext = new AnalyzerExecutionContext();
-                    _analyzerExecutionContextMap.Add(analyzer, analyzerExecutionContext);
-                }
+                builder.Add(analyzer, new AnalyzerExecutionContext());
             }
 
-            return analyzerExecutionContext;
+            return builder.ToImmutable();
         }
+
+        private AnalyzerExecutionContext GetAnalyzerExecutionContext(DiagnosticAnalyzer analyzer) => _analyzerExecutionContextMap[analyzer];
 
         private async Task<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
@@ -61,8 +68,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             catch (OperationCanceledException)
             {
                 // Task to compute the scope was cancelled.
-                // Clear the entry in scope map for analyzer, so we can attempt a retry.
-                analyzerExecutionContext.ClearCompilationScopeMap(analyzerExecutor.AnalyzerOptions);
+                // Clear the compilation scope for analyzer, so we can attempt a retry.
+                analyzerExecutionContext.ClearCompilationScopeTask();
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);

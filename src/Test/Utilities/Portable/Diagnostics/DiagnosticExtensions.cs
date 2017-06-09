@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis
                 c = (TCompilation)c.WithOptions(c.Options.WithReportSuppressedDiagnostics(reportSuppressedDiagnostics));
             }
 
-            var analyzerManager = new AnalyzerManager();
+            var analyzerManager = new AnalyzerManager(analyzersArray);
             Compilation newCompilation;
             var driver = AnalyzerDriver.CreateAndAttachToCompilation(c, analyzersArray, options, analyzerManager, onAnalyzerException, null, false, out newCompilation, CancellationToken.None);
             var discarded = newCompilation.GetDiagnostics();
