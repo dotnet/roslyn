@@ -171,6 +171,8 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundInterpolatedStringExpressionOperation((BoundInterpolatedString)boundNode);
                 case BoundKind.StringInsert:
                     return CreateBoundInterpolationOperation((BoundStringInsert)boundNode);
+                case BoundKind.LocalFunctionStatement:
+                    return CreateBoundLocalFunctionStatementOperation((BoundLocalFunctionStatement)boundNode);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
@@ -380,6 +382,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = null;
             Optional<object> constantValue = ConvertToOptional(boundLambda.ConstantValue);
             return new LazyLambdaExpression(signature, body, isInvalid, syntax, type, constantValue);
+        }
+
+        private static ILocalFunctionStatement CreateBoundLocalFunctionStatementOperation(BoundLocalFunctionStatement boundLocalFunctionStatement)
+        {
+            IMethodSymbol localFunctionSymbol = boundLocalFunctionStatement.Symbol;
+            Lazy<IBlockStatement> body = new Lazy<IBlockStatement>(() => (IBlockStatement)Create(boundLocalFunctionStatement.Body));
+            bool isInvalid = boundLocalFunctionStatement.HasErrors;
+            SyntaxNode syntax = boundLocalFunctionStatement.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            return new LazyLocalFunctionStatement(localFunctionSymbol, body, isInvalid, syntax, type, constantValue);
         }
 
         private static IOperation CreateBoundConversionOperation(BoundConversion boundConversion)

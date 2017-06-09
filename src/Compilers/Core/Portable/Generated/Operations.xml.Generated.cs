@@ -4566,4 +4566,65 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation Value => _lazyValue.Value;
     }
 
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal abstract partial class BaseLocalFunctionStatement : Operation, ILocalFunctionStatement
+    {
+        protected BaseLocalFunctionStatement(IMethodSymbol localFunctionSymbol, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LocalFunctionStatement, isInvalid, syntax, type, constantValue)
+        {
+            LocalFunctionSymbol = localFunctionSymbol;
+        }
+        /// <summary>
+        /// Local function symbol.
+        /// </summary>
+        public IMethodSymbol LocalFunctionSymbol { get; }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public abstract IBlockStatement Body { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLocalFunctionStatement(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocalFunctionStatement(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal sealed partial class LocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionStatement
+    {
+        public LocalFunctionStatement(IMethodSymbol localFunctionSymbol, IBlockStatement body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(localFunctionSymbol, isInvalid, syntax, type, constantValue)
+        {
+            Body = body;
+        }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public override IBlockStatement Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal sealed partial class LazyLocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionStatement
+    {
+        private readonly Lazy<IBlockStatement> _lazyBody;
+
+        public LazyLocalFunctionStatement(IMethodSymbol localFunctionSymbol, Lazy<IBlockStatement> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(localFunctionSymbol, isInvalid, syntax, type, constantValue)
+        {
+            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+        }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public override IBlockStatement Body => _lazyBody.Value;
+    }
 }
