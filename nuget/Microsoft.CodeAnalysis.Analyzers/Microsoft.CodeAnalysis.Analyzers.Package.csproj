@@ -18,11 +18,10 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <!-- Note that we need to use the binaries from locations where they are signed -->
-    <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.Analyzers\netstandard1.3\Microsoft.CodeAnalysis.Analyzers.dll" />
-    <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.CSharp.Analyzers\netstandard1.3\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-    <AnalyzerNupkgFile Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers\netstandard1.3\Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
-    <AnalyzerNupkgFile Include="Analyzer.Utilities\netstandard1.3\Analyzer.Utilities.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Analyzer.Utilities.dll" />
   </ItemGroup>
 
   <ItemGroup>
