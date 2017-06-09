@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator boundIncrementOperator)
         {
-            return _cache.GetValue(boundIncrementOperator, nameof(CreateIncrementOneLiteralExpression), (increment) =>
+            return _cache.GetOrCreateOperationFrom(boundIncrementOperator, nameof(CreateIncrementOneLiteralExpression), (increment) =>
             {
                 string text = increment.Syntax.ToString();
                 bool isInvalid = false;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return ImmutableArray<IArgument>.Empty;
             }
 
-            return _cache.GetValue(
+            return _cache.GetOrCreateOperationsFrom(
                 boundNode, nameof(DeriveArguments),
                 (n) =>
                 {
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ImmutableArray<IOperation> GetBlockStatement(BoundBlock block)
         {
             // This is to filter out operations of kind None.
-            return _cache.GetValue(block, nameof(GetBlockStatement),
+            return _cache.GetOrCreateOperationsFrom(block, nameof(GetBlockStatement),
                 blockStatement =>
                 {
                     return blockStatement.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray();
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
-            return _cache.GetValue(statement, nameof(GetSwitchStatementCases),
+            return _cache.GetOrCreateOperationsFrom(statement, nameof(GetSwitchStatementCases),
                 switchStatement =>
                 {
                     return switchStatement.SwitchSections.SelectAsArray(switchSection =>
@@ -228,14 +228,14 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundLocalDeclaration decl)
         {
-            return _cache.GetValue(decl, nameof(GetVariableDeclarationStatementVariables),
+            return _cache.GetOrCreateOperationsFrom(decl, nameof(GetVariableDeclarationStatementVariables),
                 declaration => ImmutableArray.Create(
                     OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
         }
 
         private ImmutableArray<IVariableDeclaration> GetVariableMultipleDeclarationStatementVariables(BoundMultipleLocalDeclarations decl)
         {
-            return _cache.GetValue(decl, nameof(GetVariableMultipleDeclarationStatementVariables),
+            return _cache.GetOrCreateOperationsFrom(decl, nameof(GetVariableMultipleDeclarationStatementVariables),
                 multipleDeclarations =>
                     multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
                         OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private ImmutableArray<IInterpolatedStringContent> GetInterpolatedStringExpressionParts(BoundInterpolatedString boundInterpolatedString)
         {
-            return _cache.GetValue(boundInterpolatedString, nameof(GetInterpolatedStringExpressionParts),
+            return _cache.GetOrCreateOperationsFrom(boundInterpolatedString, nameof(GetInterpolatedStringExpressionParts),
                 interpolatedString =>
                     interpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
         }

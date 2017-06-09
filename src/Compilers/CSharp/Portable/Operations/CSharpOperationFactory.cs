@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return null;
             }
 
-            return _cache.GetValue(boundNode, n => CreateInternal(n));
+            return _cache.GetOrCreateOperationFrom(boundNode, n => CreateInternal(n));
         }
 
         private IOperation CreateInternal(BoundNode boundNode)

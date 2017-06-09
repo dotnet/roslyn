@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Return Nothing
             End If
 
-            Return _cache.GetValue(boundNode, Function(n) CreateInternal(n))
+            Return _cache.GetOrCreateOperationFrom(boundNode, Function(n) CreateInternal(n))
         End Function
 
         Private Function CreateInternal(boundNode As BoundNode) As IOperation

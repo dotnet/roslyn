@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         Private Function DeriveArgument(index As Integer, argument As BoundExpression, parameters As ImmutableArray(Of VisualBasic.Symbols.ParameterSymbol)) As IArgument
             Select Case argument.Kind
                 Case BoundKind.ByRefArgumentWithCopyBack
-                    Return _cache.GetValue(
+                    Return _cache.GetOrCreateOperationFrom(
                         argument, NameOf(DeriveArgument),
                         Function(argumentValue)
                             Dim byRefArgument = DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                 constantValue:=Nothing)
                         End Function)
                 Case Else
-                    Return _cache.GetValue(
+                    Return _cache.GetOrCreateOperationFrom(
                         argument, NameOf(DeriveArgument),
                         Function(argumentValue)
                             Dim lastParameterIndex = parameters.Length - 1
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetSwitchStatementCases(statement As BoundSelectStatement) As ImmutableArray(Of ISwitchCase)
-            Dim cases = _cache.GetValue(statement, NameOf(GetSwitchStatementCases),
+            Dim cases = _cache.GetOrCreateOperationsFrom(statement, NameOf(GetSwitchStatementCases),
                 Function(boundSelect)
                     Return boundSelect.CaseBlocks.SelectAsArray(
                         Function(boundCaseBlock)
@@ -249,7 +249,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetForLoopStatementBefore(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
-            Dim result = _cache.GetValue(
+            Dim result = _cache.GetOrCreateOperationsFrom(
                     boundForToStatement, NameOf(GetForLoopStatementBefore),
                     Function(boundFor)
                         Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
@@ -295,7 +295,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetForLoopStatementAtLoopBottom(boundForToStatement As BoundForToStatement) As ImmutableArray(Of IOperation)
-            Dim result = _cache.GetValue(
+            Dim result = _cache.GetOrCreateOperationsFrom(
                     boundForToStatement, NameOf(GetForLoopStatementAtLoopBottom),
                     Function(boundFor)
                         Dim statements As ArrayBuilder(Of IOperation) = ArrayBuilder(Of IOperation).GetInstance()
@@ -334,7 +334,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetForWhileUntilLoopStatmentCondition(boundForToStatement As BoundForToStatement) As IOperation
-            Return _cache.GetValue(
+            Return _cache.GetOrCreateOperationFrom(
                 boundForToStatement, NameOf(GetForWhileUntilLoopStatmentCondition),
                 Function(boundFor) As IOperation
                     Dim operationValue = Create(boundFor.LimitValue)
@@ -397,7 +397,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
         Private Function GetBlockStatementStatements(block As BoundBlock) As ImmutableArray(Of IOperation)
             ' This is to filter out operations of kind None.
-            Dim statements = _cache.GetValue(
+            Dim statements = _cache.GetOrCreateOperationsFrom(
                 block, NameOf(GetBlockStatementStatements),
                 Function(boundBlock)
                     Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
@@ -406,7 +406,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetVariableDeclarationStatementVariables(statement As BoundDimStatement) As ImmutableArray(Of IVariableDeclaration)
-            Dim variables = _cache.GetValue(
+            Dim variables = _cache.GetOrCreateOperationsFrom(
                 statement, NameOf(GetVariableDeclarationStatementVariables),
                 Function(dimStatement)
                     Dim builder = ArrayBuilder(Of IVariableDeclaration).GetInstance()
@@ -427,7 +427,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetUsingStatementDeclaration(boundUsingStatement As BoundUsingStatement) As IVariableDeclarationStatement
-            Return _cache.GetValue(
+            Return _cache.GetOrCreateOperationFrom(
                     boundUsingStatement, NameOf(GetUsingStatementDeclaration),
                     Function(boundUsing)
                         Dim declaration = If(boundUsing.ResourceList.IsDefaultOrEmpty,
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetAddHandlerStatementExpression(handlerStatement As BoundAddHandlerStatement) As IOperation
-            Return _cache.GetValue(
+            Return _cache.GetOrCreateOperationFrom(
                 handlerStatement, NameOf(GetAddHandlerStatementExpression),
                 Function(statement)
                     Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
@@ -456,7 +456,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetRemoveStatementExpression(handlerStatement As BoundRemoveHandlerStatement) As IOperation
-            Return _cache.GetValue(
+            Return _cache.GetOrCreateOperationFrom(
                 handlerStatement, NameOf(GetRemoveStatementExpression),
                 Function(statement)
                     Dim eventAccess As BoundEventAccess = TryCast(statement.EventAccess, BoundEventAccess)
@@ -470,7 +470,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function GetInterpolatedStringExpressionParts(boundInterpolatedString As BoundInterpolatedStringExpression) As ImmutableArray(Of IInterpolatedStringContent)
-            Return _cache.GetValue(
+            Return _cache.GetOrCreateOperationsFrom(
                 boundInterpolatedString, NameOf(GetInterpolatedStringExpressionParts),
                 Function(interpolatedString)
                     Return interpolatedString.Contents.SelectAsArray(Function(interpolatedStringContent) CreateBoundInterpolatedStringContentOperation(interpolatedStringContent))
