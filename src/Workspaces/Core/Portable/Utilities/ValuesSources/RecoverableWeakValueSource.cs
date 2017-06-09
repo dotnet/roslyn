@@ -65,7 +65,8 @@ namespace Microsoft.CodeAnalysis.Host
 
         public override bool TryGetValue(out T value)
         {
-            return _weakInstance.TryGetTarget(out value);
+            return _weakInstance.TryGetTarget(out value) || 
+                   _recoverySource.TryGetValue(out value);
         }
 
         public override T GetValue(CancellationToken cancellationToken)
