@@ -150,10 +150,8 @@ interface I1
     );
         }
 
-        [Fact()]
-        public void UseWriteableInstanceFieldsInRoStructs()
-        {
-            var il = @"
+
+        private static string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
 {
@@ -202,6 +200,9 @@ interface I1
 
 ";
 
+        [Fact()]
+        public void UseWriteableInstanceFieldsInRoStructs()
+        {
             var csharp = @"
 public class Program 
 { 
@@ -214,12 +215,36 @@ public class Program
 }
 ";
 
-            var comp = CreateCompilationWithCustomILSource(csharp, il, options:TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options:TestOptions.ReleaseExe);
             
             comp.VerifyDiagnostics();
             
             CompileAndVerify(comp, expectedOutput:"123");
         }
 
+        [Fact()]
+        public void UseWriteableInstanceFieldsInRoStructsErr()
+        {
+            var csharp = @"
+public class Program 
+{ 
+    static readonly S1 s = new S1();
+
+    public static void Main() 
+    { 
+        s.field = 123;
+        System.Console.WriteLine(s.field);
+    }
+}
+";
+
+            var comp = CreateCompilationWithCustomILSource(csharp, ilreadonlyStructWithWriteableFieldIL, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1650: Fields of static readonly field 'Program.s' cannot be assigned to (except in a static constructor or a variable initializer)
+                //         s.field = 123;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyStatic2, "s.field").WithArguments("Program.s").WithLocation(8, 9)
+                );
+        }
     }
 }
