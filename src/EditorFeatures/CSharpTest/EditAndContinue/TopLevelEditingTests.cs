@@ -12,7 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class RudeEditTopLevelTests : RudeEditTestBase
+    public class TopLevelEditingTests : EditingTestBase
     {
         #region Usings
 
