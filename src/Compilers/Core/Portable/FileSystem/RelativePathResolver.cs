@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<string> SearchPaths { get; }
         public string BaseDirectory { get; }
 
+        private ImmutableDictionary<(string reference, string baseFilePath), string> _cachedResults = ImmutableDictionary<(string reference, string baseFilePath), string>.Empty;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="RelativePathResolver"/> class.
         /// </summary>
@@ -33,7 +35,12 @@ namespace Microsoft.CodeAnalysis
 
         public string ResolvePath(string reference, string baseFilePath)
         {
-            string resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, FileExists);
+            if (!_cachedResults.TryGetValue((reference, baseFilePath), out var resolvedPath))
+            {
+                resolvedPath = FileUtilities.ResolveRelativePath(reference, baseFilePath, BaseDirectory, SearchPaths, FileExists);
+                _cachedResults = _cachedResults.Add((reference, baseFilePath), resolvedPath);
+            }
+
             if (resolvedPath == null)
             {
                 return null;
