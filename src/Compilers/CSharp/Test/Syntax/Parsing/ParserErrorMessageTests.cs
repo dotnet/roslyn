@@ -317,7 +317,6 @@ public struct st { }
         public void CS0231ERR_ParamsLast()
         {
             var test = @"
-using System;
 public class MyClass {
     public void MyMeth(params int[] values, int i) {}
     public static int Main() {
@@ -326,7 +325,10 @@ public class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values"));
+            CreateCompilationWithMscorlib45(test).VerifyDiagnostics(
+                // (3,24): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     public void MyMeth(params int[] values, int i) {}
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] values").WithLocation(3, 24));
         }
 
         [Fact]
@@ -341,10 +343,10 @@ class Foo
 }
 ";
 
-            ParseAndValidate(test,
-    // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
-    //   public void Bar(__arglist,  int b)
-    Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,19): error CS0257: An __arglist parameter must be the last parameter in a formal parameter list
+                //   public void Bar(__arglist,  int b)
+                Diagnostic(ErrorCode.ERR_VarargsLast, "__arglist"));
         }
 
         [WorkItem(536668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536668")]
@@ -924,7 +926,6 @@ public class C
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator()
         {
             var test = @"
-using System;
 public class C
 {
     public static int Main()
@@ -936,14 +937,22 @@ public class C
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a.b = 1"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { a.b = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "a.b = 1").WithLocation(7, 23),
+                // (7,23): error CS0103: The name 'a' does not exist in the current context
+                //         var t = new { a.b = 1 };
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "a").WithArguments("a").WithLocation(7, 23),
+                // (6,13): warning CS0219: The variable 'i' is assigned but its value is never used
+                //         int i = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i").WithArguments("i").WithLocation(6, 13));
         }
 
         [Fact]
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator_2()
         {
             var test = @"
-using System;
 public class C
 {
     public static void Main()
@@ -953,17 +962,19 @@ public class C
     }
 }
 ";
-            ParseAndValidate(test,
-    // (8,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
-    //         var t = new { s.Length = 1 };
-    Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { s.Length = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.Length = 1").WithLocation(7, 23),
+                // (7,23): error CS0200: Property or indexer 'string.Length' cannot be assigned to -- it is read only
+                //         var t = new { s.Length = 1 };
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "s.Length").WithArguments("string.Length").WithLocation(7, 23));
         }
 
         [Fact]
         public void CS0746ERR_InvalidAnonymousTypeMemberDeclarator_3()
         {
             var test = @"
-using System;
 public class C
 {
     public static void Main()
@@ -973,7 +984,13 @@ public class C
     }
 }
 ";
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.ToString() = 1"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (7,23): error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                //         var t = new { s.ToString() = 1 };
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "s.ToString() = 1").WithLocation(7, 23),
+                // (7,23): error CS0131: The left-hand side of an assignment must be a variable, property or indexer
+                //         var t = new { s.ToString() = 1 };
+                Diagnostic(ErrorCode.ERR_AssgLvalueExpected, "s.ToString()").WithLocation(7, 23));
         }
 
         [Fact]
@@ -985,41 +1002,42 @@ class C
     delegate T Func<T>();
     delegate T Func<A0, T>(A0 a0);
     delegate T Func<A0, A1, T>(A0 a0, A1 a1);
+    delegate T Func<A0, A1, A2, T>(A0 a0, A1 a1, A2 a2);
     delegate T Func<A0, A1, A2, A3, T>(A0 a0, A1 a1, A2 a2, A3 a3);
     static void X()
     {
-        Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-        Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-        Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-        Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-        Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-        Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
+        Func<int,int,int> f1     = (int x, y) => 1;          // err: mixed parameters
+        Func<int,int,int> f2     = (x, int y) => 1;          // err: mixed parameters
+        Func<int,int,int,int> f3 = (int x, int y, z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f4 = (int x, y, int z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f5 = (x, int y, int z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f6 = (x, y, int z) => 1;       // err: mixed parameters
     }
 }
 ";
 
-            ParseAndValidate(test,
-    // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-    // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
-    // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-    // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
+                // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
+                // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
+                // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
         }
 
         [WorkItem(535915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535915")]
@@ -1941,8 +1959,57 @@ public class a {
     }
 }
 ";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}").WithLocation(6, 35),
+                // (6,35): warning CS0164: This label has not been referenced
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "MyLabel").WithLocation(6, 35));
+        }
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}"));
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt2()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) int j;
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int j;").WithLocation(6, 35),
+                // (6,39): warning CS0168: The variable 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt3()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) void j() { }
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "void j() { }").WithLocation(6, 35),
+                // (6,40): warning CS0168: The variable 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 40));
         }
 
         // Preprocessor:
@@ -2115,12 +2182,11 @@ namespace x
         {
             e = new base;   // CS1031, not a type
             e = new this;   // CS1031, not a type
-            e = new ();     // CS1031, too few tuple elements
         }
     }
 }
 ";
-            // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
+
             ParseAndValidate(text, TestOptions.Regular,
                 // (7,21): error CS1031: Type expected
                 //             e = new base;   // CS1031, not a type
@@ -2139,17 +2205,37 @@ namespace x
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,22): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
-                // (9,23): error CS1526: A new expression requires (), [], or {} after type
-                //             e = new ();     // CS1031, too few tuple elements
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
-             );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void CS1031ERR_TypeExpected02_Tuple()
+        {
+            var text = @"namespace x
+{
+    public class a
+    {
+        public static void Main()
+        {
+            var e = new ();
+        }
+    }
+}
+";
+
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (7,26): error CS8124: Tuple must contain at least two elements.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
+                // (7,27): error CS1526: A new expression requires (), [], or {} after type
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
+                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
+                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
         }
 
         [Fact]
@@ -2163,7 +2249,6 @@ namespace x
         {
             e = new base;   // CS1031, not a type
             e = new this;   // CS1031, not a type
-            e = new ();     // CS1031, not a type
         }
     }
 }
@@ -2187,20 +2272,68 @@ namespace x
                 Diagnostic(ErrorCode.ERR_BadNewExpr, "this").WithLocation(8, 21),
                 // (8,21): error CS1002: ; expected
                 //             e = new this;   // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21),
-                // (9,21): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(9, 21),
-                // (9,21): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(9, 21),
-                // (9,22): error CS8124: Tuple must contain at least two elements.
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(9, 22),
-                // (9,23): error CS1526: A new expression requires (), [], or {} after type
-                //             e = new ();     // CS1031, not a type
-                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(9, 23)
-             );
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(8, 21));
+        }
+
+        [Fact]
+        public void CS1031ERR_TypeExpected02WithCSharp6_Tuple()
+        {
+            var text = @"namespace x
+{
+    public class a
+    {
+        public static void Main()
+        {
+            var e = new ();
+        }
+    }
+}
+";
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
+                // (7,26): error CS8124: Tuple must contain at least two elements.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
+                // (7,27): error CS1526: A new expression requires (), [], or {} after type
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(7, 27),
+                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()").WithLocation(7, 25),
+                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2").WithLocation(7, 25));
+        }
+
+        [Fact]
+        public void CS1031ERR_TypeExpected02WithCSharp7_Tuple()
+        {
+            var text = @"namespace x
+{
+    public class a
+    {
+        public static void Main()
+        {
+            var e = new ();
+        }
+    }
+}
+";
+            CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7)).VerifyDiagnostics(
+                // (7,26): error CS8124: Tuple must contain at least two elements.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")"),
+                // (7,27): error CS1526: A new expression requires (), [], or {} after type
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";"),
+                // (7,25): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "()").WithArguments("System.ValueTuple`2"),
+                // (7,25): error CS8181: 'new' cannot be used with tuple type. Use a tuple literal expression instead.
+                //             var e = new ();
+                Diagnostic(ErrorCode.ERR_NewWithTupleTypeSyntax, "()"));
         }
 
         [WorkItem(541347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541347")]
@@ -2333,9 +2466,9 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 41),
                 // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
@@ -3785,7 +3918,10 @@ public class MyClass {
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (4,14): error CS1551: Indexers must have at least one parameter
+                //     int this[] {
+                Diagnostic(ErrorCode.ERR_IndexerNeedsParam, "]").WithLocation(4, 14));
         }
 
         [Fact]
@@ -3888,9 +4024,9 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7.0").WithLocation(3, 41),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
@@ -4972,17 +5108,82 @@ class MyClass
             var test = @"
 class MyClass
 {
-    public static int Main()
+    public static int Main(System.Collections.IEnumerable e)
     {
-        for (int i = 0; i < 10; i += 1);   // CS0642, semicolon intentional?
-        if(true);
+        for (int i = 0; i < 10; i += 1);
+        foreach (var v in e);
         while(false);
+
+        if(true);else;
+        using(null);
+        lock(null);
+        do;while(false);
+
+        for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+        foreach (var v in e);{}
+        while(false);{}
+
         return 0;
     }
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (10,17): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 17),
+                // (10,22): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 22),
+                // (11,20): warning CS0642: Possible mistaken empty statement
+                //         using(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 20),
+                // (12,19): warning CS0642: Possible mistaken empty statement
+                //         lock(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(12, 19),
+                // (13,11): warning CS0642: Possible mistaken empty statement
+                //         do;while(false);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(13, 11),
+                // (15,40): warning CS0642: Possible mistaken empty statement
+                //         for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(15, 40),
+                // (16,29): warning CS0642: Possible mistaken empty statement
+                //         foreach (var v in e);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(16, 29),
+                // (17,21): warning CS0642: Possible mistaken empty statement
+                //         while(false);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(17, 21));
+        }
+
+        [Fact]
+        public void CS0642_DoNotWarnForMissingEmptyStatement()
+        {
+            var test = @"
+class MyClass
+{
+    public static int Main(bool b)
+    {
+        if (b)
+    
+    public
+";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,15): error CS1002: ; expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 15),
+                // (6,15): error CS1513: } expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
+                // (9,1): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
+                // (8,11): error CS1513: } expected
+                //     public
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 11),
+                // (4,23): error CS0161: 'MyClass.Main(bool)': not all code paths return a value
+                //     public static int Main(bool b)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("MyClass.Main(bool)").WithLocation(4, 23));
         }
 
         [Fact, WorkItem(529895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529895")]

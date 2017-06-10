@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -860,6 +860,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Create_and_initialize_property_0 {
             get {
                 return ResourceManager.GetString("Create_and_initialize_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; expression can be simplified.
+        /// </summary>
+        internal static string default_expression_can_be_simplified {
+            get {
+                return ResourceManager.GetString("default_expression_can_be_simplified", resourceCulture);
             }
         }
         
@@ -2661,6 +2670,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_collection_initialization {
             get {
                 return ResourceManager.GetString("Simplify_collection_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify &apos;default&apos; expression.
+        /// </summary>
+        internal static string Simplify_default_expression {
+            get {
+                return ResourceManager.GetString("Simplify_default_expression", resourceCulture);
             }
         }
         

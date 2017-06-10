@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,33 +14,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo
+    internal partial class SymbolTreeInfo : IObjectWritable
     {
-        private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
-        private const string SerializationFormat = "15";
-
-        /// <summary>
-        /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
-        /// info can't be loaded, it will be created (and persisted if possible).
-        /// </summary>
-        private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
-            Solution solution,
-            IAssemblySymbol assembly,
-            string filePath,
-            bool loadOnly,
-            CancellationToken cancellationToken)
-        {
-            return LoadOrCreateAsync(
-                solution,
-                filePath,
-                loadOnly,
-                create: version => CreateSourceSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
-                keySuffix: "",
-                getVersion: info => info._version,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, names, nodes) => GetSpellCheckerTask(solution, version, filePath, names, nodes)),
-                writeObject: (w, i) => i.WriteTo(w),
-                cancellationToken: cancellationToken);
-        }
+        private const string PrefixMetadataSymbolTreeInfo = "<SymbolTreeInfo>";
+        private const string SerializationFormat = "17";
 
         /// <summary>
         /// Loads the SpellChecker for a given assembly symbol (metadata or project).  If the
@@ -49,51 +25,49 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static Task<SpellChecker> LoadOrCreateSpellCheckerAsync(
             Solution solution,
+            Checksum checksum,
             string filePath,
-            Func<VersionStamp, SpellChecker> create)
+            string concatenatedNames,
+            Node[] sortedNodes)
         {
-            return LoadOrCreateAsync(
+            var result = TryLoadOrCreateAsync(
                 solution,
-                filePath,
+                checksum,
                 loadOnly: false,
-                create: create,
-                keySuffix: "SpellChecker",
-                getVersion: s => s.Version,
-                readObject: SpellChecker.ReadFrom,
-                writeObject: (w, i) => i.WriteTo(w),
+                createAsync: () => CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes),
+                keySuffix: "_SpellChecker_" + filePath,
+                tryReadObject: SpellChecker.TryReadFrom,
                 cancellationToken: CancellationToken.None);
+            Contract.ThrowIfNull(result, "Result should never be null as we passed 'loadOnly: false'.");
+            return result;
         }
 
         /// <summary>
         /// Generalized function for loading/creating/persisting data.  Used as the common core
         /// code for serialization of SymbolTreeInfos and SpellCheckers.
         /// </summary>
-        private static async Task<T> LoadOrCreateAsync<T>(
+        private static async Task<T> TryLoadOrCreateAsync<T>(
             Solution solution,
-            string filePath,
+            Checksum checksum,
             bool loadOnly,
-            Func<VersionStamp, T> create,
+            Func<Task<T>> createAsync,
             string keySuffix,
-            Func<T, VersionStamp> getVersion,
-            Func<ObjectReader, T> readObject,
-            Action<ObjectWriter, T> writeObject,
-            CancellationToken cancellationToken) where T : class
+            Func<ObjectReader, T> tryReadObject,
+            CancellationToken cancellationToken) where T : class, IObjectWritable, IChecksummedObject
         {
-            // See if we can even use serialization.  If not, we'll just have to make the value
-            // from scratch.
-            if (ShouldCreateFromScratch(solution, filePath, out var prefix, out var version, cancellationToken))
+            if (checksum == null) 
             {
-                return loadOnly ? null : create(VersionStamp.Default);
+                return loadOnly ? null : await createAsync().ConfigureAwait(false);
             }
 
             // Ok, we can use persistence.  First try to load from the persistence service.
-            var persistentStorageService = solution.Workspace.Services.GetService<IPersistentStorageService>();
+            var persistentStorageService = (IPersistentStorageService2)solution.Workspace.Services.GetService<IPersistentStorageService>();
 
             T result;
-            using (var storage = persistentStorageService.GetStorage(solution))
+            using (var storage = persistentStorageService.GetStorage(solution, checkBranchId: false))
             {
                 // Get the unique key to identify our data.
-                var key = PrefixMetadataSymbolTreeInfo + prefix + keySuffix;
+                var key = PrefixMetadataSymbolTreeInfo + keySuffix;
                 using (var stream = await storage.ReadStreamAsync(key, cancellationToken).ConfigureAwait(false))
                 using (var reader = ObjectReader.TryGetReader(stream))
                 {
@@ -102,8 +76,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         // We have some previously persisted data.  Attempt to read it back.  
                         // If we're able to, and the version of the persisted data matches
                         // our version, then we can reuse this instance.
-                        result = readObject(reader);
-                        if (result != null && VersionStamp.CanReusePersistedVersion(version, getVersion(result)))
+                        result = tryReadObject(reader);
+                        if (result?.Checksum == checksum)
                         {
                             return result;
                         }
@@ -121,57 +95,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 // Now, try to create a new instance and write it to the persistence service.
-                result = create(version);
-                if (result != null)
-                {
-                    using (var stream = SerializableBytes.CreateWritableStream())
-                    using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
-                    {
-                        writeObject(writer, result);
-                        stream.Position = 0;
+                result = await createAsync().ConfigureAwait(false);
+                Contract.ThrowIfNull(result);
 
-                        await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
-                    }
+                using (var stream = SerializableBytes.CreateWritableStream())
+                using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+                {
+                    result.WriteTo(writer);
+                    stream.Position = 0;
+
+                    await storage.WriteStreamAsync(key, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
 
             return result;
         }
 
-        private static bool ShouldCreateFromScratch(
-            Solution solution,
-            string filePath,
-            out string prefix,
-            out VersionStamp version,
-            CancellationToken cancellationToken)
-        {
-            prefix = null;
-            version = default(VersionStamp);
-
-            var service = solution.Workspace.Services.GetService<IAssemblySerializationInfoService>();
-            if (service == null)
-            {
-                return true;
-            }
-
-            // check whether the assembly that belong to a solution is something we can serialize
-            if (!service.Serializable(solution, filePath))
-            {
-                return true;
-            }
-
-            if (!service.TryGetSerializationPrefixAndVersion(solution, filePath, out prefix, out version))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            _version.WriteTo(writer);
+            Checksum.WriteTo(writer);
 
             writer.WriteString(_concatenatedNames);
 
@@ -196,23 +139,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
+        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(
+            ObjectReader reader, Checksum checksum)
         {
-            return ReadSymbolTreeInfo(reader, 
-                (version, names, nodes) => Task.FromResult(
-                    new SpellChecker(version, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
+            return TryReadSymbolTreeInfo(reader, 
+                (names, nodes) => Task.FromResult(
+                    new SpellChecker(checksum, nodes.Select(n => new StringSlice(names, n.NameSpan)))));
         }
 
-        private static SymbolTreeInfo ReadSymbolTreeInfo(
+        private static SymbolTreeInfo TryReadSymbolTreeInfo(
             ObjectReader reader,
-            Func<VersionStamp, string, Node[], Task<SpellChecker>> createSpellCheckerTask)
+            Func<string, Node[], Task<SpellChecker>> createSpellCheckerTask)
         {
             try
             {
                 var formatVersion = reader.ReadString();
                 if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
                 {
-                    var version = VersionStamp.ReadFrom(reader);
+                    var checksum = Checksum.ReadFrom(reader);
 
                     var concatenatedNames = reader.ReadString();
 
@@ -241,8 +185,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         }
                     }
 
-                    var spellCheckerTask = createSpellCheckerTask(version, concatenatedNames, nodes);
-                    return new SymbolTreeInfo(version, concatenatedNames, nodes, spellCheckerTask, inheritanceMap);
+                    var spellCheckerTask = createSpellCheckerTask(concatenatedNames, nodes);
+                    return new SymbolTreeInfo(checksum, concatenatedNames, nodes, spellCheckerTask, inheritanceMap);
                 }
             }
             catch

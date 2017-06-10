@@ -2090,7 +2090,7 @@ class C
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      191 (0xbf)
+  // Code size      183 (0xb7)
   .maxstack  3
   .locals init (int V_0,
                 T V_1,
@@ -2132,7 +2132,7 @@ class C
     IL_004e:  ldloca.s   V_2
     IL_0050:  ldarg.0
     IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_0056:  leave.s    IL_00be
+    IL_0056:  leave.s    IL_00b6
     IL_0058:  ldarg.0
     IL_0059:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_005e:  stloc.2
@@ -2146,34 +2146,32 @@ class C
     IL_006f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_007b:  ldloca.s   V_2
-    IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0083:  ldarg.0
-    IL_0084:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
-    IL_0089:  ldfld      ""T System.ValueTuple<T, T>.Item1""
-    IL_008e:  stloc.1
-    IL_008f:  leave.s    IL_00aa
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0081:  ldfld      ""T System.ValueTuple<T, T>.Item1""
+    IL_0086:  stloc.1
+    IL_0087:  leave.s    IL_00a2
   }
   catch System.Exception
   {
-    IL_0091:  stloc.s    V_4
+    IL_0089:  stloc.s    V_4
+    IL_008b:  ldarg.0
+    IL_008c:  ldc.i4.s   -2
+    IL_008e:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0093:  ldarg.0
-    IL_0094:  ldc.i4.s   -2
-    IL_0096:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_009b:  ldarg.0
-    IL_009c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-    IL_00a1:  ldloc.s    V_4
-    IL_00a3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
-    IL_00a8:  leave.s    IL_00be
+    IL_0094:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_0099:  ldloc.s    V_4
+    IL_009b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
+    IL_00a0:  leave.s    IL_00b6
   }
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldc.i4.s   -2
+  IL_00a5:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00aa:  ldarg.0
-  IL_00ab:  ldc.i4.s   -2
-  IL_00ad:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00b2:  ldarg.0
-  IL_00b3:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-  IL_00b8:  ldloc.1
-  IL_00b9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
-  IL_00be:  ret
+  IL_00ab:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+  IL_00b0:  ldloc.1
+  IL_00b1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
+  IL_00b6:  ret
 }
 ");
         }
@@ -2206,7 +2204,7 @@ class C
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      197 (0xc5)
+  // Code size      189 (0xbd)
   .maxstack  3
   .locals init (int V_0,
                 string V_1,
@@ -2248,7 +2246,7 @@ class C
     IL_004e:  ldloca.s   V_2
     IL_0050:  ldarg.0
     IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_0056:  leave.s    IL_00c4
+    IL_0056:  leave.s    IL_00bc
     IL_0058:  ldarg.0
     IL_0059:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_005e:  stloc.2
@@ -2262,35 +2260,33 @@ class C
     IL_006f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_007b:  ldloca.s   V_2
-    IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0083:  ldarg.0
-    IL_0084:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
-    IL_0089:  constrained. ""System.ValueTuple<T, T>""
-    IL_008f:  callvirt   ""string object.ToString()""
-    IL_0094:  stloc.1
-    IL_0095:  leave.s    IL_00b0
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0081:  constrained. ""System.ValueTuple<T, T>""
+    IL_0087:  callvirt   ""string object.ToString()""
+    IL_008c:  stloc.1
+    IL_008d:  leave.s    IL_00a8
   }
   catch System.Exception
   {
-    IL_0097:  stloc.s    V_4
+    IL_008f:  stloc.s    V_4
+    IL_0091:  ldarg.0
+    IL_0092:  ldc.i4.s   -2
+    IL_0094:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0099:  ldarg.0
-    IL_009a:  ldc.i4.s   -2
-    IL_009c:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
-    IL_00a7:  ldloc.s    V_4
-    IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetException(System.Exception)""
-    IL_00ae:  leave.s    IL_00c4
+    IL_009a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
+    IL_009f:  ldloc.s    V_4
+    IL_00a1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetException(System.Exception)""
+    IL_00a6:  leave.s    IL_00bc
   }
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldc.i4.s   -2
+  IL_00ab:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00b0:  ldarg.0
-  IL_00b1:  ldc.i4.s   -2
-  IL_00b3:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00b8:  ldarg.0
-  IL_00b9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
-  IL_00be:  ldloc.1
-  IL_00bf:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetResult(string)""
-  IL_00c4:  ret
+  IL_00b1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string> C.<Test>d__1<T>.<>t__builder""
+  IL_00b6:  ldloc.1
+  IL_00b7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<string>.SetResult(string)""
+  IL_00bc:  ret
 }
 ");
         }
@@ -2349,7 +2345,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      197 (0xc5)
+  // Code size      189 (0xbd)
   .maxstack  3
   .locals init (int V_0,
                 T V_1,
@@ -2391,7 +2387,7 @@ namespace System
     IL_004e:  ldloca.s   V_2
     IL_0050:  ldarg.0
     IL_0051:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_0056:  leave.s    IL_00c4
+    IL_0056:  leave.s    IL_00bc
     IL_0058:  ldarg.0
     IL_0059:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_005e:  stloc.2
@@ -2405,36 +2401,34 @@ namespace System
     IL_006f:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0074:  ldloca.s   V_2
     IL_0076:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_007b:  ldloca.s   V_2
-    IL_007d:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0083:  ldarg.0
-    IL_0084:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
-    IL_0089:  ldarg.0
-    IL_008a:  ldfld      ""T C.<Test>d__1<T>.a""
-    IL_008f:  call       ""T System.ValueTuple<T, T>.Test<T>(T)""
-    IL_0094:  stloc.1
-    IL_0095:  leave.s    IL_00b0
+    IL_007b:  ldarg.0
+    IL_007c:  ldflda     ""(T f1, T f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0081:  ldarg.0
+    IL_0082:  ldfld      ""T C.<Test>d__1<T>.a""
+    IL_0087:  call       ""T System.ValueTuple<T, T>.Test<T>(T)""
+    IL_008c:  stloc.1
+    IL_008d:  leave.s    IL_00a8
   }
   catch System.Exception
   {
-    IL_0097:  stloc.s    V_4
+    IL_008f:  stloc.s    V_4
+    IL_0091:  ldarg.0
+    IL_0092:  ldc.i4.s   -2
+    IL_0094:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_0099:  ldarg.0
-    IL_009a:  ldc.i4.s   -2
-    IL_009c:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_00a1:  ldarg.0
-    IL_00a2:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-    IL_00a7:  ldloc.s    V_4
-    IL_00a9:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
-    IL_00ae:  leave.s    IL_00c4
+    IL_009a:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_009f:  ldloc.s    V_4
+    IL_00a1:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
+    IL_00a6:  leave.s    IL_00bc
   }
+  IL_00a8:  ldarg.0
+  IL_00a9:  ldc.i4.s   -2
+  IL_00ab:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00b0:  ldarg.0
-  IL_00b1:  ldc.i4.s   -2
-  IL_00b3:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00b8:  ldarg.0
-  IL_00b9:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-  IL_00be:  ldloc.1
-  IL_00bf:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
-  IL_00c4:  ret
+  IL_00b1:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+  IL_00b6:  ldloc.1
+  IL_00b7:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
+  IL_00bc:  ret
 }
 ");
         }
@@ -2493,7 +2487,7 @@ namespace System
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Test>d__1<T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      187 (0xbb)
+  // Code size      179 (0xb3)
   .maxstack  3
   .locals init (int V_0,
                 T V_1,
@@ -2533,7 +2527,7 @@ namespace System
     IL_0044:  ldloca.s   V_2
     IL_0046:  ldarg.0
     IL_0047:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1<T>>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1<T>)""
-    IL_004c:  leave.s    IL_00ba
+    IL_004c:  leave.s    IL_00b2
     IL_004e:  ldarg.0
     IL_004f:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1<T>.<>u__1""
     IL_0054:  stloc.2
@@ -2547,36 +2541,34 @@ namespace System
     IL_0065:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_006a:  ldloca.s   V_2
     IL_006c:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0071:  ldloca.s   V_2
-    IL_0073:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_0079:  ldarg.0
-    IL_007a:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
-    IL_007f:  ldarg.0
-    IL_0080:  ldfld      ""T C.<Test>d__1<T>.a""
-    IL_0085:  call       ""T System.ValueTuple<int, int>.Test<T>(T)""
-    IL_008a:  stloc.1
-    IL_008b:  leave.s    IL_00a6
+    IL_0071:  ldarg.0
+    IL_0072:  ldflda     ""(int f1, int f2) C.<Test>d__1<T>.<x>5__1""
+    IL_0077:  ldarg.0
+    IL_0078:  ldfld      ""T C.<Test>d__1<T>.a""
+    IL_007d:  call       ""T System.ValueTuple<int, int>.Test<T>(T)""
+    IL_0082:  stloc.1
+    IL_0083:  leave.s    IL_009e
   }
   catch System.Exception
   {
-    IL_008d:  stloc.s    V_4
+    IL_0085:  stloc.s    V_4
+    IL_0087:  ldarg.0
+    IL_0088:  ldc.i4.s   -2
+    IL_008a:  stfld      ""int C.<Test>d__1<T>.<>1__state""
     IL_008f:  ldarg.0
-    IL_0090:  ldc.i4.s   -2
-    IL_0092:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-    IL_0097:  ldarg.0
-    IL_0098:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-    IL_009d:  ldloc.s    V_4
-    IL_009f:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
-    IL_00a4:  leave.s    IL_00ba
+    IL_0090:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+    IL_0095:  ldloc.s    V_4
+    IL_0097:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetException(System.Exception)""
+    IL_009c:  leave.s    IL_00b2
   }
+  IL_009e:  ldarg.0
+  IL_009f:  ldc.i4.s   -2
+  IL_00a1:  stfld      ""int C.<Test>d__1<T>.<>1__state""
   IL_00a6:  ldarg.0
-  IL_00a7:  ldc.i4.s   -2
-  IL_00a9:  stfld      ""int C.<Test>d__1<T>.<>1__state""
-  IL_00ae:  ldarg.0
-  IL_00af:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
-  IL_00b4:  ldloc.1
-  IL_00b5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
-  IL_00ba:  ret
+  IL_00a7:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T> C.<Test>d__1<T>.<>t__builder""
+  IL_00ac:  ldloc.1
+  IL_00ad:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<T>.SetResult(T)""
+  IL_00b2:  ret
 }
 ");
         }
@@ -3221,7 +3213,7 @@ class C
             Assert.Equal(TypeKind.Struct, mTuple.TypeKind);
             AssertTupleTypeEquality(mTuple);
             Assert.False(mTuple.IsImplicitlyDeclared);
-            Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture));
+            Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture));
             Assert.Null(mTuple.BaseType);
             Assert.False(((TupleTypeSymbol)mTuple).UnderlyingDefinitionToMemberMap.Any());
 
@@ -3524,6 +3516,429 @@ class C
         }
 
         [Fact]
+        public void TupleCreationWithInferredNamesWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    int e = 5;
+    int f = 6;
+    C instance = null;
+    void M()
+    {
+        int a = 1;
+        int b = 3;
+        int Item4 = 4;
+        int g = 7;
+        int Rest = 9;
+        (int x, int, int b, int, int, int, int f, int, int, int) y = (a, (a), b: 2, b, Item4, instance.e, this.f, g, g, Rest);
+        var z = (x: b, b);
+        System.Console.Write(y);
+        System.Console.Write(z);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
+                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+
+                var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(GetTuple().a);
+    }
+    (int, int) GetTuple()
+    {
+        return (1, 2);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("a", "7.1").WithLocation(8, 32),
+                // (9,41): error CS1061: '(int, int)' does not contain a definition for 'a' and no extension method 'a' accepting a first argument of type '(int, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(GetTuple().a);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a").WithArguments("(int, int)", "a").WithLocation(9, 41)
+                );
+        }
+
+        [Fact]
+        public void UseSiteDiagnosticOnTupleField()
+        {
+            var missing_cs = @"public class Missing { }";
+
+            var lib_cs = @"
+public class C
+{
+    public static (Missing, int) GetTuple()
+    {
+        throw null;
+    }
+}
+";
+            var source_cs = @"
+class D
+{
+    void M()
+    {
+        System.Console.Write(C.GetTuple().Item1);
+    }
+}";
+            var missingComp = CreateStandardCompilation(missing_cs, assemblyName: "UseSiteDiagnosticOnTupleField_missingComp");
+            missingComp.VerifyDiagnostics();
+
+            var libComp = CreateStandardCompilation(lib_cs,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, missingComp.ToMetadataReference() });
+            libComp.VerifyDiagnostics();
+
+            var comp7 = CreateStandardCompilation(source_cs,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference() }, parseOptions: TestOptions.Regular);
+
+            comp7.VerifyDiagnostics(
+                // (6,30): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C.GetTuple").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (6,43): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Item1").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                );
+
+            var comp7_1 = CreateStandardCompilation(source_cs, assemblyName: "UseSiteDiagnosticOnTupleField_comp7_1",
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, libComp.ToMetadataReference() }, parseOptions: TestOptions.Regular7_1);
+
+            comp7_1.VerifyDiagnostics(
+                // (6,30): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C.GetTuple").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                // (6,43): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(C.GetTuple().Item1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Item1").WithArguments("Missing", "UseSiteDiagnosticOnTupleField_missingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                );
+        }
+
+        [Fact]
+        public void UseSiteDiagnosticOnTupleField2()
+        {
+            var source_cs = @"
+public class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+    }
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+}
+";
+
+            var comp7 = CreateStandardCompilation(source_cs, parseOptions: TestOptions.Regular, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7");
+            comp7.VerifyDiagnostics(
+                // (8,32): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'UseSiteDiagnosticOnTupleField2_comp7, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2>", "UseSiteDiagnosticOnTupleField2_comp7, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
+                );
+
+            var comp7_1 = CreateStandardCompilation(source_cs, parseOptions: TestOptions.Regular7_1, assemblyName: "UseSiteDiagnosticOnTupleField2_comp7_1");
+            comp7_1.VerifyDiagnostics(
+                // (8,32): error CS8128: Member 'Item1' was not found on type 'ValueTuple<T1, T2>' from assembly 'UseSiteDiagnosticOnTupleField2_comp7_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "a").WithArguments("Item1", "System.ValueTuple<T1, T2>", "UseSiteDiagnosticOnTupleField2_comp7_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 32)
+                );
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithExtensionWithCSharp7()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(t.a());
+        System.Console.Write(GetTuple().a);
+    }
+    (int, int) GetTuple()
+    {
+        return (1, 2);
+    }
+}
+public static class Extensions
+{
+    public static string a(this (int, int) self) { return ""hello""; }
+}
+";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         System.Console.Write(t.a);
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "a").WithArguments("a", "7.1").WithLocation(8, 32),
+                // (10,30): error CS1503: Argument 1: cannot convert from 'method group' to 'string'
+                //         System.Console.Write(GetTuple().a);
+                Diagnostic(ErrorCode.ERR_BadArgType, "GetTuple().a").WithArguments("1", "method group", "string")
+                );
+        }
+
+        [Fact]
+        public void MissingMemberAccessWithCSharp7_1()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int a = 1;
+        var t = (a, 2);
+        System.Console.Write(t.a);
+        System.Console.Write(t.b);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (9,32): error CS1061: '(int a, int)' does not contain a definition for 'b' and no extension method 'b' accepting a first argument of type '(int a, int)' could be found (are you missing a using directive or an assembly reference?)
+                //         System.Console.Write(t.b);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "b").WithArguments("(int a, int)", "b").WithLocation(9, 32)
+                );
+        }
+
+        [Fact]
+        public void TupleCreationWithInferredNames()
+        {
+            var source = @"
+class C
+{
+    int e = 5;
+    int f = 6;
+    C instance = null;
+    string M()
+    {
+        int a = 1;
+        int b = 3;
+        int Item4 = 4;
+        int g = 7;
+        int Rest = 9;
+        (int x, int, int b, int, int, int, int f, int, int, int) y = (a, (a), b: 2, b, Item4, instance.e, this.f, g, g, Rest);
+        var z = (x: b, b);
+        System.Console.Write(y);
+        System.Console.Write(z);
+        return null;
+    }
+
+    int P
+    {
+        set
+        {
+            var t = (M(), value);
+            System.Console.Write(t.value);
+        }
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+                Assert.Equal("(System.Int32 a, System.Int32, System.Int32 b, System.Int32, System.Int32, System.Int32 e, System.Int32 f, System.Int32, System.Int32, System.Int32)",
+                    model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+
+                var zTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal("(System.Int32 x, System.Int32 b)", model.GetTypeInfo(zTuple).Type.ToTestDisplayString());
+
+                var tTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(2);
+                Assert.Equal("(System.String, System.Int32 value)", model.GetTypeInfo(tTuple).Type.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleCreationWithInferredNames2()
+        {
+            var source = @"
+class C
+{
+    private int e = 5;
+}
+class C2
+{
+    C instance = null;
+    C2 instance2 = null;
+    int M()
+    {
+        var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+        System.Console.Write(y);
+        return 42;
+    }
+}
+";
+
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            compilation.VerifyDiagnostics(
+                // (12,27): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, ".e").WithArguments("C.e").WithLocation(12, 27),
+                // (12,41): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, "e").WithArguments("C.e").WithLocation(12, 41),
+                // (12,76): error CS0122: 'C.e' is inaccessible due to its protection level
+                //         var y = (instance?.e, (instance.e, instance2.M(), checked(instance.e), default(int)));
+                Diagnostic(ErrorCode.ERR_BadAccess, "e").WithArguments("C.e").WithLocation(12, 76),
+                // (4,17): warning CS0414: The field 'C.e' is assigned but its value is never used
+                //     private int e = 5;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "e").WithArguments("C.e")
+                );
+
+            var tree = compilation.SyntaxTrees.First();
+            var model = compilation.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            // The type for int? was not picked up
+            // Follow-up issue: https://github.com/dotnet/roslyn/issues/19144
+            var yTuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+            Assert.Equal("(? e, (System.Int32 e, System.Int32, System.Int32, System.Int32))",
+                model.GetTypeInfo(yTuple).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void InferredNamesInLinq()
+        {
+            var source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int f1 = 0;
+    int f2 = 1;
+    static void M(IEnumerable<C> list)
+    {
+        var result = list.Select(c => (c.f1, c.f2)).Where(t => t.f2 == 1); // t and result have names f1 and f2
+        System.Console.Write(result.Count());
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var result = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == "result").Single();
+                var resultSymbol = model.GetDeclaredSymbol(result);
+                Assert.Equal("System.Collections.Generic.IEnumerable<(System.Int32 f1, System.Int32 f2)> result", resultSymbol.ToTestDisplayString());
+            };
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef }, sourceSymbolValidator: validator);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredNamesInTernary()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var i = 1;
+        var flag = false;
+        var t = flag ? (i, 2) : (i, 3);
+        System.Console.Write(t.i);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, LinqAssemblyRef },
+                expectedOutput:"1");
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void InferredNames_ExtensionNowFailsInCSharp7ButNotCSharp7_1()
+        {
+            var source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        Action M = () => Console.Write(""lambda"");
+        (1, M).M();
+    }
+}
+static class Extension
+{
+    public static void M(this (int, Action) t) => Console.Write(""extension"");
+}
+";
+
+            // When C# 7.0 shipped, no tuple element would be found/inferred, so the extension method was called.
+            // The C# 7.1 compiler disallows that, even when LanguageVersion is 7.0
+            var comp7 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef });
+            comp7.VerifyDiagnostics(
+                // (8,16): error CS8305: Tuple element name 'M' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         (1, M).M();
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "M").WithArguments("M", "7.1")
+               );
+
+            var verifier7_1 = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef },
+                expectedOutput: "lambda");
+            verifier7_1.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LongTupleWithArgumentEvaluation()
         {
             var source = @"
@@ -3720,7 +4135,6 @@ C2.M
   IL_001e:  ret
 }
 ");
-
         }
 
         [Fact]
@@ -3740,7 +4154,7 @@ class C3
 
             var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
             comp.VerifyDiagnostics(
-                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
                 //         var x = (1, 1);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
@@ -3763,7 +4177,7 @@ class C3
                     new CSharpCompilationReference(comp2),
                     ValueTupleRef });
             comp.VerifyDiagnostics(
-                // (4,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (4,19): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
                 //     public void M((int, int) x) { }
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 19)
                 );
@@ -4608,7 +5022,7 @@ class C3
             var comp = CreateStandardCompilation(source, references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() });
 
             comp.VerifyDiagnostics(
-                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                // (7,14): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is ambiguous (imported twice)
                 //         x.M1((1, 1));
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(7, 14),
                 // (7,11): error CS0121: The call is ambiguous between the following methods or properties: 'C1.M1(int, (int, int))' and 'C2.M1(int, (int, int))'
@@ -6191,6 +6605,176 @@ class C
         }
 
         [Fact]
+        public void TupleExplicitNullableConversionWithTypelessTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = ((int, string)?) (1, null);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, )");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var value = declaration.Declaration.Variables.First().Initializer.Value;
+            Assert.Equal("((int, string)?) (1, null)", value.ToString());
+            var castConversion = model.GetConversion(value);
+            Assert.Equal(ConversionKind.Identity, castConversion.Kind);
+            var tuple = ((CastExpressionSyntax)value).Expression;
+            Assert.Equal("(1, null)", tuple.ToString());
+            var tupleConversion = model.GetConversion(tuple);
+            Assert.Equal(ConversionKind.ExplicitNullable, tupleConversion.Kind);
+            Assert.Equal(1, tupleConversion.UnderlyingConversions.Length);
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, tupleConversion.UnderlyingConversions[0].Kind);
+        }
+
+        [Fact]
+        public void TupleImplicitNullableConversionWithTypelessTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, string)? x = (1, null);
+        System.Console.Write(x);
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, )");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var declaration = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().First();
+            var value = declaration.Declaration.Variables.First().Initializer.Value;
+            Assert.Equal("(1, null)", value.ToString());
+            var tupleConversion = model.GetConversion(value);
+            Assert.Equal(ConversionKind.ImplicitNullable, tupleConversion.Kind);
+            Assert.Equal(1, tupleConversion.UnderlyingConversions.Length);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, tupleConversion.UnderlyingConversions[0].Kind);
+        }
+
+        [Fact]
+        public void TupleImplicitNullableAndCustomConversionsWithTypelessTuple()
+        {
+            var source = @"
+struct C
+{
+    static void Main()
+    {
+        C? x = (1, null);
+        System.Console.Write(x);
+        var x2 = (C)(2, null);
+        System.Console.Write(x2);
+        var x3 = (C?)(3, null);
+        System.Console.Write(x3);
+    }
+    public static implicit operator C((int, string) x)
+    {
+        return new C();
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "CCC");
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tuples = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>();
+
+            var tuple1 = tuples.ElementAt(0);
+            Assert.Equal("(1, null)", tuple1.ToString());
+            Assert.Null(model.GetTypeInfo(tuple1).Type);
+            Assert.Equal("C?", model.GetTypeInfo(tuple1).ConvertedType.ToTestDisplayString());
+
+            var conversion1 = model.GetConversion(tuple1);
+            Assert.Equal(ConversionKind.ImplicitUserDefined, conversion1.Kind);
+            Assert.True(conversion1.UnderlyingConversions.IsDefault);
+
+            var tuple2 = tuples.ElementAt(1);
+            Assert.Equal("(2, null)", tuple2.ToString());
+            Assert.Null(model.GetTypeInfo(tuple2).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple2).ConvertedType.ToTestDisplayString());
+
+            var conversion2 = model.GetConversion(tuple2);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, conversion2.Kind);
+            Assert.False(conversion2.UnderlyingConversions.IsDefault);
+
+            var tuple3 = tuples.ElementAt(2);
+            Assert.Equal("(3, null)", tuple3.ToString());
+            Assert.Null(model.GetTypeInfo(tuple3).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple3).ConvertedType.ToTestDisplayString());
+
+            var conversion3 = model.GetConversion(tuple3);
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, conversion3.Kind);
+            Assert.False(conversion3.UnderlyingConversions.IsDefault);
+        }
+
+        [Fact]
+        public void TupleImplicitNullableAndCustomConversionsWithTypelessTupleInAsOperator()
+        {
+            var source = @"
+struct C
+{
+    static void Main()
+    {
+        var x4 = (1, null) as C;
+        System.Console.Write(x4);
+        var x5 = (2, null) as C?;
+        System.Console.Write(x5);
+    }
+    public static implicit operator C((int, string) x)
+    {
+        return new C();
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics(
+                // (6,18): error CS8305: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         var x4 = (1, null) as C;
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(1, null) as C").WithLocation(6, 18),
+                // (8,18): error CS8305: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         var x5 = (2, null) as C?;
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(2, null) as C?").WithLocation(8, 18)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var tuples = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>();
+            verifyTuple("(1, null)", tuples.ElementAt(0));
+            verifyTuple("(2, null)", tuples.ElementAt(1));
+
+            void verifyTuple(string expected, TupleExpressionSyntax tuple)
+            {
+                Assert.Equal(expected, tuple.ToString());
+                Assert.Null(model.GetTypeInfo(tuple).Type);
+                Assert.Null(model.GetTypeInfo(tuple).ConvertedType);
+
+                var conversion = model.GetConversion(tuple);
+                Assert.Equal(ConversionKind.Identity, conversion.Kind);
+                Assert.True(conversion.UnderlyingConversions.IsDefault);
+            }
+        }
+
+        [Fact]
         public void TupleTargetTypeLambda()
         {
             var source = @"
@@ -6548,19 +7132,19 @@ class C
 " + trivial2uple + tupleattributes_cs;
 
             CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,48): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(long c, long d)").WithLocation(7, 48),
-                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(long c, long d)'.
+                // (7,54): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(long c, long d)'.
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(long c, long d)").WithLocation(7, 54),
                 // (7,29): error CS0266: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'. An explicit conversion exists (are you missing a cast?)
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
-                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,50): warning CS8123: The tuple element name 'e' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "e: 1").WithArguments("e", "(int c, int d)").WithLocation(9, 50),
-                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name is specified by the target type '(int c, int d)'.
+                // (9,56): warning CS8123: The tuple element name 'f' is ignored because a different name or no name is specified by the target type '(int c, int d)'.
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.WRN_TupleLiteralNameMismatch, "f:2").WithArguments("f", "(int c, int d)").WithLocation(9, 56),
                 // (9,33): error CS0266: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'. An explicit conversion exists (are you missing a cast?)
@@ -6654,8 +7238,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d)?)(e: 1, f: ""hello"")
@@ -6880,8 +7464,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
             Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            Assert.Equal("(System.Int32 c, System.String d)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitNullable, model.GetConversion(node).Kind);
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d)?)(e: 1, f: ""hello"")
@@ -9209,18 +9793,18 @@ CS0151ERR_IntegralTypeValueExpected}
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int, int)").WithArguments("tuples", "7").WithLocation(6, 9),
-                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int, int)").WithArguments("tuples", "7.0").WithLocation(6, 9),
+                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7.0").WithLocation(6, 24),
                 // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)
                 );
 
-            Assert.Equal("7", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[0]));
+            Assert.Equal("7.0", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[0]));
             Assert.Null(Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[2]));
             Assert.Throws<ArgumentNullException>(() => Compilation.GetRequiredLanguageVersion(null));
         }
@@ -14093,6 +14677,9 @@ class C
                 // (7,18): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(7, 18),
+                // (7,29): warning CS0162: Unreachable code detected
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "tuple").WithLocation(7, 29),
                 // (7,29): warning CS0164: This label has not been referenced
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "tuple").WithLocation(7, 29)
@@ -14118,7 +14705,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
+                // (7,26): warning CS0162: Unreachable code detected
+                //             case (1, 1): return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26)
                );
         }
 
@@ -14145,6 +14735,9 @@ class C
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
+                // (7,25): warning CS0162: Unreachable code detected
+                //             case (1, 1) t: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "t").WithLocation(7, 25),
                 // (7,25): warning CS0164: This label has not been referenced
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)
@@ -15107,6 +15700,41 @@ class C
             Assert.Equal(SymbolKind.Field, sym.Symbol.Kind);
             Assert.Equal("Alice", sym.Symbol.Name);
             Assert.Equal(nc.Name.GetLocation(), sym.Symbol.Locations[0]);
+        }
+
+        [Fact]
+        public void GetSymbolInfo_WithInferredName()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        string Bob = ""hello"";
+        var x1 = (Alice: 1, Bob);
+
+        var Alice = x1.Alice;
+        var BobCopy = x1.Bob;
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular7_1);
+            var comp = CreateStandardCompilation(tree, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x1Bob = nodes.OfType<MemberAccessExpressionSyntax>().ElementAt(1);
+            Assert.Equal("x1.Bob", x1Bob.ToString());
+            var x1Symbol = model.GetSymbolInfo(x1Bob.Expression).Symbol as LocalSymbol;
+            Assert.Equal("(System.Int32 Alice, System.String Bob)", x1Symbol.Type.ToTestDisplayString());
+            var bobField = x1Symbol.Type.GetMember("Bob");
+
+            Assert.Equal(SymbolKind.Field, bobField.Kind);
+            var secondElement = nodes.OfType<TupleExpressionSyntax>().First().Arguments[1];
+            Assert.Equal(secondElement.GetLocation(), bobField.Locations[0]);
         }
 
         [Fact]
@@ -19264,7 +19892,7 @@ class C
             // NOTE: !!! There should be an IL local for  " (byte x, int y) v2 " , it should not be captured 
             verifier.VerifyIL("C.<Test>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
-  // Code size      201 (0xc9)
+  // Code size      193 (0xc1)
   .maxstack  3
   .locals init (int V_0,
                 long V_1,
@@ -19311,7 +19939,7 @@ class C
     IL_0058:  ldloca.s   V_3
     IL_005a:  ldarg.0
     IL_005b:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, C.<Test>d__1>(ref System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ref C.<Test>d__1)""
-    IL_0060:  leave.s    IL_00c8
+    IL_0060:  leave.s    IL_00c0
     IL_0062:  ldarg.0
     IL_0063:  ldfld      ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter C.<Test>d__1.<>u__1""
     IL_0068:  stloc.3
@@ -19325,34 +19953,32 @@ class C
     IL_0079:  stfld      ""int C.<Test>d__1.<>1__state""
     IL_007e:  ldloca.s   V_3
     IL_0080:  call       ""void System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
-    IL_0085:  ldloca.s   V_3
-    IL_0087:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
-    IL_008d:  ldarg.0
-    IL_008e:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
-    IL_0093:  ldfld      ""long System.ValueTuple<long, int>.Item1""
-    IL_0098:  stloc.1
-    IL_0099:  leave.s    IL_00b4
+    IL_0085:  ldarg.0
+    IL_0086:  ldflda     ""(long a, int b) C.<Test>d__1.<v1>5__1""
+    IL_008b:  ldfld      ""long System.ValueTuple<long, int>.Item1""
+    IL_0090:  stloc.1
+    IL_0091:  leave.s    IL_00ac
   }
   catch System.Exception
   {
-    IL_009b:  stloc.s    V_5
+    IL_0093:  stloc.s    V_5
+    IL_0095:  ldarg.0
+    IL_0096:  ldc.i4.s   -2
+    IL_0098:  stfld      ""int C.<Test>d__1.<>1__state""
     IL_009d:  ldarg.0
-    IL_009e:  ldc.i4.s   -2
-    IL_00a0:  stfld      ""int C.<Test>d__1.<>1__state""
-    IL_00a5:  ldarg.0
-    IL_00a6:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
-    IL_00ab:  ldloc.s    V_5
-    IL_00ad:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetException(System.Exception)""
-    IL_00b2:  leave.s    IL_00c8
+    IL_009e:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
+    IL_00a3:  ldloc.s    V_5
+    IL_00a5:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetException(System.Exception)""
+    IL_00aa:  leave.s    IL_00c0
   }
+  IL_00ac:  ldarg.0
+  IL_00ad:  ldc.i4.s   -2
+  IL_00af:  stfld      ""int C.<Test>d__1.<>1__state""
   IL_00b4:  ldarg.0
-  IL_00b5:  ldc.i4.s   -2
-  IL_00b7:  stfld      ""int C.<Test>d__1.<>1__state""
-  IL_00bc:  ldarg.0
-  IL_00bd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
-  IL_00c2:  ldloc.1
-  IL_00c3:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetResult(long)""
-  IL_00c8:  ret
+  IL_00b5:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long> C.<Test>d__1.<>t__builder""
+  IL_00ba:  ldloc.1
+  IL_00bb:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<long>.SetResult(long)""
+  IL_00c0:  ret
 }
 ");
         }
@@ -19852,7 +20478,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -19861,7 +20487,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "System.ValueTuple 4.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ValueTuple`2, System, AssemblyRef:System.ValueTuple", reader.DumpTypeReferences());
+                    Assert.Contains("ValueTuple`2, System, AssemblyReference:System.ValueTuple", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }
@@ -19892,7 +20518,7 @@ class C
             {
                 var reader = block.MetadataReader;
                 AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
             }
 
             // emit with pdb
@@ -19901,7 +20527,7 @@ class C
                 {
                     var reader = assembly.GetMetadataReader();
                     AssertEx.SetEqual(new[] { "mscorlib 4.0", "lib 0.0" }, reader.DumpAssemblyReferences());
-                    Assert.Contains("ReferencedType, , AssemblyRef:lib", reader.DumpTypeReferences());
+                    Assert.Contains("ReferencedType, , AssemblyReference:lib", reader.DumpTypeReferences());
                 });
             // no assertion in MetadataWriter
         }
@@ -22120,20 +22746,19 @@ static class C
 
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }));
             comp.VerifyDiagnostics(
-                // (10,41): error CS1928: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                // (10,34): error CS1929: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine((1, 2).M());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int, int)", "M", "C.M((int x, long y))").WithLocation(10, 41),
-                // (16,57): error CS1928: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(1, 2)").WithArguments("(int, int)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(10, 34),
+                // (16,34): error CS1929: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' requires a receiver of type '(int x, long? y)'
                 //         System.Console.WriteLine((First: 1, Second: 2L).M1());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M1").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))").WithLocation(16, 57),
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(First: 1, Second: 2L)").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))", "(int x, long? y)").WithLocation(16, 34),
                 // (19,44): error CS0117: '(int, <null>)' does not contain a definition for 'M1'
                 //         System.Console.WriteLine((1, null).M1());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1").WithLocation(19, 44),
-                // (23,46): error CS1928: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1"),
+                // (23,34): error CS1929: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine(notAliteral.M());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int A, int B)", "M", "C.M((int x, long y))").WithLocation(23, 46)
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "notAliteral").WithArguments("(int A, int B)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(23, 34)
                 );
-
         }
 
         [Fact]
@@ -22231,6 +22856,488 @@ namespace System
             var tuple3 = comp3.GetWellKnownType(WellKnownType.System_ValueTuple_T2);
             Assert.False(tuple3.IsErrorType());
             Assert.Equal(libWithVTRef.Display, tuple3.ContainingAssembly.MetadataName.ToString());
+        }
+
+        [Fact]
+        [WorkItem(17962, "https://github.com/dotnet/roslyn/issues/17962")]
+        public void TupleWithAsOperator()
+        {
+            var source = @"
+class C
+{
+    void M<T>()
+    {
+        var x = (0, null) as (int, T)?;
+        System.Console.WriteLine(x == null);
+    }
+}";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,17): error CS8304: The first operand of an 'as' operator may not be a tuple literal without a natural type.
+                //         var x = (0, null) as (int, T)?;
+                Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(0, null) as (int, T)?").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void CheckedConstantConversions()
+        {
+            var source =
+@"#pragma warning disable 219
+class C
+{
+    static void Main()
+    {
+        unchecked
+        {
+            var u = ((byte, byte))(0, -1);
+            var (a, b) = ((byte, byte))(0, -2);
+        }
+        checked
+        {
+            var c = ((byte, byte))(0, -1);
+            var (a, b) = ((byte, byte))(0, -2);
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (13,39): error CS0221: Constant value '-1' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //             var c = ((byte, byte))(0, -1);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "-1").WithArguments("-1", "byte").WithLocation(13, 39),
+                // (14,44): error CS0221: Constant value '-2' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //             var (a, b) = ((byte, byte))(0, -2);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "-2").WithArguments("-2", "byte").WithLocation(14, 44));
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInAsOperator()
+        {
+            var source =
+@"
+using System;
+
+class P
+{
+    static void Main()
+    {
+        var x1 = (1, 1) as (int, int a)?;
+        var x2 = (1, 1) as (int, int)?;
+        var x3 = (1, new object()) as (int, dynamic)?;
+        Console.Write($""{x1} {x2} {x3}"");
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(1, 1) (1, 1) (1, System.Object)");
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInAsOperator2()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x = (a: 1, b: 1) as (int c, int d)?;
+        var y = (1, 1) as (int, long)?;
+    }
+}";
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,17): warning CS0458: The result of the expression is always 'null' of type '(int, long)?'
+                //         var y = (1, 1) as (int, long)?;
+                Diagnostic(ErrorCode.WRN_AlwaysNull, "(1, 1) as (int, long)?").WithArguments("(int, long)?").WithLocation(7, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInIsOperator()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x1 = (1, 1) is (int, int a)?;
+    }
+}";
+            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,29): error CS1525: Invalid expression term 'int'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 29),
+                // (6,41): error CS1525: Invalid expression term ';'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
+                // (6,41): error CS1003: Syntax error, ':' expected
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments(":", ";").WithLocation(6, 41),
+                // (6,41): error CS1525: Invalid expression term ';'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 41),
+                // (6,34): error CS8185: A declaration is not allowed in this context.
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int a").WithLocation(6, 34),
+                // (6,28): error CS0150: A constant value is expected
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int a)").WithLocation(6, 28),
+                // (6,34): error CS0165: Use of unassigned local variable 'a'
+                //         var x1 = (1, 1) is (int, int a)?;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "int a").WithArguments("a").WithLocation(6, 34)
+                );
+        }
+
+        [Fact]
+        [WorkItem(17963, "https://github.com/dotnet/roslyn/issues/17963")]
+        public void NullableTupleInIsOperator2()
+        {
+            var source =
+@"
+class P
+{
+    static void M()
+    {
+        var x1 = (1, 1) is System.Nullable<(int, int a)>;
+    }
+}";
+            var comp = CreateStandardCompilation( source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,18): warning CS0183: The given expression is always of the provided ('(int, int a)?') type
+                //         var x1 = (1, 1) is System.Nullable<(int, int a)>;
+                Diagnostic(ErrorCode.WRN_IsAlwaysTrue, "(1, 1) is System.Nullable<(int, int a)>").WithArguments("(int, int a)?").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
+        public void CheckedConversions()
+        {
+            var source =
+@"using System;
+class C
+{
+    static (long, byte) Default((int, int) t)
+    {
+        return ((long, byte))t;
+    }
+    static (long, byte) Unchecked((int, int) t)
+    {
+        unchecked
+        {
+            return ((long, byte))t;
+        }
+    }
+    static (long, byte) Checked((int, int) t)
+    {
+        checked
+        {
+            return ((long, byte))t;
+        }
+    }
+    static void Main()
+    {
+        var d = Default((-1, -1));
+        Console.Write(d);
+        var u = Unchecked((-1, -1));
+        Console.Write(u);
+        try
+        {
+            var c = Checked((-1, -1));
+            Console.Write(c);
+        }
+        catch (OverflowException)
+        {
+            Console.Write(""overflow"");
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(-1, 255)(-1, 255)overflow");
+            verifier.VerifyIL("C.Default",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("C.Unchecked",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("C.Checked",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.ovf.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+        }
+
+        [Fact]
+        [WorkItem(19434, "https://github.com/dotnet/roslyn/issues/19434")]
+        public void ExplicitTupleLiteralConversionWithNullable01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        int x = 1;
+        var y = ((byte, byte)?)(x, x);
+        System.Console.WriteLine(y.Value);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs, options: TestOptions.DebugExe, expectedOutput:
+@"(1, 1)");
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (int V_0, //x
+                (byte, byte)? V_1) //y
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  ldloc.0
+  IL_0006:  conv.u1
+  IL_0007:  ldloc.0
+  IL_0008:  conv.u1
+  IL_0009:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_000e:  call       ""(byte, byte)?..ctor((byte, byte))""
+  IL_0013:  ldloca.s   V_1
+  IL_0015:  call       ""(byte, byte) (byte, byte)?.Value.get""
+  IL_001a:  box        ""System.ValueTuple<byte, byte>""
+  IL_001f:  call       ""void System.Console.WriteLine(object)""
+  IL_0024:  nop
+  IL_0025:  ret
+}
+");
+
+            comp = CompileAndVerify(source,
+    additionalRefs: s_valueTupleRefs, options: TestOptions.ReleaseExe, expectedOutput:
+@"(1, 1)");
+
+            comp.VerifyIL("C.Main()", @"
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (int V_0, //x
+                (byte, byte)? V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_1
+  IL_0004:  ldloc.0
+  IL_0005:  conv.u1
+  IL_0006:  ldloc.0
+  IL_0007:  conv.u1
+  IL_0008:  newobj     ""System.ValueTuple<byte, byte>..ctor(byte, byte)""
+  IL_000d:  call       ""(byte, byte)?..ctor((byte, byte))""
+  IL_0012:  ldloca.s   V_1
+  IL_0014:  call       ""(byte, byte) (byte, byte)?.Value.get""
+  IL_0019:  box        ""System.ValueTuple<byte, byte>""
+  IL_001e:  call       ""void System.Console.WriteLine(object)""
+  IL_0023:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string) y = (e, null); // the only conversion we find is an explicit conversion
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS0029: Cannot implicitly convert type 'int?' to 'int'
+                //         (int, string) y = (e, null);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "e").WithArguments("int?", "int").WithLocation(7, 28)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion2()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,28): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string)?'.
+                //         (int, string)? y = (e, null); // the only conversion we find is an explicit conversion
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string)?").WithLocation(7, 28)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String)?", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypelessTupleWithNoImplicitConversion3()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string, int) y = (e, null); // no conversion found
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,32): error CS8135: Tuple with 2 elements cannot be converted to type '(int, string, int)'.
+                //         (int, string, int) y = (e, null); // no conversion found
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(e, null)").WithArguments("2", "(int, string, int)").WithLocation(7, 32)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Null(model.GetTypeInfo(tuple).Type);
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
+
+            var first = tuple.Arguments[0].Expression;
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("System.Int32?", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(first).Kind);
+
+            var second = tuple.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(second).Type);
+            Assert.Null(model.GetTypeInfo(second).ConvertedType);
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
+        public void TypedTupleWithNoConversion()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        int? e = 5;
+        (int, string, int) y = (e, """"); // no conversion found
+        System.Console.Write(y);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (7,32): error CS0029: Cannot implicitly convert type '(int? e, string)' to '(int, string, int)'
+                //         (int, string, int) y = (e, ""); // no conversion found
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(e, """")").WithArguments("(int? e, string)", "(int, string, int)").WithLocation(7, 32)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Equal("(System.Int32? e, System.String)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
         }
     }
 }

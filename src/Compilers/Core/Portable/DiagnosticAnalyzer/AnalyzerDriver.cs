@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // Protect against vicious analyzers that provide large values for SymbolKind.
         private const int MaxSymbolKind = 100;
 
+        // Cache delegates for static methods
+        private static readonly Func<DiagnosticAnalyzer, bool> s_IsCompilerAnalyzerFunc = IsCompilerAnalyzer;
+
         protected readonly ImmutableArray<DiagnosticAnalyzer> analyzers;
         protected readonly AnalyzerManager analyzerManager;
         private readonly Func<SyntaxTree, CancellationToken, bool> _isGeneratedCode;
@@ -1356,7 +1359,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerManager analyzerManager,
             AnalyzerExecutor analyzerExecutor)
         {
-            return analyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, IsCompilerAnalyzer, analyzerExecutor);
+            return analyzerManager.IsDiagnosticAnalyzerSuppressed(analyzer, options, s_IsCompilerAnalyzerFunc, analyzerExecutor);
         }
 
         private static bool IsCompilerAnalyzer(DiagnosticAnalyzer analyzer)

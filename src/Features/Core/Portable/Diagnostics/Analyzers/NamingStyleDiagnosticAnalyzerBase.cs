@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             SymbolAnalysisContext context,
             ConcurrentDictionary<Guid, ConcurrentDictionary<string, string>> idToCachedResult)
         { 
+            if (string.IsNullOrEmpty(context.Symbol.Name))
+            {
+                return;
+            }
+
             var namingPreferences = context.GetNamingStylePreferencesAsync().GetAwaiter().GetResult();
             if (namingPreferences == null)
             {

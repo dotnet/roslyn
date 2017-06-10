@@ -9,43 +9,90 @@ $ErrorActionPreference="Stop"
 
 # Handy function for executing a command in powershell and throwing if it 
 # fails.  
+#
+# Use this when the full command is known at script authoring time and 
+# doesn't require any dynamic argument build up.  Example:
+#
+#   Exec-Block { & $msbuild Test.proj }
 # 
 # Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
-function Exec([scriptblock]$cmd, [switch]$echo = $false) {
-    if ($echo) {
-        & $cmd
-    }
-    else {
-        $output = & $cmd 
-    }
+function Exec-Block([scriptblock]$cmd) {
+    & $cmd
 
     # Need to check both of these cases for errors as they represent different items
     # - $?: did the powershell script block throw an error
     # - $lastexitcode: did a windows command executed by the script block end in error
     if ((-not $?) -or ($lastexitcode -ne 0)) {
-        if (-not $echo) { 
-            Write-Host $output
-        }
         throw "Command failed to execute: $cmd"
     } 
 }
 
-function Exec-Echo([scriptblock]$cmd) {
-    Exec $cmd -echo:$true
+# Handy function for executing a windows command which needs to go through 
+# windows command line parsing.  
+#
+# Use this when the command arguments are stored in a variable.  Particularly 
+# when the variable needs reparsing by the windows command line. Example:
+#
+#   $args = "/p:ManualBuild=true Test.proj"
+#   Exec-Command $msbuild $args
+# 
+function Exec-Command([string]$command, [string]$commandArgs) {
+    $startInfo = New-Object System.Diagnostics.ProcessStartInfo
+    $startInfo.FileName = $command
+    $startInfo.Arguments = $commandArgs
+
+    $startInfo.RedirectStandardOutput = $true
+    $startInfo.UseShellExecute = $false
+    $startInfo.CreateNoWindow = $true
+    $startInfo.WorkingDirectory = Get-Location
+
+    $process = New-Object System.Diagnostics.Process
+    $process.StartInfo = $startInfo
+    $process.StartInfo.RedirectStandardOutput = $true;
+    $process.Start() | Out-Null
+
+    $finished = $false
+    try {
+        # The OutputDataReceived event doesn't fire as events are sent by the 
+        # process in powershell.  Possibly due to subtlties of how Powershell
+        # manages the thread pool that I'm not aware of.  Using blocking
+        # reading here as an alternative which is fine since this blocks 
+        # on completion already.
+        $out = $process.StandardOutput
+        while (-not $out.EndOfStream) {
+            $line = $out.ReadLine()
+            Write-Output $line
+        }
+
+        while (-not $process.WaitForExit(100)) { 
+            # Non-blocking loop done to allow ctr-c interrupts
+        }
+
+        $finished = $true
+        if ($process.ExitCode -ne 0) { 
+            throw "Command failed to execute: $command $commandArgs" 
+        }
+    }
+    finally {
+        # If we didn't finish then an error occured or the user hit ctrl-c.  Either
+        # way kill the process
+        if (-not $finished) {
+            $process.Kill()
+        }
+    }
 }
 
-# Handy function for executing Invoke-Expression and reliably throwing an 
-# error if the expression, or the command it invoked, fails
-# 
-# Original sample came from: http://jameskovacs.com/2010/02/25/the-exec-problem/
-function Exec-Expression([string]$expr) {
-    Exec { Invoke-Expression $expr } -echo:$true
+# Handy function for executing a powershell script in a clean environment with 
+# arguments.  Prefer this over & sourcing a script as it will both use a clean
+# environment and do proper error checking
+function Exec-Script([string]$script, [string]$scriptArgs = "") {
+    Exec-Command "powershell" "-noprofile -executionPolicy RemoteSigned -file `"$script`" $scriptArgs"
 }
 
 # Ensure that NuGet is installed and return the path to the 
 # executable to use.
 function Ensure-NuGet() {
-    Exec { & (Join-Path $PSScriptRoot "download-nuget.ps1") }
+    Exec-Block { & (Join-Path $PSScriptRoot "download-nuget.ps1") } | Out-Host
     $nuget = Join-Path $repoDir "NuGet.exe"
     return $nuget
 }
@@ -56,7 +103,7 @@ function Ensure-BasicTool([string]$name, [string]$version) {
     $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
     if (-not (Test-Path $p)) {
         $nuget = Ensure-NuGet
-        Exec { & $nuget install $name -OutputDirectory (Get-PackagesDir) -Version $version }
+        Exec-Block { & $nuget install $name -OutputDirectory (Get-PackagesDir) -Version $version } | Out-Null
     }
     
     return $p
@@ -87,12 +134,12 @@ function Create-Directory([string]$dir) {
 # Return the version of the NuGet package as used in this repo
 function Get-PackageVersion([string]$name) {
     $name = $name.Replace(".", "")
-    $deps = Join-Path $repoDir "build\Targets\Dependencies.props"
+    $deps = Join-Path $repoDir "build\Targets\Packages.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
     $node = $x.Project.PropertyGroup[$nodeName]
     if ($node -eq $null) { 
-        throw "Cannot find package $name in Dependencies.props"
+        throw "Cannot find package $name in Packages.props"
     }
 
     return $node.InnerText
@@ -177,7 +224,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
-    $version = "0.1.2"
+    $version = "0.2.0-alpha"
     $name = "RoslynTools.MSBuild"
     $p = Ensure-BasicTool $name $version
     $p = Join-Path $p "tools\msbuild"
@@ -206,18 +253,23 @@ function Get-VisualStudioDir() {
 # Clear out the NuGet package cache
 function Clear-PackageCache() {
     $nuget = Ensure-NuGet
-    Exec { & $nuget locals all -clear }
+    Exec-Block { & $nuget locals all -clear } | Out-Host
 }
 
 # Restore a single project
 function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
-    $filePath = Join-Path $repoDir $fileName
-    Exec { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath }
+
+    $filePath = $fileName
+    if (-not (Test-Path $filePath)) {
+        $filePath = Join-Path $repoDir $fileName
+    }
+
+    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Write-Host
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([switch]$clean = $false, [string]$msbuildDir = "", [string]$project = "") {
+function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     $nuget = Ensure-NuGet
     if ($msbuildDir -eq "") {
         $msbuildDir = Get-MSBuildDir
@@ -225,38 +277,29 @@ function Restore-Packages([switch]$clean = $false, [string]$msbuildDir = "", [st
 
     Write-Host "Restore using MSBuild at $msbuildDir"
 
-    if ($clean) {
-        Write-Host "Deleting project.lock.json files"
-        Get-ChildItem $repoDir -re -in project.lock.json | Remove-Item
-    }
-
     if ($project -ne "") {
         Write-Host "Restoring project $project"
-        Restore-Project -fileName $project -nuget $nuget -msbuildDir $msbuildDir
+        Restore-Project -fileName $project -msbuildDir $msbuildDir -nuget $nuget
     }
     else {
         $all = @(
-            "Toolsets:build\ToolsetPackages\project.json",
-            "Toolsets (Dev14 VS SDK build tools):build\ToolsetPackages\dev14.project.json",
-            "Toolsets (Dev15 VS SDK RC build tools):build\ToolsetPackages\dev15rc.project.json",
+            "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
+            "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
+            "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",
-            "Toolsets Compiler:build\Toolset\Toolset.csproj",
-            "Roslyn:Roslyn.sln",
-            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln",
-            "DevDiv Roslyn Packages:src\Setup\DevDivPackages\Roslyn\project.json",
-            "DevDiv Debugger Packages:src\Setup\DevDivPackages\Debugger\project.json")
+            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
 
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
-            Restore-Project -fileName $both[1] -nuget $nuget -msbuildDir $msbuildDir
+            Restore-Project -fileName $both[1] -msbuildDir $msbuildDir -nuget $nuget
         }
     }
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([switch]$clean = $false, [string]$msbuildDir = "") {
-    Restore-Packages -clean:$clean -msbuildDir $msbuildDir
+function Restore-All([string]$msbuildDir = "") {
+    Restore-Packages -msbuildDir $msbuildDir
 }
 

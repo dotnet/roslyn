@@ -114,6 +114,60 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Moq">
+      <Version>$(MoqVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>$(NewtonsoftJsonVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Nerdbank.FullDuplexStream">
+      <Version>$(NerdbankFullDuplexStreamVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.ServiceHub.Client">
+      <Version>$(MicrosoftServiceHubClientVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Composition">
+      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcClient.cs">
@@ -202,6 +256,7 @@
     <Compile Include="Structure\AbstractSyntaxNodeStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxStructureProviderTests.cs" />
     <Compile Include="Structure\AbstractSyntaxTriviaStructureProviderTests.cs" />
+    <Compile Include="TestExportJoinableTaskContext.cs" />
     <Compile Include="TestExportProvider.cs" />
     <Compile Include="TestExtensionErrorHandler.cs" />
     <Compile Include="TestOptionsServiceFactory.cs" />
@@ -233,6 +288,7 @@
     <Compile Include="Workspaces\TestHostDocument.cs" />
     <Compile Include="Workspaces\TestHostProject.cs" />
     <Compile Include="Workspaces\TestHostSolution.cs" />
+    <Compile Include="Workspaces\TestSymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Workspaces\TestWorkspace.cs" />
     <Compile Include="Workspaces\TestWorkspaceFixture.cs" />
     <Compile Include="Workspaces\TestWorkspace_Create.cs" />
@@ -271,9 +327,5 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities2" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

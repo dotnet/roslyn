@@ -803,11 +803,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ResolveBranches(BoundLabeledStatement target)
-        {
-            return ResolveBranches(target.Label, target);
-        }
-
         protected struct SavedPending
         {
             public readonly ArrayBuilder<PendingBranch> PendingBranches;

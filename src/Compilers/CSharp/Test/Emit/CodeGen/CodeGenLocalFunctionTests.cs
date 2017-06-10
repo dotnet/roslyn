@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public static class LocalFunctionTestsUtil
     {
-        public static IMethodSymbol FindLocalFunction(this CommonTestBase.CompilationVerifier verifier, string localFunctionName)
+        public static IMethodSymbol FindLocalFunction(this CompilationVerifier verifier, string localFunctionName)
         {
             localFunctionName = (char)GeneratedNameKind.LocalFunction + "__" + localFunctionName;
             var methods = verifier.TestData.GetMethodsByName();
@@ -78,7 +78,7 @@ public class Class
             CompileAndVerify(comp);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16783")]
+        [Fact]
         [WorkItem(16783, "https://github.com/dotnet/roslyn/issues/16783")]
         public void GenericDefaultParams()
         {
@@ -3970,6 +3970,73 @@ class Program
 }";
             CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA",
                 additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+        }
+
+        [Fact]
+        [WorkItem(19119, "https://github.com/dotnet/roslyn/issues/19119")]
+        public void StructFrameInitUnnecesary()
+        {
+            var c = CompileAndVerify(@"
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int q = 1;
+
+            if (q > 0)
+            {
+                int w = 2;
+                if (w > 0)
+                {
+                    int e = 3;
+                    if (e > 0)
+                    {
+                        void Print() => System.Console.WriteLine(q + w + e);
+
+                        Print();
+                    }
+                }
+            }
+        }
+    }", expectedOutput: "6");
+
+            //NOTE: the following code should not have "initobj" instructions.
+
+            c.VerifyIL("Program.Main", @"
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (Program.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
+                Program.<>c__DisplayClass0_1 V_1, //CS$<>8__locals1
+                Program.<>c__DisplayClass0_2 V_2) //CS$<>8__locals2
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  stfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_0008:  ldloc.0
+  IL_0009:  ldfld      ""int Program.<>c__DisplayClass0_0.q""
+  IL_000e:  ldc.i4.0
+  IL_000f:  ble.s      IL_003e
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  ldc.i4.2
+  IL_0014:  stfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_0019:  ldloc.1
+  IL_001a:  ldfld      ""int Program.<>c__DisplayClass0_1.w""
+  IL_001f:  ldc.i4.0
+  IL_0020:  ble.s      IL_003e
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  ldc.i4.3
+  IL_0025:  stfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_002a:  ldloc.2
+  IL_002b:  ldfld      ""int Program.<>c__DisplayClass0_2.e""
+  IL_0030:  ldc.i4.0
+  IL_0031:  ble.s      IL_003e
+  IL_0033:  ldloca.s   V_0
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldloca.s   V_2
+  IL_0039:  call       ""void Program.<Main>g__Print0_0(ref Program.<>c__DisplayClass0_0, ref Program.<>c__DisplayClass0_1, ref Program.<>c__DisplayClass0_2)""
+  IL_003e:  ret
+}
+");
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)

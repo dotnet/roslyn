@@ -79,12 +79,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[])_store[nameof(Imports)]; }
         }
 
-        public string LangVersion
-        {
-            set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
-        }
-
         public string ModuleAssemblyName
         {
             set { _store[nameof(ModuleAssemblyName)] = value; }
@@ -434,7 +428,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/removeintchecks", this._store, "RemoveIntegerChecks");
             commandLine.AppendSwitchIfNotNull("/rootnamespace:", this.RootNamespace);
             commandLine.AppendSwitchIfNotNull("/sdkpath:", this.SdkPath);
-            commandLine.AppendSwitchIfNotNull("/langversion:", this.LangVersion);
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", this.ModuleAssemblyName);
             commandLine.AppendWhenTrue("/netcf", this._store, "TargetCompactFramework");
             commandLine.AppendSwitchIfNotNull("/preferreduilang:", this.PreferredUILang);
@@ -909,7 +902,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
 
                 // Check for support of the LangVersion property
-                if (vbcHostObject is IVbcHostObject3)
+                if (vbcHostObject is IVbcHostObject3 && !DeferToICompilerOptionsHostObject(LangVersion, vbcHostObject))
                 {
                     IVbcHostObject3 vbcHostObject3 = (IVbcHostObject3)vbcHostObject;
                     CheckHostObjectSupport(param = nameof(LangVersion), vbcHostObject3.SetLanguageVersion(LangVersion));
@@ -958,6 +951,35 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return true;
+        }
+
+        // VbcHostObject doesn't support VB versions beyond 15,
+        // so the LangVersion will be passed through ICompilerOptionsHostObject.SetCompilerOptions instead
+        private static bool DeferToICompilerOptionsHostObject(string langVersion, IVbcHostObject vbcHostObject)
+        {
+            if (!(vbcHostObject is ICompilerOptionsHostObject))
+            {
+                return false;
+            }
+
+            if (langVersion == null)
+            {
+                // CVbcMSBuildHostObject::SetLanguageVersion can handle null
+                return false;
+            }
+
+            // CVbcMSBuildHostObject::SetLanguageVersion can handle versions up to 15
+            var supportedList = new[]
+            {
+                "9", "9.0",
+                "10", "10.0",
+                "11", "11.0",
+                "12", "12.0",
+                "14", "14.0",
+                "15", "15.0"
+            };
+
+            return Array.IndexOf(supportedList, langVersion) < 0;
         }
 
         /// <summary>

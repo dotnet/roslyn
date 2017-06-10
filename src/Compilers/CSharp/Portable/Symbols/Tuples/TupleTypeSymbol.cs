@@ -34,6 +34,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<string> _elementNames;
 
         /// <summary>
+        /// Which element names were inferred and therefore cannot be used.
+        /// If none of the element names were inferred, or inferred names can be used (no tracking necessary), leave as default.
+        /// This information is ignored in type equality and comparison.
+        /// </summary>
+        private readonly ImmutableArray<bool> _errorPositions;
+
+        /// <summary>
         /// Element types.
         /// </summary>
         private readonly ImmutableArray<TypeSymbol> _elementTypes;
@@ -47,13 +54,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal const string TupleTypeName = "ValueTuple";
         internal const string RestFieldName = "Rest";
 
-        private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
+        private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations,
+            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> errorPositions)
             : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
-                  underlyingType, elementLocations, elementNames, elementTypes)
+                  underlyingType, elementLocations, elementNames, elementTypes, errorPositions)
         {
         }
 
-        private TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
+        private TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations,
+            ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes, ImmutableArray<bool> errorPositions)
             : base(underlyingType)
         {
             Debug.Assert(elementLocations.IsDefault || elementLocations.Length == elementTypes.Length);
@@ -64,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _elementNames = elementNames;
             _elementTypes = elementTypes;
             _locations = locations;
+            _errorPositions = errorPositions;
         }
 
         /// <summary>
@@ -76,6 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
             bool shouldCheckConstraints,
+            ImmutableArray<bool> errorPositions,
             CSharpSyntaxNode syntax = null,
             DiagnosticBag diagnostics = null)
         {
@@ -97,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics);
             }
 
-            var constructedType = Create(underlyingType, elementNames, locationOpt, elementLocations);
+            var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints)
             {
                 constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
@@ -108,16 +119,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType,
                                              ImmutableArray<string> elementNames = default(ImmutableArray<string>),
+                                             ImmutableArray<bool> errorPositions = default(ImmutableArray<bool>),
                                              Location locationOpt = null,
                                              ImmutableArray<Location> elementLocations = default(ImmutableArray<Location>))
         {
             return Create(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
                           tupleCompatibleType,
                           elementLocations,
-                          elementNames);
+                          elementNames,
+                          errorPositions);
         }
 
-        public static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
+        public static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType,
+            ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<bool> errorPositions)
         {
             Debug.Assert(tupleCompatibleType.IsTupleCompatible());
 
@@ -139,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 elementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
             }
 
-            return new TupleTypeSymbol(locations, tupleCompatibleType, elementLocations, elementNames, elementTypes);
+            return new TupleTypeSymbol(locations, tupleCompatibleType, elementLocations, elementNames, elementTypes, errorPositions);
         }
 
         /// <summary>
@@ -211,12 +225,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!newUnderlyingType.IsTupleType && newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(_elementTypes.Length));
 
-            return Create(_locations, newUnderlyingType, _elementLocations, _elementNames);
+            return Create(_locations, newUnderlyingType, _elementLocations, _elementNames, _errorPositions);
         }
 
         /// <summary>
         /// Copy this tuple, but modify it to use the new element names.
         /// Also applies new location of the whole tuple as well as each element.
+        /// Drops the inferred positions.
         /// </summary>
         internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames,
                                                   Location newLocation,
@@ -224,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
 
-            return new TupleTypeSymbol(newLocation, _underlyingType, newElementLocations, newElementNames, _elementTypes);
+            return new TupleTypeSymbol(newLocation, _underlyingType, newElementLocations, newElementNames, _elementTypes, default(ImmutableArray<bool>));
         }
 
         /// <summary>
@@ -386,6 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
+            ImmutableArray<bool> inferredNames = literal.InferredNamesOpt;
+            bool noInferredNames = inferredNames.IsDefault;
             ImmutableArray<string> destinationNames = destination.TupleElementNames;
             int sourceLength = sourceNames.Length;
             bool allMissing = destinationNames.IsDefault;
@@ -394,7 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < sourceLength; i++)
             {
                 var sourceName = sourceNames[i];
-                if (sourceName != null && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
+                var wasInferred = noInferredNames ? false : inferredNames[i];
+
+                if (sourceName != null && !wasInferred && (allMissing || string.CompareOrdinal(destinationNames[i], sourceName) != 0))
                 {
                     diagnostics.Add(ErrorCode.WRN_TupleLiteralNameMismatch, literal.Arguments[i].Syntax.Parent.Location, sourceName, destination);
                 }
@@ -818,6 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                             defaultName,
                                                                                             tupleFieldIndex,
                                                                                             location,
+                                                                                            cannotUse: false,
                                                                                             isImplicitlyDeclared: defaultImplicitlyDeclared,
                                                                                             correspondingDefaultFieldOpt: null);
                                 }
@@ -838,6 +858,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                                 if (defaultImplicitlyDeclared && !String.IsNullOrEmpty(providedName))
                                 {
+                                    var isError = _errorPositions.IsDefault ? false : _errorPositions[tupleFieldIndex];
+
                                     // The name given doesn't match the default name Item8, etc.
                                     // Add a virtual field with the given name
                                     members.Add(new TupleVirtualElementFieldSymbol(this,
@@ -845,6 +867,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                     providedName,
                                                                                     tupleFieldIndex,
                                                                                     location,
+                                                                                    cannotUse: isError,
                                                                                     isImplicitlyDeclared: false,
                                                                                     correspondingDefaultFieldOpt: defaultTupleField));
                                 }

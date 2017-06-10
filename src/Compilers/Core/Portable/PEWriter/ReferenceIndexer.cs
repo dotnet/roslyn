@@ -23,7 +23,7 @@ namespace Microsoft.Cci
         {
             // Visit these assembly-level attributes even when producing a module.
             // They'll be attached off the "AssemblyAttributesGoHere" typeRef if a module is being produced.
-            Visit(module.GetSourceAssemblyAttributes());
+            Visit(module.GetSourceAssemblyAttributes(Context.IsRefAssembly));
             Visit(module.GetSourceAssemblySecurityAttributes());
 
             Visit(module.GetAssemblyReferences(Context));
@@ -99,7 +99,7 @@ namespace Microsoft.Cci
 
         protected override void ProcessMethodBody(IMethodDefinition method)
         {
-            if (method.HasBody())
+            if (method.HasBody() && !metadataWriter.MetadataOnly)
             {
                 var body = method.GetBody(Context);
 
@@ -118,10 +118,6 @@ namespace Microsoft.Cci
                             break;
                         }
                     }
-                }
-                else if (!metadataWriter.allowMissingMethodBodies)
-                {
-                    throw ExceptionUtilities.Unreachable;
                 }
             }
         }

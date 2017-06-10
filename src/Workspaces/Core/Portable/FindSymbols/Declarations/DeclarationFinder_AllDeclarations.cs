@@ -93,25 +93,27 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            var session = await SymbolFinder.TryGetRemoteSessionAsync(
-                project.Solution, cancellationToken).ConfigureAwait(false);
-            if (session != null)
+            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(
+                project.Solution, cancellationToken).ConfigureAwait(false))
             {
-                var result = await session.InvokeAsync<SerializableSymbolAndProjectId[]>(
-                    nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
-                    project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
+                if (session != null)
+                {
+                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                        nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                        project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
 
-                var rehydrated = await RehydrateAsync(
-                    project.Solution, result, cancellationToken).ConfigureAwait(false);
+                    var rehydrated = await RehydrateAsync(
+                        project.Solution, result, cancellationToken).ConfigureAwait(false);
 
-                return (true, rehydrated);
+                    return (true, rehydrated);
+                }
             }
 
             return (false, ImmutableArray<SymbolAndProjectId>.Empty);
         }
 
         private static async Task<ImmutableArray<SymbolAndProjectId>> RehydrateAsync(
-            Solution solution, SerializableSymbolAndProjectId[] array, CancellationToken cancellationToken)
+            Solution solution, ImmutableArray<SerializableSymbolAndProjectId> array, CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance(array.Length);
 

@@ -16,16 +16,19 @@ namespace Microsoft.CodeAnalysis.SQLite
         /// <summary>
         /// Lock protecting the write queues and <see cref="_flushAllTask"/>.
         /// </summary>
-        private readonly object _writeQueueGate = new object();
+        private readonly SemaphoreSlim _writeQueueGate = new SemaphoreSlim(initialCount: 1);
 
         /// <summary>
         /// Task kicked off to actually do the work of flushing all data to the DB.
         /// </summary>
         private Task _flushAllTask;
 
-        private void AddWriteTask<TKey>(MultiDictionary<TKey, Action<SqlConnection>> queue, TKey key, Action<SqlConnection> action)
+        private async Task AddWriteTaskAsync<TKey>(
+            MultiDictionary<TKey, Action<SqlConnection>> queue,
+            TKey key, Action<SqlConnection> action,
+            CancellationToken cancellationToken)
         {
-            lock (_writeQueueGate)
+            using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 queue.Add(key, action);
 
@@ -34,27 +37,29 @@ namespace Microsoft.CodeAnalysis.SQLite
                 // request, then it will see this write request when it runs.
                 if (_flushAllTask == null)
                 {
-                    var delay = 
-                        Task.Delay(FlushAllDelayMS, _shutdownTokenSource.Token)
+                    var token = _shutdownTokenSource.Token;
+                    _flushAllTask =
+                        Task.Delay(FlushAllDelayMS, token)
                             .ContinueWith(
-                                _ => FlushAllPendingWrites(),
-                                _shutdownTokenSource.Token,
+                                async _ => await FlushAllPendingWritesAsync(token).ConfigureAwait(false),
+                                token,
                                 TaskContinuationOptions.None,
                                 TaskScheduler.Default);
                 }
             }
         }
 
-        private void FlushSpecificWrites<TKey>(
+        private async Task FlushSpecificWritesAsync<TKey>(
             SqlConnection connection,
             MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
-            Dictionary<TKey, CountdownEvent> keyToCountdown,
-            TKey key)
+            Dictionary<TKey, Task> keyToWriteTask,
+            TKey key, CancellationToken cancellationToken)
         {
             var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
             try
             {
-                FlushSpecificWrites(connection, keyToWriteActions, keyToCountdown, key, writesToProcess);
+                await FlushSpecificWritesAsync(
+                    connection, keyToWriteActions, keyToWriteTask, key, writesToProcess, cancellationToken).ConfigureAwait(false);
             }
             finally
             {
@@ -62,105 +67,102 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        private void FlushSpecificWrites<TKey>(SqlConnection connection, MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions, Dictionary<TKey, CountdownEvent> keyToCountdown, TKey key, ArrayBuilder<Action<SqlConnection>> writesToProcess)
+        private async Task FlushSpecificWritesAsync<TKey>(
+            SqlConnection connection, MultiDictionary<TKey, Action<SqlConnection>> keyToWriteActions,
+            Dictionary<TKey, Task> keyToWriteTask, TKey key,
+            ArrayBuilder<Action<SqlConnection>> writesToProcess,
+            CancellationToken cancellationToken)
         {
-            // Many threads many be trying to flush a specific queue.  If some other thread
-            // beats us to writing this queue, we want to still wait until it is down.  To
-            // accomplish that, we use a countdown that effectively states how many current
-            // writers there are, and which only lets us past once all the concurrent writers
-            // say they are done.
-            CountdownEvent countdown;
-
-            // Note: by blocking on _writeQueueGate we are guaranteed to see all the writes 
-            // performed by FlushAllPendingWrites.
-            lock (_writeQueueGate)
+            // Get's the task representing the current writes being performed by another
+            // thread for this queue+key, and a TaskCompletionSource we can use to let
+            // other threads know about our own progress writing any new writes in this queue.
+            var (previousWritesTask, taskCompletionSource) = await GetWriteTaskAsync().ConfigureAwait(false);
+            try
             {
-                // Get the writes we need to process.
-                writesToProcess.AddRange(keyToWriteActions[key]);
+                // Wait for all previous writes to be flushed.
+                await previousWritesTask.ConfigureAwait(false);
 
-                // and clear them from the queues so we don't process things multiple times.
-                keyToWriteActions.Remove(key);
-
-                // We may have acquired _writeQueueGate between the time that an existing thread 
-                // completes the "Wait" below and grabs this lock.  If that's the case, let go
-                // of the countdown associated with this key as it is no longer usable.
-                RemoveCountdownIfComplete(keyToCountdown, key);
-
-                // See if there's an existing countdown keeping track of the number of writers
-                // writing this queue.
-                if (!keyToCountdown.TryGetValue(key, out countdown))
+                if (writesToProcess.Count == 0)
                 {
-                    // We're the first writer for this queue.  Set the count to one, and keep
-                    // it around so future concurrent writers will see it.
-                    countdown = new CountdownEvent(initialCount: 1);
-                    keyToCountdown.Add(key, countdown);
-                }
-                else
-                {
-                    // If there is, increment the count to indicate that we're writing as well.
-                    countdown.AddCount();
+                    // No additional writes for us to flush.  We can immediately bail out.
+                    Debug.Assert(taskCompletionSource == null);
+                    return;
                 }
 
-                Debug.Assert(countdown.CurrentCount >= 1);
+                // Now, if we have writes of our own, do them on this thread.
+                // 
+                // Note: this flushing is not cancellable.  We've already removed the
+                // writes from the write queue.  If we were not to write them out we
+                // would be losing data.
+                Debug.Assert(taskCompletionSource != null);
+
+                ProcessWriteQueue(connection, writesToProcess);
+            }
+            catch (OperationCanceledException ex)
+            {
+                taskCompletionSource?.TrySetCanceled(ex.CancellationToken);
+            }
+            catch (Exception ex)
+            {
+                taskCompletionSource?.TrySetException(ex);
+            }
+            finally
+            {
+                // Mark our TCS as completed.  Any other threads waiting on us will now be able
+                // to proceed.
+                taskCompletionSource?.TrySetResult(0);
             }
 
-            // Now actually process any writes we found for this queue.
-            ProcessWriteQueue(connection, writesToProcess);
+            return;
 
-            // Mark that we're done writing out this queue, and wait until all other writers
-            // for this queue are done.  Note: this needs to happen in the lock so that 
-            // changes to the countdown value are observed consistently across all threads.
-            bool lastSignal;
-            lock (_writeQueueGate)
+            // Local functions
+            async Task<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync()
             {
-                lastSignal = countdown.Signal();
-            }
-
-            // Don't proceed until all concurrent writers of this queue complete.
-            countdown.Wait();
-
-            // If we're the thread that finally got the countdown to zero, then dispose of this
-            // count down and remove it from the dictionary (if it hasn't already been replaced
-            // by the next request).
-            if (lastSignal)
-            {
-                Debug.Assert(countdown.CurrentCount == 0);
-
-                // Safe to call outside of lock.  Countdown is only given out to a set of threads
-                // that have incremented it.  And we can only get here once all the threads have
-                // been allowed to get past the 'Wait' point.  Only one of those threads will
-                // have lastSignal set to true, so we'll only dispose this once.
-                countdown.Dispose();
-
-                lock (_writeQueueGate)
+                // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
+                // and 'keyToWriteTask' collections.
+                //
+                // Note: by blocking on _writeQueueGate we are guaranteed to see all the writes
+                // performed by FlushAllPendingWritesAsync.
+                using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    // Remove the countdown if it's still in the dictionary.  It may not be if
-                    // another thread came in after this batch of threads completed, and it 
-                    // removed the completed countdown already.
-                    RemoveCountdownIfComplete(keyToCountdown, key);
+                    // Get the writes we need to process.
+                    writesToProcess.AddRange(keyToWriteActions[key]);
+
+                    // and clear them from the queues so we don't process things multiple times.
+                    keyToWriteActions.Remove(key);
+
+                    // Find the existing task responsible for writing to this queue.
+                    var existingWriteTask = keyToWriteTask.TryGetValue(key, out var task)
+                        ? task
+                        : SpecializedTasks.EmptyTask;
+
+                    if (writesToProcess.Count == 0)
+                    {
+                        // We have no writes of our own.  But there may be an existing task that
+                        // is writing out this queue.   Return this so our caller can wait for
+                        // all existing writes to complete.
+                        return (previousTask: existingWriteTask, taskCompletionSource: null);
+                    }
+
+                    // Create a TCS that represents our own work writing out "writesToProcess".
+                    // Store it in keyToWriteTask so that if other threads come along, they'll
+                    // wait for us to complete before doing their own reads/writes on this queue.
+                    var localCompletionSource = new TaskCompletionSource<int>();
+
+                    keyToWriteTask[key] = localCompletionSource.Task;
+
+                    return (previousTask: existingWriteTask, taskCompletionSource: localCompletionSource);
                 }
             }
         }
 
-        private void RemoveCountdownIfComplete<TKey>(
-            Dictionary<TKey, CountdownEvent> keyToCountdown, TKey key)
-        {
-            Debug.Assert(Monitor.IsEntered(_writeQueueGate));
-
-            if (keyToCountdown.TryGetValue(key, out var tempCountDown) &&
-                tempCountDown.CurrentCount == 0)
-            {
-                keyToCountdown.Remove(key);
-            }
-        }
-
-        private void FlushAllPendingWrites()
+        private async Task FlushAllPendingWritesAsync(CancellationToken cancellationToken)
         {
             // Copy the work from _writeQueue to a local list that we can process.
             var writesToProcess = ArrayBuilder<Action<SqlConnection>>.GetInstance();
             try
             {
-                lock (_writeQueueGate)
+                using (await _writeQueueGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     // Copy the pending work the accessors have to the local copy.
                     _solutionAccessor.AddAndClearAllPendingWrites(writesToProcess);

@@ -23,20 +23,21 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </summary>
         public async Task CalculateDiagnosticsAsync(DiagnosticArguments arguments, string streamName)
         {
+            // if this analysis is explicitly asked by user, boost priority of this request
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, CancellationToken))
+            using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : null)
             {
                 try
                 {
-                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, CancellationToken).ConfigureAwait(false);
-
                     // entry point for diagnostic service
-                    var solution = await GetSolutionWithSpecificOptionsAsync(optionSet).ConfigureAwait(false);
+                    var solution = await GetSolutionAsync().ConfigureAwait(false);
 
+                    var optionSet = await RoslynServices.AssetService.GetAssetAsync<OptionSet>(arguments.OptionSetChecksum, CancellationToken).ConfigureAwait(false);
                     var projectId = arguments.ProjectId;
                     var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(CancellationToken);
 
                     var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
-                        analyzers, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
+                        analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, CancellationToken).ConfigureAwait(false);
 
                     await SerializeDiagnosticResultAsync(streamName, result).ConfigureAwait(false);
                 }

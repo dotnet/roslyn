@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,11 +10,16 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
+         reference Microsoft.NETCore.App to target the shared framework (bug
+         https://github.com/dotnet/sdk/issues/1159) and NETCore.App
+         contains a reference to C# + VB CodeAnalysis. This ensures that the project
+         reference is a higher version than the NuGet reference. -->
+    <Version>$(NuGetPerBuildPreReleaseVersion)</Version>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -28,6 +33,8 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
+    <PackageReference Include="System.Linq.Expressions" Version="$(SystemLinqExpressionsVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Binder\AliasAndExternAliasDirective.cs" />
@@ -265,6 +272,7 @@
     <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
     <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpSymbolMatcher.cs" />
+    <Compile Include="Emitter\Model\SourceAssemblySymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ArrayTypeSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\AssemblyReference.cs" />
     <Compile Include="Emitter\Model\AttributeDataAdapter.cs" />
@@ -813,7 +821,6 @@
     <Content Include="UseSiteDiagnosticsCheckEnforcer\BaseLine.txt" />
     <Content Include="UseSiteDiagnosticsCheckEnforcer\Run.bat" />
     <None Include="FlowAnalysis\Flow Analysis Design.docx" />
-    <None Include="project.json" />
     <None Include="Symbols\PublicSymbolTable.cd" />
     <None Include="..\CSharpCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
@@ -864,6 +871,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Destkop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>

@@ -14,6 +14,7 @@ using RestSharp;
 using System.Collections.Immutable;
 using Newtonsoft.Json;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace RunTests
 {
@@ -24,6 +25,9 @@ namespace RunTests
 
         internal static int Main(string[] args)
         {
+            Logger.Log("RunTest command line");
+            Logger.Log(string.Join(" ", args));
+
             var options = Options.Parse(args);
             if (options == null)
             {
@@ -38,7 +42,46 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            return RunCore(options, cts.Token).GetAwaiter().GetResult();
+            return Run(options, cts.Token).GetAwaiter().GetResult();
+        }
+
+        private static async Task<int> Run(Options options, CancellationToken cancellationToken)
+        {
+            if (options.Timeout == null)
+            {
+                return await RunCore(options, cancellationToken);
+            }
+
+            var timeoutTask = Task.Delay(options.Timeout.Value);
+            var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            var runTask = RunCore(options, cts.Token);
+
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return ExitFailure;
+            }
+
+            var finishedTask = await Task.WhenAny(timeoutTask, runTask);
+            if (finishedTask == timeoutTask)
+            {
+                await HandleTimeout(options, cancellationToken);
+                cts.Cancel();
+
+                try
+                {
+                    // Need to await here to ensure that all of the child processes are properly 
+                    // killed before we exit.
+                    await runTask;
+                }
+                catch
+                {
+                    // Cancellation exceptions expected here. 
+                }
+
+                return ExitFailure;
+            }
+
+            return await runTask;
         }
 
         private static async Task<int> RunCore(Options options, CancellationToken cancellationToken)
@@ -64,7 +107,7 @@ namespace RunTests
             WriteLogFile(options);
             DisplayResults(options.Display, result.TestResults);
 
-            if (CanUseWebStorage())
+            if (CanUseWebStorage() && options.UseCachedResults)
             {
                 await SendRunStats(options, testExecutor.DataStorage, elapsed, result, assemblyInfoList.Count, cancellationToken).ConfigureAwait(true);
             }
@@ -101,6 +144,69 @@ namespace RunTests
             }
 
             Logger.Clear();
+        }
+
+        /// <summary>
+        /// Invoked when a timeout occurs and we need to dump all of the test processes and shut down 
+        /// the runnner.
+        /// </summary>
+        private static async Task HandleTimeout(Options options, CancellationToken cancellationToken)
+        {
+            var procDumpFilePath = Path.Combine(options.ProcDumpPath, "procdump.exe");
+
+            async Task DumpProcess(Process targetProcess, string dumpFilePath)
+            {
+                Console.Write($"Dumping {targetProcess.ProcessName} {targetProcess.Id} to {dumpFilePath} ... ");
+                try
+                {
+                    var args = $"-accepteula -ma {targetProcess.Id} {dumpFilePath}";
+                    var processTask = ProcessRunner.RunProcessAsync(procDumpFilePath, args, cancellationToken);
+                    var processOutput = await processTask;
+
+                    // The exit code for procdump doesn't obey standard windows rules.  It will return non-zero
+                    // for succesful cases (possibly returning the count of dumps that were written).  Best 
+                    // backup is to test for the dump file being present.
+                    if (File.Exists(dumpFilePath))
+                    {
+                        Console.WriteLine("succeeded");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"FAILED with {processOutput.ExitCode}");
+                        Console.WriteLine($"{procDumpFilePath} {args}");
+                        Console.WriteLine(string.Join(Environment.NewLine, processOutput.OutputLines));
+                    }
+                }
+                catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
+                {
+                    Console.WriteLine("FAILED");
+                    Console.WriteLine(ex.Message);
+                    Logger.Log("Failed to dump process", ex);
+                }
+            }
+
+            Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
+
+            if (!string.IsNullOrEmpty(options.ProcDumpPath))
+            {
+                var dumpDir = options.LogFilePath != null
+                    ? Path.GetDirectoryName(options.LogFilePath)
+                    : Directory.GetCurrentDirectory();
+
+                var counter = 0;
+                foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
+                {
+                    var dumpFilePath = Path.Combine(dumpDir, $"{proc.ProcessName}-{counter}.dmp");
+                    await DumpProcess(proc, dumpFilePath);
+                    counter++;
+                }
+            }
+            else
+            {
+                Console.WriteLine("Could not locate procdump");
+            }
+
+            WriteLogFile(options);
         }
 
         /// <summary>

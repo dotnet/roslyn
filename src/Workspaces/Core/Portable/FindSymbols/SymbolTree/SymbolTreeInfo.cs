@@ -16,9 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo
+    internal partial class SymbolTreeInfo : IChecksummedObject
     {
-        private readonly VersionStamp _version;
+        public Checksum Checksum { get; }
 
         /// <summary>
         /// To prevent lots of allocations, we concatenate all the names in all our
@@ -80,38 +80,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         };
 
         private SymbolTreeInfo(
-            VersionStamp version,
+            Checksum checksum,
             string concatenatedNames,
             Node[] sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
-            : this(version, concatenatedNames, sortedNodes, spellCheckerTask)
+            : this(checksum, concatenatedNames, sortedNodes, spellCheckerTask)
         {
             var indexBasedInheritanceMap = CreateIndexBasedInheritanceMap(inheritanceMap);
             _inheritanceMap = indexBasedInheritanceMap;
         }
 
         private SymbolTreeInfo(
-            VersionStamp version,
+            Checksum checksum,
             string concatenatedNames,
             Node[] sortedNodes,
             Task<SpellChecker> spellCheckerTask,
             OrderPreservingMultiDictionary<int, int> inheritanceMap)
-            : this(version, concatenatedNames, sortedNodes, spellCheckerTask)
+            : this(checksum, concatenatedNames, sortedNodes, spellCheckerTask)
         {
             _inheritanceMap = inheritanceMap;
         }
 
         private SymbolTreeInfo(
-            VersionStamp version,
+            Checksum checksum,
             string concatenatedNames,
-            Node[] sortedNodes, 
+            Node[] sortedNodes,
             Task<SpellChecker> spellCheckerTask)
         {
-            _version = version;
+            Checksum = checksum;
             _concatenatedNames = concatenatedNames;
             _nodes = ImmutableArray.Create(sortedNodes);
             _spellCheckerTask = spellCheckerTask;
+        }
+
+        public static SymbolTreeInfo CreateEmpty(Checksum checksum)
+        {
+            var unsortedNodes = ImmutableArray.Create(BuilderNode.RootNode);
+            SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
+
+            return new SymbolTreeInfo(checksum, concatenatedNames, sortedNodes,
+                CreateSpellCheckerAsync(checksum, concatenatedNames, sortedNodes));
         }
 
         public Task<ImmutableArray<SymbolAndProjectId>> FindAsync(
@@ -209,7 +218,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 Bind(node, assemblySymbol.GlobalNamespace, results, cancellationToken);
             }
 
-            return results.ToImmutableAndFree(); ;
+            return results.ToImmutableAndFree();
         }
 
         private static StringSliceComparer GetComparer(bool ignoreCase)
@@ -315,15 +324,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _ => new SemaphoreSlim(1);
 
         private static Task<SpellChecker> GetSpellCheckerTask(
-            Solution solution, VersionStamp version, string filePath, 
+            Solution solution, Checksum checksum, string filePath, 
             string concatenatedNames, Node[] sortedNodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, filePath,
-                v => new SpellChecker(v, sortedNodes.Select(n => new StringSlice(concatenatedNames, n.NameSpan)))));
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(
+                solution, checksum, filePath, concatenatedNames, sortedNodes));
+        }
+
+        private static Task<SpellChecker> CreateSpellCheckerAsync(Checksum checksum, string concatenatedNames, Node[] sortedNodes)
+        {
+            return Task.FromResult(new SpellChecker(
+                checksum, sortedNodes.Select(n => new StringSlice(concatenatedNames, n.NameSpan))));
         }
 
         private static void SortNodes(
@@ -472,7 +487,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         internal void AssertEquivalentTo(SymbolTreeInfo other)
         {
-            Debug.Assert(_version.Equals(other._version));
+            Debug.Assert(Checksum.Equals(other.Checksum));
             Debug.Assert(_concatenatedNames == other._concatenatedNames);
             Debug.Assert(_nodes.Length == other._nodes.Length);
 
@@ -499,16 +514,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SymbolTreeInfo CreateSymbolTreeInfo(
-            Solution solution, VersionStamp version, 
+            Solution solution, Checksum checksum, 
             string filePath, ImmutableArray<BuilderNode> unsortedNodes,
             OrderPreservingMultiDictionary<string, string> inheritanceMap)
         {
             SortNodes(unsortedNodes, out var concatenatedNames, out var sortedNodes);
             var createSpellCheckerTask = GetSpellCheckerTask(
-                solution, version, filePath, concatenatedNames, sortedNodes);
+                solution, checksum, filePath, concatenatedNames, sortedNodes);
 
             return new SymbolTreeInfo(
-                version, concatenatedNames, sortedNodes, createSpellCheckerTask, inheritanceMap);
+                checksum, concatenatedNames, sortedNodes, createSpellCheckerTask, inheritanceMap);
         }
 
         private OrderPreservingMultiDictionary<int, int> CreateIndexBasedInheritanceMap(

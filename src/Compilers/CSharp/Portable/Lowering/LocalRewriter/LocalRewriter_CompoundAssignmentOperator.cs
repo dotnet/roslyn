@@ -292,11 +292,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 actualArguments[actualArguments.Length - 1] = boundTemp;
             }
 
-            // Step three: Now fill in the optional arguments. (Dev11 uses the
-            // getter for optional arguments in compound assignments.)
-            var getMethod = indexer.GetOwnOrInheritedGetMethod();
-            Debug.Assert((object)getMethod != null);
-            InsertMissingOptionalArguments(syntax, getMethod.Parameters, actualArguments);
+            // Step three: Now fill in the optional arguments. (Dev11 uses the getter for optional arguments in
+            // compound assignments, but for deconstructions we use the setter if the getter is missing.)
+            var accessor = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
+            InsertMissingOptionalArguments(syntax, accessor.Parameters, actualArguments);
 
             // For a call, step four would be to optimize away some of the temps.  However, we need them all to prevent
             // duplicate side-effects, so we'll skip that step.
@@ -328,6 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentRefKinds,
                 false,
                 default(ImmutableArray<int>),
+                null,
+                indexerAccess.UseSetterForDefaultArgumentGeneration,
                 indexerAccess.Type);
         }
 

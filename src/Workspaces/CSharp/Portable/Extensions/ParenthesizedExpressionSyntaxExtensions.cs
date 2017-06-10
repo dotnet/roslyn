@@ -116,6 +116,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Cases:
+            //   new {(x)} -> {x}
+            //   new { a = (x)} -> { a = x }
+            //   new { a = (x = c)} -> { a = x = c }
+            if (node.Parent is AnonymousObjectMemberDeclaratorSyntax anonymousDeclarator)
+            {
+                // Assignment expressions are not allowed unless member is named
+                if (anonymousDeclarator.NameEquals == null && expression.IsAnyAssignExpression())
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Cases:
             // where (x + 1 > 14) -> where x + 1 > 14
             if (node.Parent is QueryClauseSyntax)
             {

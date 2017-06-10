@@ -646,5 +646,38 @@ end class",
     End Property
 end class", ignoreTrivia:=False)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)>
+        Public Async Function TestInterfaceImplementation() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface IFoo
+    Function [||]GetFoo() As Integer
+End Interface
+
+Class C
+    Implements IFoo
+
+    Private _Foo As Integer
+
+    Public Function GetFoo() As Integer Implements IFoo.GetFoo
+        Return _Foo
+    End Function
+End Class",
+"Interface IFoo
+    ReadOnly Property Foo As Integer
+End Interface
+
+Class C
+    Implements IFoo
+
+    Private _Foo As Integer
+
+    Public ReadOnly Property Foo As Integer Implements IFoo.Foo
+        Get
+            Return _Foo
+        End Get
+    End Property
+End Class")
+        End Function
     End Class
 End Namespace

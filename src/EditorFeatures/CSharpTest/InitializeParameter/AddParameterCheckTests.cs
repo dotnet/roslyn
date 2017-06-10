@@ -704,5 +704,85 @@ class C
     }
 }", index: 2);
         }
+
+        [WorkItem(19173, "https://github.com/dotnet/roslyn/issues/19173")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestMissingOnUnboundTypeWithExistingNullCheck()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    public C(String [||]s)
+    {
+        if (s == null)
+        {
+            throw new System.Exception();
+        }
+    }
+}");
+        }
+
+        [WorkItem(19174, "https://github.com/dotnet/roslyn/issues/19174")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestRespectPredefinedTypePreferences()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class Program
+{
+    static void Main([||]String bar)
+    {
+    }
+}",
+@"
+using System;
+
+class Program
+{
+    static void Main(String bar)
+    {
+        if (String.IsNullOrEmpty(bar))
+        {
+            throw new ArgumentException(""message"", nameof(bar));
+        }
+    }
+}", index: 1,
+    parameters: new TestParameters(
+        options: Option(
+            CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess,
+            CodeStyleOptions.FalseWithSuggestionEnforcement)));
+        }
+
+        [WorkItem(19172, "https://github.com/dotnet/roslyn/issues/19172")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInitializeParameter)]
+        public async Task TestPreferNoBlock()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+class C
+{
+    public C([||]string s)
+    {
+    }
+}",
+@"
+using System;
+
+class C
+{
+    public C(string s)
+    {
+        if (s == null)
+            throw new ArgumentNullException(nameof(s));
+    }
+}", ignoreTrivia: false,
+    parameters: new TestParameters(options:
+        Option(CSharpCodeStyleOptions.PreferBraces, CodeStyleOptions.FalseWithNoneEnforcement)));
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace Roslyn.Test.PdbUtilities
     {
         public static byte[] GetCustomDebugInfoBytes(ISymUnmanagedReader3 reader, MethodDefinitionHandle handle, int methodVersion)
         {
-            return reader.GetCustomDebugInfoBytes(MetadataTokens.GetToken(handle), methodVersion);
+            return reader.GetCustomDebugInfo(MetadataTokens.GetToken(handle), methodVersion);
         }
 
         public static ImmutableArray<byte> GetEditAndContinueLocalSlotMapRecord(byte[] customDebugInfoBlob)

@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // TODO: Remove this loop when we add source assembly symbols to s_assemblyOrModuleSymbolToProjectMap
-            foreach (var state in _projectIdToProjectStateMap.Values)
+            foreach (var (_, state) in _projectIdToProjectStateMap)
             {
                 if (this.TryGetCompilation(state.Id, out var compilation))
                 {

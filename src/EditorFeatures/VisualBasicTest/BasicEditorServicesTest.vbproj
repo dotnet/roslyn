@@ -12,7 +12,9 @@
     <OptionStrict>Off</OptionStrict>
     <VBRuntime>Default</VBRuntime>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -152,6 +154,42 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition">
+      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
+      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.vb" />
@@ -189,7 +227,7 @@
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
-    <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
+    <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
     <Compile Include="AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.vb" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\GenerateEqualsAndGetHashCodeFromMembersTests.vb" />
@@ -238,7 +276,7 @@
     <Compile Include="Diagnostics\ExitContinue\ExitContinueCodeActionTests.vb" />
     <Compile Include="Diagnostics\FixIncorrectFunctionReturnType\FixIncorrectFunctionReturnTypeTests.vb" />
     <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.vb" />
-    <Compile Include="Diagnostics\GenerateConstructor\GenerateConstructorTests.vb" />
+    <Compile Include="GenerateConstructor\GenerateConstructorTests.vb" />
     <Compile Include="Diagnostics\GenerateEndConstruct\GenerateEndConstructTests.vb" />
     <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.vb" />
     <Compile Include="Diagnostics\GenerateEvent\GenerateEventTests.vb" />
@@ -578,7 +616,6 @@
     <Compile Include="Utilities\CodeSnippets.vb" />
     <Compile Include="Utils.vb" />
     <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
-    <None Include="project.json" />
     <None Include="PerfTests\BasicPerfFindRefs.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

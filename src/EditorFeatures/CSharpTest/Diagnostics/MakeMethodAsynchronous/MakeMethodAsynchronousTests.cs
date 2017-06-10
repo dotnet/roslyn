@@ -599,5 +599,180 @@ class Program
 }";
             await TestInRegularAndScriptAsync(initial, expected);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task AddAsyncInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+            [|await M3Async();|]
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async Task M2Async()
+        {
+            await M3Async();
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task AddAsyncInLocalFunctionKeepVoidReturn()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+            [|await M3Async();|]
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async void M2Async()
+        {
+            await M3Async();
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+index: 1);
+        }
+
+        [Theory]
+        [InlineData(0, "Task")]
+        [InlineData(1, "void", Skip = "https://github.com/dotnet/roslyn/issues/18396")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task AddAsyncInLocalFunctionKeepsTrivia(int codeFixIndex, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        // Leading trivia
+        /*1*/ void /*2*/ M2/*3*/() /*4*/
+        {
+            [|await M3Async();|]
+        }
+    }
+
+    async Task<int> M3Async()
+    {
+        return 1;
+    }
+}",
+$@"using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ async {expectedReturn} /*2*/ M2Async/*3*/() /*4*/
+        {{
+            await M3Async();
+        }}
+    }}
+
+    async Task<int> M3Async()
+    {{
+        return 1;
+    }}
+}}",
+                index: codeFixIndex,
+                ignoreTrivia: false);
+        }
+
+        [Theory]
+        [InlineData("", 0, "Task")]
+        [InlineData("", 1, "void", Skip = "https://github.com/dotnet/roslyn/issues/18396")]
+        [InlineData("public", 0, "Task")]
+        [InlineData("public", 1, "void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task AddAsyncKeepsTrivia(string modifiers, int codeFixIndex, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ void /*2*/ M2/*3*/() /*4*/
+    {{
+        [|await M3Async();|]
+    }}
+
+    async Task<int> M3Async()
+    {{
+        return 1;
+    }}
+}}",
+$@"using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ async {expectedReturn} /*2*/ M2Async/*3*/() /*4*/
+    {{
+        await M3Async();
+    }}
+
+    async Task<int> M3Async()
+    {{
+        return 1;
+    }}
+}}",
+                index: codeFixIndex,
+                ignoreTrivia: false);
+        }
     }
 }

@@ -260,5 +260,82 @@ Class C
     End Sub
 End Class")
         End Function
+
+        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCaretPositionAtTheEnd1() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub M(arg1 As Integer)
+        M(arg1[||])
+    End Sub
+End Class",
+"Class C
+    Sub M(arg1 As Integer)
+        M(arg1:=arg1)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCaretPositionAtTheEnd2() As Task
+            Await TestInRegularAndScriptAsync(
+"Class C
+    Sub M(arg1 As Integer, arg2 As Integer)
+        M(arg1[||], arg2)
+    End Sub
+End Class",
+"Class C
+    Sub M(arg1 As Integer, arg2 As Integer)
+        M(arg1:=arg1, arg2:=arg2)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCaretPositionAtTheEnd3() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
+        M(1,[||],3)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCaretPositionAtTheEnd4() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Sub M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1)
+        M(1[||],,3)
+    End Sub
+End Class")
+        End Function
+
+        <WorkItem(19175, "https://github.com/dotnet/roslyn/issues/19175")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestCaretPositionAtTheEnd5() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Class C
+    Function M(arg1 As Integer, optional arg2 As Integer=1, optional arg3 as Integer=1) As Integer
+        M(1, M(1,[||], 3))
+    End Function
+End Class")
+        End Function
+
+        <WorkItem(19758, "https://github.com/dotnet/roslyn/issues/19758")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseNamedArguments)>
+        Public Async Function TestMissingOnTuple() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"Imports System.Linq
+Class C
+    Sub M(arr as Integer())
+        arr.Zip(arr, Function(p1, p2) ([||]p1, p2))
+    End Sub
+End Class")
+        End Function
     End Class
 End Namespace
