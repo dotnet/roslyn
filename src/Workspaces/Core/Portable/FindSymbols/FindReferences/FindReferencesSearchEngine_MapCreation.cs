@@ -158,16 +158,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private void AddSymbolTasks(
             ConcurrentSet<SymbolAndProjectId> result,
-            IEnumerable<SymbolAndProjectId> symbols,
+            ImmutableArray<SymbolAndProjectId> symbols,
             List<Task> symbolTasks)
         {
-            if (symbols != null)
+            foreach (var child in symbols)
             {
-                foreach (var child in symbols)
-                {
-                    _cancellationToken.ThrowIfCancellationRequested();
-                    symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
-                }
+                _cancellationToken.ThrowIfCancellationRequested();
+                symbolTasks.Add(Task.Run(() => DetermineAllSymbolsCoreAsync(child, result), _cancellationToken));
             }
         }
 

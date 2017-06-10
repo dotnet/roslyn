@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return Attribute(
                 name: this.TypeExpression(attribute.AttributeClass),
-                attributeArguments: args.Count > 0 ? args : null);
+                attributeArguments: args.Length > 0 ? args.AsEnumerable() : null);
         }
 
         private IEnumerable<SyntaxNode> GetSymbolAttributes(ISymbol symbol)

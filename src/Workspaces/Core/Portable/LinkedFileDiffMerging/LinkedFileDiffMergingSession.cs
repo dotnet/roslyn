@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private async Task<LinkedFileMergeResult> MergeLinkedDocumentGroupAsync(
-            IEnumerable<DocumentId> allLinkedDocuments,
+            ImmutableArray<DocumentId> allLinkedDocuments,
             IEnumerable<DocumentId> linkedDocumentGroup,
             LinkedFileDiffMergingSessionInfo sessionInfo,
             IMergeConflictHandler mergeConflictHandler,
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private IEnumerable<TextChange> MergeChangesWithMergeFailComments(
-            IEnumerable<TextChange> mergedChanges,
+            ImmutableArray<TextChange> mergedChanges,
             IEnumerable<TextChange> commentChanges,
             IList<TextSpan> mergeConflictResolutionSpans,
             LinkedFileGroupSessionInfo groupSessionInfo)

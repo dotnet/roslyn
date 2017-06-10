@@ -348,11 +348,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _console.Out.WriteLine();
         }
 
-        private void DisplayDiagnostics(IEnumerable<Diagnostic> diagnostics)
+        private void DisplayDiagnostics(ImmutableArray<Diagnostic> diagnostics)
         {
             const int MaxDisplayCount = 5;
 
-            var errorsAndWarnings = diagnostics.ToArray();
+            var errorsAndWarnings = diagnostics;
 
             // by severity, then by location
             var ordered = errorsAndWarnings.OrderBy((d1, d2) =>
