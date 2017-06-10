@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note: we need to confirm the "arrayness" on the original definition because
             // it's possible that the type becomes an array as a result of substitution.
-            var final = member.GetParameters().Last();
+            ParameterSymbol final = member.GetParameters().Last();
             return final.IsParams && ((ParameterSymbol)final.OriginalDefinition).Type.IsSZArray();
         }
 
@@ -2555,6 +2555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var refs = ArrayBuilder<RefKind>.GetInstance();
             bool anyRef = false;
             var parameters = member.GetParameters();
+            var elementType = ((ArrayTypeSymbol)parameters[parameters.Length - 1].Type).ElementType;
             bool hasAnyRefArg = argumentRefKinds.Any();
             hasAnyRefOmittedArgument = false;
 
@@ -2562,7 +2563,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 var parameter = parameters[parm];
-                types.Add(parameter.IsParams ? ((ArrayTypeSymbol)parameter.Type).ElementType : parameter.Type);
+                types.Add(parm == parameters.Length - 1 ? elementType : parameter.Type);
 
                 var argRefKind = hasAnyRefArg ? argumentRefKinds[arg] : RefKind.None;
                 var paramRefKind = GetEffectiveParameterRefKind(parameter, argRefKind, allowRefOmittedArguments, ref hasAnyRefOmittedArgument);

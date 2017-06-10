@@ -922,6 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol parameter = method.GetParameters()[parm];
+            bool isLastParameter = method.GetParameterCount() == parm; // This is used to later decide if we need to try to unwrap an params array
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParm = parameter.RefKind;
 
@@ -950,7 +951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         symbols,
                         arg + 1,
                         argument.Display, //'<null>' doesn't need refkind
-                        UnwrapIfParamsArray(parameter));
+                        UnwrapIfParamsArray(parameter, isLastParameter));
                 }
             }
             else if (refArg != refParm)
@@ -1010,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             name,
                             method,
                             parameter);
-                        Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter), "If they ever differ, just call the method when constructing the diagnostic.");
+                        Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter, isLastParameter), "If they ever differ, just call the method when constructing the diagnostic.");
                     }
                 }
                 else
@@ -1019,34 +1020,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // object that contains both values, so we have to construct our own.
                     // NOTE: since this is a symbol, it will use the SymbolDisplay options for parameters (i.e. will
                     // have the same format as the display value of the parameter).
-                    var argType = argument.Display as TypeSymbol;
-                    if (argType != null)
+                    if (argument.Display is TypeSymbol argType)
                     {
-                        var unwrapedParamsArray = UnwrapIfParamsArray(parameter);
-                        if (argType == unwrapedParamsArray as TypeSymbol)
-                        {
-                            //Do nothing. Everything is fine for now
-                        }
-                        else
-                        {
-                            SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
-                                argType,
-                                ImmutableArray<CustomModifier>.Empty,
-                                ImmutableArray<CustomModifier>.Empty,
-                                isParams: false,
-                                refKind: refArg);
+                        SignatureOnlyParameterSymbol displayArg = new SignatureOnlyParameterSymbol(
+                            argType,
+                            ImmutableArray<CustomModifier>.Empty,
+                            ImmutableArray<CustomModifier>.Empty,
+                            isParams: false,
+                            refKind: refArg);
 
-                            SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, unwrapedParamsArray);
+                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, displayArg, UnwrapIfParamsArray(parameter, isLastParameter));
 
-                            // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
-                            diagnostics.Add(
-                                ErrorCode.ERR_BadArgType,
-                                sourceLocation,
-                                symbols,
-                                arg + 1,
-                                distinguisher.First,
-                                distinguisher.Second);
-                        }
+                        // CS1503: Argument {0}: cannot convert from '{1}' to '{2}'
+                        diagnostics.Add(
+                            ErrorCode.ERR_BadArgType,
+                            sourceLocation,
+                            symbols,
+                            arg + 1,
+                            distinguisher.First,
+                            distinguisher.Second);
+
                     }
                     else
                     {
@@ -1056,7 +1049,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             symbols,
                             arg + 1,
                             argument.Display,
-                            UnwrapIfParamsArray(parameter));
+                            UnwrapIfParamsArray(parameter, isLastParameter));
                     }
                 }
             }
@@ -1067,9 +1060,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// parameter is a params array, then the error message should reflect the element type
         /// of the params array - not the array type.
         /// </summary>
-        private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter)
+        private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter, bool isLastParameter)
         {
-            if (parameter.IsParams)
+            // We only try to unwrap parameters if they are an parameter array and are on the last position
+            if (parameter.IsParams && isLastParameter)
             {
                 ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
                 if ((object)arrayType != null && arrayType.IsSZArray)
