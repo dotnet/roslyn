@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(typeof(FileChangeTracker).Name);
+                throw new ObjectDisposedException(nameof(FileChangeTracker));
             }
 
             Contract.ThrowIfTrue(_fileChangeCookie != s_none);
@@ -104,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (_disposed)
             {
-                throw new ObjectDisposedException(typeof(FileChangeTracker).Name);
+                throw new ObjectDisposedException(nameof(FileChangeTracker));
             }
 
             // there is a slight chance that we haven't subscribed to the service yet so we subscribe and unsubscribe
