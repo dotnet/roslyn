@@ -263,9 +263,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var toProcess = projectIdsToProcess.Pop();
 
-                if (projectIdsToReferencingSubmissionIds.ContainsKey(toProcess))
+                if (projectIdsToReferencingSubmissionIds.TryGetValue(toProcess, out var referencingSubmissionIds))
                 {
-                    foreach (var pId in projectIdsToReferencingSubmissionIds[toProcess])
+                    foreach (var pId in referencingSubmissionIds)
                     {
                         if (!dependentProjects.Any(dp => dp.ProjectId == pId))
                         {
