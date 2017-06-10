@@ -15,12 +15,14 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInRemoteProcessAsync(
-            RemoteHostClient.Session session, Document document, TextSpan span, string diagnosticId,
+            RemoteHostClient.Session session, Document document, TextSpan span, 
+            string diagnosticId, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources)
         {
             var result = await session.InvokeAsync<ImmutableArray<AddImportFixData>>(
                 nameof(IRemoteAddImportFeatureService.GetFixesAsync),
-                new object[] { document.Id, span, diagnosticId, searchReferenceAssemblies, packageSources }).ConfigureAwait(false);
+                document.Id, span, diagnosticId, placeSystemNamespaceFirst, 
+                searchReferenceAssemblies, packageSources).ConfigureAwait(false);
 
             return result;
         }

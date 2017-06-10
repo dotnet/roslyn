@@ -339,8 +339,6 @@
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsAdornmentTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
     <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
