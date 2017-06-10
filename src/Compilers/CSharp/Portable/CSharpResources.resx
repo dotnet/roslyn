@@ -4450,7 +4450,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{full|pdbonly|portable|embedded}
+ /debug:{{full|pdbonly|portable|embedded}}
                                Specify debugging type ('full' is default,
                                'portable' is a cross-platform format,
                                'embedded' is a cross-platform format embedded into
@@ -4480,8 +4480,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /unsafe[+|-]                  Allow 'unsafe' code
  /define:&lt;symbol list&gt;         Define conditional compilation symbol(s) (Short
                                form: /d)
- /langversion:&lt;string&gt;         Specify language version mode: ISO-1, ISO-2, 3,
-                               4, 5, 6, 7.0, 7.1, 7.2, Default, or Latest
+ /langversion:?                Display the allowed values for language version
+ /langversion:&lt;string&gt;         Specify language version such as
+                               `default` (latest major version), or
+                               `latest` (latest version, including minor versions),
+                               or specific versions like `{0}` or `{1}`
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public

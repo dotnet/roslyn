@@ -310,7 +310,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consoleOutput"></param>
         public override void PrintHelp(TextWriter consoleOutput)
         {
-            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_CSCHelp, Culture));
+            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_CSCHelp, Culture),
+                LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString(),
+                LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString());
         }
 
         protected override bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code)

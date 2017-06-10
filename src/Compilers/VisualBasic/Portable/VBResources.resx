@@ -5133,9 +5133,11 @@
 /imports:&lt;import_list&gt;            Declare global Imports for namespaces in 
                                   referenced metadata files. 
                                   import_list:namespace,...
-/langversion:&lt;number&gt;             Specify language version: 
-                                  9|9.0|10|10.0|11|11.0|12|12.0|14|14.0|15|
-                                  15.0|15.3|15.6|default|latest
+/langversion:?                    Display the allowed values for language version
+/langversion:&lt;string&gt;             Specify language version such as
+                                  `default` (latest major version), or
+                                  `latest` (latest version, including minor versions),
+                                  or specific versions like `{0}` or `{1}`
 /optionexplicit[+|-]              Require explicit declaration of variables.
 /optioninfer[+|-]                 Allow type inference of variables.
 /rootnamespace:&lt;string&gt;           Specifies the root Namespace for all type 

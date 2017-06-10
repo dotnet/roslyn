@@ -1304,9 +1304,13 @@ d.cs
         [Fact]
         public void LangVersion_LangVersions()
         {
-            // TODO
             var args = DefaultParse(new[] { "/langversion:?" }, _baseDirectory);
-            args.Errors.Verify();
+            args.Errors.Verify(
+                // warning CS2008: No source files specified.
+                Diagnostic(ErrorCode.WRN_NoSources).WithLocation(1, 1),
+                // error CS1562: Outputs without source must have the /out option specified
+                Diagnostic(ErrorCode.ERR_OutputNeedsName).WithLocation(1, 1)
+                );
             Assert.True(args.DisplayLangVersions);
         }
 
@@ -1410,7 +1414,6 @@ d.cs
         public void LangVersion_ListLangVersions()
         {
             var dir = Temp.CreateDirectory();
-
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/langversion:?" });
             int exitCode = csc.Run(outWriter);
@@ -1427,29 +1430,6 @@ d.cs
                 Assert.True(foundIndex > 0, $"Missing version '{version}'");
                 Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
                 Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex + version.Length]) >= 0);
-            }
-        }
-
-        [Fact]
-        public void LanguageVersion_CommandLineUsage()
-        {
-            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
-                .Where(v => v != LanguageVersion.CSharp1 && v != LanguageVersion.CSharp2)
-                .Select(v => v.ToDisplayString());
-            string help = CSharpResources.IDS_CSCHelp;
-
-            var rangeStart = help.IndexOf("/langversion");
-            var rangeEnd = help.IndexOf("/delaysign");
-            Assert.True(rangeEnd > rangeStart);
-
-            string helpRange = help.Substring(rangeStart, rangeEnd - rangeStart).ToLowerInvariant();
-            var acceptableSurroundingChar = new[] { '\r', '\n', ',' , ' '};
-            foreach (var version in expected)
-            {
-                var foundIndex = helpRange.IndexOf(version);
-                Assert.True(foundIndex > 0, $"Missing version '{version}'");
-                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex - 1]) >= 0);
-                Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex + version.Length]) >= 0);
             }
         }
 

@@ -200,7 +200,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="consoleOutput"></param>
         Public Overrides Sub PrintHelp(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture))
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture),
+                                    LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString(),
+                                    LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString())
         End Sub
 
         Public Overrides Sub PrintLangVersions(consoleOutput As TextWriter)
