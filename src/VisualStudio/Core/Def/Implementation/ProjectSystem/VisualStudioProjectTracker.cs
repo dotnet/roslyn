@@ -582,7 +582,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             await PopulateWorkspaceFromDeferredProjectInfoAsync(_solutionParsingCancellationTokenSource.Token).ConfigureAwait(true);
         }
 
-        [Conditional("DEBUG")]
+        //[Conditional("DEBUG")]
         private void InitializeOutputPane()
         {
             var outputWindow = (IVsOutputWindow)_serviceProvider.GetService(typeof(SVsOutputWindow));
@@ -717,13 +717,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OutputToOutputWindow($"{logPrefix} - done (took {DateTimeOffset.UtcNow - start})");
         }
 
-        [Conditional("DEBUG")]
+        //[Conditional("DEBUG")]
         private void OutputToOutputWindow(string message)
         {
             _pane?.OutputString(message + Environment.NewLine);
         }
 
-        [Conditional("DEBUG")]
+        //[Conditional("DEBUG")]
         private void OutputListToOutputWindow(string prefix, IEnumerable<string> values)
         {
             foreach (var s in values)
