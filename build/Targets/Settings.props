@@ -77,7 +77,7 @@
   <!-- Windows specific settings -->
   <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
     <BaseNuGetRuntimeIdentifier>win7</BaseNuGetRuntimeIdentifier>
-    <DebugType>pdbonly</DebugType>
+    <DebugType>portable</DebugType>
     <UseSharedCompilation>true</UseSharedCompilation>
 
     <!-- Presently our code can build on machines with Dev14 or Dev15 but only successfully deploy
