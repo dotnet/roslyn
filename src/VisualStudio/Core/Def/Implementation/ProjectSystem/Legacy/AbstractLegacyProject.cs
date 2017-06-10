@@ -48,9 +48,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
                 ConnectHierarchyEvents();
                 this.IsWebSite = GetIsWebsiteProject(Hierarchy);
             }
-
-            // Initialize command line arguments.
-            base.SetArguments(commandLine: string.Empty);
         }
 
         /// <summary>

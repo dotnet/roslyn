@@ -106,6 +106,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             AssertIsForeground();
 
+            SetRuleSetFileCore(ruleSetFileFullPath);
+
+            ReparseOptionsBecauseRulesetChanged();
+        }
+
+        public void SetRuleSetFileCore(string ruleSetFileFullPath)
+        {
+            AssertIsForeground();
+
             if (ruleSetFileFullPath == null)
             {
                 ruleSetFileFullPath = string.Empty;
@@ -124,7 +133,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            ResetAnalyzerRuleSet(ruleSetFileFullPath);
+            ClearAnalyzerRuleSet();
+            SetAnalyzerRuleSet(ruleSetFileFullPath);
         }
 
         public void AddAdditionalFile(string additionalFilePath, Func<IVisualStudioHostDocument, bool> getIsInCurrentContext)
@@ -164,7 +174,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             ClearAnalyzerRuleSet();
             SetAnalyzerRuleSet(ruleSetFileFullPath);
-            ResetArgumentsAndUpdateOptions();
+            ReparseOptionsBecauseRulesetChanged();
         }
 
         private void SetAnalyzerRuleSet(string ruleSetFileFullPath)

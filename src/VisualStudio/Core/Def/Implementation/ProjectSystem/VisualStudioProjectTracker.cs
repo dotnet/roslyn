@@ -800,7 +800,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 binOutputPath: projectInfo.TargetPath);
 
             project = (AbstractProject)projectContext;
-            projectContext.SetOptions(projectInfo.CommandLineArguments.Join(" "));
+            projectContext.SetOptions(projectInfo.CommandLineArguments, commandLineArguments);
 
             var addedSourceFilePaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var sourceFile in commandLineArguments.SourceFiles)

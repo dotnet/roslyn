@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -120,12 +121,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             ExecuteForegroundAction(() =>
             {
                 var commandLineArguments = SetArgumentsAndUpdateOptions(commandLineForOptions);
-                if (commandLineArguments != null)
-                {
-                    // some languages (e.g., F#) don't expose a command line parser and this might be `null`
-                    SetRuleSetFile(commandLineArguments.RuleSetPath);
-                    PostSetOptions(commandLineArguments);
-                }
+                PostSetOptions(commandLineArguments);
+            });
+        }
+
+        public void SetOptions(ImmutableArray<string> splitCommandLine, CommandLineArguments commandLineArguments)
+        {
+            ExecuteForegroundAction(() =>
+            {
+                SetArgumentsAndUpdateOptions(splitCommandLine, commandLineArguments);
+                PostSetOptions(commandLineArguments);
             });
         }
 
@@ -134,7 +139,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             ExecuteForegroundAction(() =>
             {
                 // Invoke SetOutputPathAndRelatedData to update the project obj output path.
-                if (commandLineArguments.OutputFileName != null && commandLineArguments.OutputDirectory != null)
+                // some languages (e.g., F#) don't expose a command line parser and this might be `null`
+                if (commandLineArguments?.OutputFileName != null && commandLineArguments.OutputDirectory != null)
                 {
                     var objOutputPath = PathUtilities.CombinePathsUnchecked(commandLineArguments.OutputDirectory, commandLineArguments.OutputFileName);
                     SetObjOutputPathAndRelatedData(objOutputPath);
