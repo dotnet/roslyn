@@ -5487,8 +5487,8 @@ namespace Test
         [Fact, WorkItem(19905, "https://github.com/dotnet/roslyn/issues/19905")]
         public void FinallyEnteredFromExceptionalControlFlow()
         {
-            var source =
-@"using System;
+            var source = @"
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -5496,51 +5496,38 @@ using System.Threading.Tasks;
 
 class TestCase
 {
-    public async void Run()
+    public async Task Run()
     {
-        int tests = 0;
-
         try
         {
-            tests++;
-            try
-            {
-                var tmp = await (new { task = Task.Run<string>(async () => { await Task.Delay(1); return """"; }) }).task;
-                throw new Exception(tmp);
-            }
-            finally
-            {
-                Driver.Count++;
-            }
+            var tmp = await (new { task = Task.Run<string>(async () => { await Task.Delay(1); return """"; }) }).task;
+            throw new Exception(tmp);
         }
         finally
         {
-            Driver.Result = Driver.Count - tests;
-            //When test complete, set the flag.
-            Driver.CompletedSignal.Set();
+            Console.Write(0);
         }
     }
 }
 
 class Driver
 {
-    public static int Result = -1;
-    public static int Count = 0;
-    public static AutoResetEvent CompletedSignal = new AutoResetEvent(false);
     static void Main()
     {
         var t = new TestCase();
-        t.Run();
-
-        CompletedSignal.WaitOne();
-        // 0 - success
-        // 1 - failed (test completed)
-        // -1 - failed (test incomplete - deadlock, etc)
-        Console.WriteLine(Driver.Result);
-
+        try
+        {
+            t.Run().Wait();
+        }
+        catch (Exception)
+        {
+            Console.Write(1);
+        }
     }
 }";
-            CompileAndVerify(source, "0", options: TestOptions.UnsafeDebugExe);
+            var expectedOutput = @"01";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
     }
 }
