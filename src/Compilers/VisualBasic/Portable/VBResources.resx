@@ -5039,6 +5039,9 @@
   <data name="IDS_ToolName" xml:space="preserve">
     <value>Microsoft (R) Visual Basic Compiler</value>
   </data>
+  <data name="IDS_LangVersions" xml:space="preserve">
+    <value>Supported language versions:</value>
+  </data>
   <data name="IDS_LogoLine1" xml:space="preserve">
     <value>{0} version {1}</value>
   </data>

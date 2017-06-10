@@ -12244,6 +12244,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Supported language versions:.
+        '''</summary>
+        Friend ReadOnly Property IDS_LangVersions() As String
+            Get
+                Return ResourceManager.GetString("IDS_LangVersions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} version {1}.
         '''</summary>
         Friend ReadOnly Property IDS_LogoLine1() As String

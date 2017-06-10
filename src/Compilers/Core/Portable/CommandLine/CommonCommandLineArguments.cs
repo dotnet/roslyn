@@ -183,6 +183,12 @@ namespace Microsoft.CodeAnalysis
         public bool DisplayVersion { get; internal set; }
 
         /// <summary>
+        /// If true, prepend the compiler-supported language versions during
+        /// <see cref="CommonCompiler.Run"/>
+        /// </summary>
+        public bool DisplayLangVersions { get; internal set; }
+
+        /// <summary>
         /// The path to a Win32 resource.
         /// </summary>
         public string Win32ResourceFile { get; internal set; }

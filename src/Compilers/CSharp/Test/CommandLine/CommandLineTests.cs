@@ -1110,6 +1110,12 @@ d.cs
             Assert.True(parsedArgs.DisplayVersion);
             Assert.False(parsedArgs.SourceFiles.Any());
 
+            parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/langversion:?" }, _baseDirectory, s_defaultSdkDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2007: Unrecognized option: '/langversion:?'
+                Diagnostic(ErrorCode.ERR_BadSwitch).WithArguments("/langversion:?").WithLocation(1, 1)
+                );
+
             parsedArgs = CSharpCommandLineParser.ScriptRunner.Parse(new[] { "/version", "c.csx" }, _baseDirectory, s_defaultSdkDirectory);
             parsedArgs.Errors.Verify();
             Assert.True(parsedArgs.DisplayVersion);
@@ -1296,6 +1302,15 @@ d.cs
         }
 
         [Fact]
+        public void LangVersion_LangVersions()
+        {
+            // TODO
+            var args = DefaultParse(new[] { "/langversion:?" }, _baseDirectory);
+            args.Errors.Verify();
+            Assert.True(args.DisplayLangVersions);
+        }
+
+        [Fact]
         public void LanguageVersionAdded_Canary()
         {
             // When a new version is added, this test will break. This list must be checked:
@@ -1392,6 +1407,30 @@ d.cs
         }
 
         [Fact]
+        public void LangVersion_ListLangVersions()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var csc = new MockCSharpCompiler(null, dir.Path, new[] { "/langversion:?" });
+            int exitCode = csc.Run(outWriter);
+            Assert.Equal(0, exitCode);
+
+            var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
+                .Select(v => v.ToDisplayString());
+
+            var actual = outWriter.ToString();
+            var acceptableSurroundingChar = new[] { '\r', '\n', '(' , ')', ' '};
+            foreach (var version in expected)
+            {
+                var foundIndex = actual.IndexOf(version);
+                Assert.True(foundIndex > 0, $"Missing version '{version}'");
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex - 1]) >= 0);
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual[foundIndex + version.Length]) >= 0);
+            }
+        }
+
+        [Fact]
         public void LanguageVersion_CommandLineUsage()
         {
             var expected = Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>()
@@ -1412,9 +1451,6 @@ d.cs
                 Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex - 1]) >= 0);
                 Assert.True(Array.IndexOf(acceptableSurroundingChar, helpRange[foundIndex + version.Length]) >= 0);
             }
-
-            // The canary check is a reminder that this test needs to be updated when a language version is added
-            LanguageVersionAdded_Canary();
         }
 
         [Fact]

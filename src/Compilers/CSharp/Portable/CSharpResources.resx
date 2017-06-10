@@ -4389,6 +4389,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_LogoLine1" xml:space="preserve">
     <value>{0} version {1}</value>
   </data>
+  <data name="IDS_LangVersions" xml:space="preserve">
+    <value>Supported language versions:</value>
+  </data>
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
   </data>

@@ -86,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim displayLogo As Boolean = True
             Dim displayHelp As Boolean = False
             Dim displayVersion As Boolean = False
+            Dim displayLangVersions As Boolean = False
             Dim outputLevel As OutputLevel = OutputLevel.Normal
             Dim optimize As Boolean = False
             Dim checkOverflow As Boolean = True
@@ -821,13 +822,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "langversion"
                             value = RemoveQuotesAndSlashes(value)
-                            If value Is Nothing Then
-                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
-                                Continue For
-                            End If
-
                             If String.IsNullOrEmpty(value) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, "langversion", ":<number>")
+                            ElseIf value = "?" Then
+                                displayLangVersions = True
                             Else
                                 If Not value.TryParse(languageVersion) Then
                                     AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
@@ -1407,6 +1405,7 @@ lVbRuntimePlus:
                 .DisplayLogo = displayLogo,
                 .DisplayHelp = displayHelp,
                 .DisplayVersion = displayVersion,
+                .DisplayLangVersions = displayLangVersions,
                 .ManifestResources = managedResources.AsImmutable(),
                 .CompilationOptions = options,
                 .ParseOptions = parseOptions,

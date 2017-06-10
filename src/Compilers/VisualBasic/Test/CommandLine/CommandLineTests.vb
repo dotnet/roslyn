@@ -1703,6 +1703,25 @@ End Module").Path
         End Sub
 
         <Fact>
+        Public Sub LanguageVersion_ListLangVersions()
+            Dim dir = Temp.CreateDirectory()
+            Dim outWriter As New StringWriter()
+            Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, dir.ToString(), {"/langversion:?"}).Run(outWriter, Nothing)
+            Assert.Equal(0, exitCode)
+
+            Dim actual = outWriter.ToString()
+            Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
+            Dim acceptableSurroundingChar = {CChar(vbCr), CChar(vbLf), "("c, ")"c, " "c}
+
+            For Each v In expected
+                Dim foundIndex = actual.IndexOf(v)
+                Assert.True(foundIndex > 0, $"Missing version '{v}'")
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual(foundIndex - 1)) >= 0)
+                Assert.True(Array.IndexOf(acceptableSurroundingChar, actual(foundIndex + v.Length)) >= 0)
+            Next
+        End Sub
+
+        <Fact>
         Public Sub LanguageVersion_CommandLineUsage()
             Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
             Dim help = VBResources.IDS_VBCHelp
