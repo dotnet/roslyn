@@ -1039,7 +1039,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             arg + 1,
                             distinguisher.First,
                             distinguisher.Second);
-
                     }
                     else
                     {
