@@ -16,18 +16,4 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Analyzers.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="CodeAnalysisDiagnosticsResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>CodeAnalysisDiagnosticsResources.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="CodeAnalysisDiagnosticsResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>CodeAnalysisDiagnosticsResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
 </Project>

@@ -11,17 +11,4 @@
     <InternalsVisibleTo Include="Roslyn.Diagnostics.VisualBasic.Analyzers" />
     <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.UnitTests" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Update="RoslynDiagnosticsAnalyzersResources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>RoslynDiagnosticsAnalyzersResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="RoslynDiagnosticsAnalyzersResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>RoslynDiagnosticsAnalyzersResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-  </ItemGroup>
 </Project>
