@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,8 +10,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.TestUtilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <NoStdLib>true</NoStdLib>
   </PropertyGroup>
@@ -65,7 +64,21 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="Microsoft.CSharp" Version="$(MicrosoftCSharpVersion)" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" />
+    <PackageReference Include="System.Collections.Concurrent" Version="$(SystemCollectionsConcurrentVersion)" />
+    <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
+    <PackageReference Include="System.Diagnostics.Debug" Version="$(SystemDiagnosticsDebugVersion)" />
+    <PackageReference Include="System.Diagnostics.Tools" Version="$(SystemDiagnosticsToolsVersion)" />
+    <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
+    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
+    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
+    <PackageReference Include="System.Xml.XDocument" Version="$(SystemXmlXDocumentVersion)" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

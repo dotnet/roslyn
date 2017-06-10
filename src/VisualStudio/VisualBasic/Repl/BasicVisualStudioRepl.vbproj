@@ -67,6 +67,12 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Editor">
+      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="VisualBasicInteractiveCommandHandler.vb" />
@@ -96,7 +102,6 @@
     <InternalsVisibleToTest Include="RoslynTaoActions" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
   </ItemGroup>

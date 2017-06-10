@@ -9,10 +9,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Move_local_declaration_to_the_extracted_method_if_it_is_not_used_elsewhere; }
         }
 
-        public static string Option_ClosedFileDiagnostics
-        {
-            get { return CSharpVSResources.Enable_full_solution_analysis; }
-        }
+        public static string Option_Analysis
+            => ServicesVSResources.Analysis;
+
+        public static string Option_Enable_full_solution_analysis
+            => ServicesVSResources.Enable_full_solution_analysis;
+
+        public static string Option_Perform_editor_feature_analysis_in_external_process
+            => ServicesVSResources.Perform_editor_feature_analysis_in_external_process;
 
         public static string Option_RenameTrackingPreview => CSharpVSResources.Show_preview_for_rename_tracking;
         public static string Option_Split_string_literals_on_enter => CSharpVSResources.Split_string_literals_on_enter;
@@ -61,6 +65,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_at_the_end
             => ServicesVSResources.at_the_end;
+
+        public static string Option_When_generating_properties
+            => ServicesVSResources.When_generating_properties;
+
+        public static string Option_prefer_auto_properties
+            => ServicesVSResources.prefer_auto_properties;
+
+        public static string Option_prefer_throwing_properties
+            => ServicesVSResources.prefer_throwing_properties;
 
         public static string Option_GenerateXmlDocCommentsForTripleSlash
         {

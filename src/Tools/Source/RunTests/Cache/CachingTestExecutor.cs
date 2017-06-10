@@ -124,7 +124,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Failed to create cached {ex}");
+                Logger.Log("Failed to create cached", ex);
             }
         }
     }

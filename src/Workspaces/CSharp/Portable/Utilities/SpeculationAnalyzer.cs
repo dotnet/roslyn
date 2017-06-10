@@ -23,8 +23,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
     /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     /// </summary>
     internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
-        SyntaxNode, ExpressionSyntax, TypeSyntax, AttributeSyntax,
-        ArgumentSyntax, CommonForEachStatementSyntax, ThrowStatementSyntax, SemanticModel, Conversion>
+        ExpressionSyntax,
+        TypeSyntax,
+        AttributeSyntax,
+        ArgumentSyntax,
+        CommonForEachStatementSyntax,
+        ThrowStatementSyntax,
+        Conversion>
     {
         /// <summary>
         /// Creates a semantic analyzer for speculative syntax replacement.

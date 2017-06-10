@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -255,6 +256,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString("IOperation: ");
             LogCommonPropertiesAndNewLine(operation);
+
+            if (operation is IOperationWithChildren operationWithChildren)
+            {
+                var children = operationWithChildren.Children.WhereNotNull().ToImmutableArray();
+                if (children.Length > 0)
+                {
+                    VisitArray(children, "Children", logElementCount: true);
+                }
+            }
         }
 
         public override void VisitBlockStatement(IBlockStatement operation)
@@ -869,7 +879,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogCommonPropertiesAndNewLine(operation);
 
             VisitArguments(operation);
-            VisitArray(operation.MemberInitializers, "Member Initializers", logElementCount: true);
+            VisitArray(operation.Initializers, "Initializers", logElementCount: true);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)
@@ -1046,12 +1056,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Condition, "Condition");
             Visit(operation.IfTrueStatement, "IfTrue");
             Visit(operation.IfFalseStatement, "IfFalse");
-        }
-
-        public override void VisitLocalFunctionStatement(IOperation operation)
-        {
-            LogString(nameof(VisitLocalFunctionStatement));
-            LogCommonPropertiesAndNewLine(operation);
         }
 
         private void LogCaseClauseCommon(ICaseClause operation)

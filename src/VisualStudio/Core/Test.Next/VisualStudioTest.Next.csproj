@@ -11,8 +11,10 @@
     <RootNamespace>Roslyn.VisualStudio.Next.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Next.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -141,10 +143,6 @@
       <Project>{eba4dfa1-6ded-418f-a485-a3b608978906}</Project>
       <Name>InteractiveHost</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\..\Scripting\Core\Scripting.csproj">
       <Project>{12a68549-4e8c-42d6-8703-a09335f97997}</Project>
       <Name>Scripting</Name>
@@ -168,14 +166,88 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="Microsoft.Tpl.Dataflow">
+      <Version>$(MicrosoftTplDataflowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Newtonsoft.Json">
+      <Version>$(NewtonsoftJsonVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Moq">
+      <Version>$(MoqVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Composition">
+      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Imaging">
+      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Utilities">
+      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
+      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
+      <Version>$(MicrosoftVisualStudioCoreUtilityVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data">
+      <Version>$(MicrosoftVisualStudioTextDataVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
+      <Version>$(MicrosoftVisualStudioTextLogicVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Editor">
+      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
+      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
+      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
+      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
+      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Validation">
+      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Threading">
+      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -187,7 +259,6 @@
     <Compile Include="Mocks\TestOptionSet.cs" />
     <Compile Include="Remote\JsonConverterTests.cs" />
     <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
-    <Compile Include="TestUtils.cs" />
     <Compile Include="Services\SolutionServiceTests.cs" />
     <Compile Include="Services\AssetStorageTests.cs" />
     <Compile Include="Services\AssetServiceTests.cs" />

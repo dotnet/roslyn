@@ -12,6 +12,7 @@
     <RootNamespace>Roslyn.Compilers.Extension</RootNamespace>
     <AssemblyName>Roslyn.Compilers.Extension</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <ImportVSSDKTargets>True</ImportVSSDKTargets>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -36,7 +37,6 @@
     <Compile Include="CompilerPackage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
@@ -144,12 +144,33 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
     <ProjectReference Include="..\VisualBasic\vbc\vbc.csproj">
-      <Project>{2ac2755d-9437-4271-bbde-1a3795a0c320}</Project>
+      <Project>{e58ee9d7-1239-4961-a0c1-f9ec3952c4c1}</Project>
       <Name>vbc</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
     </ProjectReference>
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.8.0">
+      <Version>$(MicrosoftVisualStudioShellInterop80Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.9.0">
+      <Version>$(MicrosoftVisualStudioShellInterop90Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Interop.10.0">
+      <Version>$(MicrosoftVisualStudioShellInterop100Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
+      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Utilities">
+      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

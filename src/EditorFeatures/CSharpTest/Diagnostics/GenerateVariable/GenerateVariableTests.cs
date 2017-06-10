@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
     public class GenerateVariableTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new GenerateVariableCodeFixProvider());
+            => (null, new CSharpGenerateVariableCodeFixProvider());
 
         private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
 
@@ -815,7 +814,7 @@ interface I
 interface I
 {
     object Foo { get; set; }
-}");
+}", index: 1);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -844,8 +843,7 @@ interface I
 interface I
 {
     object Foo { get; }
-}",
-index: 1);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1510,7 +1508,7 @@ interface ITest
 interface ITest
 {
     bool SomeProp { get; set; }
-}");
+}", index: 1);
         }
 
         [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
@@ -1534,8 +1532,7 @@ interface ITest
 interface ITest
 {
     bool SomeProp { get; }
-}",
-index: 1);
+}");
         }
 
         [WorkItem(539468, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539468")]
@@ -7129,7 +7126,35 @@ class C
 
         [WorkItem(17621, "https://github.com/dotnet/roslyn/issues/17621")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
-        public async Task TestWithMatchingTypeName()
+        public async Task TestWithMatchingTypeName1()
+        {
+            await TestInRegularAndScript1Async(
+@"
+using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        [|String|] = foo;
+    }
+}",
+@"using System;
+
+public class Foo
+{
+    public Foo(String foo)
+    {
+        String = foo;
+    }
+
+    public string String { get; }
+}");
+        }
+
+        [WorkItem(17621, "https://github.com/dotnet/roslyn/issues/17621")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestWithMatchingTypeName2()
         {
             await TestInRegularAndScript1Async(
 @"
@@ -7152,11 +7177,11 @@ public class Foo
     }
 
     public string String { get; private set; }
-}");
+}", index: 1);
         }
 
         [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(
@@ -7173,6 +7198,176 @@ class C
     void M()
     {
         [|nameof|]
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPreferReadOnlyIfAfterReadOnlyAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private readonly int _foo;
+
+    public Class()
+    {
+        _foo = 0;
+        [|_bar|] = 1;
+    }
+}",
+@"class Class
+{
+    private readonly int _foo;
+    private readonly int _bar;
+
+    public Class()
+    {
+        _foo = 0;
+        _bar = 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPreferReadOnlyIfBeforeReadOnlyAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private readonly int _foo;
+
+    public Class()
+    {
+        [|_bar|] = 1;
+        _foo = 0;
+    }
+}",
+@"class Class
+{
+    private readonly int _bar;
+    private readonly int _foo;
+
+    public Class()
+    {
+        _bar = 1;
+        _foo = 0;
+    }
+}");
+        }
+
+        [WorkItem(19239, "https://github.com/dotnet/roslyn/issues/19239")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestGenerateReadOnlyPropertyInConstructor()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    public Class()
+    {
+        [|Bar|] = 1;
+    }
+}",
+@"class Class
+{
+    public Class()
+    {
+        Bar = 1;
+    }
+
+    public int Bar { get; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPlaceFieldBasedOnSurroundingStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private int _foo;
+    private int _quux;
+
+    public Class()
+    {
+        _foo = 0;
+        [|_bar|] = 1;
+        _quux = 2;
+    }
+}",
+@"class Class
+{
+    private int _foo;
+    private int _bar;
+    private int _quux;
+
+    public Class()
+    {
+        _foo = 0;
+        _bar = 1;
+        _quux = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPlaceFieldBasedOnSurroundingStatements2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    private int foo;
+    private int quux;
+
+    public Class()
+    {
+        this.foo = 0;
+        this.[|bar|] = 1;
+        this.quux = 2;
+    }
+}",
+@"class Class
+{
+    private int foo;
+    private int bar;
+    private int quux;
+
+    public Class()
+    {
+        this.foo = 0;
+        this.bar = 1;
+        this.quux = 2;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestPlacePropertyBasedOnSurroundingStatements()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    public int Foo { get; }
+    public int Quuz { get; }
+
+    public Class()
+    {
+        Foo = 0;
+        [|Bar|] = 1;
+        Quux = 2;
+    }
+}",
+@"class Class
+{
+    public int Foo { get; }
+    public int Bar { get; }
+    public int Quuz { get; }
+
+    public Class()
+    {
+        Foo = 0;
+        Bar = 1;
+        Quux = 2;
     }
 }");
         }

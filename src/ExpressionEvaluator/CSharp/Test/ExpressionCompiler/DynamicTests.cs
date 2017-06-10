@@ -1050,7 +1050,7 @@ class C
                 var methodData = testData.GetMethodData("<>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()");
                 methodData.VerifyIL(@"
 {
-  // Code size      544 (0x220)
+  // Code size      542 (0x21e)
   .maxstack  10
   .locals init (int V_0,
                 <>x.<>c__DisplayClass0_0 V_1,
@@ -1183,7 +1183,7 @@ class C
     IL_017d:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.ICriticalNotifyCompletion, <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d>(ref System.Runtime.CompilerServices.ICriticalNotifyCompletion, ref <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d)""
     IL_0182:  ldnull
     IL_0183:  stloc.s    V_4
-    IL_0185:  leave      IL_021f
+    IL_0185:  leave      IL_021d
     IL_018a:  ldarg.0
     IL_018b:  ldfld      ""object <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>u__1""
     IL_0190:  stloc.3
@@ -1218,31 +1218,29 @@ class C
     IL_01e2:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>o.<>p__3""
     IL_01e7:  ldloc.3
     IL_01e8:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-    IL_01ed:  ldnull
-    IL_01ee:  stloc.3
-    IL_01ef:  stloc.2
-    IL_01f0:  leave.s    IL_020b
+    IL_01ed:  stloc.2
+    IL_01ee:  leave.s    IL_0209
   }
   catch System.Exception
   {
-    IL_01f2:  stloc.s    V_6
-    IL_01f4:  ldarg.0
-    IL_01f5:  ldc.i4.s   -2
-    IL_01f7:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-    IL_01fc:  ldarg.0
-    IL_01fd:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-    IL_0202:  ldloc.s    V_6
-    IL_0204:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
-    IL_0209:  leave.s    IL_021f
+    IL_01f0:  stloc.s    V_6
+    IL_01f2:  ldarg.0
+    IL_01f3:  ldc.i4.s   -2
+    IL_01f5:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+    IL_01fa:  ldarg.0
+    IL_01fb:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+    IL_0200:  ldloc.s    V_6
+    IL_0202:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetException(System.Exception)""
+    IL_0207:  leave.s    IL_021d
   }
-  IL_020b:  ldarg.0
-  IL_020c:  ldc.i4.s   -2
-  IL_020e:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
-  IL_0213:  ldarg.0
-  IL_0214:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
-  IL_0219:  ldloc.2
-  IL_021a:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
-  IL_021f:  ret
+  IL_0209:  ldarg.0
+  IL_020a:  ldc.i4.s   -2
+  IL_020c:  stfld      ""int <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>1__state""
+  IL_0211:  ldarg.0
+  IL_0212:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object> <>x.<>c__DisplayClass0_0.<<<>m0>b__0>d.<>t__builder""
+  IL_0217:  ldloc.2
+  IL_0218:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<object>.SetResult(object)""
+  IL_021d:  ret
 }
 ");
             });

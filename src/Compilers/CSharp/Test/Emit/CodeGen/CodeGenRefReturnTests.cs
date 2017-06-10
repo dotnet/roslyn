@@ -1599,22 +1599,20 @@ class Program
 
             CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
-  // Code size       34 (0x22)
+  // Code size       26 (0x1a)
   .maxstack  5
   .locals init (Program.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
   IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    ""Program.<>c__DisplayClass0_0""
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldc.i4.1
-  IL_000b:  newarr     ""int""
-  IL_0010:  dup
-  IL_0011:  ldc.i4.0
-  IL_0012:  ldc.i4.s   40
-  IL_0014:  stelem.i4
-  IL_0015:  stfld      ""int[] Program.<>c__DisplayClass0_0.arr""
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  call       ""ref int Program.<M>g__N0_0(ref Program.<>c__DisplayClass0_0)""
-  IL_0021:  ret
+  IL_0002:  ldc.i4.1
+  IL_0003:  newarr     ""int""
+  IL_0008:  dup
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.s   40
+  IL_000c:  stelem.i4
+  IL_000d:  stfld      ""int[] Program.<>c__DisplayClass0_0.arr""
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       ""ref int Program.<M>g__N0_0(ref Program.<>c__DisplayClass0_0)""
+  IL_0019:  ret
 }").VerifyIL("Program.<M>g__N0_0", @"
 {
   // Code size       24 (0x18)
@@ -2262,12 +2260,12 @@ class Program
 
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //     static ref int M()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
-                // (6,16): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(4, 12),
+                // (6,16): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         return ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 16)
                 );
         }
 
@@ -2297,36 +2295,36 @@ class Program
 ";
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                // (4,12): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //     static ref int M()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(4, 12),
-                // (8,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(4, 12),
+                // (8,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int N()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(8, 9),
-                // (8,17): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(8, 9),
+                // (8,17): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         ref int N()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "N").WithArguments("local functions", "7").WithLocation(8, 17),
-                // (10,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "N").WithArguments("local functions", "7.0").WithLocation(8, 17),
+                // (10,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(10, 13),
-                // (10,21): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(10, 13),
+                // (10,21): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "NN").WithArguments("local functions", "7").WithLocation(10, 21),
-                // (10,40): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "NN").WithArguments("local functions", "7.0").WithLocation(10, 21),
+                // (10,40): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //             ref int NN(ref int arg) => ref arg;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(10, 40),
-                // (12,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(10, 40),
+                // (12,13): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //             ref var r = ref NN(ref arr[0]);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref var").WithArguments("byref locals and returns", "7").WithLocation(12, 13),
-                // (12,25): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref var").WithArguments("byref locals and returns", "7.0").WithLocation(12, 13),
+                // (12,25): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //             ref var r = ref NN(ref arr[0]);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 25),
-                // (15,20): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(12, 25),
+                // (15,20): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //             return ref r;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(15, 20),
-                // (18,16): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(15, 20),
+                // (18,16): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         return ref N();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(18, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(18, 16)
                 );
         }
 
@@ -2339,9 +2337,9 @@ delegate ref int D();
 
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 // delegate ref int D();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(2, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(2, 10)
                 );
         }
 
@@ -2360,12 +2358,12 @@ class Program
 
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (6,14): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                // (6,14): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         for (ref int a = ref d; ;) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(6, 14),
-                // (6,26): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(6, 14),
+                // (6,26): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         for (ref int a = ref d; ;) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(6, 26)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(6, 26)
                 );
         }
 
@@ -2390,15 +2388,15 @@ class C
 
             var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             comp.VerifyDiagnostics(
-                // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                // (2,10): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 // delegate ref int D(int x);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7").WithLocation(2, 10),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref int").WithArguments("byref locals and returns", "7.0").WithLocation(2, 10),
                 // (11,19): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
                 //         MD((x) => ref i);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(11, 19),
-                // (12,17): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(11, 19),
+                // (12,17): error CS8059: Feature 'byref locals and returns' is not available in C# 6. Please use language version 7.0 or greater.
                 //         MD(x => ref i);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(12, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7.0").WithLocation(12, 17)
                 );
         }
 

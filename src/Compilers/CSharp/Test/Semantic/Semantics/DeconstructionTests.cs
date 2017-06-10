@@ -1323,18 +1323,18 @@ class C
 
             var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (6,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x1, x2)").WithArguments("tuples", "7").WithLocation(6, 13),
-                // (7,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x1, x2)").WithArguments("tuples", "7.0").WithLocation(6, 13),
+                // (7,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int x3, int x4) = Pair.Create(1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4)").WithArguments("tuples", "7").WithLocation(7, 9),
-                // (8,18): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x3, int x4)").WithArguments("tuples", "7.0").WithLocation(7, 9),
+                // (8,18): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         foreach ((int x5, var (x6, x7)) in new[] { Pair.Create(1, Pair.Create(2, 3)) }) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x5, var (x6, x7))").WithArguments("tuples", "7").WithLocation(8, 18),
-                // (9,14): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x5, var (x6, x7))").WithArguments("tuples", "7.0").WithLocation(8, 18),
+                // (9,14): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         for ((int x8, var (x9, x10)) = Pair.Create(1, Pair.Create(2, 3)); ; ) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10))").WithArguments("tuples", "7").WithLocation(9, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int x8, var (x9, x10))").WithArguments("tuples", "7.0").WithLocation(9, 14)
                 );
         }
 
@@ -2868,7 +2868,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -2919,7 +2919,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("((var, var), var, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c, System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
@@ -2937,8 +2937,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter"),
                 // (2,7): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var (a,b), var c, int d);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a"),
@@ -3001,7 +2999,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3052,7 +3050,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("((var, var), var, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c, System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
@@ -3200,8 +3198,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter"),
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var (_, _)"),
@@ -3273,7 +3269,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3339,7 +3335,7 @@ using var = System.Int32;
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.Int32 b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3785,7 +3781,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3839,7 +3835,7 @@ class C
 
             Assert.Equal("((var (a,b), var c), int d)", tuples[0].ToString());
             typeInfo = model.GetTypeInfo(tuples[0]);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[0]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[0]);
@@ -3850,7 +3846,7 @@ class C
 
             Assert.Equal("(var (a,b), var c)", tuples[1].ToString());
             typeInfo = model.GetTypeInfo(tuples[1]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[1]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[1]);
@@ -3868,8 +3864,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // ((var (a,b), var c), int d);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(2, 8),
@@ -3932,7 +3926,7 @@ class C
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -3986,7 +3980,7 @@ class C
 
             Assert.Equal("((var (a,b), var c), int d)", tuples[0].ToString());
             typeInfo = model.GetTypeInfo(tuples[0]);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[0]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[0]);
@@ -3996,7 +3990,7 @@ class C
 
             Assert.Equal("(var (a,b), var c)", tuples[1].ToString());
             typeInfo = model.GetTypeInfo(tuples[1]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuples[1]).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuples[1]);
@@ -4157,8 +4151,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,3): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var (_, _)").WithLocation(2, 3),
@@ -4258,7 +4250,7 @@ class C
 
             Assert.Equal("var ((a,b), c)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -4291,7 +4283,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
@@ -4309,8 +4301,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var ((a,b), c), int d);
                 Diagnostic(ErrorCode.ERR_RecursivelyTypedVariable, "a").WithArguments("a").WithLocation(2, 8),
@@ -4370,7 +4360,7 @@ class C
 
             Assert.Equal("var ((a,b), c)", declarations[0].ToString());
             var typeInfo = model.GetTypeInfo(declarations[0]);
-            Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
             var symbolInfo = model.GetSymbolInfo(declarations[0]);
@@ -4403,7 +4393,7 @@ class C
 
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
-            Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(tuple).IsIdentity);
             symbolInfo = model.GetSymbolInfo(tuple);
@@ -4527,8 +4517,6 @@ class C
 
             var comp1 = CreateStandardCompilation(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
-                // error CS0656: Missing compiler required member 'Task.GetAwaiter'
-                Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.Threading.Tasks.Task", "GetAwaiter").WithLocation(1, 1),
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var ((_, _), _)").WithLocation(2, 2),

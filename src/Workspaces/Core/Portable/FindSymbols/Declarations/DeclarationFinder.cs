@@ -74,14 +74,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 if (referenceOpt != null)
                 {
-                    var info = await SymbolTreeInfo.TryGetInfoForMetadataReferenceAsync(
+                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
                         project.Solution, referenceOpt, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    if (info != null)
-                    {
-                        var symbols = await info.FindAsync(
+
+                    var symbols = await info.FindAsync(
                             query, assembly, project.Id, filter, cancellationToken).ConfigureAwait(false);
-                        list.AddRange(symbols);
-                    }
+                    list.AddRange(symbols);
                 }
             }
         }

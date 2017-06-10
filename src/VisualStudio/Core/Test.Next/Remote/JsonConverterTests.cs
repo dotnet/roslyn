@@ -26,6 +26,18 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestChecksum_Null()
+        {
+            VerifyJsonSerialization<Checksum>(null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestChecksumNull()
+        {
+            VerifyJsonSerialization(Checksum.Null);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestSolutionId()
         {
             VerifyJsonSerialization(SolutionId.CreateNewId("solution"));
@@ -47,6 +59,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestDiagnosticArguments()
         {
             var arguments = new DiagnosticArguments(
+                forcedAnalysis: false,
                 reportSuppressedDiagnostics: true,
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
@@ -55,7 +68,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                if (x.ForcedAnalysis == y.ForcedAnalysis &&
+                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
                     x.OptionSetChecksum == y.OptionSetChecksum &&

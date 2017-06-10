@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTest
         Protected Const DestinationDocument = "DestinationDocument"
 
-        Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Async Function TestMissing(definition As XElement) As Task
             Using workspace = TestWorkspace.Create(definition)

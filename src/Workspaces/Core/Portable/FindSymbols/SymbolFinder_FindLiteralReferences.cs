@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Linq;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
@@ -14,6 +11,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     {
         internal static async Task FindLiteralReferencesAsync(
            object value,
+           TypeCode typeCode,
            Solution solution,
            IStreamingFindLiteralReferencesProgress progress,
            CancellationToken cancellationToken)
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
                 var handled = await TryFindLiteralReferencesInServiceProcessAsync(
-                    value, solution, progress, cancellationToken).ConfigureAwait(false);
+                    value, typeCode, solution, progress, cancellationToken).ConfigureAwait(false);
                 if (handled)
                 {
                     return;
@@ -44,6 +42,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static async Task<bool> TryFindLiteralReferencesInServiceProcessAsync(
             object value,
+            TypeCode typeCode,
             Solution solution,
             IStreamingFindLiteralReferencesProgress progress,
             CancellationToken cancellationToken)
@@ -63,7 +62,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 await session.InvokeAsync(
                     nameof(IRemoteSymbolFinder.FindLiteralReferencesAsync),
-                    value).ConfigureAwait(false);
+                    value, typeCode).ConfigureAwait(false);
 
                 return true;
             }

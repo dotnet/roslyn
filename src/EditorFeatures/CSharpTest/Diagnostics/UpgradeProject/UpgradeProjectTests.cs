@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
 {
+    [Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
     public partial class UpgradeProjectTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.Async
             await TestAsync(initialMarkup, initialMarkup, parseOptions); // no change to markup
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
         public async Task UpgradeProjectFromCSharp6ToDefault()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -54,7 +55,7 @@ class Program
                 new CSharpParseOptions(LanguageVersion.CSharp6));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
         public async Task UpgradeProjectFromCSharp6ToCSharp7()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -71,7 +72,41 @@ class Program
                 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
+        public async Task UpgradeProjectFromCSharp5ToCSharp6()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        var x = [|nameof(A)|];
+    }
+}",
+                LanguageVersion.CSharp6,
+                new CSharpParseOptions(LanguageVersion.CSharp5),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp4ToCSharp5()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void A()
+    {
+        Func<int, Task<int>> f = [|async|] x => x;
+    }
+}",
+                LanguageVersion.CSharp5,
+                new CSharpParseOptions(LanguageVersion.CSharp4),
+                index: 1);
+        }
+
+        [Fact]
         public async Task UpgradeProjectFromCSharp7ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -84,7 +119,41 @@ class Program
                 new CSharpParseOptions(LanguageVersion.CSharp7));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7ToLatest_TriggeredByInferredTupleNames()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+    void M()
+    {
+        int b = 2;
+        var t = (1, b);
+        System.Console.Write(t.[|b|]);
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}
+",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7));
+        }
+
+        [Fact]
         public async Task UpgradeProjectFromCSharp7_1ToLatest()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -97,7 +166,20 @@ class Program
                 new CSharpParseOptions(LanguageVersion.CSharp7_1));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+#error version:[|7.2|]
+}",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
+        }
+
+        [Fact]
         public async Task UpgradeProjectFromCSharp7ToCSharp7_1()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -111,7 +193,26 @@ class Program
                 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7ToCSharp7_1_B()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class Base { }
+public class Derived : Base { }
+public class Program
+{
+    public static void M<T>(T x) where T: Base
+    {
+        System.Console.Write(x is [|Derived|] b0);
+    }
+}
+",
+                LanguageVersion.CSharp7_1,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact]
         public async Task UpgradeAllProjectsToDefault()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -142,7 +243,7 @@ class C
 
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
         public async Task UpgradeAllProjectsToCSharp7()
         {
             await TestLanguageVersionUpgradedAsync(
@@ -172,7 +273,7 @@ class C
                 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
         public async Task ListAllSuggestions()
         {
             await TestExactActionSetOfferedAsync(
@@ -196,13 +297,13 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7"),
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7")
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
     });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
         public async Task FixAllProjectsNotOffered()
         {
             await TestExactActionSetOfferedAsync(
@@ -224,11 +325,11 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0")
                     });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
         public async Task OnlyOfferFixAllProjectsToCSharp7WhenApplicable()
         {
             await TestExactActionSetOfferedAsync(
@@ -252,12 +353,12 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7"),
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "default")
                     });
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUpgradeProject)]
+        [Fact]
         public async Task OnlyOfferFixAllProjectsToDefaultWhenApplicable()
         {
             await TestExactActionSetOfferedAsync(
@@ -281,8 +382,8 @@ class C
 </Workspace>",
                 new[] {
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "default"),
-                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7"),
-                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7")
+                    string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
+                    string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
         }
     }

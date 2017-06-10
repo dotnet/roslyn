@@ -3,7 +3,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -315,13 +314,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
-        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod"/> instead! 
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, out MethodSymbol)"/> instead! 
         /// If used, a unit-test with a missing member is absolutely a must have.
         /// </summary>
         private MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember)
         {
+            return UnsafeGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics);
+        }
+
+        /// <summary>
+        /// This function provides a false sense of security, it is likely going to surprise you when the requested member is missing.
+        /// Recommendation: Do not use, use <see cref="TryGetSpecialTypeMethod(SyntaxNode, SpecialMember, CSharpCompilation, DiagnosticBag, out MethodSymbol)"/> instead! 
+        /// If used, a unit-test with a missing member is absolutely a must have.
+        /// </summary>
+        private static MethodSymbol UnsafeGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
             MethodSymbol method;
-            if (TryGetSpecialTypeMethod(syntax, specialMember, out method))
+            if (TryGetSpecialTypeMethod(syntax, specialMember, compilation, diagnostics, out method))
             {
                 return method;
             }
@@ -329,15 +338,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
                 SpecialType type = (SpecialType)descriptor.DeclaringTypeId;
-                TypeSymbol container = _compilation.Assembly.GetSpecialType(type);
-                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: _compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
+                TypeSymbol container = compilation.Assembly.GetSpecialType(type);
+                TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
                 return new ErrorMethodSymbol(container, returnType, "Missing");
             }
         }
 
         private bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, out MethodSymbol method)
         {
-            return Binder.TryGetSpecialTypeMember(_compilation, specialMember, syntax, _diagnostics, out method);
+            return TryGetSpecialTypeMethod(syntax, specialMember, _compilation, _diagnostics, out method);
+        }
+
+        private static bool TryGetSpecialTypeMethod(SyntaxNode syntax, SpecialMember specialMember, CSharpCompilation compilation, DiagnosticBag diagnostics, out MethodSymbol method)
+        {
+            return Binder.TryGetSpecialTypeMember(compilation, specialMember, syntax, diagnostics, out method);
         }
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)

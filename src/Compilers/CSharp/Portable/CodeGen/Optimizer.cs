@@ -1141,7 +1141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.InitializerExpressionOpt == null);
 
             return node.Update(constructor, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt,
-                node.Expanded, node.ArgsToParamsOpt, node.ConstantValue, null, node.Type);
+                node.Expanded, node.ArgsToParamsOpt, node.ConstantValue, null, node.BinderOpt, node.Type);
         }
 
         public override BoundNode VisitArrayAccess(BoundArrayAccess node)
@@ -1963,7 +1963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             Debug.Assert(node.InitializerExpressionOpt == null);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, null, type);
+            return node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, null, node.BinderOpt, type);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)

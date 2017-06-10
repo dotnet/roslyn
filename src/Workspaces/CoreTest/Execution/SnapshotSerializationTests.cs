@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 VerifySynchronizationObjectInService(snapshotService, solutionSyncObject);
 
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
-                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKinds.SolutionAttributes);
+                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
 
                 var projectsSyncObject = snapshotService.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
                 VerifySynchronizationObjectInService(snapshotService, projectsSyncObject);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
 
-                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKinds.SolutionAttributes);
+                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
 
                 var projectSyncObject = snapshotService.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
                 VerifySynchronizationObjectInService(snapshotService, projectSyncObject);
@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
                 VerifySynchronizationObjectInService(snapshotService, syncObject);
-                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKinds.SolutionAttributes);
-                VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKinds.Projects);
+                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+                VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
 
                 Assert.Equal(solutionObject.Projects.Count, 1);
                 VerifySnapshotInService(snapshotService, solutionObject.Projects.ToProjectObjects(snapshotService)[0], 1, 0, 0, 0, 0);
@@ -151,8 +151,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
                 VerifySynchronizationObjectInService(snapshotService, syncObject);
-                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKinds.SolutionAttributes);
-                VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKinds.Projects);
+                VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
+                VerifyChecksumInService(snapshotService, solutionObject.Projects.Checksum, WellKnownSynchronizationKind.Projects);
 
                 Assert.Equal(solutionObject.Projects.Count, 2);
 

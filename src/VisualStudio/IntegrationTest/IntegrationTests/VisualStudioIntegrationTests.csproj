@@ -10,14 +10,13 @@
     <RootNamespace>Roslyn.VisualStudio.IntegrationTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.IntegrationTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <Nonshipping>true</Nonshipping>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
   <ItemGroup>
     <Compile Include="AbstractIntegrationTest.cs" />
     <Compile Include="AbstractInteractiveWindowTest.cs" />
@@ -65,7 +64,9 @@
     <Compile Include="CSharp\CSharpSquigglesNetCore.cs" />
     <Compile Include="CSharp\CSharpWinForms.cs" />
     <Compile Include="CSharp\CSharpAddMissingReference.cs" />
+    <Compile Include="VisualBasic\BasicEditAndContinue.cs" />
     <Compile Include="VisualBasic\BasicEndConstruct.cs" />
+    <Compile Include="VisualBasic\BasicExpressionEvaluator.cs" />
     <Compile Include="VisualBasic\BasicReferenceHighlighting.cs" />
     <Compile Include="VisualBasic\BasicKeywordHighlighting.cs" />
     <Compile Include="VisualBasic\BasicEncapsulateField.cs" />
@@ -259,7 +260,24 @@
   <ItemGroup>
     <Reference Include="UIAutomationClient" />
     <Reference Include="UIAutomationTypes" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE80">
+      <Version>$(EnvDTE80Version)</Version>
+    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

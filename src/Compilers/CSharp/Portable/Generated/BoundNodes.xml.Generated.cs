@@ -4353,7 +4353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundCall : BoundExpression
     {
-        public BoundCall(SyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundCall(SyntaxNode syntax, BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Call, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
@@ -4371,6 +4371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.InvokedAsExtensionMethod = invokedAsExtensionMethod;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this._ResultKind = resultKind;
+            this.BinderOpt = binderOpt;
         }
 
 
@@ -4395,16 +4396,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly LookupResultKind _ResultKind;
         public override LookupResultKind ResultKind { get { return _ResultKind;} }
 
+        public Binder BinderOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitCall(this);
         }
 
-        public BoundCall Update(BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, TypeSymbol type)
+        public BoundCall Update(BoundExpression receiverOpt, MethodSymbol method, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool isDelegateCall, bool expanded, bool invokedAsExtensionMethod, ImmutableArray<int> argsToParamsOpt, LookupResultKind resultKind, Binder binderOpt, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || method != this.Method || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || isDelegateCall != this.IsDelegateCall || expanded != this.Expanded || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || type != this.Type)
+            if (receiverOpt != this.ReceiverOpt || method != this.Method || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || isDelegateCall != this.IsDelegateCall || expanded != this.Expanded || invokedAsExtensionMethod != this.InvokedAsExtensionMethod || argsToParamsOpt != this.ArgsToParamsOpt || resultKind != this.ResultKind || binderOpt != this.BinderOpt || type != this.Type)
             {
-                var result = new BoundCall(this.Syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, resultKind, type, this.HasErrors);
+                var result = new BoundCall(this.Syntax, receiverOpt, method, arguments, argumentNamesOpt, argumentRefKindsOpt, isDelegateCall, expanded, invokedAsExtensionMethod, argsToParamsOpt, resultKind, binderOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -4505,7 +4508,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectCreationExpression : BoundExpression
     {
-        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundExpression initializerExpressionOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundExpression initializerExpressionOpt, Binder binderOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ObjectCreationExpression, syntax, type, hasErrors || arguments.HasErrors() || initializerExpressionOpt.HasErrors())
         {
 
@@ -4523,6 +4526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.ConstantValueOpt = constantValueOpt;
             this.InitializerExpressionOpt = initializerExpressionOpt;
+            this.BinderOpt = binderOpt;
         }
 
 
@@ -4544,16 +4548,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression InitializerExpressionOpt { get; }
 
+        public Binder BinderOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitObjectCreationExpression(this);
         }
 
-        public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundExpression initializerExpressionOpt, TypeSymbol type)
+        public BoundObjectCreationExpression Update(MethodSymbol constructor, ImmutableArray<MethodSymbol> constructorsGroup, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, ConstantValue constantValueOpt, BoundExpression initializerExpressionOpt, Binder binderOpt, TypeSymbol type)
         {
-            if (constructor != this.Constructor || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || type != this.Type)
+            if (constructor != this.Constructor || constructorsGroup != this.ConstructorsGroup || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || constantValueOpt != this.ConstantValueOpt || initializerExpressionOpt != this.InitializerExpressionOpt || binderOpt != this.BinderOpt || type != this.Type)
             {
-                var result = new BoundObjectCreationExpression(this.Syntax, constructor, constructorsGroup, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, constantValueOpt, initializerExpressionOpt, type, this.HasErrors);
+                var result = new BoundObjectCreationExpression(this.Syntax, constructor, constructorsGroup, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, constantValueOpt, initializerExpressionOpt, binderOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -4578,28 +4584,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleLiteral : BoundTupleExpression
     {
-        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<string> argumentNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
+        public BoundTupleLiteral(SyntaxNode syntax, ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.TupleLiteral, syntax, arguments, type, hasErrors || arguments.HasErrors())
         {
 
             Debug.Assert(!arguments.IsDefault, "Field 'arguments' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.ArgumentNamesOpt = argumentNamesOpt;
+            this.InferredNamesOpt = inferredNamesOpt;
         }
 
 
         public ImmutableArray<string> ArgumentNamesOpt { get; }
+
+        public ImmutableArray<bool> InferredNamesOpt { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitTupleLiteral(this);
         }
 
-        public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
+        public BoundTupleLiteral Update(ImmutableArray<string> argumentNamesOpt, ImmutableArray<bool> inferredNamesOpt, ImmutableArray<BoundExpression> arguments, TypeSymbol type)
         {
-            if (argumentNamesOpt != this.ArgumentNamesOpt || arguments != this.Arguments || type != this.Type)
+            if (argumentNamesOpt != this.ArgumentNamesOpt || inferredNamesOpt != this.InferredNamesOpt || arguments != this.Arguments || type != this.Type)
             {
-                var result = new BoundTupleLiteral(this.Syntax, argumentNamesOpt, arguments, type, this.HasErrors);
+                var result = new BoundTupleLiteral(this.Syntax, argumentNamesOpt, inferredNamesOpt, arguments, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5415,7 +5424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIndexerAccess : BoundExpression
     {
-        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder binderOpt, bool useSetterForDefaultArgumentGeneration, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.IndexerAccess, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
@@ -5430,6 +5439,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ArgumentRefKindsOpt = argumentRefKindsOpt;
             this.Expanded = expanded;
             this.ArgsToParamsOpt = argsToParamsOpt;
+            this.BinderOpt = binderOpt;
+            this.UseSetterForDefaultArgumentGeneration = useSetterForDefaultArgumentGeneration;
         }
 
 
@@ -5447,16 +5458,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ImmutableArray<int> ArgsToParamsOpt { get; }
 
+        public Binder BinderOpt { get; }
+
+        public bool UseSetterForDefaultArgumentGeneration { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitIndexerAccess(this);
         }
 
-        public BoundIndexerAccess Update(BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, TypeSymbol type)
+        public BoundIndexerAccess Update(BoundExpression receiverOpt, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, Binder binderOpt, bool useSetterForDefaultArgumentGeneration, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || indexer != this.Indexer || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || type != this.Type)
+            if (receiverOpt != this.ReceiverOpt || indexer != this.Indexer || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || binderOpt != this.BinderOpt || useSetterForDefaultArgumentGeneration != this.UseSetterForDefaultArgumentGeneration || type != this.Type)
             {
-                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, type, this.HasErrors);
+                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, binderOpt, useSetterForDefaultArgumentGeneration, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8961,7 +8976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, type);
+            return node.Update(receiverOpt, node.Method, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.IsDelegateCall, node.Expanded, node.InvokedAsExtensionMethod, node.ArgsToParamsOpt, node.ResultKind, node.BinderOpt, type);
         }
         public override BoundNode VisitEventAssignmentOperator(BoundEventAssignmentOperator node)
         {
@@ -8982,13 +8997,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             BoundExpression initializerExpressionOpt = (BoundExpression)this.Visit(node.InitializerExpressionOpt);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, initializerExpressionOpt, type);
+            return node.Update(node.Constructor, node.ConstructorsGroup, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, initializerExpressionOpt, node.BinderOpt, type);
         }
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(node.ArgumentNamesOpt, arguments, type);
+            return node.Update(node.ArgumentNamesOpt, node.InferredNamesOpt, arguments, type);
         }
         public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
         {
@@ -9121,7 +9136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = (BoundExpression)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = (ImmutableArray<BoundExpression>)this.VisitList(node.Arguments);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, type);
+            return node.Update(receiverOpt, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.BinderOpt, node.UseSetterForDefaultArgumentGeneration, type);
         }
         public override BoundNode VisitDynamicIndexerAccess(BoundDynamicIndexerAccess node)
         {
@@ -10310,6 +10325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("invokedAsExtensionMethod", node.InvokedAsExtensionMethod, null),
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
                 new TreeDumperNode("resultKind", node.ResultKind, null),
+                new TreeDumperNode("binderOpt", node.BinderOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10353,6 +10369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
                 new TreeDumperNode("constantValueOpt", node.ConstantValueOpt, null),
                 new TreeDumperNode("initializerExpressionOpt", null, new TreeDumperNode[] { Visit(node.InitializerExpressionOpt, null) }),
+                new TreeDumperNode("binderOpt", node.BinderOpt, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10362,6 +10379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("tupleLiteral", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
+                new TreeDumperNode("inferredNamesOpt", node.InferredNamesOpt, null),
                 new TreeDumperNode("arguments", null, from x in node.Arguments select Visit(x, null)),
                 new TreeDumperNode("type", node.Type, null)
             }
@@ -10598,6 +10616,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
                 new TreeDumperNode("expanded", node.Expanded, null),
                 new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
+                new TreeDumperNode("binderOpt", node.BinderOpt, null),
+                new TreeDumperNode("useSetterForDefaultArgumentGeneration", node.UseSetterForDefaultArgumentGeneration, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

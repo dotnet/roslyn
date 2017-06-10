@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return null;
                     }
 
-                    return TupleTypeSymbol.Create(otherDef, sourceType.TupleElementNames);
+                    return otherDef;
                 }
 
                 Debug.Assert(sourceType.IsDefinition);
@@ -704,6 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 other = SubstituteTypeParameters(other);
 
                 return _comparer.Equals(method.ReturnType, other.ReturnType) &&
+                    method.RefKind.Equals(other.RefKind) &&
                     method.Parameters.SequenceEqual(other.Parameters, AreParametersEqual) &&
                     method.TypeParameters.SequenceEqual(other.TypeParameters, AreTypesEqual);
             }
@@ -757,6 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(StringOrdinalComparer.Equals(property.Name, other.Name));
                 return _comparer.Equals(property.Type, other.Type) &&
+                    property.RefKind.Equals(other.RefKind) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
 
@@ -886,6 +888,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitNamedType(NamedTypeSymbol type)
             {
+                if (type.IsTupleType)
+                {
+                    type = type.TupleUnderlyingType;
+                    Debug.Assert(!type.IsTupleType);
+                }
+
                 var originalDef = type.OriginalDefinition;
                 if ((object)originalDef != type)
                 {

@@ -7560,26 +7560,23 @@ unsafe class C
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (4,21): error CS1525: Invalid expression term 'stackalloc'
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "stackalloc").WithArguments("stackalloc").WithLocation(4, 21),
                 // (4,21): error CS1003: Syntax error, ',' expected
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "stackalloc").WithArguments(",", "stackalloc").WithLocation(4, 21),
                 // (4,32): error CS1003: Syntax error, ',' expected
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int"),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "int").WithArguments(",", "int").WithLocation(4, 32),
                 // (4,36): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(4, 36),
                 // (4,38): error CS1001: Identifier expected
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"),
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(4, 38),
                 // (4,38): error CS1737: Optional parameters must appear after all required parameters
                 //     void M(int* p = stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")"),
-                // (4,17): error CS1750: A value of type '?' cannot be used as a default parameter
-                // because there are no standard conversions to type 'int*' void M(int* p =
-                //     stackalloc int[1])
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "p").WithArguments("?", "int*"));
+                Diagnostic(ErrorCode.ERR_DefaultValueBeforeRequiredValue, ")").WithLocation(4, 38)
+                );
         }
 
         [Fact]

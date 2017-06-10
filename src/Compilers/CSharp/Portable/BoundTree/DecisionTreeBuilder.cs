@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
@@ -26,16 +28,65 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected readonly Symbol _enclosingSymbol;
         protected readonly Conversions _conversions;
         protected HashSet<DiagnosticInfo> _useSiteDiagnostics = new HashSet<DiagnosticInfo>();
+        protected readonly SwitchStatementSyntax _switchSyntax;
+        private Dictionary<TypeSymbol, LocalSymbol> localByType = new Dictionary<TypeSymbol, LocalSymbol>();
 
         protected DecisionTreeBuilder(
             Symbol enclosingSymbol,
+            SwitchStatementSyntax switchSyntax,
             Conversions conversions)
         {
-            this._enclosingSymbol = enclosingSymbol;
-            this._conversions = conversions;
+            _enclosingSymbol = enclosingSymbol;
+            _switchSyntax = switchSyntax;
+            _conversions = conversions;
         }
 
-        protected SyntaxNode Syntax { private get; set; }
+        private BoundLocal GetBoundPatternMatchingLocal(TypeSymbol type)
+        {
+            // All synthesized pattern matching locals are associated with the Switch statement syntax node.
+            // Their ordinals are zero.
+            // EnC local slot variable matching logic find the right slot based on the type of the local.
+
+            if (!localByType.TryGetValue(type, out var localSymbol))
+            {
+                localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
+                localByType.Add(type, localSymbol);
+            }
+
+            return new BoundLocal(_switchSyntax, localSymbol, null, type);
+        }
+
+        /// <summary>
+        /// Create a fresh decision tree for the given input expression of the given type.
+        /// </summary>
+        protected DecisionTree CreateEmptyDecisionTree(BoundExpression expression)
+        {
+            var type = expression.Type;
+
+            LocalSymbol localSymbol = null;
+            if (expression.ConstantValue == null)
+            {
+                // Unless it is a constant, the decision tree acts on a copy of the input expression.
+                // We create a temp to represent that copy. Lowering will assign into this temp.
+                var local = GetBoundPatternMatchingLocal(type);
+                expression = local;
+                localSymbol = local.LocalSymbol;
+            }
+
+            if (type.CanContainNull() || type.SpecialType == SpecialType.None)
+            {
+                // We need the ByType decision tree to separate null from non-null values.
+                // Note that, for the purpose of the decision tree (and subsumption), we
+                // ignore the fact that the input may be a constant, and therefore always
+                // or never null.
+                return new DecisionTree.ByType(expression, type, localSymbol);
+            }
+            else
+            {
+                // If it is a (e.g. builtin) value type, we can switch on its (constant) values.
+                return new DecisionTree.ByValue(expression, type, localSymbol);
+            }
+        }
 
         protected DecisionTree AddToDecisionTree(DecisionTree decisionTree, SyntaxNode sectionSyntax, BoundPatternSwitchLabel label)
         {
@@ -95,9 +146,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private DecisionTree AddByValue(DecisionTree decision, BoundConstantPattern value, DecisionMaker makeDecision)
         {
             Debug.Assert(!decision.MatchIsComplete); // otherwise we would have given a subsumption error
+            if (value.ConstantValue == null)
+            {
+                // If value.ConstantValue == null, we have a bad expression in a case label.
+                // The case label is considered unreachable.
+                return null;
+            }
 
-            // Even if value.ConstantValue == null, we proceed here for error recovery, so that the case label isn't
-            // dropped on the floor. That is useful, for example to suppress unreachable code warnings on bad case labels.
             switch (decision.Kind)
             {
                 case DecisionTree.DecisionKind.ByType:
@@ -130,15 +185,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private DecisionTree AddByValue(DecisionTree.ByValue byValue, BoundConstantPattern value, DecisionMaker makeDecision)
         {
-            Debug.Assert(value.Value.Type == byValue.Type);
+            Debug.Assert(value.Value.Type.Equals(byValue.Type, TypeCompareKind.IgnoreDynamicAndTupleNames));
             if (byValue.Default != null)
             {
                 return AddByValue(byValue.Default, value, makeDecision);
             }
 
-            // For error recovery, to avoid "unreachable code" diagnostics when there is a bad case
-            // label, we use the case label itself as the value key.
-            object valueKey = value.ConstantValue?.Value ?? value;
+            Debug.Assert(value.ConstantValue != null);
+            object valueKey = value.ConstantValue.Value;
             DecisionTree valueDecision;
             if (byValue.ValueAndDecision.TryGetValue(valueKey, out valueDecision))
             {
@@ -184,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.Unreachable;
             }
 
-            if ((object)value.Value.Type == null)
+            if ((object)value.Value.Type == null || value.ConstantValue == null)
             {
                 return null;
             }
@@ -200,6 +254,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case true:
                         if (decision.MatchIsComplete)
                         {
+                            // Subsumed case have been eliminated by semantic analysis.
+                            Debug.Assert(false);
                             return null;
                         }
 
@@ -221,29 +277,64 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kvp = byType.TypeAndDecision[i];
                 var matchedType = kvp.Key;
                 var decision = kvp.Value;
-                if (matchedType.TupleUnderlyingTypeOrSelf() == value.Value.Type.TupleUnderlyingTypeOrSelf())
+                if (matchedType.Equals(value.Value.Type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     forType = decision;
                     break;
                 }
-                else if (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics) != false)
+                switch (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics))
                 {
-                    // because there is overlap, we cannot reuse some earlier entry
-                    break;
+                    case true:
+                        if (decision.MatchIsComplete)
+                        {
+                            // we should have reported this case as subsumed already.
+                            Debug.Assert(false);
+                            return null;
+                        }
+                        else
+                        {
+                            goto case null;
+                        }
+                    case false:
+                        continue;
+                    case null:
+                        // because there is overlap, we cannot reuse some earlier entry
+                        goto noReuse;
                 }
             }
+            noReuse:;
 
             // if we did not piggy-back, then create a new decision tree node for the type.
             if (forType == null)
             {
                 var type = value.Value.Type;
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
-                var narrowedExpression = new BoundLocal(Syntax, localSymbol, null, type);
-                forType = new DecisionTree.ByValue(narrowedExpression, value.Value.Type.TupleUnderlyingTypeOrSelf(), localSymbol);
-                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Value.Type, forType));
+                if (byType.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
+                {
+                    // reuse the input expression when we have an equivalent type to reduce the number of generated temps
+                    forType = new DecisionTree.ByValue(byType.Expression, type.TupleUnderlyingTypeOrSelf(), null);
+                }
+                else
+                {
+                    var narrowedExpression = GetBoundPatternMatchingLocal(type);
+                    forType = new DecisionTree.ByValue(narrowedExpression, type.TupleUnderlyingTypeOrSelf(), narrowedExpression.LocalSymbol);
+                }
+
+                byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, forType));
             }
 
             return AddByValue(forType, value, makeDecision);
+        }
+
+        /// <summary>
+        /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
+        /// type <paramref name="patternType"/>?
+        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
+        /// 'null' if it might catch some of them. For this test we assume the expression's value
+        /// isn't null.
+        /// </summary>
+        internal bool? ExpressionOfTypeMatchesPatternType(TypeSymbol expressionType, TypeSymbol patternType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return Binder.ExpressionOfTypeMatchesPatternType(this._conversions, expressionType, patternType, ref _useSiteDiagnostics, out Conversion conversion, null, false);
         }
 
         private DecisionTree AddByType(DecisionTree decision, TypeSymbol type, DecisionMaker makeDecision)
@@ -260,21 +351,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case DecisionTree.DecisionKind.ByValue:
                     {
                         var byValue = (DecisionTree.ByValue)decision;
+                        DecisionTree result;
                         if (byValue.Default == null)
                         {
-                            byValue.Default = makeDecision(byValue.Expression, byValue.Type);
-                            if (byValue.Default.MatchIsComplete)
+                            if (byValue.Type.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                             {
-                                byValue.MatchIsComplete = true;
+                                result = byValue.Default = makeDecision(byValue.Expression, byValue.Type);
                             }
-
-                            return byValue.Default;
+                            else
+                            {
+                                byValue.Default = new DecisionTree.ByType(byValue.Expression, byValue.Type, null);
+                                result = AddByType(byValue.Default, type, makeDecision);
+                            }
                         }
                         else
                         {
-                            Debug.Assert(byValue.Default.Type == type);
-                            return Add(byValue.Default, makeDecision);
+                            result = AddByType(byValue.Default, type, makeDecision);
                         }
+
+                        if (byValue.Default.MatchIsComplete)
+                        {
+                            byValue.MatchIsComplete = true;
+                        }
+
+                        return result;
                     }
                 case DecisionTree.DecisionKind.Guarded:
                     return AddByType((DecisionTree.Guarded)decision, type, makeDecision);
@@ -321,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (byType.TypeAndDecision.Count != 0)
             {
                 var lastTypeAndDecision = byType.TypeAndDecision.Last();
-                if (lastTypeAndDecision.Key.TupleUnderlyingTypeOrSelf() == type.TupleUnderlyingTypeOrSelf())
+                if (lastTypeAndDecision.Key.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     result = Add(lastTypeAndDecision.Value, makeDecision);
                 }
@@ -329,11 +429,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result == null)
             {
-                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, Syntax, false, RefKind.None);
-                var expression = new BoundLocal(Syntax, localSymbol, null, type);
+                var expression = GetBoundPatternMatchingLocal(type);
                 result = makeDecision(expression, type);
                 Debug.Assert(result.Temp == null);
-                result.Temp = localSymbol;
+                result.Temp = expression.LocalSymbol;
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
             }
 
@@ -518,55 +617,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     byType.MatchIsComplete = true;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Does an expression of type <paramref name="expressionType"/> "match" a pattern that looks for
-        /// type <paramref name="patternType"/>?
-        /// 'true' if the matched type catches all of them, 'false' if it catches none of them, and
-        /// 'null' if it might catch some of them. For this test we assume the expression's value
-        /// isn't null.
-        /// </summary>
-        protected bool? ExpressionOfTypeMatchesPatternType(
-            TypeSymbol expressionType,
-            TypeSymbol patternType,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            if (expressionType == patternType)
-            {
-                return true;
-            }
-
-            var conversion = _conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteDiagnostics);
-
-            // This is for classification purposes only; we discard use-site diagnostics. Use-site diagnostics will
-            // be given if a conversion is actually used.
-            switch (conversion.Kind)
-            {
-                case ConversionKind.Boxing:             // a value of type int matches a pattern of type object
-                case ConversionKind.Identity:           // a value of a given type matches a pattern of that type
-                case ConversionKind.ImplicitReference:  // a value of type string matches a pattern of type object
-                    return true;
-
-                case ConversionKind.ImplicitNullable:   // a value of type int matches a pattern of type int?
-                case ConversionKind.ExplicitNullable:   // a non-null value of type "int?" matches a pattern of type int
-                    // but if the types differ (e.g. one of them is type byte and the other is type int?).. no match
-                    return ConversionsBase.HasIdentityConversion(expressionType.StrippedType().TupleUnderlyingTypeOrSelf(), patternType.StrippedType().TupleUnderlyingTypeOrSelf());
-
-                case ConversionKind.ExplicitEnumeration:// a value of enum type does not match a pattern of integral type
-                case ConversionKind.ExplicitNumeric:    // a value of type long does not match a pattern of type int
-                case ConversionKind.ImplicitNumeric:    // a value of type short does not match a pattern of type int
-                case ConversionKind.NoConversion:
-                    return false;
-
-                case ConversionKind.ExplicitDynamic:    // a value of type dynamic might not match a pattern of type other than object
-                case ConversionKind.ExplicitReference:  // a narrowing reference conversion might or might not succeed
-                case ConversionKind.Unboxing:           // a value of type object might match a pattern of type int
-                    return null;
-
-                default: // other conversions do not apply (e.g. conversions from expression, user-defined, pointer conversions, tuple)
-                    return false;
             }
         }
     }

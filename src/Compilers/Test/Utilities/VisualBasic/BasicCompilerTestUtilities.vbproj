@@ -89,8 +89,5 @@
   <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

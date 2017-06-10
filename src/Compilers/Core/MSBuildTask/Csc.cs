@@ -82,12 +82,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
         }
 
-        public string LangVersion
-        {
-            set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
-        }
-
         public string ModuleAssemblyName
         {
             set { _store[nameof(ModuleAssemblyName)] = value; }
@@ -189,7 +183,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
-            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
             commandLine.AppendPlusOrMinusSwitch("/nostdlib", _store, nameof(NoStandardLib));

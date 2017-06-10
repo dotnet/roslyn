@@ -11,7 +11,9 @@
     <RootNamespace>Roslyn.VisualStudio.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.CSharp.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -178,16 +180,40 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <PackageReference Include="BasicUndo">
+      <Version>$(BasicUndoVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE80">
+      <Version>$(EnvDTE80Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
+      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
+      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
-      <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
-          <Link>x86\e_sqlite3.dll</Link>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
-          <Link>x64\e_sqlite3.dll</Link>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
+      <Link>x86\e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
+      <Link>x64\e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CodeModel\AbstractFileCodeElementTests.cs" />
@@ -254,9 +280,5 @@
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

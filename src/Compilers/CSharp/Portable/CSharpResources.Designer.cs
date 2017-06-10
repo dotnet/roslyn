@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -301,6 +301,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AmbigBinaryOps {
             get {
                 return ResourceManager.GetString("ERR_AmbigBinaryOps", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; is ambiguous on operands &apos;default&apos; and &apos;default&apos;.
+        /// </summary>
+        internal static string ERR_AmbigBinaryOpsOnDefault {
+            get {
+                return ResourceManager.GetString("ERR_AmbigBinaryOpsOnDefault", resourceCulture);
             }
         }
         
@@ -1232,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1..
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.2..
         /// </summary>
         internal static string ERR_BadCompatMode {
             get {
@@ -1462,15 +1471,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadExtensionAgg {
             get {
                 return ResourceManager.GetString("ERR_BadExtensionAgg", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; does not contain a definition for &apos;{1}&apos; and the best extension method overload &apos;{2}&apos; has some invalid arguments.
-        /// </summary>
-        internal static string ERR_BadExtensionArgTypes {
-            get {
-                return ResourceManager.GetString("ERR_BadExtensionArgTypes", resourceCulture);
             }
         }
         
@@ -1741,6 +1741,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_BadOperatorSyntax {
             get {
                 return ResourceManager.GetString("ERR_BadOperatorSyntax", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operator &apos;{0}&apos; cannot be applied to operand &apos;{1}&apos;.
+        /// </summary>
+        internal static string ERR_BadOpOnNullOrDefault {
+            get {
+                return ResourceManager.GetString("ERR_BadOpOnNullOrDefault", resourceCulture);
             }
         }
         
@@ -4490,6 +4499,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.2. Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion7_2 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion7_2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_FeatureNotValidInExpressionTree {
@@ -5948,15 +5966,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: an entry point cannot be marked with the &apos;async&apos; modifier.
-        /// </summary>
-        internal static string ERR_MainCantBeAsync {
-            get {
-                return ResourceManager.GetString("ERR_MainCantBeAsync", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use &apos;{0}&apos; for Main method because it is imported.
         /// </summary>
         internal static string ERR_MainClassIsImport {
@@ -6191,7 +6200,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
+        ///   Looks up a localized string similar to No suitable Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters and a void return type..
         /// </summary>
         internal static string ERR_MissingDeconstruct {
             get {
@@ -6848,6 +6857,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot compile net modules when using /refout or /refonly..
+        /// </summary>
+        internal static string ERR_NoNetModuleOutputWhenRefOutOrRefOnly {
+            get {
+                return ResourceManager.GetString("ERR_NoNetModuleOutputWhenRefOutOrRefOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot create an instance of the abstract class or interface &apos;{0}&apos;.
         /// </summary>
         internal static string ERR_NoNewAbstract {
@@ -6884,6 +6902,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A void or int returning entry point cannot be async.
+        /// </summary>
+        internal static string ERR_NonTaskMainCantBeAsync {
+            get {
+                return ResourceManager.GetString("ERR_NonTaskMainCantBeAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot embed interop types from assembly &apos;{0}&apos; because it is missing the &apos;{1}&apos; attribute..
         /// </summary>
         internal static string ERR_NoPIAAssemblyMissingAttribute {
@@ -6907,6 +6934,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoPIANestedType {
             get {
                 return ResourceManager.GetString("ERR_NoPIANestedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use refout when using refonly..
+        /// </summary>
+        internal static string ERR_NoRefOutWhenRefOnly {
+            get {
+                return ResourceManager.GetString("ERR_NoRefOutWhenRefOnly", resourceCulture);
             }
         }
         
@@ -7604,7 +7640,16 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression of type {0} cannot be handled by a pattern of type {1}..
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; cannot be handled by a pattern of type &apos;{1}&apos; in C# {2}. Please use language version {3} or greater..
+        /// </summary>
+        internal static string ERR_PatternWrongGenericTypeInVersion {
+            get {
+                return ResourceManager.GetString("ERR_PatternWrongGenericTypeInVersion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression of type &apos;{0}&apos; cannot be handled by a pattern of type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_PatternWrongType {
             get {
@@ -7721,7 +7766,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported.
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is ambiguous (imported twice).
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeNotFound {
             get {
@@ -8666,11 +8711,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting Portable PDB (/debug:portable or /debug:embedded must be specified)..
+        ///   Looks up a localized string similar to /sourcelink switch is only supported when emitting PDB..
         /// </summary>
-        internal static string ERR_SourceLinkRequiresPortablePdb {
+        internal static string ERR_SourceLinkRequiresPdb {
             get {
-                return ResourceManager.GetString("ERR_SourceLinkRequiresPortablePdb", resourceCulture);
+                return ResourceManager.GetString("ERR_SourceLinkRequiresPdb", resourceCulture);
             }
         }
         
@@ -9062,6 +9107,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is inferred. Please use language version {1} or greater to access an element by its inferred name..
+        /// </summary>
+        internal static string ERR_TupleInferredNamesNotAvailable {
+            get {
+                return ResourceManager.GetString("ERR_TupleInferredNamesNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Tuple element name &apos;{0}&apos; is only allowed at position {1}..
         /// </summary>
         internal static string ERR_TupleReservedElementName {
@@ -9130,6 +9184,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_TypeInferenceFailedForImplicitlyTypedOutVariable {
             get {
                 return ResourceManager.GetString("ERR_TypeInferenceFailedForImplicitlyTypedOutVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The first operand of an &apos;as&apos; operator may not be a tuple literal without a natural type..
+        /// </summary>
+        internal static string ERR_TypelessTupleInAs {
+            get {
+                return ResourceManager.GetString("ERR_TypelessTupleInAs", resourceCulture);
             }
         }
         
@@ -9849,13 +9912,13 @@ namespace Microsoft.CodeAnalysis.CSharp {
         ///                              Visual C# Compiler Options
         ///
         ///                        - OUTPUT FILES -
-        /// /out:&lt;file&gt;                   Specify output file name (default: base name of 
+        /// /out:&lt;file&gt;                   Specify output file name (default: base name of
         ///                               file with main class or first file)
-        /// /target:exe                   Build a console executable (default) (Short 
+        /// /target:exe                   Build a console executable (default) (Short
         ///                               form: /t:exe)
-        /// /target:winexe                Build a Windows executable (Short form: 
+        /// /target:winexe                Build a Windows executable (Short form:
         ///                               /t:winexe)
-        /// /target:library     [rest of string was truncated]&quot;;.
+        /// /target:library        [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string IDS_CSCHelp {
             get {
@@ -9905,6 +9968,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureAsync {
             get {
                 return ResourceManager.GetString("IDS_FeatureAsync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to async main.
+        /// </summary>
+        internal static string IDS_FeatureAsyncMain {
+            get {
+                return ResourceManager.GetString("IDS_FeatureAsyncMain", resourceCulture);
             }
         }
         
@@ -12542,6 +12614,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_ErrorOverride_Title {
             get {
                 return ResourceManager.GetString("WRN_ErrorOverride_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental {
+            get {
+                return ResourceManager.GetString("WRN_Experimental", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type is for evaluation purposes only and is subject to change or removal in future updates..
+        /// </summary>
+        internal static string WRN_Experimental_Title {
+            get {
+                return ResourceManager.GetString("WRN_Experimental_Title", resourceCulture);
             }
         }
         

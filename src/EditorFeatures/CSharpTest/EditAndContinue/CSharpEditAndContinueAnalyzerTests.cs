@@ -496,8 +496,8 @@ class C
             }
         }
 
-        [Fact]
-        public async Task AnalyzeDocumentAsync_SemanticError_Change()
+        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        public async Task AnalyzeDocumentAsync_SemanticErrorInMethodBody_Change()
         {
             string source1 = @"
 class C
@@ -516,6 +516,46 @@ class C
     {
         System.Console.WriteLine(2);
         Bar(); // semantic error
+    }
+}
+";
+            var analyzer = new CSharpEditAndContinueAnalyzer();
+
+            using (var workspace = TestWorkspace.CreateCSharp(source1))
+            {
+                var documentId = workspace.CurrentSolution.Projects.First().Documents.First().Id;
+                var oldSolution = workspace.CurrentSolution;
+                var newSolution = workspace.CurrentSolution.WithDocumentText(documentId, SourceText.From(source2));
+
+                var baseActiveStatements = ImmutableArray.Create<ActiveStatementSpan>();
+                var result = await analyzer.AnalyzeDocumentAsync(oldSolution, baseActiveStatements, newSolution.GetDocument(documentId), default(CancellationToken));
+
+                Assert.True(result.HasChanges);
+
+                // no declaration errors (error in method body is only reported when emitting):
+                Assert.False(result.HasChangesAndErrors);
+                Assert.False(result.HasChangesAndCompilationErrors);
+            }
+        }
+
+        [Fact, WorkItem(10683, "https://github.com/dotnet/roslyn/issues/10683")]
+        public async Task AnalyzeDocumentAsync_SemanticErrorInDeclaration_Change()
+        {
+            string source1 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(1);
+    }
+}
+";
+            string source2 = @"
+class C
+{
+    public static void Main(Bar x)
+    {
+        System.Console.WriteLine(2);
     }
 }
 ";

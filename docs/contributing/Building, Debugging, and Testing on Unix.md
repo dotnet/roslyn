@@ -10,4 +10,4 @@ After building run `make test` in order to run the unit tests.
 
 # Contributing
 
-Please see [Contributing Code](https://github.com/dotnet/roslyn/wiki/Contributing-Code) for details on contributing changes back to the code.
+Please see [Contributing Code](https://github.com/dotnet/roslyn/blob/master/CONTRIBUTING.md) for details on contributing changes back to the code.
