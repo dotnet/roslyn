@@ -6,6 +6,7 @@ New packages are published when Visual Studio releases a new RTM or Preview vers
 ### Microsoft.Net.Compilers
 
 This package not only includes the C# and Visual Basic compilers, it also modifies MSBuild targets so that the included compiler versions are used rather than any system-installed versions.
+Once installed, this package requires Microsoft Build Tools 2015.
 
 ## Versioning
 
