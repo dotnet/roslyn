@@ -12028,7 +12028,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Interpolated Strings.
+        '''  Looks up a localized string similar to interpolated strings.
         '''</summary>
         Friend ReadOnly Property FEATURE_InterpolatedStrings() As String
             Get

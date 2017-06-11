@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
 
             If statement IsNot Nothing Then
-                statement = CheckFeatureAvailability(Feature.WarningDirectives, statement)
+                statement = statement.CheckFeatureAvailable(Feature.WarningDirectives, Options)
             End If
 
             Me._pool.Free(errorCodes)
