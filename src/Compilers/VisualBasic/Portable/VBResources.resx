@@ -5497,4 +5497,7 @@
   <data name="WRN_Experimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
+  <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
+    <value>Interpolated Strings</value>
+  </data>
 </root>

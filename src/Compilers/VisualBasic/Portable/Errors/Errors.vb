@@ -2008,5 +2008,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_BinaryLiterals
         FEATURE_Tuples
         FEATURE_IOperation
+        FEATURE_InterpolatedStrings
     End Enum
 End Namespace
