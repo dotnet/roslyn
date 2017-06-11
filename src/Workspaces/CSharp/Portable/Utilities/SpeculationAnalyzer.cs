@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
 
                 // If case label is changing, then need to check if the semantics will change for the switch expression.  
-                // e.g. if switch expression is "object x = 1f", "case 1:" and "case (float) 1:" are different.
+                // e.g. if switch expression is "switch(x)" where "object x = 1f", then "case 1:" and "case (float) 1:" are different.
                 var originalCaseType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode, this.CancellationToken).Type;
                 var newCaseType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode, this.CancellationToken).Type;
 
@@ -402,12 +402,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var originalConversion = this.OriginalSemanticModel.ClassifyConversion(oldSwitchStatement.Expression, originalCaseType);
                 var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newSwitchStatement.Expression, newCaseType);
                 
+                // if conversion only exists for either original or new, then semantics changed.
                 if (originalConversion.Exists != newConversion.Exists)
                 {
                     return true;
                 }
 
-                // if the conversions are equal and the target types are different, then semantics changed.
+                // Same conversion cannot result in both originalCaseType and newCaseType, which means the semantics changed
+                // (since originalCaseType != newCaseType)
                 return originalConversion == newConversion;
             }
             else if (currentOriginalNode.Kind() == SyntaxKind.SwitchStatement)
