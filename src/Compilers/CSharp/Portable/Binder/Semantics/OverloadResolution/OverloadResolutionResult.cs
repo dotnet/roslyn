@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ParameterSymbol parameter = method.GetParameters()[parm];
-            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap an params array
+            bool isLastParameter = method.GetParameterCount() == parm + 1; // This is used to later decide if we need to try to unwrap a params array
             RefKind refArg = arguments.RefKind(arg);
             RefKind refParm = parameter.RefKind;
 
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static Symbol UnwrapIfParamsArray(ParameterSymbol parameter, bool isLastParameter)
         {
-            // We only try to unwrap parameters if they are an parameter array and are on the last position
+            // We only try to unwrap parameters if they are a parameter array and are on the last position
             if (parameter.IsParams && isLastParameter)
             {
                 ArrayTypeSymbol arrayType = parameter.Type as ArrayTypeSymbol;
