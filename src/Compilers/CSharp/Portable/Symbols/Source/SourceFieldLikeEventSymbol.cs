@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasInitializer)
             {
-                if (inInterfaceType)
+                if (inInterfaceType && !this.IsStatic)
                 {
                     diagnostics.Add(ErrorCode.ERR_InterfaceEventInitializer, this.Locations[0], this);
                 }
@@ -74,13 +74,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // NOTE: if there's an initializer in source, we'd better create a backing field, regardless of
             // whether or not the initializer is legal.
-            if (hasInitializer || !(inInterfaceType || this.IsExtern || this.IsAbstract))
+            if (hasInitializer || !(this.IsExtern || this.IsAbstract))
             {
                 _associatedField = MakeAssociatedField(declaratorSyntax);
                 // Don't initialize this.type - we'll just use the type of the field (which is lazy and handles var)
             }
 
-            if (inInterfaceType)
+            if (inInterfaceType && !this.IsStatic)
             {
                 if (this.IsExtern)
                 {

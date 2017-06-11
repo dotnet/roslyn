@@ -62,15 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExtensionMethod: false,
                 isMetadataVirtualIgnoringModifiers: explicitInterfaceImplementations.Any());
 
-            if (@event.ContainingType.IsInterface)
-            {
-                Binder.CheckFeatureAvailability(syntax, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, this.Location);
-
-                if (!ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation)
-                {
-                    diagnostics.Add(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, this.Location);
-                }
-            }
+            CheckFeatureAvailabilityAndRuntimeSupport(syntax, this.Location, hasBody: true, diagnostics: diagnostics);
 
             if (syntax.Body != null || syntax.ExpressionBody != null)
             {

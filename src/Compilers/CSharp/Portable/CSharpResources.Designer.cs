@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Auto-implemented properties inside interfaces cannot have initializers..
+        ///   Looks up a localized string similar to Instance auto-implemented properties inside interfaces cannot have initializers..
         /// </summary>
         internal static string ERR_AutoPropertyInitializerInInterface {
             get {
@@ -5372,7 +5372,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos;: event in interface cannot have initializer.
+        ///   Looks up a localized string similar to &apos;{0}&apos;: instance event in interface cannot have initializer.
         /// </summary>
         internal static string ERR_InterfaceEventInitializer {
             get {
@@ -5408,7 +5408,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Interfaces cannot contain fields.
+        ///   Looks up a localized string similar to Interfaces cannot contain instance fields.
         /// </summary>
         internal static string ERR_InterfacesCantContainFields {
             get {

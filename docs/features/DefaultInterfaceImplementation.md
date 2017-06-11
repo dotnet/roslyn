@@ -49,6 +49,8 @@ class Test1 : I1
 
 - Implementing interface events in derived interfaces by using explicit implementation syntax, accessibility is private, no allowed modifiers.
 
+- Declaring static fields, auto-properties and field-like events (**protected** modifier is not allowed).
+
 
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.
 

@@ -2253,6 +2253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
 
                 case TypeKind.Class:
+                case TypeKind.Interface:
                 case TypeKind.Submission:
                     // No additional checking required.
                     AddSynthesizedConstructorsIfNecessary(builder.NonTypeNonIndexerMembers, builder.StaticInitializers, diagnostics);
@@ -2689,10 +2690,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (member.Kind)
             {
                 case SymbolKind.Field:
-                    if ((object)((FieldSymbol)member).AssociatedSymbol == null)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, member.Locations[0]);
-                    }
                     break;
 
                 case SymbolKind.Method:
@@ -2700,8 +2697,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (meth.MethodKind)
                     {
                         case MethodKind.Constructor:
-                        case MethodKind.StaticConstructor:
                             diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
+                            break;
+                        case MethodKind.StaticConstructor:
+                            if (!meth.IsImplicitlyDeclared)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainConstructors, member.Locations[0]);
+                            }
                             break;
                         case MethodKind.Conversion:
                         case MethodKind.UserDefinedOperator:
@@ -2812,7 +2814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
             // We don't expect anything to be emitted, but it should be in the symbol table.
-            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic))
+            if ((!hasParameterlessInstanceConstructor && this.IsStructType()) || (!hasInstanceConstructor && !this.IsStatic && !this.IsInterface))
             {
                 members.Add((this.TypeKind == TypeKind.Submission) ?
                     new SynthesizedSubmissionConstructor(this, diagnostics) :

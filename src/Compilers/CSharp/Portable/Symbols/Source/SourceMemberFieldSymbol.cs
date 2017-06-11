@@ -141,6 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 DeclarationModifiers.Unsafe |
                 DeclarationModifiers.Abstract; // filtered out later
 
+            if (containingType.IsInterface)
+            {
+                allowedModifiers &= ~(DeclarationModifiers.Protected | DeclarationModifiers.ProtectedInternal);
+            }
+
             var errorLocation = new SourceLocation(firstIdentifier);
             DeclarationModifiers result = ModifierUtils.MakeAndCheckNontypeMemberModifiers(
                 modifiers, defaultAccess, allowedModifiers, errorLocation, diagnostics, out modifierErrors);
@@ -294,6 +299,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!modifierErrors)
             {
                 this.ReportModifiersDiagnostics(diagnostics);
+            }
+
+            if (containingType.IsInterface)
+            {
+                if (this.IsStatic)
+                {
+                    Binder.CheckFeatureAvailability(declarator, MessageID.IDS_DefaultInterfaceImplementation, diagnostics, ErrorLocation);
+                }
+                else 
+                {
+                    diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, ErrorLocation);
+                }
             }
         }
 

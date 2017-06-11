@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.CheckModifiers(location, isIndexer, diagnostics);
 
-            isAutoProperty = isAutoProperty && (!containingType.IsInterface && !IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
+            isAutoProperty = isAutoProperty && (!(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
 
             if (isIndexer && !isExplicitInterfaceImplementation)
             {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             DiagnosticBag diagnostics)
         {
-            if (_containingType.IsInterface)
+            if (_containingType.IsInterface && !IsStatic)
             {
                 diagnostics.Add(ErrorCode.ERR_AutoPropertyInitializerInInterface, location, this);
             }

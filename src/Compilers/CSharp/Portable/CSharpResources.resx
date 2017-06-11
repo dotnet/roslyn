@@ -514,7 +514,7 @@
     <value>Event is never used</value>
   </data>
   <data name="ERR_InterfaceEventInitializer" xml:space="preserve">
-    <value>'{0}': event in interface cannot have initializer</value>
+    <value>'{0}': instance event in interface cannot have initializer</value>
   </data>
   <data name="ERR_BadEventUsage" xml:space="preserve">
     <value>The event '{0}' can only appear on the left hand side of += or -= (except when used from within the type '{1}')</value>
@@ -1464,7 +1464,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>Struct member '{0}' of type '{1}' causes a cycle in the struct layout</value>
   </data>
   <data name="ERR_InterfacesCantContainFields" xml:space="preserve">
-    <value>Interfaces cannot contain fields</value>
+    <value>Interfaces cannot contain instance fields</value>
   </data>
   <data name="ERR_InterfacesCantContainConstructors" xml:space="preserve">
     <value>Interfaces cannot contain constructors</value>
@@ -4580,7 +4580,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Auto-implemented properties must override all accessors of the overridden property.</value>
   </data>
   <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
-    <value>Auto-implemented properties inside interfaces cannot have initializers.</value>
+    <value>Instance auto-implemented properties inside interfaces cannot have initializers.</value>
   </data>
   <data name="ERR_InitializerInStructWithoutExplicitConstructor" xml:space="preserve">
     <value>Structs without explicit constructors cannot contain members with initializers.</value>
