@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.NavigateTo
@@ -17,7 +14,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var serializableResults = await session.InvokeAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
-                new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
+                document.Id, searchPattern).ConfigureAwait(false);
 
             return serializableResults.SelectAsArray(r => r.Rehydrate(document.Project.Solution));
         }
@@ -27,7 +24,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var serializableResults = await session.InvokeAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
-                new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
+                project.Id, searchPattern).ConfigureAwait(false);
 
             return serializableResults.SelectAsArray(r => r.Rehydrate(project.Solution));
         }

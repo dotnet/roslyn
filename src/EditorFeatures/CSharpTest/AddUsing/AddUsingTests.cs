@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,9 +10,9 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -67,8 +66,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing
         internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(
             Workspace workspace, TestParameters parameters)
         {
-            workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, (bool)parameters.fixProviderData)
-                                                 .WithChangedOption(RemoteFeatureOptions.AddImportEnabled, (bool)parameters.fixProviderData);
+            var outOfProcess = (bool)parameters.fixProviderData;
+            workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
+                                                 .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
+                                                 .WithChangedOption(RemoteFeatureOptions.AddImportEnabled, outOfProcess);
 
             return base.CreateDiagnosticProviderAndFixer(workspace, parameters);
         }

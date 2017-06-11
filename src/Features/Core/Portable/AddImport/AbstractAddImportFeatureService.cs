@@ -55,34 +55,38 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract (string description, bool hasExistingImport) GetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
 
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            Document document, TextSpan span, string diagnosticId, ISymbolSearchService symbolSearchService,
-            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources,
-            CancellationToken cancellationToken)
+            Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies, 
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
             var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
                 RemoteFeatureOptions.AddImportEnabled, callbackTarget, cancellationToken).ConfigureAwait(false);
+
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             using (session)
             {
                 if (session == null)
                 {
                     return await GetFixesInCurrentProcessAsync(
-                        document, span, diagnosticId, symbolSearchService,
-                        searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
+                        document, span, diagnosticId, placeSystemNamespaceFirst,
+                        symbolSearchService, searchReferenceAssemblies,
+                        packageSources, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     return await GetFixesInRemoteProcessAsync(
-                        session, document, span, diagnosticId,
+                        session, document, span, diagnosticId, placeSystemNamespaceFirst,
                         searchReferenceAssemblies, packageSources).ConfigureAwait(false);
                 }
             }
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
-            Document document, TextSpan span, string diagnosticId, ISymbolSearchService symbolSearchService,
-            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
+            Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var node = root.FindToken(span.Start, findInsideTrivia: true)
@@ -91,9 +95,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             var result = ArrayBuilder<AddImportFixData>.GetInstance();
             if (node != null)
             {
-                var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var placeSystemNamespaceFirst = documentOptions.GetOption(
-                    GenerationOptions.PlaceSystemNamespaceFirst);
 
                 using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
                 {

@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal interface IAddImportFeatureService : ILanguageService
     {
         Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            Document document, TextSpan span, string diagnosticId, ISymbolSearchService symbolSearchService,
-            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
+            Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
+            ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken);
     }
 }

@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public abstract class RudeEditTestBase : CSharpTestBase
+    public abstract class EditingTestBase : CSharpTestBase
     {
         internal static readonly CSharpEditAndContinueAnalyzer Analyzer = new CSharpEditAndContinueAnalyzer();
 
