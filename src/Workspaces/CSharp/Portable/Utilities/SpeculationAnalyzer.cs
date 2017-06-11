@@ -379,6 +379,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
                 }
             }
+            else if (currentOriginalNode.Kind() == SyntaxKind.CaseSwitchLabel)
+            {
+                var originalCaseSwitchLabel = (CaseSwitchLabelSyntax)currentOriginalNode;
+                var newCaseSwitchLabel = (CaseSwitchLabelSyntax)currentReplacedNode;
+
+                // If case label is changing, then need to check if the semantics will change for the switch expression.  
+                // e.g. if switch expression is "object x = 1f", "case 1:" and "case (float) 1:" are different.
+                var originalCaseType = this.OriginalSemanticModel.GetTypeInfo(previousOriginalNode, this.CancellationToken).Type;
+                var newCaseType = this.SpeculativeSemanticModel.GetTypeInfo(previousReplacedNode, this.CancellationToken).Type;
+
+                if (originalCaseType == newCaseType)
+                    return false;
+
+                var oldSwitchStatement = originalCaseSwitchLabel?.Parent?.Parent as SwitchStatementSyntax;
+                var newSwitchStatement = newCaseSwitchLabel?.Parent?.Parent as SwitchStatementSyntax;
+                if (oldSwitchStatement == null || newSwitchStatement == null)
+                {
+                    return false;
+                }
+
+                var originalConversion = this.OriginalSemanticModel.ClassifyConversion(oldSwitchStatement.Expression, originalCaseType);
+                var newConversion = this.SpeculativeSemanticModel.ClassifyConversion(newSwitchStatement.Expression, newCaseType);
+                
+                if (originalConversion.Exists != newConversion.Exists)
+                {
+                    return true;
+                }
+
+                // if the conversions are equal and the target types are different, then semantics changed.
+                return originalConversion == newConversion;
+            }
             else if (currentOriginalNode.Kind() == SyntaxKind.SwitchStatement)
             {
                 var originalSwitchStatement = (SwitchStatementSyntax)currentOriginalNode;
