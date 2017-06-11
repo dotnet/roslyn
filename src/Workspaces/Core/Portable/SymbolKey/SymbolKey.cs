@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis
         private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
             Compilation compilation,
             bool ignoreAssemblyKey,
-            IEnumerable<INamedTypeSymbol> types,
+            ImmutableArray<INamedTypeSymbol> types,
             int arity,
             ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
         {

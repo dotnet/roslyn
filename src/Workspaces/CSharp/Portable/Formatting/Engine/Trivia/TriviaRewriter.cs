@@ -198,19 +198,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var leadingTrivia = token.LeadingTrivia;
             var trailingTrivia = token.TrailingTrivia;
 
-            if (_trailingTriviaMap.ContainsKey(token))
+            if (_trailingTriviaMap.TryGetValue(token, out var tt))
             {
                 // okay, we have this situation
                 // token|trivia
-                trailingTrivia = _trailingTriviaMap[token];
+                trailingTrivia = tt;
                 hasChanges = true;
             }
 
-            if (_leadingTriviaMap.ContainsKey(token))
+            if (_leadingTriviaMap.TryGetValue(token, out var lt))
             {
                 // okay, we have this situation
                 // trivia|token
-                leadingTrivia = _leadingTriviaMap[token];
+                leadingTrivia = lt;
                 hasChanges = true;
             }
 

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
         private readonly SolutionInfo _solutionInfo;
         private readonly SolutionServices _solutionServices;
-        private readonly IReadOnlyList<ProjectId> _projectIds;
+        private readonly ImmutableArray<ProjectId> _projectIds;
         private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
         private readonly ImmutableDictionary<string, ImmutableArray<DocumentId>> _linkedFilesMap;
         private readonly Lazy<VersionStamp> _lazyLatestProjectVersion;
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis
         // [Conditional("DEBUG")]
         private void CheckInvariants()
         {
-            Contract.ThrowIfTrue(_projectIds.Count != _projectIdToProjectStateMap.Count);
+            Contract.ThrowIfTrue(_projectIds.Length != _projectIdToProjectStateMap.Count);
 
             // An id shouldn't point at a tracker for a different project.
             Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
 
         private SolutionState Branch(
             SolutionInfo solutionInfo = null,
-            IEnumerable<ProjectId> projectIds = null,
+            ImmutableArray<ProjectId> projectIds = default(ImmutableArray<ProjectId>),
             ImmutableDictionary<ProjectId, ProjectState> idToProjectStateMap = null,
             ImmutableDictionary<ProjectId, CompilationTracker> projectIdToTrackerMap = null,
             ImmutableDictionary<string, ImmutableArray<DocumentId>> linkedFilesMap = null,
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis
             var branchId = GetBranchId();
 
             solutionInfo = solutionInfo ?? _solutionInfo;
-            projectIds = projectIds ?? _projectIds;
+            if (projectIds == default(ImmutableArray<ProjectId>)) { projectIds = _projectIds; }
             idToProjectStateMap = idToProjectStateMap ?? _projectIdToProjectStateMap;
             projectIdToTrackerMap = projectIdToTrackerMap ?? _projectIdToTrackerMap;
             linkedFilesMap = linkedFilesMap ?? _linkedFilesMap;
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         private static ProjectDependencyGraph CreateDependencyGraph(
-            IReadOnlyList<ProjectId> projectIds,
+            ImmutableArray<ProjectId> projectIds,
             ImmutableDictionary<ProjectId, ProjectState> projectStates)
         {
             var map = projectStates.Values.Select(state => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis
                     state.ProjectReferences.Where(pr => projectStates.ContainsKey(pr.ProjectId)).Select(pr => pr.ProjectId).ToImmutableHashSet()))
                     .ToImmutableDictionary();
 
-            return new ProjectDependencyGraph(projectIds.ToImmutableArray(), map);
+            return new ProjectDependencyGraph(projectIds, map);
         }
 
         private ImmutableDictionary<ProjectId, CompilationTracker> CreateCompilationTrackerMap(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
