@@ -195,22 +195,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // get token span
 
             // check whether we have trivia info belongs to this token
-            var leadingTrivia = token.LeadingTrivia;
-            var trailingTrivia = token.TrailingTrivia;
 
-            if (_trailingTriviaMap.ContainsKey(token))
+            if (_trailingTriviaMap.TryGetValue(token, out var trailingTrivia))
             {
                 // okay, we have this situation
                 // token|trivia
-                trailingTrivia = _trailingTriviaMap[token];
                 hasChanges = true;
             }
 
-            if (_leadingTriviaMap.ContainsKey(token))
+            if (_leadingTriviaMap.TryGetValue(token, out var leadingTrivia))
             {
                 // okay, we have this situation
                 // trivia|token
-                leadingTrivia = _leadingTriviaMap[token];
                 hasChanges = true;
             }
 
@@ -223,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             return token;
         }
 
-        private SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
+        private static SyntaxToken CreateNewToken(SyntaxTriviaList leadingTrivia, SyntaxToken token, SyntaxTriviaList trailingTrivia)
         {
             return token.With(leadingTrivia, trailingTrivia);
         }
