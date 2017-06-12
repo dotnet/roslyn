@@ -337,7 +337,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [Fact]
-        public void ConversionExpression_Implicit_NullToNullableConversion()
+        public void ConversionExpression_Implicit_NullToClassConversion()
         {
             string source = @"
 class Program
@@ -359,6 +359,38 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 // CS0219: The variable 's1' is assigned but its value is never used
                 //         string /*<bind>*/s1 = null/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s1").WithArguments("s1").WithLocation(6, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_NullToNullableValueConversion()
+        {
+            string source = @"
+interface I1
+{
+}
+
+struct S1
+{
+    void M1()
+    {
+        S1? /*<bind>*/s1 = null/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'S1? /*<bind ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'S1? /*<bind ... *</bind>*/;')
+    Variables: Local_1: S1? s1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: S1?, Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 's1' is assigned but its value is never used
+                //         S1? /*<bind>*/s1 = null/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s1").WithArguments("s1").WithLocation(10, 23)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -1235,8 +1267,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         /// <summary>
-        /// This method is documenting the fact that, as of right now, there is no conversion expression here.
-        /// Once https://github.com/dotnet/roslyn/issues/20095 is resolved, there will be, and this test should
+        /// This method is documenting the fact that there is no conversion expression here.
         /// be updated.
         /// </summary>
         [Fact]
@@ -1262,45 +1293,6 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
-
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
-        }
-
-        /// <summary>
-        /// This method is documenting the fact that, as of right now, there is no conversion expression here.
-        /// Once https://github.com/dotnet/roslyn/issues/20095 is resolved, there will be, and this test should
-        /// be updated.
-        /// </summary>
-        [Fact]
-        public void ConversionExpression_Implicit_ReferenceMethodToDelegateConversion_InvalidMismatchedTypes_NoConversion()
-        {
-            string source = @"
-class Program
-{
-    delegate void DType();
-    void Main()
-    {
-        DType /*<bind>*/d1 = M1/*</bind>*/;
-    }
-
-    string M1()
-    {
-        return null;
-    }
-}
-";
-            string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
-    Variables: Local_1: Program.DType d1
-    Initializer: IMethodBindingExpression: System.String Program.M1() (OperationKind.MethodBindingExpression, Type: Program.DType, IsInvalid) (Syntax: 'M1')
-        Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Implicit) (OperationKind.InstanceReferenceExpression, Type: Program) (Syntax: 'M1')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0407: 'string Program.M1()' has the wrong return type
-                //         DType /*<bind>*/d1 = M1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_BadRetType, "M1").WithArguments("Program.M1()", "string").WithLocation(7, 30)
-            };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1337,6 +1329,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         [Fact]
         public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion()
         {
+            // TODO: There should be an IDelegateCreationExpression (or something like it) here, wrapping the IConversionExpression.
+            // See https://github.com/dotnet/roslyn/issues/20095.
             string source = @"
 class Program
 {
@@ -1352,9 +1346,1220 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'DType /*<bi ... *</bind>*/;')
     Variables: Local_1: Program.DType d1
     Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Program.DType) (Syntax: '() => { }')
-        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: Program.DType) (Syntax: '() => { }')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => { }')
           IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
             IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidMismatchedTypes()
+        {
+            string source = @"
+class Program
+{
+    delegate void DType();
+    void Main()
+    {
+        DType /*<bind>*/d1 = (string s) => { }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
+    Variables: Local_1: Program.DType d1
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid) (Syntax: '(string s) => { }')
+        IUnboundLambdaExpression (OperationKind.UnboundLambdaExpression, Type: null) (Syntax: '(string s) => { }')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1593: Delegate 'Program.DType' does not take 1 arguments
+                //         DType /*<bind>*/d1 = (string s) => { }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "(string s) => { }").WithArguments("Program.DType", "1").WithLocation(7, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConversion_InvalidSyntax()
+        {
+            string source = @"
+class Program
+{
+    delegate void DType();
+    void Main()
+    {
+        DType /*<bind>*/d1 = () =>/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'DType /*<bi ... *</bind>*/;')
+    Variables: Local_1: Program.DType d1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Program.DType, IsInvalid) (Syntax: '() =>/*</bind>*/')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: '() =>/*</bind>*/')
+          IBlockStatement (2 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '')
+            IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: '')
+              IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+            IReturnStatement (OperationKind.ReturnStatement) (Syntax: '')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term ';'
+                //         DType /*<bind>*/d1 = () =>/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 46)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        /// <summary>
+        /// This is documenting the fact that there are currently not conversion expressions in this tree. Once
+        /// https://github.com/dotnet/roslyn/issues/18839 is addressed, there should be.
+        /// </summary>
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceLambdaToDelegateConstructor_NoConversion()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Action a = /*<bind>*/new Action(() => { })/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IOperation:  (OperationKind.None) (Syntax: 'new Action(() => { })')
+  Children(1): ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => { }')
+      IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+        IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            var a = new Action(() => { });
+
+            VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTransitiveConversion()
+        {
+            string source = @"
+class C1
+{
+    void M1()
+    {
+        C1 /*<bind>*/c1 = new C3()/*</bind>*/;
+    }
+}
+
+class C2 : C1
+{
+}
+
+class C3 : C2
+{
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C1 c1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: C1) (Syntax: 'new C3()')
+        IObjectCreationExpression (Constructor: C3..ctor()) (OperationKind.ObjectCreationExpression, Type: C3) (Syntax: 'new C3()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceCovarianceTransitiveConversion()
+        {
+            string source = @"
+interface I1<in T>
+{
+}
+
+class C1<T> : I1<T>
+{
+    void M1()
+    {
+        C2<C3> c2 = new C2<C3>();
+        I1<C4> /*<bind>*/c1 = c2/*</bind>*/;
+    }
+}
+
+class C2<T> : C1<T>
+{
+}
+
+class C3
+{
+}
+
+class C4 : C3
+{
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'I1<C4> /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'I1<C4> /*<b ... *</bind>*/;')
+    Variables: Local_1: I1<C4> c1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1<C4>) (Syntax: 'c2')
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>) (Syntax: 'c2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceCovarianceTransitiveConversion_Invalid()
+        {
+            string source = @"
+interface I1<in T>
+{
+}
+
+class C1<T> : I1<T>
+{
+    void M1()
+    {
+        C2<C4> c2 = new C2<C4>();
+        I1<C3> /*<bind>*/c1 = c2/*</bind>*/;
+    }
+}
+
+class C2<T> : C1<T>
+{
+}
+
+class C3
+{
+}
+
+class C4 : C3
+{
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1<C3> /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1<C3> /*<b ... *</bind>*/;')
+    Variables: Local_1: I1<C3> c1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1<C3>, IsInvalid) (Syntax: 'c2')
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C4>) (Syntax: 'c2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'C2<C4>' to 'I1<C3>'. An explicit conversion exists (are you missing a cast?)
+                //         I1<C3> /*<bind>*/c1 = c2/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c2").WithArguments("C2<C4>", "I1<C3>").WithLocation(11, 31)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceContravarianceTransitiveConversion()
+        {
+            string source = @"
+interface I1<out T>
+{
+}
+
+class C1<T> : I1<T>
+{
+    void M1()
+    {
+        C2<C4> c2 = new C2<C4>();
+        I1<C3> /*<bind>*/c1 = c2/*</bind>*/;
+    }
+}
+
+class C2<T> : C1<T>
+{
+}
+
+class C3
+{
+}
+
+class C4 : C3
+{
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'I1<C3> /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'I1<C3> /*<b ... *</bind>*/;')
+    Variables: Local_1: I1<C3> c1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1<C3>) (Syntax: 'c2')
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C4>) (Syntax: 'c2')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceContravarianceTransitiveConversion_Invalid()
+        {
+            string source = @"
+interface I1<out T>
+{
+}
+
+class C1<T> : I1<T>
+{
+    void M1()
+    {
+        C2<C3> c2 = new C2<C3>();
+        I1<C4> /*<bind>*/c1 = c2/*</bind>*/;
+    }
+}
+
+class C2<T> : C1<T>
+{
+}
+
+class C3
+{
+}
+
+class C4 : C3
+{
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1<C4> /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1<C4> /*<b ... *</bind>*/;')
+    Variables: Local_1: I1<C4> c1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1<C4>, IsInvalid) (Syntax: 'c2')
+        ILocalReferenceExpression: c2 (OperationKind.LocalReferenceExpression, Type: C2<C3>) (Syntax: 'c2')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'C2<C3>' to 'I1<C4>'. An explicit conversion exists (are you missing a cast?)
+                //         I1<C4> /*<bind>*/c1 = c2/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c2").WithArguments("C2<C3>", "I1<C4>").WithLocation(11, 31)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceInvariantTransitiveConversion()
+        {
+            string source = @"
+using System.Collections.Generic;
+
+class C1
+{
+    static void M1()
+    {
+        IList<string> /*<bind>*/list = new List<string>()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'IList<strin ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'IList<strin ... *</bind>*/;')
+    Variables: Local_1: System.Collections.Generic.IList<System.String> list
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IList<System.String>) (Syntax: 'new List<string>()')
+        IObjectCreationExpression (Constructor: System.Collections.Generic.List<System.String>..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.List<System.String>) (Syntax: 'new List<string>()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterClassConversion()
+        {
+            string source = @"
+class C1
+{
+    static void M1<T>()
+        where T : C2, new()
+    {
+        C1 /*<bind>*/c1 = new T()/*</bind>*/;
+    }
+}
+
+class C2 : C1
+{
+
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C1 c1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: C1) (Syntax: 'new T()')
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'new T()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterClassConversion_InvalidConversion()
+        {
+            string source = @"
+class C1
+{
+    static void M1<T>()
+        where T : class, new()
+    {
+        C1 /*<bind>*/c1 = new T()/*</bind>*/;
+    }
+}
+
+class C2 : C1
+{
+
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'C1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C1 c1
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: C1, IsInvalid) (Syntax: 'new T()')
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'new T()')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'T' to 'C1'
+                //         C1 /*<bind>*/c1 = new T()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new T()").WithArguments("T", "C1").WithLocation(7, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterInterfaceConversion()
+        {
+            string source = @"
+interface I1
+{
+}
+
+class C1 : I1
+{
+    static void M1<T>()
+        where T : C1, new()
+    {
+        I1 /*<bind>*/i1 = new T()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: I1 i1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1) (Syntax: 'new T()')
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'new T()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterToInterfaceConversion_InvalidConversion()
+        {
+            string source = @"
+interface I1
+{
+}
+
+class C1
+{
+    static void M1<T>()
+        where T : C1, new()
+    {
+        I1 /*<bind>*/i1 = new T()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: I1 i1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1, IsInvalid) (Syntax: 'new T()')
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'new T()')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'T' to 'I1'. An explicit conversion exists (are you missing a cast?)
+                //         I1 /*<bind>*/i1 = new T()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new T()").WithArguments("T", "I1").WithLocation(11, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterToConstraintParameterConversion()
+        {
+            string source = @"
+interface I1
+{
+}
+
+class C1
+{
+    static void M1<T, U>()
+        where T : U, new()
+        where U : class
+    {
+        U /*<bind>*/u = new T()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'U /*<bind>* ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'U /*<bind>* ... *</bind>*/;')
+    Variables: Local_1: U u
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: U) (Syntax: 'new T()')
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'new T()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterToConstraintParameter_InvalidConversion()
+        {
+            string source = @"
+interface I1
+{
+}
+
+class C1
+{
+    static void M1<T, U>()
+        where T : class, new()
+        where U : class
+    {
+        U /*<bind>*/u = new T()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'U /*<bind>* ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'U /*<bind>* ... *</bind>*/;')
+    Variables: Local_1: U u
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: U, IsInvalid) (Syntax: 'new T()')
+        ITypeParameterObjectCreationExpression (OperationKind.TypeParameterObjectCreationExpression, Type: T) (Syntax: 'new T()')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'T' to 'U'
+                //         U /*<bind>*/u = new T()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new T()").WithArguments("T", "U").WithLocation(12, 25)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterFromNull()
+        {
+            string source = @"
+interface I1
+{
+}
+
+class C1
+{
+    static void M1<T, U>()
+        where T : class, new()
+    {
+        T /*<bind>*/t = null/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'T /*<bind>* ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'T /*<bind>* ... *</bind>*/;')
+    Variables: Local_1: T t
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: T, Constant: null) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 't' is assigned but its value is never used
+                //         T /*<bind>*/t = null/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t").WithArguments("t").WithLocation(11, 21)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReferenceTypeParameterFromNull_InvalidNoReferenceConstraint()
+        {
+            string source = @"
+interface I1
+{
+}
+
+class C1
+{
+    static void M1<T, U>()
+        where T : new()
+    {
+        T /*<bind>*/t = null/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'T /*<bind>* ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'T /*<bind>* ... *</bind>*/;')
+    Variables: Local_1: T t
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: T, IsInvalid) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0403: Cannot convert null to type parameter 'T' because it could be a non-nullable value type. Consider using 'default(T)' instead.
+                //         T /*<bind>*/t = null/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(11, 25)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingNonNullableValueToObjectConversion()
+        {
+            string source = @"
+
+class C1
+{
+    static void M1()
+    {
+        int i = 1;
+        object /*<bind>*/o = i/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'object /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'object /*<b ... *</bind>*/;')
+    Variables: Local_1: System.Object o
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Object) (Syntax: 'i')
+        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingNonNullableValueToDynamicConversion()
+        {
+            string source = @"
+
+class C1
+{
+    static void M1()
+    {
+        int i = 1;
+        dynamic /*<bind>*/d = i/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'dynamic /*< ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'dynamic /*< ... *</bind>*/;')
+    Variables: Local_1: dynamic d
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: dynamic) (Syntax: 'i')
+        ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingValueToSystemValueTypeConversion()
+        {
+            string source = @"
+using System;
+
+struct S1
+{
+    void M1()
+    {
+        ValueType /*<bind>*/v1 = new S1()/*</bind>*/;
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'ValueType / ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'ValueType / ... *</bind>*/;')
+    Variables: Local_1: System.ValueType v1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.ValueType) (Syntax: 'new S1()')
+        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1) (Syntax: 'new S1()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingNonNullableValueToSystemValueTypeConversion_InvalidNonValueType()
+        {
+            string source = @"
+using System;
+
+class C1
+{
+    void M1()
+    {
+        ValueType /*<bind>*/v1 = new C1()/*</bind>*/;
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'ValueType / ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'ValueType / ... *</bind>*/;')
+    Variables: Local_1: System.ValueType v1
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.ValueType, IsInvalid) (Syntax: 'new C1()')
+        IObjectCreationExpression (Constructor: C1..ctor()) (OperationKind.ObjectCreationExpression, Type: C1) (Syntax: 'new C1()')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'C1' to 'System.ValueType'
+                //         ValueType /*<bind>*/v1 = new C1()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C1()").WithArguments("C1", "System.ValueType").WithLocation(8, 34)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingNonNullableValueToImplementingInterfaceConversion()
+        {
+            string source = @"
+interface I1
+{
+}
+
+struct S1 : I1
+{
+    void M1()
+    {
+        I1 /*<bind>*/i1 = new S1()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: I1 i1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1) (Syntax: 'new S1()')
+        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1) (Syntax: 'new S1()')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingNonNullableValueToImplementingInterfaceConversion_InvalidNotImplementing()
+        {
+            string source = @"
+interface I1
+{
+}
+
+struct S1
+{
+    void M1()
+    {
+        I1 /*<bind>*/i1 = new S1()/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: I1 i1
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: I1, IsInvalid) (Syntax: 'new S1()')
+        IObjectCreationExpression (Constructor: S1..ctor()) (OperationKind.ObjectCreationExpression, Type: S1) (Syntax: 'new S1()')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'S1' to 'I1'
+                //         I1 /*<bind>*/i1 = new S1()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new S1()").WithArguments("S1", "I1").WithLocation(10, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingNullableValueToImplementingInterfaceConversion()
+        {
+            string source = @"
+interface I1
+{
+}
+
+struct S1 : I1
+{
+    void M1()
+    {
+        S1? s1 = null;
+        I1 /*<bind>*/i1 = s1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: I1 i1
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: I1) (Syntax: 's1')
+        ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: S1?) (Syntax: 's1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingNullableValueToImplementingInterfaceConversion_InvalidNotImplementing()
+        {
+            string source = @"
+interface I1
+{
+}
+
+struct S1
+{
+    void M1()
+    {
+        S1? s1 = null;
+        I1 /*<bind>*/i1 = s1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I1 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: I1 i1
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: I1, IsInvalid) (Syntax: 's1')
+        ILocalReferenceExpression: s1 (OperationKind.LocalReferenceExpression, Type: S1?) (Syntax: 's1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'S1?' to 'I1'
+                //         I1 /*<bind>*/i1 = s1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1?", "I1").WithLocation(11, 27)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingEnumToSystemEnumConversion()
+        {
+            string source = @"
+using System;
+
+enum E1
+{
+    E
+}
+
+struct S1
+{
+    void M1()
+    {
+        Enum /*<bind>*/e = E1.E/*</bind>*/;
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Enum /*<bin ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Enum /*<bin ... *</bind>*/;')
+    Variables: Local_1: System.Enum e
+    Initializer: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Enum) (Syntax: 'E1.E')
+        IFieldReferenceExpression: E1.E (Static) (OperationKind.FieldReferenceExpression, Type: E1, Constant: 0) (Syntax: 'E1.E')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_BoxingEnumToSystemEnumConversion_InvalidNotEnum()
+        {
+            string source = @"
+using System;
+
+enum E1
+{
+    E
+}
+
+struct S1
+{
+    void M1()
+    {
+        Enum /*<bind>*/e = 1/*</bind>*/;
+    }
+}
+
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Enum /*<bin ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Enum /*<bin ... *</bind>*/;')
+    Variables: Local_1: System.Enum e
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Enum, IsInvalid) (Syntax: '1')
+        ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int' to 'System.Enum'
+                //         Enum /*<bind>*/e = 1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Enum").WithLocation(13, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_DynamicConversionToClass()
+        {
+            string source = @"
+class S1
+{
+    void M1()
+    {
+        dynamic d1 = 1;
+        string /*<bind>*/s1 = d1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'string /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'string /*<b ... *</bind>*/;')
+    Variables: Local_1: System.String s1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.String) (Syntax: 'd1')
+        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_DynamicConversionToValueType()
+        {
+            string source = @"
+class S1
+{
+    void M1()
+    {
+        dynamic d1 = null;
+        int /*<bind>*/i1 = d1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'int /*<bind ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'int /*<bind ... *</bind>*/;')
+    Variables: Local_1: System.Int32 i1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'd1')
+        ILocalReferenceExpression: d1 (OperationKind.LocalReferenceExpression, Type: dynamic) (Syntax: 'd1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ConstantExpressionConversion()
+        {
+            string source = @"
+class S1
+{
+    void M1()
+    {
+        const int i1 = 1;
+        const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'const /*<bi ... *</bind>*/;')
+    Variables: Local_1: System.SByte s1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.SByte, Constant: 1) (Syntax: 'i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 's1' is assigned but its value is never used
+                //         const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s1").WithArguments("s1").WithLocation(7, 31)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ConstantExpressionConversion_InvalidValueTooLarge()
+        {
+            string source = @"
+class S1
+{
+    void M1()
+    {
+        const int i1 = 0x1000;
+        const sbyte /*<bind>*/s1 = i1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const sbyte ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const sbyte ... *</bind>*/;')
+    Variables: Local_1: System.SByte s1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid) (Syntax: 'i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 4096) (Syntax: 'i1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0031: Constant value '4096' cannot be converted to a 'sbyte'
+                //         const sbyte /*<bind>*/s1 = i1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "i1").WithArguments("4096", "sbyte").WithLocation(7, 36)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ConstantExpressionConversion_InvalidNonConstantExpression()
+        {
+            string source = @"
+class S1
+{
+    void M1()
+    {
+        int i1 = 0;
+        const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+    Variables: Local_1: System.SByte s1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid) (Syntax: 'i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'int' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
+                //         const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i1").WithArguments("int", "sbyte").WithLocation(7, 36)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_UserDefinedConversion()
+        {
+            string source = @"
+class C1
+{
+    void M1()
+    {
+        C2 /*<bind>*/c2 = this/*</bind>*/;
+    }
+}
+
+class C2
+{
+    public static implicit operator C2(C1 c1)
+    {
+        return null;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C2 c2
+    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: C2 C2.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: C2) (Syntax: 'this')
+        IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_UserDefinedMultiImplicitStepConversion()
+        {
+            string source = @"
+class C1
+{
+    void M1()
+    {
+        int i1 = 1;
+        C2 /*<bind>*/c2 = i1/*</bind>*/;
+    }
+}
+
+class C2
+{
+    public static implicit operator C2(long c1)
+    {
+        return null;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C2 c2
+    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.ConversionExpression, Type: C2) (Syntax: 'i1')
+        IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'i1')
+          ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_UserDefinedMultiImplicitAndExplicitStepConversion()
+        {
+            string source = @"
+class C1
+{
+    void M1()
+    {
+        int i1 = 1;
+        C2 /*<bind>*/c2 = (int)this/*</bind>*/;
+    }
+
+    public static implicit operator int(C1 c1)
+    {
+        return 1;
+    }
+}
+
+class C2
+{
+    public static implicit operator C2(long c1)
+    {
+        return null;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C2 c2
+    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: C2 C2.op_Implicit(System.Int64 c1)) (OperationKind.ConversionExpression, Type: C2) (Syntax: '(int)this')
+        IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: '(int)this')
+          IConversionExpression (ConversionKind.OperatorMethod, Explicit) (OperatorMethod: System.Int32 C1.op_Implicit(C1 c1)) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: '(int)this')
+            IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'i1' is assigned but its value is never used
+                //         int i1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(6, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_UserDefinedMultiImplicitAndExplicitStepConversion_InvalidMissingExplicitConversion()
+        {
+            string source = @"
+class C1
+{
+    void M1()
+    {
+        int i1 = 1;
+        C2 /*<bind>*/c2 = this/*</bind>*/;
+    }
+
+    public static implicit operator int(C1 c1)
+    {
+        return 1;
+    }
+}
+
+class C2
+{
+    public static implicit operator C2(long c1)
+    {
+        return null;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'C2 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C2 c2
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: C2, IsInvalid) (Syntax: 'this')
+        IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C1) (Syntax: 'this')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'C1' to 'C2'
+                //         C2 /*<bind>*/c2 = this/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "this").WithArguments("C1", "C2").WithLocation(7, 27),
+                // CS0219: The variable 'i1' is assigned but its value is never used
+                //         int i1 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(6, 13)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_UserDefinedMultipleCandidateConversion()
+        {
+            string source = @"
+class C1
+{
+}
+
+class C2 : C1
+{
+    void M1()
+    {
+        C3 /*<bind>*/c3 = this/*</bind>*/;
+    }
+}
+
+class C3
+{
+    public static implicit operator C3(C1 c1)
+    {
+        return null;
+    }
+
+    public static implicit operator C3(C2 c2)
+    {
+        return null;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'C3 /*<bind> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'C3 /*<bind> ... *</bind>*/;')
+    Variables: Local_1: C3 c3
+    Initializer: IConversionExpression (ConversionKind.OperatorMethod, Implicit) (OperatorMethod: C3 C3.op_Implicit(C2 c2)) (OperationKind.ConversionExpression, Type: C3) (Syntax: 'this')
+        IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: C2) (Syntax: 'this')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
