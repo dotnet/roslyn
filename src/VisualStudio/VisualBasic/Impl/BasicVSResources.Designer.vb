@@ -443,11 +443,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; expressions.
+        '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; calls.
         '''</summary>
-        Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_expressions() As String
+        Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_calls() As String
             Get
-                Return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_expressions", resourceCulture)
+                Return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_calls", resourceCulture)
             End Get
         End Property
         

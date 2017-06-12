@@ -179,9 +179,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_expressions As String
+        Public ReadOnly Property Option_Report_invalid_placeholders_in_string_dot_format_calls As String
             Get
-                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_expressions
+                Return BasicVSResources.Report_invalid_placeholders_in_string_dot_format_calls
             End Get
         End Property
 

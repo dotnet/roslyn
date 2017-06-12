@@ -1024,11 +1024,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Report invalid placeholders in &apos;string.Format&apos; expressions.
+        ///   Looks up a localized string similar to Report invalid placeholders in &apos;string.Format&apos; calls.
         /// </summary>
-        internal static string Report_invalid_placeholders_in_string_dot_format_expressions {
+        internal static string Report_invalid_placeholders_in_string_dot_format_calls {
             get {
-                return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_expressions", resourceCulture);
+                return ResourceManager.GetString("Report_invalid_placeholders_in_string_dot_format_calls", resourceCulture);
             }
         }
         

@@ -19,8 +19,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         Private Function VBOptionOnCSharpOptionOff() As IDictionary(Of OptionKey, Object)
             Dim optionsSet = New Dictionary(Of OptionKey, Object) From
             {
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.CSharp), False},
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.VisualBasic), True}
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), False},
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), True}
             }
 
             Return optionsSet
@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ValidateFormatStri
         Private Function VBOptionOffCSharpOptionOn() As IDictionary(Of OptionKey, Object)
             Dim optionsSet = New Dictionary(Of OptionKey, Object) From
             {
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.CSharp), True},
-                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression, LanguageNames.VisualBasic), False}
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp), True},
+                {New OptionKey(ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.VisualBasic), False}
             }
 
             Return optionsSet
@@ -70,8 +70,6 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function OnePlaceholderOutOfBounds() As Task
-            Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{1}")
             Await TestDiagnosticInfoAsync("
 Class C
      Sub Main 
@@ -81,13 +79,11 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=diagnosticMessage)
+        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function FourPlaceholdersWithOnePlaceholderOutOfBounds() As Task
-            Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{4}")
             Await TestDiagnosticInfoAsync("
 Class C
      Sub Main 
@@ -97,13 +93,11 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=diagnosticMessage)
+        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function IFormatProviderAndTwoPlaceholdersWithOnePlaceholderOutOfBounds() As Task
-            Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}")
             Await TestDiagnosticInfoAsync("
 Imports System.Globalization
 Class C
@@ -115,7 +109,7 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=diagnosticMessage)
+        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -130,8 +124,6 @@ End Class")
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function NamedParametersOneOutOfBounds() As Task
-            Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}")
             Await TestDiagnosticInfoAsync("
 Class C
      Sub Main 
@@ -141,7 +133,7 @@ End Class",
         options:=Nothing,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=diagnosticMessage)
+        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
@@ -289,6 +281,15 @@ End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
+        Public Async Function OmittedArgument() As Task
+            Await TestDiagnosticMissingAsync("Module M
+    Sub Main()
+         String.Format([||],)
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function WarningTurnedOff() As Task
             Await TestDiagnosticMissingAsync("
 Class C
@@ -300,8 +301,6 @@ End Class", New TestParameters(options:=VBOptionOffCSharpOptionOn))
 
         <Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)>
         Public Async Function WarningTurnedOn() As Task
-            Dim diagnosticMessage = String.Format(
-                FeaturesResources.Format_string_contains_invalid_placeholder_0, "{2}")
             Await TestDiagnosticInfoAsync("
 Class C
      Sub Main 
@@ -311,7 +310,7 @@ End Class",
         options:=VBOptionOnCSharpOptionOff,
         diagnosticId:=IDEDiagnosticIds.ValidateFormatStringDiagnosticID,
         diagnosticSeverity:=DiagnosticSeverity.Warning,
-        diagnosticMessage:=diagnosticMessage)
+        diagnosticMessage:=FeaturesResources.Format_string_contains_invalid_placeholder)
         End Function
     End Class
 End Namespace

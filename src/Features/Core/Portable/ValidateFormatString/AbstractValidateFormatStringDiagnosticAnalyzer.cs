@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             typeof(FeaturesResources));
 
         private static readonly LocalizableString MessageFormat = new LocalizableResourceString(
-            nameof(FeaturesResources.Format_string_contains_invalid_placeholder_0),
+            nameof(FeaturesResources.Format_string_contains_invalid_placeholder),
             FeaturesResources.ResourceManager,
             typeof(FeaturesResources));
 
@@ -55,16 +55,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         protected abstract ISyntaxFactsService GetSyntaxFactsService();
         protected abstract TSyntaxKind GetInvocationExpressionSyntaxKind();
         protected abstract SyntaxNode GetArgumentExpression(SyntaxNode syntaxNode);
-        protected abstract ITypeSymbol GetArgumentExpressionType(SemanticModel semanticModel, SyntaxNode argsArgument);
-        protected abstract SyntaxNode GetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
-        protected abstract bool ArgumentExpressionIsStringLiteral(SyntaxNode syntaxNode);
+        protected abstract SyntaxNode TryGetMatchingNamedArgument(SeparatedSyntaxList<SyntaxNode> arguments, string searchArgumentName);
 
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterCompilationStartAction(startContext =>
             {
-                var formatProviderType = startContext.Compilation.GetTypeByMetadataName(
-                    "System.IFormatProvider");
+                var formatProviderType = startContext.Compilation.GetTypeByMetadataName(typeof(System.IFormatProvider).FullName);
                 if (formatProviderType == null)
                 {
                     return;
@@ -82,7 +79,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
 
             if (optionSet?.GetOption(
-                ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatExpression,
+                ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
                 context.SemanticModel.Language) == false)
             {
                 return;
@@ -113,7 +110,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             // argument at a time because we know the set of overloads and how overload resolution
             // will work.  This array may have been created somewhere we can't analyze, so never
             // squiggle in this case.
-            if (ArgsIsArrayOfReferenceTypes(context.SemanticModel, arguments, parameters))
+            if (ArgsIsArrayOfReferenceTypes(context.SemanticModel, arguments, parameters, syntaxFacts))
             {
                 return;
             }
@@ -121,7 +118,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             var formatStringLiteralExpressionSyntax = TryGetFormatStringLiteralExpressionSyntax(
                 context.SemanticModel,
                 arguments,
-                parameters);
+                parameters,
+                syntaxFacts);
 
             if (formatStringLiteralExpressionSyntax == null)
             { 
@@ -159,16 +157,16 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             {
                 var nameOfMemberAccessExpression = syntaxFacts.GetNameOfMemberAccessExpression(expression);
                 return !syntaxFacts.IsGenericName(nameOfMemberAccessExpression)
-                    && syntaxFacts.GetIdentifierOfSimpleName(nameOfMemberAccessExpression).
-                    ValueText.Equals(nameof(string.Format));
+                    && syntaxFacts.GetIdentifierOfSimpleName(nameOfMemberAccessExpression).ValueText
+                    == (nameof(string.Format));
             }
 
             // When using static System.String and calling Format(...), the expression will be
             // IdentifierNameSyntax
             if (syntaxFacts.IsIdentifierName(expression))
             {
-                return syntaxFacts.GetIdentifierOfSimpleName(expression).ValueText.Equals(
-                    nameof(string.Format));
+                return syntaxFacts.GetIdentifierOfSimpleName(expression).ValueText
+                    == (nameof(string.Format));
             }
 
             return false;
@@ -177,30 +175,27 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         private bool ArgsIsArrayOfReferenceTypes(
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
-            ImmutableArray<IParameterSymbol> parameters)
+            ImmutableArray<IParameterSymbol> parameters,
+            ISyntaxFactsService syntaxFacts)
         {
-            var argsArgumentType = TryGetArgsArgumentType(semanticModel, arguments, parameters);
-            if (argsArgumentType == null)
-            {
-                return false;
-            }
-
-            if (argsArgumentType.TypeKind != TypeKind.Array)
-            {
-                return false;
-            }
-
-            var argsArray = (IArrayTypeSymbol)argsArgumentType;
-            return argsArray.ElementType.IsReferenceType;
+            var argsArgumentType = TryGetArgsArgumentType(semanticModel, arguments, parameters, syntaxFacts);
+            return argsArgumentType is IArrayTypeSymbol arrayType && arrayType.ElementType.IsReferenceType;
         }
 
         private ITypeSymbol TryGetArgsArgumentType(
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
-            ImmutableArray<IParameterSymbol> parameters)
+            ImmutableArray<IParameterSymbol> parameters,
+            ISyntaxFactsService syntaxFacts)
         {
             var argsArgument = TryGetArgument(semanticModel, NameOfArgsParameter, arguments, parameters);
-            return (argsArgument == null? null : GetArgumentExpressionType(semanticModel, argsArgument));
+            if (argsArgument == null)
+            {
+                return null;
+            }
+
+            var expression = syntaxFacts.GetExpressionOfArgument(argsArgument);
+            return semanticModel.GetTypeInfo(expression).Type;
         }
 
         protected SyntaxNode TryGetArgument(
@@ -209,9 +204,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             SeparatedSyntaxList<SyntaxNode> arguments,
             ImmutableArray<IParameterSymbol> parameters)
         {
-
             // First, look for a named argument that matches
-            var matchingNamedArgument = GetMatchingNamedArgument(arguments, searchArgumentName);
+            var matchingNamedArgument = TryGetMatchingNamedArgument(arguments, searchArgumentName);
             if (matchingNamedArgument != null)
             {
                 return matchingNamedArgument;
@@ -246,7 +240,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         {
             foreach (var p in parameters)
             {
-                if (p.Name.Equals(searchArgumentName))
+                if (p.Name == searchArgumentName)
                 {
                     return p;
                 }
@@ -258,7 +252,8 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         protected SyntaxNode TryGetFormatStringLiteralExpressionSyntax(
             SemanticModel semanticModel,
             SeparatedSyntaxList<SyntaxNode> arguments,
-            ImmutableArray<IParameterSymbol> parameters)
+            ImmutableArray<IParameterSymbol> parameters,
+            ISyntaxFactsService syntaxFacts)
         {
             var formatArgumentSyntax = TryGetArgument(
                 semanticModel,
@@ -271,7 +266,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            if (!ArgumentExpressionIsStringLiteral(formatArgumentSyntax))
+            if (!syntaxFacts.IsStringLiteralExpression(syntaxFacts.GetExpressionOfArgument(formatArgumentSyntax)))
             {
                 return null;
             }
@@ -284,7 +279,6 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             int numberOfArguments,
             SymbolInfo symbolInfo)
         {
-
             if (symbolInfo.Symbol == null)
             {
                 return null;
@@ -338,9 +332,12 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             string formatString,
             int formatStringPosition)
         {
-            var formatStringWithEscapedBracketsRemoved = RemoveEscapedBrackets(formatString);
+            // removing escaped left brackets and replacing with space characters so they won't
+            // impede the extraction of placeholders, yet the locations of the placeholders are
+            // the same as in the original string.
+            var formatStringWithEscapedBracketsChangedToSpaces = RemoveEscapedBrackets(formatString);
 
-            var matches = s_extractPlaceholdersRegex.Matches(formatStringWithEscapedBracketsRemoved);
+            var matches = s_extractPlaceholdersRegex.Matches(formatStringWithEscapedBracketsChangedToSpaces);
             foreach (Match match in matches)
             {
                 var textInsideBrackets = match.Groups[1].Value;

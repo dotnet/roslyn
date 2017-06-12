@@ -19,31 +19,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateFormatString
             Return SyntaxKind.InvocationExpression
         End Function
 
-        Protected Overrides Function GetArgumentExpressionType(
-                semanticModel As SemanticModel,
-                argsArgument As SyntaxNode) As ITypeSymbol
-
-            Dim argumentSyntax = DirectCast(argsArgument, ArgumentSyntax)
-            Return semanticModel.GetTypeInfo(argumentSyntax.GetArgumentExpression()).Type
-        End Function
-
-        Protected Overrides Function GetMatchingNamedArgument(
+        Protected Overrides Function TryGetMatchingNamedArgument(
                 arguments As SeparatedSyntaxList(Of SyntaxNode),
                 searchArgumentName As String) As SyntaxNode
 
-            For Each argument In arguments.Cast(Of ArgumentSyntax)
-                Dim simpleArgumentSyntax = DirectCast(argument, SimpleArgumentSyntax)
-                If simpleArgumentSyntax.NameColonEquals?.Name.Identifier.ValueText.Equals(searchArgumentName) Then
+            For Each argument In arguments
+                Dim simpleArgumentSyntax = TryCast(argument, SimpleArgumentSyntax)
+                If Not simpleArgumentSyntax Is Nothing AndAlso simpleArgumentSyntax.NameColonEquals?.Name.Identifier.ValueText.Equals(searchArgumentName) Then
                     Return argument
                 End If
             Next
 
             Return Nothing
-        End Function
-
-        Protected Overrides Function ArgumentExpressionIsStringLiteral(syntaxNode As SyntaxNode) As Boolean
-            Return DirectCast(syntaxNode, ArgumentSyntax).GetArgumentExpression().IsKind(
-                SyntaxKind.StringLiteralExpression)
         End Function
 
         Protected Overrides Function GetArgumentExpression(syntaxNode As SyntaxNode) As SyntaxNode

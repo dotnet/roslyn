@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -1189,11 +1189,11 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Format string contains invalid placeholder &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Format string contains invalid placeholder.
         /// </summary>
-        internal static string Format_string_contains_invalid_placeholder_0 {
+        internal static string Format_string_contains_invalid_placeholder {
             get {
-                return ResourceManager.GetString("Format_string_contains_invalid_placeholder_0", resourceCulture);
+                return ResourceManager.GetString("Format_string_contains_invalid_placeholder", resourceCulture);
             }
         }
         
