@@ -309,7 +309,7 @@
        2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
           by the NuGet build task. -->
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="RunResolvePackageDependencies" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
     <ItemGroup>
       <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
         <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
@@ -379,7 +379,6 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <PrepareResourcesDependsOn>DeployPortableOnDeveloperBuild;$(PrepareResourcesDependsOn)</PrepareResourcesDependsOn>
     <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
@@ -457,49 +456,6 @@
 
       <Message Text="$(IbcMergeOutput)" />
   </Target>
-
-  <!-- This is part of our developer convenience work to allow easy testing of our portable
-       unit test projects.  It is special cased to our build setup.
-
-       This bug tracks getting an official solution out of MSBuild.
-
-       https://github.com/Microsoft/msbuild/issues/1499 -->
-  <Target Name="DeployPortableOnDeveloperBuild"
-          Condition="'$(_IsAnyPortableUnitTest)' == 'true' AND '$(DeveloperBuild)' == 'true' AND '$(OS)' == 'Windows_NT'">
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\DeployDesktopTestRuntime.csproj"
-             Properties="ExcludeProjectReferences=true"
-             Targets="GetReferenceCopyLocalPaths">
-      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
-    </MSBuild>
-
-    <!-- Desktop tests need to load the Desktop version of the TestUtilities via reflection at runtime without
-         referencing the assembly at compile time. However, it looks like adding a project-to-project reference 
-         with ReferenceOutputputAssembly=false and Private=true does not copy the assembly to the output
-         (https://github.com/Microsoft/msbuild/issues/1916). Therefore, we reference the assembly but do the
-         copying ourselves, by adding the output path of the project (GetTargetPath) manually to the set of copied
-         assemblies (ReferenceCopyLocalPaths) -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj"
-             Targets="GetTargetPath"
-             BuildInParallel="true">
-
-      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
-    </MSBuild>
-  </Target>
-
-  <!-- When getting the dependencies to copy local for developer builds to portable project outputs,
-       (see above), we need to filter out the project references as they create cycles back to the
-       calling test projects and we are only interested in getting the nuget copy local items raised
-       from the deployment project's project.assets.json. -->
-  <Target Name="RemoveExcludedProjectReferences"
-          Condition="'$(ExcludeProjectReferences)' == 'true'">
-    <ItemGroup>
-      <ProjectReference Remove="@(ProjectReference)" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="GetReferenceCopyLocalPaths" 
-          DependsOnTargets="RemoveExcludedProjectReferences;ResolveAssemblyReferences"
-          Returns="@(ReferenceCopyLocalPaths)" />
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
   <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
