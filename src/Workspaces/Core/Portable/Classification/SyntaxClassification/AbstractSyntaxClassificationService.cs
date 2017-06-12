@@ -12,9 +12,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
-    internal abstract partial class AbstractClassificationService : IClassificationService
+    internal abstract partial class AbstractSyntaxClassificationService : ISyntaxClassificationService
     {
-        protected AbstractClassificationService()
+        protected AbstractSyntaxClassificationService()
         {
         }
 

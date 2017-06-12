@@ -2,6 +2,8 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 
@@ -16,10 +18,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<RemoteHostClient.Session> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, CancellationToken cancellationToken)
-        {
-            return client.TryCreateSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
-        }
+        public static Task<RemoteHostClient.Session> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, CancellationToken cancellationToken) =>
+            client.TryCreateSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
 
         /// <summary>
         /// Create <see cref="SolutionAndSessionHolder"/> for the <paramref name="serviceName"/> if possible.
@@ -28,10 +28,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<SolutionAndSessionHolder> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, Solution solution, CancellationToken cancellationToken)
-        {
-            return client.TryCreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
-        }
+        public static Task<SolutionAndSessionHolder> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, Solution solution, CancellationToken cancellationToken) =>
+            client.TryCreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
 
         /// <summary>
         /// Create <see cref="SolutionAndSessionHolder"/> for the <paramref name="serviceName"/> if possible.
@@ -64,10 +62,8 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<KeepAliveSessionHolder> TryCreateServiceKeepAliveSessionAsync(this RemoteHostClient client, string serviceName, CancellationToken cancellationToken)
-        {
-            return TryCreateServiceKeepAliveSessionAsync(client, serviceName, callbackTarget: null, cancellationToken: cancellationToken);
-        }
+        public static Task<KeepAliveSessionHolder> TryCreateServiceKeepAliveSessionAsync(this RemoteHostClient client, string serviceName, CancellationToken cancellationToken) =>
+            TryCreateServiceKeepAliveSessionAsync(client, serviceName, callbackTarget: null, cancellationToken: cancellationToken);
 
         /// <summary>
         /// Create <see cref="KeepAliveSessionHolder"/> for the <paramref name="serviceName"/> if possible.
@@ -87,24 +83,67 @@ namespace Microsoft.CodeAnalysis.Remote
             return new KeepAliveSessionHolder(client, session, serviceName, callbackTarget, cancellationToken);
         }
 
-        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(
-            this RemoteHostClient client, Solution solution, CancellationToken cancellationToken)
+        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(this RemoteHostClient client, Solution solution, CancellationToken cancellationToken) =>
+            TryCreateCodeAnalysisServiceSessionAsync(client, solution, callbackTarget: null, cancellationToken: cancellationToken);
+
+        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(this RemoteHostClient client, Solution solution, object callbackTarget, CancellationToken cancellationToken) =>
+            client.TryCreateServiceSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
+
+        public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(this Workspace workspace, CancellationToken cancellationToken) =>
+            workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken);
+
+        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(this Solution solution, Option<bool> featureOption, CancellationToken cancellationToken)
+             => TryCreateCodeAnalysisServiceSessionAsync(solution, featureOption, callbackTarget: null, cancellationToken: cancellationToken);
+
+        public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> featureOption)
         {
-            return TryCreateCodeAnalysisServiceSessionAsync(
-                client, solution, callbackTarget: null, cancellationToken: cancellationToken);
+            // If the feature has explicitly opted out of OOP then we won't run it OOP.
+            var outOfProcessAllowed = workspace.Options.GetOption(featureOption);
+            if (!outOfProcessAllowed)
+            {
+                return false;
+            }
+
+            if (workspace.Options.GetOption(RemoteFeatureOptions.OutOfProcessAllowed))
+            {
+                // If the user has explicitly enabled OOP, then the feature is allowed to run in OOP.
+                return true;
+            }
+
+            // Otherwise we check if the user is in the AB experiment enabling OOP.
+
+            var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
+            if (!experimentEnabled.IsExperimentEnabled(WellKnownExperimentNames.RoslynFeatureOOP))
+            {
+                return false;
+            }
+
+            return true;
         }
 
-        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(
-            this RemoteHostClient client, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        public static async Task<RemoteHostClient> TryGetRemoteHostClientAsync(
+            this Workspace workspace, Option<bool> featureOption, CancellationToken cancellationToken)
         {
-            return client.TryCreateServiceSessionAsync(
-                WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
+            if (!workspace.IsOutOfProcessEnabled(featureOption))
+            {
+                return null;
+            }
+
+            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return client;
         }
 
-        public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(this Workspace workspace, CancellationToken cancellationToken)
+        public static async Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(
+            this Solution solution, Option<bool> option, object callbackTarget, CancellationToken cancellationToken)
         {
-            var clientService = workspace.Services.GetService<IRemoteHostClientService>();
-            return clientService?.TryGetRemoteHostClientAsync(cancellationToken);
+            var workspace = solution.Workspace;
+            var client = await TryGetRemoteHostClientAsync(workspace, option, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return null;
+            }
+
+            return await client.TryCreateCodeAnalysisServiceSessionAsync(solution, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task RunOnRemoteHostAsync(

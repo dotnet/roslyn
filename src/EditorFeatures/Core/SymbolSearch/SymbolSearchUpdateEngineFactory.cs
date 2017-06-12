@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
@@ -18,17 +19,14 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
         public static async Task<ISymbolSearchUpdateEngine> CreateEngineAsync(
             Workspace workspace, ISymbolSearchLogService logService, CancellationToken cancellationToken)
         {
-            var outOfProcessAllowed = workspace.Options.GetOption(SymbolSearchOptions.OutOfProcessAllowed);
-            if (outOfProcessAllowed)
+            var client = await workspace.TryGetRemoteHostClientAsync(
+                RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
+            if (client != null)
             {
-                var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (client != null)
+                var session = await client.TryCreateServiceKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, logService, cancellationToken).ConfigureAwait(false);
+                if (session != null)
                 {
-                    var session = await client.TryCreateServiceKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, logService, cancellationToken).ConfigureAwait(false);
-                    if (session != null)
-                    {
-                        return new RemoteUpdateEngine(workspace, session);
-                    }
+                    return new RemoteUpdateEngine(workspace, session);
                 }
             }
 
@@ -52,7 +50,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity)
             {
-                var (success, results) = await _session.TryInvokeAsync<SerializablePackageWithTypeResult[]>(
+                var (success, results) = await _session.TryInvokeAsync<ImmutableArray<PackageWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     source, name, arity).ConfigureAwait(false);
                 if (!success)
@@ -61,13 +59,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<PackageWithTypeResult>.Empty;
                 }
 
-                return results.Select(r => r.Rehydrate()).ToImmutableArray();
+                return results;
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName)
             {
-                var (success, results) = await _session.TryInvokeAsync<SerializablePackageWithAssemblyResult[]>(
+                var (success, results) = await _session.TryInvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     source, assemblyName).ConfigureAwait(false);
                 if (!success)
@@ -76,13 +74,13 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<PackageWithAssemblyResult>.Empty;
                 }
 
-                return results.Select(r => r.Rehydrate()).ToImmutableArray();
+                return results;
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {
-                var (success, results) = await _session.TryInvokeAsync<SerializableReferenceAssemblyWithTypeResult[]>(
+                var (success, results) = await _session.TryInvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     name, arity).ConfigureAwait(false);
                 if (!success)
@@ -91,7 +89,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     return ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
                 }
 
-                return results.Select(r => r.Rehydrate()).ToImmutableArray();
+                return results;
             }
 
             public async Task UpdateContinuouslyAsync(

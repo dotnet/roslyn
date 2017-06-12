@@ -1960,25 +1960,16 @@ partial class C
             CreateStandardCompilation(source).VerifyDiagnostics(
                 // (4,18): error CS0721: 'S': static types cannot be used as parameters
                 //     partial void M(S s = new A());
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S").WithLocation(4, 18),
                 // (5,18): error CS0721: 'S': static types cannot be used as parameters
                 //     partial void M(S s = new B()) { }
-                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S"),
+                Diagnostic(ErrorCode.ERR_ParameterIsStaticClass, "M").WithArguments("S").WithLocation(5, 18),
                 // (5,30): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial void M(S s = new B()) { }
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B"),
-                // (5,22): error CS1750: A value of type 'B' cannot be used as a default parameter because there are no standard conversions to type 'S'
-                //     partial void M(S s = new B()) { }
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("B", "S"),
-                // (5,22): warning CS1066: The default value specified for parameter 's' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
-                //     partial void M(S s = new B()) { }
-                Diagnostic(ErrorCode.WRN_DefaultValueForUnconsumedLocation, "s").WithArguments("s"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "B").WithArguments("B").WithLocation(5, 30),
                 // (4,30): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
                 //     partial void M(S s = new A());
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A"),
-                // (4,22): error CS1750: A value of type 'A' cannot be used as a default parameter because there are no standard conversions to type 'S'
-                //     partial void M(S s = new A());
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("A", "S")
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(4, 30)
                 );
         }
 

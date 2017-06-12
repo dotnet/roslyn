@@ -59,6 +59,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         public void TestDiagnosticArguments()
         {
             var arguments = new DiagnosticArguments(
+                forcedAnalysis: false,
                 reportSuppressedDiagnostics: true,
                 logAnalyzerExecutionTime: false,
                 projectId: ProjectId.CreateNewId("project"),
@@ -67,7 +68,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             VerifyJsonSerialization(arguments, (x, y) =>
             {
-                if (x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
+                if (x.ForcedAnalysis == y.ForcedAnalysis &&
+                    x.ReportSuppressedDiagnostics == y.ReportSuppressedDiagnostics &&
                     x.LogAnalyzerExecutionTime == y.LogAnalyzerExecutionTime &&
                     x.ProjectId == y.ProjectId &&
                     x.OptionSetChecksum == y.OptionSetChecksum &&
