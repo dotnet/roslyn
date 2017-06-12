@@ -379,7 +379,7 @@
     <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
@@ -518,4 +518,28 @@
       <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
     </ItemGroup>
   </Target>
+
+  <!-- We need to run publish on our CoreCLR executables (CscCore and VbcCore) without rebuilding
+       since a rebuild may overwrite signed binaries in the output directory with unsigned binaries
+       from the intermediate output directory. -->
+  <Target Name="PublishWithoutBuilding"
+        DependsOnTargets="PreventProjectReferencesFromBuilding;
+                          ResolveReferences;
+                          ComputeAndCopyFilesToPublishDirectory;
+                          GeneratePublishDependencyFile;
+                          GeneratePublishRuntimeConfigurationFile" />                                                           
+
+  <Target Name="PreventProjectReferencesFromBuilding">
+    <PropertyGroup>
+      <BuildProjectReferences>false</BuildProjectReferences>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
+       https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
+       isn't fully supported yet in the new project system. Removal of this hack is tracked
+       by https://github.com/dotnet/roslyn/issues/19545. -->
+  <ItemGroup>
+    <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
 </Project>

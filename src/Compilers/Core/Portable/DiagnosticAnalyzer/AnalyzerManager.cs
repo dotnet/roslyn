@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 // Task to compute the scope was cancelled.
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
-                analyzerExecutionContext.ClearCompilationScopeMap(analyzerExecutor.AnalyzerOptions, analyzerExecutor.Compilation);
+                analyzerExecutionContext.ClearCompilationScopeMap(analyzerExecutor.Compilation);
 
                 analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
                 return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,13 +36,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 progressCallback, documents, CancellationToken).ConfigureAwait(false);
         }
 
-        public async Task FindLiteralReferencesAsync(object value)
+        public async Task FindLiteralReferencesAsync(object value, TypeCode typeCode)
         {
+            var convertedType = System.Convert.ChangeType(value, typeCode);
             var solution = await GetSolutionAsync().ConfigureAwait(false);
 
             var progressCallback = new FindLiteralReferencesProgressCallback(this);
             await SymbolFinder.FindLiteralReferencesInCurrentProcessAsync(
-                value, solution, progressCallback, CancellationToken).ConfigureAwait(false);
+                convertedType, solution, progressCallback, CancellationToken).ConfigureAwait(false);
         }
 
         public async Task<ImmutableArray<SerializableSymbolAndProjectId>> FindAllDeclarationsWithNormalQueryAsync(

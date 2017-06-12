@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
@@ -21,20 +22,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [ContentType(ContentTypeNames.XamlContentType)]
-    [TagType(typeof(SuggestionTag))]
-    [TagType(typeof(IOverviewMarkTag))]
+    [TagType(typeof(IErrorTag))]
     internal partial class DiagnosticsSuggestionTaggerProvider :
-        AbstractDiagnosticsAdornmentTaggerProvider<SuggestionTag>
+        AbstractDiagnosticsAdornmentTaggerProvider<IErrorTag>
     {
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
 
-        private readonly IEditorFormatMap _editorFormatMap;
-
         protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
-        private readonly object _suggestionTagGate = new object();
-        private SuggestionTag _suggestionTag;
 
         [ImportingConstructor]
         public DiagnosticsSuggestionTaggerProvider(
@@ -44,23 +40,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> listeners)
             : base(diagnosticService, notificationService, listeners)
         {
-            _editorFormatMap = editorFormatMapService.GetEditorFormatMap("text");
-            _editorFormatMap.FormatMappingChanged += OnFormatMappingChanged;
-            _suggestionTag = new SuggestionTag(_editorFormatMap);
-        }
-
-        private void OnFormatMappingChanged(object sender, FormatItemsEventArgs e)
-        {
-            lock (_suggestionTagGate)
-            {
-                _suggestionTag = new SuggestionTag(_editorFormatMap);
-            }
-        }
-
-        protected override ITaggerEventSource GetTaggerEventSource()
-        {
-            return TaggerEventSources.OnEditorFormatMapChanged(
-                _editorFormatMap, TaggerDelay.NearImmediate);
         }
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
@@ -68,13 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return diagnostic.Severity == DiagnosticSeverity.Info;
         }
 
-        protected override SuggestionTag CreateTag(DiagnosticData diagnostic)
-        {
-            lock (_suggestionTagGate)
-            {
-                return _suggestionTag;
-            }
-        }
+        protected override IErrorTag CreateTag(DiagnosticData diagnostic) =>
+            new ErrorTag(PredefinedErrorTypeNames.HintedSuggestion, diagnostic.Message);
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
         {
