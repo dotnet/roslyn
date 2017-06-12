@@ -54,7 +54,10 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 //   [assembly: System.Reflection.AssemblyVersion("1.0.0.0")]
                 //   [assembly: System.Reflection.AssemblyCompany("Test")]
                 while (syntaxFactsService.IsElementAccessExpression(node.Parent))
+                {
                     node = node.Parent;
+                }
+
                 // node -> AttributeArgumentSyntax -> AttributeArgumentListSyntax -> AttributeSyntax
                 var attributeSyntaxNodeCandidate = node.Parent?.Parent?.Parent;
                 if (syntaxFactsService.IsAttribute(attributeSyntaxNodeCandidate))
@@ -76,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            var compilation = await context.Document.Project.GetCompilationAsync(context.CancellationToken).ConfigureAwait(false);
+            var compilation = semanticModel.Compilation;
             var internalsVisibleToAttributeSymbol = compilation.GetTypeByMetadataName(typeof(InternalsVisibleToAttribute).FullName);
             return type.Equals(internalsVisibleToAttributeSymbol);
         }
@@ -119,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         private static async Task<string> GetPublicKeyOfProjectAsync(Project project, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            if (compilation.Assembly?.Identity?.IsStrongName ?? false)
+            if (compilation.Assembly?.Identity?.IsStrongName == true)
             {
                 return GetPublicKeyAsHexString(compilation.Assembly.Identity.PublicKey);
             }
@@ -135,6 +138,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 builder.Append(b.ToString("x2"));
             }
+
             return pooledStrBuilder.ToStringAndFree();
         }
     }

@@ -481,30 +481,29 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 {
                     reportDiagnostic = (ReportDiagnostic)Enum.Parse(typeof(ReportDiagnostic), (string)reportDiagnosticAttribute);
                 }
+
                 var cryptoKeyFileAttribute = compilationOptionsElement.Attribute(CryptoKeyFileAttributeName);
                 if (cryptoKeyFileAttribute != null)
                 {
                     cryptoKeyFile = (string)cryptoKeyFileAttribute;
                 }
+
                 var strongNameProviderAttribute = compilationOptionsElement.Attribute(StrongNameProviderAttributeName);
                 if (strongNameProviderAttribute != null)
                 {
                     var type = Type.GetType((string)strongNameProviderAttribute);
-                    if (type == typeof(DesktopStrongNameProvider))
-                    {
-                        // DesktopStrongNameProvider does not have a default constructor but an constructor with optional parameters. Activator.CreateInstance does not work with this.
-                        strongNameProvider = new DesktopStrongNameProvider();
-                    }
-                    else
-                    {
-                        strongNameProvider = (StrongNameProvider)Activator.CreateInstance(type);
-                    }
+                    // DesktopStrongNameProvider does not have a default constructor but an constructor with optional parameters. Activator.CreateInstance does not work with this.
+                    strongNameProvider = (type == typeof(DesktopStrongNameProvider))
+                        ? new DesktopStrongNameProvider()
+                        : (StrongNameProvider)Activator.CreateInstance(type);
                 }
+
                 var delaySignAttribute = compilationOptionsElement.Attribute(DelaySignAttributeName);
                 if (delaySignAttribute != null)
                 {
                     delaySign = (bool)delaySignAttribute;
                 }
+
                 var outputTypeAttribute = compilationOptionsElement.Attribute(OutputTypeAttributeName);
                 if (outputTypeAttribute != null
                     && outputTypeAttribute.Value == "WindowsRuntimeMetadata")
