@@ -162,7 +162,51 @@ class A
 
         [Fact]
         [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void TokenEating() {
+            var test = "[foo 5l]";
+            var testWithoutWarning = test.Replace("5l", "5L");
+            ParseAndValidate(testWithoutWarning,
+                // (1,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // [foo 5L]
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(1, 8),
+                // (1,6): error CS1001: Identifier expected
+                // [foo 5L]
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "5L").WithLocation(1, 6));
+
+            ParseAndValidate(test,
+                // (1,8): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // [foo 5l]
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "]").WithLocation(1, 8),
+                // (1,7): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                // [foo 5l]
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(1, 7),
+                // (1,6): error CS1001: Identifier expected
+                // [foo 5l]
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "5l").WithLocation(1, 6));
+        }
+
+        [Fact]
+        [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
         public void DontReportErrorForDeclaration() {
+            var test = @"
+class C {
+    public void Foo() {
+        await F(long y = 5l);
+    }
+}";
+            var testWithoutWarning = test.Replace("5l", "5L");
+
+            ParseAndValidate(test,
+                // (4,24): warning CS0078: The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity
+                //     	await F(long y = 5l)
+                Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l").WithLocation(4, 27));
+
+            ParseAndValidate(testWithoutWarning);
+        }
+
+        [Fact]
+        [WorkItem(13719, "https://github.com/dotnet/roslyn/issues/13719")]
+        public void CorrectDiagnosticsForLocalFunction() {
             var test = @"
 class C {
     public void Foo() {

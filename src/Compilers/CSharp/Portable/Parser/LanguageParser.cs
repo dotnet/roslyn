@@ -2445,7 +2445,7 @@ parse_member_name:;
                 // then we want async to be a modifier and Task<MISSING> to be a type.
                 if (!sawRef &&
                     identifierOrThisOpt != null &&
-                    (typeParameterListOpt != null && typeParameterListOpt.ContainsDiagnostics
+                    (typeParameterListOpt != null && typeParameterListOpt.ContainsErrorDiagnostics()
                       || this.CurrentToken.Kind != SyntaxKind.OpenParenToken && this.CurrentToken.Kind != SyntaxKind.OpenBraceToken) &&
                     ReconsiderTypeAsAsyncModifier(ref modifiers, ref type, ref explicitInterfaceOpt, identifierOrThisOpt, typeParameterListOpt))
                 {
@@ -3454,7 +3454,7 @@ parse_member_name:;
                         break;
                     }
 
-                    var token = (first && !this.CurrentToken.ContainsDiagnostics) ? this.EatTokenWithPrejudice(expected) : this.EatToken();
+                    var token = (first && !this.CurrentToken.ContainsErrorDiagnostics()) ? this.EatTokenWithPrejudice(expected) : this.EatToken();
                     first = false;
                     nodes.Add(token);
                 }
@@ -6528,7 +6528,7 @@ tryAgain:
             }
 
             // Cases (2), (3) and (4):
-            if (!beginsWithAwait || !result.ContainsDiagnostics)
+            if (!beginsWithAwait || !result.ContainsErrorDiagnostics(considerTrivia: false))
             {
                 return result;
             }
