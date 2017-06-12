@@ -5127,9 +5127,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Auto-implemented instance properties in readonly structs must be readonly.</value>
   </data>
   <data name="ERR_AutoPropsInRoStruct" xml:space="preserve">
-    <value>Instance fields of readonly structs must be readonly.</value>
+    <value>Field-like events are not allowed in readonly structs.</value>
   </data>
   <data name="ERR_FieldlikeEventsInRoStruct" xml:space="preserve">
-    <value>Field-like events are not allowed in readonly structs.</value>
+    <value>Instance fields of readonly structs must be readonly.</value>
   </data>
 </root>

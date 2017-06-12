@@ -34,7 +34,7 @@ public readonly struct A
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS8515: Instance fields of readonly structs must be readonly.
+                // (11,9): error CS8515: Auto-implemented instance properties in readonly structs must be readonly.
                 //     int rw {get; set;}
                 Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "rw").WithLocation(11, 9)
     );
@@ -67,7 +67,7 @@ public readonly struct A
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (11,9): error CS8514: Auto-implemented instance properties in readonly structs must be readonly.
+                // (11,9): error CS8514: Instance fields of readonly structs must be readonly.
                 //     int x;    
                 Diagnostic(ErrorCode.ERR_FieldsInRoStruct, "x").WithLocation(11, 9),
                 // (16,9): error CS1604: Cannot assign to 'this' because it is read-only

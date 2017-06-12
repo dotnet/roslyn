@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _isAutoProperty = notRegularProperty && hasGetSyntax;
                 bool isReadOnly = hasGetSyntax && setSyntax == null;
 
-                if (_isAutoProperty  && !isReadOnly && !IsStatic && ContainingType.IsReadOnly)
+                if (_isAutoProperty && !isReadOnly && !IsStatic && ContainingType.IsReadOnly)
                 {
                     diagnostics.Add(ErrorCode.ERR_AutoPropsInRoStruct, location);
                 }
