@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -32,7 +34,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         /// <summary>
@@ -84,7 +87,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -113,10 +117,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "f1").WithArguments("float", "int").WithLocation(7, 28)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
         public void ConversionExpression_Implicit_NumericConversion_InvalidNoInitializer()
         {
             string source = @"
@@ -143,7 +148,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(8, 38)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -151,31 +157,31 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         {
             string source = @"
 class Program
-{
-    enum Enum1
-    {
-        Option1, Option2
-    }
-    static void Main(string[] args)
+{    static void Main(string[] args)
     {
         Enum1 /*<bind>*/e1 = 0/*</bind>*/;
     }
+}
+enum Enum1
+{
+    Option1, Option2
 }
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
-    Variables: Local_1: Program.Enum1 e1
-    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Program.Enum1, Constant: 0) (Syntax: '0')
+    Variables: Local_1: Enum1 e1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Enum1, Constant: 0) (Syntax: '0')
         ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 'e1' is assigned but its value is never used
                 //         Enum1 /*<bind>*/e1 = 0/*</bind>*/;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "e1").WithArguments("e1").WithLocation(10, 25)
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "e1").WithArguments("e1").WithLocation(5, 25)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -184,31 +190,32 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             string source = @"
 class Program
 {
-    enum Enum1
-    {
-        Option1, Option2
-    }
     static void Main(string[] args)
     {
         int i1 = 1;
         Enum1 /*<bind>*/e1 = i1/*</bind>*/;
     }
 }
+enum Enum1
+{
+    Option1, Option2
+}
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
-    Variables: Local_1: Program.Enum1 e1
-    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Program.Enum1, IsInvalid) (Syntax: 'i1')
+    Variables: Local_1: Enum1 e1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid) (Syntax: 'i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'Program.Enum1'. An explicit conversion exists (are you missing a cast?)
                 //         Enum1 /*<bind>*/e1 = i1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i1").WithArguments("int", "Program.Enum1").WithLocation(11, 30)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i1").WithArguments("int", "Enum1").WithLocation(7, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -216,63 +223,64 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         {
             string source = @"
 class Program
-{
-    enum Enum1
-    {
-        Option1, Option2
-    }
-    static void Main(string[] args)
+{    static void Main(string[] args)
     {
         Enum1 /*<bind>*/e1 = 1/*</bind>*/;
     }
+}
+enum Enum1
+{
+    Option1, Option2
 }
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
-    Variables: Local_1: Program.Enum1 e1
-    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Program.Enum1, IsInvalid) (Syntax: '1')
+    Variables: Local_1: Enum1 e1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid) (Syntax: '1')
         ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'Program.Enum1'. An explicit conversion exists (are you missing a cast?)
                 //         Enum1 /*<bind>*/e1 = 1/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "Program.Enum1").WithLocation(10, 30)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1").WithArguments("int", "Enum1").WithLocation(5, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
         public void ConversionExpression_Implicit_EnumConversion_NoInitalizer_Invalid()
         {
             string source = @"
 class Program
 {
-    enum Enum1
-    {
-        Option1, Option2
-    }
     static void Main(string[] args)
     {
         Enum1 /*<bind>*/e1 =/*</bind>*/;
     }
 }
+enum Enum1
+{
+    Option1, Option2
+}
 ";
             string expectedOperationTree = @"
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Enum1 /*<bi ... *</bind>*/;')
-    Variables: Local_1: Program.Enum1 e1
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Program.Enum1, IsInvalid) (Syntax: '')
+    Variables: Local_1: Enum1 e1
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Enum1, IsInvalid) (Syntax: '')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1525: Invalid expression term ';'
                 //         Enum1 /*<bind>*/e1 =/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(10, 40)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(6, 40)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -301,10 +309,23 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier()
+                {
+                    SyntaxSelector = (syntax) =>
+                    {
+                        var initializer = (BinaryExpressionSyntax)((VariableDeclaratorSyntax)syntax).Initializer.Value;
+                        return initializer.Right;
+                    },
+                    OperationSelector = (operation) =>
+                    {
+                        var initializer = ((IVariableDeclarationStatement)operation).Declarations.Single().Initializer;
+                        return (IConversionExpression)((INullCoalescingExpression)initializer).SecondaryOperand;
+                    }
+                }.Verify);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
         public void ConversionExpression_Implicit_ThrowExpressionConversion_InvalidSyntax()
         {
             string source = @"
@@ -333,7 +354,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_ThrowMisplaced, "throw").WithLocation(8, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -361,7 +383,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s1").WithArguments("s1").WithLocation(6, 26)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -393,7 +416,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s1").WithArguments("s1").WithLocation(10, 23)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -421,7 +445,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(6, 28)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -449,7 +474,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(6, 24)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -474,7 +500,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -499,7 +526,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -528,7 +556,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i1").WithArguments("int?", "int").WithLocation(7, 28)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -557,7 +586,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -583,7 +613,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -609,7 +640,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -639,7 +671,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -673,7 +706,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C2()").WithArguments("C2", "C1").WithLocation(8, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -706,7 +740,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(8, 41)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -736,7 +771,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -770,11 +806,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new C1()").WithArguments("C1", "I1").WithLocation(12, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
-        public void ConversionExpression_Implicit_ReferenceIntefaceToClassConversion_Invalid()
+        public void ConversionExpression_Implicit_ReferenceInterfaceToClassConversion_Invalid()
         {
             string source = @"
 using System;
@@ -804,7 +841,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoNewAbstract, "new I1()").WithArguments("I1").WithLocation(12, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -839,7 +877,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -878,7 +917,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i2").WithArguments("I2", "I1").WithLocation(17, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -909,7 +949,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -944,7 +985,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "c2arr").WithArguments("C2[]", "C1[][]").WithLocation(9, 34)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -979,7 +1021,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "c2arr").WithArguments("C2[]", "C1[]").WithLocation(9, 32)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1018,7 +1061,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new S1[10]").WithArguments("S1[]", "I1[]").WithLocation(8, 32)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1045,7 +1089,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1072,7 +1117,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1102,7 +1148,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new object()").WithArguments("object", "System.Array").WithLocation(8, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1129,7 +1176,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1159,7 +1207,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new object()").WithArguments("object", "System.Collections.Generic.IList<int>").WithLocation(8, 35)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1191,7 +1240,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1228,10 +1278,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "d1()").WithArguments("void", "System.Delegate").WithLocation(10, 33)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20175")]
         public void ConversionExpression_Implicit_ReferenceDelegateTypeToSystemDelegateConversion_InvalidSyntax()
         {
             string source = @"
@@ -1263,12 +1314,12 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(9, 43)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         /// <summary>
         /// This method is documenting the fact that there is no conversion expression here.
-        /// be updated.
         /// </summary>
         [Fact]
         public void ConversionExpression_Implicit_ReferenceMethodToDelegateConversion_NoConversion()
@@ -1323,7 +1374,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "M1").WithArguments("M1").WithLocation(7, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1352,7 +1404,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1381,7 +1434,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "(string s) => { }").WithArguments("Program.DType", "1").WithLocation(7, 30)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1414,7 +1468,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 46)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         /// <summary>
@@ -1476,7 +1531,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1517,7 +1573,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1562,7 +1619,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c2").WithArguments("C2<C4>", "I1<C3>").WithLocation(11, 31)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1603,7 +1661,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1648,7 +1707,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "c2").WithArguments("C2<C3>", "I1<C4>").WithLocation(11, 31)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1674,7 +1734,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1704,7 +1765,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1738,7 +1800,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new T()").WithArguments("T", "C1").WithLocation(7, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1767,7 +1830,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1800,7 +1864,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new T()").WithArguments("T", "I1").WithLocation(11, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1830,7 +1895,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1864,7 +1930,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new T()").WithArguments("T", "U").WithLocation(12, 25)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1897,7 +1964,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t").WithArguments("t").WithLocation(11, 21)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1930,7 +1998,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_TypeVarCantBeNull, "null").WithArguments("T").WithLocation(11, 25)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1956,7 +2025,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -1982,7 +2052,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2009,7 +2080,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2040,7 +2112,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C1()").WithArguments("C1", "System.ValueType").WithLocation(8, 34)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2068,7 +2141,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2100,7 +2174,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "new S1()").WithArguments("S1", "I1").WithLocation(10, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2129,7 +2204,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2162,7 +2238,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "s1").WithArguments("S1?", "I1").WithLocation(11, 27)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2194,7 +2271,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2230,7 +2308,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "System.Enum").WithLocation(13, 28)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2255,7 +2334,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2280,7 +2360,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2292,24 +2373,25 @@ class S1
     void M1()
     {
         const int i1 = 1;
-        const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+        const sbyte /*<bind>*/s1 = i1/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'const sbyte ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'const sbyte ... *</bind>*/;')
     Variables: Local_1: System.SByte s1
     Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.SByte, Constant: 1) (Syntax: 'i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32, Constant: 1) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0219: The variable 's1' is assigned but its value is never used
-                //         const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+                //         const sbyte /*<bind>*/s1 = i1/*</bind>*/;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "s1").WithArguments("s1").WithLocation(7, 31)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                    AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2338,7 +2420,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 Diagnostic(ErrorCode.ERR_ConstOutOfRange, "i1").WithArguments("4096", "sbyte").WithLocation(7, 36)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2350,24 +2433,25 @@ class S1
     void M1()
     {
         int i1 = 0;
-        const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+        const sbyte /*<bind>*/s1 = i1/*</bind>*/;
     }
 }
 ";
             string expectedOperationTree = @"
-IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
-  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const /*<bi ... *</bind>*/;')
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'const sbyte ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'const sbyte ... *</bind>*/;')
     Variables: Local_1: System.SByte s1
     Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.SByte, IsInvalid) (Syntax: 'i1')
         ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0266: Cannot implicitly convert type 'int' to 'sbyte'. An explicit conversion exists (are you missing a cast?)
-                //         const /*<bind>*/sbyte s1 = i1/*</bind>*/;
+                //         const sbyte /*<bind>*/s1 = i1/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "i1").WithArguments("int", "sbyte").WithLocation(7, 36)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2399,7 +2483,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
@@ -2433,7 +2518,11 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier()
+                {
+                    ConversionChildSelector = (conversion) => ((IConversionExpression)conversion.Operand).Operand
+                }.Verify);
         }
 
         [Fact]
@@ -2563,9 +2652,54 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         #endregion
+
+        private class ExpectedSymbolVerifier
+        {
+            public static SyntaxNode VariableDeclaratorSelector(SyntaxNode syntaxNode) =>
+                ((VariableDeclaratorSyntax)syntaxNode).Initializer.Value;
+
+            public static SyntaxNode IdentitySelector(SyntaxNode syntaxNode) => syntaxNode;
+
+            public static IConversionExpression IVariableDeclarationStatementSelector(IOperation operation) =>
+                (IConversionExpression)((IVariableDeclarationStatement)operation).Declarations.Single().Initializer;
+
+
+            public Func<IOperation, IConversionExpression> OperationSelector { get; set; } = IVariableDeclarationStatementSelector;
+
+            public Func<IConversionExpression, IOperation> ConversionChildSelector { get; set; } = (conversion) => conversion.Operand;
+
+            public Func<SyntaxNode, SyntaxNode> SyntaxSelector { get; set; } = VariableDeclaratorSelector;
+
+            public void Verify(IOperation operation, Compilation compilation, SyntaxNode syntaxNode)
+            {
+                switch (operation.Kind)
+                {
+                    case OperationKind.VariableDeclarationStatement:
+                        VerifyVariableDeclarationStatement((IVariableDeclarationStatement)operation, compilation, syntaxNode);
+                        break;
+                    default:
+                        Assert.False(true, $"Unexpected kind of statement {operation.Kind}");
+                        break;
+                }
+            }
+
+            private void VerifyVariableDeclarationStatement(IVariableDeclarationStatement variableDeclaration, Compilation compilation, SyntaxNode syntaxNode)
+            {
+                var finalSyntax = SyntaxSelector(syntaxNode);
+                var semanticModel = compilation.GetSemanticModel(finalSyntax.SyntaxTree);
+                var typeInfo = semanticModel.GetTypeInfo(finalSyntax);
+
+                var initializer = OperationSelector(variableDeclaration);
+
+                var conversion = initializer;
+                Assert.Equal(conversion.Type, typeInfo.ConvertedType);
+                Assert.Equal(ConversionChildSelector(conversion).Type, typeInfo.Type);
+            }
+        }
     }
 }
