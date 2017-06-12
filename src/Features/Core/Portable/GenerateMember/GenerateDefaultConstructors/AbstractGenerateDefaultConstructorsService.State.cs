@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
     {
         private class State
         {
-            public INamedTypeSymbol ClassOrStructType { get; private set; }
+            public INamedTypeSymbol ClassType { get; private set; }
 
             public ImmutableArray<IMethodSymbol> UnimplementedConstructors { get; private set; }
 
@@ -43,15 +43,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 TextSpan textSpan,
                 CancellationToken cancellationToken)
             {
-                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var classOrStructType))
+                if (!service.TryInitializeState(document, textSpan, cancellationToken, out var classType))
                 {
                     return false;
                 }
 
-                this.ClassOrStructType = classOrStructType;
+                this.ClassType = classType;
 
-                var baseType = this.ClassOrStructType.BaseType;
-                if (this.ClassOrStructType.IsStatic ||
+                var baseType = this.ClassType.BaseType;
+                if (this.ClassType.IsStatic ||
                     baseType == null ||
                     baseType.TypeKind == TypeKind.Error)
                 {
@@ -59,15 +59,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 }
 
                 var semanticFacts = document.Project.LanguageServices.GetService<ISemanticFactsService>();
-                var classConstructors = this.ClassOrStructType.InstanceConstructors;
+                var classConstructors = this.ClassType.InstanceConstructors;
 
-                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassOrStructType.Language);
+                var destinationProvider = document.Project.Solution.Workspace.Services.GetLanguageServices(this.ClassType.Language);
                 var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
                 var isCaseSensitive = syntaxFacts.IsCaseSensitive;
 
                 this.UnimplementedConstructors =
                     baseType.InstanceConstructors
-                            .WhereAsArray(c => c.IsAccessibleWithin(this.ClassOrStructType) &&
+                            .WhereAsArray(c => c.IsAccessibleWithin(this.ClassType) &&
                                                IsMissing(c, classConstructors, isCaseSensitive));
 
                 return this.UnimplementedConstructors.Length > 0;

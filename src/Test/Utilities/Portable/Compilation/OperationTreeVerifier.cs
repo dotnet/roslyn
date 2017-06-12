@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitYieldBreakStatement(IReturnStatement operation)
         {
-            LogString("YieldBreakStatement");
+            LogString(nameof(IReturnStatement));
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitYieldBreakStatement(operation);
@@ -1056,12 +1056,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.Condition, "Condition");
             Visit(operation.IfTrueStatement, "IfTrue");
             Visit(operation.IfFalseStatement, "IfFalse");
-        }
-
-        public override void VisitLocalFunctionStatement(IOperation operation)
-        {
-            LogString(nameof(VisitLocalFunctionStatement));
-            LogCommonPropertiesAndNewLine(operation);
         }
 
         private void LogCaseClauseCommon(ICaseClause operation)

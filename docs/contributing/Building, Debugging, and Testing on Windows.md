@@ -11,9 +11,9 @@ Using the command line Roslyn can be developed using the following pattern:
 
 ## Developing with Visual Studio 2017
 
-1. [Visual Studio 2017](https://www.visualstudio.com/downloads/)
+1. [Visual Studio 2017 Update 3 Preview 1](https://www.visualstudio.com/vs/preview/)
     - Ensure C#, VB, MSBuild and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on at least version 15.1
+    - Ensure Visual Studio is on Version "15.3 (25610.0-Preview)" or greater
 1. Run Restore.cmd
 1. Open Roslyn.sln
 

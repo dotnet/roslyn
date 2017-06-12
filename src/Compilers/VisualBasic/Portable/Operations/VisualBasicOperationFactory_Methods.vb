@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Semantics
     Partial Friend Class VisualBasicOperationFactory
@@ -430,13 +431,15 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return _cache.GetOrCreateOperationFrom(
                     boundUsingStatement, NameOf(GetUsingStatementDeclaration),
                     Function(boundUsing)
-                        Dim declaration = If(boundUsing.ResourceList.IsDefaultOrEmpty,
-                            ImmutableArray(Of IVariableDeclaration).Empty,
-                            boundUsing.ResourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray())
+                        If boundUsing.ResourceList.IsDefault Then
+                            Return Nothing
+                        End If
+                        Dim declaration = boundUsing.ResourceList.Select(Function(n) Create(n)).OfType(Of IVariableDeclaration).ToImmutableArray()
+                        Dim syntax = DirectCast(boundUsing.Syntax, UsingBlockSyntax).UsingStatement
                         Return New VariableDeclarationStatement(
                             declaration,
                             isInvalid:=False,
-                            syntax:=Nothing,
+                            syntax:=syntax,
                             type:=Nothing,
                             constantValue:=Nothing)
                     End Function)

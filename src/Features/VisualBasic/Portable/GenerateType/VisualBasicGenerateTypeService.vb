@@ -692,17 +692,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
         Private Function GenerateProperty(propertyName As SimpleNameSyntax, typeSymbol As ITypeSymbol) As IPropertySymbol
             Return CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes:=ImmutableArray(Of AttributeData).Empty,
-                            accessibility:=Accessibility.Public,
-                            modifiers:=New DeclarationModifiers(),
-                            explicitInterfaceSymbol:=Nothing,
-                            name:=propertyName.ToString,
-                            type:=typeSymbol,
-                            returnsByRef:=False,
-                            parameters:=Nothing,
-                            getMethod:=Nothing,
-                            setMethod:=Nothing,
-                            isIndexer:=False)
+                attributes:=ImmutableArray(Of AttributeData).Empty,
+                accessibility:=Accessibility.Public,
+                modifiers:=New DeclarationModifiers(),
+                explicitInterfaceImplementations:=Nothing,
+                name:=propertyName.ToString,
+                type:=typeSymbol,
+                returnsByRef:=False,
+                parameters:=Nothing,
+                getMethod:=Nothing,
+                setMethod:=Nothing,
+                isIndexer:=False)
         End Function
 
         Friend Overrides Function TryGenerateProperty(propertyName As SimpleNameSyntax,

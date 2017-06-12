@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -3525,9 +3526,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseReturnStatement : Operation, IReturnStatement
     {
-        protected BaseReturnStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.ReturnStatement, isInvalid, syntax, type, constantValue)
+        protected BaseReturnStatement(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(kind, isInvalid, syntax, type, constantValue)
         {
+            Debug.Assert(kind == OperationKind.ReturnStatement
+                      || kind == OperationKind.YieldReturnStatement
+                      || kind == OperationKind.YieldBreakStatement);
         }
         /// <summary>
         /// Value to be returned.
@@ -3535,11 +3539,25 @@ namespace Microsoft.CodeAnalysis.Semantics
         public abstract IOperation ReturnedValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitReturnStatement(this);
+            if (Kind == OperationKind.YieldBreakStatement)
+            {
+                visitor.VisitYieldBreakStatement(this);
+            }
+            else
+            {
+                visitor.VisitReturnStatement(this);
+            }
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitReturnStatement(this, argument);
+            if (Kind == OperationKind.YieldBreakStatement)
+            {
+                return visitor.VisitYieldBreakStatement(this, argument);
+            }
+            else
+            {
+                return visitor.VisitReturnStatement(this, argument);
+            }
         }
     }
 
@@ -3548,8 +3566,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ReturnStatement : BaseReturnStatement, IReturnStatement
     {
-        public ReturnStatement(IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isInvalid, syntax, type, constantValue)
+        public ReturnStatement(OperationKind kind, IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(kind, isInvalid, syntax, type, constantValue)
         {
             ReturnedValue = returnedValue;
         }
@@ -3566,7 +3584,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyReturnedValue;
 
-        public LazyReturnStatement(Lazy<IOperation> returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        public LazyReturnStatement(OperationKind kind, Lazy<IOperation> returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
         {
             _lazyReturnedValue = returnedValue ?? throw new System.ArgumentNullException("returnedValue");
         }

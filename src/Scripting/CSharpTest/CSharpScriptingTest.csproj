@@ -13,7 +13,6 @@
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net452</PackageTargetFallback>
     <RoslynProjectType>UnitTestDesktop</RoslynProjectType>
   </PropertyGroup>
   <ItemGroup Label="Project References">
