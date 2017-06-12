@@ -1509,6 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitReservedAttr = 8412,
         ERR_TypeReserved = 8413,
 
+        //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
         ERR_FieldsInRoStruct = 8514,
         ERR_AutoPropsInRoStruct = 8515,
         ERR_FieldlikeEventsInRoStruct = 8516,

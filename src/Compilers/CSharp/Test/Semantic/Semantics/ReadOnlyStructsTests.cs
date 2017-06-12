@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class ReadOnlyStructsTests : CompilingTestBase
     {
         [Fact()]
@@ -19,20 +20,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var text = @"
 public readonly struct A
 {
-    // ok
+    // ok   - no state
     int ro => 5;
+
+    // ok   - ro state
+    int ro1 {get;}
 
     // error
     int rw {get; set;}
 
-    // ok
+    // ok    - static
     static int rws {get; set;}
 }
 ";
             CreateStandardCompilation(text).VerifyDiagnostics(
-                // (8,9): error CS8515: Instance fields of readonly structs must be readonly.
+                // (11,9): error CS8515: Instance fields of readonly structs must be readonly.
                 //     int rw {get; set;}
-                Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "rw").WithLocation(8, 9)
+                Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "rw").WithLocation(11, 9)
     );
         }
 
