@@ -915,15 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // local function, record the read and skip the diagnostic
             if ((object)GetNearestLocalFunctionOpt(currentMethodOrLambda) != null)
             {
-                // If this is a constant, constants are always definitely assigned
-                // so we should skip reporting. This can happen in a local function
-                // where we use a constant before we actually visit its definition
-                // (since local function declarations are visited before other statements).
-                if (symbol is LocalSymbol local && local.IsConst)
-                {
-                    return;
-                }
-                else if (IsCapturedInLocalFunction(slot))
+                if (IsCapturedInLocalFunction(slot))
                 {
                     RecordReadInLocalFunction(slot);
                     return;
@@ -940,6 +932,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void ReportUnassigned(Symbol symbol, SyntaxNode node, int slot, bool skipIfUseBeforeDeclaration)
         {
             if (slot <= 0)
+            {
+                return;
+            }
+
+            // If this is a constant, constants are always definitely assigned
+            // so we should skip reporting. This can happen in a local function
+            // where we use a constant before we actually visit its definition
+            // (since local function declarations are visited before other statements)
+            // e.g.
+            // void M()
+            // {
+            //   L();
+            //   const int x = 0;
+            //   int L() => x;
+            // }
+            if (symbol is LocalSymbol local && local.IsConst)
             {
                 return;
             }
