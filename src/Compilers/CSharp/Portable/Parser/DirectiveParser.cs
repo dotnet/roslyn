@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             idExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, id);
                         }
 
-                        hasError = hasError || id.ContainsDiagnostics;
+                        hasError = hasError || id.ContainsErrorDiagnostics();
                         ids.Add(idExpression);
 
                         if (this.CurrentToken.Kind != SyntaxKind.CommaToken)
