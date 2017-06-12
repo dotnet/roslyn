@@ -2071,6 +2071,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
 
+        /// <summary>
+        /// Creates an tuple expression.
+        /// </summary>
+        public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
+
         #endregion
     }
 }
