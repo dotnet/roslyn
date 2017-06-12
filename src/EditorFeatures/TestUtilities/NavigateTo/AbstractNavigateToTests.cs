@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -50,7 +51,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
         {
             using (var workspace = SetupWorkspace(content))
             {
-                workspace.Options = workspace.Options.WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
+                workspace.Options = workspace.Options.WithChangedOption(RemoteHostOptions.RemoteHostTest, outOfProcess)
+                                                     .WithChangedOption(RemoteFeatureOptions.OutOfProcessAllowed, outOfProcess)
                                                      .WithChangedOption(RemoteFeatureOptions.NavigateToEnabled, outOfProcess);
 
                 await body(workspace);

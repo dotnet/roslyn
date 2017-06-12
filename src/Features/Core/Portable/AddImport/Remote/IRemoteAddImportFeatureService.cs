@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal interface IRemoteAddImportFeatureService
     {
         Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            DocumentId documentId, TextSpan span, string diagnosticId,
+            DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources);
     }
 }
