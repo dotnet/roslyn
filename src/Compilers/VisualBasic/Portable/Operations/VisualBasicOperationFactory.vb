@@ -1,19 +1,21 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Concurrent
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic
 
 Namespace Microsoft.CodeAnalysis.Semantics
     Partial Friend Class VisualBasicOperationFactory
 
-        Private ReadOnly _cache As New OperationCache(Of BoundNode)
+        Private ReadOnly _cache As ConcurrentDictionary(Of BoundNode, IOperation) =
+            New ConcurrentDictionary(Of BoundNode, IOperation)(concurrencyLevel:=2, capacity:=10)
 
         Public Function Create(boundNode As BoundNode) As IOperation
             If boundNode Is Nothing Then
                 Return Nothing
             End If
 
-            Return _cache.GetOrCreateOperationFrom(boundNode, Function(n) CreateInternal(n))
+            Return _cache.GetOrAdd(boundNode, Function(n) CreateInternal(n))
         End Function
 
         Private Function CreateInternal(boundNode As BoundNode) As IOperation
@@ -811,7 +813,10 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundBlockOperation(boundBlock As BoundBlock) As IBlockStatement
-            Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(Function() GetBlockStatementStatements(boundBlock))
+            Dim statements As Lazy(Of ImmutableArray(Of IOperation)) = New Lazy(Of ImmutableArray(Of IOperation))(
+                Function()
+                    Return boundBlock.Statements.Select(Function(n) Create(n)).Where(Function(s) s.Kind <> OperationKind.None).ToImmutableArray()
+                End Function)
             Dim locals As ImmutableArray(Of ILocalSymbol) = boundBlock.Locals.As(Of ILocalSymbol)()
             Dim isInvalid As Boolean = boundBlock.HasErrors
             Dim syntax As SyntaxNode = boundBlock.Syntax
@@ -1021,7 +1026,11 @@ Namespace Microsoft.CodeAnalysis.Semantics
         End Function
 
         Private Function CreateBoundInterpolatedStringExpressionOperation(boundInterpolatedString As BoundInterpolatedStringExpression) As IInterpolatedStringExpression
-            Dim parts As New Lazy(Of ImmutableArray(Of IInterpolatedStringContent))(Function() GetInterpolatedStringExpressionParts(boundInterpolatedString))
+            Dim parts As New Lazy(Of ImmutableArray(Of IInterpolatedStringContent))(
+                Function()
+                    Return boundInterpolatedString.Contents.SelectAsArray(Function(interpolatedStringContent) CreateBoundInterpolatedStringContentOperation(interpolatedStringContent))
+                End Function)
+
             Dim isInvalid As Boolean = boundInterpolatedString.HasErrors
             Dim syntax As SyntaxNode = boundInterpolatedString.Syntax
             Dim type As ITypeSymbol = boundInterpolatedString.Type

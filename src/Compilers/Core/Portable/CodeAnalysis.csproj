@@ -100,7 +100,6 @@
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
     <Compile Include="Operations\IOperationWithChildren.cs" />
     <Compile Include="Operations\Operation.cs" />
-    <Compile Include="Operations\OperationCache.cs" />
     <Compile Include="Operations\OperationKind.cs" />
     <Compile Include="Operations\IParameterInitializer.cs" />
     <Compile Include="Operations\IParameterReferenceExpression.cs" />

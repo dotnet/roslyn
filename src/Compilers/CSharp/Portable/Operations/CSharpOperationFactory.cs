@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -10,7 +11,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     internal partial class CSharpOperationFactory
     {
-        private readonly OperationCache<BoundNode> _cache = new OperationCache<BoundNode>();
+        private readonly ConcurrentDictionary<BoundNode, IOperation> _cache =
+            new ConcurrentDictionary<BoundNode, IOperation>(concurrencyLevel: 2, capacity: 10);
 
         public IOperation Create(BoundNode boundNode)
         {
@@ -19,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return null;
             }
 
-            return _cache.GetOrCreateOperationFrom(boundNode, n => CreateInternal(n));
+            return _cache.GetOrAdd(boundNode, n => CreateInternal(n));
         }
 
         private IOperation CreateInternal(BoundNode boundNode)
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IMethodSymbol constructor = boundObjectCreationExpression.Constructor;
             Lazy<ImmutableArray<IOperation>> memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetObjectCreationInitializers(boundObjectCreationExpression));
-            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => 
+            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
                 DeriveArguments(boundObjectCreationExpression,
                                 boundObjectCreationExpression.BinderOpt,
                                 boundObjectCreationExpression.Constructor,
@@ -722,7 +724,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IBlockStatement CreateBoundBlockOperation(BoundBlock boundBlock)
         {
-            Lazy<ImmutableArray<IOperation>> statements = new Lazy<ImmutableArray<IOperation>>(() => GetBlockStatement(boundBlock));
+            Lazy<ImmutableArray<IOperation>> statements =
+                new Lazy<ImmutableArray<IOperation>>(() => boundBlock.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray());
+
             ImmutableArray<ILocalSymbol> locals = boundBlock.Locals.As<ILocalSymbol>();
             bool isInvalid = boundBlock.HasErrors;
             SyntaxNode syntax = boundBlock.Syntax;
@@ -977,7 +981,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IVariableDeclarationStatement CreateBoundLocalDeclarationOperation(BoundLocalDeclaration boundLocalDeclaration)
         {
-            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => GetVariableDeclarationStatementVariables(boundLocalDeclaration));
+            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() =>
+                ImmutableArray.Create(OperationFactory.CreateVariableDeclaration(boundLocalDeclaration.LocalSymbol, Create(boundLocalDeclaration.InitializerOpt), boundLocalDeclaration.Syntax)));
+
             bool isInvalid = boundLocalDeclaration.HasErrors;
             SyntaxNode syntax = boundLocalDeclaration.Syntax;
             ITypeSymbol type = null;
@@ -987,7 +993,10 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IVariableDeclarationStatement CreateBoundMultipleLocalDeclarationsOperation(BoundMultipleLocalDeclarations boundMultipleLocalDeclarations)
         {
-            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() => GetVariableMultipleDeclarationStatementVariables(boundMultipleLocalDeclarations));
+            Lazy<ImmutableArray<IVariableDeclaration>> declarations = new Lazy<ImmutableArray<IVariableDeclaration>>(() =>
+                boundMultipleLocalDeclarations.LocalDeclarations.SelectAsArray(declaration =>
+                    OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
+
             bool isInvalid = boundMultipleLocalDeclarations.HasErrors;
             SyntaxNode syntax = boundMultipleLocalDeclarations.Syntax;
             ITypeSymbol type = null;
@@ -1029,7 +1038,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         private IInterpolatedStringExpression CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString)
         {
-            Lazy<ImmutableArray<IInterpolatedStringContent>> parts = new Lazy<ImmutableArray<IInterpolatedStringContent>>(() => GetInterpolatedStringExpressionParts(boundInterpolatedString));
+            Lazy<ImmutableArray<IInterpolatedStringContent>> parts = new Lazy<ImmutableArray<IInterpolatedStringContent>>(() =>
+                boundInterpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
+
             bool isInvalid = boundInterpolatedString.HasErrors;
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol type = boundInterpolatedString.Type;

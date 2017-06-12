@@ -29,17 +29,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator boundIncrementOperator)
+        private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator increment)
         {
-            return _cache.GetOrCreateOperationFrom(boundIncrementOperator, nameof(CreateIncrementOneLiteralExpression), (increment) =>
-            {
-                string text = increment.Syntax.ToString();
-                bool isInvalid = false;
-                SyntaxNode syntax = increment.Syntax;
-                ITypeSymbol type = increment.Type;
-                Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
-                return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
-            });
+            string text = increment.Syntax.ToString();
+            bool isInvalid = false;
+            SyntaxNode syntax = increment.Syntax;
+            ITypeSymbol type = increment.Type;
+            Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
+            return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
         }
 
         internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
@@ -77,31 +74,26 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return ImmutableArray<IArgument>.Empty;
             }
 
-            return _cache.GetOrCreateOperationsFrom(
-                boundNode, nameof(DeriveArguments),
-                (n) =>
-                {
-                    //TODO: https://github.com/dotnet/roslyn/issues/18722
-                    //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
-                    //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
-                    if (n.HasErrors || (object)optionalParametersMethod == null)
-                    {
-                        // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
-                        // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                        return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, Create(arg)));
-                    }
+            //TODO: https://github.com/dotnet/roslyn/issues/18722
+            //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
+            //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
+            if (boundNode.HasErrors || (object)optionalParametersMethod == null)
+            {
+                // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
+                // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
+                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, Create(arg)));
+            }
 
-                    return LocalRewriter.MakeArgumentsInEvaluationOrder(
-                         operationFactory: this,
-                         binder: binder,
-                         syntax: invocationSyntax,
-                         arguments: boundArguments,
-                         methodOrIndexer: methodOrIndexer,
-                         optionalParametersMethod: optionalParametersMethod,
-                         expanded: expanded,
-                         argsToParamsOpt: argumentsToParametersOpt,
-                         invokedAsExtensionMethod: invokedAsExtensionMethod);
-                });
+            return LocalRewriter.MakeArgumentsInEvaluationOrder(
+                 operationFactory: this,
+                 binder: binder,
+                 syntax: invocationSyntax,
+                 arguments: boundArguments,
+                 methodOrIndexer: methodOrIndexer,
+                 optionalParametersMethod: optionalParametersMethod,
+                 expanded: expanded,
+                 argsToParamsOpt: argumentsToParametersOpt,
+                 invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
         private ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
@@ -164,29 +156,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             return null;
         }
 
-        private ImmutableArray<IOperation> GetBlockStatement(BoundBlock block)
-        {
-            // This is to filter out operations of kind None.
-            return _cache.GetOrCreateOperationsFrom(block, nameof(GetBlockStatement),
-                blockStatement =>
-                {
-                    return blockStatement.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray();
-                });
-        }
-
         private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
-            return _cache.GetOrCreateOperationsFrom(statement, nameof(GetSwitchStatementCases),
-                switchStatement =>
-                {
-                    return switchStatement.SwitchSections.SelectAsArray(switchSection =>
-                    {
-                        var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
-                        var body = switchSection.Statements.SelectAsArray(s => Create(s));
+            return statement.SwitchSections.SelectAsArray(switchSection =>
+            {
+                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                        return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
-                    });
-                });
+                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+            });
         }
 
         private static BinaryOperationKind GetLabelEqualityKind(BoundSwitchLabel label)
@@ -224,28 +202,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             // Return None for `default` case.
             return BinaryOperationKind.None;
-        }
-
-        private ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundLocalDeclaration decl)
-        {
-            return _cache.GetOrCreateOperationsFrom(decl, nameof(GetVariableDeclarationStatementVariables),
-                declaration => ImmutableArray.Create(
-                    OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
-        }
-
-        private ImmutableArray<IVariableDeclaration> GetVariableMultipleDeclarationStatementVariables(BoundMultipleLocalDeclarations decl)
-        {
-            return _cache.GetOrCreateOperationsFrom(decl, nameof(GetVariableMultipleDeclarationStatementVariables),
-                multipleDeclarations =>
-                    multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                        OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
-        }
-
-        private ImmutableArray<IInterpolatedStringContent> GetInterpolatedStringExpressionParts(BoundInterpolatedString boundInterpolatedString)
-        {
-            return _cache.GetOrCreateOperationsFrom(boundInterpolatedString, nameof(GetInterpolatedStringExpressionParts),
-                interpolatedString =>
-                    interpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
         }
 
         internal class Helper
