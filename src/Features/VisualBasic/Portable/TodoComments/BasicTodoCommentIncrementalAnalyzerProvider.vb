@@ -112,7 +112,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.TodoComments
         Private Const s_DWCH_SQ As Char = ChrW(&HFF07)      '// DW single quote
         Private Const s_DWCH_LSMART_Q As Char = ChrW(&H2018S)      '// DW left single smart quote
         Private Const s_DWCH_RSMART_Q As Char = ChrW(&H2019S)      '// DW right single smart quote
-        Private workspace As Workspace
 
         Private Shared Function IsSingleQuote(c As Char) As Boolean
             ' // Besides the half width and full width ', we also check for Unicode

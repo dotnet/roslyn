@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
             RemoteHostClient client, Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await GetKeepAliveSessionAsync(client).ConfigureAwait(false);
+            var keepAliveSession = await TryGetKeepAliveSessionAsync(client).ConfigureAwait(false);
 
             var (success, result) = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
                 nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return success ? result : SpecializedCollections.EmptyList<TodoComment>();
         }
 
-        private async Task<KeepAliveSessionHolder> GetKeepAliveSessionAsync(RemoteHostClient client)
+        private async Task<KeepAliveSessionHolder> TryGetKeepAliveSessionAsync(RemoteHostClient client)
         {
             if (_session != null)
             {
