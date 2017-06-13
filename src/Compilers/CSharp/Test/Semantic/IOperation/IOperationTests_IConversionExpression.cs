@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -447,6 +448,69 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_DefaultToValueConversion()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    void M1()
+    {
+        long /*<bind>*/i1 = default(int)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'long /*<bin ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'long /*<bin ... *</bind>*/;')
+    Variables: Local_1: System.Int64 i1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 0) (Syntax: 'default(int)')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int32, Constant: 0) (Syntax: 'default(int)')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'i1' is assigned but its value is never used
+                //         long /*<bind>*/i1 = default(int)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(8, 24)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        /// <summary>
+        /// This test documents the fact that `default(T)` is already T, and does not introduce a conversion
+        /// </summary>
+        [Fact]
+        public void ConversionExpression_Implicit_DefaultToClassNoConversion()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    void M1()
+    {
+        string /*<bind>*/i1 = default(string)/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'string /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'string /*<b ... *</bind>*/;')
+    Variables: Local_1: System.String i1
+    Initializer: IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.String, Constant: null) (Syntax: 'default(string)')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'i1' is assigned but its value is never used
+                //         string /*<bind>*/i1 = default(string)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(8, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact]
@@ -2653,6 +2717,216 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_DelegateExpressionWithoutParamsToDelegateConversion()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    void M1()
+    {
+        Action /*<bind>*/a = delegate { }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action /*<b ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action /*<b ... *</bind>*/;')
+    Variables: Local_1: System.Action a
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Action) (Syntax: 'delegate { }')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'delegate { }')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+            IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_DelegateExpressionWithParamsToDelegateConversion()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    void M1()
+    {
+        Action<int> /*<bind>*/a = delegate(int i) { }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Action<int> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Action<int> ... *</bind>*/;')
+    Variables: Local_1: System.Action<System.Int32> a
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>) (Syntax: 'delegate(int i) { }')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'delegate(int i) { }')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ }')
+            IReturnStatement (OperationKind.ReturnStatement) (Syntax: '{ }')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_DelegateExpressionWithParamsToDelegateConversion_InvalidMismatchedTypes()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    void M1()
+    {
+        Action<int> /*<bind>*/a = delegate() { }/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Action<int> ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Action<int> ... *</bind>*/;')
+    Variables: Local_1: System.Action<System.Int32> a
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Action<System.Int32>, IsInvalid) (Syntax: 'delegate() { }')
+        IUnboundLambdaExpression (OperationKind.UnboundLambdaExpression, Type: null) (Syntax: 'delegate() { }')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1593: Delegate 'Action<int>' does not take 0 arguments
+                //         Action<int> /*<bind>*/a = delegate() { }/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "delegate() { }").WithArguments("System.Action<int>", "0").WithLocation(8, 35)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_PointerFromNullConversion()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    unsafe void M1()
+    {
+        void* /*<bind>*/v1 = null/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'void* /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'void* /*<bi ... *</bind>*/;')
+    Variables: Local_1: System.Void* v1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Void*) (Syntax: 'null')
+        ILiteralExpression (Text: null) (OperationKind.LiteralExpression, Type: null, Constant: null) (Syntax: 'null')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                compilationOptions: TestOptions.UnsafeReleaseDll,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_PointerToVoidConversion()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    unsafe void M1()
+    {
+        int* i1 = null;
+        void* /*<bind>*/v1 = i1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'void* /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'void* /*<bi ... *</bind>*/;')
+    Variables: Local_1: System.Void* v1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Void*) (Syntax: 'i1')
+        ILocalReferenceExpression: i1 (OperationKind.LocalReferenceExpression, Type: System.Int32*) (Syntax: 'i1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                compilationOptions: TestOptions.UnsafeReleaseDll,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_PointerFromVoidConversion_Invalid()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    unsafe void M1()
+    {
+        void* v1 = null;
+        int* /*<bind>*/i1 = v1/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'int* /*<bin ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'int* /*<bin ... *</bind>*/;')
+    Variables: Local_1: System.Int32* i1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32*, IsInvalid) (Syntax: 'v1')
+        ILocalReferenceExpression: v1 (OperationKind.LocalReferenceExpression, Type: System.Void*) (Syntax: 'v1')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'void*' to 'int*'. An explicit conversion exists (are you missing a cast?)
+                //         int* /*<bind>*/i1 = v1/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "v1").WithArguments("void*", "int*").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                compilationOptions: TestOptions.UnsafeReleaseDll,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_PointerFromIntegerConversion_Invalid()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    unsafe void M1()
+    {
+        void* /*<bind>*/v1 = 0/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'void* /*<bi ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'void* /*<bi ... *</bind>*/;')
+    Variables: Local_1: System.Void* v1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Void*, IsInvalid) (Syntax: '0')
+        ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'int' to 'void*'. An explicit conversion exists (are you missing a cast?)
+                //         void* /*<bind>*/v1 = 0/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "0").WithArguments("int", "void*").WithLocation(8, 30),
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                compilationOptions: TestOptions.UnsafeReleaseDll,
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
