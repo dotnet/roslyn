@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     using SymbolAndProjectIdSet = HashSet<SymbolAndProjectId<INamedTypeSymbol>>;
 
-    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(INamedTypeSymbol, IImmutableSet<Project>), AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>>>;
+    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(SymbolKey, IImmutableSet<Project>), AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>>>;
 
     /// <summary>
     /// Provides helper methods for finding dependent types (derivations, implementations, 
@@ -63,16 +63,47 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var dictionary = cache.GetOrCreateValue(solution);
 
+            var result = default(ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>);
+
             // Do a quick lookup first to avoid the allocation.  If it fails, go through the
             // slower allocating path.
-            if (!dictionary.TryGetValue((type, projects), out var lazy))
+            var key = (type.GetSymbolKey(), projects);
+            if (!dictionary.TryGetValue(key, out var lazy))
             {
-                lazy = dictionary.GetOrAdd((type, projects),
-                    new AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>(
-                        asynchronousComputeFunction: findAsync, cacheResult: true));
+                lazy = dictionary.GetOrAdd(key,
+                    new AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>(
+                        async c =>
+                        {
+                            result = await findAsync(c).ConfigureAwait(false);
+                            return result.SelectAsArray(t => (t.Symbol.GetSymbolKey(), t.ProjectId));
+                        },
+                        cacheResult: true));
             }
 
-            return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            if (!result.IsDefault)
+            {
+                return result;
+            }
+
+            var symbolKeys = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+            var builder = ArrayBuilder<SymbolAndProjectId<INamedTypeSymbol>>.GetInstance();
+
+            foreach (var group in symbolKeys.GroupBy(t => t.Item2))
+            {
+                var project = solution.GetProject(group.Key);
+                var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var (symbolKey, _) in group)
+                {
+                    var resolvedSymbol = symbolKey.Resolve(compilation, cancellationToken: cancellationToken).GetAnySymbol();
+                    if (resolvedSymbol is INamedTypeSymbol namedType)
+                    {
+                        builder.Add(new SymbolAndProjectId<INamedTypeSymbol>(namedType, project.Id));
+                    }
+                }
+            }
+
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -613,8 +644,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var typesToSearchFor = CreateSymbolAndProjectIdSet();
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
-            var caseSensitive = project.LanguageServices.GetService<ISyntaxFactsService>().IsCaseSensitive;
-            var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes, caseSensitive);
+            var comparer = project.LanguageServices.GetService<ISyntaxFactsService>().StringComparer;
+            var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes, comparer);
 
             var schedulerPair = new ConcurrentExclusiveSchedulerPair(
                 TaskScheduler.Default, maxConcurrencyLevel: Math.Max(1, Environment.ProcessorCount));
@@ -788,13 +819,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public readonly HashSet<string> TypeNames;
 
-            public InheritanceQuery(SymbolAndProjectIdSet sourceAndMetadataTypes, bool caseSensitive)
+            public InheritanceQuery(SymbolAndProjectIdSet sourceAndMetadataTypes, StringComparer comparer)
             {
                 DerivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_Object);
                 DerivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_ValueType);
                 DerivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_Enum);
                 DerivesFromSystemMulticastDelegate = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_MulticastDelegate);
-                TypeNames = caseSensitive ? new HashSet<string>() : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                TypeNames = new HashSet<string>(comparer);
             }
         }
 
