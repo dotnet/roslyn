@@ -84,15 +84,28 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         cacheResult: true));
             }
 
+            // If we were the caller that actually computed the symbols, then we can just return
+            // the values we got.
             if (!result.IsDefault)
             {
                 return result;
             }
 
+            // Otherwise, someone else computed the symbols and cached the results as symbol 
+            // keys.  Convert those symbol keys back to symbols and return.
             var symbolKeys = await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
             var builder = ArrayBuilder<SymbolAndProjectId<INamedTypeSymbol>>.GetInstance();
 
-            foreach (var group in symbolKeys.GroupBy(t => t.Item2))
+            // Group by projectId so that we only process one project/compilation at a time.
+            // Also, process in dependency order so taht previous compilations are ready if
+            // they're referenced by later compilations.
+            var dependencyOrder = solution.GetProjectDependencyGraph()
+                                          .GetTopologicallySortedProjects()
+                                          .Select((id, index) => (id, index))
+                                          .ToDictionary(t => t.id, t => t.index);
+
+            var orderedGroups = symbolKeys.GroupBy(t => t.Item2).OrderBy(g => dependencyOrder[g.Key]);
+            foreach (var group in orderedGroups)
             {
                 var project = solution.GetProject(group.Key);
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
