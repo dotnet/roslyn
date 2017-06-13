@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // Kept as a cache so that clients who make many calls into us won't end up computing
         // the same data over and over again.  Will be let go the moment the solution they're
         // based off of is no longer alive.
+        //
+        // Importantly, the caches only store SymbolKeys and Ids.  As such, they will not hold
+        // any Symbols or Compilations alive.
 
         private static readonly RelatedTypeCache s_typeToImmediatelyDerivedClassesMap = new RelatedTypeCache();
         private static readonly RelatedTypeCache s_typeToTransitivelyDerivedClassesMap = new RelatedTypeCache();
