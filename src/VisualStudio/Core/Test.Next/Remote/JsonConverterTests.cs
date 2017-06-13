@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Newtonsoft.Json;
@@ -22,7 +23,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestChecksum()
         {
-            VerifyJsonSerialization(new Checksum(Guid.NewGuid().ToByteArray()));
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            VerifyJsonSerialization(checksum);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -130,7 +132,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestPinnedSolutionInfo()
         {
-            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, solutionChecksum: new Checksum(new byte[] { 1, 2, 3, 4, 5, 6 })), (x, y) =>
+            var checksum = Checksum.Create(WellKnownSynchronizationKind.Null, ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            VerifyJsonSerialization(new PinnedSolutionInfo(scopeId: 10, fromPrimaryBranch: false, solutionChecksum: checksum), (x, y) =>
             {
                 return (x.ScopeId == y.ScopeId && x.FromPrimaryBranch == y.FromPrimaryBranch && x.SolutionChecksum == y.SolutionChecksum) ? 0 : 1;
             });
