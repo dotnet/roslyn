@@ -3,18 +3,19 @@
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
-Imports Microsoft.CodeAnalysis.Editor.Implementation.Classification
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Classification
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Classification
-    <ExportLanguageService(GetType(IEditorClassificationService), LanguageNames.VisualBasic), [Shared]>
+Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
+    <ExportLanguageService(GetType(IClassificationService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicEditorClassificationService
-        Inherits AbstractEditorClassificationService
+        Inherits AbstractClassificationService
 
         Public Overrides Sub AddLexicalClassifications(text As SourceText, textSpan As TextSpan, result As List(Of ClassifiedSpan), cancellationToken As CancellationToken)
-            ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken)
+            Dim temp = ArrayBuilder(Of ClassifiedSpan).GetInstance()
+            ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken)
+            AddRange(temp, result)
+            temp.Free()
         End Sub
 
         Public Overrides Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan

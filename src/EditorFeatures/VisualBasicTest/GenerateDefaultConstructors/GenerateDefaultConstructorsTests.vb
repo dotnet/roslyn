@@ -618,5 +618,14 @@ Public Class Derived
     End Sub
 End Class")
         End Function
+
+        <WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestNotOnEnum() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"
+Public Enum [||]E
+End Enum")
+        End Function
     End Class
 End Namespace

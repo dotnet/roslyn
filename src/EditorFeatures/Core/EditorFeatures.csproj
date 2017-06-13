@@ -339,8 +339,6 @@
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsAdornmentTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
     <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
@@ -415,7 +413,6 @@
     <Compile Include="Implementation\CallHierarchy\Finders\MethodCallFinder.cs" />
     <Compile Include="Implementation\CallHierarchy\Finders\OverridingMemberFinder.cs" />
     <Compile Include="Implementation\ChangeSignature\AbstractChangeSignatureCommandHandler.cs" />
-    <Compile Include="Implementation\Classification\AbstractEditorClassificationService.cs" />
     <Compile Include="Implementation\Classification\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />
