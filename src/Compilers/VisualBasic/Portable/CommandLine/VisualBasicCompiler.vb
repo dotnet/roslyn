@@ -200,9 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="consoleOutput"></param>
         Public Overrides Sub PrintHelp(consoleOutput As TextWriter)
-            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture),
-                                    LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString(),
-                                    LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString())
+            consoleOutput.WriteLine(ErrorFactory.IdToString(ERRID.IDS_VBCHelp, Culture))
         End Sub
 
         Public Overrides Sub PrintLangVersions(consoleOutput As TextWriter)
@@ -214,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (default)")
                 ElseIf v = latestVersion Then
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)")
-                ElseIf v <> LanguageVersion.Default AndAlso v <> LanguageVersion.Latest Then
+                Else
                     consoleOutput.WriteLine(v.ToDisplayString())
                 End If
             Next

@@ -4389,11 +4389,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_LogoLine1" xml:space="preserve">
     <value>{0} version {1}</value>
   </data>
-  <data name="IDS_LangVersions" xml:space="preserve">
-    <value>Supported language versions:</value>
-  </data>
   <data name="IDS_LogoLine2" xml:space="preserve">
     <value>Copyright (C) Microsoft Corporation. All rights reserved.</value>
+  </data>
+  <data name="IDS_LangVersions" xml:space="preserve">
+    <value>Supported language versions:</value>
   </data>
   <data name="IDS_CSCHelp" xml:space="preserve">
     <value>
@@ -4450,7 +4450,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 
                         - CODE GENERATION -
  /debug[+|-]                   Emit debugging information
- /debug:{{full|pdbonly|portable|embedded}}
+ /debug:{full|pdbonly|portable|embedded}
                                Specify debugging type ('full' is default,
                                'portable' is a cross-platform format,
                                'embedded' is a cross-platform format embedded into
@@ -4484,7 +4484,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /langversion:&lt;string&gt;         Specify language version such as
                                `default` (latest major version), or
                                `latest` (latest version, including minor versions),
-                               or specific versions like `{0}` or `{1}`
+                               or specific versions like `6` or `7.1`
 
                         - SECURITY -
  /delaysign[+|-]               Delay-sign the assembly using only the public

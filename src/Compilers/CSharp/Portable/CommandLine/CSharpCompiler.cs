@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     consoleOutput.WriteLine($"{v.ToDisplayString()} (latest)");
                 }
-                else if (v != LanguageVersion.Default && v != LanguageVersion.Latest)
+                else
                 {
                     consoleOutput.WriteLine(v.ToDisplayString());
                 }
@@ -310,9 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="consoleOutput"></param>
         public override void PrintHelp(TextWriter consoleOutput)
         {
-            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_CSCHelp, Culture),
-                LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString(),
-                LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString());
+            consoleOutput.WriteLine(ErrorFacts.GetMessage(MessageID.IDS_CSCHelp, Culture));
         }
 
         protected override bool TryGetCompilerDiagnosticCode(string diagnosticId, out uint code)

@@ -1710,8 +1710,7 @@ End Module").Path
             Assert.Equal(0, exitCode)
 
             Dim actual = outWriter.ToString()
-            Dim expected = {LanguageVersion.Default.MapSpecifiedToEffectiveVersion().ToDisplayString(),
-                LanguageVersion.Latest.MapSpecifiedToEffectiveVersion().ToDisplayString()}
+            Dim expected = [Enum].GetValues(GetType(LanguageVersion)).Cast(Of LanguageVersion)().Select(Function(v) v.ToDisplayString())
             Dim acceptableSurroundingChar = {CChar(vbCr), CChar(vbLf), "("c, ")"c, " "c}
 
             For Each v In expected
