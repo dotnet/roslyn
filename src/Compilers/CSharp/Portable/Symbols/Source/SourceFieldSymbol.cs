@@ -123,6 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstanceMemberInStaticClass, ErrorLocation, this);
             }
+            else if (!IsStatic && !IsReadOnly && containingType.IsReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldsInRoStruct, ErrorLocation);
+            }
 
             // TODO: Consider checking presence of core type System.Runtime.CompilerServices.IsVolatile 
             // if there is a volatile modifier. Perhaps an appropriate error should be reported if the 

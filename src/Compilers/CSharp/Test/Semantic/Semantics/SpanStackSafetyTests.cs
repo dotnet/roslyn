@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     /// <summary>
     /// this place is dedicated to binding related error tests
     /// </summary>
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class SpanStackSafetyTests : CompilingTestBase
     {
         private static string spanSource = @"

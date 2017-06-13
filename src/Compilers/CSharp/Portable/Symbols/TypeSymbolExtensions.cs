@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // the "System" must be in the global namespace
-            return ns.ContainingNamespace.IsGlobalNamespace;
+            return ns.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)
