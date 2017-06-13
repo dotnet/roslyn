@@ -62,8 +62,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             var dictionary = cache.GetOrCreateValue(solution);
-            var lazy = dictionary.GetOrAdd((type, projects), new AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>(
-               asynchronousComputeFunction: findAsync, cacheResult: true));
+
+            // Do a quick lookup first to avoid the allocation.  If it fails, go through the
+            // slower allocating path.
+            if (!dictionary.TryGetValue((type, projects), out var lazy))
+            {
+                lazy = dictionary.GetOrAdd((type, projects),
+                    new AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>(
+                        asynchronousComputeFunction: findAsync, cacheResult: true));
+            }
 
             return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
         }
