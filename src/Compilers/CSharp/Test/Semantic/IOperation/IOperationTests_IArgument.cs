@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+                                                                
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1136,7 +1136,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { s
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')";
-            var expectedDiagnostics = new DiagnosticDescription[] {
+            var expectedDiagnostics = new DiagnosticDescription[] {               
                 // file.cs(12,27): error CS0154: The property or indexer 'P.this[int]' cannot be used in this context because it lacks the get accessor
                 //         var x = /*<bind>*/this[10]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "this[10]").WithArguments("P.this[int]").WithLocation(12, 27)
@@ -1185,7 +1185,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { g
             string source = @"
 class Base
 {
-    public virtual int this[int x = 0, int y = 1]XXXX
+    public virtual int this[int x = 0, int y = 1]
     {
         set { }
         get { System.Console.Write(y); return 0; }
@@ -1221,7 +1221,7 @@ IIndexedPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x =
 
             string expectedOutput = @"1";
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);                                      
 
             CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
@@ -1285,7 +1285,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
-        }
+        } 
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void AssigningToIndexer_UsingDefaultArgumentFromSetter()
@@ -1334,8 +1334,8 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
     IL_0021:  ldloc.0
     IL_0022:  ret
   } // end of method P::get_Item
-
-  .method public hidebysig specialname instance void
+  
+  .method public hidebysig specialname instance void 
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
@@ -1369,7 +1369,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
                                    int32)
   } // end of property P::Item
 } // end of class P
-";
+"; 
 
             var csharp = @"
 class C
@@ -1444,12 +1444,12 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
     IL_0021:  ldloc.0
     IL_0022:  ret
   } // end of method P::get_Item
-
-  .method public hidebysig specialname instance void
+  
+  .method public hidebysig specialname instance void 
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
-  {
+  {    
     .param [1] = int32(0x00000003)
     .param [2] = int32(0x00000004)
     // Code size       30 (0x1e)
@@ -1556,12 +1556,12 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
     IL_0021:  ldloc.0
     IL_0022:  ret
   } // end of method P::get_Item
-
-  .method public hidebysig specialname instance void
+  
+  .method public hidebysig specialname instance void 
           set_Item([opt] int32 i,
                    [opt] int32 j,
                    int32 'value') cil managed
-  {
+  { 
     .param [1] = int32(0x00000003)
     .param [2] = int32(0x00000004)
     // Code size       30 (0x1e)
@@ -1647,7 +1647,7 @@ IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [
     IL_0000: nop
     IL_0001:  ret
   } // end of method P::M1
-} // end of class P
+} // end of class P 
 ";
 
             var csharp = @"
@@ -1703,5 +1703,5 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
                 }
             }
         }
-    }
+    }             
 }
