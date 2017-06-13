@@ -205,6 +205,7 @@
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="FindSymbols\FindReferences\DependentTypeFinder_ProjectIndex.cs" />
     <Compile Include="Remote\RemoteFeatureOptions.cs" />
   </ItemGroup>
   <ItemGroup>
