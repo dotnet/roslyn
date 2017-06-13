@@ -413,7 +413,6 @@
     <Compile Include="Implementation\CallHierarchy\Finders\MethodCallFinder.cs" />
     <Compile Include="Implementation\CallHierarchy\Finders\OverridingMemberFinder.cs" />
     <Compile Include="Implementation\ChangeSignature\AbstractChangeSignatureCommandHandler.cs" />
-    <Compile Include="Implementation\Classification\AbstractEditorClassificationService.cs" />
     <Compile Include="Implementation\Classification\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />

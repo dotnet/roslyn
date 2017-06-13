@@ -56,6 +56,7 @@
     <Compile Include="AddImports\CSharpAddImportsService.cs" />
     <Compile Include="CaseCorrection\CSharpCaseCorrectionService.cs" />
     <Compile Include="Classification\ClassificationHelpers.cs" />
+    <Compile Include="Classification\CSharpClassificationService.cs" />
     <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassifier.cs" />
     <Compile Include="Classification\SyntaxClassification\NameSyntaxClassifier.cs" />
     <Compile Include="Classification\SyntaxClassification\SyntaxTokenClassifier.cs" />
