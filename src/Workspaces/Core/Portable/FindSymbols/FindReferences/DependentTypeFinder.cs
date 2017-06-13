@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     using SymbolAndProjectIdSet = HashSet<SymbolAndProjectId<INamedTypeSymbol>>;
 
-    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<INamedTypeSymbol, AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>>>;
+    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<(INamedTypeSymbol, IImmutableSet<Project>), AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>>>;
 
     /// <summary>
     /// Provides helper methods for finding dependent types (derivations, implementations, 
@@ -56,12 +56,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesFromCacheOrComputeAsync(
             INamedTypeSymbol type,
             Solution solution,
+            IImmutableSet<Project> projects,
             RelatedTypeCache cache,
             Func<CancellationToken, Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>> findAsync,
             CancellationToken cancellationToken)
         {
             var dictionary = cache.GetOrCreateValue(solution);
-            var lazy = dictionary.GetOrAdd(type, new AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>(
+            var lazy = dictionary.GetOrAdd((type, projects), new AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>(
                asynchronousComputeFunction: findAsync, cacheResult: true));
 
             return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
@@ -76,11 +77,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
-                type, solution, s_typeToImmediatelyDerivedClassesMap,
-                c => FindDerivedClassesAsync(
+                type, solution, projects: null,
+                cache: s_typeToImmediatelyDerivedClassesMap,
+                findAsync: c => FindDerivedClassesAsync(
                     SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
                     transitive: false, cancellationToken: c),
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -93,7 +95,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
-                type, solution, s_typeToTransitivelyDerivedClassesMap,
+                type, solution, projects, s_typeToTransitivelyDerivedClassesMap,
                 c => FindDerivedClassesAsync(
                     SymbolAndProjectId.Create(type, projectId: null), solution, projects,
                     transitive: true, cancellationToken: c),
@@ -137,7 +139,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
-                type, solution, s_typeToTransitivelyImplementingTypesMap,
+                type, solution, projects, s_typeToTransitivelyImplementingTypesMap,
                 c => FindTransitivelyImplementingTypesWorkerAsync(type, solution, projects, c),
                 cancellationToken);
         }
@@ -166,11 +168,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             return FindTypesFromCacheOrComputeAsync(
-                type, solution, s_typeToImmediatelyDerivedAndImplementingTypesMap,
-                c => FindDerivedAndImplementingTypesAsync(
+                type, solution, projects: null,
+                cache: s_typeToImmediatelyDerivedAndImplementingTypesMap,
+                findAsync: c => FindDerivedAndImplementingTypesAsync(
                     SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
                     transitive: false, cancellationToken: c),
-                cancellationToken);
+                cancellationToken: cancellationToken);
         }
 
         private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedAndImplementingTypesAsync(
