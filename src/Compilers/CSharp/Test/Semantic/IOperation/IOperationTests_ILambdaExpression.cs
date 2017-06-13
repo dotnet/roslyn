@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    internal partial class IOperationTests : SemanticModelTestBase
+    public partial class IOperationTests : SemanticModelTestBase
     {
         [Fact]
         public void ILambdaExpression_BoundLambda_HasValidLambdaExpressionTree()
