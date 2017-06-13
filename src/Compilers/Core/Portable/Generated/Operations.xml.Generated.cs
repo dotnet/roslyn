@@ -4179,26 +4179,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation Operand => _lazyOperand.Value;
     }
 
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
-    internal sealed partial class UnboundLambdaExpression : Operation, IUnboundLambdaExpression
-    {
-        public UnboundLambdaExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.UnboundLambdaExpression, isInvalid, syntax, type, constantValue)
-        {
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitUnboundLambdaExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitUnboundLambdaExpression(this, argument);
-        }
-    }
-
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>

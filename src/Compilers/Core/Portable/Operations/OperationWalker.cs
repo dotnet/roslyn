@@ -402,9 +402,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Instance);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        { }
-
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         { }
 

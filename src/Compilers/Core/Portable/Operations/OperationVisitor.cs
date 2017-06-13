@@ -365,11 +365,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             DefaultVisit(operation);
@@ -771,11 +766,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitLateBoundMemberReferenceExpression(ILateBoundMemberReferenceExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitUnboundLambdaExpression(IUnboundLambdaExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

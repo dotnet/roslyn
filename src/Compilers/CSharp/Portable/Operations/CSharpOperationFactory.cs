@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IMethodSymbol constructor = boundObjectCreationExpression.Constructor;
             Lazy<ImmutableArray<IOperation>> memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetObjectCreationInitializers(boundObjectCreationExpression));
-            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => 
+            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() =>
                 DeriveArguments(boundObjectCreationExpression,
                                 boundObjectCreationExpression.BinderOpt,
                                 boundObjectCreationExpression.Constructor,
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyObjectCreationExpression(constructor, memberInitializers, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue);
         }
 
-        private static IUnboundLambdaExpression CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
+        private static ILambdaExpression CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
         {
             bool isInvalid = unboundLambda.HasErrors;
             SyntaxNode syntax = unboundLambda.Syntax;
@@ -364,7 +364,8 @@ namespace Microsoft.CodeAnalysis.Semantics
             // an IUnboundLambdaExpression, you need to look at the parent IConversionExpression.
             ITypeSymbol type = null;
             Optional<object> constantValue = ConvertToOptional(unboundLambda.ConstantValue);
-            return new UnboundLambdaExpression(isInvalid, syntax, type, constantValue);
+            Lazy<ILambdaExpression> internalLambda = new Lazy<ILambdaExpression>(() => CreateBoundLambdaOperation(unboundLambda.BindForErrorRecovery()));
+            return new LazyLambdaFromUnboundLambdaExpression(internalLambda, isInvalid, syntax, type, constantValue);
         }
 
         private static ILambdaExpression CreateBoundLambdaOperation(BoundLambda boundLambda)

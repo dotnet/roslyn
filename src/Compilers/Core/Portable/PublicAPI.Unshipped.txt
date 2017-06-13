@@ -122,7 +122,6 @@ Microsoft.CodeAnalysis.OperationKind.TryStatement = 14 -> Microsoft.CodeAnalysis
 Microsoft.CodeAnalysis.OperationKind.TypeOfExpression = 513 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.TypeParameterObjectCreationExpression = 275 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.UnaryOperatorExpression = 269 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.UnboundLambdaExpression = 517 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.UsingStatement = 15 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.VariableDeclaration = 1030 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.VariableDeclarationStatement = 3 -> Microsoft.CodeAnalysis.OperationKind
@@ -522,7 +521,6 @@ Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression.UnaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.Semantics.IUnboundLambdaExpression
 Microsoft.CodeAnalysis.Semantics.IUsingStatement
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Body.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IUsingStatement.Declaration.get -> Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement
@@ -748,7 +746,6 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitTryStatement(Micr
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitTypeOfExpression(Microsoft.CodeAnalysis.Semantics.ITypeOfExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitTypeParameterObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUnaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression operation) -> void
-override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUnboundLambdaExpression(Microsoft.CodeAnalysis.Semantics.IUnboundLambdaExpression operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation) -> void
@@ -849,7 +846,6 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTryStatement(Micr
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTypeOfExpression(Microsoft.CodeAnalysis.Semantics.ITypeOfExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitTypeParameterObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUnaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression operation) -> void
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUnboundLambdaExpression(Microsoft.CodeAnalysis.Semantics.IUnboundLambdaExpression operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation) -> void
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation) -> void
@@ -927,7 +923,6 @@ virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.Vi
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitTypeOfExpression(Microsoft.CodeAnalysis.Semantics.ITypeOfExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitTypeParameterObjectCreationExpression(Microsoft.CodeAnalysis.Semantics.ITypeParameterObjectCreationExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitUnaryOperatorExpression(Microsoft.CodeAnalysis.Semantics.IUnaryOperatorExpression operation, TArgument argument) -> TResult
-virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitUnboundLambdaExpression(Microsoft.CodeAnalysis.Semantics.IUnboundLambdaExpression operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitUsingStatement(Microsoft.CodeAnalysis.Semantics.IUsingStatement operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableDeclaration(Microsoft.CodeAnalysis.Semantics.IVariableDeclaration operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.VisitVariableDeclarationStatement(Microsoft.CodeAnalysis.Semantics.IVariableDeclarationStatement operation, TArgument argument) -> TResult
