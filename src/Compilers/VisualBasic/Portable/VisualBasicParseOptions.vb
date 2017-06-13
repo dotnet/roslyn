@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _specifiedLanguageVersion = languageVersion
             _languageVersion = languageVersion.MapSpecifiedToEffectiveVersion
             _preprocessorSymbols = preprocessorSymbols.ToImmutableArrayOrEmpty
-            _features = If(features, ImmutableDictionary(Of String, String).Empty)
+            _features = If(features?.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase), ImmutableDictionary(Of String, String).Empty)
         End Sub
 
         Private Sub New(other As VisualBasicParseOptions)
