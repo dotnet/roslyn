@@ -791,7 +791,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field-like events are not allowed in readonly structs..
+        ///   Looks up a localized string similar to Auto-implemented instance properties in readonly structs must be readonly..
         /// </summary>
         internal static string ERR_AutoPropsInRoStruct {
             get {
@@ -4571,7 +4571,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Instance fields of readonly structs must be readonly..
+        ///   Looks up a localized string similar to Field-like events are not allowed in readonly structs..
         /// </summary>
         internal static string ERR_FieldlikeEventsInRoStruct {
             get {
@@ -4580,7 +4580,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Auto-implemented instance properties in readonly structs must be readonly..
+        ///   Looks up a localized string similar to Instance fields of readonly structs must be readonly..
         /// </summary>
         internal static string ERR_FieldsInRoStruct {
             get {

@@ -154,7 +154,6 @@ interface I1
     );
         }
 
-
         private static string ilreadonlyStructWithWriteableFieldIL = @"
 .class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute
        extends [mscorlib]System.Attribute
