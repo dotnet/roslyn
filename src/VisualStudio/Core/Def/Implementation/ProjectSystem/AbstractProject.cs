@@ -951,6 +951,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 filePath: filename,
                 sourceCodeKind: sourceCodeKind,
                 getFolderNames: getFolderNames,
+                isAdditionalFile: false,
                 canUseTextBuffer: CanUseTextBuffer,
                 updatedOnDiskHandler: s_documentUpdatedOnDiskEventHandler,
                 openedHandler: s_documentOpenedEventHandler,

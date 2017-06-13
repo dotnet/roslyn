@@ -137,6 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 sourceCodeKind: SourceCodeKind.Regular,
                 getFolderNames: _ => SpecializedCollections.EmptyReadOnlyList<string>(),
                 canUseTextBuffer: _ => true,
+                isAdditionalFile: true,
                 updatedOnDiskHandler: s_additionalDocumentUpdatedOnDiskEventHandler,
                 openedHandler: s_additionalDocumentOpenedEventHandler,
                 closingHandler: s_additionalDocumentClosingEventHandler);

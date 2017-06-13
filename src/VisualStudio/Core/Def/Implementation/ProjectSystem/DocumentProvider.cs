@@ -98,11 +98,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SourceCodeKind sourceCodeKind,
             Func<ITextBuffer, bool> canUseTextBuffer,
             Func<uint, IReadOnlyList<string>> getFolderNames,
+            bool isAdditionalFile,
             EventHandler updatedOnDiskHandler = null,
             EventHandler<bool> openedHandler = null,
             EventHandler<bool> closingHandler = null)
         {
-            var documentKey = new DocumentKey(hostProject, filePath);
+            var documentKey = new DocumentKey(hostProject, filePath, isAdditionalFile);
             StandardTextDocument document;
 
             lock (_gate)
@@ -338,39 +339,43 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 var hasAssociatedRoslynDocument = false;
                 foreach (var project in _projectContainer.GetProjects())
                 {
-                    var documentKey = new DocumentKey(project, moniker);
+                    var documentKeyForSource = new DocumentKey(project, moniker, isAdditionalFile: false);
+                    var documentKeyForAdditionalFiles = new DocumentKey(project, moniker, isAdditionalFile: true);
 
-                    if (_documentMap.ContainsKey(documentKey))
+                    foreach (var documentKey in new[] { documentKeyForSource, documentKeyForAdditionalFiles })
                     {
-                        hasAssociatedRoslynDocument = true;
-                        var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
-
-                        // If we already have an ITextBuffer for this document, then we can open it now.
-                        // Otherwise, setup an event handler that will do it when the buffer loads.
-                        if (textBuffer != null)
+                        if (_documentMap.ContainsKey(documentKey))
                         {
-                            // We might already have this docCookie marked as open an older document. This can happen
-                            // if we're in the middle of a rename but this class hasn't gotten the notification yet but
-                            // another listener for RDT events got it
-                            if (_docCookiesToOpenDocumentKeys.ContainsKey(docCookie))
-                            {
-                                CloseDocuments_NoLock(docCookie, monikerToKeep: moniker);
-                            }
+                            hasAssociatedRoslynDocument = true;
+                            var textBuffer = _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
 
-                            if (hierarchy == project.Hierarchy)
+                            // If we already have an ITextBuffer for this document, then we can open it now.
+                            // Otherwise, setup an event handler that will do it when the buffer loads.
+                            if (textBuffer != null)
                             {
-                                // This is the current context
-                                NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: true);
+                                // We might already have this docCookie marked as open an older document. This can happen
+                                // if we're in the middle of a rename but this class hasn't gotten the notification yet but
+                                // another listener for RDT events got it
+                                if (_docCookiesToOpenDocumentKeys.ContainsKey(docCookie))
+                                {
+                                    CloseDocuments_NoLock(docCookie, monikerToKeep: moniker);
+                                }
+
+                                if (hierarchy == project.Hierarchy)
+                                {
+                                    // This is the current context
+                                    NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: true);
+                                }
+                                else
+                                {
+                                    // This is a non-current linked context
+                                    NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: false);
+                                }
                             }
                             else
                             {
-                                // This is a non-current linked context
-                                NewBufferOpened_NoLock(docCookie, textBuffer, documentKey, isCurrentContext: false);
+                                TextBufferDataEventsSink.HookupHandler(shimTextBuffer, onDocumentLoadCompleted: () => OnDocumentLoadCompleted(shimTextBuffer, documentKey, moniker));
                             }
-                        }
-                        else
-                        {
-                            TextBufferDataEventsSink.HookupHandler(shimTextBuffer, onDocumentLoadCompleted: () => OnDocumentLoadCompleted(shimTextBuffer, documentKey, moniker));
                         }
                     }
                 }
