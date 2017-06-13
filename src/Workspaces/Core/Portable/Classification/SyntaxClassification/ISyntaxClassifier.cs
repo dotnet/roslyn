@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Classification.Classifiers
@@ -11,23 +12,23 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers
         /// <summary>
         /// The syntax node types this classifier is able to classify
         /// </summary>
-        IEnumerable<Type> SyntaxNodeTypes { get; }
+        ImmutableArray<Type> SyntaxNodeTypes { get; }
 
         /// <summary>
         /// The syntax token kinds this classifier is able to classify
         /// </summary>
-        IEnumerable<int> SyntaxTokenKinds { get; }
+        ImmutableArray<int> SyntaxTokenKinds { get; }
 
         /// <summary>
         /// This method will be called for all nodes that match the types specified by the SyntaxNodeTypes property.
         /// Implementations should return null (instead of an empty enumerable) if they have no classifications for the provided node.
         /// </summary>
-        IEnumerable<ClassifiedSpan> ClassifyNode(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken);
+        void AddClassifications(SyntaxNode node, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
 
         /// <summary>
         /// This method will be called for all nodes that match the types specified by the SyntaxTokenKinds property.
         /// Implementations should return null (instead of an empty enumerable) if they have no classifications for the provided token.
         /// </summary>
-        IEnumerable<ClassifiedSpan> ClassifyToken(SyntaxToken token, SemanticModel semanticModel, CancellationToken cancellationToken);
+        void AddClassifications(SyntaxToken token, SemanticModel semanticModel, ArrayBuilder<ClassifiedSpan> result, CancellationToken cancellationToken);
     }
 }
