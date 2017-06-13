@@ -1763,29 +1763,30 @@ interface B
 }
 ";
             // CONSIDER: this cascading is a bit verbose.
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions:TestOptions.Regular7).VerifyDiagnostics(
                 // (18,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(A.Constant2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2"),
-                // (13,18): error CS0110: The evaluation of the constant value for 'A.Constant2' involves a circular definition
-                //     const string Constant2 = A.Constant2;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A.Constant2"),
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A.Constant2").WithLocation(18, 18),
+                // (7,18): error CS0110: The evaluation of the constant value for 'A.Constant2' involves a circular definition
+                //     const string Constant2 = B.Constant2;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A.Constant2").WithLocation(7, 18),
                 // (19,9): error CS0668: Two indexers have different names; the IndexerName attribute must be used with the same name on every indexer within a type
                 //     int this[long x] { get; }
-                Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this"),
+                Diagnostic(ErrorCode.ERR_InconsistentIndexerNames, "this").WithLocation(19, 9),
 
-                // (12,18): error CS0525: Interfaces cannot contain fields
+                // (12,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (13,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "7.1").WithLocation(12, 18),
+                // (13,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     const string Constant2 = A.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"),
-                // (6,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "7.1").WithLocation(13, 18),
+                // (6,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     const string Constant1 = B.Constant1;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (7,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "7.1").WithLocation(6, 18),
+                // (7,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     const string Constant2 = B.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "7.1").WithLocation(7, 18)
+                );
         }
 
         [Fact]
@@ -1878,26 +1879,27 @@ interface B<T>
     int this[int x] { get; }
 }
 ";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7).VerifyDiagnostics(
                 // (9,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(B<byte>.Constant2)]
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2"),
-                // (7,25): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
-                //     public const string Constant2 = B<int>.Constant2;
-                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A<T>.Constant2"),
-
-                // (15,18): error CS0525: Interfaces cannot contain fields
-                //     const string Constant1 = "X";
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (16,18): error CS0525: Interfaces cannot contain fields
-                //     const string Constant2 = A<bool>.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"),
-                // (6,18): error CS0525: Interfaces cannot contain fields
-                //     const string Constant1 = B<string>.Constant1;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant1"),
-                // (7,18): error CS0525: Interfaces cannot contain fields
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "B<byte>.Constant2").WithLocation(9, 18),
+                // (7,18): error CS0110: The evaluation of the constant value for 'A<T>.Constant2' involves a circular definition
                 //     const string Constant2 = B<int>.Constant2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Constant2"));
+                Diagnostic(ErrorCode.ERR_CircConstValue, "Constant2").WithArguments("A<T>.Constant2").WithLocation(7, 18),
+
+                // (15,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     const string Constant1 = "X";
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "7.1").WithLocation(15, 18),
+                // (16,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     const string Constant2 = A<bool>.Constant2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "7.1").WithLocation(16, 18),
+                // (6,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     const string Constant1 = B<string>.Constant1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant1").WithArguments("default interface implementation", "7.1").WithLocation(6, 18),
+                // (7,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     const string Constant2 = B<int>.Constant2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "Constant2").WithArguments("default interface implementation", "7.1").WithLocation(7, 18)
+                );
         }
 
         [Fact]

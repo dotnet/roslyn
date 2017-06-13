@@ -1870,7 +1870,7 @@ public interface I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
+            compilation1.VerifyEmitDiagnostics(
                 // (4,16): error CS0073: An add or remove accessor must have a body
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(4, 16),
@@ -1883,7 +1883,7 @@ public interface I1
                 // (4,18): error CS1014: A get or set accessor expected
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 18),
-                // (4,9): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                // (4,9): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     int P1 {add; remove;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9),
                 // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
@@ -1912,8 +1912,8 @@ public interface I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
-                // (4,9): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+            compilation1.VerifyEmitDiagnostics(
+                // (4,9): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     int P1 {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 9)
                 );
@@ -4412,7 +4412,7 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(expected);
+            compilation1.VerifyEmitDiagnostics(expected);
 
             ValidateEventImplementationTest1_101(compilation1.SourceModule, haveAdd, haveRemove);
 
@@ -8016,9 +8016,6 @@ class Test2 : I1
                 // (5,25): error CS8501: Target runtime doesn't support default interface implementation.
                 //     virtual extern void M2(); 
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M2").WithLocation(5, 25),
-                // (6,24): error CS8501: Target runtime doesn't support default interface implementation.
-                //     static extern void M3(); 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M3").WithLocation(6, 24),
                 // (7,25): error CS8501: Target runtime doesn't support default interface implementation.
                 //     private extern void M4();
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "M4").WithLocation(7, 25),
@@ -8732,9 +8729,6 @@ public interface I1
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P05 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
-                // (9,21): error CS0501: 'I1.P06.get' must declare a body because it is not marked abstract, extern, or partial
-                //     static int P06 {get;}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P06.get").WithLocation(9, 21),
                 // (10,22): error CS0501: 'I1.P07.set' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual int P07 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P07.set").WithLocation(10, 22),
@@ -9211,9 +9205,6 @@ public interface I1
                 // (9,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static int P06 {get;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P06").WithArguments("static", "7", "7.1").WithLocation(9, 16),
-                // (9,21): error CS0501: 'I1.P06.get' must declare a body because it is not marked abstract, extern, or partial
-                //     static int P06 {get;}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P06.get").WithLocation(9, 21),
                 // (10,17): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual int P07 {set;}
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P07").WithArguments("virtual", "7", "7.1").WithLocation(10, 17),
@@ -9451,8 +9442,8 @@ public interface I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
-                // (4,24): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+            compilation1.VerifyEmitDiagnostics(
+                // (4,24): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     public virtual int P1 { get; } = 0; 
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 24),
                 // (4,29): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
@@ -9882,12 +9873,6 @@ class Test2 : I1
                 // (8,23): error CS0238: 'I1.P3' cannot be sealed because it is not an override
                 //     sealed static int P3 => 0; 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 23),
-                // (10,16): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
-                //     static int P4 {get;} = 0;  
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P4").WithArguments("I1.P4").WithLocation(10, 16),
-                // (10,20): error CS0501: 'I1.P4.get' must declare a body because it is not marked abstract, extern, or partial
-                //     static int P4 {get;} = 0;  
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P4.get").WithLocation(10, 20),
                 // (15,12): error CS0539: 'Test1.P1' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     int I1.P1 => 0;
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "P1").WithArguments("Test1.P1").WithLocation(15, 12),
@@ -10216,7 +10201,7 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
+            compilation1.VerifyEmitDiagnostics(
                 // (4,26): error CS0621: 'I1.P1': virtual or abstract members cannot be private
                 //     abstract private int P1 { get; } 
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P1").WithArguments("I1.P1").WithLocation(4, 26),
@@ -10226,7 +10211,7 @@ class Test1 : I1
                 // (8,24): error CS0238: 'I1.P3' cannot be sealed because it is not an override
                 //     sealed private int P3 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 24),
-                // (14,17): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                // (14,17): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     private int P4 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P4").WithArguments("I1.P4").WithLocation(14, 17),
                 // (14,21): error CS0501: 'I1.P4.get' must declare a body because it is not marked abstract, extern, or partial
@@ -11574,7 +11559,7 @@ class Test2 : I1, I2, I3
 {}
 ";
             ValidatePropertyModifiers_14(source1,
-                // (4,23): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                // (4,23): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     public sealed int P1 {get;} = 0; 
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P1").WithArguments("I1.P1").WithLocation(4, 23),
                 // (4,27): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
@@ -11600,7 +11585,7 @@ class Test2 : I1, I2, I3
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(expected);
+            compilation1.VerifyEmitDiagnostics(expected);
 
             var test1 = compilation1.GetTypeByMetadataName("Test1");
             var test2 = compilation1.GetTypeByMetadataName("Test2");
@@ -11833,7 +11818,7 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (44,26): error CS0503: The abstract method 'I8.P8' cannot be marked virtual
                 //     abstract virtual int P8 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("I8.P8").WithLocation(44, 26),
-                // (44,26): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                // (44,26): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     abstract virtual int P8 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P8").WithArguments("I8.P8").WithLocation(44, 26),
                 // (90,15): error CS0535: 'Test2' does not implement interface member 'I0.P0'
@@ -12020,12 +12005,6 @@ class Test2 : I1, I2, I3, I4, I5
                 // (8,28): error CS8501: Target runtime doesn't support default interface implementation.
                 //     virtual extern int P2 {set;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(8, 28),
-                // (12,27): error CS8501: Target runtime doesn't support default interface implementation.
-                //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(12, 27),
-                // (12,32): error CS8501: Target runtime doesn't support default interface implementation.
-                //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(12, 32),
                 // (16,28): error CS8501: Target runtime doesn't support default interface implementation.
                 //     private extern int P4 {get;}
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(16, 28),
@@ -12281,7 +12260,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (16,47): error CS0179: 'I4.P4.set' cannot be extern and declare a body
                 //     private extern int P4 { get {throw null;} set {throw null;}}
                 Diagnostic(ErrorCode.ERR_ExternHasBody, "set").WithArguments("I4.P4.set").WithLocation(16, 47),
-                // (20,23): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                // (20,23): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     extern sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 23),
                 // (23,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -12512,7 +12491,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (20,25): error CS0106: The modifier 'override' is not valid for this item
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P5").WithArguments("override").WithLocation(20, 25),
-                // (20,25): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                // (20,25): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     override sealed int P5 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P5").WithArguments("I5.P5").WithLocation(20, 25),
                 // (20,29): error CS0501: 'I5.P5.get' must declare a body because it is not marked abstract, extern, or partial
@@ -14908,12 +14887,6 @@ public interface I1
                 // (6,18): error CS0276: 'I1.P3': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 //     abstract int P3 { internal get; }
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P3").WithArguments("I1.P3").WithLocation(6, 18),
-                // (7,16): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
-                //     static int P4 {internal get;} = 0;
-                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P4").WithArguments("I1.P4").WithLocation(7, 16),
-                // (7,29): error CS0501: 'I1.P4.get' must declare a body because it is not marked abstract, extern, or partial
-                //     static int P4 {internal get;} = 0;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P4.get").WithLocation(7, 29),
                 // (7,16): error CS0276: 'I1.P4': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 //     static int P4 {internal get;} = 0;
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P4").WithArguments("I1.P4").WithLocation(7, 16),
@@ -19888,7 +19861,10 @@ class Test1 : I1
                 new[] {
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
                 //     public virtual event System.Action E1;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40)
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "E1").WithArguments("I1.E1").WithLocation(4, 40),
+                // (4,40): warning CS0067: The event 'I1.E1' is never used
+                //     public virtual event System.Action E1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E1").WithArguments("I1.E1").WithLocation(4, 40)
                 },
                 haveAdd: true, haveRemove: true);
 
@@ -19902,7 +19878,7 @@ class Test1 : I1
 {}
 ",
                 new[] {
-                // (4,40): error CS0068: 'I1.E1': event in interface cannot have initializer
+                // (4,40): error CS0068: 'I1.E1': instance event in interface cannot have initializer
                 //     public virtual event System.Action E1 = null;
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "E1").WithArguments("I1.E1").WithLocation(4, 40),
                 // (4,40): error CS0065: 'I1.E1': event property must have both add and remove accessors
@@ -20216,25 +20192,19 @@ class Test1 : I1
             var compilation2 = CreateStandardCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation2.VerifyDiagnostics(
+            compilation2.VerifyEmitDiagnostics(
+                // (4,39): warning CS0067: The event 'I1.P1' is never used
+                //     public static event System.Action P1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P1").WithArguments("I1.P1").WithLocation(4, 39),
                 // (8,12): error CS0073: An add or remove accessor must have a body
                 //         add;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(8, 12),
                 // (9,15): error CS0073: An add or remove accessor must have a body
                 //         remove;
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(9, 15),
-                // (4,39): error CS0065: 'I1.P1': event property must have both add and remove accessors
-                //     public static event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 39),
-                // (12,40): error CS0068: 'I1.P3': event in interface cannot have initializer
+                // (12,40): warning CS0414: The field 'I1.P3' is assigned but its value is never used
                 //     private static event System.Action P3 = null;
-                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P3").WithArguments("I1.P3").WithLocation(12, 40),
-                // (12,40): error CS0065: 'I1.P3': event property must have both add and remove accessors
-                //     private static event System.Action P3 = null;
-                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P3").WithArguments("I1.P3").WithLocation(12, 40),
-                // (12,40): warning CS0067: The event 'I1.P3' is never used
-                //     private static event System.Action P3 = null;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P3").WithArguments("I1.P3").WithLocation(12, 40)
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "P3").WithArguments("I1.P3").WithLocation(12, 40)
                 );
 
             Validate(compilation2.SourceModule);
@@ -20514,7 +20484,7 @@ class Test1 : I1
             var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
                                                          parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
-            compilation1.VerifyDiagnostics(
+            compilation1.VerifyEmitDiagnostics(
                 // (4,42): error CS0621: 'I1.P1': virtual or abstract members cannot be private
                 //     abstract private event System.Action P1; 
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P1").WithArguments("I1.P1").WithLocation(4, 42),
@@ -20524,10 +20494,13 @@ class Test1 : I1
                 // (6,41): error CS0621: 'I1.P2': virtual or abstract members cannot be private
                 //     virtual private event System.Action P2;
                 Diagnostic(ErrorCode.ERR_VirtualPrivate, "P2").WithArguments("I1.P2").WithLocation(6, 41),
+                // (6,41): warning CS0067: The event 'I1.P2' is never used
+                //     virtual private event System.Action P2;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "P2").WithArguments("I1.P2").WithLocation(6, 41),
                 // (8,40): error CS0238: 'I1.P3' cannot be sealed because it is not an override
                 //     sealed private event System.Action P3 
                 Diagnostic(ErrorCode.ERR_SealedNonOverride, "P3").WithArguments("I1.P3").WithLocation(8, 40),
-                // (14,33): error CS0068: 'I1.P4': event in interface cannot have initializer
+                // (14,33): error CS0068: 'I1.P4': instance event in interface cannot have initializer
                 //     private event System.Action P4 = null;
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P4").WithArguments("I1.P4").WithLocation(14, 33),
                 // (14,33): error CS0065: 'I1.P4': event property must have both add and remove accessors
@@ -21780,7 +21753,7 @@ class Test2 : I1, I2, I3
 {}
 ";
             ValidateEventModifiers_14(source1,
-                // (4,39): error CS0068: 'I1.P1': event in interface cannot have initializer
+                // (4,39): error CS0068: 'I1.P1': instance event in interface cannot have initializer
                 //     public sealed event System.Action P1 = null; 
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P1").WithArguments("I1.P1").WithLocation(4, 39),
                 // (4,39): error CS0065: 'I1.P1': event property must have both add and remove accessors
@@ -22217,6 +22190,14 @@ public interface I5
 {
     extern sealed event System.Action P5;
 }
+public interface I6
+{
+    static event System.Action P6
+    {
+        add => throw null;
+        remove => throw null;
+    }
+}
 
 class Test1 : I1, I2, I3, I4, I5
 {
@@ -22425,6 +22406,12 @@ class Test2 : I1, I2, I3, I4, I5
                 // (20,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed event System.Action P5;
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7", "7.1").WithLocation(20, 39),
+                // (26,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         add => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(26, 9),
+                // (27,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         remove => throw null;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "remove").WithArguments("default interface implementation", "7.1").WithLocation(27, 9),
                 // (8,40): warning CS0626: Method, operator, or accessor 'I2.P2.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P2").WithArguments("I2.P2.add").WithLocation(8, 40),
@@ -22473,9 +22460,6 @@ class Test2 : I1, I2, I3, I4, I5
                 // (8,40): error CS8501: Target runtime doesn't support default interface implementation.
                 //     virtual extern event System.Action P2;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P2").WithLocation(8, 40),
-                // (12,39): error CS8501: Target runtime doesn't support default interface implementation.
-                //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P3").WithLocation(12, 39),
                 // (16,40): error CS8501: Target runtime doesn't support default interface implementation.
                 //     private extern event System.Action P4;
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "P4").WithLocation(16, 40),
@@ -22556,7 +22540,7 @@ class Test2 : I1, I2, I3, I4
                 // (4,41): error CS0180: 'I1.P1' cannot be both extern and abstract
                 //     abstract extern event System.Action P1; 
                 Diagnostic(ErrorCode.ERR_AbstractAndExtern, "P1").WithArguments("I1.P1").WithLocation(4, 41),
-                // (8,32): error CS0068: 'I2.P2': event in interface cannot have initializer
+                // (8,32): error CS0068: 'I2.P2': instance event in interface cannot have initializer
                 //     extern event System.Action P2 = null; 
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P2").WithArguments("I2.P2").WithLocation(8, 32),
                 // (12,43): error CS0179: 'I3.P3.add' cannot be extern and declare a body
@@ -22761,7 +22745,7 @@ class Test2 : I1, I2, I3, I4, I5
                 // (4,57): error CS0500: 'I1.P1.remove' cannot declare a body because it is marked abstract
                 //     abstract event System.Action P1 {add => throw null; remove => throw null;} 
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I1.P1.remove").WithLocation(4, 57),
-                // (8,42): error CS0068: 'I2.P2': event in interface cannot have initializer
+                // (8,42): error CS0068: 'I2.P2': instance event in interface cannot have initializer
                 //     abstract private event System.Action P2 = null; 
                 Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "P2").WithArguments("I2.P2").WithLocation(8, 42),
                 // (8,42): error CS0621: 'I2.P2': virtual or abstract members cannot be private
@@ -26136,7 +26120,7 @@ class Test2 : I4
                 // (43,21): error CS0501: 'I4.I3.M3.set' must declare a body because it is not marked abstract, extern, or partial
                 //     int I3.M3 {get; set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I4.I3.M3.set").WithLocation(43, 21),
-                // (44,12): error CS8052: Auto-implemented properties inside interfaces cannot have initializers.
+                // (44,12): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     int I3.M4 {get; set;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "M4").WithArguments("I4.I3.M4").WithLocation(44, 12),
                 // (44,16): error CS0501: 'I4.I3.M4.get' must declare a body because it is not marked abstract, extern, or partial
@@ -29481,6 +29465,1188 @@ class Test2 : I2<long>
 ";
 
             ValidatePropertyImplementationInDerived_14(source1, source2);
+        }
+
+        [Fact]
+        public void Field_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    int F1;
+    protected static int F2;
+    protected internal static int F3;
+    private protected static int F4;
+    int F5 = 5;
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyEmitDiagnostics(
+                // (7,13): error CS0107: More than one protection modifier
+                //     private protected static int F4;
+                Diagnostic(ErrorCode.ERR_BadMemberProtection, "protected").WithLocation(7, 13),
+                // (5,26): error CS0106: The modifier 'protected' is not valid for this item
+                //     protected static int F2;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F2").WithArguments("protected").WithLocation(5, 26),
+                // (6,35): error CS0106: The modifier 'protected internal' is not valid for this item
+                //     protected internal static int F3;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F3").WithArguments("protected internal").WithLocation(6, 35),
+                // (7,34): error CS0106: The modifier 'protected' is not valid for this item
+                //     private protected static int F4;
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "F4").WithArguments("protected").WithLocation(7, 34),
+                // (4,9): error CS0525: Interfaces cannot contain instance fields
+                //     int F1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F1").WithLocation(4, 9),
+                // (7,34): warning CS0169: The field 'I1.F4' is never used
+                //     private protected static int F4;
+                Diagnostic(ErrorCode.WRN_UnreferencedField, "F4").WithArguments("I1.F4").WithLocation(7, 34),
+                // (8,9): error CS0525: Interfaces cannot contain instance fields
+                //     int F5 = 5;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "F5").WithLocation(8, 9)
+                );
+
+            var i1 = compilation1.GetTypeByMetadataName("I1");
+            var f1 = i1.GetMember<FieldSymbol>("F1");
+            var f2 = i1.GetMember<FieldSymbol>("F2");
+            var f3 = i1.GetMember<FieldSymbol>("F3");
+            var f4 = i1.GetMember<FieldSymbol>("F4");
+
+            Assert.False(f1.IsStatic);
+            Assert.True(f2.IsStatic);
+            Assert.True(f3.IsStatic);
+            Assert.True(f4.IsStatic);
+
+            Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Public, f3.DeclaredAccessibility);
+            Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+        }
+
+        [Fact]
+        public void Field_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int F1;
+    public static int F2;
+    internal static int F3;
+    private static int F4;
+
+    public class TestHelper
+    {
+        public static int F4Proxy
+        {
+            get => I1.F4;
+            set => I1.F4 = value;
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.F1 = 1;
+        I1.F2 = 2;
+        I1.F3 = 3;
+        I1.TestHelper.F4Proxy = 4;
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.F3}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<FieldSymbol>("F1");
+                var f2 = i1.GetMember<FieldSymbol>("F2");
+                var f3 = i1.GetMember<FieldSymbol>("F3");
+                var f4 = i1.GetMember<FieldSymbol>("F4");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Null(cctor);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1.F1 = 11;
+        I1.F2 = 22;
+        I1.TestHelper.F4Proxy = 44;
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "112244");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "112244");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (4,16): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     static int F1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F1").WithArguments("default interface implementation", "7.1").WithLocation(4, 16),
+                // (5,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F2").WithArguments("default interface implementation", "7.1").WithLocation(5, 23),
+                // (6,25): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F3").WithArguments("default interface implementation", "7.1").WithLocation(6, 25),
+                // (7,24): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private static int F4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F4").WithArguments("default interface implementation", "7.1").WithLocation(7, 24),
+                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef}, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void Field_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static readonly int F1 = 1;
+    public static readonly int F2 = 2;
+    internal static readonly int F3 = 3;
+    private static readonly int F4 = 4;
+
+    public class TestHelper
+    {
+        public static int F4Proxy
+        {
+            get => I1.F4;
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.F3}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<FieldSymbol>("F1");
+                var f2 = i1.GetMember<FieldSymbol>("F2");
+                var f3 = i1.GetMember<FieldSymbol>("F3");
+                var f4 = i1.GetMember<FieldSymbol>("F4");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.True(f1.IsReadOnly);
+                Assert.True(f2.IsReadOnly);
+                Assert.True(f3.IsReadOnly);
+                Assert.True(f4.IsReadOnly);
+
+                Assert.False(f1.IsConst);
+                Assert.False(f2.IsConst);
+                Assert.False(f3.IsConst);
+                Assert.False(f4.IsConst);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "124");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "124");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (4,25): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     static readonly int F1 = 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F1").WithArguments("default interface implementation", "7.1").WithLocation(4, 25),
+                // (5,32): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static readonly int F2 = 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F2").WithArguments("default interface implementation", "7.1").WithLocation(5, 32),
+                // (6,34): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     internal static readonly int F3 = 3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F3").WithArguments("default interface implementation", "7.1").WithLocation(6, 34),
+                // (7,33): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private static readonly int F4 = 4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F4").WithArguments("default interface implementation", "7.1").WithLocation(7, 33),
+                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void Field_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    const int F1 = 1;
+    public const int F2 = 2;
+    internal const int F3 = 3;
+    private const int F4 = 4;
+
+    public class TestHelper
+    {
+        public static int F4Proxy
+        {
+            get => I1.F4;
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.F3}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<FieldSymbol>("F1");
+                var f2 = i1.GetMember<FieldSymbol>("F2");
+                var f3 = i1.GetMember<FieldSymbol>("F3");
+                var f4 = i1.GetMember<FieldSymbol>("F4");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.True(f1.IsConst);
+                Assert.True(f2.IsConst);
+                Assert.True(f3.IsConst);
+                Assert.True(f4.IsConst);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Null(cctor);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "124");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "124");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (4,15): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     const int F1 = 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F1").WithArguments("default interface implementation", "7.1").WithLocation(4, 15),
+                // (5,22): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public const int F2 = 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F2").WithArguments("default interface implementation", "7.1").WithLocation(5, 22),
+                // (6,24): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     internal const int F3 = 3;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F3").WithArguments("default interface implementation", "7.1").WithLocation(6, 24),
+                // (7,23): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     private const int F4 = 4;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "F4").WithArguments("default interface implementation", "7.1").WithLocation(7, 23),
+                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void Constructors_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    I1(){}
+
+    static I1() {}
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            // From https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-05-17.md:
+            // We allow initializers for static fields, but not an explicit static constructor. Can think about adding later.
+            compilation1.VerifyDiagnostics(
+                // (4,5): error CS0526: Interfaces cannot contain constructors
+                //     I1(){}
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I1").WithLocation(4, 5),
+                // (6,12): error CS0526: Interfaces cannot contain constructors
+                //     static I1() {}
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConstructors, "I1").WithLocation(6, 12)
+                );
+        }
+
+        [Fact]
+        public void AutoProperty_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private int F1 {get; set;}
+    private int F5 {get;} = 5;
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyEmitDiagnostics(
+                // (4,21): error CS0501: 'I1.F1.get' must declare a body because it is not marked abstract, extern, or partial
+                //     private int F1 {get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.F1.get").WithLocation(4, 21),
+                // (4,26): error CS0501: 'I1.F1.set' must declare a body because it is not marked abstract, extern, or partial
+                //     private int F1 {get; set;}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.F1.set").WithLocation(4, 26),
+                // (5,17): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
+                //     private int F5 {get;} = 5;
+                Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "F5").WithArguments("I1.F5").WithLocation(5, 17),
+                // (5,21): error CS0501: 'I1.F5.get' must declare a body because it is not marked abstract, extern, or partial
+                //     private int F5 {get;} = 5;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.F5.get").WithLocation(5, 21)
+                );
+        }
+
+        [Fact]
+        public void AutoProperty_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int F1 {get; set;}
+    public static int F2 {get; set;}
+    internal static int F3 {get; set;}
+    private static int F4 {get; set;}
+
+    public class TestHelper
+    {
+        public static int F4Proxy
+        {
+            get => I1.F4;
+            set => I1.F4 = value;
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.F1 = 1;
+        I1.F2 = 2;
+        I1.F3 = 3;
+        I1.TestHelper.F4Proxy = 4;
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.F3}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<PropertySymbol>("F1");
+                var f2 = i1.GetMember<PropertySymbol>("F2");
+                var f3 = i1.GetMember<PropertySymbol>("F3");
+                var f4 = i1.GetMember<PropertySymbol>("F4");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Null(cctor);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1.F1 = 11;
+        I1.F2 = 22;
+        I1.TestHelper.F4Proxy = 44;
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "112244");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "112244");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static int F1 {get; set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 16),
+                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2 {get; set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 23),
+                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2 {get; set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 23),
+                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3 {get; set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 25),
+                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3 {get; set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 25),
+                // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static int F4 {get; set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 24),
+                // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static int F4 {get; set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 24),
+                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void AutoProperty_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int F1 {get;} = 1;
+    public static int F2 {get;} = 2;
+    internal static int F3 {get;} = 3;
+    private static int F4 {get;} = 4;
+
+    public class TestHelper
+    {
+        public static int F4Proxy
+        {
+            get => I1.F4;
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.F3}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<PropertySymbol>("F1");
+                var f2 = i1.GetMember<PropertySymbol>("F2");
+                var f3 = i1.GetMember<PropertySymbol>("F3");
+                var f4 = i1.GetMember<PropertySymbol>("F4");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.True(f1.IsReadOnly);
+                Assert.True(f2.IsReadOnly);
+                Assert.True(f3.IsReadOnly);
+                Assert.True(f4.IsReadOnly);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.TestHelper.F4Proxy}"");
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "124");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "124");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static int F1 {get;} = 1;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 16),
+                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2 {get;} = 2;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 23),
+                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2 {get;} = 2;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 23),
+                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3 {get;} = 3;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 25),
+                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3 {get;} = 3;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 25),
+                // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static int F4 {get;} = 4;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 24),
+                // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static int F4 {get;} = 4;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 24),
+                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void AutoProperty_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int F1 {get; private set;}
+    public static int F2 {get; private set;}
+    internal static int F3 {get; private set;}
+
+    public class TestHelper
+    {
+        public static void F4Proxy(int f1, int f2, int f3)
+        {
+            F1 = f1;
+            F2 = f2;
+            F3 = f3;
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.TestHelper.F4Proxy(1,2,3);
+        System.Console.WriteLine($""{I1.F1}{I1.F2}{I1.F3}"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<PropertySymbol>("F1");
+                var f2 = i1.GetMember<PropertySymbol>("F2");
+                var f3 = i1.GetMember<PropertySymbol>("F3");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+
+                Assert.Equal(Accessibility.Private, f1.SetMethod.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f2.SetMethod.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f3.SetMethod.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Null(cctor);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "123", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1.TestHelper.F4Proxy(11,22,3);
+        System.Console.WriteLine($""{I1.F1}{I1.F2}"");
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "1122");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "1122");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static int F1 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 16),
+                // (4,33): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static int F1 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7", "7.1").WithLocation(4, 33),
+                // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 23),
+                // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 23),
+                // (5,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static int F2 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7", "7.1").WithLocation(5, 40),
+                // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 25),
+                // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 25),
+                // (6,42): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static int F3 {get; private set;}
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7", "7.1").WithLocation(6, 42),
+                // (8,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(8, 18)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "123", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void FieldLikeEvent_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    private event System.Action F1;
+    private event System.Action F5 = null;
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyEmitDiagnostics(
+                // (4,33): error CS0065: 'I1.F1': event property must have both add and remove accessors
+                //     private event System.Action F1;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "F1").WithArguments("I1.F1").WithLocation(4, 33),
+                // (5,33): error CS0068: 'I1.F5': instance event in interface cannot have initializer
+                //     private event System.Action F5 = null;
+                Diagnostic(ErrorCode.ERR_InterfaceEventInitializer, "F5").WithArguments("I1.F5").WithLocation(5, 33),
+                // (5,33): error CS0065: 'I1.F5': event property must have both add and remove accessors
+                //     private event System.Action F5 = null;
+                Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "F5").WithArguments("I1.F5").WithLocation(5, 33),
+                // (5,33): warning CS0067: The event 'I1.F5' is never used
+                //     private event System.Action F5 = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F5").WithArguments("I1.F5").WithLocation(5, 33),
+                // (4,33): warning CS0067: The event 'I1.F1' is never used
+                //     private event System.Action F1;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "F1").WithArguments("I1.F1").WithLocation(4, 33)
+                );
+        }
+
+        [Fact]
+        public void FieldLikeEvent_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static event System.Action F1;
+    public static event System.Action F2;
+    internal static event System.Action F3;
+    private static event System.Action F4;
+
+    public class TestHelper
+    {
+        public static System.Action F4Proxy
+        {
+            set => I1.F4 += value;
+        }
+        public static void Raise()
+        {
+            F1();
+            F2();
+            F3?.Invoke();
+            F4();
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.F1 += () => System.Console.Write(1);
+        I1.F2 += () => System.Console.Write(2);
+        I1.F3 += () => System.Console.Write(3);
+        I1.TestHelper.F4Proxy = () => System.Console.Write(4);
+        I1.TestHelper.Raise();
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<EventSymbol>("F1");
+                var f2 = i1.GetMember<EventSymbol>("F2");
+                var f3 = i1.GetMember<EventSymbol>("F3");
+                var f4 = i1.GetMember<EventSymbol>("F4");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Null(cctor);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1.F1 += () => System.Console.Write(11);
+        I1.F2 += () => System.Console.Write(22);
+        I1.TestHelper.F4Proxy = () => System.Console.Write(44);
+        I1.TestHelper.Raise();
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "112244");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "112244");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18),
+                // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static event System.Action F1;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 32),
+                // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static event System.Action F2;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 39),
+                // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static event System.Action F2;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 39),
+                // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static event System.Action F3;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 41),
+                // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static event System.Action F3;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 41),
+                // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static event System.Action F4;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 40),
+                // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static event System.Action F4;
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 40)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void FieldLikeEvent_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static event System.Action F1 = () => System.Console.Write(1);
+    public static event System.Action F2 = () => System.Console.Write(2);
+    internal static event System.Action F3 = () => System.Console.Write(3);
+    private static event System.Action F4 = () => System.Console.Write(4);
+
+    public class TestHelper
+    {
+        public static void Raise()
+        {
+            F1();
+            F2();
+            F3();
+            F4();
+        }
+    }
+}
+
+class Test1 : I1
+{
+    static void Main()
+    {
+        I1.TestHelper.Raise();
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            void Validate1(ModuleSymbol m)
+            {
+                var i1 = m.GlobalNamespace.GetTypeMember("I1");
+                var f1 = i1.GetMember<EventSymbol>("F1");
+                var f2 = i1.GetMember<EventSymbol>("F2");
+                var f3 = i1.GetMember<EventSymbol>("F3");
+                var f4 = i1.GetMember<EventSymbol>("F4");
+
+                Assert.True(f1.IsStatic);
+                Assert.True(f2.IsStatic);
+                Assert.True(f3.IsStatic);
+                Assert.True(f4.IsStatic);
+
+                Assert.Equal(Accessibility.Public, f1.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Public, f2.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Internal, f3.DeclaredAccessibility);
+                Assert.Equal(Accessibility.Private, f4.DeclaredAccessibility);
+
+                var cctor = i1.GetMember<MethodSymbol>(".cctor");
+                Assert.Equal(MethodKind.StaticConstructor, cctor.MethodKind);
+            }
+
+            Validate1(compilation1.SourceModule);
+
+            CompileAndVerify(compilation1, expectedOutput: "1234", symbolValidator: Validate1);
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1.TestHelper.Raise();
+    }
+}
+";
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilation1.ToMetadataReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation2, expectedOutput: "1234");
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation3, expectedOutput: "1234");
+
+            var compilation4 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(
+                // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public class TestHelper
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18),
+                // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     static event System.Action F1 = () => System.Console.Write(1);
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 32),
+                // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static event System.Action F2 = () => System.Console.Write(2);
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 39),
+                // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     public static event System.Action F2 = () => System.Console.Write(2);
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 39),
+                // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static event System.Action F3 = () => System.Console.Write(3);
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 41),
+                // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     internal static event System.Action F3 = () => System.Console.Write(3);
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 41),
+                // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static event System.Action F4 = () => System.Console.Write(4);
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 40),
+                // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
+                //     private static event System.Action F4 = () => System.Console.Write(4);
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 40)
+                );
+
+            Validate1(compilation4.SourceModule);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+
+            Validate1(compilation5.SourceModule);
+
+            CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
         }
 
     }

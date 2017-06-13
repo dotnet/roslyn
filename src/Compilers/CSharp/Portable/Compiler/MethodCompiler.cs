@@ -1803,6 +1803,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)containerNode).OpenBraceToken;
+                case SyntaxKind.InterfaceDeclaration:
+                    return ((InterfaceDeclarationSyntax)containerNode).OpenBraceToken;
                 case SyntaxKind.StructDeclaration:
                     return ((StructDeclarationSyntax)containerNode).OpenBraceToken;
                 case SyntaxKind.EnumDeclaration:

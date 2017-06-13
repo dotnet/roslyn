@@ -1706,9 +1706,6 @@ class C
                 // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7", "7.1").WithLocation(3, 23),
-                // (3,28): error CS0501: 'I.P1.get' must declare a body because it is not marked abstract, extern, or partial
-                //     public static int P1 { get; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.P1.get").WithLocation(3, 28),
                 // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("abstract", "7", "7.1").WithLocation(4, 18),
@@ -8812,10 +8809,19 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainFields, Line = 5, Column = 16 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainFields, Line = 6, Column = 21 },
-                new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainFields, Line = 7, Column = 21 });
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7);
+
+            comp.VerifyDiagnostics(
+                // (5,16): error CS0525: Interfaces cannot contain instance fields
+                //         string field1;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field1").WithLocation(5, 16),
+                // (6,21): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         const ulong field2 = 0;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "field2").WithArguments("default interface implementation", "7.1").WithLocation(6, 21),
+                // (7,21): error CS0525: Interfaces cannot contain instance fields
+                //         public IFoo field3;
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "field3").WithLocation(7, 21)
+                );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             // TODO...
