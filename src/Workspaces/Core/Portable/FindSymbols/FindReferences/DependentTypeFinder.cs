@@ -74,6 +74,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     new AsyncLazy<ImmutableArray<(SymbolKey, ProjectId)>>(
                         async c =>
                         {
+                            // If we're the code that is actually computing the symbols, then just 
+                            // take our result and store it in the outer frame.  That way the caller
+                            // doesn't need to incur the cost of deserializing the symbol keys that
+                            // we're create right below this.
                             result = await findAsync(c).ConfigureAwait(false);
                             return result.SelectAsArray(t => (t.Symbol.GetSymbolKey(), t.ProjectId));
                         },
