@@ -19,8 +19,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     internal partial class AnalyzerManager
     {
-        private readonly object _gate = new object();
-
         // This cache stores the analyzer execution context per-analyzer (i.e. registered actions, supported descriptors, etc.).
         private readonly ImmutableDictionary<DiagnosticAnalyzer, AnalyzerExecutionContext> _analyzerExecutionContextMap;
 
