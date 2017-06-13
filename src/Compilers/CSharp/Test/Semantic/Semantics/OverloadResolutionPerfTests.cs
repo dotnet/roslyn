@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [Fact(Skip = "13685")]
+        [Fact]
         public void Overloads()
         {
             const int n = 3000;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
-        [Fact(Skip = "13685")]
+        [Fact]
         public void BinaryOperatorOverloads()
         {
             const int n = 3000;
