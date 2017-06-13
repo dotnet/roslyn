@@ -1238,6 +1238,7 @@ namespace TestRefReturns
                 Diagnostic(ErrorCode.ERR_RefReturningCallInExpressionTree, "this[0]").WithLocation(34, 71));
         }
 
+        [WorkItem(19930, "https://github.com/dotnet/roslyn/issues/19930")]
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
         public void CannotRefReturnQueryRangeVariable()
         {
@@ -1250,12 +1251,22 @@ class TestClass
     {
         var x = from c in ""TestValue"" select (RefCharDelegate)(() => ref c);
     }
+
+    delegate ref readonly char RoRefCharDelegate();
+    void TestMethod1()
+    {
+        var x = from c in ""TestValue"" select (RoRefCharDelegate)(() => ref c);
+    }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (8,74): error CS8159: Cannot return the range variable 'c' by reference
                 //         var x = from c in "TestValue" select (RefCharDelegate)(() => ref c);
-                Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(8, 74));
+                Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(8, 74),
+                // (14,76): error CS8159: Cannot return the range variable 'c' by reference
+                //         var x = from c in "TestValue" select (RoRefCharDelegate)(() => ref c);
+                Diagnostic(ErrorCode.ERR_RefReturnRangeVariable, "c").WithArguments("c").WithLocation(14, 76)
+                );
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]

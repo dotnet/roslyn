@@ -1993,7 +1993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ds.SemicolonToken.IsMissing);
         }
 
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact]
         public void TestDelegateWithRefReadonlyReturnType()
         {
@@ -2510,7 +2510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
         }
 
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact]
         public void TestClassMethodWithRefReadonlyReturn()
         {
@@ -2584,7 +2584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IncompleteMember, cs.Members[0].Kind());
         }
 
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact]
         public void TestClassMethodWithRefReadonly()
         {
@@ -3958,7 +3958,7 @@ class Class1<T>{
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact]
         public void TestClassPropertyWithRefReadonlyReturn()
         {
@@ -4901,7 +4901,7 @@ class Class1<T>{
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
 
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact]
         public void TestClassIndexerWithRefReadonlyReturn()
         {

@@ -644,6 +644,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal abstract bool IsByRefLikeType { get; }
 
+        /// <summary>
+        /// Returns true if the type is a readonly sruct
+        /// </summary>
+        internal abstract bool IsReadOnly { get; }
+
         #region ITypeSymbol Members
 
         INamedTypeSymbol ITypeSymbol.BaseType

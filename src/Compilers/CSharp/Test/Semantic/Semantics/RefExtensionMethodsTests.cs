@@ -644,9 +644,9 @@ public class Test
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (14,18): error CS1928: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in long)' has some invalid arguments
+                // (14,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in long)' requires a receiver of type 'in long'
                 //         intValue.Print();       // Should be an error
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "Print").WithArguments("int", "Print", "Extensions.Print(in long)").WithLocation(14, 18));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intValue").WithArguments("int", "Print", "Extensions.Print(in long)", "in long").WithLocation(14, 9));
         }
 
         [Fact]
@@ -710,9 +710,9 @@ public class Test
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }).VerifyDiagnostics(
-                // (16,18): error CS1928: '(int intValue1, int intValue2)' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in (long, long))' has some invalid arguments
+                // (16,9): error CS1929: '(int intValue1, int intValue2)' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in (long, long))' requires a receiver of type 'in (long, long)'
                 //         intTuple.Print();                       // Should be an error
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "Print").WithArguments("(int intValue1, int intValue2)", "Print", "Extensions.Print(in (long, long))").WithLocation(16, 18));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intTuple").WithArguments("(int intValue1, int intValue2)", "Print", "Extensions.Print(in (long, long))", "in (long, long)").WithLocation(16, 9));
         }
 
         [Fact]
@@ -775,12 +775,12 @@ public class Test
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (13,11): error CS1928: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in int?)' has some invalid arguments
+                // (13,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in int?)' requires a receiver of type 'in int?'
                 //         0.Print();                  // Should be an error
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "Print").WithArguments("int", "Print", "Extensions.Print(in int?)").WithLocation(13, 11),
-                // (16,18): error CS1928: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in int?)' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "0").WithArguments("int", "Print", "Extensions.Print(in int?)", "in int?").WithLocation(13, 9),
+                // (16,9): error CS1929: 'int' does not contain a definition for 'Print' and the best extension method overload 'Extensions.Print(in int?)' requires a receiver of type 'in int?'
                 //         intValue.Print();           // Should be an error
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "Print").WithArguments("int", "Print", "Extensions.Print(in int?)").WithLocation(16, 18));
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "intValue").WithArguments("int", "Print", "Extensions.Print(in int?)", "in int?").WithLocation(16, 9));
         }
 
         [Fact]
@@ -957,6 +957,30 @@ public class Program
 }";
 
             CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "54321");
+        }
+
+        [Fact]
+        public void MutationIsObserved_RefExtensionMethods()
+        {
+            var code = @"
+public static class Extensions
+{
+    public static void Decrement(ref this int p)
+    {
+        p--;
+    }
+}
+public class Program
+{
+    public static void Main()
+    {
+        int p = 8;
+        p.Decrement();
+        System.Console.WriteLine(p);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "7");
         }
 
         [Fact]

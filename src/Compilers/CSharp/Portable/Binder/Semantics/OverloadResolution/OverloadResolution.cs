@@ -2963,11 +2963,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    bool isThisArgument = arguments.IsExtensionMethodThisArgument(argumentPosition);
                     RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
+                    bool forExtensionMethodThisArg = arguments.IsExtensionMethodThisArgument(argumentPosition);
 
-                    if (isThisArgument)
+                    if (forExtensionMethodThisArg)
                     {
                         Debug.Assert(argumentRefKind == RefKind.None);
                         if (parameterRefKind == RefKind.Ref)
@@ -2978,9 +2978,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    conversion = CheckArgumentForApplicability(candidate, argument, argumentRefKind, parameters.ParameterTypes[argumentPosition], parameterRefKind, ignoreOpenTypes, ref useSiteDiagnostics);
+                    conversion = CheckArgumentForApplicability(
+                        candidate,
+                        argument,
+                        argumentRefKind,
+                        parameters.ParameterTypes[argumentPosition],
+                        parameterRefKind,
+                        ignoreOpenTypes,
+                        ref useSiteDiagnostics,
+                        forExtensionMethodThisArg);
 
-                    if (isThisArgument && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
+                    if (forExtensionMethodThisArg && !Conversions.IsValidExtensionMethodThisArgConversion(conversion))
                     {
                         // Return early, without checking conversions of subsequent arguments,
                         // if the instance argument is not convertible to the 'this' parameter,
@@ -3038,7 +3046,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol parameterType,
             RefKind parRefKind,
             bool ignoreOpenTypes,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool forExtensionMethodThisArg)
         {
             // Spec 7.5.3.1
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is identical
@@ -3079,7 +3088,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (argRefKind == RefKind.None)
             {
-                var conversion = Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteDiagnostics);
+                var conversion = forExtensionMethodThisArg ?
+                    Conversions.ClassifyImplicitExtensionMethodThisArgConversion(argument, argument.Type, parameterType, ref useSiteDiagnostics) :
+                    Conversions.ClassifyImplicitConversionFromExpression(argument, parameterType, ref useSiteDiagnostics);
                 Debug.Assert((!conversion.Exists) || conversion.IsImplicit, "ClassifyImplicitConversion should only return implicit conversions");
                 return conversion;
             }

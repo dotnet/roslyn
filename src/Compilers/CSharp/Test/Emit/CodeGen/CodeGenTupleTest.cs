@@ -9794,18 +9794,18 @@ CS0151ERR_IntegralTypeValueExpected}
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int, int)").WithArguments("tuples", "7").WithLocation(6, 9),
-                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int, int)").WithArguments("tuples", "7.0").WithLocation(6, 9),
+                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7.0").WithLocation(6, 24),
                 // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration
                 // CS0151ERR_IntegralTypeValueExpected}
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)
                 );
 
-            Assert.Equal("7", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[0]));
+            Assert.Equal("7.0", Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[0]));
             Assert.Null(Compilation.GetRequiredLanguageVersion(comp.GetDiagnostics()[2]));
             Assert.Throws<ArgumentNullException>(() => Compilation.GetRequiredLanguageVersion(null));
         }
@@ -14678,6 +14678,9 @@ class C
                 // (7,18): error CS0150: A constant value is expected
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(7, 18),
+                // (7,29): warning CS0162: Unreachable code detected
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "tuple").WithLocation(7, 29),
                 // (7,29): warning CS0164: This label has not been referenced
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "tuple").WithLocation(7, 29)
@@ -14703,7 +14706,10 @@ class C
             comp.VerifyDiagnostics(
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1): return;
-                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
+                // (7,26): warning CS0162: Unreachable code detected
+                //             case (1, 1): return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "return").WithLocation(7, 26)
                );
         }
 
@@ -14730,6 +14736,9 @@ class C
                 // (7,18): error CS0150: A constant value is expected
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
+                // (7,25): warning CS0162: Unreachable code detected
+                //             case (1, 1) t: return;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "t").WithLocation(7, 25),
                 // (7,25): warning CS0164: This label has not been referenced
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)
@@ -22738,20 +22747,19 @@ static class C
 
             var comp = CreateStandardCompilation(source, references: s_valueTupleRefs.Concat(new[] { LinqAssemblyRef }));
             comp.VerifyDiagnostics(
-                // (10,41): error CS1928: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                // (10,34): error CS1929: '(int, int)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine((1, 2).M());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int, int)", "M", "C.M((int x, long y))").WithLocation(10, 41),
-                // (16,57): error CS1928: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(1, 2)").WithArguments("(int, int)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(10, 34),
+                // (16,34): error CS1929: '(int, long)' does not contain a definition for 'M1' and the best extension method overload 'C.M1((int x, long? y))' requires a receiver of type '(int x, long? y)'
                 //         System.Console.WriteLine((First: 1, Second: 2L).M1());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M1").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))").WithLocation(16, 57),
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "(First: 1, Second: 2L)").WithArguments("(int, long)", "M1", "C.M1((int x, long? y))", "(int x, long? y)").WithLocation(16, 34),
                 // (19,44): error CS0117: '(int, <null>)' does not contain a definition for 'M1'
                 //         System.Console.WriteLine((1, null).M1());
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1").WithLocation(19, 44),
-                // (23,46): error CS1928: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' has some invalid arguments
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "M1").WithArguments("(int, <null>)", "M1"),
+                // (23,34): error CS1929: '(int A, int B)' does not contain a definition for 'M' and the best extension method overload 'C.M((int x, long y))' requires a receiver of type '(int x, long y)'
                 //         System.Console.WriteLine(notAliteral.M());
-                Diagnostic(ErrorCode.ERR_BadExtensionArgTypes, "M").WithArguments("(int A, int B)", "M", "C.M((int x, long y))").WithLocation(23, 46)
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "notAliteral").WithArguments("(int A, int B)", "M", "C.M((int x, long y))", "(int x, long y)").WithLocation(23, 34)
                 );
-
         }
 
         [Fact]
@@ -22871,6 +22879,138 @@ class C
                 //         var x = (0, null) as (int, T)?;
                 Diagnostic(ErrorCode.ERR_TypelessTupleInAs, "(0, null) as (int, T)?").WithLocation(6, 17)
                 );
+        }
+
+        [Fact]
+        public void CheckedConstantConversions()
+        {
+            var source =
+@"#pragma warning disable 219
+class C
+{
+    static void Main()
+    {
+        unchecked
+        {
+            var u = ((byte, byte))(0, -1);
+            var (a, b) = ((byte, byte))(0, -2);
+        }
+        checked
+        {
+            var c = ((byte, byte))(0, -1);
+            var (a, b) = ((byte, byte))(0, -2);
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // (13,39): error CS0221: Constant value '-1' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //             var c = ((byte, byte))(0, -1);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "-1").WithArguments("-1", "byte").WithLocation(13, 39),
+                // (14,44): error CS0221: Constant value '-2' cannot be converted to a 'byte' (use 'unchecked' syntax to override)
+                //             var (a, b) = ((byte, byte))(0, -2);
+                Diagnostic(ErrorCode.ERR_ConstOutOfRangeChecked, "-2").WithArguments("-2", "byte").WithLocation(14, 44));
+        }
+
+        [Fact]
+        [WorkItem(18459, "https://github.com/dotnet/roslyn/issues/18459")]
+        public void CheckedConversions()
+        {
+            var source =
+@"using System;
+class C
+{
+    static (long, byte) Default((int, int) t)
+    {
+        return ((long, byte))t;
+    }
+    static (long, byte) Unchecked((int, int) t)
+    {
+        unchecked
+        {
+            return ((long, byte))t;
+        }
+    }
+    static (long, byte) Checked((int, int) t)
+    {
+        checked
+        {
+            return ((long, byte))t;
+        }
+    }
+    static void Main()
+    {
+        var d = Default((-1, -1));
+        Console.Write(d);
+        var u = Unchecked((-1, -1));
+        Console.Write(u);
+        try
+        {
+            var c = Checked((-1, -1));
+            Console.Write(c);
+        }
+        catch (OverflowException)
+        {
+            Console.Write(""overflow"");
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(
+                source,
+                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(comp, expectedOutput: @"(-1, 255)(-1, 255)overflow");
+            verifier.VerifyIL("C.Default",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("C.Unchecked",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
+            verifier.VerifyIL("C.Checked",
+@"{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (System.ValueTuple<int, int> V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0008:  conv.i8
+  IL_0009:  ldloc.0
+  IL_000a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  conv.ovf.u1
+  IL_0010:  newobj     ""System.ValueTuple<long, byte>..ctor(long, byte)""
+  IL_0015:  ret
+}");
         }
 
         [Fact]

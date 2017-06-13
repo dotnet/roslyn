@@ -448,6 +448,10 @@ namespace Roslyn.Test.Utilities
                 {
                     itemInspector = b => $"0x{b:X2}";
                 }
+                else if (expected is IEnumerable<string>)
+                {
+                    itemInspector = new Func<T, string>(obj => (obj != null) ? string.Format("\"{0}\"", obj.ToString()) : "<null>");
+                }
                 else
                 {
                     itemInspector = new Func<T, string>(obj => (obj != null) ? obj.ToString() : "<null>");

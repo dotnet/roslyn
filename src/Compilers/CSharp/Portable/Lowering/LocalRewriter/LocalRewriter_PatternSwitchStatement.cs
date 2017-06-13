@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -38,14 +39,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             private ArrayBuilder<BoundStatement> _loweredDecisionTree = ArrayBuilder<BoundStatement>.GetInstance();
 
             private PatternSwitchLocalRewriter(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
-                : base(localRewriter._factory.CurrentMethod, node.Syntax, localRewriter._factory.Compilation.Conversions)
+                : base(localRewriter._factory.CurrentMethod, (SwitchStatementSyntax)node.Syntax, localRewriter._factory.Compilation.Conversions)
             {
                 this._localRewriter = localRewriter;
                 this._factory = localRewriter._factory;
                 this._factory.Syntax = node.Syntax;
                 foreach (var section in node.SwitchSections)
                 {
-                    _switchSections.Add((SyntaxNode)section.Syntax, ArrayBuilder<BoundStatement>.GetInstance());
+                    _switchSections.Add(section.Syntax, ArrayBuilder<BoundStatement>.GetInstance());
                 }
             }
 
@@ -146,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode defaultSection = null;
                 foreach (var section in node.SwitchSections)
                 {
-                    var sectionSyntax = (SyntaxNode)section.Syntax;
+                    var sectionSyntax = section.Syntax;
                     foreach (var label in section.SwitchLabels)
                     {
                         var loweredLabel = LowerSwitchLabel(label);
@@ -164,7 +165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            Syntax = label.Syntax;
                             AddToDecisionTree(loweredDecisionTree, sectionSyntax, loweredLabel);
                         }
                     }
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var loweredRight = kv.Key;
                         var loweredLeft = kv.Value;
-                        loweredRight = _factory.Convert(loweredLeft.Type, loweredRight);
+                        Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.AllIgnoreOptions));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
                                 _factory.Syntax, loweredLeft, loweredRight, RefKind.None, loweredLeft.Type, false)));

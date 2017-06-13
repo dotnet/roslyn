@@ -179,6 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _isAutoProperty = notRegularProperty && hasGetSyntax;
                 bool isReadOnly = hasGetSyntax && setSyntax == null;
 
+                if (_isAutoProperty && !isReadOnly && !IsStatic && ContainingType.IsReadOnly)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AutoPropsInRoStruct, location);
+                }
+
                 if (_isAutoProperty || hasInitializer)
                 {
                     if (_isAutoProperty)
@@ -1213,7 +1218,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
                 // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
