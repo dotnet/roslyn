@@ -19846,6 +19846,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UseDefViolationField, "ss.I3").WithArguments("I3").WithLocation(21, 34)
             );
         }
+
         [Fact]
         public void DefiniteAssignment015()
         {

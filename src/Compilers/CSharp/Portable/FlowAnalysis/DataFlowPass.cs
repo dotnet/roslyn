@@ -913,13 +913,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If the symbol is captured by the nearest
             // local function, record the read and skip the diagnostic
-            if ((object)GetNearestLocalFunctionOpt(currentMethodOrLambda) != null)
+            if (IsCapturedInLocalFunction(slot))
             {
-                if (IsCapturedInLocalFunction(slot))
-                {
-                    RecordReadInLocalFunction(slot);
-                    return;
-                }
+                RecordReadInLocalFunction(slot);
+                return;
             }
 
             ReportUnassigned(symbol, node, slot, skipIfUseBeforeDeclaration);
