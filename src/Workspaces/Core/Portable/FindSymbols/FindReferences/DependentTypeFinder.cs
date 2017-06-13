@@ -606,6 +606,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var caseSensitive = project.LanguageServices.GetService<ISyntaxFactsService>().IsCaseSensitive;
             var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes, caseSensitive);
 
+            var schedulerPair = new ConcurrentExclusiveSchedulerPair(
+                TaskScheduler.Default, maxConcurrencyLevel: Math.Max(1, Environment.ProcessorCount * 2));
+
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
             {
@@ -613,10 +616,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 inheritanceQuery.TypeNames.AddRange(typesToSearchFor.Select(c => c.Symbol.Name));
 
                 // Search all the documents of this project in parallel.
-                var tasks = project.Documents.Select(d => Task.Run(() => FindImmediatelyInheritingTypesInDocumentAsync(
-                    d, typesToSearchFor, inheritanceQuery,
-                    cachedModels, cachedInfos, 
-                    sourceTypeImmediatelyMatches, cancellationToken), cancellationToken)).ToArray();
+                var tasks = project.Documents.Select(
+                    d => Task.Factory.StartNew(
+                        () => FindImmediatelyInheritingTypesInDocumentAsync(
+                            d, typesToSearchFor, inheritanceQuery, cachedModels, 
+                            cachedInfos, sourceTypeImmediatelyMatches, cancellationToken),
+                        cancellationToken,
+                        TaskCreationOptions.None,
+                        schedulerPair.ConcurrentScheduler).Unwrap()).ToArray();
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -668,8 +675,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document,
             SymbolAndProjectIdSet typesToSearchFor,
             InheritanceQuery inheritanceQuery,
-            ConcurrentSet<SemanticModel> cachedModels, 
-            ConcurrentSet<SyntaxTreeIndex> cachedInfos, 
+            ConcurrentSet<SemanticModel> cachedModels,
+            ConcurrentSet<SyntaxTreeIndex> cachedInfos,
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> typeImmediatelyMatches,
             CancellationToken cancellationToken)
         {
