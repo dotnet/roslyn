@@ -72,20 +72,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public string DumpDirectoryPath { get; }
-
-        private bool _exceptionHappened;
-
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, string dumpDirectoryPath)
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
         {
             HostProcess = hostProcess;
             Dte = dte;
             SupportedPackageIds = supportedPackageIds;
             InstallationPath = installationPath;
-            DumpDirectoryPath = dumpDirectoryPath;
-
-            _exceptionHappened = false;
-            AppDomain.CurrentDomain.FirstChanceException += FirstChanceExceptionHandler;
 
             StartRemoteIntegrationService(dte);
 
@@ -189,16 +181,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             if (exitHostProcess)
             {
                 CloseHostProcess();
-
-                AppDomain.CurrentDomain.FirstChanceException -= FirstChanceExceptionHandler;
-
-                if (!_exceptionHappened)
-                {
-                    if (Directory.Exists(DumpDirectoryPath))
-                    {
-                        Directory.Delete(DumpDirectoryPath);
-                    }
-                }
             }
         }
 
@@ -269,11 +251,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             });
 
             return result;
-        }
-
-        private void FirstChanceExceptionHandler(object sender, FirstChanceExceptionEventArgs eventArgs)
-        {
-            _exceptionHappened = true;
         }
     }
 }
