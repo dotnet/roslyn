@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis
     {
         // open documents
         private readonly Dictionary<ProjectId, ISet<DocumentId>> _projectToOpenDocumentsMap = new Dictionary<ProjectId, ISet<DocumentId>>();
+        private readonly Dictionary<ProjectId, ISet<DocumentId>> _projectToOpenAdditionalDocumentsMap = new Dictionary<ProjectId, ISet<DocumentId>>();
 
         // text buffer maps
         /// <summary>
@@ -426,7 +427,7 @@ namespace Microsoft.CodeAnalysis
         private ISet<DocumentId> GetProjectOpenAdditionalDocuments_NoLock(ProjectId project)
         {
             _stateLock.AssertHasLock();
-            _projectToOpenDocumentsMap.TryGetValue(project, out var openDocs);
+            _projectToOpenAdditionalDocumentsMap.TryGetValue(project, out var openDocs);
             return openDocs;
         }
 
