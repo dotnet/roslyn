@@ -107,21 +107,24 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 
             var pickMembersOptions = ArrayBuilder<PickMembersOption>.GetInstance();
 
-            var equatableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
-            var constructedType = equatableType.Construct(containingType);
-            if (!containingType.AllInterfaces.Contains(constructedType))
+            var equatableTypeOpt = semanticModel.Compilation.GetTypeByMetadataName(typeof(IEquatable<>).FullName);
+            if (equatableTypeOpt != null)
             {
-                var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-                var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
+                var constructedType = equatableTypeOpt.Construct(containingType);
+                if (!containingType.AllInterfaces.Contains(constructedType))
+                {
+                    var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    var value = options.GetOption(GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable);
 
-                var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
-                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
+                    var displayName = constructedType.ToDisplayString(new SymbolDisplayFormat(
+                        typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                        genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters));
 
-                pickMembersOptions.Add(new PickMembersOption(
-                    ImplementIEquatableId,
-                    string.Format(FeaturesResources.Implement_0, displayName),
-                    value));
+                    pickMembersOptions.Add(new PickMembersOption(
+                        ImplementIEquatableId,
+                        string.Format(FeaturesResources.Implement_0, displayName),
+                        value));
+                }
             }
 
             if (!HasOperators(containingType))
