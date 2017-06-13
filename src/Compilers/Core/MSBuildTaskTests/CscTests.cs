@@ -91,6 +91,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void LangVersionFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.LangVersion = "iso-1";
+            Assert.Equal("/out:test.exe /langversion:iso-1 test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void ChecksumAlgorithmOption()
         {
             var csc = new Csc();

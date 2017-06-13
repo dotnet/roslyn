@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
@@ -11,15 +12,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
     Public Class SemanticClassifierTests
         Inherits AbstractVisualBasicClassifierTests
 
-        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Tasks.Task(Of IEnumerable(Of ClassifiedSpan))
+        Friend Overrides Async Function GetClassificationSpansAsync(code As String, textSpan As TextSpan) As Task(Of ImmutableArray(Of ClassifiedSpan))
             Using workspace = TestWorkspace.CreateVisualBasic(code)
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id)
 
-                Dim service = document.GetLanguageService(Of IClassificationService)()
+                Dim service = document.GetLanguageService(Of ISyntaxClassificationService)()
 
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
-                Dim result = New List(Of ClassifiedSpan)
+                Dim result = ArrayBuilder(Of ClassifiedSpan).GetInstance()
                 Dim classifiers = service.GetDefaultSyntaxClassifiers()
                 Dim extensionManager = workspace.Services.GetService(Of IExtensionManager)
 
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Classification
                     extensionManager.CreateTokenExtensionGetter(classifiers, Function(c) c.SyntaxTokenKinds),
                     result, CancellationToken.None)
 
-                Return result
+                Return result.ToImmutableAndFree()
             End Using
         End Function
 

@@ -392,5 +392,6 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         CompilationService_GetCompilationAsync,
         SolutionCreator_AssetDifferences,
         Extension_InfoBar,
+        Experiment_ABTesting,
     }
 }
