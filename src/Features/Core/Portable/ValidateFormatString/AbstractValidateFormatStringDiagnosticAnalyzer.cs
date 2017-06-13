@@ -41,12 +41,16 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(Rule);
 
-        // this regex is used to remove escaped brackets from
-        // the format string before looking for valid {} pairs
+        /// <summary>
+        /// this regex is used to remove escaped brackets from
+        /// the format string before looking for valid {} pairs
+        /// </summary>
         private static Regex s_removeEscapedBracketsRegex = new Regex("{{");
 
-        // this regex is used to extract the text between the
-        // brackets and save the contents in a MatchCollection
+        /// <summary>
+        /// this regex is used to extract the text between the
+        /// brackets and save the contents in a MatchCollection
+        /// </summary>
         private static Regex s_extractPlaceholdersRegex = new Regex("{(.*?)}");
 
         private const string NameOfArgsParameter = "args";
@@ -78,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             var optionSet = context.Options.GetDocumentOptionSetAsync(
                 context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
 
-            if (optionSet?.GetOption(
+            if (optionSet.GetOption(
                 ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
                 context.SemanticModel.Language) == false)
             {
@@ -359,6 +363,13 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             }
         }
 
+        /// <summary>
+        /// removing escaped left brackets and replacing with space characters so they won't
+        /// impede the extraction of placeholders, yet the locations of the placeholders are
+        /// the same as in the original string.
+        /// </summary>
+        /// <param name="formatString"></param>
+        /// <returns>string with left brackets removed and replaced by spaces</returns>
         private static string RemoveEscapedBrackets(string formatString)
             => s_removeEscapedBracketsRegex.Replace(formatString, "  ");
 
@@ -366,7 +377,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             string textInsideBrackets, 
             int numberOfPlaceholderArguments)
         {
-            var placeholderIndexText = (textInsideBrackets.IndexOf(",") > 0)
+            var placeholderIndexText = textInsideBrackets.IndexOf(",") > 0
                 ? textInsideBrackets.Split(',')[0]
                 : textInsideBrackets.Split(':')[0];
 
