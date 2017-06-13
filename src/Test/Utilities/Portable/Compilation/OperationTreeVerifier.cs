@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
-            base.VisitLocalFunctionStatement(operation);
+            Visit(operation.Body);
         }
 
         private void LogCaseClauseCommon(ICaseClause operation)
