@@ -13,10 +13,10 @@
     <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
-    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="|Microsoft.CodeAnalysis.Analyzers.Core|" />
+    <Asset Type="Microsoft.VisualStudio.Analyzer" Path="|Microsoft.CodeAnalysis.Analyzers|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="|Microsoft.CodeAnalysis.CSharp.Analyzers|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="|Microsoft.CodeAnalysis.VisualBasic.Analyzers|" />
-    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|Microsoft.CodeAnalysis.Analyzers.Core|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|Microsoft.CodeAnalysis.Analyzers|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|Microsoft.CodeAnalysis.CSharp.Analyzers|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|Microsoft.CodeAnalysis.VisualBasic.Analyzers|" />
   </Assets>

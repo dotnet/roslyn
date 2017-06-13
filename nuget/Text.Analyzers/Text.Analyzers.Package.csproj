@@ -1,0 +1,30 @@
+﻿<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <IsPackable>true</IsPackable>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <NuspecPackageId>Text.Analyzers</NuspecPackageId>
+    <Description>Text Analyzers</Description>
+    <Summary>Text Analyzers</Summary>
+    <ReleaseNotes>Text Analyzers</ReleaseNotes>
+    <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Diagnostic Analyzers Syntax Semantics</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AnalyzerNupkgAssembly Include="Text.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Text.CSharp.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Text.VisualBasic.Analyzers.dll" />
+    <AnalyzerNupkgAssembly Include="Analyzer.Utilities.dll" />
+
+    <AnalyzerNupkgFile Include="Text.Analyzers.props" />
+    <AnalyzerNupkgFile Include="Text.CSharp.Analyzers.props" />
+    <AnalyzerNupkgFile Include="Text.VisualBasic.Analyzers.props" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Text.Analyzers\Core\Text.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Text.Analyzers\CSharp\Text.CSharp.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\Text.Analyzers\VisualBasic\Text.VisualBasic.Analyzers.vbproj" />
+  </ItemGroup>
+</Project>

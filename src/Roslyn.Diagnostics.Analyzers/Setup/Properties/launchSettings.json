@@ -1,9 +1,0 @@
-{
-  "profiles": {
-    "Setup": {
-      "commandName": "Executable",
-      "executablePath": "$(DevEnvDir)devenv.exe",
-      "commandLineArgs": "/rootsuffix RoslynDev /log"
-    }
-  }
-}

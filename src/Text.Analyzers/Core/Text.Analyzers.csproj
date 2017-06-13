@@ -4,6 +4,11 @@
     <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Analyzer.Utilities\Analyzer.Utilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Text.CSharp.Analyzers" />
+    <InternalsVisibleTo Include="Text.VisualBasic.Analyzers" />
+    <InternalsVisibleTo Include="Text.Analyzers.UnitTests" />
   </ItemGroup>
 </Project>
