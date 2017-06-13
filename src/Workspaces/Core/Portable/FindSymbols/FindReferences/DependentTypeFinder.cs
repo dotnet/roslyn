@@ -9,8 +9,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
@@ -32,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
         private static Func<Location, bool> s_isInSource = loc => loc.IsInSource;
 
-        private static Func<INamedTypeSymbol, bool> s_isNonSealedClass = 
+        private static Func<INamedTypeSymbol, bool> s_isNonSealedClass =
             t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
 
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
@@ -161,7 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
-            IImmutableSet<Project> projects, 
+            IImmutableSet<Project> projects,
             bool transitive,
             CancellationToken cancellationToken)
         {
@@ -236,7 +234,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             SymbolAndProjectId<INamedTypeSymbol> type,
             Solution solution,
             IImmutableSet<Project> projects,
-            bool transitive, 
+            bool transitive,
             CancellationToken cancellationToken)
         {
             // Only an interface can be implemented.
@@ -252,7 +250,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
-           }
+            }
 
             return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>();
         }
@@ -415,8 +413,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ISet<ProjectId>> GetProjectsThatCouldReferenceTypeAsync(
-            INamedTypeSymbol type, 
-            Solution solution, 
+            INamedTypeSymbol type,
+            Solution solution,
             bool searchInMetadata,
             CancellationToken cancellationToken)
         {
@@ -676,13 +674,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         case SpecialType.System_Object:
                             await AddMatchingTypesAsync(
-                                cachedModels, projectIndex.ClassesThatMayDeriveFromSystemObject, localBuffer, 
+                                cachedModels, projectIndex.ClassesThatMayDeriveFromSystemObject, localBuffer,
                                 predicateOpt: n => n.BaseType?.SpecialType == SpecialType.System_Object,
                                 cancellationToken: cancellationToken).ConfigureAwait(false);
                             break;
                         case SpecialType.System_ValueType:
                             await AddMatchingTypesAsync(
-                                cachedModels, projectIndex.ValueTypes, localBuffer, 
+                                cachedModels, projectIndex.ValueTypes, localBuffer,
                                 predicateOpt: null, cancellationToken: cancellationToken).ConfigureAwait(false);
                             break;
                         case SpecialType.System_Enum:
@@ -698,7 +696,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     await AddTypesThatDeriveFromNameAsync(
-                        typesToSearchFor, sourceTypeImmediatelyMatches, cachedModels,
+                        sourceTypeImmediatelyMatches, cachedModels, typesToSearchFor,
                         projectIndex, localBuffer, type.Symbol.Name, cancellationToken).ConfigureAwait(false);
                 }
 
@@ -742,9 +740,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddTypesThatDeriveFromNameAsync(
-            SymbolAndProjectIdSet typesToSearchFor,
             Func<SymbolAndProjectIdSet, INamedTypeSymbol, bool> typeImmediatelyMatches,
-            ConcurrentSet<SemanticModel> cachedModels, 
+            ConcurrentSet<SemanticModel> cachedModels,
+            SymbolAndProjectIdSet typesToSearchFor,
             ProjectIndex index,
             SymbolAndProjectIdSet result,
             string name,
@@ -765,9 +763,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task AddMatchingTypesAsync(
-            ConcurrentSet<SemanticModel> cachedModels, 
+            ConcurrentSet<SemanticModel> cachedModels,
             MultiDictionary<Document, DeclaredSymbolInfo> documentToInfos,
-            SymbolAndProjectIdSet result, 
+            SymbolAndProjectIdSet result,
             Func<INamedTypeSymbol, bool> predicateOpt,
             CancellationToken cancellationToken)
         {
