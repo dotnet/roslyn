@@ -1,12 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -14,6 +17,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     using SymbolAndProjectIdSet = HashSet<SymbolAndProjectId<INamedTypeSymbol>>;
+
+    using RelatedTypeCache = ConditionalWeakTable<Solution, ConcurrentDictionary<INamedTypeSymbol, AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>>>;
 
     /// <summary>
     /// Provides helper methods for finding dependent types (derivations, implementations, 
@@ -38,17 +43,44 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ObjectPool<SymbolAndProjectIdSet> s_setPool = new ObjectPool<SymbolAndProjectIdSet>(
             () => new SymbolAndProjectIdSet(SymbolAndProjectIdComparer<INamedTypeSymbol>.SymbolEquivalenceInstance));
 
+        // Caches from a types to their related types (in the context of a specific solution).
+        // Kept as a cache so that clients who make many calls into us won't end up computing
+        // the same data over and over again.  Will be let go the moment the solution they're
+        // based off of is no longer alive.
+
+        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedClassesMap = new RelatedTypeCache();
+        private static readonly RelatedTypeCache s_typeToTransitivelyDerivedClassesMap = new RelatedTypeCache();
+        private static readonly RelatedTypeCache s_typeToTransitivelyImplementingTypesMap = new RelatedTypeCache();
+        private static readonly RelatedTypeCache s_typeToImmediatelyDerivedAndImplementingTypesMap = new RelatedTypeCache();
+
+        public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTypesFromCacheOrComputeAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            RelatedTypeCache cache,
+            Func<CancellationToken, Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>> findAsync,
+            CancellationToken cancellationToken)
+        {
+            var dictionary = cache.GetOrCreateValue(solution);
+            var lazy = dictionary.GetOrAdd(type, new AsyncLazy<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>>(
+               asynchronousComputeFunction: findAsync, cacheResult: true));
+
+            return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
+        public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return FindDerivedClassesAsync(
-                SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
-                transitive: false, cancellationToken: cancellationToken);
+            return FindTypesFromCacheOrComputeAsync(
+                type, solution, s_typeToImmediatelyDerivedClassesMap,
+                c => FindDerivedClassesAsync(
+                    SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
+                    transitive: false, cancellationToken: c),
+                cancellationToken);
         }
 
         /// <summary>
@@ -60,9 +92,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return FindDerivedClassesAsync(
-                SymbolAndProjectId.Create(type, projectId: null), solution, projects,
-                transitive: true, cancellationToken: cancellationToken);
+            return FindTypesFromCacheOrComputeAsync(
+                type, solution, s_typeToTransitivelyDerivedClassesMap,
+                c => FindDerivedClassesAsync(
+                    SymbolAndProjectId.Create(type, projectId: null), solution, projects,
+                    transitive: true, cancellationToken: c),
+                cancellationToken);
         }
 
         private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedClassesAsync(
@@ -95,7 +130,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync(SymbolAndProjectId, Solution, IImmutableSet{Project}, CancellationToken)"/> for 
         /// <see cref="INamedTypeSymbol"/>s
         /// </summary>
-        public static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingTypesAsync(
+        public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingTypesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
+        {
+            return FindTypesFromCacheOrComputeAsync(
+                type, solution, s_typeToTransitivelyImplementingTypesMap,
+                c => FindTransitivelyImplementingTypesWorkerAsync(type, solution, projects, c),
+                cancellationToken);
+        }
+
+        private static async Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindTransitivelyImplementingTypesWorkerAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -113,14 +160,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Used for implementing the Inherited-By relation for progression.
         /// </summary>
-        internal static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
+        public static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindImmediatelyDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return FindDerivedAndImplementingTypesAsync(
-                SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
-                transitive: false, cancellationToken: cancellationToken);
+            return FindTypesFromCacheOrComputeAsync(
+                type, solution, s_typeToImmediatelyDerivedAndImplementingTypesMap,
+                c => FindDerivedAndImplementingTypesAsync(
+                    SymbolAndProjectId.Create(type, projectId: null), solution, projects: null,
+                    transitive: false, cancellationToken: c),
+                cancellationToken);
         }
 
         private static Task<ImmutableArray<SymbolAndProjectId<INamedTypeSymbol>>> FindDerivedAndImplementingTypesAsync(
@@ -553,7 +603,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var typesToSearchFor = CreateSymbolAndProjectIdSet();
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
-            var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes);
+            var caseSensitive = project.LanguageServices.GetService<ISyntaxFactsService>().IsCaseSensitive;
+            var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes, caseSensitive);
 
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
@@ -562,10 +613,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 inheritanceQuery.TypeNames.AddRange(typesToSearchFor.Select(c => c.Symbol.Name));
 
                 // Search all the documents of this project in parallel.
-                var tasks = project.Documents.Select(d => FindImmediatelyInheritingTypesInDocumentAsync(
+                var tasks = project.Documents.Select(d => Task.Run(() => FindImmediatelyInheritingTypesInDocumentAsync(
                     d, typesToSearchFor, inheritanceQuery,
                     cachedModels, cachedInfos, 
-                    sourceTypeImmediatelyMatches, cancellationToken)).ToArray();
+                    sourceTypeImmediatelyMatches, cancellationToken), cancellationToken)).ToArray();
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -720,13 +771,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public readonly HashSet<string> TypeNames;
 
-            public InheritanceQuery(SymbolAndProjectIdSet sourceAndMetadataTypes)
+            public InheritanceQuery(SymbolAndProjectIdSet sourceAndMetadataTypes, bool caseSensitive)
             {
                 DerivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_Object);
                 DerivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_ValueType);
                 DerivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_Enum);
                 DerivesFromSystemMulticastDelegate = sourceAndMetadataTypes.Any(t => t.Symbol.SpecialType == SpecialType.System_MulticastDelegate);
-                TypeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                TypeNames = caseSensitive ? new HashSet<string>() : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
         }
 
