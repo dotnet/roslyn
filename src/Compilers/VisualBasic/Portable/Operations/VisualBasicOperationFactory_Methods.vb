@@ -1,12 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Semantics
-    Partial Friend Class VisualBasicOperationFactory
+    Partial Friend NotInheritable Class VisualBasicOperationFactory
         Private Shared Function ConvertToOptional(value As ConstantValue) As [Optional](Of Object)
             Return If(value Is Nothing, New [Optional](Of Object)(), New [Optional](Of Object)(value.Value))
         End Function
@@ -75,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Case BoundKind.ByRefArgumentWithCopyBack
                     Dim byRefArgument = DirectCast(argument, BoundByRefArgumentWithCopyBack)
                     Dim parameter = parameters(index)
-                            Dim value = Create(byRefArgument.OriginalArgument)
+                    Dim value = Create(byRefArgument.OriginalArgument)
                     Return New Argument(
                         ArgumentKind.Explicit,
                         parameter,
