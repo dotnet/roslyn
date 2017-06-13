@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 symbols.Add(new BeginInvokeMethod(invoke, iAsyncResultType, objectType, asyncCallbackType, syntax));
 
                 // and (4) EndInvoke methods
-                symbols.Add(new EndInvokeMethod(invoke, iAsyncResultType, syntax, binder, diagnostics));
+                symbols.Add(new EndInvokeMethod(invoke, iAsyncResultType, syntax));
             }
 
             if (delegateType.DeclaredAccessibility <= Accessibility.Private)
@@ -356,18 +356,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private sealed class EndInvokeMethod : SourceDelegateMethodSymbol
         {
-            private readonly RefKind _refKind;
-            private readonly ImmutableArray<CustomModifier> _refCustomModifiers;
+            private readonly InvokeMethod _invoke;
 
             internal EndInvokeMethod(
                 InvokeMethod invoke,
                 TypeSymbol iAsyncResultType,
-                DelegateDeclarationSyntax syntax,
-                Binder binder,
-                DiagnosticBag diagnostics)
+                DelegateDeclarationSyntax syntax)
                 : base((SourceNamedTypeSymbol)invoke.ContainingType, invoke.ReturnType, syntax, MethodKind.Ordinary, DeclarationModifiers.Virtual | DeclarationModifiers.Public)
             {
-                this._refKind = invoke.RefKind;
+                _invoke = invoke;
 
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 int ordinal = 0;
@@ -383,38 +380,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 parameters.Add(SynthesizedParameterSymbol.Create(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
                 InitializeParameters(parameters.ToImmutableAndFree());
-
-                if (_refKind == RefKind.RefReadOnly)
-                {
-                    var isConstType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax.ReturnType);
-                    _refCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConstType));
-                }
-                else
-                {
-                    _refCustomModifiers = ImmutableArray<CustomModifier>.Empty;
-                }
             }
 
-            protected override SourceMethodSymbol BoundAttributesSource
-            {
-                get
-                {
-                    // copy return attributes from InvokeMethod
-                    return (SourceMethodSymbol)((SourceNamedTypeSymbol)this.ContainingSymbol).DelegateInvokeMethod;
-                }
-            }
+            protected override SourceMethodSymbol BoundAttributesSource => _invoke;
 
-            public override string Name
-            {
-                get { return WellKnownMemberNames.DelegateEndInvokeName; }
-            }
+            public override string Name => WellKnownMemberNames.DelegateEndInvokeName;
 
-            internal override RefKind RefKind
-            {
-                get { return _refKind; }
-            }
+            internal override RefKind RefKind => _invoke.RefKind;
 
-            public override ImmutableArray<CustomModifier> RefCustomModifiers => _refCustomModifiers;
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => _invoke.RefCustomModifiers;
         }
 
         private static string GetUniqueParameterName(ArrayBuilder<ParameterSymbol> currentParameters, string name)

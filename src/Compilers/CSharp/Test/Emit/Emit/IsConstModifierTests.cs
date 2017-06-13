@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public class IsConstModifierTests : CSharpTestBase
     {
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Methods_Parameters()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Methods_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -22,7 +22,7 @@ public class TestRef
     {
         System.Console.WriteLine(p);
     }
-}").EmitToImageReference();
+}");
 
             var code = @"
 public class Test
@@ -35,11 +35,12 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Methods_ReturnTypes()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Methods_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -49,7 +50,7 @@ public class TestRef
     {
         return ref value;
     }
-}").EmitToImageReference();
+}");
 
             var code = @"
 public class Test
@@ -61,18 +62,19 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Properties()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Properties()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
 {
     private int value = 5;
     public ref readonly int P => ref value;
-}").EmitToImageReference();
+}");
 
             var code = @"
 public class Test
@@ -84,11 +86,12 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Indexers_Parameters()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Indexers_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -97,7 +100,7 @@ public class TestRef
     {
         set { System.Console.WriteLine(p); }
     }
-}").EmitToImageReference();
+}");
 
             var code = @"
 public class Test
@@ -110,18 +113,19 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Indexers_ReturnTypes()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Indexers_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
 {
     private int value = 5;
     public ref readonly int this[int p] => ref value;
-}").EmitToImageReference();
+}");
 
             var code = @"
 public class Test
@@ -133,15 +137,16 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Delegates_Parameters()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Delegates_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public delegate void D(ref readonly int p);
-").EmitToImageReference();
+");
 
             var code = @"
 public class Test
@@ -158,15 +163,16 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_ImageReference_Delegates_ReturnTypes()
+        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Delegates_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public delegate ref readonly int D();
-").EmitToImageReference();
+");
 
             var code = @"
 public class Test
@@ -184,184 +190,10 @@ public class Test
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
-
-        [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Methods_Parameters()
-        {
-            var reference = CreateStandardCompilation(@"
-public class TestRef
-{
-    public void M(ref readonly int p)
-    {
-        System.Console.WriteLine(p);
-    }
-}").ToMetadataReference();
-
-            var code = @"
-public class Test
-{
-    public static void Main()
-    {
-        int value = 5;
-        var obj = new TestRef();
-        obj.M(value);
-    }
-}";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Methods_ReturnTypes()
-        {
-            var reference = CreateStandardCompilation(@"
-public class TestRef
-{
-    private int value = 5;
-    public ref readonly int M()
-    {
-        return ref value;
-    }
-}").ToMetadataReference();
-
-            var code = @"
-public class Test
-{
-    public static void Main()
-    {
-        var obj = new TestRef();
-        System.Console.WriteLine(obj.M());
-    }
-}";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Properties()
-        {
-            var reference = CreateStandardCompilation(@"
-public class TestRef
-{
-    private int value = 5;
-    public ref readonly int P => ref value;
-}").ToMetadataReference();
-
-            var code = @"
-public class Test
-{
-    public static void Main()
-    {
-        var obj = new TestRef();
-        System.Console.WriteLine(obj.P);
-    }
-}";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Indexers_Parameters()
-        {
-            var reference = CreateStandardCompilation(@"
-public class TestRef
-{
-    public int this[ref readonly int p]
-    {
-        set { System.Console.WriteLine(p); }
-    }
-}").ToMetadataReference();
-
-            var code = @"
-public class Test
-{
-    public static void Main()
-    {
-        int value = 5;
-        var obj = new TestRef();
-        obj[value] = 0;
-    }
-}";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Indexers_ReturnTypes()
-        {
-            var reference = CreateStandardCompilation(@"
-public class TestRef
-{
-    private int value = 5;
-    public ref readonly int this[int p] => ref value;
-}").ToMetadataReference();
-
-            var code = @"
-public class Test
-{
-    public static void Main()
-    {
-        var obj = new TestRef();
-        System.Console.WriteLine(obj[0]);
-    }
-}";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Delegates_Parameters()
-        {
-            var reference = CreateStandardCompilation(@"
-public delegate void D(ref readonly int p);
-").ToMetadataReference();
-
-            var code = @"
-public class Test
-{
-    public static void Main()
-    {
-        Process((ref readonly int p) => System.Console.WriteLine(p));
-    }
-
-    private static void Process(D func)
-    {
-        int value = 5;
-        func(value);
-    }
-}";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
-        }
-
-        [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_MetadataReference_Delegates_ReturnTypes()
-        {
-            var reference = CreateStandardCompilation(@"
-public delegate ref readonly int D();
-").ToMetadataReference();
-
-            var code = @"
-public class Test
-{
-    private static int value = 5;
-
-    public static void Main()
-    {
-        Process(() => ref value);
-    }
-
-    private static void Process(D func)
-    {
-        System.Console.WriteLine(func());
-    }
-}";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "5");
-        }
-
+        
         [Fact]
         public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_Parameters()
         {
@@ -2667,14 +2499,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2711,15 +2546,17 @@ public class Program
         obj.M(5);
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2757,7 +2594,7 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -2771,7 +2608,10 @@ public class Program
                 var explicitParameter = explicitImplementation.Parameters.Single();
                 Assert.Empty(explicitParameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2809,14 +2649,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2853,15 +2696,17 @@ public class Program
         obj.M(5);
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetMethod("Parent.M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2896,15 +2741,17 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2939,15 +2786,17 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var method = type.GetMethod("M");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -2982,15 +2831,17 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitMethod = type.GetMethod("M");
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3025,15 +2876,17 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("M");
 
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3068,15 +2921,17 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var implicitMethod = type.GetMethod("Parent.M");
 
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3111,15 +2966,17 @@ public class Program
         System.Console.WriteLine(obj.P);
     }
 }";
-
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3155,14 +3012,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3198,14 +3058,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var implicitproperty = type.GetProperty("P");
                 Assert.Empty(implicitproperty.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(implicitproperty.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3241,14 +3104,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3284,14 +3150,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var property = type.GetProperty("Parent.P");
 
                 Assert.Empty(property.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3329,14 +3198,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3374,14 +3246,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3419,7 +3294,7 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -3433,7 +3308,10 @@ public class Program
                 var explicitParameter = explicitImplementation.Parameters.First();
                 Assert.Empty(explicitParameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3471,14 +3349,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3516,14 +3397,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var parameter = type.GetProperty("Parent.Item").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
                 AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3559,14 +3443,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3602,14 +3489,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3645,14 +3535,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3688,15 +3581,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+            };
 
-            });
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3732,14 +3627,17 @@ public class Program
     }
 }";
 
-            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
                 var indexer = type.GetProperty("Parent.Item");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
                 AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-            });
+            };
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5", symbolValidator: validator);
         }
 
         [Fact]
@@ -3771,6 +3669,7 @@ public class Test
     private static int value = 5;
 }";
 
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
@@ -3803,11 +3702,12 @@ public class Test
     }
 }";
 
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
         
         [Fact]
-        public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameterss_DuplicateModifierTypes()
+        public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_Parameters_DuplicateModifierTypes()
         {
             var reference = CreateStandardCompilation(@"
 
@@ -3845,6 +3745,7 @@ public class Test
     private static int value = 5;
 }";
 
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
@@ -3886,6 +3787,7 @@ public class Test
     }
 }";
 
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5");
             CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
@@ -4268,17 +4170,14 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(
-                source: userCode,
-                expectedOutput: "5",
-                additionalRefs: new[] { testRef.ToMetadataReference() },
-                options: TestOptions.ReleaseExe,
-                symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var childModifier = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").RefCustomModifiers.Single().Modifier;
                 Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
-            });
+            };
+
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4318,17 +4217,14 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(
-                source: userCode,
-                expectedOutput: "5",
-                additionalRefs: new[] { testRef.ToMetadataReference() },
-                options: TestOptions.ReleaseExe,
-                symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var childModifier = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").RefCustomModifiers.Single().Modifier;
                 Assert.Equal("testRef", childModifier.ContainingAssembly.Name);
-            });
+            };
+
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4368,19 +4264,16 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(
-                source: userCode,
-                expectedOutput: "5",
-                additionalRefs: new[] { testRef.ToMetadataReference() },
-                options: TestOptions.ReleaseExe,
-                symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
                 var explicitModifier = type.GetMethod("Parent.M").RefCustomModifiers.Single().Modifier;
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
-            });
+            };
+
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4420,13 +4313,7 @@ public class Program
         System.Console.WriteLine(obj.M());
     }
 }";
-
-            CompileAndVerify(
-                source: userCode,
-                expectedOutput: "5",
-                additionalRefs: new[] { testRef.ToMetadataReference() },
-                options: TestOptions.ReleaseExe,
-                symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -4435,7 +4322,10 @@ public class Program
 
                 var explicitModifier = type.GetMethod("Parent.M").RefCustomModifiers.Single().Modifier;
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
-            });
+            };
+
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
@@ -4476,12 +4366,7 @@ public class Program
     }
 }";
 
-            CompileAndVerify(
-                source: userCode,
-                additionalRefs: new[] { testRef.ToMetadataReference() },
-                options: TestOptions.ReleaseExe,
-                expectedOutput: "5",
-                symbolValidator: module =>
+            Action<ModuleSymbol> validator = module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Child");
 
@@ -4490,7 +4375,10 @@ public class Program
 
                 var explicitModifier = type.GetMethod("Parent.M").RefCustomModifiers.Single().Modifier;
                 Assert.Equal("testRef", explicitModifier.ContainingAssembly.Name);
-            });
+            };
+
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.ToMetadataReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
+            CompileAndVerify(source: userCode, expectedOutput: "5", additionalRefs: new[] { testRef.EmitToImageReference() }, options: TestOptions.ReleaseExe, symbolValidator: validator);
         }
 
         [Fact]
