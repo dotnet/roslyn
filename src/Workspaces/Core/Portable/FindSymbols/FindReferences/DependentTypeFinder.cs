@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes, caseSensitive);
 
             var schedulerPair = new ConcurrentExclusiveSchedulerPair(
-                TaskScheduler.Default, maxConcurrencyLevel: Math.Max(1, Environment.ProcessorCount * 2));
+                TaskScheduler.Default, maxConcurrencyLevel: Math.Max(1, Environment.ProcessorCount));
 
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
