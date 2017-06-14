@@ -72,6 +72,7 @@ Where there is code available, the answer to the question has one or more tags s
     * [Is there an end-to-end example on compiling a program to IL (Emit APIs)](#is-there-an-end-to-end-example-on-compiling-a-program-to-il-emit-apis)
     * [How can I capture IL, debug info, and doc comment outputs from a Compilation](#how-can-i-capture-il,-debug-info,-and-doc-comment-outputs-from-a-compilation)
     * [Is there an object model chart or type inheritance diagram of Roslyn types](#is-there-an-object-model-chart-or-type-inheritance-diagram-of-roslyn-types)
+    * [How to build on Windows 8](#how-to-build-on-windows-8)
 
 ## Project / Cross-cutting Questions
 
@@ -355,3 +356,8 @@ See the sample code answer tagged “FAQ(34)” ([installed location information
 ### Is there an object model chart or type inheritance diagram of Roslyn types?
 You can create a type inheritance diagram that you can zoom and search within.  You need Visual Studio 2010 Ultimate, and the instructions for creating the diagram are in this [post](http://social.msdn.microsoft.com/Forums/en-US/roslyn/thread/705b090b-58ac-4a94-b7b5-d1408205bc90).
 
+### How to build on Windows 8
+
+If you don't have Visual Studio installed, you may need to install the .NET Framework (for example, 4.6.2).
+
+Then you may get an error `CSC error CS0041: Unexpected error writing debug information -- 'DLL 'Microsoft.DiaSymReader.Native.amd64.dll' failed: the specified module could not be found. (Exception from HRESULT is returned: 0x8007007E)` when building. This can be resolved by installing the [C runtime](https://support.microsoft.com/en-us/help/2999226/update-for-universal-c-runtime-in-windows) (universal CRT).
