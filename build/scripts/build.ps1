@@ -61,16 +61,11 @@ function Process-Arguments() {
         exit 1
     }
 
-    $test32 = -not $test64
-
-    if ($cibuild) {
-        $bootstrap = $true
-        $restore = $true
-        $build = $true
-    }
+    $script:test32 = -not $test64
+    $script:debug = -not $release
 
     if ($testDeterminism) {
-        $bootstrap = $true
+        $script:bootstrap = $true
     }
 }
 
@@ -100,13 +95,17 @@ function Run-MSBuild() {
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of 
 # building the bootstrap.
 function Make-BootstrapBuild() {
+
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
-    Run-MSBuild /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration /fileloggerparameters:LogFile=$($bootstrapLog)
+    Write-Host "Building Bootstrap compiler"
+    Run-MSBuild /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration /fileloggerparameters:LogFile=$($bootstrapLog) | Out-Host
     $dir = Join-Path $binariesDir "Bootstrap"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
     Move-Item "$configDir\Exes\Toolset\*" $dir
-    Run-MSBuild /t:Clean "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration
+
+    Write-Host "Cleaning Bootstrap compiler artifacts"
+    Run-MSBuild /t:Clean "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration | Out-Host 
     Stop-BuildProcesses
     return $dir
 }
@@ -197,7 +196,7 @@ function Test-XUnit() {
             $args += " -xml -timeout:50"
 
             $procdumpPath = Ensure-ProcDump
-            $args += " -procdump:$procDumpPath"
+            $args += " -procdumppath:$procDumpPath"
         }
 
         if ($test64) {
@@ -293,9 +292,11 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
 
+    Write-Host "Repo Dir $repoDir"
+    Write-Host "Binaries Dir $binariesDir"
+
     Process-Arguments
 
-    $debug = -not $release
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
     $msbuild = Ensure-MSBuild
     $msbuildDir = Split-Path -parent $msbuild
@@ -321,6 +322,7 @@ try {
     }
 
     if ($bootstrap) {
+        Write-Host "Making bootstrap"
         $bootstrapDir = Make-BootstrapBuild
     }
 
