@@ -201,7 +201,6 @@
     <Compile Include="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="Telemetry\VSTelemetryLogger.cs" />
     <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
-    <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddRemoveUndoUnit.cs" />

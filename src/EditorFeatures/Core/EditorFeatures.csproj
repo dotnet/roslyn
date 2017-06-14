@@ -162,6 +162,8 @@
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTagDefinition.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\LinkedFileDiscrepancyException.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
@@ -512,10 +514,10 @@
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardSeverity.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardViewModel.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\RenameShortcutKeys.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\FixupTag.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\FixupTagDefinition.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\ValidTag.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\ValidTagDefinition.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFixupTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFixupTagDefinition.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFieldBackgroundAndBorderTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFieldBackgroundAndBorderTagDefinition.cs" />
     <Compile Include="Implementation\InlineRename\IEditorInlineRenameService.cs" />
     <Compile Include="Implementation\InlineRename\InlineRenameService.cs" />
     <Compile Include="Implementation\InlineRename\InlineRenameSession.cs" />
