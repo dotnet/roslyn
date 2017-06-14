@@ -1274,8 +1274,9 @@ d.cs
         public void LangVersion_BadVersion(string value)
         {
             DefaultParse(new[] { $"/langversion:{value}", "a.cs" }, _baseDirectory).Errors.Verify(
-                // error CS1617: Invalid option 'XXX' for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.1.
-                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(value).WithLocation(1, 1));
+                // error CS1617: Invalid option 'XXX' for /langversion. Use '/langversion:?' to list supported values.
+                Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments(value).WithLocation(1, 1)
+                );
         }
 
         [Theory]
@@ -9385,7 +9386,7 @@ class C
         {
             var parsedArgs = DefaultParse(new[] { "/langversion:1000", "a.cs" }, _baseDirectory);
             parsedArgs.Errors.Verify(
-                // error CS1617: Invalid option '1000' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.
+                // error CS1617: Invalid option '1000' for /langversion. Use '/langversion:?' to list supported values.
                 Diagnostic(ErrorCode.ERR_BadCompatMode).WithArguments("1000").WithLocation(1, 1));
         }
 
