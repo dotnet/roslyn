@@ -2973,7 +2973,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (parameterRefKind == RefKind.Ref)
                         {
                             // For ref extension methods, we omit the "ref" modifier on the receiver arguments
-                            // Passing the correct RefKind for finding the correct conversion.
+                            // Passing the parameter RefKind for finding the correct conversion.
+                            // For ref-readonly extension methods, argumentRefKind is always None.
                             argumentRefKind = parameterRefKind;
                         }
                     }

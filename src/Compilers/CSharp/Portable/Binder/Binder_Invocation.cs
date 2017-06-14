@@ -901,24 +901,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> args;
             if (invokedAsExtensionMethod)
             {
+                BoundExpression receiverArgument;
                 ParameterSymbol receiverParameter = method.Parameters.First();
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
 
-                BoundExpression convertedReceiver = receiver;
-                if (!ReferenceEquals(receiver, methodGroup.Receiver))
+                if ((object)receiver != methodGroup.Receiver)
                 {
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                    convertedReceiver = CreateConversion(convertedReceiver, methodResult.Result.ConversionForArg(0), receiverParameter.Type, diagnostics);
+                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), receiverParameter.Type, diagnostics);
                 }
-                if (receiverParameter.RefKind == RefKind.Ref)
+                else
                 {
-                    // If this was a ref extension method, the receiver argument must be checked for L-value constraints.
-                    // This helper method will also replace the symbol with a BoundBadExpression if it was invalid.
-                    convertedReceiver = CheckValue(convertedReceiver, BindValueKind.RefOrOut, diagnostics);
+                    receiverArgument = analyzedArguments.Argument(0);
                 }
 
-                builder.Add(convertedReceiver);
+                if (receiverParameter.RefKind == RefKind.Ref)
+                {
+                    // If this was a ref extension method, receiverArgument must be checked for L-value constraints.
+                    // This helper method will also replace it with a BoundBadExpression if it was invalid.
+                    receiverArgument = CheckValue(receiverArgument, BindValueKind.RefOrOut, diagnostics);
+                }
+
+                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
+                builder.Add(receiverArgument);
                 builder.AddRange(analyzedArguments.Arguments.Skip(1));
                 args = builder.ToImmutableAndFree();
             }

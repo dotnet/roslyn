@@ -785,7 +785,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            return (parameter.RefKind == RefKind.None) && !parameter.IsParams;
+            if (parameter.IsParams)
+            {
+                return false;
+            }
+            else if (parameter.RefKind == RefKind.Ref)
+            {
+                // Ref extension methods are accepted only if the receiver is a value type or a generic type constrained to struct.
+                return parameter.Type.IsValueType;
+            }
+            else if (parameter.RefKind == RefKind.RefReadOnly)
+            {
+                // Ref readonly extension methods are accepted only if the receiver is a value type.
+                return parameter.Type.TypeKind == TypeKind.Struct;
+            }
+            else
+            {
+                // Otherwise, only accent non-ref extension methods.
+                return parameter.RefKind == RefKind.None;
+            }
         }
 
         private bool IsValidUserDefinedOperatorSignature(int parameterCount) =>

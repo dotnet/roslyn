@@ -920,8 +920,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(refArg == RefKind.None);
                 if (refParm == RefKind.Ref || refParm == RefKind.RefReadOnly)
                 {
-                    // For ref extension methods, we omit the "ref" modifier on the receiver arguments
+                    // For ref and ref-readonly extension methods, we omit the "ref" modifier on receiver arguments.
                     // Setting the correct RefKind for finding the correct diagnostics message.
+                    // For other ref kinds, keeping it as it is to find mismatch errors. 
                     refArg = refParm;
                 }
             }

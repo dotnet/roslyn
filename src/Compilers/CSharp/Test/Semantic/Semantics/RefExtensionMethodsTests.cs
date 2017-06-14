@@ -180,6 +180,33 @@ public static class Program
         }
 
         [Fact]
+        public void RefExtensionMethodsReceiverTypes_ValueTypes_Allowed_Reference()
+        {
+            var reference = CreateCompilationWithMscorlibAndSystemCore(@"
+public static class Extensions
+{
+    public static void PrintValue(ref this int p)
+    {
+        System.Console.Write(p);
+    }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+        }
+
+        [Fact]
         public void RefExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed()
         {
             var code = @"
@@ -196,12 +223,40 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(ref x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue(ref this string p)
+                Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed()
+        {
+            var code = @"
+public static class Extensions
+{
+    public static void PrintValue(ref this System.IComparable p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        System.IComparable x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
+                //     public static void PrintValue(ref this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
         }
 
@@ -222,12 +277,13 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(ref x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
-                //     public static void PrintValue(ref this string p)
+                //     public static void PrintValue<T>(ref this T p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
         }
 
@@ -256,6 +312,33 @@ public static class Program
         }
 
         [Fact]
+        public void RefExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_Allowed_Reference()
+        {
+            var reference = CreateCompilationWithMscorlibAndSystemCore(@"
+public static class Extensions
+{
+    public static void PrintValue<T>(ref this T p) where T : struct
+    {
+        System.Console.Write(p);
+    }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+        }
+
+        [Fact]
         public void RefExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed()
         {
             var code = @"
@@ -272,12 +355,13 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(ref x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
-                //     public static void PrintValue(ref this string p)
+                //     public static void PrintValue<T>(ref this T p) where T : class
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
         }
 
@@ -298,13 +382,263 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(ref x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8414: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
-                //     public static void PrintValue(ref this string p)
+                //     public static void PrintValue<T>(ref this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
+        {
+            var reference = CompileIL(@"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue(int32& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "55");
+        }
+
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(@"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue(string& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0003:  call       void [mscorlib]System.Console::Write(string)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(@"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue(class [mscorlib]System.IComparable& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0003:  call       void [mscorlib]System.Console::Write(string)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        System.IComparable x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(@"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0003:  call       void [mscorlib]System.Console::Write(object)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
+        }
+        
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_Allowed_IL()
+        {
+            var reference = CompileIL(@"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<valuetype .ctor ([mscorlib]System.ValueType) T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000: nop
+    IL_0001: ldarg.0
+    IL_0002: ldobj !!T
+    IL_0007: box !!T
+    IL_000c: call void [mscorlib]System.Console::Write(object)
+    IL_0011: nop
+    IL_0012: ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "55");
+        }
+
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(@"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<class T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0003:  call       void [mscorlib]System.Console::Write(object)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
+        }
+        
+        [Fact]
+        public void RefExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(@"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<([mscorlib]System.IComparable) T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0003:  call       void [mscorlib]System.Console::Write(object)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(ref x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
         [Fact]
@@ -332,6 +666,33 @@ public static class Program
         }
 
         [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_ValueTypes_Allowed_Reference()
+        {
+            var reference = CreateCompilationWithMscorlibAndSystemCore(@"
+public static class Extensions
+{
+    public static void PrintValue(ref readonly this int p)
+    {
+        System.Console.Write(p);
+    }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "55");
+            CompileAndVerify(code, additionalRefs: new[] { reference.EmitToImageReference() }, expectedOutput: "55");
+        }
+
+        [Fact]
         public void RefReadOnlyExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed()
         {
             var code = @"
@@ -348,12 +709,40 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue<T>(ref readonly this T p)
+                //     public static void PrintValue(ref readonly this string p)
+                Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed()
+        {
+            var code = @"
+public static class Extensions
+{
+    public static void PrintValue(ref readonly this System.IComparable p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        System.IComparable x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
+                // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
+                //     public static void PrintValue(ref readonly this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
         }
 
@@ -374,6 +763,7 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(x);
     }
 }";
 
@@ -400,6 +790,7 @@ public static class Program
     {
         int x = 5;
         x.PrintValue();
+        Extensions.PrintValue(x);
     }
 }";
 
@@ -426,12 +817,13 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue<T>(ref readonly this T p)
+                //     public static void PrintValue<T>(ref readonly this T p) where T : class
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
         }
 
@@ -452,13 +844,285 @@ public static class Program
     {
         string x = ""test"";
         x.PrintValue();
+        Extensions.PrintValue(x);
     }
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8415: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
-                //     public static void PrintValue<T>(ref readonly this T p)
+                //     public static void PrintValue<T>(ref readonly this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24));
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
+        {
+            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue(int32& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(int32)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CompileAndVerify(code, additionalRefs: new[] { reference }, expectedOutput: "55");
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue(string& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(string)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue(class [mscorlib]System.IComparable& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(string)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        System.IComparable x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'IComparable' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'IComparable' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("System.IComparable", "PrintValue").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(object)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<valuetype .ctor ([mscorlib]System.ValueType) T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(object)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int x = 5;
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'int' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("int", "PrintValue").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<class T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(object)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
+        }
+
+        [Fact]
+        public void RefReadOnlyExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
+        {
+            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+.class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig static void  PrintValue<([mscorlib]System.IComparable) T>(!!T& p) cil managed
+  {
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
+    .param [1]
+    .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ldarg.0
+    IL_0002:  ldind.i4
+    IL_0003:  call       void [mscorlib]System.Console::Write(object)
+    IL_0008:  nop
+    IL_0009:  ret
+  }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        string x = ""test"";
+        x.PrintValue();
+        Extensions.PrintValue(x);
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, references: new[] { reference }).VerifyDiagnostics(
+                // (7,11): error CS1061: 'string' does not contain a definition for 'PrintValue' and no extension method 'PrintValue' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         x.PrintValue();
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "PrintValue").WithArguments("string", "PrintValue").WithLocation(7, 11));
         }
 
         [Fact]
@@ -1025,14 +1689,14 @@ public class Program
             var code = @"
 public static class Ext1
 {
-    public static void Print(ref int p)
+    public static void Print(ref this int p)
     {
         System.Console.WriteLine(p);
     }
 }
 public static class Ext2
 {
-    public static void Print(ref readonly int p)
+    public static void Print(ref readonly this int p)
     {
         System.Console.WriteLine(p);
     }
@@ -1047,9 +1711,9 @@ public class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (20,11): error CS1061: 'int' does not contain a definition for 'Print' and no extension method 'Print' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                // (20,11): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.Print(ref int)' and 'Ext2.Print(in int)'
                 //         0.Print();                  // Error
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Print").WithArguments("int", "Print").WithLocation(20, 11));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Print").WithArguments("Ext1.Print(ref int)", "Ext2.Print(in int)").WithLocation(20, 11));
         }
 
         [Fact]
@@ -1058,14 +1722,14 @@ public class Program
             var code = @"
 public static class Ext1
 {
-    public static void Print(ref int p)
+    public static void Print(ref this int p)
     {
         System.Console.WriteLine(p);
     }
 }
 public static class Ext2
 {
-    public static void Print(ref readonly int p)
+    public static void Print(ref readonly this int p)
     {
         System.Console.WriteLine(p);
     }
@@ -1083,9 +1747,9 @@ public class Program
 }";
 
             CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics(
-                // (21,15): error CS1061: 'int' does not contain a definition for 'Print' and no extension method 'Print' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
+                // (21,15): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.Print(ref int)' and 'Ext2.Print(in int)'
                 //         value.Print();              // Error
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Print").WithArguments("int", "Print").WithLocation(21, 15));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Print").WithArguments("Ext1.Print(ref int)", "Ext2.Print(in int)").WithLocation(21, 15));
         }
 
         [Fact]
@@ -1111,7 +1775,7 @@ public static class Ext
         }
 
         [Fact]
-        public void SemanticModelPreservesRefness_RefExtensionMethods()
+        public void ParameterSymbolsRetreivedThroughSemanticModel_RefExtensionMethods()
         {
             var code = @"
 public static class Ext
@@ -1130,7 +1794,7 @@ public static class Ext
         }
 
         [Fact]
-        public void SemanticModelPreservesRefness_RefReadOnlyExtensionMethods()
+        public void ParameterSymbolsRetreivedThroughSemanticModel_RefReadOnlyExtensionMethods()
         {
             var code = @"
 public static class Ext
@@ -1147,5 +1811,34 @@ public static class Ext
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.RefReadOnly, symbol.RefKind);
         }
+
+        private const string ExtraRefReadOnlyIL = @"
+.class private auto ansi sealed beforefieldinit Microsoft.CodeAnalysis.EmbeddedAttribute extends [mscorlib]System.Attribute
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  }
+}
+
+.class private auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsReadOnlyAttribute extends [mscorlib]System.Attribute
+{
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
+  .custom instance void Microsoft.CodeAnalysis.EmbeddedAttribute::.ctor() = ( 01 00 00 00 )
+  .method public hidebysig specialname rtspecialname instance void  .ctor() cil managed
+  {
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Attribute::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  }
+}";
     }
 }
