@@ -1,24 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
-    internal static partial class CSharpOperationFactory
+    internal sealed partial class CSharpOperationFactory
     {
         private static Optional<object> ConvertToOptional(ConstantValue value)
         {
             return value != null ? new Optional<object>(value.Value) : default(Optional<object>);
         }
 
-        private static ImmutableArray<IOperation> ToStatements(BoundStatement statement)
+        private ImmutableArray<IOperation> ToStatements(BoundStatement statement)
         {
-            BoundStatementList statementList = statement as BoundStatementList;
+            var statementList = statement as BoundStatementList;
             if (statementList != null)
             {
                 return statementList.Statements.SelectAsArray(n => Create(n));
@@ -31,23 +28,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        private static readonly ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression> s_incrementValueMappings = new ConditionalWeakTable<BoundIncrementOperator, ILiteralExpression>();
-
-        private static ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator boundIncrementOperator)
+        private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator increment)
         {
-            return s_incrementValueMappings.GetValue(boundIncrementOperator, (increment) =>
-            {
-                string text = increment.Syntax.ToString();
-                bool isInvalid = false;
-                SyntaxNode syntax = increment.Syntax;
-                ITypeSymbol type = increment.Type;
-                Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
-                return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
-            });
+            string text = increment.Syntax.ToString();
+            bool isInvalid = false;
+            SyntaxNode syntax = increment.Syntax;
+            ITypeSymbol type = increment.Type;
+            Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
+            return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
         }
-
-        private static readonly ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>> s_callToArgumentsMappings
-            = new ConditionalWeakTable<BoundExpression, IEnumerable<IArgument>>();
 
         internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
         {
@@ -59,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                 isInvalid: parameter == null || value.IsInvalid,
                 syntax: value.Syntax,
                 type: value.Type,
-                constantValue: default(Optional<object>));
+                constantValue: default);
         }
 
-        private static ImmutableArray<IArgument> DeriveArguments(
+        private ImmutableArray<IArgument> DeriveArguments(
             BoundExpression boundNode,
             Binder binder,
             Symbol methodOrIndexer,
@@ -84,33 +73,29 @@ namespace Microsoft.CodeAnalysis.Semantics
                 return ImmutableArray<IArgument>.Empty;
             }
 
-            return (ImmutableArray<IArgument>)s_callToArgumentsMappings.GetValue(
-                boundNode,
-                (n) =>
-                {
-                    //TODO: https://github.com/dotnet/roslyn/issues/18722
-                    //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
-                    //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
-                    if (n.HasErrors || (object)optionalParametersMethod == null)
-                    {
-                        // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
-                        // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
-                        return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, Create(arg)));
-                    }
+            //TODO: https://github.com/dotnet/roslyn/issues/18722
+            //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
+            //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
+            if (boundNode.HasErrors || (object)optionalParametersMethod == null)
+            {
+                // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
+                // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
+                return boundArguments.SelectAsArray(arg => CreateArgumentOperation(ArgumentKind.Explicit, null, Create(arg)));
+            }
 
-                    return LocalRewriter.MakeArgumentsInEvaluationOrder(
-                         binder: binder,
-                         syntax: invocationSyntax,
-                         arguments: boundArguments,
-                         methodOrIndexer: methodOrIndexer,
-                         optionalParametersMethod: optionalParametersMethod,
-                         expanded: expanded,
-                         argsToParamsOpt: argumentsToParametersOpt,
-                         invokedAsExtensionMethod: invokedAsExtensionMethod);
-                });
+            return LocalRewriter.MakeArgumentsInEvaluationOrder(
+                 operationFactory: this,
+                 binder: binder,
+                 syntax: invocationSyntax,
+                 arguments: boundArguments,
+                 methodOrIndexer: methodOrIndexer,
+                 optionalParametersMethod: optionalParametersMethod,
+                 expanded: expanded,
+                 argsToParamsOpt: argumentsToParametersOpt,
+                 invokedAsExtensionMethod: invokedAsExtensionMethod);
         }
 
-        private static ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
+        private ImmutableArray<IOperation> GetObjectCreationInitializers(BoundObjectCreationExpression expression)
         {
             return BoundObjectCreationExpression.GetChildInitializers(expression.InitializerExpressionOpt).SelectAsArray(n => Create(n));
         }
@@ -170,35 +155,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             return null;
         }
 
-        private static readonly ConditionalWeakTable<BoundBlock, object> s_blockStatementsMappings =
-            new ConditionalWeakTable<BoundBlock, object>();
-
-        private static ImmutableArray<IOperation> GetBlockStatement(BoundBlock block)
+        private ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
         {
-            // This is to filter out operations of kind None.
-            return (ImmutableArray<IOperation>)s_blockStatementsMappings.GetValue(block,
-                blockStatement =>
-                {
-                    return blockStatement.Statements.Select(s => Create(s)).Where(s => s.Kind != OperationKind.None).ToImmutableArray();
-                });
-        }
+            return statement.SwitchSections.SelectAsArray(switchSection =>
+            {
+                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-        private static readonly ConditionalWeakTable<BoundSwitchStatement, object> s_switchSectionsMappings =
-            new ConditionalWeakTable<BoundSwitchStatement, object>();
-
-        private static ImmutableArray<ISwitchCase> GetSwitchStatementCases(BoundSwitchStatement statement)
-        {
-            return (ImmutableArray<ISwitchCase>)s_switchSectionsMappings.GetValue(statement,
-                switchStatement =>
-                {
-                    return switchStatement.SwitchSections.SelectAsArray(switchSection =>
-                    {
-                        var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
-                        var body = switchSection.Statements.SelectAsArray(s => Create(s));
-
-                        return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
-                    });
-                });
+                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+            });
         }
 
         private static BinaryOperationKind GetLabelEqualityKind(BoundSwitchLabel label)
@@ -236,37 +201,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
             // Return None for `default` case.
             return BinaryOperationKind.None;
-        }
-
-        private static readonly ConditionalWeakTable<BoundLocalDeclaration, object> s_variablesMappings =
-            new ConditionalWeakTable<BoundLocalDeclaration, object>();
-
-        private static ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundLocalDeclaration decl)
-        {
-            return (ImmutableArray<IVariableDeclaration>)s_variablesMappings.GetValue(decl,
-                declaration => ImmutableArray.Create<IVariableDeclaration>(
-                    OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
-        }
-
-        private static readonly ConditionalWeakTable<BoundMultipleLocalDeclarations, object> s_multiVariablesMappings =
-            new ConditionalWeakTable<BoundMultipleLocalDeclarations, object>();
-
-        private static ImmutableArray<IVariableDeclaration> GetVariableDeclarationStatementVariables(BoundMultipleLocalDeclarations decl)
-        {
-            return (ImmutableArray<IVariableDeclaration>)s_multiVariablesMappings.GetValue(decl,
-                multipleDeclarations =>
-                    multipleDeclarations.LocalDeclarations.SelectAsArray(declaration =>
-                        OperationFactory.CreateVariableDeclaration(declaration.LocalSymbol, Create(declaration.InitializerOpt), declaration.Syntax)));
-        }
-
-        private static readonly ConditionalWeakTable<BoundInterpolatedString, object> s_interpolatedStringExpressionMappings =
-            new ConditionalWeakTable<BoundInterpolatedString, object>();
-
-        private static ImmutableArray<IInterpolatedStringContent> GetInterpolatedStringExpressionParts(BoundInterpolatedString boundInterpolatedString)
-        {
-            return (ImmutableArray<IInterpolatedStringContent>)s_interpolatedStringExpressionMappings.GetValue(boundInterpolatedString,
-                interpolatedString =>
-                    interpolatedString.Parts.SelectAsArray(interpolatedStringContent => CreateBoundInterpolatedStringContentOperation(interpolatedStringContent)));
         }
 
         internal class Helper
