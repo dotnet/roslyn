@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal class ServiceHubJsonRpcSession : RemoteHostClient.Session
+    internal class ServiceHubJsonRpcConnection : RemoteHostClient.Connection
     {
         // communication channel related to service information
         private readonly ServiceJsonRpcClient _serviceClient;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // close connection when cancellation has raised
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
-        public ServiceHubJsonRpcSession(
+        public ServiceHubJsonRpcConnection(
             object callbackTarget,
             Stream serviceStream,
             Stream snapshotStream,
@@ -39,10 +39,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _cancellationRegistration = CancellationToken.Register(Dispose);
         }
 
-        public override async Task RegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
+        protected override async Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
         {
-            await base.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-
             await _snapshotClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, scope.SolutionInfo).ConfigureAwait(false);
             await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, scope.SolutionInfo).ConfigureAwait(false);
         }
@@ -110,10 +108,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// </summary>
         private class SnapshotJsonRpcClient : JsonRpcClient
         {
-            private readonly ServiceHubJsonRpcSession _owner;
+            private readonly ServiceHubJsonRpcConnection _owner;
             private readonly CancellationTokenSource _source;
 
-            public SnapshotJsonRpcClient(ServiceHubJsonRpcSession owner, Stream stream, CancellationToken cancellationToken)
+            public SnapshotJsonRpcClient(ServiceHubJsonRpcConnection owner, Stream stream, CancellationToken cancellationToken)
                 : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: cancellationToken)
             {
                 _owner = owner;

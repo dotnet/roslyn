@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
         // on remote host, so we need to make sure given input always belong to right workspace where
         // the session belong to.
         private readonly Workspace _workspace;
-        private KeepAliveSessionHolder _session;
+        private KeepAliveSession _session;
 
         protected AbstractTodoCommentService(Workspace workspace)
         {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.TodoComments
             return success ? result : SpecializedCollections.EmptyList<TodoComment>();
         }
 
-        private async Task<KeepAliveSessionHolder> TryGetKeepAliveSessionAsync(RemoteHostClient client)
+        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client)
         {
             if (_session != null)
             {

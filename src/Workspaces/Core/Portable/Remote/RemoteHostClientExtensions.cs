@@ -12,35 +12,37 @@ namespace Microsoft.CodeAnalysis.Remote
     internal static class RemoteHostClientExtensions
     {
         /// <summary>
-        /// Create <see cref="RemoteHostClient.Session"/> for the <paramref name="serviceName"/> if possible.
+        /// Create <see cref="RemoteHostClient.Connection"/> for the <paramref name="serviceName"/> if possible.
         /// otherwise, return null.
         /// 
-        /// Creating session could fail if remote host is not available. one of example will be user killing
+        /// Creating connection could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<RemoteHostClient.Session> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, CancellationToken cancellationToken) =>
-            client.TryCreateSessionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
+        public static Task<RemoteHostClient.Connection> TryCreateConnectionAsync(
+            this RemoteHostClient client, string serviceName, CancellationToken cancellationToken)
+            => client.TryCreateConnectionAsync(serviceName, callbackTarget: null, cancellationToken: cancellationToken);
 
         /// <summary>
-        /// Create <see cref="SolutionAndSessionHolder"/> for the <paramref name="serviceName"/> if possible.
+        /// Create <see cref="SessionWithSolution"/> for the <paramref name="serviceName"/> if possible.
         /// otherwise, return null.
         /// 
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<SolutionAndSessionHolder> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, Solution solution, CancellationToken cancellationToken) =>
-            client.TryCreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
+        public static Task<SessionWithSolution> TryCreateServiceSessionAsync(
+            this RemoteHostClient client, string serviceName, Solution solution, CancellationToken cancellationToken)
+            => client.TryCreateServiceSessionAsync(serviceName, solution, callbackTarget: null, cancellationToken: cancellationToken);
 
         /// <summary>
-        /// Create <see cref="SolutionAndSessionHolder"/> for the <paramref name="serviceName"/> if possible.
+        /// Create <see cref="SessionWithSolution"/> for the <paramref name="serviceName"/> if possible.
         /// otherwise, return null.
         /// 
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static async Task<SolutionAndSessionHolder> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution> TryCreateServiceSessionAsync(this RemoteHostClient client, string serviceName, Solution solution, object callbackTarget, CancellationToken cancellationToken)
         {
-            var session = await client.TryCreateSessionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            var session = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (session == null)
             {
                 return null;
@@ -52,47 +54,52 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            return await SolutionAndSessionHolder.CreateAsync(session, scope, cancellationToken).ConfigureAwait(false);
+            return await SessionWithSolution.CreateAsync(session, scope, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Create <see cref="KeepAliveSessionHolder"/> for the <paramref name="serviceName"/> if possible.
+        /// Create <see cref="KeepAliveSession"/> for the <paramref name="serviceName"/> if possible.
         /// otherwise, return null.
         /// 
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static Task<KeepAliveSessionHolder> TryCreateServiceKeepAliveSessionAsync(this RemoteHostClient client, string serviceName, CancellationToken cancellationToken) =>
-            TryCreateServiceKeepAliveSessionAsync(client, serviceName, callbackTarget: null, cancellationToken: cancellationToken);
+        public static Task<KeepAliveSession> TryCreateServiceKeepAliveSessionAsync(
+            this RemoteHostClient client, string serviceName, CancellationToken cancellationToken)
+            => TryCreateServiceKeepAliveSessionAsync(client, serviceName, callbackTarget: null, cancellationToken: cancellationToken);
 
         /// <summary>
-        /// Create <see cref="KeepAliveSessionHolder"/> for the <paramref name="serviceName"/> if possible.
+        /// Create <see cref="KeepAliveSession"/> for the <paramref name="serviceName"/> if possible.
         /// otherwise, return null.
         /// 
         /// Creating session could fail if remote host is not available. one of example will be user killing
         /// remote host.
         /// </summary>
-        public static async Task<KeepAliveSessionHolder> TryCreateServiceKeepAliveSessionAsync(this RemoteHostClient client, string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public static async Task<KeepAliveSession> TryCreateServiceKeepAliveSessionAsync(this RemoteHostClient client, string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            var session = await client.TryCreateSessionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
+            var session = await client.TryCreateConnectionAsync(serviceName, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (session == null)
             {
                 return null;
             }
 
-            return new KeepAliveSessionHolder(client, session, serviceName, callbackTarget, cancellationToken);
+            return new KeepAliveSession(client, session, serviceName, callbackTarget, cancellationToken);
         }
 
-        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(this RemoteHostClient client, Solution solution, CancellationToken cancellationToken) =>
-            TryCreateCodeAnalysisServiceSessionAsync(client, solution, callbackTarget: null, cancellationToken: cancellationToken);
+        public static Task<SessionWithSolution> TryCreateCodeAnalysisServiceSessionAsync(
+            this RemoteHostClient client, Solution solution, CancellationToken cancellationToken)
+            => TryCreateCodeAnalysisServiceSessionAsync(client, solution, callbackTarget: null, cancellationToken: cancellationToken);
 
-        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(this RemoteHostClient client, Solution solution, object callbackTarget, CancellationToken cancellationToken) =>
-            client.TryCreateServiceSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
+        public static Task<SessionWithSolution> TryCreateCodeAnalysisServiceSessionAsync(
+            this RemoteHostClient client, Solution solution, object callbackTarget, CancellationToken cancellationToken)
+            => client.TryCreateServiceSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, solution, callbackTarget, cancellationToken);
 
-        public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(this Workspace workspace, CancellationToken cancellationToken) =>
-            workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken);
+        public static Task<RemoteHostClient> TryGetRemoteHostClientAsync(
+            this Workspace workspace, CancellationToken cancellationToken)
+            => workspace.Services.GetService<IRemoteHostClientService>()?.TryGetRemoteHostClientAsync(cancellationToken);
 
-        public static Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(this Solution solution, Option<bool> featureOption, CancellationToken cancellationToken)
+        public static Task<SessionWithSolution> TryCreateCodeAnalysisServiceSessionAsync(
+            this Solution solution, Option<bool> featureOption, CancellationToken cancellationToken)
              => TryCreateCodeAnalysisServiceSessionAsync(solution, featureOption, callbackTarget: null, cancellationToken: cancellationToken);
 
         public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> featureOption)
@@ -133,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Remote
             return client;
         }
 
-        public static async Task<SolutionAndSessionHolder> TryCreateCodeAnalysisServiceSessionAsync(
+        public static async Task<SessionWithSolution> TryCreateCodeAnalysisServiceSessionAsync(
             this Solution solution, Option<bool> option, object callbackTarget, CancellationToken cancellationToken)
         {
             var workspace = solution.Workspace;

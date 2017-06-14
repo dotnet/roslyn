@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        private static async Task<SolutionAndSessionHolder> TryGetRemoteSessionAsync(
+        private static async Task<SessionWithSolution> TryGetRemoteSessionAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.AddImport
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInRemoteProcessAsync(
-            SolutionAndSessionHolder session, Document document, TextSpan span, 
+            SessionWithSolution session, Document document, TextSpan span, 
             string diagnosticId, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources)
         {

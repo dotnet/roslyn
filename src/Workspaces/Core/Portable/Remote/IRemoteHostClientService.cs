@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// existing remoteHostClient will still remain connected to old host and that old host will eventually go away once all existing clients
         /// are done with their requests.
         /// 
-        /// callers can subscribe to <see cref="RemoteHostClient.ConnectionChanged"/> event to see whether client is going away if
+        /// callers can subscribe to <see cref="RemoteHostClient.StatusChanged"/> event to see whether client is going away if
         /// caller is designed to hold onto a service for a while to react to remote host change.
         /// </summary>
         Task RequestNewRemoteHostAsync(CancellationToken cancellationToken);

@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
 
             private readonly Workspace _workspace;
-            private readonly KeepAliveSessionHolder _session;
+            private readonly KeepAliveSession _session;
 
-            public RemoteUpdateEngine(Workspace workspace, KeepAliveSessionHolder session)
+            public RemoteUpdateEngine(Workspace workspace, KeepAliveSession session)
             {
                 _workspace = workspace;
                 _session = session;

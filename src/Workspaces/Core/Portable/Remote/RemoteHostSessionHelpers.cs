@@ -11,20 +11,18 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// Helper type for common session case
-    /// 
-    /// This will tie <see cref="Solution"/> and <see cref="RemoteHostClient.Session"/>'s lifetime together
+    /// This will tie <see cref="Solution"/> and <see cref="RemoteHostClient.Connection"/>'s lifetime together
     /// so that one can handle those more easily
     /// </summary>
-    internal sealed class SolutionAndSessionHolder : IDisposable
+    internal sealed class SessionWithSolution : IDisposable
     {
-        private readonly RemoteHostClient.Session _session;
+        private readonly RemoteHostClient.Connection _connection;
         private readonly PinnedRemotableDataScope _scope;
         private readonly CancellationToken _cancellationToken;
 
-        public static async Task<SolutionAndSessionHolder> CreateAsync(RemoteHostClient.Session session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
         {
-            var sessionWithSolution = new SolutionAndSessionHolder(session, scope, cancellationToken);
+            var sessionWithSolution = new SessionWithSolution(session, scope, cancellationToken);
 
             try
             {
@@ -41,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private SolutionAndSessionHolder(RemoteHostClient.Session session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        private SessionWithSolution(RemoteHostClient.Connection session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
         {
-            _session = session;
+            _connection = session;
             _scope = scope;
             _cancellationToken = cancellationToken;
         }
@@ -56,30 +54,28 @@ namespace Microsoft.CodeAnalysis.Remote
         public void Dispose()
         {
             _scope.Dispose();
-            _session.Dispose();
+            _connection.Dispose();
         }
 
-        public Task InvokeAsync(string targetName, params object[] arguments) =>
-            _session.InvokeAsync(targetName, arguments);
-        public Task<T> InvokeAsync<T>(string targetName, params object[] arguments) =>
-            _session.InvokeAsync<T>(targetName, arguments);
-        public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync) =>
-            _session.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
-        public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync) =>
-            _session.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
+        public Task InvokeAsync(string targetName, params object[] arguments)
+            => _connection.InvokeAsync(targetName, arguments);
+        public Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
+            => _connection.InvokeAsync<T>(targetName, arguments);
+        public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+            => _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
+        public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+            => _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
     }
 
     /// <summary>
-    /// Helper type for common session case
-    /// 
-    /// This will let one to hold onto <see cref="RemoteHostClient.Session"/> for a while.
-    /// this helper will let you not care about remote host being gone while you hold onto the session if that ever happen
+    /// This will let one to hold onto <see cref="RemoteHostClient.Connection"/> for a while.
+    /// this helper will let you not care about remote host being gone while you hold onto the connection if that ever happen
     /// 
     /// and also make sure state is correct even if multiple threads call TryInvokeAsync at the same time. but this 
     /// is not optimized to handle highly concurrent usage. if highly concurrent usage is required, either using
-    /// <see cref="RemoteHostClient.Session"/> direclty or using <see cref="SolutionAndSessionHolder"/> would be better choice
+    /// <see cref="RemoteHostClient.Connection"/> direclty or using <see cref="SessionWithSolution"/> would be better choice
     /// </summary>
-    internal sealed class KeepAliveSessionHolder
+    internal sealed class KeepAliveSession
     {
         private readonly SemaphoreSlim _gate;
         private readonly IRemoteHostClientService _remoteHostClientService;
@@ -89,9 +85,9 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly object _callbackTarget;
 
         private RemoteHostClient _client;
-        private RemoteHostClient.Session _session;
+        private RemoteHostClient.Connection _connection;
 
-        public KeepAliveSessionHolder(RemoteHostClient client, RemoteHostClient.Session session, string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection session, string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             Initialize_NoLock(client, session);
 
@@ -109,13 +105,13 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_client != null)
                 {
-                    _client.ConnectionChanged -= OnConnectionChanged;
+                    _client.StatusChanged -= OnStatusChanged;
                 }
 
-                _session?.Dispose();
+                _connection?.Dispose();
 
                 _client = null;
-                _session = null;
+                _connection = null;
             }
         }
 
@@ -244,11 +240,11 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private async Task<RemoteHostClient.Session> TryGetSession_NoLockAsync()
+        private async Task<RemoteHostClient.Connection> TryGetSession_NoLockAsync()
         {
-            if (_session != null)
+            if (_connection != null)
             {
-                return _session;
+                return _connection;
             }
 
             var client = await _remoteHostClientService.TryGetRemoteHostClientAsync(_cancellationToken).ConfigureAwait(false);
@@ -257,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return null;
             }
 
-            var session = await client.TryCreateSessionAsync(_serviceName, _callbackTarget, _cancellationToken).ConfigureAwait(false);
+            var session = await client.TryCreateConnectionAsync(_serviceName, _callbackTarget, _cancellationToken).ConfigureAwait(false);
             if (session == null)
             {
                 return null;
@@ -265,10 +261,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Initialize_NoLock(client, session);
 
-            return _session;
+            return _connection;
         }
 
-        private void OnConnectionChanged(object sender, bool connection)
+        private void OnStatusChanged(object sender, bool connection)
         {
             if (connection)
             {
@@ -278,15 +274,15 @@ namespace Microsoft.CodeAnalysis.Remote
             Shutdown();
         }
 
-        private void Initialize_NoLock(RemoteHostClient client, RemoteHostClient.Session session)
+        private void Initialize_NoLock(RemoteHostClient client, RemoteHostClient.Connection connection)
         {
             Contract.ThrowIfNull(client);
-            Contract.ThrowIfNull(session);
+            Contract.ThrowIfNull(connection);
 
             _client = client;
-            _client.ConnectionChanged += OnConnectionChanged;
+            _client.StatusChanged += OnStatusChanged;
 
-            _session = session;
+            _connection = connection;
         }
     }
 }

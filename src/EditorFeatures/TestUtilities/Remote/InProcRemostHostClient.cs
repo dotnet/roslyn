@@ -36,7 +36,7 @@ namespace Roslyn.Test.Utilities.Remote
             // TODO: change this to non fatal watson and make VS to use inproc implementation
             Contract.ThrowIfFalse(host == current.ToString());
 
-            instance.Connected();
+            instance.Started();
 
             // return instance
             return instance;
@@ -58,7 +58,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         public AssetStorage AssetStorage => _inprocServices.AssetStorage;
 
-        public override async Task<Session> TryCreateSessionAsync(
+        public override async Task<Connection> TryCreateConnectionAsync(
             string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
             // get stream from service hub to communicate snapshot/asset related information
@@ -70,14 +70,14 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return new ServiceHubJsonRpcSession(callbackTarget, serviceStream, snapshotStream, cancellationToken);
+            return new ServiceHubJsonRpcConnection(callbackTarget, serviceStream, snapshotStream, cancellationToken);
         }
 
-        protected override void OnConnected()
+        protected override void OnStarted()
         {
         }
 
-        protected override void OnDisconnected()
+        protected override void OnStopped()
         {
             // we are asked to disconnect. unsubscribe and dispose to disconnect
             _rpc.Disconnected -= OnRpcDisconnected;
@@ -86,7 +86,7 @@ namespace Roslyn.Test.Utilities.Remote
 
         private void OnRpcDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
-            Disconnected();
+            Stopped();
         }
 
         public class ServiceProvider : IServiceProvider

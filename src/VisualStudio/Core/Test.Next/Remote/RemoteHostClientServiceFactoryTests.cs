@@ -135,10 +135,13 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var mock = new MockLogService();
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            using (var session = await client.TryCreateSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None))
-            {
-                await session.InvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
-            }
+
+            var session = await client.TryCreateServiceKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, mock, CancellationToken.None);
+            var result = await session.TryInvokeAsync(nameof(IRemoteSymbolSearchUpdateEngine.UpdateContinuouslyAsync), "emptySource", Path.GetTempPath());
+
+            Assert.True(result);
+
+            session.Shutdown();
 
             service.Disable();
         }
@@ -153,7 +156,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var completionTask = new TaskCompletionSource<bool>();
 
             var client1 = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
-            client1.ConnectionChanged += (s, connected) =>
+            client1.StatusChanged += (s, connected) =>
             {
                 // mark done
                 completionTask.SetResult(connected);
