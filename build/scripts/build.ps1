@@ -180,8 +180,29 @@ function Test-XUnit() {
     else { 
         $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
         $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
-        $dlls = Get-ChildItem -re -in "*.UnitTests.dll" $unitDir
         $args = "$xunitDir"
+
+        if ($testDesktop) {
+            $dlls = Get-ChildItem -re -in "*.UnitTests.dll" $unitDir
+        }
+        elseif ($testVsi) {
+            $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
+        }
+        else {
+            $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
+            $args += " -trait:Feature=NetCore"
+        }
+
+        if ($cibuild) {
+            $args += " -xml -timeout:50"
+
+            $procdumpPath = Ensure-ProcDump
+            $args += " -procdump:$procDumpPath"
+        }
+
+        if ($test64) {
+            $args += " -test64"
+        }
 
         foreach ($dll in $dlls) { 
             $args += " $dll"
