@@ -988,12 +988,22 @@ class Test2 : I1
                 });
         }
 
-        private static MetadataReference MscorlibRefWithoutSharingCachedSymbols
+        private static MetadataReference[] StandardReferencesWithoutSharingCachedSymbols
         {
             get
             {
-                return ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().
-                    GetReference(display: "mscorlib.v4_0_30319.dll");
+                if (CoreClrShim.IsRunningOnCoreClr)
+                {
+                    return new[]
+                    {
+                      ((AssemblyMetadata)((MetadataImageReference)TestReferences.NetStandard20.NetStandard).GetMetadata()).CopyWithoutSharingCachedSymbols().GetReference(display: "netstandard.dll (netstandard 2.0 ref)"),
+                      ((AssemblyMetadata)((MetadataImageReference)TestReferences.NetStandard20.MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().GetReference(display: "mscorlib.dll (netstandard 2.0 ref)"),
+                      ((AssemblyMetadata)((MetadataImageReference)TestReferences.NetStandard20.SystemRuntimeRef).GetMetadata()).CopyWithoutSharingCachedSymbols().GetReference(display: "System.Runtime.dll (netstandard 2.0 ref)"),
+                      ((AssemblyMetadata)((MetadataImageReference)TestReferences.NetStandard20.SystemDynamicRuntimeRef).GetMetadata()).CopyWithoutSharingCachedSymbols().GetReference(display: "System.Dynamic.Runtime.dll (netstandard 2.0 ref)")
+                    };
+                }
+
+                return new[] { ((AssemblyMetadata)((MetadataImageReference)MscorlibRef).GetMetadata()).CopyWithoutSharingCachedSymbols().GetReference(display: "mscorlib.v4_0_30319.dll") };
             }
         }
 
@@ -1016,8 +1026,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new [] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -1044,7 +1054,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1086,8 +1096,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1136,8 +1146,8 @@ class Test2 : I2
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1164,8 +1174,8 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -1195,7 +1205,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -2499,8 +2509,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
@@ -2529,7 +2539,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -2632,8 +2642,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -2692,8 +2702,8 @@ class Test2 : I2
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -2736,8 +2746,8 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -2782,7 +2792,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -3886,8 +3896,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
@@ -3916,7 +3926,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4026,8 +4036,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -4092,8 +4102,8 @@ class Test2 : I2
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -4143,8 +4153,8 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -4189,7 +4199,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5176,8 +5186,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
             compilation1.VerifyDiagnostics(
@@ -5197,7 +5207,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5267,8 +5277,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -5319,8 +5329,8 @@ class Test2 : I2
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.EmitToImageReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -5355,8 +5365,8 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -5383,7 +5393,7 @@ class Test2 : I1
 {}
 ";
 
-            var compilation3 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation3 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8004,8 +8014,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -12192,8 +12202,8 @@ class Test2 : I1, I2, I3, I4, I5
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -22448,8 +22458,8 @@ class Test2 : I1, I2, I3, I4, I5
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -23926,8 +23936,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -23951,7 +23961,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -24298,8 +24308,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -25580,8 +25590,8 @@ class Test1 : I1
         {
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -25598,7 +25608,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -26002,8 +26012,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation3 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation3 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -27266,8 +27276,8 @@ class Test1 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation1 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugDll,
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation1 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -27297,7 +27307,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation2 = CreateCompilation(source2, new[] { mscorLibRef, compilation1.ToMetadataReference() }, options: TestOptions.DebugDll,
+            var compilation2 = CreateCompilation(source2, standardRefs.Concat(new[] { compilation1.ToMetadataReference() }), options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -29639,8 +29649,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef}, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -29765,8 +29775,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -29886,8 +29896,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30077,8 +30087,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30207,8 +30217,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30339,8 +30349,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30511,8 +30521,8 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
@@ -30639,14 +30649,222 @@ class Test2 : I1
 
             // Avoid sharing mscorlib symbols with other tests since we are about to change
             // RuntimeSupportsDefaultInterfaceImplementation property for it.
-            var mscorLibRef = MscorlibRefWithoutSharingCachedSymbols;
-            var compilation5 = CreateCompilation(source1, new[] { mscorLibRef }, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+            var compilation5 = CreateCompilation(source1, standardRefs, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
                                                  parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
             compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
 
             Validate1(compilation5.SourceModule);
 
             CompileAndVerify(compilation5, expectedOutput: "1234", symbolValidator: Validate1);
+        }
+
+        [Fact]
+        public void UnsupportedMemberAccess_01()
+        {
+            var source0 =
+@"
+public delegate void D0();
+
+public interface I0
+{
+    static readonly int F1 = 1;
+    static int P2 {get {System.Console.WriteLine(""P2""); return 2;}}
+    static void M3() {System.Console.WriteLine(""M3"");}
+    static event D0 E4
+    {
+        add {System.Console.WriteLine(""add E4"");value();}
+        remove {System.Console.WriteLine(""remove E4"");value();}
+    }
+}
+";
+            var source1 =
+@"
+public delegate void D1();
+
+public interface I1
+{
+    int P20 {get {System.Console.WriteLine(""P20""); return 20;}}
+    void M30() {System.Console.WriteLine(""M30"");}
+    event D1 E40
+    {
+        add {System.Console.WriteLine(""add E40"");value();}
+        remove {System.Console.WriteLine(""remove E40"");value();}
+    }
+
+    sealed int P200 {get {System.Console.WriteLine(""P200""); return 200;}}
+    sealed void M300() {System.Console.WriteLine(""M300"");}
+    sealed event D1 E400
+    {
+        add {System.Console.WriteLine(""add E400"");value();}
+        remove {System.Console.WriteLine(""remove E400"");value();}
+    }
+}
+
+public class Test1 : I1
+{
+}
+";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation0.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation0.VerifyDiagnostics();
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            var source2 =
+@"
+class Test2
+{
+    static void Main()
+    {
+        System.Console.WriteLine(I0.F1);
+        System.Console.WriteLine(I0.P2);
+        I0.M3();
+        I0.E4 += I0.M3;
+        I0.E4 -= new D0(I0.M3);
+    }
+}
+";
+
+            var source3 =
+@"
+class Test3
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        System.Console.WriteLine(i1.P20);
+        i1.M30();
+        i1.E40 += i1.M30;
+        i1.E40 -= new D1(i1.M30);
+    }
+}
+";
+
+            var source4 =
+@"
+class Test4
+{
+    static void Main()
+    {
+        I1 i1 = new Test1();
+        System.Console.WriteLine(i1.P200);
+        i1.M300();
+        i1.E400 += i1.M300;
+        i1.E400 -= new D1(i1.M300);
+    }
+}
+";
+
+            foreach (var refs in new[] { (comp0:compilation0.ToMetadataReference(), comp1:compilation1.ToMetadataReference()),
+                                         (comp0:compilation0.EmitToImageReference(), comp1:compilation1.EmitToImageReference()) })
+            {
+                // Avoid sharing mscorlib symbols with other tests since we are about to change
+                // RuntimeSupportsDefaultInterfaceImplementation property for it.
+                var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+
+                var compilation2 = CreateCompilation(source2, standardRefs, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+                compilation2 = compilation2.AddReferences(refs.comp0);
+                Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation2, expectedOutput:
+@"1
+P2
+2
+M3
+add E4
+M3
+remove E4
+M3
+");
+
+                var compilation3 = CreateCompilation(source3, standardRefs, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                compilation3 = compilation3.AddReferences(refs.comp1);
+                Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                CompileAndVerify(compilation3, verify: CoreClrShim.IsRunningOnCoreClr, expectedOutput: !CoreClrShim.IsRunningOnCoreClr ? null :
+@"P20
+20
+M30
+add E40
+M30
+remove E40
+M30
+");
+
+                var compilation4 = CreateCompilation(source4, standardRefs, options: TestOptions.DebugExe,
+                                                     parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+                compilation4 = compilation4.AddReferences(refs.comp1);
+                Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+                compilation4.VerifyDiagnostics(
+                    // (7,34): error CS8501: Target runtime doesn't support default interface implementation.
+                    //         System.Console.WriteLine(i1.P200);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.P200").WithLocation(7, 34),
+                    // (8,9): error CS8501: Target runtime doesn't support default interface implementation.
+                    //         i1.M300();
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(8, 9),
+                    // (9,9): error CS8501: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 += i1.M300;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400").WithLocation(9, 9),
+                    // (9,20): error CS8501: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 += i1.M300;
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(9, 20),
+                    // (10,9): error CS8501: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 -= new D1(i1.M300);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.E400").WithLocation(10, 9),
+                    // (10,27): error CS8501: Target runtime doesn't support default interface implementation.
+                    //         i1.E400 -= new D1(i1.M300);
+                    Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "i1.M300").WithLocation(10, 27)
+                    );
+            }
+        }
+
+        [Fact]
+        public void EntryPoint_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(""I1.Main"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            CompileAndVerify(compilation1, expectedOutput: "I1.Main");
+        }
+
+        [Fact]
+        public void EntryPoint_02()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(""I1.Main"");
+    }
+}
+public interface I2
+{
+    static void Main() 
+    {
+        System.Console.WriteLine(""I2.Main"");
+    }
+}
+";
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugExe.WithMainTypeName("I2"),
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            CompileAndVerify(compilation1, expectedOutput: "I2.Main");
         }
 
     }

@@ -457,10 +457,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// overload resolution.
         /// </summary>
         /// <returns>
-        /// True if there is any error.
+        /// True if there is any error, except lack of runtime support errors.
         /// </returns>
         private bool MemberGroupFinalValidation(BoundExpression receiverOpt, MethodSymbol methodSymbol, SyntaxNode node, DiagnosticBag diagnostics, bool invokedAsExtensionMethod)
         {
+            CheckRuntimeSupportForSymbolAccess(node, methodSymbol, diagnostics);
+
             if (MemberGroupFinalValidationAccessibilityChecks(receiverOpt, methodSymbol, node, diagnostics, invokedAsExtensionMethod))
             {
                 return true;
