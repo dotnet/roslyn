@@ -390,6 +390,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
+        public virtual void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            DefaultVisit(operation);
+        }
+
         public virtual void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
         {
             DefaultVisit(operation);
@@ -799,6 +804,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             return DefaultVisit(operation, argument);
         }        
+
+        public virtual TResult VisitLocalFunctionStatement(ILocalFunctionStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
 
         public virtual TResult VisitInterpolatedStringExpression(IInterpolatedStringExpression operation, TArgument argument)
         {

@@ -1058,6 +1058,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.IfFalseStatement, "IfFalse");
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            LogString(nameof(ILocalFunctionStatement));
+
+            LogSymbol(operation.LocalFunctionSymbol, header: " (Local Function");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Body);
+        }
+
         private void LogCaseClauseCommon(ICaseClause operation)
         {
             var kindStr = $"{nameof(CaseKind)}.{operation.CaseKind}";

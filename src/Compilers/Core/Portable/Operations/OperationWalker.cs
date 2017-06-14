@@ -329,6 +329,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Body);
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            Visit(operation.Body);
+        }
+
         public override void VisitLiteralExpression(ILiteralExpression operation)
         { }
 
