@@ -146,8 +146,37 @@ function Test-PerfRun() {
     }
 }
 
+# TODO: delete this. Standardize on RunTests
+function Test-XUnitCoreClr() { 
+
+    $unitDir = Join-Path $binariesDir "CoreClrTest"
+    $logDir = Join-Path $unitDir "xUnitResults"
+    $logFile = Join-Path $logDir "TestResults.xml"
+    Create-Directory $logDir 
+
+    Write-Host "Publishing CoreClr tests"
+    Run-MSBuild "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj" /m /v:m /t:Publish /p:RuntimeIdentifier=win7-x64 /p:PublishDir=$unitDir | Out-Host
+
+    $corerun = Join-Path $unitDir "CoreRun.exe"
+    $args = Join-Path $unitDir "xunit.console.netcore.exe"
+    foreach ($dll in Get-ChildItem -re -in "*.UnitTests.dll" $unitDir) {
+        $args += " $dll";
+    }
+
+    $args += " -parallel all"
+    $args += " -xml $logFile"
+
+    Write-Host "Running CoreClr tests"
+    Exec-Command $corerun $args | Out-Host
+}
+
 # Core function for running our unit / integration tests tests
 function Test-XUnit() { 
+
+    if ($testCoreClr) {
+        Test-XUnitCoreClr
+        return
+    }
 
     # To help the VS SDK team track down their issues around install via build temporarily 
     # re-enabling the build based deployment
@@ -172,48 +201,47 @@ function Test-XUnit() {
     }
 
     $unitDir = Join-Path $configDir "UnitTests"
-    if ($testCoreClr) {
-        # TODO FIX THIs
-        exit 1
-    }
-    else { 
-        $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
-        $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
-        $args = "$xunitDir"
+    $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
+    $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
+    $args = "$xunitDir"
 
-        if ($testDesktop) {
+    if ($testDesktop) {
+        if ($test32) {
             $dlls = Get-ChildItem -re -in "*.UnitTests.dll" $unitDir
         }
-        elseif ($testVsi) {
-            $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
-        }
         else {
-            $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
-            $args += " -trait:Feature=NetCore"
+            $dlls = Get-ChildItem -re -in "*.UnitTests.dll" -ex "*Roslyn.Interactive*" $unitDir 
         }
+    }
+    elseif ($testVsi) {
+        $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
+    }
+    else {
+        $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
+        $args += " -trait:Feature=NetCore"
+    }
 
-        if ($cibuild) {
-            $args += " -xml -timeout:50"
+    if ($cibuild) {
+        $args += " -xml -timeout:50"
 
-            $procdumpPath = Ensure-ProcDump
-            $args += " -procdumppath:$procDumpPath"
-        }
+        $procdumpPath = Ensure-ProcDump
+        $args += " -procdumppath:$procDumpPath"
+    }
 
-        if ($test64) {
-            $args += " -test64"
-        }
+    if ($test64) {
+        $args += " -test64"
+    }
 
-        foreach ($dll in $dlls) { 
-            $args += " $dll"
-        }
-        
-        try {
-            Exec-Command $runTests $args | Out-Host 
-        }
-        finally {
-            Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
-        }
-    } 
+    foreach ($dll in $dlls) { 
+        $args += " $dll"
+    }
+    
+    try {
+        Exec-Command $runTests $args | Out-Host 
+    }
+    finally {
+        Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
+    }
 }
 
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to 
