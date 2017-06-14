@@ -9,9 +9,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml.Linq;
 
-string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
+string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory> <git sha>";
 
-if (Args.Count() != 3)
+if (Args.Count() != 4)
 {
     Console.WriteLine(usage);
     Environment.Exit(1);
@@ -32,6 +32,7 @@ var BuildVersion = Args[1].Trim();
 var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
+var CommitUrl = $"https://github.com/dotnet/roslyn/commit/{Args[3]}";
 
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
@@ -206,6 +207,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "tags", Tags },
         { "emptyDirPath", emptyDir },
         { "additionalFilesPath", NuGetAdditionalFilesPath }
+        { "commitUrl", CommitUrl },
     };
 
     foreach (var dependencyVersion in dependencyVersions)

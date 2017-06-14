@@ -3,10 +3,10 @@
   <metadata>
     <id>Microsoft.CodeAnalysis.CSharp.Scripting</id>
     <summary>Microsoft .NET Compiler Platform ("Roslyn") CSharp scripting package.</summary>
-    <description>
+    <summary>
       Microsoft .NET Compiler Platform ("Roslyn") CSharp scripting package.
-    </description>
-
+    </summary>
+    <description>This package was built from the source at $commitUrl$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
