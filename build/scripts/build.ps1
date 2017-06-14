@@ -223,13 +223,6 @@ function Deploy-VsixViaTool() {
     }
 }
 
-# Temporary code to help track down a NuGet cache corruption bug.
-# https://github.com/dotnet/roslyn/issues/19882
-function Test-NuGetCache([string]$place) {
-    Write-Host "Testing NuGet cache: $place"
-    Exec-Block { & ".\build\scripts\test-nuget-cache.ps1" }
-}
-
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains 
 # the procdump binaries (both 32 and 64 bit)
 function Ensure-ProcDump() {
@@ -266,6 +259,15 @@ function Redirect-Temp() {
     ${env:TMP} = $temp
 }
 
+# Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
+# This prevents future CI runs from failing while trying to delete those files.
+# Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
+# left some floating around).
+function Stop-BuildProcesses() {
+    Get-Process msbuild -ErrorAction SilentlyContinue | kill 
+    Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
+}
+
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
@@ -285,17 +287,11 @@ try {
 
     if ($cibuild) { 
         Redirect-Temp
-        Test-NuGetCache "start of CI"
-        ${env:NUGET_SHOW_STACK}="true"
     }
 
     if ($restore) { 
         Write-Host "Running restore"
         Restore-All -msbuildDir $msbuildDir 
-
-        if ($cibuild) {
-            Test-NuGetCache "after restore"
-        }
     }
 
     if ($testBuildCorrectness) {
