@@ -196,12 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
-                //PROTOTYPE(readonlyRefs): these are all 7.2 features we need to update this.
-                // C# 7.1 features.
+                // C# 7.2 features.
                 case MessageID.IDS_FeatureReadonlyReferences:
                 case MessageID.IDS_FeatureRefStructs:
                 case MessageID.IDS_FeatureReadOnlyStructs:
-                    return LanguageVersion.CSharp7_1;
+                    return LanguageVersion.CSharp7_2;
 
                 // C# 7.1 features.
                 case MessageID.IDS_FeatureAsyncMain:

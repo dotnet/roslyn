@@ -73,15 +73,15 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (4,5): error CS8107: Feature 'readonly structs' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,5): error CS8107: Feature 'readonly structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //     readonly struct S1{}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "readonly").WithArguments("readonly structs", "7.1").WithLocation(4, 5),
-                // (6,12): error CS8107: Feature 'readonly structs' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "readonly").WithArguments("readonly structs", "7.2").WithLocation(4, 5),
+                // (6,12): error CS8107: Feature 'readonly structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //     public readonly struct S2{}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "readonly").WithArguments("readonly structs", "7.1").WithLocation(6, 12),
-                // (8,5): error CS8107: Feature 'readonly structs' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "readonly").WithArguments("readonly structs", "7.2").WithLocation(6, 12),
+                // (8,5): error CS8107: Feature 'readonly structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //     readonly public struct S3{}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "readonly").WithArguments("readonly structs", "7.1").WithLocation(8, 5)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "readonly").WithArguments("readonly structs", "7.2").WithLocation(8, 5)
             );
         }
 
