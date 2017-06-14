@@ -20,13 +20,13 @@ namespace Microsoft.CodeAnalysis.Remote
         private readonly PinnedRemotableDataScope _scope;
         private readonly CancellationToken _cancellationToken;
 
-        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
         {
-            var sessionWithSolution = new SessionWithSolution(session, scope, cancellationToken);
+            var sessionWithSolution = new SessionWithSolution(connection, scope, cancellationToken);
 
             try
             {
-                await session.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
+                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
                 return sessionWithSolution;
             }
             catch
@@ -39,9 +39,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private SessionWithSolution(RemoteHostClient.Connection session, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
         {
-            _connection = session;
+            _connection = connection;
             _scope = scope;
             _cancellationToken = cancellationToken;
         }
@@ -87,9 +87,9 @@ namespace Microsoft.CodeAnalysis.Remote
         private RemoteHostClient _client;
         private RemoteHostClient.Connection _connection;
 
-        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection session, string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection connection, string serviceName, object callbackTarget, CancellationToken cancellationToken)
         {
-            Initialize_NoLock(client, session);
+            Initialize_NoLock(client, connection);
 
             _gate = new SemaphoreSlim(initialCount: 1);
             _remoteHostClientService = client.Workspace.Services.GetService<IRemoteHostClientService>();
@@ -119,13 +119,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return false;
                 }
 
-                await session.InvokeAsync(targetName, arguments).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments).ConfigureAwait(false);
                 return true;
             }
         }
@@ -134,13 +134,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return (false, default(T));
                 }
 
-                return (true, await session.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false));
+                return (true, await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false));
             }
         }
 
@@ -148,13 +148,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return false;
                 }
 
-                await session.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
                 return true;
             }
         }
@@ -163,13 +163,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return (false, default(T));
                 }
 
-                return (true, await session.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false));
+                return (true, await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false));
             }
         }
 
@@ -178,14 +178,14 @@ namespace Microsoft.CodeAnalysis.Remote
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return false;
                 }
 
-                await session.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                await session.InvokeAsync(targetName, arguments).ConfigureAwait(false);
+                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments).ConfigureAwait(false);
                 return true;
             }
         }
@@ -195,14 +195,14 @@ namespace Microsoft.CodeAnalysis.Remote
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return (false, default(T));
                 }
 
-                await session.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return (true, await session.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false));
+                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
+                return (true, await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false));
             }
         }
 
@@ -212,14 +212,14 @@ namespace Microsoft.CodeAnalysis.Remote
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return false;
                 }
 
-                await session.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                await session.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
+                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
                 return true;
             }
         }
@@ -229,18 +229,18 @@ namespace Microsoft.CodeAnalysis.Remote
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
             {
-                var session = await TryGetSession_NoLockAsync().ConfigureAwait(false);
-                if (session == null)
+                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                if (connection == null)
                 {
                     return (false, default(T));
                 }
 
-                await session.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return (true, await session.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false));
+                await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
+                return (true, await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false));
             }
         }
 
-        private async Task<RemoteHostClient.Connection> TryGetSession_NoLockAsync()
+        private async Task<RemoteHostClient.Connection> TryGetConnection_NoLockAsync()
         {
             if (_connection != null)
             {
