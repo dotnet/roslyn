@@ -206,8 +206,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "projectURL", ProjectURL },
         { "tags", Tags },
         { "emptyDirPath", emptyDir },
-        { "additionalFilesPath", NuGetAdditionalFilesPath }
-        { "commitUrl", CommitUrl },
+        { "additionalFilesPath", NuGetAdditionalFilesPath },
+        { "commitUrl", CommitUrl }
     };
 
     foreach (var dependencyVersion in dependencyVersions)
