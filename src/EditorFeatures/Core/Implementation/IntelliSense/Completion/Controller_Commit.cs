@@ -192,20 +192,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // Get all the versions from the initial text snapshot (before we passed the
             // commit character down) to the current snapshot we're at.
             var versions = GetVersions(initialTextSnapshot, this.SubjectBuffer.CurrentSnapshot).ToList();
-
-            // Un-apply the edits. 
-            for (var i = versions.Count - 1; i >= 0; i--)
+            using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
             {
-                var version = versions[i];
-                using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
+                // Un-apply the edits. 
+                for (var i = versions.Count - 1; i >= 0; i--)
                 {
+                    var version = versions[i];
                     foreach (var change in version.Changes)
                     {
                         textEdit.Replace(change.NewSpan, change.OldText);
                     }
-
-                    textEdit.Apply();
                 }
+                textEdit.Apply();
             }
         }
 
