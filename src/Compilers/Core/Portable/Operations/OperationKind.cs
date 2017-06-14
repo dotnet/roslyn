@@ -141,6 +141,7 @@ namespace Microsoft.CodeAnalysis
         AddressOfExpression = 0x203,
         /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
         PointerIndirectionReferenceExpression = 0x204,
+        // 0x205 is open for future use.
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x206,
 
