@@ -225,6 +225,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool AreEquivalent(SyntaxNode node1, SyntaxNode node2);
 
         bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+        void GetSuffixAndContainerDisplayName(SyntaxNode node, out string suffix, out string containerDisplayName);
 
         string GetDisplayName(SyntaxNode node, DisplayNameOptions options, string rootNamespace = null);
 

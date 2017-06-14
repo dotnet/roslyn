@@ -13,12 +13,13 @@ namespace Microsoft.CodeAnalysis.Navigation
         internal class DeclaredSymbolNavigableItem : INavigableItem
         {
             private readonly DeclaredSymbolInfo _declaredSymbolInfo;
+            private readonly string _nameSuffix;
 
             public Document Document { get; }
 
             public ImmutableArray<TaggedText> DisplayTaggedParts
                 => ImmutableArray.Create(new TaggedText(
-                    TextTags.Text, _declaredSymbolInfo.Name + _declaredSymbolInfo.NameSuffix));
+                    TextTags.Text, _declaredSymbolInfo.Name + _nameSuffix));
 
             public Glyph Glyph => GetGlyph(_declaredSymbolInfo.Kind, _declaredSymbolInfo.Accessibility);
 
@@ -34,10 +35,11 @@ namespace Microsoft.CodeAnalysis.Navigation
             public bool IsImplicitlyDeclared => false;
 
             public DeclaredSymbolNavigableItem(
-                Document document, DeclaredSymbolInfo declaredSymbolInfo)
+                Document document, DeclaredSymbolInfo declaredSymbolInfo, string nameSuffix)
             {
                 Document = document;
                 _declaredSymbolInfo = declaredSymbolInfo;
+                _nameSuffix = nameSuffix;
             }
 
             private static Glyph GetPublicGlyph(DeclaredSymbolInfoKind kind)

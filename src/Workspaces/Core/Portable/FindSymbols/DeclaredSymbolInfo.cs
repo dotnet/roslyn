@@ -38,21 +38,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public string Name { get; }
 
         /// <summary>
-        /// An optional suffix to be shown in a presentation layer appended to <see cref="Name"/>.
-        /// Can be null.
-        /// </summary>
-        public string NameSuffix { get; }
-
-        /// <summary>
-        /// Container of the symbol that can be shown in a final presentation layer. 
-        /// For example, the container of a type "KeyValuePair" might be 
-        /// "System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;".  This can 
-        /// then be shown with something like "type System.Collections.Generic.Dictionary&lt;TKey, TValue&gt;"
-        /// to indicate where the symbol is located.
-        /// </summary>
-        public string ContainerDisplayName { get; }
-
-        /// <summary>
         /// Dotted container name of the symbol, used for pattern matching.  For example
         /// The fully qualified container of a type "KeyValuePair" would be 
         /// "System.Collections.Generic.Dictionary" (note the lack of type parameters).
@@ -82,8 +67,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public DeclaredSymbolInfo(
             string name,
-            string nameSuffix,
-            string containerDisplayName,
             string fullyQualifiedContainerName,
             DeclaredSymbolInfoKind kind,
             Accessibility accessibility,
@@ -93,8 +76,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             : this()
         {
             Name = name;
-            NameSuffix = nameSuffix;
-            ContainerDisplayName = containerDisplayName;
             FullyQualifiedContainerName = fullyQualifiedContainerName;
             Span = span;
             InheritanceNames = inheritanceNames;
@@ -123,8 +104,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal void WriteTo(ObjectWriter writer)
         {
             writer.WriteString(Name);
-            writer.WriteString(NameSuffix);
-            writer.WriteString(ContainerDisplayName);
             writer.WriteString(FullyQualifiedContainerName);
             writer.WriteUInt32(_flags);
             writer.WriteInt32(Span.Start);
@@ -140,8 +119,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
         {
             var name = reader.ReadString();
-            var nameSuffix = reader.ReadString();
-            var containerDisplayName = reader.ReadString();
             var fullyQualifiedContainerName = reader.ReadString();
             var flags = reader.ReadUInt32();
             var spanStart = reader.ReadInt32();
@@ -157,8 +134,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
                 name: name,
-                nameSuffix: nameSuffix,
-                containerDisplayName: containerDisplayName,
                 fullyQualifiedContainerName: fullyQualifiedContainerName,
                 kind: GetKind(flags),
                 accessibility: GetAccessibility(flags),
@@ -168,19 +143,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 typeParameterCount: GetTypeParameterCount(flags));
         }
 
-        public async Task<ISymbol> TryResolveAsync(Document document, CancellationToken cancellationToken)
+        public SyntaxNode FindNode(SyntaxNode root)
         {
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            return TryResolve(semanticModel, cancellationToken);
-        }
-
-        public ISymbol TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)
-        {
-            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
             if (root.FullSpan.Contains(this.Span))
             {
-                var node = root.FindNode(this.Span);
-                return semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                return root.FindNode(this.Span);
             }
             else
             {
@@ -193,6 +160,13 @@ $@"Invalid span in {nameof(DeclaredSymbolInfo)}.
 
                 return null;
             }
+        }
+
+        public ISymbol TryResolve(SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var node = FindNode(root);
+            return node == null ? null : semanticModel.GetDeclaredSymbol(node, cancellationToken);
         }
     }
 }
