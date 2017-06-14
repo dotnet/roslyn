@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Classification
             Workspace workspace,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IClassificationService>();
+            var service = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxClassificationService>();
 
             var syntaxClassifiers = service.GetDefaultSyntaxClassifiers();
 
@@ -37,20 +37,27 @@ namespace Microsoft.CodeAnalysis.Classification
             var getNodeClassifiers = extensionManager.CreateNodeExtensionGetter(syntaxClassifiers, c => c.SyntaxNodeTypes);
             var getTokenClassifiers = extensionManager.CreateTokenExtensionGetter(syntaxClassifiers, c => c.SyntaxTokenKinds);
 
-            var syntacticClassifications = new List<ClassifiedSpan>();
-            var semanticClassifications = new List<ClassifiedSpan>();
+            var syntacticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            var semanticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            try
+            {
+                service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
+                service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
 
-            service.AddSyntacticClassifications(semanticModel.SyntaxTree, textSpan, syntacticClassifications, cancellationToken);
-            service.AddSemanticClassifications(semanticModel, textSpan, workspace, getNodeClassifiers, getTokenClassifiers, semanticClassifications, cancellationToken);
+                var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
+                var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
 
-            var allClassifications = new List<ClassifiedSpan>(semanticClassifications.Where(s => s.TextSpan.OverlapsWith(textSpan)));
-            var semanticSet = semanticClassifications.Select(s => s.TextSpan).ToSet();
+                allClassifications.AddRange(syntacticClassifications.Where(
+                    s => s.TextSpan.OverlapsWith(textSpan) && !semanticSet.Contains(s.TextSpan)));
+                allClassifications.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
 
-            allClassifications.AddRange(syntacticClassifications.Where(
-                s => s.TextSpan.OverlapsWith(textSpan) && !semanticSet.Contains(s.TextSpan)));
-            allClassifications.Sort((s1, s2) => s1.TextSpan.Start - s2.TextSpan.Start);
-
-            return allClassifications;
+                return allClassifications;
+            }
+            finally
+            {
+                syntacticClassifications.Free();
+                semanticClassifications.Free();
+            }
         }
 
         internal static async Task<ImmutableArray<SymbolDisplayPart>> GetClassifiedSymbolDisplayPartsAsync(

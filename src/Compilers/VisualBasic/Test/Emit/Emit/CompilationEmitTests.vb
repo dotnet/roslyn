@@ -33,7 +33,7 @@ End Module
     </file>
 </compilation>)
 
-            Dim emitResult As emitResult
+            Dim emitResult As EmitResult
 
             Using output = New MemoryStream()
                 emitResult = compilation.Emit(output, Nothing, Nothing, Nothing)
@@ -537,6 +537,180 @@ End Function", Match.BothMetadataAndRefOut)
 
         End Sub
 
+        <Fact()>
+        Public Sub RefAssemblyNoPia()
+            Dim piaSource = <compilation name="Pia"><file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<Assembly: ImportedFromTypeLib("Pia1.dll")>
+
+Public Structure S
+    Public Dim field As Integer
+End Structure
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58280")>
+Public Interface ITest1
+    Function M() As S
+End Interface
+]]></file></compilation>
+            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            CompileAndVerify(pia)
+            Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
+Public Class D
+    Implements ITest1
+
+    Function M() As S Implements ITest1.M
+        Throw New System.Exception()
+    End Function
+End Class
+]]></file></compilation>
+
+            Dim piaImageReference = pia.EmitToImageReference(embedInteropTypes:=True)
+            RefAssemblyNoPia_VerifyRefOnly(source, piaImageReference)
+            RefAssemblyNoPia_VerifyRefOut(source, piaImageReference)
+
+            Dim piaMetadataReference = pia.ToMetadataReference(embedInteropTypes:=True)
+            RefAssemblyNoPia_VerifyRefOnly(source, piaMetadataReference)
+            RefAssemblyNoPia_VerifyRefOut(source, piaMetadataReference)
+        End Sub
+
+        Private Sub RefAssemblyNoPia_VerifyRefOnly(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim refOnlyImage = EmitRefOnly(comp)
+            RefAssemblyNoPia_VerifyNoPia(refOnlyImage)
+        End Sub
+
+        Private Sub RefAssemblyNoPia_VerifyRefOut(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll, references:={reference})
+            Dim pair = EmitRefOut(comp)
+            RefAssemblyNoPia_VerifyNoPia(pair.image)
+            RefAssemblyNoPia_VerifyNoPia(pair.refImage)
+        End Sub
+
+        Private Sub RefAssemblyNoPia_VerifyNoPia(image As ImmutableArray(Of Byte))
+            Dim reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary)
+            Dim comp = CreateCompilationWithMscorlib("", references:={reference})
+            Dim referencedAssembly = comp.GetReferencedAssemblySymbol(reference)
+            Dim [module] = DirectCast(referencedAssembly.Modules(0), PEModuleSymbol)
+
+            Dim itest1 = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("ITest1")
+            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim method = DirectCast(itest1.GetMember("M"), PEMethodSymbol)
+            Assert.Equal("Function ITest1.M() As S", method.ToTestDisplayString())
+
+            Dim s = DirectCast(method.ReturnType, NamedTypeSymbol)
+            Assert.Equal("S", s.ToTestDisplayString())
+            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim field = s.GetMember("field")
+            Assert.Equal("S.field As System.Int32", field.ToTestDisplayString())
+        End Sub
+
+        <Fact()>
+        Public Sub RefAssemblyNoPiaReferenceFromMethodBody()
+
+            Dim piaSource = <compilation name="Pia"><file name="a.vb"><![CDATA[
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<Assembly: ImportedFromTypeLib("Pia1.dll")>
+
+Public Structure S
+    Public Dim field As Integer
+End Structure
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58280")>
+Public Interface ITest1
+    Function M() As S
+End Interface
+]]></file></compilation>
+            Dim pia = CreateCompilationWithMscorlib(piaSource)
+            CompileAndVerify(pia)
+            Dim source = <compilation name="LocalTypes2"><file name="a.vb"><![CDATA[
+Public Class D
+    Sub M2()
+        Dim x As ITest1 = Nothing
+        Dim s As S = x.M()
+    End Sub
+End Class
+]]></file></compilation>
+
+            Dim piaImageReference = pia.EmitToImageReference(embedInteropTypes:=True)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source, piaImageReference)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source, piaImageReference)
+
+            Dim piaMetadataReference = pia.ToMetadataReference(embedInteropTypes:=True)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source, piaMetadataReference)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source, piaMetadataReference)
+        End Sub
+
+        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOnly(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim refOnlyImage = EmitRefOnly(comp)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(refOnlyImage, expectMissing:=True)
+        End Sub
+
+        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyRefOut(source As Xml.Linq.XElement, reference As MetadataReference)
+            Dim comp = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, references:={reference})
+            Dim pair = EmitRefOut(comp)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.image, expectMissing:=False)
+            RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(pair.refImage, expectMissing:=False)
+        End Sub
+
+        ' The ref assembly produced by refout has more types than that produced by refonly,
+        ' because refout will bind the method bodies (and therefore populate more referenced types).
+        ' This will be refined in the future. Follow-up issue: https://github.com/dotnet/roslyn/issues/19403
+        Private Sub RefAssemblyNoPiaReferenceFromMethodBody_VerifyNoPia(image As ImmutableArray(Of Byte), expectMissing As Boolean)
+            Dim reference = CompilationVerifier.LoadTestEmittedExecutableForSymbolValidation(image, OutputKind.DynamicallyLinkedLibrary)
+            Dim comp = CreateCompilationWithMscorlib("", references:={reference})
+            Dim referencedAssembly = comp.GetReferencedAssemblySymbol(reference)
+            Dim [module] = DirectCast(referencedAssembly.Modules(0), PEModuleSymbol)
+
+            Dim itest1Array = [module].GlobalNamespace.GetMembers("ITest1")
+            If expectMissing Then
+                Assert.Empty(itest1Array)
+                Assert.Empty([module].GlobalNamespace.GetMembers("S"))
+                Return
+            End If
+
+            Dim itest1 = DirectCast(itest1Array.Single(), PENamedTypeSymbol)
+            Assert.NotNull(itest1.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim method = DirectCast(itest1.GetMembers("M").Single(), PEMethodSymbol)
+            Assert.Equal("Function ITest1.M() As S", method.ToTestDisplayString())
+
+            Dim s = DirectCast(method.ReturnType, NamedTypeSymbol)
+            Assert.Equal("S", s.ToTestDisplayString())
+            Assert.NotNull(s.GetAttributes().Where(Function(a) a.IsTargetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute")).Single())
+
+            Dim field = s.GetMember("field")
+            Assert.Equal("S.field As System.Int32", field.ToTestDisplayString())
+        End Sub
+
+        Private Shared Function EmitRefOut(comp As VisualBasicCompilation) As (image As ImmutableArray(Of Byte), refImage As ImmutableArray(Of Byte))
+            Using output = New MemoryStream()
+                Using metadataOutput = New MemoryStream()
+                    Dim options = EmitOptions.Default.WithIncludePrivateMembers(False)
+                    comp.VerifyEmitDiagnostics()
+                    Dim result = comp.Emit(output, metadataPEStream:=metadataOutput, options:=options)
+                    Return (output.ToImmutable(), metadataOutput.ToImmutable())
+                End Using
+            End Using
+        End Function
+
+        Private Shared Function EmitRefOnly(comp As VisualBasicCompilation) As ImmutableArray(Of Byte)
+            Using output = New MemoryStream()
+                Dim options = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+                comp.VerifyEmitDiagnostics()
+                Dim result = comp.Emit(output, options:=options)
+                Return output.ToImmutable()
+            End Using
+        End Function
+
         <Fact>
         Public Sub RefAssembly_InvariantToSomeChangesWithInternalsVisibleTo()
             Dim sourceTemplate As String = "
@@ -607,6 +781,33 @@ Public Class C
     Public Function M(a As A) As I1(Of I2)
         Return DirectCast(a, I1(Of I2))
     End Function
+End Class
+",
+Sub(comp) comp.AssertNoDiagnostics())
+        End Sub
+
+        <Fact>
+        Public Sub RefAssemblyClient_ExplicitPropertyImplementation()
+            VerifyRefAssemblyClient("
+Public Interface I
+    Property P As Integer
+End Interface
+Public Class C
+    Implements I
+
+    Private Property P As Integer Implements I.P
+        Get
+            Throw New System.Exception()
+        End Get
+        Set
+            Throw New System.Exception()
+        End Set
+    End Property
+End Class
+", "
+Public Class D
+    Inherits C
+    Implements I
 End Class
 ",
 Sub(comp) comp.AssertNoDiagnostics())
@@ -881,6 +1082,162 @@ End Class"
                     "System.Diagnostics.DebuggableAttribute",
                     "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"},
                 refAssembly.GetAttributes().Select(Function(a) a.AttributeClass.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembersOnImplementedProperty()
+            Dim source = "
+Public Interface I
+    Property P As Integer
+End Interface
+Public Class C
+    Implements I
+    Private Property P As Integer Implements I.P
+        Get
+            Throw New System.Exception()
+        End Get
+        Set
+            Throw New System.Exception()
+        End Set
+    End Property
+End Class"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the regular assembly
+            Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
+            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"},
+                compWithReal.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            ' verify metadata (types, members, attributes) of the metadata-only assembly
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+
+            Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"},
+                compWithMetadata.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub C..ctor()", "Function C.get_P() As System.Int32", "Sub C.set_P(Value As System.Int32)", "Property C.P As System.Int32"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
+        End Sub
+
+        <Fact>
+        Public Sub RefAssembly_VerifyTypesAndMembersOnImplementedEvent()
+            Dim source = "
+Public Interface I
+    Event E As System.Action
+End Interface
+Public Class C
+    Implements I
+    Private Custom Event E As System.Action Implements I.E
+        AddHandler(Value As System.Action)
+            Throw New System.Exception()
+        End AddHandler
+        RemoveHandler(Value as System.Action)
+            Throw New System.Exception()
+        End RemoveHandler
+        RaiseEvent()
+            Throw New System.Exception()
+        End RaiseEvent
+    End Event
+End Class"
+            Dim comp As Compilation = CreateCompilation(source, references:={MscorlibRef},
+                            options:=TestOptions.DebugDll.WithDeterministic(True))
+
+            Dim verifier = CompileAndVerify(comp, emitOptions:=EmitOptions.Default.WithEmitMetadataOnly(True), verify:=True)
+
+            ' verify metadata (types, members, attributes) of the regular assembly
+            Dim realImage = comp.EmitToImageReference(EmitOptions.Default)
+            Dim compWithReal = CreateCompilation("", references:={MscorlibRef, realImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim realAssembly = compWithReal.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                realAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Sub C.add_E(Value As System.Action)", "Sub C.remove_E(Value As System.Action)",
+                    "Sub C.raise_E()", "Event C.E As System.Action"},
+                compWithReal.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            ' verify metadata (types, members, attributes) of the metadata-only assembly
+            Dim emitMetadataOnly = EmitOptions.Default.WithEmitMetadataOnly(True)
+            CompileAndVerify(comp, emitOptions:=emitMetadataOnly, verify:=True)
+
+            Dim metadataImage = comp.EmitToImageReference(emitMetadataOnly)
+            Dim compWithMetadata = CreateCompilation("", references:={MscorlibRef, metadataImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim metadataAssembly As AssemblySymbol = compWithMetadata.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                metadataAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.Equal(
+                {"Sub C..ctor()", "Sub C.add_E(Value As System.Action)", "Sub C.remove_E(Value As System.Action)",
+                    "Sub C.raise_E()", "Event C.E As System.Action"},
+                compWithMetadata.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
+
+            MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitMetadataOnly))
+
+            ' verify metadata (types, members, attributes) of the ref assembly
+            Dim emitRefOnly = EmitOptions.Default.WithEmitMetadataOnly(True).WithIncludePrivateMembers(False)
+            CompileAndVerify(comp, emitOptions:=emitRefOnly, verify:=True)
+
+            Dim refImage = comp.EmitToImageReference(emitRefOnly)
+            Dim compWithRef = CreateCompilation("", references:={MscorlibRef, refImage},
+                            options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim refAssembly As AssemblySymbol = compWithRef.SourceModule.GetReferencedAssemblySymbols().Last()
+            AssertEx.SetEqual(
+                {"<Module>", "I", "C"},
+                refAssembly.GlobalNamespace.GetMembers().Select(Function(m) m.ToDisplayString()))
+
+            AssertEx.SetEqual(
+                {"Sub C..ctor()", "Sub C.add_E(Value As System.Action)", "Sub C.remove_E(Value As System.Action)",
+                    "Sub C.raise_E()", "Event C.E As System.Action"},
+                compWithRef.GetMember(Of NamedTypeSymbol)("C").GetMembers().
+                    Select(Function(m) m.ToTestDisplayString()))
 
             MetadataReaderUtils.AssertEmptyOrThrowNull(comp.EmitToArray(emitRefOnly))
         End Sub

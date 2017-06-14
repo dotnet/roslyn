@@ -277,7 +277,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected virtual void ReportUnassignedOutParameter(ParameterSymbol parameter, SyntaxNode node, Location location)
         {
-            if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda) return;
+            if (!_requireOutParamsAssigned && topLevelMethod == currentMethodOrLambda)
+            {
+                return;
+            }
+
+            // If node and location are null "new SourceLocation(node);" will throw a NullReferenceException
+            Debug.Assert(node != null || location != null);
+
             if (Diagnostics != null && this.State.Reachable)
             {
                 if (location == null)
@@ -1558,18 +1565,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             DeclareVariables(node.Locals);
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
-        }
-
-        private void CreateSlots(BoundPattern pattern)
-        {
-            if (pattern.Kind == BoundKind.DeclarationPattern)
-            {
-                var local = ((BoundDeclarationPattern)pattern).Variable as LocalSymbol;
-                if ((object)local != null)
-                {
-                    int slot = GetOrCreateSlot(local);
-                }
-            }
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)

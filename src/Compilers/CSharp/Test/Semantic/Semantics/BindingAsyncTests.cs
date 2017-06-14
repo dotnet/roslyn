@@ -845,10 +845,7 @@ class Test
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (10,32): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<int>'.
                 //     static int Foo(int[] arr = await t)
-                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int").WithLocation(10, 32),
-                // (10,26): error CS1750: A value of type 'void' cannot be used as a default parameter because there are no standard conversions to type 'int[]'
-                //     static int Foo(int[] arr = await t)
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "arr").WithArguments("void", "int[]").WithLocation(10, 26)
+                Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await t").WithArguments("int").WithLocation(10, 32)
                 );
         }
 
@@ -1218,7 +1215,7 @@ interface IInterface
             CreateCompilationWithMscorlib45(source, parseOptions:TestOptions.Regular7).VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     async void F(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F").WithArguments("async", "7", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F").WithArguments("async", "7.0", "7.1").WithLocation(4, 16),
                 // (4,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     async void F(); 
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "F").WithLocation(4, 16)

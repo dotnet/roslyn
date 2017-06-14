@@ -1757,8 +1757,15 @@ namespace Microsoft.Cci
             rootBuilder.Serialize(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
             metadataSizes = rootBuilder.Sizes;
 
-            ilBuilder.WriteContentTo(ilStream);
-            metadataBuilder.WriteContentTo(metadataStream);
+            try
+            {
+                ilBuilder.WriteContentTo(ilStream);
+                metadataBuilder.WriteContentTo(metadataStream);
+            }
+            catch (Exception e) when (!(e is OperationCanceledException))
+            {
+                throw new PeWritingException(e);
+            }
 
             if (portablePdbStreamOpt != null)
             {
@@ -1769,7 +1776,15 @@ namespace Microsoft.Cci
 
                 var portablePdbBlob = new BlobBuilder();
                 portablePdbBuilder.Serialize(portablePdbBlob);
-                portablePdbBlob.WriteContentTo(portablePdbStreamOpt);
+
+                try
+                {
+                    portablePdbBlob.WriteContentTo(portablePdbStreamOpt);
+                }
+                catch (Exception e) when (!(e is OperationCanceledException))
+                {
+                    throw new PdbWritingException(e);
+                }
             }
         }
 
@@ -2605,7 +2620,7 @@ namespace Microsoft.Cci
             foreach (IEventDefinition eventDef in this.GetEventDefs())
             {
                 var association = GetEventDefinitionHandle(eventDef);
-                foreach (IMethodReference accessorMethod in eventDef.Accessors)
+                foreach (IMethodReference accessorMethod in eventDef.GetAccessors(Context))
                 {
                     MethodSemanticsAttributes semantics;
                     if (accessorMethod == eventDef.Adder)

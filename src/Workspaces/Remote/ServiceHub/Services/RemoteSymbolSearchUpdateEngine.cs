@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
@@ -26,28 +26,28 @@ namespace Microsoft.CodeAnalysis.Remote
             return _updateEngine.UpdateContinuouslyAsync(sourceName, localSettingsDirectory);
         }
 
-        public async Task<SerializablePackageWithTypeResult[]> FindPackagesWithTypeAsync(string source, string name, int arity)
+        public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(string source, string name, int arity)
         {
             var results = await _updateEngine.FindPackagesWithTypeAsync(
                 source, name, arity).ConfigureAwait(false);
-            var serializedResults = results.Select(SerializablePackageWithTypeResult.Dehydrate).ToArray();
-            return serializedResults;
+
+            return results;
         }
 
-        public async Task<SerializablePackageWithAssemblyResult[]> FindPackagesWithAssemblyAsync(string source, string assemblyName)
+        public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(string source, string assemblyName)
         {
             var results = await _updateEngine.FindPackagesWithAssemblyAsync(
                 source, assemblyName).ConfigureAwait(false);
-            var serializedResults = results.Select(SerializablePackageWithAssemblyResult.Dehydrate).ToArray();
-            return serializedResults;
+
+            return results;
         }
 
-        public async Task<SerializableReferenceAssemblyWithTypeResult[]> FindReferenceAssembliesWithTypeAsync(string name, int arity)
+        public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(string name, int arity)
         {
             var results = await _updateEngine.FindReferenceAssembliesWithTypeAsync(
                 name, arity).ConfigureAwait(false);
-            var serializedResults = results.Select(SerializableReferenceAssemblyWithTypeResult.Dehydrate).ToArray();
-            return serializedResults;
+
+            return results;
         }
 
         private class LogService : ISymbolSearchLogService

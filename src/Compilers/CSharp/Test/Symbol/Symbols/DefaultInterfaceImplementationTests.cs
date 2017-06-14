@@ -1206,7 +1206,7 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2").WithLocation(2, 15)
@@ -1284,7 +1284,7 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.M1()' cannot implement interface member 'I1.M1()' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.M1()", "I1.M1()", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
                 );
         }
 
@@ -2789,31 +2789,31 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2").WithLocation(2, 15)
@@ -2889,19 +2889,19 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.P7.set' cannot implement interface member 'I1.P7.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.set", "I1.P7.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P1.get' cannot implement interface member 'I1.P1.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P1.get", "I1.P1.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P3.get' cannot implement interface member 'I1.P3.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P3.get", "I1.P3.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P5.set' cannot implement interface member 'I1.P5.set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P5.set", "I1.P5.set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.P7.get' cannot implement interface member 'I1.P7.get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.P7.get", "I1.P7.get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
                 );
 
             ValidatePropertyImplementation_501(compilation3.SourceModule, "Test2");
@@ -4196,31 +4196,31 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2").WithLocation(2, 15)
@@ -4302,19 +4302,19 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.this[long].set' cannot implement interface member 'I1.this[long].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].set", "I1.this[long].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[sbyte].get' cannot implement interface member 'I1.this[sbyte].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[sbyte].get", "I1.this[sbyte].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[short].get' cannot implement interface member 'I1.this[short].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[short].get", "I1.this[short].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[int].set' cannot implement interface member 'I1.this[int].set' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[int].set", "I1.this[int].set", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.this[long].get' cannot implement interface member 'I1.this[long].get' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.this[long].get", "I1.this[long].get", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
                 );
 
             ValidateIndexerImplementation_501(compilation3.SourceModule, "Test2");
@@ -5390,13 +5390,13 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8502: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because the target runtime doesn't support default interface implementation.
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2").WithLocation(2, 15)
@@ -5464,10 +5464,10 @@ class Test2 : I1
             compilation3.VerifyDiagnostics(
                 // (2,15): error CS8506: 'I1.E7.remove' cannot implement interface member 'I1.E7.remove' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.remove", "I1.E7.remove", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15),
                 // (2,15): error CS8506: 'I1.E7.add' cannot implement interface member 'I1.E7.add' in type 'Test2' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test2 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7", "7.1").WithLocation(2, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.E7.add", "I1.E7.add", "Test2", "default interface implementation", "7.0", "7.1").WithLocation(2, 15)
                 );
 
             ValidateEventImplementation_501(compilation3.SourceModule, "Test2");
@@ -6336,7 +6336,7 @@ public interface I1
             compilation1.VerifyDiagnostics(
                 // (4,17): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public void M01();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M01").WithArguments("public", "7", "7.1").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M01").WithArguments("public", "7.0", "7.1").WithLocation(4, 17),
                 // (5,20): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected void M02();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M02").WithArguments("protected").WithLocation(5, 20),
@@ -6345,31 +6345,31 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M03").WithArguments("protected internal").WithLocation(6, 29),
                 // (7,19): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal void M04();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M04").WithArguments("internal", "7", "7.1").WithLocation(7, 19),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M04").WithArguments("internal", "7.0", "7.1").WithLocation(7, 19),
                 // (8,18): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private void M05();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M05").WithArguments("private", "7", "7.1").WithLocation(8, 18),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M05").WithArguments("private", "7.0", "7.1").WithLocation(8, 18),
                 // (9,17): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static void M06();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M06").WithArguments("static", "7", "7.1").WithLocation(9, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M06").WithArguments("static", "7.0", "7.1").WithLocation(9, 17),
                 // (10,18): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual void M07();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M07").WithArguments("virtual", "7", "7.1").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M07").WithArguments("virtual", "7.0", "7.1").WithLocation(10, 18),
                 // (11,17): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     sealed void M08();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M08").WithArguments("sealed", "7", "7.1").WithLocation(11, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M08").WithArguments("sealed", "7.0", "7.1").WithLocation(11, 17),
                 // (12,19): error CS0106: The modifier 'override' is not valid for this item
                 //     override void M09();
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "M09").WithArguments("override").WithLocation(12, 19),
                 // (13,19): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     abstract void M10();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M10").WithArguments("abstract", "7", "7.1").WithLocation(13, 19),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M10").WithArguments("abstract", "7.0", "7.1").WithLocation(13, 19),
                 // (14,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern void M11();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M11").WithArguments("extern", "7", "7.1").WithLocation(14, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M11").WithArguments("extern", "7.0", "7.1").WithLocation(14, 17),
                 // (15,16): error CS8503: The modifier 'async' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     async void M12();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M12").WithArguments("async", "7", "7.1").WithLocation(15, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M12").WithArguments("async", "7.0", "7.1").WithLocation(15, 16),
                 // (15,16): error CS1994: The 'async' modifier can only be used in methods that have a body.
                 //     async void M12();
                 Diagnostic(ErrorCode.ERR_BadAsyncLacksBody, "M12").WithLocation(15, 16),
@@ -6498,10 +6498,10 @@ public interface I1
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract void M1();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("abstract", "7", "7.1").WithLocation(4, 26),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 26),
                 // (4,26): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract void M1();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("public", "7", "7.1").WithLocation(4, 26)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("public", "7.0", "7.1").WithLocation(4, 26)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -7958,31 +7958,31 @@ class Test2 : I1
             compilation2.VerifyDiagnostics(
                 // (4,17): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern void M1(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("extern", "7", "7.1").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M1").WithArguments("extern", "7.0", "7.1").WithLocation(4, 17),
                 // (5,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern void M2(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("extern", "7", "7.1").WithLocation(5, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("extern", "7.0", "7.1").WithLocation(5, 25),
                 // (5,25): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern void M2(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("virtual", "7", "7.1").WithLocation(5, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M2").WithArguments("virtual", "7.0", "7.1").WithLocation(5, 25),
                 // (6,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static extern void M3(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("static", "7", "7.1").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("static", "7.0", "7.1").WithLocation(6, 24),
                 // (6,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static extern void M3(); 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("extern", "7", "7.1").WithLocation(6, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M3").WithArguments("extern", "7.0", "7.1").WithLocation(6, 24),
                 // (7,25): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern void M4();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("private", "7", "7.1").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("private", "7.0", "7.1").WithLocation(7, 25),
                 // (7,25): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern void M4();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("extern", "7", "7.1").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M4").WithArguments("extern", "7.0", "7.1").WithLocation(7, 25),
                 // (8,24): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed void M5();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("sealed", "7", "7.1").WithLocation(8, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("sealed", "7.0", "7.1").WithLocation(8, 24),
                 // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed void M5();
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("extern", "7", "7.1").WithLocation(8, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "M5").WithArguments("extern", "7.0", "7.1").WithLocation(8, 24),
                 // (4,17): warning CS0626: Method, operator, or accessor 'I1.M1()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern void M1(); 
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "M1").WithArguments("I1.M1()").WithLocation(4, 17),
@@ -9186,7 +9186,7 @@ public interface I1
             compilation1.VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public int P01 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.0", "7.1").WithLocation(4, 16),
                 // (5,19): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected int P02 {get;}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 19),
@@ -9195,25 +9195,25 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P03").WithArguments("protected internal").WithLocation(6, 28),
                 // (7,18): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal int P04 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P04").WithArguments("internal", "7", "7.1").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P04").WithArguments("internal", "7.0", "7.1").WithLocation(7, 18),
                 // (8,17): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private int P05 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P05").WithArguments("private", "7", "7.1").WithLocation(8, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P05").WithArguments("private", "7.0", "7.1").WithLocation(8, 17),
                 // (8,22): error CS0501: 'I1.P05.set' must declare a body because it is not marked abstract, extern, or partial
                 //     private int P05 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P05.set").WithLocation(8, 22),
                 // (9,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static int P06 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P06").WithArguments("static", "7", "7.1").WithLocation(9, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P06").WithArguments("static", "7.0", "7.1").WithLocation(9, 16),
                 // (10,17): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual int P07 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P07").WithArguments("virtual", "7", "7.1").WithLocation(10, 17),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P07").WithArguments("virtual", "7.0", "7.1").WithLocation(10, 17),
                 // (10,22): error CS0501: 'I1.P07.set' must declare a body because it is not marked abstract, extern, or partial
                 //     virtual int P07 {set;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P07.set").WithLocation(10, 22),
                 // (11,16): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     sealed int P08 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P08").WithArguments("sealed", "7", "7.1").WithLocation(11, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P08").WithArguments("sealed", "7.0", "7.1").WithLocation(11, 16),
                 // (11,21): error CS0501: 'I1.P08.get' must declare a body because it is not marked abstract, extern, or partial
                 //     sealed int P08 {get;}
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P08.get").WithLocation(11, 21),
@@ -9222,13 +9222,13 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P09").WithArguments("override").WithLocation(12, 18),
                 // (13,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     abstract int P10 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P10").WithArguments("abstract", "7", "7.1").WithLocation(13, 18),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P10").WithArguments("abstract", "7.0", "7.1").WithLocation(13, 18),
                 // (14,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern int P11 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P11").WithArguments("extern", "7", "7.1").WithLocation(14, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P11").WithArguments("extern", "7.0", "7.1").WithLocation(14, 16),
                 // (16,22): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     int P12 { public get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7", "7.1").WithLocation(16, 22),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7.0", "7.1").WithLocation(16, 22),
                 // (16,22): error CS0273: The accessibility modifier of the 'I1.P12.get' accessor must be more restrictive than the property or indexer 'I1.P12'
                 //     int P12 { public get; set;}
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I1.P12.get", "I1.P12").WithLocation(16, 22),
@@ -9240,16 +9240,16 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(18, 34),
                 // (19,29): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     int P15 { get; internal set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7", "7.1").WithLocation(19, 29),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "7.1").WithLocation(19, 29),
                 // (20,23): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     int P16 { private get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7", "7.1").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(20, 23),
                 // (20,23): error CS0442: 'I1.P16.get': abstract properties cannot have private accessors
                 //     int P16 { private get; set;}
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I1.P16.get").WithLocation(20, 23),
                 // (21,23): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     int P17 { private get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7", "7.1").WithLocation(21, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(21, 23),
                 // (21,9): error CS0276: 'I1.P17': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 //     int P17 { private get;}
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "P17").WithArguments("I1.P17").WithLocation(21, 9),
@@ -9613,10 +9613,10 @@ public interface I1
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract int P1 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7", "7.1").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 25),
                 // (4,25): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract int P1 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7", "7.1").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "7.1").WithLocation(4, 25)
                 );
 
             ValidatePropertyModifiers_06(compilation1, "P1");
@@ -11955,31 +11955,31 @@ class Test2 : I1, I2, I3, I4, I5
                 {
                 // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern int P1 {get;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7.0", "7.1").WithLocation(4, 16),
                 // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern int P2 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7", "7.1").WithLocation(8, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7.0", "7.1").WithLocation(8, 24),
                 // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern int P2 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7", "7.1").WithLocation(8, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 24),
                 // (12,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7", "7.1").WithLocation(12, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7.0", "7.1").WithLocation(12, 23),
                 // (12,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static extern int P3 {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7", "7.1").WithLocation(12, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7.0", "7.1").WithLocation(12, 23),
                 // (16,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern int P4 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7", "7.1").WithLocation(16, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7.0", "7.1").WithLocation(16, 24),
                 // (16,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern int P4 {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7", "7.1").WithLocation(16, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7.0", "7.1").WithLocation(16, 24),
                 // (20,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed int P5 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7", "7.1").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7.0", "7.1").WithLocation(20, 23),
                 // (20,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed int P5 {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7", "7.1").WithLocation(20, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.0", "7.1").WithLocation(20, 23),
                 // (8,28): warning CS0626: Method, operator, or accessor 'I2.P2.set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern int P2 {set;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.P2.set").WithLocation(8, 28),
@@ -15481,7 +15481,7 @@ public interface I17{ int this[int x] { private get;} }
             compilation1.VerifyDiagnostics(
                 // (2,34): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I01{ public int this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7", "7.1").WithLocation(2, 34),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7.0", "7.1").WithLocation(2, 34),
                 // (3,37): error CS0106: The modifier 'protected' is not valid for this item
                 // public interface I02{ protected int this[int x] {get;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected").WithLocation(3, 37),
@@ -15490,10 +15490,10 @@ public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("protected internal").WithLocation(4, 46),
                 // (5,36): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I04{ internal int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("internal", "7", "7.1").WithLocation(5, 36),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("internal", "7.0", "7.1").WithLocation(5, 36),
                 // (6,35): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I05{ private int this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7", "7.1").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7.0", "7.1").WithLocation(6, 35),
                 // (6,48): error CS0501: 'I05.this[int].set' must declare a body because it is not marked abstract, extern, or partial
                 // public interface I05{ private int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I05.this[int].set").WithLocation(6, 48),
@@ -15502,13 +15502,13 @@ public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("static").WithLocation(7, 34),
                 // (8,35): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I07{ virtual int this[int x] {set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7", "7.1").WithLocation(8, 35),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 35),
                 // (8,48): error CS0501: 'I07.this[int].set' must declare a body because it is not marked abstract, extern, or partial
                 // public interface I07{ virtual int this[int x] {set;} }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I07.this[int].set").WithLocation(8, 48),
                 // (9,34): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I08{ sealed int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7", "7.1").WithLocation(9, 34),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7.0", "7.1").WithLocation(9, 34),
                 // (9,47): error CS0501: 'I08.this[int].get' must declare a body because it is not marked abstract, extern, or partial
                 // public interface I08{ sealed int this[int x] {get;} }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I08.this[int].get").WithLocation(9, 47),
@@ -15517,13 +15517,13 @@ public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "this").WithArguments("override").WithLocation(10, 36),
                 // (11,36): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I10{ abstract int this[int x] {get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7", "7.1").WithLocation(11, 36),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7.0", "7.1").WithLocation(11, 36),
                 // (12,34): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I11{ extern int this[int x] {get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(12, 34),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(12, 34),
                 // (14,48): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I12{ int this[int x] { public get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7", "7.1").WithLocation(14, 48),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("public", "7.0", "7.1").WithLocation(14, 48),
                 // (14,48): error CS0273: The accessibility modifier of the 'I12.this[int].get' accessor must be more restrictive than the property or indexer 'I12.this[int]'
                 // public interface I12{ int this[int x] { public get; set;} }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("I12.this[int].get", "I12.this[int]").WithLocation(14, 48),
@@ -15535,16 +15535,16 @@ public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("protected internal").WithLocation(16, 60),
                 // (17,55): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I15{ int this[int x] { get; internal set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7", "7.1").WithLocation(17, 55),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("internal", "7.0", "7.1").WithLocation(17, 55),
                 // (18,49): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I16{ int this[int x] { private get; set;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7", "7.1").WithLocation(18, 49),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(18, 49),
                 // (18,49): error CS0442: 'I16.this[int].get': abstract properties cannot have private accessors
                 // public interface I16{ int this[int x] { private get; set;} }
                 Diagnostic(ErrorCode.ERR_PrivateAbstractAccessor, "get").WithArguments("I16.this[int].get").WithLocation(18, 49),
                 // (19,49): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 // public interface I17{ int this[int x] { private get;} }
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7", "7.1").WithLocation(19, 49),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "get").WithArguments("private", "7.0", "7.1").WithLocation(19, 49),
                 // (19,27): error CS0276: 'I17.this[int]': accessibility modifiers on accessors may only be used if the property or indexer has both a get and a set accessor
                 // public interface I17{ int this[int x] { private get;} }
                 Diagnostic(ErrorCode.ERR_AccessModMissingAccessor, "this").WithArguments("I17.this[int]").WithLocation(19, 27),
@@ -15816,10 +15816,10 @@ public interface I1
             compilation1.VerifyDiagnostics(
                 // (4,25): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract int this[int x] {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7", "7.1").WithLocation(4, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 25),
                 // (4,25): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract int this[int x] {get; set;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7", "7.1").WithLocation(4, 25)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("public", "7.0", "7.1").WithLocation(4, 25)
                 );
 
             ValidatePropertyModifiers_06(compilation1, "this[]");
@@ -17090,25 +17090,25 @@ class Test2 : I1, I2, I4, I5
                 {
                 // (4,16): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern int this[int x] {get;} 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(4, 16),
                 // (8,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(8, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(8, 24),
                 // (8,24): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7", "7.1").WithLocation(8, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 24),
                 // (12,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern int this[int x] {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7", "7.1").WithLocation(12, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("private", "7.0", "7.1").WithLocation(12, 24),
                 // (12,24): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern int this[int x] {get;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(12, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(12, 24),
                 // (16,23): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7", "7.1").WithLocation(16, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("sealed", "7.0", "7.1").WithLocation(16, 23),
                 // (16,23): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed int this[int x] {set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7", "7.1").WithLocation(16, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "this").WithArguments("extern", "7.0", "7.1").WithLocation(16, 23),
                 // (8,37): warning CS0626: Method, operator, or accessor 'I2.this[int].set' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     virtual extern int this[int x] {set;}
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "set").WithArguments("I2.this[int].set").WithLocation(8, 37),
@@ -19557,7 +19557,7 @@ public interface I1
             compilation1.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
                 // (4,32): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public event System.Action P01;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7", "7.1").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P01").WithArguments("public", "7.0", "7.1").WithLocation(4, 32),
                 // (5,35): error CS0106: The modifier 'protected' is not valid for this item
                 //     protected event System.Action P02 {add{}}
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "P02").WithArguments("protected").WithLocation(5, 35),
@@ -19629,7 +19629,7 @@ public interface I1
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(15, 48),
                 // (16,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern event System.Action P13;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7", "7.1").WithLocation(16, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P13").WithArguments("extern", "7.0", "7.1").WithLocation(16, 32),
                 // (16,32): warning CS0626: Method, operator, or accessor 'I1.P13.add' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     extern event System.Action P13;
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "P13").WithArguments("I1.P13.add").WithLocation(16, 32),
@@ -20025,10 +20025,10 @@ public interface I1
             compilation1.VerifyDiagnostics(
                 // (4,41): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7", "7.1").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("abstract", "7.0", "7.1").WithLocation(4, 41),
                 // (4,41): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public abstract event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7", "7.1").WithLocation(4, 41)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("public", "7.0", "7.1").WithLocation(4, 41)
                 );
 
             ValidateEventModifiers_06(compilation1);
@@ -22381,31 +22381,31 @@ class Test2 : I1, I2, I3, I4, I5
             compilation2.VerifyDiagnostics(
                 // (4,32): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern event System.Action P1; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7", "7.1").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P1").WithArguments("extern", "7.0", "7.1").WithLocation(4, 32),
                 // (8,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7", "7.1").WithLocation(8, 40),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("extern", "7.0", "7.1").WithLocation(8, 40),
                 // (8,40): error CS8503: The modifier 'virtual' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     virtual extern event System.Action P2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7", "7.1").WithLocation(8, 40),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P2").WithArguments("virtual", "7.0", "7.1").WithLocation(8, 40),
                 // (12,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7", "7.1").WithLocation(12, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("static", "7.0", "7.1").WithLocation(12, 39),
                 // (12,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static extern event System.Action P3; 
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7", "7.1").WithLocation(12, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P3").WithArguments("extern", "7.0", "7.1").WithLocation(12, 39),
                 // (16,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7", "7.1").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("private", "7.0", "7.1").WithLocation(16, 40),
                 // (16,40): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private extern event System.Action P4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7", "7.1").WithLocation(16, 40),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P4").WithArguments("extern", "7.0", "7.1").WithLocation(16, 40),
                 // (20,39): error CS8503: The modifier 'sealed' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7", "7.1").WithLocation(20, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("sealed", "7.0", "7.1").WithLocation(20, 39),
                 // (20,39): error CS8503: The modifier 'extern' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     extern sealed event System.Action P5;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7", "7.1").WithLocation(20, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "P5").WithArguments("extern", "7.0", "7.1").WithLocation(20, 39),
                 // (26,9): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //         add => throw null;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "add").WithArguments("default interface implementation", "7.1").WithLocation(26, 9),
@@ -23880,10 +23880,10 @@ class Test1 : I1
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS8506: 'I1.I2.M1()' cannot implement interface member 'I2.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1()", "I2.M1()", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1()' cannot implement interface member 'I4.M1()' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1()", "I4.M1()", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
                 );
 
             ValidateMethodImplementationInDerived_01(compilation2.SourceModule);
@@ -25470,10 +25470,10 @@ class Test1 : I1
                 },
                 // (6,15): error CS8506: 'I1.I2.M1.get' cannot implement interface member 'I2.M1.get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.get", "I2.M1.get", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1.set' cannot implement interface member 'I4.M1.set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.set", "I4.M1.set", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
                 );
         }
 
@@ -27211,16 +27211,16 @@ class Test1 : I1
             compilation2.VerifyDiagnostics(
                 // (6,15): error CS8506: 'I1.I2.M1.remove' cannot implement interface member 'I2.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.remove", "I2.M1.remove", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I2.M1.add' cannot implement interface member 'I2.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.M1.add", "I2.M1.add", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1.remove' cannot implement interface member 'I4.M1.remove' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.remove", "I4.M1.remove", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.M1.add' cannot implement interface member 'I4.M1.add' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.M1.add", "I4.M1.add", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
                 );
 
             ValidateEventImplementationInDerived_01(compilation2.SourceModule);
@@ -28561,10 +28561,10 @@ class Test1 : I1
                 },
                 // (6,15): error CS8506: 'I1.I2.this[int].get' cannot implement interface member 'I2.this[int].get' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15),
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I2.this[int].get", "I2.this[int].get", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15),
                 // (6,15): error CS8506: 'I1.I4.this[int].set' cannot implement interface member 'I4.this[int].set' in type 'Test1' because feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 // class Test1 : I1
-                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1", "default interface implementation", "7", "7.1").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember, "I1").WithArguments("I1.I4.this[int].set", "I4.this[int].set", "Test1", "default interface implementation", "7.0", "7.1").WithLocation(6, 15)
                 );
         }
 
@@ -30049,25 +30049,25 @@ class Test2 : I1
             compilation4.VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static int F1 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 16),
                 // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 23),
                 // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int F2 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 23),
                 // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 25),
                 // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static int F3 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 25),
                 // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 24),
                 // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static int F4 {get; set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 24),
                 // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     public class TestHelper
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
@@ -30179,25 +30179,25 @@ class Test2 : I1
             compilation4.VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static int F1 {get;} = 1;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 16),
                 // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int F2 {get;} = 2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 23),
                 // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int F2 {get;} = 2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 23),
                 // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static int F3 {get;} = 3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 25),
                 // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static int F3 {get;} = 3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 25),
                 // (7,24): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static int F4 {get;} = 4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 24),
                 // (7,24): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static int F4 {get;} = 4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 24),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 24),
                 // (9,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     public class TestHelper
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18)
@@ -30308,28 +30308,28 @@ class Test2 : I1
             compilation4.VerifyDiagnostics(
                 // (4,16): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 16),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 16),
                 // (4,33): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static int F1 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7", "7.1").WithLocation(4, 33),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.0", "7.1").WithLocation(4, 33),
                 // (5,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 23),
                 // (5,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 23),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 23),
                 // (5,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static int F2 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7", "7.1").WithLocation(5, 40),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.0", "7.1").WithLocation(5, 40),
                 // (6,25): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 25),
                 // (6,25): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 25),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 25),
                 // (6,42): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static int F3 {get; private set;}
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7", "7.1").WithLocation(6, 42),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "set").WithArguments("private", "7.0", "7.1").WithLocation(6, 42),
                 // (8,18): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
                 //     public class TestHelper
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(8, 18)
@@ -30486,25 +30486,25 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18),
                 // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static event System.Action F1;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 32),
                 // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static event System.Action F2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 39),
                 // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static event System.Action F2;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 39),
                 // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static event System.Action F3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 41),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 41),
                 // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static event System.Action F3;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 41),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 41),
                 // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static event System.Action F4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 40),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 40),
                 // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static event System.Action F4;
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 40)
                 );
 
             Validate1(compilation4.SourceModule);
@@ -30614,25 +30614,25 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "TestHelper").WithArguments("default interface implementation", "7.1").WithLocation(9, 18),
                 // (4,32): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     static event System.Action F1 = () => System.Console.Write(1);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7", "7.1").WithLocation(4, 32),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F1").WithArguments("static", "7.0", "7.1").WithLocation(4, 32),
                 // (5,39): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7", "7.1").WithLocation(5, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("static", "7.0", "7.1").WithLocation(5, 39),
                 // (5,39): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     public static event System.Action F2 = () => System.Console.Write(2);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7", "7.1").WithLocation(5, 39),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F2").WithArguments("public", "7.0", "7.1").WithLocation(5, 39),
                 // (6,41): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7", "7.1").WithLocation(6, 41),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("static", "7.0", "7.1").WithLocation(6, 41),
                 // (6,41): error CS8503: The modifier 'internal' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     internal static event System.Action F3 = () => System.Console.Write(3);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7", "7.1").WithLocation(6, 41),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F3").WithArguments("internal", "7.0", "7.1").WithLocation(6, 41),
                 // (7,40): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7", "7.1").WithLocation(7, 40),
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("static", "7.0", "7.1").WithLocation(7, 40),
                 // (7,40): error CS8503: The modifier 'private' is not valid for this item in C# 7. Please use language version 7.1 or greater.
                 //     private static event System.Action F4 = () => System.Console.Write(4);
-                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7", "7.1").WithLocation(7, 40)
+                Diagnostic(ErrorCode.ERR_DefaultInterfaceImplementationModifier, "F4").WithArguments("private", "7.0", "7.1").WithLocation(7, 40)
                 );
 
             Validate1(compilation4.SourceModule);

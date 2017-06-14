@@ -31,6 +31,7 @@ using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 using Task = System.Threading.Tasks.Task;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
+using Microsoft.CodeAnalysis.Experiments;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -64,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
+            _workspace.Services.GetService<IExperimentationService>();
 
             RegisterFindResultsLibraryManager();
 

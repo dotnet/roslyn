@@ -290,9 +290,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
         {
             CheckDefinitionInvariant();
-            foreach (var e in GetEventsToEmit())
+            foreach (IEventDefinition e in GetEventsToEmit())
             {
-                if (e.ShouldInclude(context))
+                // If any accessor should be included, then the event should be included too
+                if (e.ShouldInclude(context) || !e.GetAccessors(context).IsEmpty())
                 {
                     yield return e;
                 }
@@ -724,10 +725,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var property in this.GetPropertiesToEmit())
+            foreach (IPropertyDefinition property in this.GetPropertiesToEmit())
             {
                 Debug.Assert((object)property != null);
-                if (property.ShouldInclude(context))
+                // If any accessor should be included, then the property should be included too
+                if (property.ShouldInclude(context) || !property.GetAccessors(context).IsEmpty())
                 {
                     yield return property;
                 }
@@ -737,9 +739,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (generated != null)
             {
-                foreach (var m in generated)
+                foreach (IPropertyDefinition m in generated)
                 {
-                    if (m.ShouldInclude(context))
+                    if (m.ShouldInclude(context) || !m.GetAccessors(context).IsEmpty())
                     {
                         yield return m;
                     }
