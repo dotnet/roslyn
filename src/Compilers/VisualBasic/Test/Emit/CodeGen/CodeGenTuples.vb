@@ -247,22 +247,22 @@ Module C
         console.writeline(t1.GetType())
 
         Dim B = 1
-        
-        Dim t2 = (A% := "qq", B$) 
+
+        Dim t2 = (A% := "qq", B$)
         console.writeline(t2.A.Length) 'A should not take the type from % in this case
 
         Dim t3 As (V1(), V2%()) = Nothing
-        console.writeline(t3.Item1.Length) 
+        console.writeline(t3.Item1.Length)
     End Sub
 
    Async Sub T()
         Dim t4 as (Integer% As String, Await As String, Function$) = nothing
-        console.writeline(t4.Integer.Length)  
-        console.writeline(t4.Await.Length)  
-        console.writeline(t4.Function.Length)  
+        console.writeline(t4.Integer.Length)
+        console.writeline(t4.Await.Length)
+        console.writeline(t4.Function.Length)
 
         Dim t5 as (Function As String, Sub, Junk1 As Junk2 Recovery, Junk4 Junk5) = nothing
-        console.writeline(t4.Function.Length)  
+        console.writeline(t4.Function.Length)
 
     End Sub
 
@@ -288,10 +288,10 @@ BC37262: Tuple element names must be unique.
         Dim t1 as (String$, String%) = nothing
                             ~~~~~~~
 BC37270: Type characters cannot be used in tuple literals.
-        Dim t2 = (A% := "qq", B$) 
+        Dim t2 = (A% := "qq", B$)
                   ~~
 BC30277: Type character '$' does not match declared data type 'Integer'.
-        Dim t2 = (A% := "qq", B$) 
+        Dim t2 = (A% := "qq", B$)
                               ~~
 BC30002: Type 'V1' is not defined.
         Dim t3 As (V1(), V2%()) = Nothing
@@ -379,7 +379,7 @@ Module C
 
     Sub Main()
         Dim t = (Nothing, Nothing)
-        console.writeline(t)            
+        console.writeline(t)
     End Sub
 End Module
 
@@ -413,7 +413,7 @@ Module C
 
     Sub Main()
         Dim t = (Nothing, Nothing)
-        console.writeline(t)            
+        console.writeline(t)
     End Sub
 End Module
 
@@ -439,10 +439,10 @@ Module C
 
     Sub Main()
         Dim t1 = ({Nothing}, {Nothing})
-        console.writeline(t1.GetType())            
+        console.writeline(t1.GetType())
 
         Dim t2 = {(Nothing, Nothing)}
-        console.writeline(t2.GetType())            
+        console.writeline(t2.GetType())
     End Sub
 End Module
 
@@ -465,10 +465,10 @@ Module C
 
     Sub Main()
         Dim t3 = Function(){(Nothing, Nothing)}
-        console.writeline(t3.GetType())            
+        console.writeline(t3.GetType())
 
         Dim t4 = {Function()(Nothing, Nothing)}
-        console.writeline(t4.GetType())            
+        console.writeline(t4.GetType())
 
     End Sub
 End Module
@@ -663,7 +663,7 @@ Module C
         Dim x1 = (Function() Main, Function() Main)
         Dim x2 = (AddressOf Mai, Function() Mai)
         Dim x3 = (A := AddressOf Main, B := (D := AddressOf Main, C := AddressOf Main))
-        
+
         Test1((AddressOf Main, Sub() Main))
         Test1((AddressOf Main, Function() Main))
         Test2((AddressOf Main, Function() Main))
@@ -2863,7 +2863,7 @@ Public Class C
     Shared Sub M6 (x as (Integer, Integer)?)
         System.Console.WriteLine("Integer")
     End Sub
-    
+
     Shared Sub M7 (x as (Byte, Byte)())
         System.Console.WriteLine("Byte")
     End Sub
@@ -2948,7 +2948,7 @@ Public Class C
     Shared Sub M6 (x as (Long, Long)?)
         System.Console.WriteLine("Long")
     End Sub
-    
+
     Shared Sub M7 (x as (Byte, Byte)())
         System.Console.WriteLine("Byte")
     End Sub
@@ -3650,7 +3650,7 @@ Module C
 
         Function Test1(of T)(x as (T, T), y as (T, T)) as (T, T)
         Console.WriteLine(Gettype(T))
-        
+
         return x
     End Function
 End Module
@@ -7027,6 +7027,15 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub CreateTupleTypeSize1()
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As ITypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+            Dim tupleType = CType(comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray.Create(intType)), TupleTypeSymbol)
+            Assert.Equal(1, tupleType.TupleElementTypes.Length)
+            Assert.Equal(intType, tupleType.TupleElementTypes(0))
+        End Sub
+
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_BadArguments()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -7034,9 +7043,8 @@ End Class
 
             Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=Nothing, elementNames:=Nothing))
 
-            ' 0-tuple and 1-tuple are not supported at this point
+            ' 0-tuple is not supported at this point
             Assert.Throws(Of ArgumentException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray(Of ITypeSymbol).Empty, elementNames:=Nothing))
-            Assert.Throws(Of ArgumentException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray.Create(intType), elementNames:=Nothing))
 
             ' If names are provided, you need as many as element types
             Assert.Throws(Of ArgumentException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray.Create(intType, intType), elementNames:=ImmutableArray.Create("Item1")))
@@ -8693,7 +8701,7 @@ Module Module1
         Dim x2 = (A:=10, B:=20)
         System.Console.Write(x2.a)
         System.Console.Write(x2.item2)
-        
+
         Dim x3 = (item1 := 1, item2 := 2)
         System.Console.Write(x3.Item1)
         System.Console.WriteLine(x3.Item2)
@@ -9473,7 +9481,7 @@ End Module
         // = {string[3](""e1"", ""e2"", ""e3"")}
         = ( 01 00 03 00 00 00 02 65 31 02 65 32 02 65 33 )
 
-    .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32> 
+    .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
             TooFewNamesMethod() cil managed
     {
       .param [0]
@@ -9489,7 +9497,7 @@ End Module
       IL_0007:  ret
     } // end of method C::TooFewNamesMethod
 
-    .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32> 
+    .method public hidebysig instance class [System.ValueTuple]System.ValueTuple`2<int32,int32>
             TooManyNamesMethod() cil managed
     {
       .param [0]
@@ -9972,15 +9980,15 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as  (I1 as string , 
-            I2  As string, 
-            I3  As string, 
-            I4  As string, 
-            I5  As string, 
-            I6  As string, 
-            I7  As string, 
-            I8  As string, 
-            I9  As string, 
+        Dim ss as  (I1 as string ,
+            I2  As string,
+            I3  As string,
+            I4  As string,
+            I5  As string,
+            I6  As string,
+            I7  As string,
+            I8  As string,
+            I9  As string,
             I10 As string)
 
         ss.I1 = "q"
@@ -10012,15 +10020,15 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as (I1 as string, 
-            I2  As String, 
-            I3  As String, 
-            I4  As String, 
-            I5  As String, 
-            I6  As String, 
-            I7  As String, 
-            I8  As String, 
-            I9  As String, 
+        Dim ss as (I1 as string,
+            I2  As String,
+            I3  As String,
+            I4  As String,
+            I5  As String,
+            I6  As String,
+            I7  As String,
+            I8  As String,
+            I9  As String,
             I10 As String)
 
         ss.Item1 = "q"
@@ -10052,15 +10060,15 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as (I1 as string, 
-                    I2  As String, 
-                    I3  As String, 
-                    I4  As String, 
-                    I5  As String, 
-                    I6  As String, 
-                    I7  As String, 
-                    I8  As String, 
-                    I9  As String, 
+        Dim ss as (I1 as string,
+                    I2  As String,
+                    I3  As String,
+                    I4  As String,
+                    I5  As String,
+                    I6  As String,
+                    I7  As String,
+                    I8  As String,
+                    I9  As String,
                     I10 As String)
 
         ss.Item1 = "q"
@@ -10092,15 +10100,15 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as (I1 as string, 
-                    I2  As String, 
-                    I3  As String, 
-                    I4  As String, 
-                    I5  As String, 
-                    I6  As String, 
-                    I7  As String, 
-                    I8  As String, 
-                    I9  As String, 
+        Dim ss as (I1 as string,
+                    I2  As String,
+                    I3  As String,
+                    I4  As String,
+                    I5  As String,
+                    I6  As String,
+                    I7  As String,
+                    I8  As String,
+                    I9  As String,
                     I10 As String)
 
         ss.Item1 = "q"
@@ -10132,15 +10140,15 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as (I1 as string, 
-                    I2  As String, 
-                    I3  As String, 
-                    I4  As String, 
-                    I5  As String, 
-                    I6  As String, 
-                    I7  As String, 
-                    I8  As String, 
-                    I9  As String, 
+        Dim ss as (I1 as string,
+                    I2  As String,
+                    I3  As String,
+                    I4  As String,
+                    I5  As String,
+                    I6  As String,
+                    I7  As String,
+                    I8  As String,
+                    I9  As String,
                     I10 As String)
 
         ss.I8 = "q"
@@ -10165,41 +10173,41 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as (I1 as string, 
-                    I2  As String, 
-                    I3  As String, 
-                    I4  As String, 
-                    I5  As String, 
-                    I6  As String, 
-                    I7  As String, 
-                    I8  As String, 
-                    I9  As String, 
+        Dim ss as (I1 as string,
+                    I2  As String,
+                    I3  As String,
+                    I4  As String,
+                    I5  As String,
+                    I6  As String,
+                    I7  As String,
+                    I8  As String,
+                    I9  As String,
                     I10 As String,
-                    I11 as string, 
-                    I12  As String, 
-                    I13  As String, 
-                    I14  As String, 
-                    I15  As String, 
-                    I16  As String, 
-                    I17  As String, 
-                    I18  As String, 
+                    I11 as string,
+                    I12  As String,
+                    I13  As String,
+                    I14  As String,
+                    I15  As String,
+                    I16  As String,
+                    I17  As String,
+                    I18  As String,
                     I19  As String,
                     I20 As String,
-                    I21 as string, 
-                    I22  As String, 
-                    I23  As String, 
-                    I24  As String, 
-                    I25  As String, 
-                    I26  As String, 
-                    I27  As String, 
-                    I28  As String, 
+                    I21 as string,
+                    I22  As String,
+                    I23  As String,
+                    I24  As String,
+                    I25  As String,
+                    I26  As String,
+                    I27  As String,
+                    I28  As String,
                     I29  As String,
                     I30  As String,
                     I31  As String)
 
-        'warn 
+        'warn
         System.Console.WriteLine(ss.Rest.Rest.Rest)
-        'warn 
+        'warn
         System.Console.WriteLine(ss.I31)
 
         ss.I29 = "q"
@@ -10253,15 +10261,15 @@ q
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as (I1 as string, 
-                    I2  As String, 
-                    I3  As String, 
-                    I4  As String, 
-                    I5  As String, 
-                    I6  As String, 
-                    I7  As String, 
-                    I8  As String, 
-                    I9  As String, 
+        Dim ss as (I1 as string,
+                    I2  As String,
+                    I3  As String,
+                    I4  As String,
+                    I5  As String,
+                    I6  As String,
+                    I7  As String,
+                    I8  As String,
+                    I9  As String,
                     I10 As String)
 
         ss.I1 = "q"
@@ -10291,15 +10299,15 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-        Dim ss as (I1 as string, 
-                    I2  As String, 
-                    I3  As String, 
-                    I4  As String, 
-                    I5  As String, 
-                    I6  As String, 
-                    I7  As String, 
-                    I8  As String, 
-                    I9  As String, 
+        Dim ss as (I1 as string,
+                    I2  As String,
+                    I3  As String,
+                    I4  As String,
+                    I5  As String,
+                    I6  As String,
+                    I7  As String,
+                    I8  As String,
+                    I9  As String,
                     I10 As String)
 
         ss.Rest = ("q", "w", "e")
@@ -10323,13 +10331,13 @@ End Module
 Module Module1
     Sub Main()
         if (1.ToString() = 2.ToString())
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10344,14 +10352,14 @@ Module Module1
             System.Console.WriteLine(ss)
 
         elseif (1.ToString() = 3.ToString())
-    
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10365,14 +10373,14 @@ Module Module1
 
             System.Console.WriteLine(ss)
 
-        else 
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+        else
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10407,13 +10415,13 @@ End Module
 Module Module1
     Sub Main()
        if (1.ToString() = 2.ToString())
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10428,13 +10436,13 @@ Module Module1
             System.Console.WriteLine(ss)
 
         else if (1.ToString() = 3.ToString())
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10448,14 +10456,14 @@ Module Module1
 
             System.Console.WriteLine(ss) ' should fail1
 
-        else 
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+        else
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10489,13 +10497,13 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10534,13 +10542,13 @@ End Module
     <file name="a.vb">
 Module Module1
     Sub Main()
-            Dim ss as (I1 as string, 
-                        I2  As String, 
-                        I3  As String, 
-                        I4  As String, 
-                        I5  As String, 
-                        I6  As String, 
-                        I7  As String, 
+            Dim ss as (I1 as string,
+                        I2  As String,
+                        I3  As String,
+                        I4  As String,
+                        I5  As String,
+                        I6  As String,
+                        I7  As String,
                         I8  As String)
 
             ss.I1 = "q"
@@ -10588,7 +10596,7 @@ Module Module1
             await Task.Yield()
 
             ' this is assigned and persisted across await
-            return v1.Item1            
+            return v1.Item1
         end Function
 End Module
 
@@ -10596,7 +10604,7 @@ End Module
     </compilation>, useLatestFramework:=True, additionalRefs:=s_valueTupleRefs, expectedOutput:="5")
 
             ' NOTE: !!! There should be NO IL local for  " v1 as (Long, Integer)" , it should be captured instead
-            ' NOTE: !!! There should be an IL local for  " v2 as (Byte, Integer)" , it should not be captured 
+            ' NOTE: !!! There should be an IL local for  " v2 as (Byte, Integer)" , it should not be captured
             verifier.VerifyIL("Module1.VB$StateMachine_1_Test.MoveNext()", <![CDATA[
 {
   // Code size      214 (0xd6)
@@ -13172,11 +13180,11 @@ Public Class C
         Dim a = Function(x as Integer) x
         Test1(a)
         Test2((a, int))
-        Test3((a, int)) 
+        Test3((a, int))
 
         Dim b = (a, int)
         Test2(b)
-        Test3(b) 
+        Test3(b)
 
         Test4({a})
     End Sub
@@ -13898,8 +13906,8 @@ System.Object
 <compilation>
 <file name="a.vb"><![CDATA[
 Namespace System
-    Public Structure ValueTuple(Of T1 As Class, T2)   
-        Sub New(_1 As T1, _2 As T2)       
+    Public Structure ValueTuple(Of T1 As Class, T2)
+        Sub New(_1 As T1, _2 As T2)
         End Sub
     End Structure
 End Namespace
@@ -13975,8 +13983,8 @@ BC31396: 'ArgIterator' cannot be made nullable, and cannot be used as the data t
 <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
-    Public Structure ValueTuple(Of T1, T2 As Class)   
-        Sub New(_1 As T1, _2 As T2)       
+    Public Structure ValueTuple(Of T1, T2 As Class)
+        Sub New(_1 As T1, _2 As T2)
         End Sub
     End Structure
 End Namespace
@@ -14009,8 +14017,8 @@ BC32106: Type argument 'U' does not satisfy the 'Class' constraint for type para
 <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
-    Public Structure ValueTuple(Of T1, T2 As Class)   
-        Sub New(_1 As T1, _2 As T2)       
+    Public Structure ValueTuple(Of T1, T2 As Class)
+        Sub New(_1 As T1, _2 As T2)
         End Sub
     End Structure
 End Namespace
@@ -14043,8 +14051,8 @@ BC32106: Type argument 'Integer' does not satisfy the 'Class' constraint for typ
 <file name="a.vb"><![CDATA[
 Imports System.Collections.Generic
 Namespace System
-    Public Structure ValueTuple(Of T1, T2 As Structure)   
-        Sub New(_1 As T1, _2 As T2)       
+    Public Structure ValueTuple(Of T1, T2 As Structure)
+        Sub New(_1 As T1, _2 As T2)
         End Sub
     End Structure
 End Namespace
@@ -17301,7 +17309,7 @@ additionalRefs:=s_valueTupleRefs)
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30294: Structure 'S' cannot contain an instance of itself: 
+BC30294: Structure 'S' cannot contain an instance of itself:
     'S' contains '(S, S)' (variable 'Field').
     '(S, S)' contains 'S' (variable 'Item1').
     Public Field As (S, S)
@@ -17784,7 +17792,7 @@ class C
         Dim x as (a As Integer, b As String)
         x.Item1 = 1
         x.b = "2"
- 
+
         ' by the language rules tuple x is definitely assigned
         ' since all its elements are definitely assigned
         System.Console.WriteLine(x)
@@ -17827,7 +17835,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 class C
     Shared Sub Main()
         Dim x = (1,2,3,4,5,6,7,8,9)
- 
+
         System.Console.WriteLine(x)
     end sub
 end class
@@ -17998,7 +18006,7 @@ BC37281: Predefined type 'ValueTuple`2' must be a structure.
 class C
     Shared Sub Main()
         Dim x as (a As Integer, b As String)() = Nothing
- 
+
         ' by the language rules tuple x is definitely assigned
         ' since all its elements are definitely assigned
         System.Console.WriteLine(x)
@@ -18042,7 +18050,7 @@ class C
     Shared Sub Main()
 
     end sub
-    
+
     Shared Function Test2()as (a As Integer, b As Integer)
     End Function
 end class
@@ -18884,7 +18892,7 @@ End Class
 
 Public Class AA
     Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
-        System.Console.WriteLine(x)	
+        System.Console.WriteLine(x)
         return new AA()
     End Operator
 End Class
@@ -18923,7 +18931,7 @@ End Class
 
 Public Structure AA
     Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
-        System.Console.WriteLine(x)	
+        System.Console.WriteLine(x)
         return new AA()
     End Operator
 End Structure
@@ -18952,12 +18960,12 @@ Public Class C
         Test(t1)
         Dim t2 As (Integer, Integer)? = (7, 8)
         Test(t2)
-        System.Console.WriteLine("--")	
+        System.Console.WriteLine("--")
         t1 = Nothing
         Test(t1)
         t2 = Nothing
         Test(t2)
-        System.Console.WriteLine("--")	
+        System.Console.WriteLine("--")
     End Sub
 
     Shared Sub Test(val As AA?)
@@ -18966,7 +18974,7 @@ End Class
 
 Public Structure AA
     Public Shared Widening Operator CType(x As (X1 As Integer, Y1 As Integer)) As AA
-        System.Console.WriteLine(x)	
+        System.Console.WriteLine(x)
         return new AA()
     End Operator
 End Structure
@@ -19053,12 +19061,12 @@ Public Class C
         Test(t1)
         Dim t2 As BB(Of (Integer, Integer))? = New BB(Of (Integer, Integer))()
         Test(t2)
-        System.Console.WriteLine("--")	
+        System.Console.WriteLine("--")
         t1 = Nothing
         Test(t1)
         t2 = Nothing
         Test(t2)
-        System.Console.WriteLine("--")	
+        System.Console.WriteLine("--")
     End Sub
 
     Shared Sub Test(val As AA?)
@@ -19067,7 +19075,7 @@ End Class
 
 Public Structure AA
     Public Shared Widening Operator CType(x As BB(Of (X1 As Integer, Y1 As Integer))) As AA
-        System.Console.WriteLine("implicit operator AA")	
+        System.Console.WriteLine("implicit operator AA")
         return new AA()
     End Operator
 End Structure
@@ -19372,7 +19380,7 @@ Public Class C
     End Sub
 
     public readonly Property P1 as integer
-        Get 
+        Get
             return 42
         End Get
     end Property
@@ -19402,7 +19410,7 @@ Public Class C
     End Sub
 
     public readonly Property P1 as integer
-        Get 
+        Get
             return 42
         End Get
     end Property
@@ -19432,7 +19440,7 @@ Public Class C
     End Sub
 
     public readonly Property P1 as integer
-        Get 
+        Get
             return 42
         End Get
     end Property
@@ -19453,10 +19461,10 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
 Public Interface I1(Of T)
 End Interface
 
-Public Interface I2 
+Public Interface I2
     Inherits I1(Of (a As Integer, b As Integer))
 End Interface
-Public Interface I3 
+Public Interface I3
     Inherits I1(Of (c As Integer, d As Integer))
 End Interface
 ]]>
@@ -19466,7 +19474,7 @@ End Interface
             Dim src2 = <compilation>
                            <file name="a.vb">
                                <![CDATA[
-Class C1 
+Class C1
     Implements I2
     Implements I1(Of (a As Integer, b As Integer))
 End Class

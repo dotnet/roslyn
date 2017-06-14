@@ -361,7 +361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
 
-            If length <= 1 Then
+            If length = 0 Then
                 Throw ExceptionUtilities.Unreachable
             End If
 
