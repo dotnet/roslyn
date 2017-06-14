@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
                 using (var edit = _buffer.CreateEdit())
                 {
                     edit.Replace(child.GetSpan(), child.GetApplicableText());
-                    edit.Apply();
+                    edit.ApplyAndLogExceptions();
                 }
             }
 

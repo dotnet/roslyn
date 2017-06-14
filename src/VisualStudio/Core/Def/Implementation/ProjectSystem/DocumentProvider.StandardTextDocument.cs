@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Text;
@@ -238,8 +239,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     {
                         edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
                     }
-
-                    edit.Apply();
+                    
+                    edit.ApplyAndLogExceptions();
                 }
             }
 
