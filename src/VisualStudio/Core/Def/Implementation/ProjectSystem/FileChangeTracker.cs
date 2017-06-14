@@ -57,6 +57,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         public void EnsureSubscription()
         {
+            Contract.ThrowIfTrue(_fileChangeCookie == s_none);
+
             // make sure we have file notification subscribed
             var unused = _fileChangeCookie.Value;
         }
