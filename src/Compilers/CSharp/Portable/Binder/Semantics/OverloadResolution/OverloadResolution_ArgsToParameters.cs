@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Find the first named argument which is used out-of-position or a params parameter
             int foundPosition = -1;
-            int length = argsToParameters.Length;
+            int length = arguments.Arguments.Count;
             for (int i = 0; i < length;  i++)
             {
                 if (arguments.Name(i) != null && 
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = arguments.Names[argumentPosition];
                 for (int p = 0; p < memberParameters.Length; ++p)
                 {
-                    // p is initialized to zero; it ok for a named argument to "correspond" to
+                    // p is initialized to zero; it is ok for a named argument to "correspond" to
                     // _any_ parameter (not just the parameters past the point of positional arguments)
                     if (memberParameters[p].Name == name.Identifier.ValueText)
                     {

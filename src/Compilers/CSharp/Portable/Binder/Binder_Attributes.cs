@@ -283,6 +283,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // matching Dev10 compiler behavior.
                 bool hadError = false;
 
+                // Only report the first "non-trailing named args required C# 7.2" error,
+                // so as to avoid "cascading" errors.
+                bool hadLangVersionError = false;
+
                 var shouldHaveName = false;
 
                 foreach (var argument in attributeArgumentList.Arguments)
@@ -295,10 +299,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         // Constructor argument
-                        hadError |= this.BindArgumentAndName(
+                        this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
-                            hadError,
+                            ref hadError,
+                            ref hadLangVersionError,
                             argument,
                             BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,

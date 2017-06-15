@@ -2211,11 +2211,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so as to avoid "cascading" errors.
             bool hadError = false;
 
-            for (int i = 0, l = arguments.Count; i < l; i++)
-            {
-                var argumentSyntax = arguments[i];
+            // Only report the first "non-trailing named args required C# 7.2" error,
+            // so as to avoid "cascading" errors.
+            bool hadLangVersionError = false;
 
-                hadError = BindArgumentAndName(result, diagnostics, hadError, argumentSyntax, allowArglist, isDelegateCreation: isDelegateCreation);
+            foreach (var argumentSyntax in arguments)
+            {
+                BindArgumentAndName(result, diagnostics, ref hadError, ref hadLangVersionError,
+                    argumentSyntax, allowArglist, isDelegateCreation: isDelegateCreation);
             }
         }
 
@@ -2246,10 +2249,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool BindArgumentAndName(
+        private void BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
-            bool hadError,
+            ref bool hadError,
+            ref bool hadLangVersionError,
             ArgumentSyntax argumentSyntax,
             bool allowArglist,
             bool isDelegateCreation = false)
@@ -2262,10 +2266,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression boundArgument = BindArgumentValue(diagnostics, argumentSyntax, allowArglist, refKind);
 
-            hadError |= BindArgumentAndName(
+            BindArgumentAndName(
                 result,
                 diagnostics,
-                hadError,
+                ref hadError,
+                ref hadLangVersionError,
                 argumentSyntax,
                 boundArgument,
                 argumentSyntax.NameColon,
@@ -2279,7 +2284,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.PropertyAccess:
                     case BoundKind.IndexerAccess:
-                        return CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        return;
                 }
             }
 
@@ -2287,8 +2293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 argumentSyntax.Expression.CheckDeconstructionCompatibleArgument(diagnostics);
             }
-
-            return hadError;
         }
 
         private BoundExpression BindArgumentValue(DiagnosticBag diagnostics, ArgumentSyntax argumentSyntax, bool allowArglist, RefKind refKind)
@@ -2431,10 +2435,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Bind a named/positional argument.
         // Prevent cascading diagnostic by considering the previous
         // error state and returning the updated error state.
-        private bool BindArgumentAndName(
+        private void BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
-            bool hadError,
+            ref bool hadError,
+            ref bool hadLangVersionError,
             CSharpSyntaxNode argumentSyntax,
             BoundExpression boundArgumentExpression,
             NameColonSyntax nameColonSyntax,
@@ -2509,21 +2514,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (hasNames)
             {
                 // We just saw a fixed-position argument after a named argument.
-                if (!hadError && !Compilation.LanguageVersion.AllowNonTrailingNamedArguments())
+                if (!hadLangVersionError && !Compilation.LanguageVersion.AllowNonTrailingNamedArguments())
                 {
                     // CS1738: Named argument specifications must appear after all fixed arguments have been specified
                     Error(diagnostics, ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, argumentSyntax,
                         new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureNonTrailingNamedArguments.RequiredVersion()));
 
-                    hadError = true;
+                    hadLangVersionError = true;
                 }
 
                 result.Names.Add(null);
             }
 
             result.Arguments.Add(boundArgumentExpression);
-
-            return hadError;
         }
 
         /// <summary>
