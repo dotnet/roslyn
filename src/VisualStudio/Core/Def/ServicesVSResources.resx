@@ -933,23 +933,8 @@ Additional information: {1}</value>
   <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
     <value>Perform editor _feature analysis in external process (experimental)</value>
   </data>
-  <data name="Fade_out_default_expressions_that_can_be_simplified" xml:space="preserve">
-    <value>Fade out 'defualt' expressions that can be simplified</value>
-  </data>
-  <data name="Fade_out_initializers_that_can_be_simplified" xml:space="preserve">
-    <value>Fade out initializers that can be simplified</value>
-  </data>
-  <data name="Fade_out_null_checks_that_can_be_simplified" xml:space="preserve">
-    <value>Fade out null checks that can be simplified</value>
-  </data>
-  <data name="Fade_out_unnecessary_casts" xml:space="preserve">
-    <value>Fade out unnecessary casts</value>
-  </data>
   <data name="Fade_out_unreachable_code" xml:space="preserve">
     <value>Fade out unreachable code</value>
-  </data>
-  <data name="Fade_out_unused_usings" xml:space="preserve">
-    <value>Fade out unused usings</value>
   </data>
   <data name="Fading" xml:space="preserve">
     <value>Fading</value>
