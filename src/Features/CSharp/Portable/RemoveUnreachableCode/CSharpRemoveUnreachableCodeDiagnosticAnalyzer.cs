@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
             // Get the location of this first unreachable statement.  It will be given to all
             // the diagnostics we create off of this single compiler diagnostic so that we always
-            // now how to find it regardless of which of our diagnostics the user invokes the 
+            // know how to find it regardless of which of our diagnostics the user invokes the 
             // fix off of.
             var firstStatementLocation = root.SyntaxTree.GetLocation(firstUnreachableStatement.FullSpan);
 
