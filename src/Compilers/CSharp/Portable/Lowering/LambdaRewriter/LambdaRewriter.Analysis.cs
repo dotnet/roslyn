@@ -546,26 +546,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
                     while ((object)lambda != null &&
-                           IsLambdaOrLocalFunction(lambda) &&
                            symbol != lambda &&
                            symbol.ContainingSymbol != lambda)
                     {
                         CapturedVariablesByLambda.Add(lambda, symbol);
                         lambda = lambda.ContainingSymbol as MethodSymbol;
                     }
-                }
-            }
-
-            private static bool IsLambdaOrLocalFunction(MethodSymbol method)
-            {
-                switch (method.MethodKind)
-                {
-                    case MethodKind.AnonymousFunction:
-                    case MethodKind.LocalFunction:
-                        return true;
-
-                    default:
-                        return false;
                 }
             }
 
