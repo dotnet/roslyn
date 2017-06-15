@@ -708,8 +708,8 @@ namespace Microsoft.CodeAnalysis
 
                     switch (allowedRequiredModifierType)
                     {
-                        case AllowedRequiredModifierType.System_Runtime_CompilerServices_IsConst:
-                            isAllowed = IsAcceptedIsConstModifierType(type);
+                        case AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute:
+                            isAllowed = IsAcceptedInAttributeModifierType(type);
                             break;
                         case AllowedRequiredModifierType.System_Runtime_CompilerServices_Volatile:
                             isAllowed = IsAcceptedVolatileModifierType(type);
@@ -1130,9 +1130,9 @@ namespace Microsoft.CodeAnalysis
         {
             info.CustomModifiers = DecodeModifiersOrThrow(
                 ref signatureReader,
-                AllowedRequiredModifierType.System_Runtime_CompilerServices_IsConst,
+                AllowedRequiredModifierType.System_Runtime_InteropServices_InAttribute,
                 out SignatureTypeCode typeCode,
-                out bool isConstFound);
+                out bool inAttributeFound);
 
             if (typeCode == SignatureTypeCode.ByReference)
             {
@@ -1140,7 +1140,7 @@ namespace Microsoft.CodeAnalysis
                 info.RefCustomModifiers = info.CustomModifiers;
                 info.CustomModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
             }
-            else if (isConstFound)
+            else if (inAttributeFound)
             {
                 // This cannot be placed on CustomModifiers, just RefCustomModifiers
                 throw new UnsupportedSignatureContent();
@@ -2412,7 +2412,7 @@ namespace Microsoft.CodeAnalysis
         {
             None,
             System_Runtime_CompilerServices_Volatile,
-            System_Runtime_CompilerServices_IsConst,
+            System_Runtime_InteropServices_InAttribute,
         }
     }
 }

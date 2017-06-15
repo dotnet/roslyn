@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int ordinal,
             bool isParams,
             bool isExtensionMethodThis,
-            bool addIsConstModifier,
+            bool addRefReadOnlyModifier,
             DiagnosticBag declarationDiagnostics)
         {
             var name = identifier.ValueText;
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     identifier.Parent.GetLocation());
             }
 
-            if (addIsConstModifier && refKind == RefKind.RefReadOnly)
+            if (addRefReadOnlyModifier && refKind == RefKind.RefReadOnly)
             {
-                var isConstType = context.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, declarationDiagnostics, syntax);
+                var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
 
                 return new SourceComplexParameterSymbolWithCustomModifiers(
                     owner,
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterType,
                     refKind,
                     ImmutableArray<CustomModifier>.Empty,
-                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConstType)),
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)),
                     name,
                     locations,
                     syntax.GetReference(),

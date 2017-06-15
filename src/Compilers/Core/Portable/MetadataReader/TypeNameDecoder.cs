@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis
             return _factory.IsAcceptedVolatileModifierType(this.moduleSymbol, type);
         }
 
-        protected bool IsAcceptedIsConstModifierType(TypeSymbol type)
+        protected bool IsAcceptedInAttributeModifierType(TypeSymbol type)
         {
-            return _factory.IsAcceptedIsConstModifierType(type);
+            return _factory.IsAcceptedInAttributeModifierType(type);
         }
 
         protected Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)

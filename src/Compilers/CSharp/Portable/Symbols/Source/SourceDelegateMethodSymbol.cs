@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     binder, this, syntax.ParameterList, out arglistToken,
                     allowRefOrOut: true,
                     allowThis: false,
-                    addIsConstModifier: true,
+                    addRefReadOnlyModifier: true,
                     diagnostics: diagnostics);
 
                 if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
@@ -264,8 +264,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (_refKind == RefKind.RefReadOnly)
                 {
-                    var isConstType = binder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax.ReturnType);
-                    _refCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConstType));
+                    var modifierType = binder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
+                    _refCustomModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType));
                 }
                 else
                 {

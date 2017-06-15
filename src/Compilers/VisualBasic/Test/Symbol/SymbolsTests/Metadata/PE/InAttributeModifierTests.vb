@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 
-    Public Class IsConstModifierTests
+    Public Class InAttributeModifierTests
         Inherits BasicTestBase
 
         <Fact>

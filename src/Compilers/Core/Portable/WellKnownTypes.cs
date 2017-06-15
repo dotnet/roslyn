@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
         System_Runtime_CompilerServices_IsByRefLikeAttribute,
-        System_Runtime_CompilerServices_IsConst,
+        System_Runtime_InteropServices_InAttribute,
         System_ObsoleteAttribute,
 
         NextAvailable,
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis
 
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
             "System.Runtime.CompilerServices.IsByRefLikeAttribute",
-            "System.Runtime.CompilerServices.IsConst",
+            "System.Runtime.InteropServices.InAttribute",
             "System.ObsoleteAttribute",
         };
 

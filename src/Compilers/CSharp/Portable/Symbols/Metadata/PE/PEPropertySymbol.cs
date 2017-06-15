@@ -742,8 +742,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
 
-                // IsConst modreq is only accepted on RefReadOnly symbols
-                isBad = this.RefKind != RefKind.RefReadOnly && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeIsConst());
+                // The modreq is only accepted on RefReadOnly symbols
+                isBad = this.RefKind != RefKind.RefReadOnly && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute());
             }
 
             public override ImmutableArray<CustomModifier> TypeCustomModifiers
