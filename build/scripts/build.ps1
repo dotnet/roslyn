@@ -1,10 +1,12 @@
 [CmdletBinding(PositionalBinding=$false)]
 param (
+    # Configuration
     [switch]$restore = $false,
     [switch]$release = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
     [switch]$bootstrap = $false,
+    [string]$msbuildDir = "",
 
     # Test options 
     [switch]$test32 = $false,
@@ -28,6 +30,7 @@ function Print-Usage() {
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -build                    Build the Roslyn source"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
+    Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "" 
     Write-Host "Test options" 
     Write-Host "  -test32                   Run unit tests in the 32-bit runner"
@@ -325,9 +328,15 @@ try {
 
     Process-Arguments
 
+    if ($msbuildDir -eq "") {
+        $msbuild = Ensure-MSBuild
+        $msbuildDir = Split-Path -parent $msbuild
+    }
+    else {
+        $msbuild = Join-Path $msbuildDir "msbuild.exe"
+    }
+
     $buildConfiguration = if ($release) { "Release" } else { "Debug" }
-    $msbuild = Ensure-MSBuild
-    $msbuildDir = Split-Path -parent $msbuild
     $configDir = Join-Path $binariesDIr $buildConfiguration
     $bootstrapDir = ""
 
