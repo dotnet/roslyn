@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private static void AddIfNonEmpty(ArrayBuilder<ImmutableArray<StatementSyntax>> sections, ImmutableArray<StatementSyntax> lastSection)
         {
-            if (lastSection.Length > 0)
+            if (!lastSection.IsEmpty)
             {
                 sections.Add(lastSection);
             }

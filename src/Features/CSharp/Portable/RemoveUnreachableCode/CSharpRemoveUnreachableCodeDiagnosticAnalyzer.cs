@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
-        private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
+        private static readonly ImmutableDictionary<string, string> s_subsequentSectionProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
 
         private readonly DiagnosticDescriptor _unnecessaryDescriptor;
         private readonly DiagnosticDescriptor _hiddenDescriptor;
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
             // Get the location of this first unreachable statement.  It will be given to all
             // the diagnostics we create off of this single compiler diagnostic so that we always
-            // now how to find it regardless of which of our diagnostics the user invokes the 
+            // know how to find it regardless of which of our diagnostics the user invokes the 
             // fix off of.
             var firstStatementLocation = root.SyntaxTree.GetLocation(firstUnreachableStatement.FullSpan);
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
                 context.ReportDiagnostic(
-                    Diagnostic.Create(descriptor, location, additionalLocations, s_additionalProperties));
+                    Diagnostic.Create(descriptor, location, additionalLocations, s_subsequentSectionProperties));
             }
         }
     }
