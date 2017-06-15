@@ -3072,7 +3072,7 @@ Bailout:
 
                     defaultArgument = binder.GetArgumentForParameterDefaultValue(param, methodOrPropertyGroup.Syntax, diagnostics, callerInfoOpt)
 
-                    If Not diagnostics.HasAnyErrors Then
+                    If defaultArgument IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
                         Debug.Assert(Not diagnostics.AsEnumerable().Any())
 
                         ' Mark these as compiler generated so they are ignored by later phases. For example,
