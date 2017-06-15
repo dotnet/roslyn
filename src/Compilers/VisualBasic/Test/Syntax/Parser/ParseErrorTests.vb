@@ -857,8 +857,10 @@ End Module
                 End Sub
             End Module
                 </file>
-        </compilation>).VerifyDiagnostics(Diagnostic(ERRID.ERR_RequiredConstExpr, "New Integer(1, 1) {{1, 2}, {2, 3}}"),
-            Diagnostic(ERRID.ERR_OverloadWithDefault2, "foo").WithArguments("Public Sub foo([i As Integer(*,*)])", "Public Sub foo([i As Integer(*,*) = Nothing])"))
+        </compilation>).VerifyDiagnostics(
+        Diagnostic(ERRID.ERR_RequiredConstExpr, "New Integer(1, 1) {{1, 2}, {2, 3}}"),
+        Diagnostic(ERRID.ERR_DuplicateProcDef1, "foo").WithArguments("Public Sub foo([i As Integer(*,*)])").WithLocation(5, 21))
+        '       Diagnostic(ERRID.ERR_OverloadWithDefault2, "foo").WithArguments("Public Sub foo([i As Integer(*,*)])", "Public Sub foo([i As Integer(*,*) = Nothing])"))
     End Sub
 
     <WorkItem(540174, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540174")>
@@ -1443,8 +1445,6 @@ End Class
                 ]]>,
             <errors>
                 <error id="30200"/>
-                <error id="30201"/>
-                <error id="30812"/>
             </errors>)
     End Sub
 
@@ -2226,8 +2226,6 @@ End Module
             ]]>,
         <errors>
             <error id="30642"/>
-            <error id="30812"/>
-            <error id="30201"/>
         </errors>)
     End Sub
 
@@ -2537,10 +2535,12 @@ End Module
                     End Function
                 End Class
             ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30812"/>
-                                 <error id="30201"/>
-                             </errors>)
+        Dim result = Parse(code)
+        Xunit.Assert.Equal(result.GetDiagnostics.Count, 0)
+        'ParseAndVerify(code, <errors>
+        '                         <error id="30812"/>
+        '                         <error id="30201"/>
+        '                     </errors>)
     End Sub
 
     <Fact()>
