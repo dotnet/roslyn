@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var checksums = AddGlobalAssets(cancellationToken);
 
                 // send over global asset
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     (object)checksums, cancellationToken).ConfigureAwait(false);

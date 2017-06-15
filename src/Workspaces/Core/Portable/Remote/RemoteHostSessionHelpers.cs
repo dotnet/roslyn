@@ -130,17 +130,17 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<(bool success, T result)> TryInvokeAsync<T>(string targetName, params object[] arguments)
+        public async Task<T> TryInvokeAsync<T>(string targetName, params object[] arguments)
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             {
                 var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
                 if (connection == null)
                 {
-                    return (false, default(T));
+                    return default;
                 }
 
-                return (true, await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false));
+                return await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
             }
         }
 
@@ -159,17 +159,17 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<(bool success, T result)> TryInvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public async Task<T> TryInvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             {
                 var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
                 if (connection == null)
                 {
-                    return (false, default(T));
+                    return default;
                 }
 
-                return (true, await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false));
+                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
             }
         }
 
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<(bool success, T result)> TryInvokeAsync<T>(string targetName, Solution solution, params object[] arguments)
+        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, params object[] arguments)
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
@@ -198,11 +198,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
                 if (connection == null)
                 {
-                    return (false, default(T));
+                    return default;
                 }
 
                 await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return (true, await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false));
+                return await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
             }
         }
 
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<(bool success, T result)> TryInvokeAsync<T>(string targetName, Solution solution, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
             using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
             using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
@@ -232,11 +232,11 @@ namespace Microsoft.CodeAnalysis.Remote
                 var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
                 if (connection == null)
                 {
-                    return (false, default(T));
+                    return default;
                 }
 
                 await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return (true, await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false));
+                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
             }
         }
 

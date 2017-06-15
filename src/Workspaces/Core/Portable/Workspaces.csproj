@@ -382,7 +382,6 @@
     <Compile Include="FindSymbols\SymbolFinder_Declarations_CustomQueries.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindReferences_Current.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindRenamableReferences.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />

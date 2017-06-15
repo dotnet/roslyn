@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 RemoteFeatureOptions.SymbolSearchEnabled, cancellationToken).ConfigureAwait(false);
             if (client != null)
             {
-                var session = await client.TryCreateServiceKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, logService, cancellationToken).ConfigureAwait(false);
+                var session = await client.TryCreateKeepAliveSessionAsync(WellKnownServiceHubServices.RemoteSymbolSearchUpdateEngine, logService, cancellationToken).ConfigureAwait(false);
                 if (session != null)
                 {
                     return new RemoteUpdateEngine(workspace, session);
@@ -50,46 +50,31 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity)
             {
-                var (success, results) = await _session.TryInvokeAsync<ImmutableArray<PackageWithTypeResult>>(
+                var results = await _session.TryInvokeAsync<ImmutableArray<PackageWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithTypeAsync),
                     source, name, arity).ConfigureAwait(false);
-                if (!success)
-                {
-                    // keep alive session couldn't run. most likely remote host is gone
-                    return ImmutableArray<PackageWithTypeResult>.Empty;
-                }
 
-                return results;
+                return results.NullToEmpty();
             }
 
             public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string assemblyName)
             {
-                var (success, results) = await _session.TryInvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
+                var results = await _session.TryInvokeAsync<ImmutableArray<PackageWithAssemblyResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindPackagesWithAssemblyAsync),
                     source, assemblyName).ConfigureAwait(false);
-                if (!success)
-                {
-                    // keep alive session couldn't run. most likely remote host is gone
-                    return ImmutableArray<PackageWithAssemblyResult>.Empty;
-                }
 
-                return results;
+                return results.NullToEmpty();
             }
 
             public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {
-                var (success, results) = await _session.TryInvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
+                var results = await _session.TryInvokeAsync<ImmutableArray<ReferenceAssemblyWithTypeResult>>(
                     nameof(IRemoteSymbolSearchUpdateEngine.FindReferenceAssembliesWithTypeAsync),
                     name, arity).ConfigureAwait(false);
-                if (!success)
-                {
-                    // keep alive session couldn't run. most likely remote host is gone
-                    return ImmutableArray<ReferenceAssemblyWithTypeResult>.Empty;
-                }
 
-                return results;
+                return results.NullToEmpty();
             }
 
             public async Task UpdateContinuouslyAsync(

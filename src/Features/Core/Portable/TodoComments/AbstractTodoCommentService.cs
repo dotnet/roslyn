@@ -19,10 +19,13 @@ namespace Microsoft.CodeAnalysis.TodoComments
         // on remote host, so we need to make sure given input always belong to right workspace where
         // the session belong to.
         private readonly Workspace _workspace;
-        private KeepAliveSession _session;
+        private readonly SemaphoreSlim _gate;
+
+        private KeepAliveSession _sessionDoNotAccessDirectly;
 
         protected AbstractTodoCommentService(Workspace workspace)
         {
+            _gate = new SemaphoreSlim(initialCount: 1);
             _workspace = workspace;
         }
 
@@ -58,32 +61,29 @@ namespace Microsoft.CodeAnalysis.TodoComments
         private async Task<IList<TodoComment>> GetTodoCommentsInRemoteHostAsync(
             RemoteHostClient client, Document document, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken)
         {
-            var keepAliveSession = await TryGetKeepAliveSessionAsync(client).ConfigureAwait(false);
+            var keepAliveSession = await TryGetKeepAliveSessionAsync(client, cancellationToken).ConfigureAwait(false);
 
-            var (success, result) = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
+            var result = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
                 nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                 document.Project.Solution,
                 new object[] { document.Id, commentDescriptors }).ConfigureAwait(false);
 
-            return success ? result : SpecializedCollections.EmptyList<TodoComment>();
+            return result ?? SpecializedCollections.EmptyList<TodoComment>();
         }
 
-        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client)
+        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellation)
         {
-            if (_session != null)
+            using (await _gate.DisposableWaitAsync(cancellation).ConfigureAwait(false))
             {
-                return _session;
-            }
+                if (_sessionDoNotAccessDirectly == null)
+                {
+                    // we give cancellation none here since the cancellation will cause KeepAlive session to be shutdown
+                    // when raised
+                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None).ConfigureAwait(false);
+                }
 
-            var session = await client.TryCreateServiceKeepAliveSessionAsync(WellKnownServiceHubServices.CodeAnalysisService, CancellationToken.None).ConfigureAwait(false);
-            var oldSession = Interlocked.CompareExchange(ref _session, session, null);
-            if (oldSession != null)
-            {
-                // there was race, kill the lost session
-                session.Shutdown();
+                return _sessionDoNotAccessDirectly;
             }
-
-            return _session;
         }
 
         private async Task<IList<TodoComment>> GetTodoCommentsInCurrentProcessAsync(

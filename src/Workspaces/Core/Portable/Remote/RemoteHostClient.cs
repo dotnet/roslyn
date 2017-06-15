@@ -11,7 +11,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Remote
 {
     /// <summary>
-    /// This lets users create a session to communicate with remote host (i.e. ServiceHub)
+    /// This represents client in client/servier model.
+    /// 
+    /// user can create a connection to communicate with the server (remote host) through this client
     /// </summary>
     internal abstract partial class RemoteHostClient
     {
@@ -89,29 +91,54 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        /// <summary>
+        /// This is a connection between client and server. user can use this to communicate with remote host.
+        /// 
+        /// This doesn't know anything specific to Roslyn. this is general pure connection between client and server.
+        /// </summary>
         public abstract class Connection : IDisposable
         {
+            // this will be removed soon.
             protected readonly CancellationToken CancellationToken;
-            private PinnedRemotableDataScope _scope;
+
+            // scope will be also removed from the connection
+            private readonly object _gate;
+            private PinnedRemotableDataScope _scopeDoNotAccessDirectly;
 
             private bool _disposed;
 
             protected Connection(CancellationToken cancellationToken)
             {
                 _disposed = false;
-                _scope = null;
+                _scopeDoNotAccessDirectly = null;
 
                 CancellationToken = cancellationToken;
             }
 
             protected abstract Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope);
 
-            public PinnedRemotableDataScope PinnedRemotableDataScope => _scope;
+            public PinnedRemotableDataScope PinnedRemotableDataScope
+            {
+                get
+                {
+                    lock (_gate)
+                    {
+                        return _scopeDoNotAccessDirectly;
+                    }
+                }
+                set
+                {
+                    lock (_gate)
+                    {
+                        _scopeDoNotAccessDirectly = value;
+                    }
+                }
+            }
 
             public virtual Task RegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
             {
                 // make sure all thread can read the info
-                Interlocked.Exchange(ref _scope, scope);
+                PinnedRemotableDataScope = scope;
 
                 return OnRegisterPinnedRemotableDataScopeAsync(scope);
             }

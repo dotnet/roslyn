@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return null;
             }
 
-            return await client.TryCreateCodeAnalysisServiceSessionAsync(
+            return await client.TryCreateCodeAnalysisSessionAsync(
                 solution, cancellationToken).ConfigureAwait(false);
         }
 

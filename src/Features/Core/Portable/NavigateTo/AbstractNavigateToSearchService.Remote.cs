@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = document.Project.Solution;
 
-            var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
+            var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchDocumentAsync),
                 new object[] { document.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         {
             var solution = project.Solution;
 
-            var serializableResults = await client.RunCodeAnalysisServiceOnRemoteHostAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
+            var serializableResults = await client.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableNavigateToSearchResult>>(
                 solution, nameof(IRemoteNavigateToSearchService.SearchProjectAsync),
                 new object[] { project.Id, searchPattern }, cancellationToken).ConfigureAwait(false);
 
