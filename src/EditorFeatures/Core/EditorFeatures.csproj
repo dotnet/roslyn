@@ -179,6 +179,7 @@
     <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTag.cs" />
     <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTagDefinition.cs" />
     <Compile Include="Implementation\InfoBar\EditorInfoBarService.cs" />
+    <Compile Include="Shared\Extensions\ITextBufferEditExtensions.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />
@@ -413,7 +414,6 @@
     <Compile Include="Implementation\CallHierarchy\Finders\MethodCallFinder.cs" />
     <Compile Include="Implementation\CallHierarchy\Finders\OverridingMemberFinder.cs" />
     <Compile Include="Implementation\ChangeSignature\AbstractChangeSignatureCommandHandler.cs" />
-    <Compile Include="Implementation\Classification\AbstractEditorClassificationService.cs" />
     <Compile Include="Implementation\Classification\ClassificationTypeDefinitions.cs" />
     <Compile Include="Implementation\Classification\ClassificationUtilities.cs" />
     <Compile Include="Implementation\Classification\IEditorClassificationService.cs" />

@@ -2,13 +2,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
@@ -22,14 +25,12 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
@@ -41,13 +42,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var classifiers = service.GetDefaultSyntaxClassifiers();
                 var extensionManager = workspace.Services.GetService<IExtensionManager>();
 
-                var results = new List<ClassifiedSpan>();
+                var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
                 await service.AddSemanticClassificationsAsync(document, textSpan,
                     extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
                     extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
                     results, CancellationToken.None);
 
-                return results;
+                return results.ToImmutableAndFree();
             }
         }
 
