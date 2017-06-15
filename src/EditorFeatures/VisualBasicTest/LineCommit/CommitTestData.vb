@@ -121,7 +121,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 _testWorkspace = testWorkspace
             End Sub
 
-            Public Sub CommitRegion(spanToFormat As SnapshotSpan,
+            Public Sub CommitRegion(unexpandedSpan As SnapshotSpan,
+                                   spanToFormat As SnapshotSpan,
                                     isExplicitFormat As Boolean,
                                     useSemantics As Boolean,
                                     dirtyRegion As SnapshotSpan,
@@ -140,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 End If
 
                 Dim realCommitFormatter As New CommitFormatter()
-                realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
+                realCommitFormatter.CommitRegion(unexpandedSpan, spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
             End Sub
         End Class
     End Class

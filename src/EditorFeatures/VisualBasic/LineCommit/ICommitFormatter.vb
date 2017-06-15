@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         ''' partially committed state that must be rolled back by the transaction.
         ''' </summary>
         Sub CommitRegion(
+                        unexpandedSpan As SnapshotSpan,
             spanToFormat As SnapshotSpan,
             isExplicitFormat As Boolean,
             useSemantics As Boolean,

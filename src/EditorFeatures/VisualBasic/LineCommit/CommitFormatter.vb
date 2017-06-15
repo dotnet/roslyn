@@ -21,10 +21,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private Shared ReadOnly s_codeCleanupPredicate As Func(Of ICodeCleanupProvider, Boolean) =
             Function(p)
                 Return p.Name <> PredefinedCodeCleanupProviderNames.Simplification AndAlso
-                       p.Name <> PredefinedCodeCleanupProviderNames.Format
+                       p.Name <> PredefinedCodeCleanupProviderNames.Format AndAlso
+                       p.Name <> PredefinedCodeCleanupProviderNames.CaseCorrection
             End Function
 
-        Public Sub CommitRegion(spanToFormat As SnapshotSpan,
+        Public Sub CommitRegion(spanToCaseCorrect As SnapshotSpan,
+                               spanToFormat As SnapshotSpan,
                                 isExplicitFormat As Boolean,
                                 useSemantics As Boolean,
                                 dirtyRegion As SnapshotSpan,
@@ -64,12 +66,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                                 dirtyRegion, document.GetSyntaxTreeSynchronously(cancellationToken),
                                                 cancellationToken)
 
-                Dim codeCleanups = CodeCleaner.GetDefaultProviders(document).
-                                               WhereAsArray(s_codeCleanupPredicate).
-                                               Concat(commitFormattingCleanup)
+                Dim caseCleanup = GetCaseCorrectionCleanupProvider(document, spanToCaseCorrect.Span.ToTextSpan())
+                Dim caseCleanupEnum = SpecializedCollections.SingletonEnumerable(caseCleanup)
+                Dim codeCleanups = caseCleanupEnum.Concat(
+                                                CodeCleaner.GetDefaultProviders(document).
+                                               WhereAsArray(s_codeCleanupPredicate)).
+                                               Concat(commitFormattingCleanup).ToImmutableArray()
 
                 Dim finalDocument As Document
                 If useSemantics OrElse isExplicitFormat Then
+                    'finalDocument = CaseCorrection.CaseCorrector.CaseCorrectAsync(document, New TextSpan(spanToCaseCorrect.Start, spanToCaseCorrect.Length), cancellationToken).WaitAndGetResult(cancellationToken)
+
+
                     finalDocument = CodeCleaner.CleanupAsync(document,
                                                              textSpanToFormat,
                                                              codeCleanups,
@@ -109,6 +117,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Function(d) d.Descriptor.Id = UnterminatedStringId)
 
             Return diagnostics.Any()
+        End Function
+
+        Private Function GetCaseCorrectionCleanupProvider(
+            document As Document,
+            spanToFormat As TextSpan) As ICodeCleanupProvider
+
+            Return New SimpleCodeCleanupProvider(PredefinedCodeCleanupProviderNames.CaseCorrection,
+                Function(doc, spans, c) CaseCorrection.CaseCorrector.CaseCorrectAsync(doc, spanToFormat, c),
+                Nothing)
         End Function
 
         Private Function GetCommitFormattingCleanupProvider(

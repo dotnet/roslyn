@@ -116,7 +116,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
 
                     Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeSynchronously(cancellationToken)
-                    _commitFormatter.CommitRegion(info.SpanToFormat, isExplicitFormat, info.UseSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
+                    Dim line = dirtyRegion.Start.GetContainingLine().Extent.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive)
+                    'Dim startingStatementInfo = ContainingStatementInfo.GetInfo(dirtyRegion.Start, tree, cancellationToken)
+                    'Dim st = _dirtyState.BaseSnapshot.CreateTrackingSpan(startingStatementInfo.TextSpan.Length, startingStatementInfo.TextSpan.Length, SpanTrackingMode.EdgeInclusive)
+                    Dim current = line.GetSpan(_buffer.CurrentSnapshot)
+                    ' Dim sss = New SnapshotSpan(_dirtyState.BaseSnapshot, startingStatementInfo.TextSpan.Length, startingStatementInfo.TextSpan.Length)
+                    _commitFormatter.CommitRegion(current, info.SpanToFormat, isExplicitFormat, info.UseSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken)
                 End Using
             Finally
                 ' We may have tracked a dirty region while committing or it may have been aborted.
@@ -202,6 +207,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
 
             Dim tree = document.GetSyntaxTreeSynchronously(cancellationToken)
+            'Dim oldTree = document.WithText(oldPoint.Snapshot.AsText()).GetSyntaxTreeSynchronously(cancellationToken)
 
             Dim oldStatement = ContainingStatementInfo.GetInfo(oldPoint, tree, cancellationToken)
             Dim newStatement = ContainingStatementInfo.GetInfo(newPoint, tree, cancellationToken)
@@ -215,6 +221,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             End If
 
             Return oldStatement.TextSpan <> newStatement.TextSpan
+            'Return Not oldStatement.MatchingBlockConstruct.IsEquivalentTo(newStatement.MatchingBlockConstruct)
         End Function
 
         Private Sub OnTextBufferChanging(sender As Object, e As TextContentChangingEventArgs)
