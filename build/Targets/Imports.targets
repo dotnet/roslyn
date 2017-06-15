@@ -200,6 +200,10 @@
     </When>
   </Choose>
 
+  <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
+    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
+  </ItemGroup>
+
   <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
     <Reference>
       <Private>False</Private>
