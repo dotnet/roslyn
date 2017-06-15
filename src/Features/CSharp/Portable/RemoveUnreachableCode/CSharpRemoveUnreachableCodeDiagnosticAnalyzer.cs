@@ -19,10 +19,15 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         public const string IsCascadedSection = nameof(IsCascadedSection);
         private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsCascadedSection, "");
 
+        private readonly DiagnosticDescriptor _unnecessaryDescriptor;
+
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _unnecessaryDescriptor = CreateDescriptorWithId(
+                DescriptorId, _localizableTitle, _localizableMessage,
+                DiagnosticSeverity.Hidden, new[] { WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable });
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -133,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 // Can't actually remove this statement (it's an embedded statement in something 
                 // like an 'if-statement').  Just fade the code out, but don't offer to remove it.
                 context.ReportDiagnostic(
-                    Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, firstStatementLocation));
+                    Diagnostic.Create(_unnecessaryDescriptor, firstStatementLocation));
                 return;
             }
 
@@ -142,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
             context.ReportDiagnostic(
-                Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, firstStatementLocation, additionalLocations));
+                Diagnostic.Create(_unnecessaryDescriptor, firstStatementLocation, additionalLocations));
 
             var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
             foreach (var section in sections)
@@ -154,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
                 context.ReportDiagnostic(
-                    Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, location, additionalLocations, s_additionalProperties));
+                    Diagnostic.Create(_unnecessaryDescriptor, location, additionalLocations, s_additionalProperties));
             }
         }
     }
