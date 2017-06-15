@@ -547,11 +547,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // mark the variable as captured in each enclosing lambda up to the variable's point of declaration.
                     while ((object)lambda != null &&
                            symbol != lambda &&
-                           symbol.ContainingSymbol != lambda)
+                           symbol.ContainingSymbol != lambda &&
+                           // Necessary because the EE can insert non-closure synthesized method symbols
+                           IsClosure(lambda))
                     {
                         CapturedVariablesByLambda.Add(lambda, symbol);
                         lambda = lambda.ContainingSymbol as MethodSymbol;
                     }
+                }
+            }
+
+            private static bool IsClosure(MethodSymbol symbol)
+            {
+                switch (symbol.MethodKind)
+                {
+                    case MethodKind.LambdaMethod:
+                    case MethodKind.LocalFunction:
+                        return true;
+
+                    default:
+                        return false;
                 }
             }
 
