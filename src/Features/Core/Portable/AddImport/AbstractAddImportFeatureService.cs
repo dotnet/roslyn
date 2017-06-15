@@ -7,8 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -77,15 +75,15 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            if (result.IsDefault)
+            if (!result.IsDefault)
             {
-                return await GetFixesInCurrentProcessAsync(
-                    document, span, diagnosticId, placeSystemNamespaceFirst,
-                    symbolSearchService, searchReferenceAssemblies,
-                    packageSources, cancellationToken).ConfigureAwait(false);
+                return result;
             }
 
-            return result;
+            return await GetFixesInCurrentProcessAsync(
+                document, span, diagnosticId, placeSystemNamespaceFirst,
+                symbolSearchService, searchReferenceAssemblies,
+                packageSources, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
