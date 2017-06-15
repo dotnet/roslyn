@@ -149,6 +149,7 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="Fading\FadingOptions.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

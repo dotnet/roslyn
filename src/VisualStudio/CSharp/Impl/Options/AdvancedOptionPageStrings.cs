@@ -134,6 +134,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         public static string Option_Show_guides_for_code_level_constructs
             => ServicesVSResources.Show_guides_for_code_level_constructs;
 
+        public static string Option_Fading
+            => ServicesVSResources.Fading;
+
+        public static string Option_Fade_out_unused_usings
+            => ServicesVSResources.Fade_out_unused_usings;
+
+        public static string Option_Fade_out_unnecessary_casts
+            => ServicesVSResources.Fade_out_unnecessary_casts;
+
+        public static string Option_Fade_out_unreachable_code
+            => ServicesVSResources.Fade_out_unreachable_code;
+
+        public static string Option_Fade_out_null_checks_that_can_be_simplified
+            => ServicesVSResources.Fade_out_null_checks_that_can_be_simplified;
+
+        public static string Option_Fade_out_initializers_that_can_be_simplified
+            => ServicesVSResources.Fade_out_initializers_that_can_be_simplified;
+
+        public static string Option_Fade_out_default_expressions_that_can_be_simplified
+            => ServicesVSResources.Fade_out_default_expressions_that_can_be_simplified;
+
         public static string Option_Performance
         {
             get { return CSharpVSResources.Performance; }

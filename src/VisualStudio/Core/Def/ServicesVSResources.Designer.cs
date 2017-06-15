@@ -778,6 +778,69 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Fade out &apos;defualt&apos; expressions that can be simplified.
+        /// </summary>
+        internal static string Fade_out_default_expressions_that_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Fade_out_default_expressions_that_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out initializers that can be simplified.
+        /// </summary>
+        internal static string Fade_out_initializers_that_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Fade_out_initializers_that_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out null checks that can be simplified.
+        /// </summary>
+        internal static string Fade_out_null_checks_that_can_be_simplified {
+            get {
+                return ResourceManager.GetString("Fade_out_null_checks_that_can_be_simplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out unnecessary casts.
+        /// </summary>
+        internal static string Fade_out_unnecessary_casts {
+            get {
+                return ResourceManager.GetString("Fade_out_unnecessary_casts", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out unreachable code.
+        /// </summary>
+        internal static string Fade_out_unreachable_code {
+            get {
+                return ResourceManager.GetString("Fade_out_unreachable_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fade out unused usings.
+        /// </summary>
+        internal static string Fade_out_unused_usings {
+            get {
+                return ResourceManager.GetString("Fade_out_unused_usings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Fading.
+        /// </summary>
+        internal static string Fading {
+            get {
+                return ResourceManager.GetString("Fading", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to create document in miscellaneous files project..
         /// </summary>
         internal static string Failed_to_create_document_in_miscellaneous_files_project {
