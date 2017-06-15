@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Fading;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
@@ -44,6 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 return;
             }
 
+            var options = context.Options as WorkspaceAnalyzerOptions;
+            if (options == null)
+            {
+                return;
+            }
+
+            var fadeCode = options.Services.Workspace.Options.GetOption(FadingOptions.FadeOutUnreachableCode, LanguageNames.CSharp);
+
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
 
@@ -66,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
                 if (diagnostic.Id == CS0162)
                 {
-                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan);
+                    ProcessUnreachableDiagnostic(context, root, diagnostic.Location.SourceSpan, fadeCode);
                 }
             }
         }
@@ -86,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         }
 
         private void ProcessUnreachableDiagnostic(
-            SyntaxNodeAnalysisContext context, SyntaxNode root, TextSpan sourceSpan)
+            SyntaxNodeAnalysisContext context, SyntaxNode root, TextSpan sourceSpan, bool fadeOutCode)
         {
             var node = root.FindNode(sourceSpan);
 
@@ -132,8 +141,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             {
                 // Can't actually remove this statement (it's an embedded statement in something 
                 // like an 'if-statement').  Just fade the code out, but don't offer to remove it.
-                context.ReportDiagnostic(
-                    Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, firstStatementLocation));
+                if (fadeOutCode)
+                {
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, firstStatementLocation));
+                }
                 return;
             }
 
@@ -151,9 +163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them 
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
+                var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : HiddenDescriptor;
+
                 var diagnostic = isFirstSection
-                    ? Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, location, additionalLocations)
-                    : Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, location, additionalLocations, s_additionalProperties);
+                    ? Diagnostic.Create(descriptor, location, additionalLocations)
+                    : Diagnostic.Create(descriptor, location, additionalLocations, s_additionalProperties);
                 context.ReportDiagnostic(diagnostic);
 
                 isFirstSection = false;

@@ -25,9 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
+            var priority = diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
+                ? CodeActionPriority.Medium
+                : CodeActionPriority.Low;
+
             context.RegisterCodeFix(new MyCodeAction(
                 FeaturesResources.Remove_unreachable_code,
-                c => FixAsync(context.Document, diagnostic, c)), diagnostic);
+                c => FixAsync(context.Document, diagnostic, c), 
+                priority), diagnostic);
 
             return SpecializedTasks.EmptyTask;
         }
@@ -64,10 +69,16 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) 
+            public MyCodeAction(
+                string title,
+                Func<CancellationToken, Task<Document>> createChangedDocument,
+                CodeActionPriority priority) 
                 : base(title, createChangedDocument, title)
             {
+                this.Priority = priority;
             }
+
+            internal override CodeActionPriority Priority { get; }
         }
     }
 }
