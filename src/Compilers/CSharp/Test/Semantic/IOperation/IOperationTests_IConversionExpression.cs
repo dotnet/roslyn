@@ -2949,6 +2949,16 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             public Func<SyntaxNode, SyntaxNode> SyntaxSelector { get; set; } = VariableDeclaratorSelector;
 
+            /// <summary>
+            /// Verifies that the given operation has the type information that the semantic model has for the given
+            /// syntax node. A selector is used to walk the operation tree and syntax tree for the final
+            /// nodes to compare type info for.
+            ///
+            /// <see cref="SyntaxSelector"/> is used to to select the syntax node to test.
+            /// <see cref="OperationSelector"/> is used to select the IConversion node to test.
+            /// <see cref="ConversionChildSelector"/> is used to select what child node of the IConversion to compare original types to.
+            /// this is useful for multiple conversion scenarios where we end up with multiple IConversion nodes in the tree.
+            /// </summary>
             public void Verify(IOperation operation, Compilation compilation, SyntaxNode syntaxNode)
             {
                 switch (operation.Kind)
