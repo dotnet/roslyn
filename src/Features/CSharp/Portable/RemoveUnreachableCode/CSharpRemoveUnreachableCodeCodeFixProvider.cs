@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Properties.ContainsKey(CSharpRemoveUnreachableCodeDiagnosticAnalyzer.IsCascadedStatement);
+            => !diagnostic.Properties.ContainsKey(CSharpRemoveUnreachableCodeDiagnosticAnalyzer.IsCascadedSection);
 
         protected override Task FixAllAsync(
             Document document, 

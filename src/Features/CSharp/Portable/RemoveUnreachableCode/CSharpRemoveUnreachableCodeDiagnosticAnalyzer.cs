@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
     {
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
-        public const string IsCascadedStatement = nameof(IsCascadedStatement);
-        private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsCascadedStatement, "");
+        public const string IsCascadedSection = nameof(IsCascadedSection);
+        private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsCascadedSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
