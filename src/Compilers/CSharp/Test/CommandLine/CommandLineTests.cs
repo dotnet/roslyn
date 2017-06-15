@@ -5441,7 +5441,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
         }
 
         [Theory,
-            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (<developer build>)",
+            InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (42424242)",
                 "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
             InlineData("Microsoft (R) Visual C# Compiler version A.B.C.D (ABCDEF01)",
                 "Microsoft (R) Visual C# Compiler version A.B.C.D (HASH)"),
@@ -5456,8 +5456,8 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
 
         private static string ReplaceCommitHash(string s)
         {
-            // open paren, followed by either <developer build> or 8 hex, followed by close paren
-            return Regex.Replace(s, "(\\((<developer build>|[a-fA-F0-9]{8})\\))", "(HASH)");
+            // open paren, followed by 8 hex, followed by close paren
+            return Regex.Replace(s, "(\\(([a-fA-F0-9]{8})\\))", "(HASH)");
         }
 
         [Fact]
@@ -5466,7 +5466,6 @@ Copyright (C) Microsoft Corporation. All rights reserved.".Trim(),
             Assert.Null(CommonCompiler.ExtractShortCommitHash(null));
             Assert.Equal("", CommonCompiler.ExtractShortCommitHash(""));
             Assert.Equal("<", CommonCompiler.ExtractShortCommitHash("<"));
-            Assert.Equal("<developer build>", CommonCompiler.ExtractShortCommitHash("<developer build>"));
             Assert.Equal("1", CommonCompiler.ExtractShortCommitHash("1"));
             Assert.Equal("1234567", CommonCompiler.ExtractShortCommitHash("1234567"));
             Assert.Equal("12345678", CommonCompiler.ExtractShortCommitHash("12345678"));

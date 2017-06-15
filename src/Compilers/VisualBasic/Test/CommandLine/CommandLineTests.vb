@@ -245,7 +245,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
         End Sub
 
         <Theory,
-            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (<developer build>)",
+            InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (42424242)",
                        "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
             InlineData("Microsoft (R) Visual Basic Compiler version A.B.C.D (ABCDEF01)",
                        "Microsoft (R) Visual Basic Compiler version A.B.C.D (HASH)"),
@@ -258,7 +258,7 @@ Copyright (C) Microsoft Corporation. All rights reserved.
         End Sub
 
         Private Shared Function ReplaceCommitHash(s As String) As String
-            Return Regex.Replace(s, "(\((<developer build>|[a-fA-F0-9]{8})\))", "(HASH)")
+            Return Regex.Replace(s, "(\(([a-fA-F0-9]{8})\))", "(HASH)")
         End Function
 
         <Fact>
