@@ -573,6 +573,51 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        public async Task TestFixAll4()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(object o)
+    {
+        for (int i = 0; i < 10; i = i + 1)
+        {
+            for (int j = 0; j < 10; j = j + 1)
+            {
+                goto stop;
+                {|FixAllInDocument:goto outerLoop;|}
+            }
+        outerLoop:
+            return;
+        }
+    stop:
+        return;
+    }
+    }
+}",
+@"
+class C
+{
+    void M(object o)
+    {
+        for (int i = 0; i < 10; i = i + 1)
+        {
+            for (int j = 0; j < 10; j = j + 1)
+            {
+                goto stop;
+            }
+        outerLoop:
+            return;
+        }
+    stop:
+        return;
+    }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
         public async Task TestInUnreachableInSwitchSection1()
         {
             await TestInRegularAndScriptAsync(
@@ -686,6 +731,65 @@ class C
 #endif
     }
 }", ignoreTrivia: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        public async Task TestForLoop1()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        for (int i = 0; i < 5;)
+        {
+            i = 2;
+            goto Lab2;
+            [|i = 1;|]
+            break;
+        Lab2:
+            return ;
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        for (int i = 0; i < 5;)
+        {
+            i = 2;
+            goto Lab2;
+        Lab2:
+            return ;
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        public async Task TestInfiniteForLoop()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        for (;;) { }
+        [|return;|]
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        for (;;) { }
+    }
+}");
         }
     }
 }

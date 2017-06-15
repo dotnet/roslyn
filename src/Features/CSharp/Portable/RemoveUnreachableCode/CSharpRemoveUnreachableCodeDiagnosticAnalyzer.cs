@@ -94,7 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // unreachable statements.  If we ever get unreachable subexpressions, then
             // we'll need to revise this code accordingly.
             var firstUnreachableStatement = node.FirstAncestorOrSelf<StatementSyntax>();
-            if (firstUnreachableStatement == null)
+            if (firstUnreachableStatement == null ||
+                firstUnreachableStatement.SpanStart != sourceSpan.Start)
             {
                 return;
             }
