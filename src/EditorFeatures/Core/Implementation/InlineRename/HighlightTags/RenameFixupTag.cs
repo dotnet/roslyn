@@ -4,13 +4,14 @@ using Microsoft.VisualStudio.Text.Tagging;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 {
-    internal class ValidTag : TextMarkerTag
+    internal class RenameFixupTag : TextMarkerTag
     {
-        internal const string TagId = "RoslynRenameValidTag";
+        // Only used for theming, does not need localized
+        internal const string TagId = "RoslynRenameFixupTag";
 
-        public static readonly ValidTag Instance = new ValidTag();
+        public static readonly RenameFixupTag Instance = new RenameFixupTag();
 
-        private ValidTag()
+        private RenameFixupTag()
             : base(TagId)
         {
         }
