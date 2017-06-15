@@ -109,6 +109,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             protected Connection(CancellationToken cancellationToken)
             {
+                _gate = new object();
+
                 _disposed = false;
                 _scopeDoNotAccessDirectly = null;
 
