@@ -23312,6 +23312,38 @@ class C
         }
 
         [Fact]
+        [WorkItem(20208, "https://github.com/dotnet/roslyn/issues/20208")]
+        public void UnusedTupleAssignedToVar()
+        {
+            var source = @"
+class C
+{
+	public static void Main ()
+	{
+		(int, int) t1 = (1, 2);
+		var t2 = (3, 4);
+	}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,14): warning CS0219: The variable 't1' is assigned but its value is never used
+                // 		(int, int) t1 = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(6, 14),
+                // (7,7): warning CS0219: The variable 't2' is assigned but its value is never used
+                // 		var t2 = (3, 4);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(7, 7)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(tuple).Kind);
+        }
+
+        [Fact]
         [WorkItem(18738, "https://github.com/dotnet/roslyn/issues/18738")]
         public void TypedTupleWithNoConversion()
         {
