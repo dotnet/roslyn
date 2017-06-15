@@ -5,6 +5,7 @@
 
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+    <ConfigurationArg Condition="'$(Configuration)' == 'Release'">-release</ConfigurationArg>
     <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
     <BranchName Condition="'$(BranchName)' == ''">$(BUILD_SOURCEBRANCH)</BranchName>
     <BinariesPath>$(RepoRoot)Binaries\$(Configuration)</BinariesPath>
@@ -24,7 +25,7 @@
 
   <Target Name="Build">
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\build.ps1 -restore -msbuildDir &quot;$(MSBuildBinPath)&quot;" Condition="'$(SkipRestore)' != 'true'" />
-    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\build.ps1 -build -msbuildDir &quot;$(MSBuildBinPath)&quot;" />
+    <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(RepoRoot)build\scripts\build.ps1 -build $(ConfigurationArg) -msbuildDir &quot;$(MSBuildBinPath)&quot;" />
 
     <Exec Command="powershell -noprofile -executionPolicy ByPass -file $(MSBuildThisFileDirectory)..\..\..\build\scripts\create-perftests.ps1 -buildDir &quot;$(BinariesPath)&quot;" />
 
