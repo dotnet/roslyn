@@ -30,9 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             => false;
 
         protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterSyntaxNodeAction(AnalyzeBlock, ImmutableArray.Create(SyntaxKind.Block));
-        }
+            => context.RegisterSyntaxNodeAction(AnalyzeBlock, ImmutableArray.Create(SyntaxKind.Block));
 
         private void AnalyzeBlock(SyntaxNodeAnalysisContext context)
         {
