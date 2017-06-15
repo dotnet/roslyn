@@ -32,7 +32,11 @@ var BuildVersion = Args[1].Trim();
 var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
-var CommitUrl = $"https://github.com/dotnet/roslyn/commit/{Args[3]}";
+
+// In developer builds the commit sha is <developer build>. Need to make sure
+// we escape the values so that 
+var CommitSha = Args[3].Replace("<", "").Replace(">", "");
+var CommitUrl = $"https://github.com/dotnet/roslyn/commit/{CommitSha}";
 
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
