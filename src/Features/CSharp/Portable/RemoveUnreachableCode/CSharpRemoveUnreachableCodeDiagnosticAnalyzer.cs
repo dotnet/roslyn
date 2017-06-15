@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
         private void AnalyzeBlock(SyntaxNodeAnalysisContext context)
         {
-            var block = (BlockSyntax)context.Node;
+            var block = context.Node;
             if (!IsOutermostBlock(block))
             {
                 // Don't bother processing inner blocks.  We'll have already checked them when
