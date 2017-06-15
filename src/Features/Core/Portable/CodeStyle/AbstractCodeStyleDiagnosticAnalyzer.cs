@@ -38,8 +38,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         /// </summary>
         protected readonly DiagnosticDescriptor UnnecessaryWithoutSuggestionDescriptor;
 
-        private readonly LocalizableString _localizableTitle;
-        private readonly LocalizableString _localizableMessage;
+        protected readonly LocalizableString _localizableTitle;
+        protected readonly LocalizableString _localizableMessage;
 
         protected AbstractCodeStyleDiagnosticAnalyzer(
             string descriptorId, LocalizableString title, LocalizableString message = null)

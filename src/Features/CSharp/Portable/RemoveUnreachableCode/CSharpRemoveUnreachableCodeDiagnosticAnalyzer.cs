@@ -20,10 +20,19 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         public const string IsSubsequentSection = nameof(IsSubsequentSection);
         private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
 
+        private readonly DiagnosticDescriptor _unnecessaryDescriptor;
+        private readonly DiagnosticDescriptor _hiddenDescriptor;
+
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
                    new LocalizableResourceString(nameof(FeaturesResources.Unreachable_code_detected), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _unnecessaryDescriptor = CreateDescriptorWithId(
+                DescriptorId, _localizableTitle, _localizableMessage,
+                DiagnosticSeverity.Hidden, WellKnownDiagnosticTags.Unnecessary, WellKnownDiagnosticTags.NotConfigurable);
+            _hiddenDescriptor = CreateDescriptorWithId(
+                DescriptorId, _localizableTitle, _localizableMessage,
+                DiagnosticSeverity.Hidden, WellKnownDiagnosticTags.NotConfigurable);
         }
 
         public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
@@ -144,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 if (fadeOutCode)
                 {
                     context.ReportDiagnostic(
-                        Diagnostic.Create(UnnecessaryWithoutSuggestionDescriptor, firstStatementLocation));
+                        Diagnostic.Create(_unnecessaryDescriptor, firstStatementLocation));
                 }
                 return;
             }
@@ -153,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
-            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : HiddenDescriptor;
+            var descriptor = fadeOutCode ? _unnecessaryDescriptor : _hiddenDescriptor;
 
             context.ReportDiagnostic(
                 Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));
