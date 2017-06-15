@@ -17,7 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
         public const string IsCascadedSection = nameof(IsCascadedSection);
-        private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsCascadedSection, "");
+        private static readonly ImmutableDictionary<string, string> s_cascadedSectionProperties =
+            ImmutableDictionary<string, string>.Empty.Add(IsCascadedSection, "");
 
         private readonly DiagnosticDescriptor _unnecessaryDescriptor;
 
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
                 context.ReportDiagnostic(
-                    Diagnostic.Create(_unnecessaryDescriptor, location, additionalLocations, s_additionalProperties));
+                    Diagnostic.Create(_unnecessaryDescriptor, location, additionalLocations, s_cascadedSectionProperties));
             }
         }
     }
