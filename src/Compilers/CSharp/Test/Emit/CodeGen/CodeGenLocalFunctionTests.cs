@@ -31,7 +31,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
-        public void IntermediateStructClosures()
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures1()
         {
             CompileAndVerify(@"
 using System;
@@ -75,6 +77,32 @@ class C
 @"0
 1");
         }
+
+        [Fact]
+        [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
+        [WorkItem(18918, "https://github.com/dotnet/roslyn/issues/18918")]
+        public void IntermediateStructClosures2()
+        {
+            CompileAndVerify(@"
+class C
+{
+    int _x;
+    void M()
+    {
+        int y = 0;
+        void L1()
+        {
+            void L2()
+            {
+                int z = 0;
+                int L3() => z + _x;
+            }
+            y++;
+        }
+    }
+}");
+        }
+
         [Fact]
         [WorkItem(18814, "https://github.com/dotnet/roslyn/issues/18814")]
         public void Repro18814()
