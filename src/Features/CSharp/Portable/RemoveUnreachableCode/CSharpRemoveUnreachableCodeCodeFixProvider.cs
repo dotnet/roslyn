@@ -49,7 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.Single();
                 var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(cancellationToken);
 
-                var sections = RemoveUnreachableCodeHelpers.GetUnreachableSections(firstUnreachableStatement);
+                editor.RemoveNode(firstUnreachableStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+                var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
                 foreach (var section in sections)
                 {
                     foreach (var statement in section)
