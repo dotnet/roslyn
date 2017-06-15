@@ -1,4 +1,6 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
+﻿using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -111,6 +113,50 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<EqualsValueClauseSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ILambdaExpression_UnboundLambda_ReferenceEquality()
+        {
+           string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x /*<bind>*/= () => F()/*</bind>*/;
+    }
+
+    static void F()
+    {
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var syntaxTree = compilation.SyntaxTrees[0];
+            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+
+            var variableDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<VariableDeclarationSyntax>().Single();
+            var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Variables.Single().Initializer.Value;
+
+            var variableDeclarationOperation = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableTreeLambdaOperation = (ILambdaExpression)variableDeclarationOperation.Declarations.Single().Initializer;
+            var lambdaOperation = (ILambdaExpression)semanticModel.GetOperationInternal(lambdaSyntax);
+
+            // Assert that both ways of getting to the lambda (requesting the lambda directly, and requesting via the lambda syntax)
+            // return the same bound node.
+            Assert.Same(variableTreeLambdaOperation, lambdaOperation);
+
+            var variableDeclarationOperationSecondRequest = (IVariableDeclarationStatement)semanticModel.GetOperationInternal(variableDeclaration);
+            var variableTreeLambdaOperationSecondRequest = (ILambdaExpression)variableDeclarationOperation.Declarations.Single().Initializer;
+            var lambdaOperationSecondRequest = (ILambdaExpression)semanticModel.GetOperationInternal(lambdaSyntax);
+
+            // Assert that, when request the variable declaration or the lambda for a second time, there is no rebinding of the
+            // underlying UnboundLambda, and we get the same ILambdaExpression as before
+            Assert.Same(variableTreeLambdaOperation, variableTreeLambdaOperationSecondRequest);
+            Assert.Same(lambdaOperation, lambdaOperationSecondRequest);
         }
     }
 }
