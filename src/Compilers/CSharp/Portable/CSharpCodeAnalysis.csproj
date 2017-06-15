@@ -463,7 +463,6 @@
     <Compile Include="Operations\CSharpOperationFactory.cs" />
     <Compile Include="Operations\CSharpOperationFactory_Methods.cs" />
     <Compile Include="Operations\IBoundNodeWithIOperationChildren.cs" />
-    <Compile Include="Operations\LazyLambdaFromUnboundLambdaExpression.cs" />
     <Compile Include="Parser\AbstractLexer.cs" />
     <Compile Include="Parser\BlendedNode.cs" />
     <Compile Include="Parser\Blender.cs" />
