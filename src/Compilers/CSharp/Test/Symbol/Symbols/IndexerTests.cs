@@ -830,7 +830,7 @@ class Derived : Base
         this[q: 1, r: 2] = base[0]; //bad parameter names / no indexer
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'C.this[int, long]'
                 //         c[0] = c[0, 0, 0]; //wrong number of arguments
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "c[0]").WithArguments("y", "C.this[int, long]").WithLocation(7, 9),

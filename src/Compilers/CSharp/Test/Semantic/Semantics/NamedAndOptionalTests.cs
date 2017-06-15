@@ -168,7 +168,7 @@ class C : Middle
         c.Foo(optArg1: 3333, 11111);
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1).VerifyDiagnostics(
                 // (37,15): error CS1739: The best overload for 'Foo' does not have a parameter named 'optParam3'
                 //         c.Foo(optParam3: 333, reqParam1: 111 , optParam2: 222, optParam1: 1111); 
                 Diagnostic(ErrorCode.ERR_BadNamedArgument, "optParam3").WithArguments("Foo", "optParam3").WithLocation(37, 15),

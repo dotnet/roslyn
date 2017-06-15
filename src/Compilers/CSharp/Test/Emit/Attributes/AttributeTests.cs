@@ -4357,7 +4357,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (7,27): error CS1016: Named attribute argument expected
                 //     [A(3, z: 5, X = 6, y: 1)]

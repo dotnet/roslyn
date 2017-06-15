@@ -64,7 +64,7 @@ class C
         M(1, first: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
                 // (10,14): error CS1744: Named argument 'first' specifies a parameter for which a positional argument has already been given
                 //         M(1, first: 2);
@@ -94,11 +94,11 @@ class C
         M(c: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
-                // (10,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'C.M(int, int, int)'
+                // (10,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: 1, 2);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("a", "C.M(int, int, int)").WithLocation(10, 9)
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "c").WithArguments("c").WithLocation(10, 11)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -124,11 +124,11 @@ class C
         M(x: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
-                // (9,11): error CS8321: Named argument 'x' is used out-of-position but is followed by an unnamed argument
+                // (9,9): error CS1501: No overload for method 'M' takes 2 arguments
                 //         M(x: 1, 2);
-                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "x").WithArguments("x").WithLocation(9, 11)
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "2").WithLocation(9, 9)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -136,11 +136,11 @@ class C
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
             var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(x: 1, 2)", invocation.ToString());
-            Assert.Null(model.GetSymbolInfo(invocation).Symbol); // PROTOTYPE(non-trailing)
+            Assert.Null(model.GetSymbolInfo(invocation).Symbol);
         }
 
         [Fact]
-        public void TestNamedParams2()
+        public void TestTwiceNamedParams()
         {
             var source = @"
 class C
@@ -153,7 +153,7 @@ class C
         M(x: 1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
                 // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
                 //         M(x: 1, x: 2);
@@ -182,11 +182,11 @@ class C
         M(y: 1, 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
-                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'C.M(int, params int[])'
+                // (9,11): error CS8321: Named argument 'y' is used out-of-position but is followed by an unnamed argument
                 //         M(y: 1, 2);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("x", "C.M(int, params int[])").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "y").WithArguments("y").WithLocation(9, 11)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -198,6 +198,86 @@ class C
         }
 
         [Fact]
+        public void TestNamedParams4()
+        {
+            var source = @"
+class C
+{
+    static void M(int x, params int[] y)
+    {
+    }
+    static void Main()
+    {
+        M(x: 1, y: 2, 3);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (9,9): error CS1501: No overload for method 'M' takes 3 arguments
+                //         M(x: 1, y: 2, 3);
+                Diagnostic(ErrorCode.ERR_BadArgCount, "M").WithArguments("M", "3").WithLocation(9, 9)
+                );
+        }
+
+        [Fact]
+        public void TestNamedInvalidParams()
+        {
+            var source = @"
+class C
+{
+    static void M(params int[] x, int y)
+    {
+    }
+    static void Main()
+    {
+        M(x: 1, 2);
+    }
+}";
+            // PROTOTYPE(non-trailing) weird error
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     static void M(params int[] x, int y)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] x").WithLocation(4, 19),
+                // (9,14): error CS1503: Argument 1: cannot convert from 'int' to 'int'
+                //         M(x: 1, 2);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "int").WithLocation(9, 14)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("M(x: 1, 2)", invocation.ToString());
+            Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        }
+
+        [Fact]
+        public void TestNamedParams5()
+        {
+            var source = @"
+class C
+{
+    static void M(int x, params int[] y)
+    {
+    }
+    static void Main()
+    {
+        M(y: 1, x: 2);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("M(y: 1, x: 2)", invocation.ToString());
+            Assert.Equal("void C.M(System.Int32 x, params System.Int32[] y)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
         public void TestBadNonTrailing()
         {
             var source = @"
@@ -205,7 +285,6 @@ class C
 {
     static void M(int a = 1, int b = 2, int c = 3)
     {
-        System.Console.Write($""First {a} {b}. "");
     }
     static void Main()
     {
@@ -214,17 +293,17 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
-                // (12,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
+                // (11,11): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 //         M(c: valueC, valueB);
-                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "c").WithArguments("c").WithLocation(12, 11)
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "c").WithArguments("c").WithLocation(11, 11)
                 );
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var firstInvocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
+            var firstInvocation = nodes.OfType<InvocationExpressionSyntax>().Single();
             Assert.Equal("M(c: valueC, valueB)", firstInvocation.ToString());
             Assert.Null(model.GetSymbolInfo(firstInvocation).Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, model.GetSymbolInfo(firstInvocation).CandidateReason);
@@ -233,7 +312,7 @@ class C
         }
 
         [Fact]
-        public void TestBadNonTrailing2()
+        public void TestPickGoodOverload()
         {
             var source = @"
 class C
@@ -252,7 +331,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.RegularLatest);
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -265,7 +344,7 @@ class C
         }
 
         [Fact]
-        public void TestBadNonTrailing3()
+        public void TestPickGoodOverload2()
         {
             var source = @"
 class C
@@ -284,7 +363,7 @@ class C
         M(c: valueC, valueB);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileAndVerify(source, expectedOutput: "Second 3 2.", parseOptions: TestOptions.RegularLatest);
             verifier.VerifyDiagnostics();
 
             var tree = verifier.Compilation.SyntaxTrees.First();
@@ -310,11 +389,11 @@ class C
         M(b: 2, 3, 4);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
-                // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'a' of 'C.M(int, int, params int[])'
+                // (9,11): error CS8321: Named argument 'b' is used out-of-position but is followed by an unnamed argument
                 //         M(b: 2, 3, 4);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "M").WithArguments("a", "C.M(int, int, params int[])").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "b").WithArguments("b").WithLocation(9, 11)
                 );
         }
 
@@ -333,7 +412,7 @@ class C
         M(1, b: 2, 3, 4);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2", parseOptions: TestOptions.Regular7_2);
+            var verifier = CompileAndVerify(source, expectedOutput: "1 2 3 4 Length:2", parseOptions: TestOptions.RegularLatest);
             verifier.VerifyDiagnostics();
         }
 
@@ -356,7 +435,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
                 // (12,38): error CS1016: Named attribute argument expected
                 // [MyAttribute(condition: true, P = 1, 42)]
@@ -393,7 +472,7 @@ public class MyAttribute : Attribute
 public class C
 {
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
                 // (11,14): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
                 // [MyAttribute(c:3, 2)]

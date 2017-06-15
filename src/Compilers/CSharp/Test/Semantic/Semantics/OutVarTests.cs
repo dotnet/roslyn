@@ -2363,7 +2363,7 @@ class Test : System.Attribute
     public Test(out int p) { p = 100; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (4,11): error CS1041: Identifier expected; 'out' is a keyword
                 //     [Test(out var x3)]
@@ -18567,7 +18567,7 @@ public class Cls
 }";
             var compilation = CreateStandardCompilation(text,
                                                             options: TestOptions.ReleaseExe,
-                                                            parseOptions: TestOptions.Regular);
+                                                            parseOptions: TestOptions.Regular7_1);
 
             compilation.VerifyDiagnostics(
                 // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
