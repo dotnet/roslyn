@@ -140,10 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
-            // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them 
-            // when doing a fix-all as they'll be scooped up when we process the fix for the first
-            // section.
-
             var sections = RemoveUnreachableCodeHelpers.GetUnreachableSections(firstUnreachableStatement);
             var isFirstSection = true;
             foreach (var section in sections)
@@ -151,6 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
                 var location = root.SyntaxTree.GetLocation(span);
 
+                // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them 
+                // when doing a fix-all as they'll be scooped up when we process the fix for the first
+                // section.
                 var diagnostic = isFirstSection
                     ? Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, location, additionalLocations)
                     : Diagnostic.Create(UnnecessaryWithSuggestionDescriptor, location, additionalLocations, s_additionalProperties);

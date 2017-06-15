@@ -36,10 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 var currentStatement = siblingStatements[i];
                 if (i > firstUnreachableStatementIndex && currentStatement.IsKind(SyntaxKind.LabeledStatement))
                 {
-                    // In the case of a labeled statement, we don't want to consider it unreachable as
-                    // there may be a 'goto' somewhere else to that label.  If the compiler thinks that
-                    // label is actually unreachable, it will give an diagnostic on that label itself 
-                    // and we can use that diagnostic to fade the label and any subsequent statements.
+                    // In the case of a subsequent labeled statement, we don't want to consider it 
+                    // unreachable as there may be a 'goto' somewhere else to that label.  If the 
+                    // compiler actually thinks that label is unreachable, it will give an diagnostic 
+                    // on that label itself  and we can use that diagnostic to handle it and any 
+                    // subsequent sections.
                     break;
                 }
 
