@@ -3042,23 +3042,25 @@ ProduceBoundNode:
         Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As SyntaxNode) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
-            ' See Section 3 of §11.8.2 Applicable Methods
-            ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
-            Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), ConstantValue.Null)
-            ' Do we have a default constant value?
-            If defaultConstantValue IsNot Nothing Then
-                defaultArgument = OptionalParameterWithExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
-            ElseIf param.IsOptional Then
-                defaultArgument = OptionalParameterWithoutExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
+            If param.IsOptional Then
+                ' See Section 3 of §11.8.2 Applicable Methods
+                ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
+                Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), ConstantValue.NotAvailable)
+                ' Do we have a default constant value?
+                If defaultConstantValue <> ConstantValue.NotAvailable Then
+                    defaultArgument = OptionalParameterWithExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
+                Else
+                    defaultArgument = OptionalParameterWithoutExplicitDefaultValue(param, syntax, diagnostics, callerInfoOpt, defaultConstantValue)
+                End If
             End If
             Return defaultArgument
         End Function
 
         Private Function OptionalParameterWithExplicitDefaultValue(param As ParameterSymbol, syntax As SyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As SyntaxNode, ByRef defaultConstantValue As ConstantValue) As BoundExpression
-            defaultConstantValue = CheckForCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
             ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
             ' is a possible outcome of running an obfuscator over a valid DLL 
-            If (defaultConstantValue Is Nothing) OrElse defaultConstantValue.IsBad Then defaultConstantValue = ConstantValue.Null
+            If (defaultConstantValue Is Nothing) OrElse defaultConstantValue.IsBad Then defaultConstantValue = ConstantValue.Nothing
+            defaultConstantValue = CheckForCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
 
             Dim defaultSpecialType = defaultConstantValue.SpecialType
             Dim defaultArgumentType As TypeSymbol = Nothing
