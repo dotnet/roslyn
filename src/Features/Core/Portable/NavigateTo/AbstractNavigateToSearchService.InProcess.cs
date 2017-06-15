@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -66,6 +67,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<INavigateToSearchResult>.GetInstance();
+            var syntaxFacts = project.LanguageServices.GetService<ISyntaxFactsService>();
+
             foreach (var document in project.Documents)
             {
                 if (searchDocument != null && document != searchDocument)
@@ -75,6 +78,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 cancellationToken.ThrowIfCancellationRequested();
                 var declarationInfo = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
+                var root = default(SyntaxNode);
 
                 foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
                 {
@@ -84,9 +88,18 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                     cancellationToken.ThrowIfCancellationRequested();
                     if (nameMatcher.AddMatches(declaredSymbolInfo.Name, nameMatches) &&
                         containerMatcherOpt?.AddMatches(declaredSymbolInfo.FullyQualifiedContainerName, containerMatches) != false)
-                    { 
-                        result.Add(ConvertResult(
-                            declaredSymbolInfo, document, nameMatches, containerMatches));
+                    {
+                        root = root ?? await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                        var node = declaredSymbolInfo.FindNode(root);
+
+                        if (node != null)
+                        {
+                            syntaxFacts.GetSuffixAndContainerDisplayName(node, out var nameSuffix, out var containerDisplayName);
+                            result.Add(ConvertResult(
+                                document, declaredSymbolInfo,
+                                nameSuffix, containerDisplayName,
+                                nameMatches, containerMatches));
+                        }
                     }
                 }
             }
@@ -95,8 +108,12 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         }
 
         private static INavigateToSearchResult ConvertResult(
-            DeclaredSymbolInfo declaredSymbolInfo, Document document,
-            ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches)
+            Document document,
+            DeclaredSymbolInfo declaredSymbolInfo,
+            string nameSuffix,
+            string containerDisplayName,
+            ArrayBuilder<PatternMatch> nameMatches,
+            ArrayBuilder<PatternMatch> containerMatches)
         {
             var matchKind = GetNavigateToMatchKind(nameMatches);
 
@@ -104,10 +121,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             // case sensitive. 
             var isCaseSensitive = nameMatches.All(m => m.IsCaseSensitive) && containerMatches.All(m => m.IsCaseSensitive);
             var kind = GetItemKind(declaredSymbolInfo);
-            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(declaredSymbolInfo, document);
+            var navigableItem = NavigableItemFactory.GetItemFromDeclaredSymbolInfo(
+                document, declaredSymbolInfo, nameSuffix);
 
             return new SearchResult(
-                document, declaredSymbolInfo, kind, matchKind, isCaseSensitive, navigableItem,
+                document, declaredSymbolInfo, containerDisplayName, kind, matchKind, isCaseSensitive, navigableItem,
                 nameMatches.SelectMany(m => m.MatchedSpans).ToImmutableArray());
         }
 

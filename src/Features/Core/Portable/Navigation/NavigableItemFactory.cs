@@ -20,9 +20,10 @@ namespace Microsoft.CodeAnalysis.Navigation
                 solution, symbol, location, displayTaggedParts);
         }
 
-        public static INavigableItem GetItemFromDeclaredSymbolInfo(DeclaredSymbolInfo declaredSymbolInfo, Document document)
+        public static INavigableItem GetItemFromDeclaredSymbolInfo(
+            Document document, DeclaredSymbolInfo declaredSymbolInfo, string nameSuffix)
         {
-            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
+            return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo, nameSuffix);
         }
 
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(
