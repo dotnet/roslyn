@@ -25,26 +25,33 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var diagnostic = context.Diagnostics[0];
-            var priority = diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary)
-                ? CodeActionPriority.Medium
-                : CodeActionPriority.Low;
+
+            // Only the first reported unreacha ble line will have a squiggle.  On that line, make the
+            // code action normal priority as the user is likely bringing up the lightbulb to fix the
+            // squiggle.  On all the other lines make the code action low priority as it's definitely
+            // helpful, but shouldn't interfere with anything else the uesr is doing.
+            var priority = IsSubsequentSection(diagnostic)
+                ? CodeActionPriority.Low
+                : CodeActionPriority.Medium;
 
             context.RegisterCodeFix(new MyCodeAction(
                 FeaturesResources.Remove_unreachable_code,
-                c => FixAsync(context.Document, diagnostic, c), 
+                c => FixAsync(context.Document, diagnostic, c),
                 priority), diagnostic);
 
             return SpecializedTasks.EmptyTask;
         }
-        
 
         protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-            => !diagnostic.Properties.ContainsKey(CSharpRemoveUnreachableCodeDiagnosticAnalyzer.IsCascadedSection);
+            => !IsSubsequentSection(diagnostic);
+
+        private static bool IsSubsequentSection(Diagnostic diagnostic)
+            => diagnostic.Properties.ContainsKey(CSharpRemoveUnreachableCodeDiagnosticAnalyzer.IsSubsequentSection);
 
         protected override Task FixAllAsync(
-            Document document, 
-            ImmutableArray<Diagnostic> diagnostics, 
-            SyntaxEditor editor, 
+            Document document,
+            ImmutableArray<Diagnostic> diagnostics,
+            SyntaxEditor editor,
             CancellationToken cancellationToken)
         {
             var syntaxRoot = editor.OriginalRoot;
@@ -54,7 +61,9 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.Single();
                 var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(cancellationToken);
 
-                var sections = RemoveUnreachableCodeHelpers.GetUnreachableSections(firstUnreachableStatement);
+                editor.RemoveNode(firstUnreachableStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+
+                var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
                 foreach (var section in sections)
                 {
                     foreach (var statement in section)
@@ -72,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             public MyCodeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument,
-                CodeActionPriority priority) 
+                CodeActionPriority priority)
                 : base(title, createChangedDocument, title)
             {
                 this.Priority = priority;

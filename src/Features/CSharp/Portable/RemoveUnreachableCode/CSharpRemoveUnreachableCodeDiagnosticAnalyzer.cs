@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
     {
         private const string CS0162 = nameof(CS0162); // Unreachable code detected
 
-        public const string IsCascadedSection = nameof(IsCascadedSection);
-        private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsCascadedSection, "");
+        public const string IsSubsequentSection = nameof(IsSubsequentSection);
+        private static readonly ImmutableDictionary<string, string> s_additionalProperties = ImmutableDictionary<string, string>.Empty.Add(IsSubsequentSection, "");
 
         public CSharpRemoveUnreachableCodeDiagnosticAnalyzer()
             : base(IDEDiagnosticIds.RemoveUnreachableCodeDiagnosticId,
@@ -153,8 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             // statement in this group.
             var additionalLocations = SpecializedCollections.SingletonEnumerable(firstStatementLocation);
 
-            var sections = RemoveUnreachableCodeHelpers.GetUnreachableSections(firstUnreachableStatement);
-            var isFirstSection = true;
+            var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : HiddenDescriptor;
+
+            context.ReportDiagnostic(
+                Diagnostic.Create(descriptor, firstStatementLocation, additionalLocations));
+
+            var sections = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableSections(firstUnreachableStatement);
             foreach (var section in sections)
             {
                 var span = TextSpan.FromBounds(section[0].FullSpan.Start, section.Last().FullSpan.End);
@@ -163,14 +167,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 // Mark subsequent sections as being 'cascaded'.  We don't need to actually process them 
                 // when doing a fix-all as they'll be scooped up when we process the fix for the first
                 // section.
-                var descriptor = fadeOutCode ? UnnecessaryWithSuggestionDescriptor : HiddenDescriptor;
-
-                var diagnostic = isFirstSection
-                    ? Diagnostic.Create(descriptor, location, additionalLocations)
-                    : Diagnostic.Create(descriptor, location, additionalLocations, s_additionalProperties);
-                context.ReportDiagnostic(diagnostic);
-
-                isFirstSection = false;
+                context.ReportDiagnostic(
+                    Diagnostic.Create(descriptor, location, additionalLocations, s_additionalProperties));
             }
         }
     }

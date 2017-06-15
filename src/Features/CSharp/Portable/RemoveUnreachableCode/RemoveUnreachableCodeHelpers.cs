@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 {
     internal static class RemoveUnreachableCodeHelpers
     {
-        public static ImmutableArray<ImmutableArray<StatementSyntax>> GetUnreachableSections(StatementSyntax firstUnreachableStatement)
+        public static ImmutableArray<ImmutableArray<StatementSyntax>> GetSubsequentUnreachableSections(StatementSyntax firstUnreachableStatement)
         {
             SyntaxList<StatementSyntax> siblingStatements;
             switch (firstUnreachableStatement.Parent)
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
 
                 default:
                     // We're an embedded statement.  So the unreachable section is just us.
-                    return ImmutableArray.Create(ImmutableArray.Create(firstUnreachableStatement));
+                    return ImmutableArray<ImmutableArray<StatementSyntax>>.Empty;
             }
 
             var sections = ArrayBuilder<ImmutableArray<StatementSyntax>>.GetInstance();
@@ -31,10 +30,10 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             var currentSection = ArrayBuilder<StatementSyntax>.GetInstance();
             var firstUnreachableStatementIndex = siblingStatements.IndexOf(firstUnreachableStatement);
 
-            for (int i = firstUnreachableStatementIndex, n = siblingStatements.Count; i < n; i++)
+            for (int i = firstUnreachableStatementIndex + 1, n = siblingStatements.Count; i < n; i++)
             {
                 var currentStatement = siblingStatements[i];
-                if (i > firstUnreachableStatementIndex && currentStatement.IsKind(SyntaxKind.LabeledStatement))
+                if (currentStatement.IsKind(SyntaxKind.LabeledStatement))
                 {
                     // In the case of a subsequent labeled statement, we don't want to consider it 
                     // unreachable as there may be a 'goto' somewhere else to that label.  If the 
@@ -64,8 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             var lastSection = currentSection.ToImmutableAndFree();
             AddIfNonEmpty(sections, lastSection);
 
-            Debug.Assert(sections.Count > 0);
-            Debug.Assert(sections[0][0] == firstUnreachableStatement);
             return sections.ToImmutableAndFree();
         }
 
