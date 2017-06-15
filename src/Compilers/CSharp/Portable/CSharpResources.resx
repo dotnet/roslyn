@@ -1958,6 +1958,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_StaticClassInterfaceImpl" xml:space="preserve">
     <value>'{0}': static classes cannot implement interfaces</value>
   </data>
+    <data name="ERR_RefStructInterfaceImpl" xml:space="preserve">
+    <value>'{0}': ref structs cannot implement interfaces</value>
+  </data>
   <data name="ERR_OperatorInStaticClass" xml:space="preserve">
     <value>'{0}': static classes cannot contain user-defined operators</value>
   </data>

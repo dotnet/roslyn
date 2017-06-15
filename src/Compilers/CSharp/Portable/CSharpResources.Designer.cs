@@ -8477,6 +8477,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: ref structs cannot implement interfaces.
+        /// </summary>
+        internal static string ERR_RefStructInterfaceImpl {
+            get {
+                return ResourceManager.GetString("ERR_RefStructInterfaceImpl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;class&apos; or &apos;struct&apos; constraint must come before any other constraints.
         /// </summary>
         internal static string ERR_RefValBoundMustBeFirst {

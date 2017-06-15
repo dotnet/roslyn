@@ -414,6 +414,43 @@ public class Program
             );
         }
 
+        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [Fact]
+        public void InterfaceImpl()
+        {
+            var text = @"
+using System;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        using (new S1())
+        {
+
+        }
+    }
+
+    public ref struct S1 : IDisposable
+    {
+        public void Dispose() { }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
+                // (14,28): error CS8517: 'Program.S1': ref structs cannot implement interfaces
+                //     public ref struct S1 : IDisposable
+                Diagnostic(ErrorCode.ERR_RefStructInterfaceImpl, "IDisposable").WithArguments("Program.S1", "System.IDisposable").WithLocation(14, 28),
+                // (8,16): error CS1674: 'Program.S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                //         using (new S1())
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new S1()").WithArguments("Program.S1").WithLocation(8, 16)
+            );
+        }
+
+
         [Fact]
         public void Properties()
         {

@@ -1513,5 +1513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldsInRoStruct = 8514,
         ERR_AutoPropsInRoStruct = 8515,
         ERR_FieldlikeEventsInRoStruct = 8516,
+        ERR_RefStructInterfaceImpl = 8517,
     }
 }
