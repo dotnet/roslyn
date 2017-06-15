@@ -618,6 +618,35 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        public async Task TestFixAll5()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M(object o)
+    {
+        if (false)
+            throw new Exception();
+
+        throw new Exception();
+        {|FixAllInDocument:return;|}
+    }
+}",
+@"
+class C
+{
+    void M(object o)
+    {
+        if (false)
+            throw new Exception();
+
+        throw new Exception();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
         public async Task TestInUnreachableInSwitchSection1()
         {
             await TestInRegularAndScriptAsync(
