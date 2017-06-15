@@ -158,6 +158,106 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        public async Task TestRemoveSubsequentStatementsExcludingMultipleLocalFunctions()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        throw new System.Exception();
+        [|var v = 0;|]
+
+        void Local() {}
+        void Local2() {}
+
+        var y = 1;
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        throw new System.Exception();
+    
+        void Local() {}
+        void Local2() {}
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        public async Task TestRemoveSubsequentStatementsInterspersedWithMultipleLocalFunctions()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        throw new System.Exception();
+        [|var v = 0;|]
+
+        void Local() {}
+
+        var z = 2;
+
+        void Local2() {}
+
+        var y = 1;
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        throw new System.Exception();
+    
+        void Local() {}
+        void Local2() {}
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
+        public async Task TestRemoveSubsequentStatementsInterspersedWithMultipleLocalFunctions2()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        throw new System.Exception();
+        [|var v = 0;|]
+
+        void Local() {}
+
+        var z = 2;
+        var z2 = 2;
+
+        void Local2() {}
+
+        var y = 1;
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        throw new System.Exception();
+    
+        void Local() {}
+        void Local2() {}
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnreachableCode)]
         public async Task TestRemoveSubsequentStatementsUpToNextLabel()
         {
             await TestInRegularAndScriptAsync(

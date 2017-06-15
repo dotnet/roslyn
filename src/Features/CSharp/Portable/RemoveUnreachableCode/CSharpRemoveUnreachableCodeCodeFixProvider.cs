@@ -53,12 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
                 var firstUnreachableStatementLocation = diagnostic.AdditionalLocations.Single();
                 var firstUnreachableStatement = (StatementSyntax)firstUnreachableStatementLocation.FindNode(cancellationToken);
 
-                editor.RemoveNode(firstUnreachableStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-
-                var subsequentUnreachableStatements = RemoveUnreachableCodeHelpers.GetSubsequentUnreachableStatements(firstUnreachableStatement);
-                foreach (var nextStatement in subsequentUnreachableStatements)
+                var sections = RemoveUnreachableCodeHelpers.GetUnreachableSections(firstUnreachableStatement);
+                foreach (var section in sections)
                 {
-                    editor.RemoveNode(nextStatement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                    foreach (var statement in section)
+                    {
+                        editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+                    }
                 }
             }
 
