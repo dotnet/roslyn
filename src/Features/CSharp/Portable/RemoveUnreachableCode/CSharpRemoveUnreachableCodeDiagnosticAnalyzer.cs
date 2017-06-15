@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnreachableCode
             var block = (BlockSyntax)context.Node;
             if (HasOuterBlock(block))
             {
-                // Don't bother processing inner blocks.  We'll have already checked then when
+                // Don't bother processing inner blocks.  We'll have already checked them when
                 // we processed the outer block
                 return;
             }
