@@ -80,7 +80,7 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
     $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal";
     
     if ($logFile -ne "") {
-        $args += " /filelogger /fileloggerparameters:Verbosity=normal,logFile=$logFile";
+        $args += " /filelogger /fileloggerparameters:Verbosity=normal;logFile=$logFile";
     }
 
     if ($cibuild) { 
