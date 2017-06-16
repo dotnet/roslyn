@@ -897,7 +897,7 @@ public class B
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
 
             string message = new ArgumentException(
-                string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+                string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, treeInAnotherCompilation.GetRoot().Location.SourceSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
 
             compilation.VerifyDiagnostics();
 
@@ -1902,7 +1902,7 @@ public class RegularClass
             var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
-            
+
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.None) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),

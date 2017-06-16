@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -310,6 +311,61 @@ class C
                     Assert.NotEqual(SyntaxKind.MethodDeclaration, context.Node.Kind());
                     context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Node.GetLocation()));
                 }
+            }
+        }
+
+        [Fact]
+        public async Task TestDiagnosticSpan()
+        {
+            var source = @"// empty code";
+
+            var ideAnalyzer = new InvalidSpanDocumentAnalyzer();
+            using (var ideEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            {
+                var ideEngineDocument = ideEngineWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+
+                await Assert.ThrowsAsync<ArgumentException>(() =>
+                    DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(ideAnalyzer, ideEngineDocument, new Text.TextSpan(0, ideEngineDocument.GetTextAsync().Result.Length)));
+            }
+
+            var analyzer = new InvalidSpanAnalyzer();
+            using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
+            {
+                var compilerEngineCompilation = (CSharpCompilation)compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync().Result;
+
+                Assert.Throws<ArgumentException>(() => compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer }));
+            }
+        }
+
+        private class InvalidSpanAnalyzer : DiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => ImmutableArray.Create(Descriptor);
+
+            public override void Initialize(AnalysisContext context)
+                => context.RegisterSyntaxTreeAction(Analyze);
+
+            private void Analyze(SyntaxTreeAnalysisContext context)
+                => context.ReportDiagnostic(Diagnostic.Create(Descriptor, Location.Create(context.Tree, TextSpan.FromBounds(1000, 2000))));
+        }
+
+        private class InvalidSpanDocumentAnalyzer : DocumentDiagnosticAnalyzer
+        {
+            public static DiagnosticDescriptor Descriptor = DescriptorFactory.CreateSimpleDescriptor("DummyDiagnostic");
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                => ImmutableArray.Create(Descriptor);
+
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            {
+                return Task.FromResult(ImmutableArray.Create(Diagnostic.Create(Descriptor, Location.Create(context.Tree, TextSpan.FromBounds(1000, 2000)))));
+            }
+
+            public override Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
+            {
+                return Task.FromResult<ImmutableArray<Diagnostic>.Empty>();
             }
         }
     }

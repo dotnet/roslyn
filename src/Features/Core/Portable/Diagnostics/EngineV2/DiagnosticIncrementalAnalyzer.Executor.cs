@@ -377,13 +377,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 try
                 {
-                    var diagnostics = await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
+                    var diagnostics = (await analyzer.AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false)).NullToEmpty();
 
                     // Apply filtering from compilation options (source suppressions, ruleset, etc.)
                     if (compilationOpt != null)
                     {
                         diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt).ToImmutableArrayOrEmpty();
                     }
+
+                    await VerifyDiagnosticLocationsAsync(diagnostics, project, cancellationToken).ConfigureAwait(false);
 
                     return diagnostics;
                 }
@@ -422,6 +424,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     {
                         return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
                     }
+
+                    await VerifyDiagnosticLocationsAsync(diagnostics, document.Project, cancellationToken).ConfigureAwait(false);
 
                     return diagnostics;
                 }
@@ -582,6 +586,83 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     yield return DiagnosticData.Create(document, diagnostic);
                 }
+            }
+
+            private static async Task VerifyDiagnosticLocationsAsync(ImmutableArray<Diagnostic> diagnostics, Project project, CancellationToken cancellationToken)
+            {
+                foreach (var diagnostic in diagnostics)
+                {
+                    await VerifyDiagnosticLocationAsync(diagnostic.Id, diagnostic.Location, project, cancellationToken).ConfigureAwait(false);
+
+                    if (diagnostic.AdditionalLocations != null)
+                    {
+                        foreach (var location in diagnostic.AdditionalLocations)
+                        {
+                            await VerifyDiagnosticLocationAsync(diagnostic.Id, diagnostic.Location, project, cancellationToken).ConfigureAwait(false);
+                        }
+                    }
+                }
+            }
+
+            private static async Task VerifyDiagnosticLocationAsync(string id, Location location, Project project, CancellationToken cancellationToken)
+            {
+                switch (location.Kind)
+                {
+                    case LocationKind.None:
+                    case LocationKind.MetadataFile:
+                    case LocationKind.XmlFile:
+                        // ignore these kinds
+                        break;
+                    case LocationKind.SourceFile:
+                        {
+                            if (project.GetDocument(location.SourceTree) == null)
+                            {
+                                // Disallow diagnostics with source locations outside this project.
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                            }
+
+                            if (location.SourceTree.Length < location.SourceSpan.End)
+                            {
+                                // Disallow diagnostics with source locations outside this project.
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                            }
+                        }
+                        break;
+                    case LocationKind.ExternalFile:
+                        {
+
+                            var document = TryGetDocumentWithFilePath(project, location.GetLineSpan().Path);
+                            if (document == null)
+                            {
+                                // this is not a roslyn file. we don't care about this file.
+                                return;
+                            }
+
+                            // we do this for every diagnostic, so this can be really expansive but we dont have any other way.
+                            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            if (text.Length < location.SourceSpan.End)
+                            {
+                                // Disallow diagnostics with locations outside this project.
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                            }
+                        }
+                        break;
+                    default:
+                        throw ExceptionUtilities.Unreachable;
+                }
+            }
+
+            private static Document TryGetDocumentWithFilePath(Project project, string path)
+            {
+                foreach (var documentId in project.Solution.GetDocumentIdsWithFilePath(path))
+                {
+                    if (documentId.ProjectId == project.Id)
+                    {
+                        return project.GetDocument(documentId);
+                    }
+                }
+
+                return null;
             }
 
             private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)

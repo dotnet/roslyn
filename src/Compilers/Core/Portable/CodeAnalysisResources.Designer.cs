@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeAnalysisResources {
@@ -740,7 +740,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location in file &apos;{1}&apos;, which is not part of the compilation being analyzed..
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location {1} in file &apos;{2}&apos;, which is not part of the compilation being analyzed..
         /// </summary>
         internal static string InvalidDiagnosticLocationReported {
             get {
@@ -1334,7 +1334,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation: &apos;{0}&apos;.
+        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support SourceLink feature: &apos;{0}&apos;.
         /// </summary>
         internal static string SymWriterDoesNotSupportSourceLink {
             get {
@@ -1343,7 +1343,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll.
+        ///   Looks up a localized string similar to Windows PDB writer doesn&apos;t support deterministic compilation: &apos;{0}&apos;.
         /// </summary>
         internal static string SymWriterNotDeterministic {
             get {

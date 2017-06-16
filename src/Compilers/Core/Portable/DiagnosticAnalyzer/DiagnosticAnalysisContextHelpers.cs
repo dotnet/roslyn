@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
             }
         }
-        
+
         internal static void VerifyIOperationFeatureFlag(bool isIOperationFeatureEnabled)
         {
             if (!isIOperationFeatureEnabled)
@@ -84,10 +84,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static void VerifyDiagnosticLocationInCompilation(string id, Location location, Compilation compilation)
         {
-            if (location.IsInSource && !compilation.ContainsSyntaxTree(location.SourceTree))
+            if (!location.IsInSource)
+            {
+                return;
+            }
+
+            if (!compilation.ContainsSyntaxTree(location.SourceTree) || location.SourceTree.Length < location.SourceSpan.End)
             {
                 // Disallow diagnostics with source locations outside this compilation.
-                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
             }
         }
 

@@ -2575,6 +2575,16 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location {1} in file &apos;{2}&apos;, which is not part of the compilation being analyzed..
+        /// </summary>
+        internal static string Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed {
+            get {
+                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_" +
+                        "compilation_being_analyzed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
         /// </summary>
         internal static string Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer {
