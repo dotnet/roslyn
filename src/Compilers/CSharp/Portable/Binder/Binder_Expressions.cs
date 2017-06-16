@@ -6091,7 +6091,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
+            CheckRuntimeSupportForSymbolAccess(node, propertySymbol, diagnostics);
+
             return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+        }
+
+        private void CheckRuntimeSupportForSymbolAccess(SyntaxNode node, Symbol symbol, DiagnosticBag diagnostics)
+        {
+            if (!symbol.IsStatic && symbol.ContainingType.IsInterface && !symbol.IsImplementableInterfaceMember() &&
+                !Compilation.Assembly.RuntimeSupportsDefaultInterfaceImplementation)
+            {
+                Error(diagnostics, ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, node);
+            }
         }
 
         private BoundExpression BindEventAccess(
@@ -6112,6 +6123,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
+
+            CheckRuntimeSupportForSymbolAccess(node, eventSymbol, diagnostics);
 
             return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type, hasErrors: (hasErrors || hasError));
         }

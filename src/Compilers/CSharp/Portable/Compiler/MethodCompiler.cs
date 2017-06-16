@@ -1802,21 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SyntaxToken GetImplicitConstructorBodyToken(CSharpSyntaxNode containerNode)
         {
-            var kind = containerNode.Kind();
-            switch (kind)
-            {
-                case SyntaxKind.ClassDeclaration:
-                    return ((ClassDeclarationSyntax)containerNode).OpenBraceToken;
-                case SyntaxKind.InterfaceDeclaration:
-                    return ((InterfaceDeclarationSyntax)containerNode).OpenBraceToken;
-                case SyntaxKind.StructDeclaration:
-                    return ((StructDeclarationSyntax)containerNode).OpenBraceToken;
-                case SyntaxKind.EnumDeclaration:
-                    // We're not going to find any non-default ctors, but we'll look anyway.
-                    return ((EnumDeclarationSyntax)containerNode).OpenBraceToken;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(kind);
-            }
+            return ((BaseTypeDeclarationSyntax)containerNode).OpenBraceToken;
         }
 
         internal static BoundCall GenerateObjectConstructorInitializer(MethodSymbol constructor, DiagnosticBag diagnostics)
