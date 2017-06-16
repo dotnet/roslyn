@@ -215,10 +215,10 @@ function Test-XUnit() {
         }
     }
     elseif ($testVsi) {
-        $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
+        $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
     }
     else {
-        $dlls = Get-ChildItem -re -in "*.IntegrationTest.dll" $unitDir
+        $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
         $args += " -trait:Feature=NetCore"
     }
 
