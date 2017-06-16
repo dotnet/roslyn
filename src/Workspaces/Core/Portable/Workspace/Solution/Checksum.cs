@@ -16,12 +16,13 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly Checksum Null = new Checksum(Array.Empty<byte>());
 
+        /// <summary>
+        /// This structure stores the 20-byte SHA 1 hash as an inline value rather than requiring the use of
+        /// <c>byte[]</c>.
+        /// </summary>
         [StructLayout(LayoutKind.Explicit, Size = 20)]
         private struct Sha1Hash : IEquatable<Sha1Hash>
         {
-            [FieldOffset(0)]
-            public unsafe fixed byte Value[20];
-
             [FieldOffset(0)]
             private long Data1;
 
@@ -32,14 +33,10 @@ namespace Microsoft.CodeAnalysis
             private int Data3;
 
             public static bool operator ==(Sha1Hash x, Sha1Hash y)
-            {
-                return x.Equals(y);
-            }
+                => x.Equals(y);
 
             public static bool operator !=(Sha1Hash x, Sha1Hash y)
-            {
-                return !x.Equals(y);
-            }
+                => !x.Equals(y);
 
             public void WriteTo(ObjectWriter writer)
             {
@@ -64,14 +61,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             public override bool Equals(object obj)
-            {
-                if (!(obj is Sha1Hash other))
-                {
-                    return false;
-                }
-
-                return Equals(other);
-            }
+                => obj is Sha1Hash other && Equals(other);
 
             public bool Equals(Sha1Hash other)
             {
@@ -117,14 +107,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public override bool Equals(object obj)
-        {
-            return Equals(obj as Checksum);
-        }
+            => Equals(obj as Checksum);
 
         public override int GetHashCode()
-        {
-            return _checkSum.GetHashCode();
-        }
+            => _checkSum.GetHashCode();
 
         public override unsafe string ToString()
         {
@@ -148,14 +134,10 @@ namespace Microsoft.CodeAnalysis
         }
 
         public void WriteTo(ObjectWriter writer)
-        {
-            _checkSum.WriteTo(writer);
-        }
+            => _checkSum.WriteTo(writer);
 
         public static Checksum ReadFrom(ObjectReader reader)
-        {
-            return new Checksum(Sha1Hash.ReadFrom(reader));
-        }
+            => new Checksum(Sha1Hash.ReadFrom(reader));
 
         public static string GetChecksumLogInfo(Checksum checksum)
         {
