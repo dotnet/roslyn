@@ -680,6 +680,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The type&apos;s default value can is implied..
+        '''</summary>
+        Friend ReadOnly Property DefaultOptionalParameter() As String
+            Get
+                Return ResourceManager.GetString("DefaultOptionalParameter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Defines a conditional compiler constant. Conditional compiler constants are always private to the file in which they appear. The expressions used to initialize them can contain only conditional compiler constants and literals..
         '''</summary>
         Friend ReadOnly Property Defines_a_conditional_compiler_constant_Conditional_compiler_constants_are_always_private_to_the_file_in_which_they_appear_The_expressions_used_to_initialize_them_can_contain_only_conditional_compiler_constants_and_literals() As String
