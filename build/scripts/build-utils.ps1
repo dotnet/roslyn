@@ -137,12 +137,15 @@ function Get-PackageVersion([string]$name) {
     $deps = Join-Path $repoDir "build\Targets\Packages.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
-    $node = $x.Project.PropertyGroup[$nodeName]
-    if ($node -eq $null) { 
-        throw "Cannot find package $name in Packages.props"
+    $node = $x.Project.PropertyGroup.FirstChild
+    while ($node -ne $null) {
+        if ($node.Name -eq $nodeName) {
+            return $node.InnerText
+        }
+        $node = $node.NextSibling
     }
 
-    return $node.InnerText
+    throw "Cannot find package $name in Packages.props"
 }
 
 # Locate the directory where our NuGet packages will be deployed.  Needs to be kept in sync

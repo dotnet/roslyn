@@ -198,7 +198,7 @@ function Test-XUnit() {
 
     $anyVsi = $testVsi -or $TestVsiNetCore
     if ($anyVsi -and (-not $deployExtensionViaBuild)) {
-        Delpoy-VsixViaTool
+        Deploy-VsixViaTool
     }
 
     $unitDir = Join-Path $configDir "UnitTests"
@@ -251,8 +251,8 @@ function Deploy-VsixViaTool() {
 
     $vsixDir = Get-PackageDir "roslyntools.microsoft.vsixexpinstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-    $vsDir = [IO.Path]::GetFullPath("$msbuildDir\..\..\..\")
-    $baseArgs = "-rootSuffix:RoslynDev -vsInstallDir:`"$vsDir`""
+    $vsDir = [IO.Path]::GetFullPath("$msbuildDir\..\..\..\").Trim("\")
+    $baseArgs = "/rootSuffix:RoslynDev /vsInstallDir:`"$vsDir`""
     $all = @(
         "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
@@ -268,7 +268,7 @@ function Deploy-VsixViaTool() {
         $filePath = Join-Path $configDir $e
         $fullArg = "$baseArgs $filePath"
         Write-Host "`tInstalling $name"
-        Exec-Command $vsix $fullArg | Out-Host
+        Exec-Command $vsixExe $fullArg | Out-Host
     }
 }
 
