@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     receiverArgument = CheckValue(receiverArgument, BindValueKind.RefOrOut, diagnostics);
                 }
 
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
+                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance(analyzedArguments.Arguments.Count);
                 builder.Add(receiverArgument);
                 builder.AddRange(analyzedArguments.Arguments.Skip(1));
                 args = builder.ToImmutableAndFree();

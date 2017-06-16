@@ -2792,7 +2792,7 @@ class Program
         }
 
         [Fact]
-        public void BadParameterModifeirs_ThisWithRef()
+        public void BadParameterModifiers_ThisWithRef()
         {
             var test = @"
 using System;

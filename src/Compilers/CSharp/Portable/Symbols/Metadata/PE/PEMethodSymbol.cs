@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
             else
             {
-                // Otherwise, only accent non-ref extension methods.
+                // Otherwise, only accept non-ref extension methods.
                 return parameter.RefKind == RefKind.None;
             }
         }

@@ -211,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtensionMethod)
             {
                 var parameter0Type = this.Parameters[0].Type;
+                var parameter0RefKind = this.Parameters[0].RefKind;
                 if (!parameter0Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
@@ -219,13 +220,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var loc = parameterSyntax.Type.Location;
                     diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
                 }
-                else if (this.Parameters[0].RefKind == RefKind.Ref && !parameter0Type.IsValueType)
+                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
+                    this.SetIsExtensionMethod(false);
                 }
-                else if (this.Parameters[0].RefKind == RefKind.RefReadOnly && parameter0Type.TypeKind != TypeKind.Struct)
+                else if (parameter0RefKind == RefKind.RefReadOnly && parameter0Type.TypeKind != TypeKind.Struct)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, location, Name);
+                    this.SetIsExtensionMethod(false);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
@@ -243,6 +246,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (!IsStatic)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, location);
+                    // PROTOTYPE(readonly-ref): to match PEMethodSymbol, should we SetIsExtensionMethod(false)? See #20282 for more details
+                    // Also, should we unset that flag for parameter.IsParams and parameter0RefKind == RefKind.Out?
                 }
                 else
                 {

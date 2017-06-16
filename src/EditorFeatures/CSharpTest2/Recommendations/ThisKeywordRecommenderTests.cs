@@ -639,9 +639,13 @@ class Program
             await VerifyKeywordAsync(@"
 public static class Extensions
 {
+    public static void Extension(ref $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
     public static void Extension(ref $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -650,9 +654,13 @@ public static class Extensions
             await VerifyKeywordAsync(@"
 public static class Extensions
 {
+    public static void Extension(ref readonly $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
     public static void Extension(ref readonly $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -661,9 +669,13 @@ public static class Extensions
             await VerifyKeywordAsync(@"
 public static class Extensions
 {
+    public static void Extension(in $$");
+
+            await VerifyKeywordAsync(@"
+public static class Extensions
+{
     public static void Extension(in $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -672,9 +684,13 @@ public static class Extensions
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
+    public static void Extension(int x, ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
     public static void Extension(int x, ref $$ object obj) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -683,9 +699,13 @@ public static class Extensions
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
+    public static void Extension(int x, ref readonly $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
     public static void Extension(int x, ref readonly $$ object obj) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -694,26 +714,36 @@ public static class Extensions
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
+    public static void Extension(int x, in $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
     public static void Extension(int x, in $$ object obj) { }
-}
-");
+}");
         }
 
         [Fact]
         public async Task TestExtensionMethods_FirstParameter_AfterRefKeyword_OutsideClass()
         {
+            await VerifyAbsenceAsync("public static void Extension(ref $$");
+
             await VerifyAbsenceAsync("public static void Extension(ref $$ object obj, int x) { }");
         }
 
         [Fact]
         public async Task TestExtensionMethods_FirstParameter_AfterRefReadOnlyKeywords_OutsideClass()
         {
+            await VerifyAbsenceAsync("public static void Extension(ref readonly $$");
+
             await VerifyAbsenceAsync("public static void Extension(ref readonly $$ object obj, int x) { }");
         }
 
         [Fact]
         public async Task TestExtensionMethods_FirstParameter_AfterInKeyword_OutsideClass()
         {
+            await VerifyAbsenceAsync("public static void Extension(in $$");
+
             await VerifyAbsenceAsync("public static void Extension(in $$ object obj, int x) { }");
         }
 
@@ -723,9 +753,13 @@ public static class Extensions
             await VerifyAbsenceAsync(@"
 public class Extensions
 {
+    public static void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
     public static void Extension(ref $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -734,9 +768,13 @@ public class Extensions
             await VerifyAbsenceAsync(@"
 public class Extensions
 {
+    public static void Extension(ref readonly $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
     public static void Extension(ref readonly $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -745,9 +783,13 @@ public class Extensions
             await VerifyAbsenceAsync(@"
 public class Extensions
 {
+    public static void Extension(in $$");
+
+            await VerifyAbsenceAsync(@"
+public class Extensions
+{
     public static void Extension(in $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -756,9 +798,13 @@ public class Extensions
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
+    public void Extension(ref $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
     public void Extension(ref $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -767,9 +813,13 @@ public static class Extensions
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
+    public void Extension(ref readonly $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
     public void Extension(ref readonly $$ object obj, int x) { }
-}
-");
+}");
         }
 
         [Fact]
@@ -778,9 +828,13 @@ public static class Extensions
             await VerifyAbsenceAsync(@"
 public static class Extensions
 {
+    public void Extension(in $$");
+
+            await VerifyAbsenceAsync(@"
+public static class Extensions
+{
     public void Extension(in $$ object obj, int x) { }
-}
-");
+}");
         }
     }
 }
