@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -12,6 +13,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
+    {
+        bool TryGetDeclaredSymbolInfo(Project project, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+    }
+
     internal sealed partial class SyntaxTreeIndex
     {
         // The probability of getting a false positive when calling ContainsIdentifier.
@@ -28,6 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var project = document.Project;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            var infoFactory = document.GetLanguageService<IDeclaredSymbolInfoFactoryService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
 
@@ -68,6 +75,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             containsQueryExpression = containsQueryExpression || syntaxFacts.IsQueryExpression(node);
                             containsElementAccess = containsElementAccess || syntaxFacts.IsElementAccessExpression(node);
                             containsIndexerMemberCref = containsIndexerMemberCref || syntaxFacts.IsIndexerMemberCRef(node);
+
                             // We've received a number of error reports where DeclaredSymbolInfo.GetSymbolAsync() will
                             // crash because the document's syntax root doesn't contain the span of the node returned
                             // by TryGetDeclaredSymbolInfo().  There are two possibilities for this crash:
@@ -78,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
-                            if (syntaxFacts.TryGetDeclaredSymbolInfo(project, node, out var declaredSymbolInfo))
+                            if (infoFactory.TryGetDeclaredSymbolInfo(project, node, out var declaredSymbolInfo))
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {

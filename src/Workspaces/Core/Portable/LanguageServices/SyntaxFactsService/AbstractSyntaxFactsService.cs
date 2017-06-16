@@ -2,19 +2,20 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    internal abstract class AbstractSyntaxFactsService
+    internal abstract class AbstractDeclaredSymbolInfoFactoryService : IDeclaredSymbolInfoFactoryService
     {
         private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool =
             new ObjectPool<List<Dictionary<string, string>>>(() => new List<Dictionary<string, string>>());
@@ -27,6 +28,53 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool =
             new ObjectPool<Dictionary<string, string>>(() => new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
 
+        protected static List<Dictionary<string, string>> AllocateAliasMapList()
+            => s_aliasMapListPool.Allocate();
+
+        protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
+        {
+            if (list != null)
+            {
+                foreach (var aliasMap in list)
+                {
+                    FreeAliasMap(aliasMap);
+                }
+
+                s_aliasMapListPool.ClearAndFree(list);
+            }
+        }
+
+        protected static void FreeAliasMap(Dictionary<string, string> aliasMap)
+        {
+            if (aliasMap != null)
+            {
+                s_aliasMapPool.ClearAndFree(aliasMap);
+            }
+        }
+
+        protected static Dictionary<string, string> AllocateAliasMap()
+            => s_aliasMapPool.Allocate();
+
+        protected static void AppendTokens(SyntaxNode node, StringBuilder builder)
+        {
+            foreach (var child in node.ChildNodesAndTokens())
+            {
+                if (child.IsToken)
+                {
+                    builder.Append(child.AsToken().Text);
+                }
+                else
+                {
+                    AppendTokens(child.AsNode(), builder);
+                }
+            }
+        }
+
+        public abstract bool TryGetDeclaredSymbolInfo(Project project, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+    }
+
+    internal abstract class AbstractSyntaxFactsService
+    {
         private readonly static ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>> s_stackPool =
             new ObjectPool<Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>>(() => new Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)>());
 
@@ -76,33 +124,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         public abstract bool IsMultiLineCommentTrivia(SyntaxTrivia trivia);
         public abstract bool IsShebangDirectiveTrivia(SyntaxTrivia trivia);
         public abstract bool IsPreprocessorDirective(SyntaxTrivia trivia);
-
-        protected static List<Dictionary<string, string>> AllocateAliasMapList()
-            => s_aliasMapListPool.Allocate();
-
-        protected static void FreeAliasMapList(List<Dictionary<string, string>> list)
-        {
-            if (list != null)
-            {
-                foreach (var aliasMap in list)
-                {
-                    FreeAliasMap(aliasMap);
-                }
-
-                s_aliasMapListPool.ClearAndFree(list);
-            }
-        }
-
-        protected static void FreeAliasMap(Dictionary<string, string> aliasMap)
-        {
-            if (aliasMap != null)
-            {
-                s_aliasMapPool.ClearAndFree(aliasMap);
-            }
-        }
-
-        protected static Dictionary<string, string> AllocateAliasMap()
-            => s_aliasMapPool.Allocate();
 
         public bool IsOnSingleLine(SyntaxNode node, bool fullSpan)
         {
@@ -392,20 +413,5 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             => DocumentationCommentService.GetBannerText(documentationCommentTriviaSyntax, cancellationToken);
 
         protected abstract IDocumentationCommentService DocumentationCommentService { get; }
-
-        protected static void AppendTokens(SyntaxNode node, StringBuilder builder)
-        {
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsToken)
-                {
-                    builder.Append(child.AsToken().Text);
-                }
-                else
-                {
-                    AppendTokens(child.AsNode(), builder);
-                }
-            }
-        }
     }
 }
