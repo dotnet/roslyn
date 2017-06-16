@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 CancellationToken cancellationToken)
             {
                 if (!service.TryInitializeIdentifierNameState(
-                    document, simpleName, cancellationToken,
-                    out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
+                        document, simpleName, cancellationToken,
+                        out var identifierToken, out var simpleNameOrMemberAccessExpression, out var isInExecutableBlock, out var isInConditionalAccessExpression))
                 {
                     return false;
                 }

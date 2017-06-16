@@ -38,23 +38,23 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<(bool succeeded, ImmutableArray<DocumentHighlights> highlights)> GetDocumentHighlightsInRemoteProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
-                 RemoteFeatureOptions.DocumentHighlightingEnabled, cancellationToken).ConfigureAwait(false);
-
-            using (session)
-            {
-                if (session == null)
+            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<SerializableDocumentHighlights>>(
+                RemoteFeatureOptions.DocumentHighlightingEnabled,
+                nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
+                new object[]
                 {
-                    return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
-                }
-
-                var result = await session.InvokeAsync<ImmutableArray<SerializableDocumentHighlights>>(
-                    nameof(IRemoteDocumentHighlights.GetDocumentHighlightsAsync),
                     document.Id,
                     position,
-                    documentsToSearch.Select(d => d.Id).ToArray()).ConfigureAwait(false);
-                return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
+                    documentsToSearch.Select(d => d.Id).ToArray()
+                },
+                cancellationToken).ConfigureAwait(false);
+
+            if (result.IsDefault)
+            {
+                return (succeeded: false, ImmutableArray<DocumentHighlights>.Empty);
             }
+
+            return (true, result.SelectAsArray(h => h.Rehydrate(document.Project.Solution)));
         }
 
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
