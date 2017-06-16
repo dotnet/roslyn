@@ -495,11 +495,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLateBoundMemberReferenceExpression(operation);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            base.VisitUnboundLambdaExpression(operation);
-        }
-
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             base.VisitDefaultValueExpression(operation);

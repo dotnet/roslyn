@@ -1008,14 +1008,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitInstanceExpression(operation.Instance);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            LogString(nameof(IUnboundLambdaExpression));
-            LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitUnboundLambdaExpression(operation);
-        }
-
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             LogString(nameof(IDefaultValueExpression));

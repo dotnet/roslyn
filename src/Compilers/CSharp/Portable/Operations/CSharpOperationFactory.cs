@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -13,6 +14,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly ConcurrentDictionary<BoundNode, IOperation> _cache =
             new ConcurrentDictionary<BoundNode, IOperation>(concurrencyLevel: 2, capacity: 10);
+        private readonly SemanticModel _semanticModel;
+
+        public CSharpOperationFactory(SemanticModel semanticModel)
+        {
+            _semanticModel = semanticModel;
+        }
 
         public IOperation Create(BoundNode boundNode)
         {
@@ -355,17 +362,15 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazyObjectCreationExpression(constructor, memberInitializers, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue);
         }
 
-        private IUnboundLambdaExpression CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
+        private IOperation CreateUnboundLambdaOperation(UnboundLambda unboundLambda)
         {
-            bool isInvalid = unboundLambda.HasErrors;
-            SyntaxNode syntax = unboundLambda.Syntax;
-            // This matches the SemanticModel implementation. This is because in VB, lambdas by themselves
-            // do not have a type. To get the type of a lambda expression in the SemanticModel, you need to look at
-            // TypeInfo.ConvertedType, rather than TypeInfo.Type. We replicate that behavior here. To get the type of
-            // an IUnboundLambdaExpression, you need to look at the parent IConversionExpression.
-            ITypeSymbol type = null;
-            Optional<object> constantValue = ConvertToOptional(unboundLambda.ConstantValue);
-            return new UnboundLambdaExpression(isInvalid, syntax, type, constantValue);
+            // We want to ensure that we never see the UnboundLambda node, and that we don't end up having two different IOperation
+            // nodes for the lambda expression. So, we ask the semantic model for the IOperation node for the unbound lambda syntax.
+            // We are counting on the fact that will do the error recovery and actually create the BoundLambda node appropriate for
+            // this syntax node.
+            var lambdaOperation = _semanticModel.GetOperationInternal(unboundLambda.Syntax);
+            Debug.Assert(lambdaOperation.Kind == OperationKind.LambdaExpression);
+            return lambdaOperation;
         }
 
         private ILambdaExpression CreateBoundLambdaOperation(BoundLambda boundLambda)

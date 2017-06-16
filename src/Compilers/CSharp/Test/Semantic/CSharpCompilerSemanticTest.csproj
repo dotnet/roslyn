@@ -65,6 +65,7 @@
     <Compile Include="IOperation\IOperationTests_IArgument.cs" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_ILambdaExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.cs" />
     <Compile Include="IOperation\IOperationTests_ILocalFunctionStatement.cs" />

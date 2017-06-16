@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _parentSemanticModelOpt = parentSemanticModelOpt;
             _speculatedPosition = speculatedPosition;
 
-            _operationFactory = new CSharpOperationFactory();
+            _operationFactory = new CSharpOperationFactory(this);
         }
 
         public override CSharpCompilation Compilation
@@ -983,6 +983,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
             }
 
+            // The CSharp operation factory assumes that UnboundLambda will be bound for error recovery and never be passed to the factory
+            // as the start of a tree to get operations for. This is guaranteed by the builder that populates the node map, as it will call
+            // UnboundLambda.BindForErrorRecovery() when it encounters an UnboundLambda node.
+            Debug.Assert(result.Kind != BoundKind.UnboundLambda);
             return _operationFactory.Create(result);
         }
 
