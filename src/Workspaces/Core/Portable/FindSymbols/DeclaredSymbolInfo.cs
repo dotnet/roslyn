@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static string Intern(StringTable stringTable, string name)
-            => stringTable.GetOrAdd(name, name);
+            => name == null ? null : stringTable.GetOrAdd(name, name);
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
             => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);
