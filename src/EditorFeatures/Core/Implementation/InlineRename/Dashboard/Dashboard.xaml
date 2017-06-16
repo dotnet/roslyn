@@ -102,20 +102,7 @@
                                MaxWidth="260"
                                VerticalAlignment="Center"
                                HorizontalAlignment="Left"
-                               ToolTip="{Binding Session.OriginalSymbolName, Mode=OneTime}">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="{StaticResource ForegroundText}"/>
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=Severity}" Value="Error">
-                                        <Setter Property="Foreground" Value="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-
-                    </TextBlock>
-
+                               ToolTip="{Binding Session.OriginalSymbolName, Mode=OneTime}"/>
                     <Button 
                     Name="CloseButton"
                     Grid.Row ="0"
@@ -179,10 +166,9 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
-
-                    <TextBlock Text="{Binding Path=ResolvableConflictText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameResolvableConflictTextBrushKey}}">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                    <Grid>
+                        <Grid.Style>
+                            <Style TargetType="Grid">
                                 <Setter Property="Visibility" Value="Collapsed"/>
 
                                 <Style.Triggers>
@@ -191,12 +177,22 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-
-                    <TextBlock Text="{Binding Path=UnresolvableConflictText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}" FontWeight="Bold">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
+                        </Grid.Style>
+                        
+                        <Rectangle Name="ResolvableConflictBorder" 
+                                   Width="{Binding ElementName=ResolvableConflictText, Path=ActualWidth}"
+                                   Height="{Binding ElementName=ResolvableConflictText, Path=ActualHeight}"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"/>
+                        <TextBlock Name="ResolvableConflictText"
+                                   Text="{Binding Path=ResolvableConflictText}" 
+                                   Padding="4 2 4 4"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"/>
+                    </Grid>
+                    <Grid Margin="0 4 0 0">
+                        <Grid.Style>
+                            <Style TargetType="Grid">
                                 <Setter Property="Visibility" Value="Collapsed"/>
 
                                 <Style.Triggers>
@@ -205,10 +201,22 @@
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                        </Grid.Style>
 
-                    <TextBlock Text="{Binding Path=ErrorText}" Foreground="{DynamicResource {x:Static utilities:CodeAnalysisColors.RenameErrorTextBrushKey}}" FontWeight="Bold">
+                        <Rectangle Name="UnresolvableConflictBorder"
+                                   Width="{Binding ElementName=UnresolvableConflictText, Path=ActualWidth}"
+                                   Height="{Binding ElementName=UnresolvableConflictText, Path=ActualHeight}"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"/>
+                        <TextBlock Name="UnresolvableConflictText"
+                                   Text="{Binding Path=UnresolvableConflictText}" 
+                                   Padding="4 2 4 4"
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Left"/>
+                    </Grid>
+                    <TextBlock Name="ErrorText" 
+                               Text="{Binding Path=ErrorText}" 
+                               Margin="0 4 0 0">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed"/>

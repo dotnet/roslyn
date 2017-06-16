@@ -44,6 +44,10 @@ namespace Microsoft.CodeAnalysis.Remote
             nameof(RemoteFeatureOptions), nameof(SymbolFinderEnabled), defaultValue: true,
             storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(SymbolFinderEnabled)));
 
+        public static readonly Option<bool> DiagnosticsEnabled = new Option<bool>(
+            nameof(RemoteFeatureOptions), nameof(DiagnosticsEnabled), defaultValue: true,
+            storageLocations: new LocalUserProfileStorageLocation(LocalRegistryPath + nameof(DiagnosticsEnabled)));
+
         private static ImmutableArray<Option<bool>> AllFeatureOptions { get; } =
             ImmutableArray.Create(AddImportEnabled, DocumentHighlightingEnabled, NavigateToEnabled, SymbolSearchEnabled, SymbolFinderEnabled);
 

@@ -10,58 +10,37 @@ namespace Microsoft.CodeAnalysis.Remote
     /// <summary>
     /// Boost performance of any servicehub service which is invoked by user explicit actions
     /// </summary>
-    internal static class UserOperationBooster
+    internal struct UserOperationBooster : IDisposable
     {
         private static int s_count = 0;
+        private static readonly object s_gate = new object();
 
-        public static IDisposable Boost()
+        public static UserOperationBooster Boost()
         {
-            return new Booster();
-        }
-
-        private static void Start()
-        {
-            var value = Interlocked.Increment(ref s_count);
-            Contract.Requires(value >= 0);
-
-            if (value == 1)
+            lock (s_gate)
             {
-                // boost to normal priority
-                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
-            }
-        }
+                s_count++;
 
-        private static void Done()
-        {
-            var value = Interlocked.Decrement(ref s_count);
-            Contract.Requires(value >= 0);
-
-            if (value == 0)
-            {
-                // when boost is done, set process back to below normal priority
-                Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-        }
-
-        private class Booster : IDisposable
-        {
-            public Booster()
-            {
-                Start();
-            }
-
-            public void Dispose()
-            {
-                Done();
-
-                GC.SuppressFinalize(this);
-            }
-
-            ~Booster()
-            {
-                if (!Environment.HasShutdownStarted)
+                if (s_count == 1)
                 {
-                    Contract.Fail($@"Should have been disposed!");
+                    // boost to normal priority
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.Normal;
+                }
+
+                return new UserOperationBooster();
+            }
+        }
+
+        public void Dispose()
+        {
+            lock (s_gate)
+            {
+                s_count--;
+
+                if (s_count == 0)
+                {
+                    // when boost is done, set process back to below normal priority
+                    Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.BelowNormal;
                 }
             }
         }

@@ -58,34 +58,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
             {
-                var service = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
-                if (service == null)
+                var workspace = project.Solution.Workspace;
+                if (workspace.Options.GetOption(RemoteFeatureOptions.DiagnosticsEnabled))
                 {
-                    // host doesn't support RemoteHostService such as under unit test
-                    return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+                    var service = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
+                    if (service != null)
+                    {
+                        var remoteHostClient = await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                        if (remoteHostClient != null)
+                        {
+                            // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
+                            var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, cancellationToken);
+                            var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken);
+
+                            // run them concurrently in vs and remote host
+                            await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
+
+                            // make sure things are not cancelled
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            // merge 2 results
+                            return DiagnosticAnalysisResultMap.Create(
+                                inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
+                                inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
+                        }
+                    }
                 }
 
-                var remoteHostClient = await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient == null)
-                {
-                    // remote host is not running. this can happen if remote host is disabled.
-                    return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
-                }
-
-                // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
-                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, cancellationToken);
-                var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken);
-
-                // run them concurrently in vs and remote host
-                await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
-
-                // make sure things are not cancelled
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // merge 2 results
-                return DiagnosticAnalysisResultMap.Create(
-                    inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
-                    inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
+                // host doesn't support RemoteHostService such as under unit test
+                // remote host is not running. this can happen if remote host is disabled.
+                return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(

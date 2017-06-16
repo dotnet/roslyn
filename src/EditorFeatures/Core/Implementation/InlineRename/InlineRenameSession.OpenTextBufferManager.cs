@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                 edit.Replace(change.Span.Start, change.Span.Length, change.NewText);
                             }
 
-                            edit.Apply();
+                            edit.ApplyAndLogExceptions();
                         }
                     });
 
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             buffer.Replace(change.Span.ToSpan(), change.NewText);
                         }
 
-                        edit.Apply();
+                        edit.ApplyAndLogExceptions();
                     }
 
                     yield return new InlineRenameReplacement(replacement.Kind, replacement.OriginalSpan, trackingSpan.GetSpan(buffer.CurrentSnapshot).Span.ToTextSpan());
