@@ -9,16 +9,19 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags
 {
     [Export(typeof(EditorFormatDefinition))]
-    [Name(FixupTag.TagId)]
+    [Name(RenameConflictTag.TagId)]
     [UserVisible(true)]
     [ExcludeFromCodeCoverage]
-    internal class FixupTagDefinition : MarkerFormatDefinition
+    internal class RenameConflictTagDefinition : MarkerFormatDefinition
     {
-        public FixupTagDefinition()
+        public static double StrokeThickness => 1.5;
+        public static double[] StrokeDashArray => new[] { 8.0, 4.0 };
+
+        public RenameConflictTagDefinition()
         {
-            this.Border = new Pen(Brushes.Green, thickness: 1.0) { DashStyle = new DashStyle(new[] { 4.0, 4.0 }, 0) };
-            this.DisplayName = EditorFeaturesResources.Inline_Rename_Fixup;
-            this.ZOrder = 1;
+            this.Border = new Pen(Brushes.Red, thickness: StrokeThickness) { DashStyle = new DashStyle(StrokeDashArray, 0) };
+            this.DisplayName = EditorFeaturesResources.Inline_Rename_Conflict;
+            this.ZOrder = 10;
         }
     }
 }

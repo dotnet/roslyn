@@ -19530,7 +19530,6 @@ class C
         public void DefiniteAssignment011()
         {
             var source = @"
-using System;
 class C
 {
     static void Main(string[] args)
@@ -19652,18 +19651,15 @@ namespace System
         }
     }
 }
-" + tupleattributes_cs;
+" + TestResources.NetFX.ValueTuple.tupleattributes_cs;
 
             var comp = CreateStandardCompilation(source,
                 parseOptions: TestOptions.Regular);
 
             comp.VerifyDiagnostics(
-                // (71,38): error CS0165: Use of unassigned local variable 'ss'
+                // (70,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(71, 38),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;").WithLocation(2, 1)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
             );
         }
 
@@ -19671,7 +19667,6 @@ namespace System
         public void DefiniteAssignment012()
         {
             var source = @"
-using System;
 class C
 {
     static void Main(string[] args)
@@ -19751,22 +19746,20 @@ class C
                 references: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular);
 
-            comp.VerifyEmitDiagnostics(
-                // (49,38): error CS0165: Use of unassigned local variable 'ss'
+            comp.VerifyDiagnostics(
+                // (48,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail1
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(49, 38),
-                // (71,38): error CS0165: Use of unassigned local variable 'ss'
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(48, 38),
+                // (70,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail2
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(71, 38)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
             );
         }
-
 
         [Fact]
         public void DefiniteAssignment013()
         {
             var source = @"
-using System;
 class C
 {
     static void Main(string[] args)
@@ -19806,10 +19799,10 @@ class C
                 references: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular);
 
-            comp.VerifyEmitDiagnostics(
-                // (32,34): error CS0170: Use of possibly unassigned field 'Rest'
+            comp.VerifyDiagnostics(
+                // (31,34): error CS0170: Use of possibly unassigned field 'Rest'
                 //         System.Console.WriteLine(ss.Rest);
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "ss.Rest").WithArguments("Rest").WithLocation(32, 34)
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "ss.Rest").WithArguments("Rest").WithLocation(31, 34)
             );
         }
 
@@ -19817,7 +19810,6 @@ class C
         public void DefiniteAssignment014()
         {
             var source = @"
-using System;
 class C
 {
     static void Main(string[] args)
@@ -19838,7 +19830,6 @@ class C
         System.Console.WriteLine(ss.I2);
 
         System.Console.WriteLine(ss.I3);
-       
     }
 }
 
@@ -19848,10 +19839,10 @@ class C
                 references: s_valueTupleRefs,
                 parseOptions: TestOptions.Regular);
 
-            comp.VerifyEmitDiagnostics(
-                // (22,34): error CS0170: Use of possibly unassigned field 'I3'
+            comp.VerifyDiagnostics(
+                // (21,34): error CS0170: Use of possibly unassigned field 'I3'
                 //         System.Console.WriteLine(ss.I3);
-                Diagnostic(ErrorCode.ERR_UseDefViolationField, "ss.I3").WithArguments("I3").WithLocation(22, 34)
+                Diagnostic(ErrorCode.ERR_UseDefViolationField, "ss.I3").WithArguments("I3").WithLocation(21, 34)
             );
         }
 
