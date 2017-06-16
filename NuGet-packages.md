@@ -15,3 +15,17 @@ Once installed, this package requires Microsoft Build Tools 2015.
 - Version `2.1` is still C# 7.0, but with a couple fixes (Visual Studio 2017 version 15.1).
 - Version `2.2` is still C# 7.0, but with a couple more fixes (Visual Studio 2017 version 15.2).
 - Version `2.3` means C# 7.1 and VB 15.3 (Visual Studio 2017 version 15.3). For instance, `2.3.0-beta1` corresponds to Visual Studio 2017 version 15.3 (Preview 1).
+
+## ValueTuple
+
+To facilitate adoption of C# 7.0 and VB 15 tuples, the required underlying types were made available as a standalone package (see [ValueTuple](https://www.nuget.org/packages/System.ValueTuple) on nuget). But the types were also built into newer versions of the different .Net stacks.
+
+|                        | Version that includes ValueTuple |
+|------------------------|----------------------------------|
+| Full/desktop framework | .NET Framework 4.7 and Windows 10 Creators Edition Update (RS2) | 
+| Core | 2.0 | 
+| Mono | Mono 5.0 | 
+| .Net Standard | .Net Standard 2.0 | 
+
+The package supports multiple target frameworks, include PCL (moniker `portable_net40+sl4+win8+wp8`, where `ValueTuple.dll` only depends on `mscorlib`), .NET Standard 1.0 (moniker `netstandard1.0`) and more.
+The package provides type forwards to the in-box implementation of `ValueTuple` types for target frameworks that have it (for example, monikers `net47`, `netstandard2.0`, `netcoreapp2.0`).
