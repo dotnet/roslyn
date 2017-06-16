@@ -5,7 +5,7 @@
     <summary>
       .NET Compiler Platform ("Roslyn") code style analyzers for C#.
     </summary>
-    <description>This package was built from the source at $commitUrl$</description>
+    <description>$commitPathMessage$</description>
     <dependencies>
     </dependencies>
 

@@ -6,7 +6,7 @@
     <description>
       Microsoft .NET Compiler Platform ("Roslyn") Visual Basic scripting package.
       
-      This package was built from the source at $commitUrl$
+      $commitPathMessage$
     </description>
 
     <language>en-US</language>

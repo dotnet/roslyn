@@ -3,7 +3,7 @@
   <metadata>
     <id>Microsoft.VisualStudio.IntegrationTest.Utilities</id>
     <summary>Utility methods used to run Visual Studio integration tests.</summary>
-    <description>This package was built from the source at $commitUrl$</description>
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>

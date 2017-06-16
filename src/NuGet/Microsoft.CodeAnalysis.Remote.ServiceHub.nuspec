@@ -11,7 +11,7 @@
 Supported Platforms:
 - .NET Framework 4.6
 
-    This package was built from the source at $commitUrl$
+    $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />

@@ -13,7 +13,7 @@
         - "Microsoft.CodeAnalysis.CSharp" (only the C# compiler)      
         - "Microsoft.CodeAnalysis.VisualBasic (only the VB compiler)
 
-      This package was built from the source at $commitUrl$
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="[$version$]" />

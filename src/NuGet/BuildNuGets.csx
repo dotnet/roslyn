@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
 string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory> <git sha>";
@@ -36,7 +37,15 @@ var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 // In developer builds the commit sha is <developer build>. Need to make sure
 // we escape the values so that 
 var CommitSha = Args[3].Replace("<", "").Replace(">", "");
-var CommitUrl = $"https://github.com/dotnet/roslyn/commit/{CommitSha}";
+var CommitIsDeveloperBuild = CommitSha == "<developer build>";
+if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
+{
+    Console.WriteLine("Invalid Git sha value: expected <developer build> or a valid sha");
+    Environment.Exit(1);
+}
+var CommitPathMessage = CommitIsDeveloperBuild
+    ? $"This package was built from the source at https://github.com/dotnet/roslyn/commit/{CommitSha}"
+    : "This an unofficial build from a developers machine";
 
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
@@ -211,7 +220,7 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "tags", Tags },
         { "emptyDirPath", emptyDir },
         { "additionalFilesPath", NuGetAdditionalFilesPath },
-        { "commitUrl", CommitUrl }
+        { "commitPathMessage", CommitPathMessage }
     };
 
     foreach (var dependencyVersion in dependencyVersions)

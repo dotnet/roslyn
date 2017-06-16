@@ -8,7 +8,7 @@
 Supported Platforms:
 - .NET Framework 4.6
     </summary>
-    <description>This package was built from the source at $commitUrl$</description>
+    <description>$commitPathMessage$</description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Remote.ServiceHub" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />

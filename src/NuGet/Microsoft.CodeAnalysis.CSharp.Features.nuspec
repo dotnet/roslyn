@@ -5,7 +5,7 @@
     <summary>
       .NET Compiler Platform ("Roslyn") support for creating C# editing experiences.
     </summary>
-    <description>This package was built from the source at $commitUrl$</description>
+    <description>$commitPathMessage$</description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="$version$" />
       <dependency id="Microsoft.CodeAnalysis.CSharp.Workspaces" version="$version$" />

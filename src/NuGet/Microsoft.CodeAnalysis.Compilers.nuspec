@@ -8,7 +8,7 @@
 
       More details at https://aka.ms/roslyn-packages
 
-      This package was built from the source at $commitUrl$
+      $commitPathMessage$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />

@@ -5,7 +5,7 @@
     <summary>
       .NET Compiler Platform ("Roslyn") support for analyzing C# projects and solutions.
     </summary>
-    <description>This package was built from the source at $commitUrl$</description>
+    <description>$commitPathMessage$</description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />

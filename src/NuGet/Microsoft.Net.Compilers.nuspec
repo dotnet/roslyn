@@ -7,7 +7,7 @@
 
     This package can be used to compile code targeting any platform, but can only be run using the desktop .NET 4.6+ Full Framework.
     </summary>
-    <description>This package was built from the source at $commitUrl$</description>
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
