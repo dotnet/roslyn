@@ -45,7 +45,7 @@ if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
 }
 var CommitPathMessage = CommitIsDeveloperBuild
     ? $"This package was built from the source at https://github.com/dotnet/roslyn/commit/{CommitSha}"
-    : "This an unofficial build from a developers machine";
+    : "This an unofficial build from a developer's machine";
 
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
