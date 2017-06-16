@@ -7,8 +7,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -21,7 +19,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
-    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax> 
+    internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
         : IAddImportFeatureService, IEqualityComparer<PortableExecutableReference>
         where TSimpleNameSyntax : SyntaxNode
     {
@@ -56,31 +54,36 @@ namespace Microsoft.CodeAnalysis.AddImport
 
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
             Document document, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
-            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies, 
+            ISymbolSearchService symbolSearchService, bool searchReferenceAssemblies,
             ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             var callbackTarget = new RemoteSymbolSearchService(symbolSearchService, cancellationToken);
-            var session = await document.Project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
-                RemoteFeatureOptions.AddImportEnabled, callbackTarget, cancellationToken).ConfigureAwait(false);
+            var result = await document.Project.Solution.TryRunCodeAnalysisRemoteAsync<ImmutableArray<AddImportFixData>>(
+                RemoteFeatureOptions.AddImportEnabled,
+                callbackTarget,
+                nameof(IRemoteAddImportFeatureService.GetFixesAsync),
+                new object[]
+                {
+                    document.Id,
+                    span,
+                    diagnosticId,
+                    placeSystemNamespaceFirst,
+                    searchReferenceAssemblies,
+                    packageSources
+                },
+                cancellationToken).ConfigureAwait(false);
 
             var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            using (session)
+            if (!result.IsDefault)
             {
-                if (session == null)
-                {
-                    return await GetFixesInCurrentProcessAsync(
-                        document, span, diagnosticId, placeSystemNamespaceFirst,
-                        symbolSearchService, searchReferenceAssemblies,
-                        packageSources, cancellationToken).ConfigureAwait(false);
-                }
-                else
-                {
-                    return await GetFixesInRemoteProcessAsync(
-                        session, document, span, diagnosticId, placeSystemNamespaceFirst,
-                        searchReferenceAssemblies, packageSources).ConfigureAwait(false);
-                }
+                return result;
             }
+
+            return await GetFixesInCurrentProcessAsync(
+                document, span, diagnosticId, placeSystemNamespaceFirst,
+                symbolSearchService, searchReferenceAssemblies,
+                packageSources, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ImmutableArray<AddImportFixData>> GetFixesInCurrentProcessAsync(
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                         {
                             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                             var allSymbolReferences = await FindResultsAsync(
-                                document, semanticModel, diagnosticId, node, symbolSearchService, 
+                                document, semanticModel, diagnosticId, node, symbolSearchService,
                                 searchReferenceAssemblies, packageSources, cancellationToken).ConfigureAwait(false);
 
                             // Nothing found at all. No need to proceed.
@@ -124,7 +127,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private async Task<ImmutableArray<Reference>> FindResultsAsync(
-            Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, ISymbolSearchService symbolSearchService, 
+            Document document, SemanticModel semanticModel, string diagnosticId, SyntaxNode node, ISymbolSearchService symbolSearchService,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             // Caches so we don't produce the same data multiple times while searching 
@@ -201,7 +204,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         }
 
         private async Task FindResultsInAllSymbolsInStartingProjectAsync(
-            ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder, 
+            ArrayBuilder<Reference> allSymbolReferences, SymbolReferenceFinder finder,
             bool exact, CancellationToken cancellationToken)
         {
             var references = await finder.FindInAllSymbolsInStartingProjectAsync(exact, cancellationToken).ConfigureAwait(false);
