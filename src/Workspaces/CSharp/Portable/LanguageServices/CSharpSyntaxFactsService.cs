@@ -772,13 +772,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                    node is EnumDeclarationSyntax;
         }
 
-        public bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
+        public bool TryGetDeclaredSymbolInfo(Project project, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     var classDecl = (ClassDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         classDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(classDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
@@ -786,11 +787,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         DeclaredSymbolInfoKind.Class,
                         GetAccessibility(classDecl, classDecl.Modifiers),
                         classDecl.Identifier.Span,
-                        GetInheritanceNames(classDecl.BaseList));
+                        GetInheritanceNames(project, classDecl.BaseList));
                     return true;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         ctorDecl.Identifier.ValueText,
                         GetConstructorSuffix(ctorDecl),
                         GetContainerDisplayName(node.Parent),
@@ -804,6 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
@@ -816,6 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         enumDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -827,6 +831,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         enumMember.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -838,6 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         eventDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -849,6 +855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         "this", GetIndexerSuffix(indexerDecl),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -860,17 +867,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.InterfaceDeclaration:
                     var interfaceDecl = (InterfaceDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         interfaceDecl.Identifier.ValueText, GetTypeParameterSuffix(interfaceDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Interface,
                         GetAccessibility(interfaceDecl, interfaceDecl.Modifiers), 
                         interfaceDecl.Identifier.Span,
-                        GetInheritanceNames(interfaceDecl.BaseList));
+                        GetInheritanceNames(project, interfaceDecl.BaseList));
                     return true;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         method.Identifier.ValueText, GetMethodSuffix(method),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -884,6 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         property.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -895,13 +905,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.StructDeclaration:
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
+                        project,
                         structDecl.Identifier.ValueText, GetTypeParameterSuffix(structDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct,
                         GetAccessibility(structDecl, structDecl.Modifiers), 
                         structDecl.Identifier.Span,
-                        GetInheritanceNames(structDecl.BaseList));
+                        GetInheritanceNames(project, structDecl.BaseList));
                     return true;
                 case SyntaxKind.VariableDeclarator:
                     // could either be part of a field declaration or an event field declaration
@@ -917,6 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 : DeclaredSymbolInfoKind.Field;
 
                         declaredSymbolInfo = new DeclaredSymbolInfo(
+                            project,
                             variableDeclarator.Identifier.ValueText, null,
                             GetContainerDisplayName(fieldDeclaration.Parent),
                             GetFullyQualifiedContainerName(fieldDeclaration.Parent),
@@ -1079,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private ImmutableArray<string> GetInheritanceNames(BaseListSyntax baseList)
+        private ImmutableArray<string> GetInheritanceNames(Project project, BaseListSyntax baseList)
         {
             if (baseList == null)
             {
@@ -1116,6 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     AddInheritanceName(builder, baseType.Type, aliasMaps);
                 }
 
+                DeclaredSymbolInfo.Intern(project, builder);
                 return builder.ToImmutableAndFree();
             }
             finally

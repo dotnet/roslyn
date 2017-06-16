@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (FormatAndChecksumMatches(reader, SerializationFormat, checksum))
                         {
-                            return ReadFrom(reader, checksum);
+                            return ReadFrom(document.Project, reader, checksum);
                         }
                     }
                 }
@@ -155,12 +155,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SyntaxTreeIndex ReadFrom(
-            ObjectReader reader, Checksum checksum)
+            Project project, ObjectReader reader, Checksum checksum)
         {
             var literalInfo = LiteralInfo.TryReadFrom(reader);
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
             var contextInfo = ContextInfo.TryReadFrom(reader);
-            var declarationInfo = DeclarationInfo.TryReadFrom(reader);
+            var declarationInfo = DeclarationInfo.TryReadFrom(project, reader);
 
             if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null)
             {

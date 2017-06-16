@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
+            var project = document.Project;
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
             var isCaseSensitive = !ignoreCase;
@@ -77,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
-                            if (syntaxFacts.TryGetDeclaredSymbolInfo(node, out var declaredSymbolInfo))
+                            if (syntaxFacts.TryGetDeclaredSymbolInfo(project, node, out var declaredSymbolInfo))
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {
