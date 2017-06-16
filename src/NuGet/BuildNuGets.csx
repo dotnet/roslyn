@@ -9,9 +9,9 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Xml.Linq;
 
-string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
+string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory> [<filter>]";
 
-if (Args.Count() != 3)
+if (Args.Count < 3 || Args.Count > 4)
 {
     Console.WriteLine(usage);
     Environment.Exit(1);
@@ -32,10 +32,12 @@ var BuildVersion = Args[1].Trim();
 var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
+var NuspecNameFilter = Args.Count > 3 ? Args[3] : null;
 
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
 var LicenseUrlTest = @"http://go.microsoft.com/fwlink/?LinkId=529445";
+var LicenseUrlSource = @"https://github.com/dotnet/roslyn/blob/master/License.txt";
 
 var Authors = @"Microsoft";
 var ProjectURL = @"http://msdn.com/roslyn";
@@ -76,6 +78,7 @@ var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
+var SrcDirPath = Path.Combine(SolutionRoot, "src");
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
@@ -102,6 +105,11 @@ string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis.Workspaces.Common",
     "Microsoft.VisualStudio.LanguageServices",
     "Microsoft.VisualStudio.LanguageServices.Next",
+};
+
+string[] SourcePackageNames = {
+    "Microsoft.CodeAnalysis.PooledObjects",
+    "Microsoft.CodeAnalysis.Debugging",
 };
 
 string[] NonRedistPackageNames = {
@@ -135,6 +143,8 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Next",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
+    "Microsoft.CodeAnalysis.PooledObjects",
+    "Microsoft.CodeAnalysis.Debugging",
 };
 
 // The assets for these packages are not produced when building on Unix
@@ -205,7 +215,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "projectURL", ProjectURL },
         { "tags", Tags },
         { "emptyDirPath", emptyDir },
-        { "additionalFilesPath", NuGetAdditionalFilesPath }
+        { "additionalFilesPath", NuGetAdditionalFilesPath },
+        { "srcDirPath", SrcDirPath }
     };
 
     foreach (var dependencyVersion in dependencyVersions)
@@ -235,6 +246,11 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
     int exit = 0;
     foreach (var file in nuspecFiles)
     {
+        if (NuspecNameFilter != null && !file.Contains(NuspecNameFilter))
+        {
+            continue;
+        }
+
         var p = new Process();
 
         if (!IsCoreBuild)
@@ -361,6 +377,7 @@ catch
 int exit = DoWork(RedistPackageNames, LicenseUrlRedist);
 exit |= DoWork(NonRedistPackageNames, LicenseUrlNonRedist);
 exit |= DoWork(TestPackageNames, LicenseUrlTest);
+exit |= DoWork(SourcePackageNames, LicenseUrlSource);
 
 var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).ToArray();
 var roslynPackageNames = GetRoslynPackageNames(allPackageNames);
