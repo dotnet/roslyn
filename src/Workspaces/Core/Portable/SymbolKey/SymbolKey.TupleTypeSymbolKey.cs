@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
                 foreach (var element in symbol.TupleElements)
                 {
                     friendlyNames.Add(element.IsImplicitlyDeclared ? null : element.Name);
-                    locations.Add(element.Locations.FirstOrDefault());
+                    locations.Add(element.Locations.FirstOrDefault() ?? Location.None);
                 }
 
                 visitor.WriteStringArray(friendlyNames.ToImmutableAndFree());

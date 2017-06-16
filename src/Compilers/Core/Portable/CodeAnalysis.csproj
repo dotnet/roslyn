@@ -86,6 +86,7 @@
     <Compile Include="Operations\IInvocationExpression.cs" />
     <Compile Include="Operations\IIsTypeExpression.cs" />
     <Compile Include="Operations\ILabelStatement.cs" />
+    <Compile Include="Operations\ILocalFunctionStatement.cs" />
     <Compile Include="Operations\ILambdaExpression.cs" />
     <Compile Include="Operations\ILateBoundMemberReferenceExpression.cs" />
     <Compile Include="Operations\ILiteralExpression.cs" />
@@ -124,7 +125,6 @@
     <Compile Include="Operations\ITypeOperationExpression.cs" />
     <Compile Include="Operations\ITypeParameterObjectCreationExpression.cs" />
     <Compile Include="Operations\IUnaryOperatorExpression.cs" />
-    <Compile Include="Operations\IUnboundLambdaExpression.cs" />
     <Compile Include="Operations\IUsingStatement.cs" />
     <Compile Include="Operations\IVariableDeclaration.cs" />
     <Compile Include="Operations\IVariableDeclarationStatement.cs" />

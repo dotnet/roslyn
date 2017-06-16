@@ -365,11 +365,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             DefaultVisit(operation);
@@ -390,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitLocalFunctionStatement(IOperation operation)
+        public virtual void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
         {
             DefaultVisit(operation);
         }
@@ -780,11 +775,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitUnboundLambdaExpression(IUnboundLambdaExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
         public virtual TResult VisitDefaultValueExpression(IDefaultValueExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -803,9 +793,9 @@ namespace Microsoft.CodeAnalysis.Semantics
         public virtual TResult VisitInvalidExpression(IInvalidExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
-        }
+        }        
 
-        public virtual TResult VisitLocalFunctionStatement(IOperation operation, TArgument argument)
+        public virtual TResult VisitLocalFunctionStatement(ILocalFunctionStatement operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

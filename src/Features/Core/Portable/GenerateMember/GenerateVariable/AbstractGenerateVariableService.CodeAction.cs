@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
                         type: _state.TypeMemberType,
                         returnsByRef: _returnsByRef,
-                        explicitInterfaceSymbol: null,
+                        explicitInterfaceImplementations: default,
                         name: _state.IdentifierToken.ValueText,
                         isIndexer: _state.IsIndexer,
                         parameters: _state.Parameters,

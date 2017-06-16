@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitYieldBreakStatement(IReturnStatement operation)
         {
-            LogString("YieldBreakStatement");
+            LogString(nameof(IReturnStatement));
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitYieldBreakStatement(operation);
@@ -1008,14 +1008,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitInstanceExpression(operation.Instance);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            LogString(nameof(IUnboundLambdaExpression));
-            LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitUnboundLambdaExpression(operation);
-        }
-
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             LogString(nameof(IDefaultValueExpression));
@@ -1058,10 +1050,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.IfFalseStatement, "IfFalse");
         }
 
-        public override void VisitLocalFunctionStatement(IOperation operation)
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
         {
-            LogString(nameof(VisitLocalFunctionStatement));
+            LogString(nameof(ILocalFunctionStatement));
+
+            LogSymbol(operation.LocalFunctionSymbol, header: " (Local Function");
+            LogString(")");
             LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Body);
         }
 
         private void LogCaseClauseCommon(ICaseClause operation)

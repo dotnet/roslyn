@@ -393,6 +393,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLambdaExpression(operation);
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            var localFunction = operation.LocalFunctionSymbol;
+
+            base.VisitLocalFunctionStatement(operation);
+        }
+
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             var text = operation.Text;
@@ -486,11 +493,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             var memberName = operation.MemberName;
 
             base.VisitLateBoundMemberReferenceExpression(operation);
-        }
-
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            base.VisitUnboundLambdaExpression(operation);
         }
 
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)

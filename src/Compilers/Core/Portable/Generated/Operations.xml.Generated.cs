@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -3525,9 +3526,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseReturnStatement : Operation, IReturnStatement
     {
-        protected BaseReturnStatement(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-                    base(OperationKind.ReturnStatement, isInvalid, syntax, type, constantValue)
+        protected BaseReturnStatement(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(kind, isInvalid, syntax, type, constantValue)
         {
+            Debug.Assert(kind == OperationKind.ReturnStatement
+                      || kind == OperationKind.YieldReturnStatement
+                      || kind == OperationKind.YieldBreakStatement);
         }
         /// <summary>
         /// Value to be returned.
@@ -3535,11 +3539,25 @@ namespace Microsoft.CodeAnalysis.Semantics
         public abstract IOperation ReturnedValue { get; }
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitReturnStatement(this);
+            if (Kind == OperationKind.YieldBreakStatement)
+            {
+                visitor.VisitYieldBreakStatement(this);
+            }
+            else
+            {
+                visitor.VisitReturnStatement(this);
+            }
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitReturnStatement(this, argument);
+            if (Kind == OperationKind.YieldBreakStatement)
+            {
+                return visitor.VisitYieldBreakStatement(this, argument);
+            }
+            else
+            {
+                return visitor.VisitReturnStatement(this, argument);
+            }
         }
     }
 
@@ -3548,8 +3566,8 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal sealed partial class ReturnStatement : BaseReturnStatement, IReturnStatement
     {
-        public ReturnStatement(IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isInvalid, syntax, type, constantValue)
+        public ReturnStatement(OperationKind kind, IOperation returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(kind, isInvalid, syntax, type, constantValue)
         {
             ReturnedValue = returnedValue;
         }
@@ -3566,7 +3584,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyReturnedValue;
 
-        public LazyReturnStatement(Lazy<IOperation> returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        public LazyReturnStatement(OperationKind kind, Lazy<IOperation> returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
         {
             _lazyReturnedValue = returnedValue ?? throw new System.ArgumentNullException("returnedValue");
         }
@@ -4161,26 +4179,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation Operand => _lazyOperand.Value;
     }
 
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
-    internal sealed partial class UnboundLambdaExpression : Operation, IUnboundLambdaExpression
-    {
-        public UnboundLambdaExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.UnboundLambdaExpression, isInvalid, syntax, type, constantValue)
-        {
-        }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitUnboundLambdaExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitUnboundLambdaExpression(this, argument);
-        }
-    }
-
     /// <summary>
     /// Represents a C# using or VB Using statement.
     /// </summary>
@@ -4548,4 +4546,65 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override IOperation Value => _lazyValue.Value;
     }
 
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal abstract partial class BaseLocalFunctionStatement : Operation, ILocalFunctionStatement
+    {
+        protected BaseLocalFunctionStatement(IMethodSymbol localFunctionSymbol, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.LocalFunctionStatement, isInvalid, syntax, type, constantValue)
+        {
+            LocalFunctionSymbol = localFunctionSymbol;
+        }
+        /// <summary>
+        /// Local function symbol.
+        /// </summary>
+        public IMethodSymbol LocalFunctionSymbol { get; }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public abstract IBlockStatement Body { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitLocalFunctionStatement(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitLocalFunctionStatement(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal sealed partial class LocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionStatement
+    {
+        public LocalFunctionStatement(IMethodSymbol localFunctionSymbol, IBlockStatement body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(localFunctionSymbol, isInvalid, syntax, type, constantValue)
+        {
+            Body = body;
+        }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public override IBlockStatement Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a local function statement.
+    /// </summary>
+    internal sealed partial class LazyLocalFunctionStatement : BaseLocalFunctionStatement, ILocalFunctionStatement
+    {
+        private readonly Lazy<IBlockStatement> _lazyBody;
+
+        public LazyLocalFunctionStatement(IMethodSymbol localFunctionSymbol, Lazy<IBlockStatement> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(localFunctionSymbol, isInvalid, syntax, type, constantValue)
+        {
+            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+        }
+        /// <summary>
+        /// Body of the local function.
+        /// </summary>
+        public override IBlockStatement Body => _lazyBody.Value;
+    }
 }
