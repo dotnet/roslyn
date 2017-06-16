@@ -45,10 +45,10 @@ namespace Microsoft.CodeAnalysis.Remote
             Task.Run(CleanAssetsAsync, CancellationToken.None);
         }
 
-        public AssetSource TryGetAssetSource(int sessionId)
+        public AssetSource TryGetAssetSource(int scopeId)
         {
             AssetSource source;
-            if (_assetSources.TryGetValue(sessionId, out source))
+            if (_assetSources.TryGetValue(scopeId, out source))
             {
                 return source;
             }
@@ -56,15 +56,15 @@ namespace Microsoft.CodeAnalysis.Remote
             return null;
         }
 
-        public void RegisterAssetSource(int sessionId, AssetSource assetSource)
+        public void RegisterAssetSource(int scopeId, AssetSource assetSource)
         {
-            Contract.ThrowIfFalse(_assetSources.TryAdd(sessionId, assetSource));
+            Contract.ThrowIfFalse(_assetSources.TryAdd(scopeId, assetSource));
         }
 
-        public void UnregisterAssetSource(int sessionId)
+        public void UnregisterAssetSource(int scopeId)
         {
             AssetSource dummy;
-            _assetSources.TryRemove(sessionId, out dummy);
+            _assetSources.TryRemove(scopeId, out dummy);
         }
 
         public bool TryAddGlobalAsset(Checksum checksum, object value)

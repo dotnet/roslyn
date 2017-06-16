@@ -137,11 +137,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 client?.Shutdown();
             }
 
-            public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
-            {
-                return TryGetRemoteHostClientAsync(cancellationToken);
-            }
-
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -171,13 +166,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     return null;
                 }
 
-                client.ConnectionChanged += OnConnectionChanged;
+                client.StatusChanged += OnStatusChanged;
 
                 // set global assets on remote host
                 var checksums = AddGlobalAssets(cancellationToken);
 
                 // send over global asset
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
                     (object)checksums, cancellationToken).ConfigureAwait(false);
@@ -219,9 +214,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 }
             }
 
-            private void OnConnectionChanged(object sender, bool connected)
+            private void OnStatusChanged(object sender, bool started)
             {
-                if (connected)
+                if (started)
                 {
                     return;
                 }
@@ -288,7 +283,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 Logger.Log(FunctionId.RemoteHostClientService_Restarted, KeyValueLogMessage.NoProperty);
 
                 // we are going to kill the existing remote host, connection change is expected
-                existingClient.ConnectionChanged -= OnConnectionChanged;
+                existingClient.StatusChanged -= OnStatusChanged;
 
                 lock (_gate)
                 {

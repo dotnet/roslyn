@@ -559,6 +559,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool LooksGeneric(SyntaxNode simpleName)
+            => simpleName.IsKind(SyntaxKind.GenericName) ||
+               simpleName.GetLastToken().GetNextToken().Kind() == SyntaxKind.LessThanToken;
+
         public SyntaxNode GetTargetOfMemberBinding(SyntaxNode node)
             => (node as MemberBindingExpressionSyntax).GetParentConditionalAccessExpression()?.Expression;
 
