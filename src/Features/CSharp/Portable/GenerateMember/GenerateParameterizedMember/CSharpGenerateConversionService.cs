@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMemb
                 modifiers: default(DeclarationModifiers),
                 returnType: typeToGenerateIn,
                 returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: null,
                 typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
                 parameters: ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")),

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
@@ -14,19 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal class SyntaxTokenClassifier : AbstractSyntaxClassifier
     {
-        public override IEnumerable<int> SyntaxTokenKinds
-        {
-            get
-            {
-                yield return (int)SyntaxKind.LessThanToken;
-            }
-        }
+        public override ImmutableArray<int> SyntaxTokenKinds { get; } = ImmutableArray.Create((int)SyntaxKind.LessThanToken);
 
         private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
-        public override IEnumerable<ClassifiedSpan> ClassifyToken(
+        public override void AddClassifications(
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
+            ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
@@ -44,13 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     var types = semanticModel.LookupTypeRegardlessOfArity(identifier, cancellationToken);
                     if (types.Any(s_shouldInclude))
                     {
-                        return SpecializedCollections.SingletonEnumerable(
-                            new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
+                        result.Add(new ClassifiedSpan(identifier.Span, GetClassificationForType(types.First())));
                     }
                 }
             }
-
-            return null;
         }
 
         private bool CouldBeGenericType(SyntaxToken identifier)

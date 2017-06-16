@@ -175,10 +175,11 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                     // Only look at reference assembly results.
                     if (type.PackageName.ToString() == MicrosoftAssemblyReferencesName)
                     {
-                        var nameParts = new List<string>();
+                        var nameParts = ArrayBuilder<string>.GetInstance();
                         GetFullName(nameParts, type.FullName.Parent);
                         var result = new ReferenceAssemblyWithTypeResult(
-                            type.AssemblyName.ToString(), type.Name.ToString(), containingNamespaceNames: nameParts);
+                            type.AssemblyName.ToString(), type.Name.ToString(), 
+                            containingNamespaceNames: nameParts.ToImmutableAndFree());
                         results.Add(result);
                     }
                 }
@@ -200,7 +201,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
 
         private PackageWithTypeResult CreateResult(AddReferenceDatabase database, Symbol type)
         {
-            var nameParts = new List<string>();
+            var nameParts = ArrayBuilder<string>.GetInstance();
             GetFullName(nameParts, type.FullName.Parent);
 
             var packageName = type.PackageName.ToString();
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
                 typeName: type.Name.ToString(), 
                 version: version,
                 rank: GetRank(type),
-                containingNamespaceNames: nameParts);
+                containingNamespaceNames: nameParts.ToImmutableAndFree());
         }
 
         private int GetRank(Symbol symbol)
@@ -260,7 +261,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch
             return symbol.Type.IsType();
         }
 
-        private void GetFullName(List<string> nameParts, Path8 path)
+        private void GetFullName(ArrayBuilder<string> nameParts, Path8 path)
         {
             if (!path.IsEmpty)
             {

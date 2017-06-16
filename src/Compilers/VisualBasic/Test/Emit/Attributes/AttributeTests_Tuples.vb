@@ -217,7 +217,7 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
                 </expected>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/16829")>
+        <Fact>
         Public Sub RoundTrip()
             Dim comp = CreateCompilationWithMscorlib({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
             Dim sourceModule As ModuleSymbol = Nothing

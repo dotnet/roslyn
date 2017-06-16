@@ -187,6 +187,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             BoundExpression valueBeforeConversion;
             var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            if (valueBeforeConversion.HasErrors)
+            {
+                return ConstantValue.Bad;
+            }
 
             bool hasErrors = ParameterHelpers.ReportDefaultParameterErrors(binder, ContainingSymbol, parameterSyntax, this, valueBeforeConversion, diagnostics);
             if (hasErrors)

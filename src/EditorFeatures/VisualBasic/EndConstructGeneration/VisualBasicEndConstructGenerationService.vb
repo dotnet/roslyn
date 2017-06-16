@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
             Using edit = subjectBuffer.CreateEdit()
                 Dim aligningWhitespace = subjectBuffer.CurrentSnapshot.GetAligningWhitespace(state.TokenToLeft.Parent.Span.Start)
                 edit.Insert(state.CaretPosition, state.NewLineCharacter + aligningWhitespace)
-                edit.Apply()
+                edit.ApplyAndLogExceptions()
             End Using
 
             ' And now just send down a normal enter

@@ -7181,7 +7181,7 @@ public class Foo
         }
 
         [WorkItem(18275, "https://github.com/dotnet/roslyn/issues/18275")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task TestContextualKeyword1()
         {
             await TestMissingInRegularAndScriptAsync(

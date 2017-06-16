@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 modifiers: new DeclarationModifiers(),
                 returnType: targetDocument.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult_Venus(cancellationToken).GetSpecialType(SpecialType.System_Void),
                 returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: eventHandlerName,
                 typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: invokeMethod.Parameters,

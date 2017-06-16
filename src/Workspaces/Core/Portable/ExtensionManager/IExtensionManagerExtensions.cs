@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -106,43 +107,39 @@ namespace Microsoft.CodeAnalysis.Extensions
             return defaultValue;
         }
 
-        public static Func<SyntaxNode, List<TExtension>> CreateNodeExtensionGetter<TExtension>(
-            this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, IEnumerable<Type>> nodeTypeGetter)
+        public static Func<SyntaxNode, ImmutableArray<TExtension>> CreateNodeExtensionGetter<TExtension>(
+            this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<Type>> nodeTypeGetter)
         {
-            var map = new ConcurrentDictionary<Type, List<TExtension>>();
+            var map = new ConcurrentDictionary<Type, ImmutableArray<TExtension>>();
 
-            Func<Type, List<TExtension>> getter =
-                t1 =>
-                {
-                    var query = from e in extensions
-                                let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), defaultValue: SpecializedCollections.EmptyEnumerable<Type>())
-                                where types != null
-                                where !types.Any() || types.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
-                                select e;
+            ImmutableArray<TExtension> GetExtensions(Type t1)
+            {
+                var query = from e in extensions
+                            let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), ImmutableArray<Type>.Empty)
+                            where !types.Any() || types.Any(t2 => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2))
+                            select e;
 
-                    return query.ToList();
-                };
+                return query.ToImmutableArray();
+            }
 
-            return n => map.GetOrAdd(n.GetType(), getter);
+            return n => map.GetOrAdd(n.GetType(), GetExtensions);
         }
 
-        public static Func<SyntaxToken, List<TExtension>> CreateTokenExtensionGetter<TExtension>(
-            this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, IEnumerable<int>> tokenKindGetter)
+        public static Func<SyntaxToken, ImmutableArray<TExtension>> CreateTokenExtensionGetter<TExtension>(
+            this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<int>> tokenKindGetter)
         {
-            var map = new ConcurrentDictionary<int, List<TExtension>>();
-            Func<int, List<TExtension>> getter =
-                k =>
-                {
-                    var query = from e in extensions
-                                let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e), defaultValue: SpecializedCollections.EmptyEnumerable<int>())
-                                where kinds != null
-                                where !kinds.Any() || kinds.Contains(k)
-                                select e;
+            var map = new ConcurrentDictionary<int, ImmutableArray<TExtension>>();
+            ImmutableArray<TExtension> GetExtensions(int k)
+            {
+                var query = from e in extensions
+                            let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e), ImmutableArray<int>.Empty)
+                            where !kinds.Any() || kinds.Contains(k)
+                            select e;
 
-                    return query.ToList();
-                };
+                return query.ToImmutableArray();
+            }
 
-            return t => map.GetOrAdd(t.RawKind, getter);
+            return t => map.GetOrAdd(t.RawKind, GetExtensions);
         }
     }
 }
