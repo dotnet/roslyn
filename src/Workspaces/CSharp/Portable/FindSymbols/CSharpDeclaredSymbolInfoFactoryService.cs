@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,10 +15,12 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
 {
+    using StringTable = ConcurrentDictionary<string, string>;
+
     [ExportLanguageService(typeof(IDeclaredSymbolInfoFactoryService), LanguageNames.CSharp), Shared]
     internal class CSharpDeclaredSymbolInfoFactoryService : AbstractDeclaredSymbolInfoFactoryService
     {
-        private ImmutableArray<string> GetInheritanceNames(Project project, BaseListSyntax baseList)
+        private ImmutableArray<string> GetInheritanceNames(StringTable stringTable, BaseListSyntax baseList)
         {
             if (baseList == null)
             {
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                     AddInheritanceName(builder, baseType.Type, aliasMaps);
                 }
 
-                DeclaredSymbolInfo.Intern(project, builder);
+                Intern(stringTable, builder);
                 return builder.ToImmutableAndFree();
             }
             finally
@@ -132,14 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
             }
         }
 
-        public override bool TryGetDeclaredSymbolInfo(Project project, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
+        public override bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
         {
             switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     var classDecl = (ClassDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         classDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(classDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
@@ -147,12 +150,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                         DeclaredSymbolInfoKind.Class,
                         GetAccessibility(classDecl, classDecl.Modifiers),
                         classDecl.Identifier.Span,
-                        GetInheritanceNames(project, classDecl.BaseList));
+                        GetInheritanceNames(stringTable, classDecl.BaseList));
                     return true;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         ctorDecl.Identifier.ValueText,
                         GetConstructorSuffix(ctorDecl),
                         GetContainerDisplayName(node.Parent),
@@ -166,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.DelegateDeclaration:
                     var delegateDecl = (DelegateDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         delegateDecl.Identifier.ValueText,
                         GetTypeParameterSuffix(delegateDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
@@ -179,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         enumDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -191,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         enumMember.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -203,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         eventDecl.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -215,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         "this", GetIndexerSuffix(indexerDecl),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -227,19 +230,19 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.InterfaceDeclaration:
                     var interfaceDecl = (InterfaceDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         interfaceDecl.Identifier.ValueText, GetTypeParameterSuffix(interfaceDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Interface,
                         GetAccessibility(interfaceDecl, interfaceDecl.Modifiers),
                         interfaceDecl.Identifier.Span,
-                        GetInheritanceNames(project, interfaceDecl.BaseList));
+                        GetInheritanceNames(stringTable, interfaceDecl.BaseList));
                     return true;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         method.Identifier.ValueText, GetMethodSuffix(method),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -253,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.PropertyDeclaration:
                     var property = (PropertyDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         property.Identifier.ValueText, null,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
@@ -265,14 +268,14 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 case SyntaxKind.StructDeclaration:
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(
-                        project,
+                        stringTable,
                         structDecl.Identifier.ValueText, GetTypeParameterSuffix(structDecl.TypeParameterList),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct,
                         GetAccessibility(structDecl, structDecl.Modifiers),
                         structDecl.Identifier.Span,
-                        GetInheritanceNames(project, structDecl.BaseList));
+                        GetInheritanceNames(stringTable, structDecl.BaseList));
                     return true;
                 case SyntaxKind.VariableDeclarator:
                     // could either be part of a field declaration or an event field declaration
@@ -288,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                                 : DeclaredSymbolInfoKind.Field;
 
                         declaredSymbolInfo = new DeclaredSymbolInfo(
-                            project,
+                            stringTable,
                             variableDeclarator.Identifier.ValueText, null,
                             GetContainerDisplayName(fieldDeclaration.Parent),
                             GetFullyQualifiedContainerName(fieldDeclaration.Parent),

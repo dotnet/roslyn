@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -13,9 +15,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using StringTable = ConcurrentDictionary<string, string>;
+
     internal interface IDeclaredSymbolInfoFactoryService : ILanguageService
     {
-        bool TryGetDeclaredSymbolInfo(Project project, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
+        bool TryGetDeclaredSymbolInfo(StringTable stringTable, SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo);
     }
 
     internal sealed partial class SyntaxTreeIndex
@@ -29,10 +33,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public static readonly ObjectPool<HashSet<long>> LongLiteralHashSetPool =
             new ObjectPool<HashSet<long>>(() => new HashSet<long>(), 20);
 
+        /// <summary>
+        /// String interning table so that we can share many more strings in our DeclaredSymbolInfo
+        /// buckets.  Keyed off a Project instance so that we share all these strings as we create
+        /// the or load the index items for this a specific Project.  This helps as we will generally 
+        /// be creating or loading all the index items for the documents in a Project at the same time.
+        /// Once this project is let go of (which happens with any solution change) then we'll dump
+        /// this string table.  The table will have already served its purpose at that point and 
+        /// doesn't need to be kept around further.
+        /// </summary>
+        private static readonly ConditionalWeakTable<Project, StringTable> s_projectStringTable =
+            new ConditionalWeakTable<Project, StringTable>();
+
         private static async Task<SyntaxTreeIndex> CreateIndexAsync(
             Document document, Checksum checksum, CancellationToken cancellationToken)
         {
             var project = document.Project;
+            var stringTable = GetStringTable(project);
+
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var infoFactory = document.GetLanguageService<IDeclaredSymbolInfoFactoryService>();
             var ignoreCase = syntaxFacts != null && !syntaxFacts.IsCaseSensitive;
@@ -86,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                             // the future then we know the problem lies in (2).  If, however, the problem is really in
                             // TryGetDeclaredSymbolInfo, then this will at least prevent us from returning bad spans
                             // and will prevent the crash from occurring.
-                            if (infoFactory.TryGetDeclaredSymbolInfo(project, node, out var declaredSymbolInfo))
+                            if (infoFactory.TryGetDeclaredSymbolInfo(stringTable, node, out var declaredSymbolInfo))
                             {
                                 if (root.FullSpan.Contains(declaredSymbolInfo.Span))
                                 {
@@ -193,6 +211,9 @@ $@"Invalid span in {nameof(declaredSymbolInfo)}.
                 LongLiteralHashSetPool.ClearAndFree(longLiterals);
             }
         }
+
+        private static StringTable GetStringTable(Project project) 
+            => s_projectStringTable.GetOrCreateValue(project);
 
         private static void GetIdentifierSet(bool ignoreCase, out HashSet<string> identifiers, out HashSet<string> escapedIdentifiers)
         {

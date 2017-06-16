@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -10,6 +11,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using StringTable = ConcurrentDictionary<string, string>;
+
     internal sealed partial class SyntaxTreeIndex : IObjectWritable
     {
         private const string PersistenceName = "<SyntaxTreeIndex>";
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     {
                         if (FormatAndChecksumMatches(reader, SerializationFormat, checksum))
                         {
-                            return ReadFrom(document.Project, reader, checksum);
+                            return ReadFrom(GetStringTable(document.Project), reader, checksum);
                         }
                     }
                 }
@@ -155,12 +158,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static SyntaxTreeIndex ReadFrom(
-            Project project, ObjectReader reader, Checksum checksum)
+            StringTable stringTable, ObjectReader reader, Checksum checksum)
         {
             var literalInfo = LiteralInfo.TryReadFrom(reader);
             var identifierInfo = IdentifierInfo.TryReadFrom(reader);
             var contextInfo = ContextInfo.TryReadFrom(reader);
-            var declarationInfo = DeclarationInfo.TryReadFrom(project, reader);
+            var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
 
             if (literalInfo == null || identifierInfo == null || contextInfo == null || declarationInfo == null)
             {

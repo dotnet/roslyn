@@ -3,8 +3,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -13,6 +11,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
+    using StringTable = ConcurrentDictionary<string, string>;
+
     internal enum DeclaredSymbolInfoKind : byte
     {
         Class,
@@ -82,11 +82,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         public ImmutableArray<string> InheritanceNames { get; }
 
-        private static readonly ConditionalWeakTable<Project, ConcurrentDictionary<string, string>> s_projectStringTable =
-            new ConditionalWeakTable<Project, ConcurrentDictionary<string, string>>();
-
         public DeclaredSymbolInfo(
-            Project project,
+            StringTable stringTable,
             string name,
             string nameSuffix,
             string containerDisplayName,
@@ -97,7 +94,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ImmutableArray<string> inheritanceNames,
             int parameterCount = 0, int typeParameterCount = 0)
         {
-            var stringTable = s_projectStringTable.GetOrCreateValue(project);
             Name = Intern(stringTable, name);
             NameSuffix = Intern(stringTable, nameSuffix);
             ContainerDisplayName = Intern(stringTable, containerDisplayName);
@@ -114,17 +110,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _flags = (uint)kind | ((uint)accessibility << 4) | ((uint)parameterCount << 8) | ((uint)typeParameterCount << 12);
         }
 
-        public static string Intern(ConcurrentDictionary<string, string> stringTable, string name)
+        public static string Intern(StringTable stringTable, string name)
             => stringTable.GetOrAdd(name, name);
-
-        public static void Intern(Project project, ArrayBuilder<string> builder)
-        {
-            var table = s_projectStringTable.GetOrCreateValue(project);
-            for (int i = 0, n = builder.Count; i < n; i++)
-            {
-                builder[i] = Intern(table, builder[i]);
-            }
-        }
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
             => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);
@@ -155,7 +142,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(Project project, ObjectReader reader)
+        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
         {
             var name = reader.ReadString();
             var nameSuffix = reader.ReadString();
@@ -174,7 +161,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
-                project,
+                stringTable,
                 name: name,
                 nameSuffix: nameSuffix,
                 containerDisplayName: containerDisplayName,
