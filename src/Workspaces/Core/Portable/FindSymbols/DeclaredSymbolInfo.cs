@@ -11,8 +11,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using StringTable = ConcurrentDictionary<string, string>;
-
     internal enum DeclaredSymbolInfoKind : byte
     {
         Class,
@@ -111,7 +109,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         public static string Intern(StringTable stringTable, string name)
-            => name == null ? null : stringTable.GetOrAdd(name, name);
+            => name == null ? null : stringTable.Add(name);
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
             => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);

@@ -177,6 +177,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringExtensions.cs">
       <Link>InternalUtilities\StringExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\StringTable.cs" Link="Utilities\StringTable.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\TextChangeRangeExtensions.cs">
       <Link>InternalUtilities\TextChangeRangeExtensions.cs</Link>
     </Compile>

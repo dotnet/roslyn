@@ -7,8 +7,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using StringTable = ConcurrentDictionary<string, string>;
-
     internal partial class SyntaxTreeIndex
     {
         private struct DeclarationInfo

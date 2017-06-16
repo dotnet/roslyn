@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -16,8 +15,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
-    using StringTable = ConcurrentDictionary<string, string>;
-
     internal abstract class AbstractDeclaredSymbolInfoFactoryService : IDeclaredSymbolInfoFactoryService
     {
         private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool =
@@ -77,7 +74,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         {
             for (int i = 0, n = builder.Count; i < n; i++)
             {
-                builder[i] = DeclaredSymbolInfo.Intern(stringTable, builder[i]);
+                builder[i] = stringTable.Add(builder[i]);
             }
         }
 

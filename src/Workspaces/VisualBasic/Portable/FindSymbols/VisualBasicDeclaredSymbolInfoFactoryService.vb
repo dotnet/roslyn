@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports StringTable = System.Collections.Concurrent.ConcurrentDictionary(Of String, String)
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FindSymbols
     <ExportLanguageService(GetType(IDeclaredSymbolInfoFactoryService), LanguageNames.VisualBasic), [Shared]>
