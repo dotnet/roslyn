@@ -175,12 +175,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (feature)
             {
-                case MessageID.IDS_FeatureBinaryLiteral:
-                    return "binaryLiterals";
-                case MessageID.IDS_FeatureDigitSeparator:
-                    return "digitSeparators";
-                case MessageID.IDS_FeatureLocalFunctions:
-                    return "localFunctions";
                 case MessageID.IDS_FeatureStaticNullChecking:
                     return "staticNullChecking";
                 case MessageID.IDS_FeatureIOperation:

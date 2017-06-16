@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LazyArrayElementCantBeRefAnyDiagnosticInfo : LazyDiagnosticsInfo
+    internal sealed class LazyArrayElementCantBeRefAnyDiagnosticInfo : LazyDiagnosticInfo
     {
         private readonly TypeSymbolWithAnnotations _possiblyRestrictedTypeSymbol;
 

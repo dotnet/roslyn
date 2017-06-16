@@ -1642,7 +1642,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return default(LocalState);
         }
 
-        public override BoundNode VisitReturnStatement(BoundReturnStatement node)
+        public sealed override BoundNode VisitReturnStatement(BoundReturnStatement node)
+        {
+            var result = VisitReturnStatementNoAdjust(node);
+            AdjustStateAfterReturnStatement(node);
+            return result;
+        }
+
+        protected virtual BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
             var result = VisitRvalue(node.ExpressionOpt);
 
@@ -1652,7 +1659,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WriteArgument(node.ExpressionOpt, node.RefKind, method: null, parameter: null);
             }
 
-            AdjustStateAfterReturnStatement(node);
             return result;
         }
 

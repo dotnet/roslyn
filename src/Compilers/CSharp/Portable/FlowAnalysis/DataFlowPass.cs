@@ -1516,7 +1516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (slot > 0)
             {
-                Symbol associatedNonMemberSymbol = GetNonMemberSymbol(slot);
+                Symbol associatedNonMemberSymbol = GetNonFieldSymbol(slot);
 
                 switch (associatedNonMemberSymbol.Kind)
                 {
@@ -1958,9 +1958,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitReturnStatement(BoundReturnStatement node)
+        protected override BoundNode VisitReturnStatementNoAdjust(BoundReturnStatement node)
         {
-            var result = VisitRvalue(node.ExpressionOpt);
+            var result = base.VisitReturnStatementNoAdjust(node);
 
             Debug.Assert(!IsConditionalState);
             if (node.ExpressionOpt != null && _performStaticNullChecks && this.State.Reachable)
@@ -1984,7 +1984,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            AdjustStateAfterReturnStatement(node);
             return result;
         }
 
@@ -2641,12 +2640,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitCall(BoundCall node)
         {
+            // Always visit the arguments first
+            var result = base.VisitCall(node);
+
             if (node.Method.MethodKind == MethodKind.LocalFunction)
             {
-                CheckAssigned(node.Method.OriginalDefinition, node.Syntax);
+                var localFunc = (LocalFunctionSymbol)node.Method.OriginalDefinition;
+                ReplayReadsAndWrites(localFunc, node.Syntax, writes: true);
             }
 
-            var result = base.VisitCall(node);
             Debug.Assert(!IsConditionalState);
             if (_performStaticNullChecks && this.State.Reachable)
             {
@@ -2736,9 +2738,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConversion(BoundConversion node)
         {
-            if (node.ConversionKind == ConversionKind.MethodGroup && node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
+            if (node.ConversionKind == ConversionKind.MethodGroup
+                && node.SymbolOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                CheckAssigned(node.SymbolOpt.OriginalDefinition, node.Syntax);
+                var localFunc = (LocalFunctionSymbol)node.SymbolOpt.OriginalDefinition;
+                var syntax = node.Syntax;
+                ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
 
             var result = base.VisitConversion(node);
@@ -2886,7 +2891,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
             {
-                CheckAssigned(node.MethodOpt.OriginalDefinition, node.Syntax);
+                var syntax = node.Syntax;
+                var localFunc = (LocalFunctionSymbol)node.MethodOpt.OriginalDefinition;
+                ReplayReadsAndWrites(localFunc, syntax, writes: false);
             }
 
             SetResultIsNotNull(node);
@@ -2900,6 +2907,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (method.MethodKind == MethodKind.LocalFunction)
                 {
+                    _usedLocalFunctions.Add((LocalFunctionSymbol)method);
                     CheckAssigned(method, node.Syntax);
                 }
             }
@@ -3015,6 +3023,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.State.ResultIsNotNull = valueIsNotNull;
             }
 
+            return null;
+        }
+
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            base.VisitDeconstructionAssignmentOperator(node);
+            bool? valueIsNotNull = this.State.ResultIsNotNull;
+            Assign(node.Left, node.Right, valueIsNotNull);
             return null;
         }
 
@@ -3574,7 +3590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         int unassignedSlot;
                         if (this.State.Reachable && !IsAssigned(node, out unassignedSlot))
                         {
-                            ReportUnassigned(backingField, unassignedSlot, node.Syntax);
+                            ReportUnassignedIfNotCapturedInLocalFunction(backingField, node.Syntax, unassignedSlot);
                         }
                     }
                 }
@@ -4285,20 +4301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (_performStaticNullChecks && this.State.Reachable &&
                 receiverOpt != null && (object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType && this.State.ResultIsNotNull == false)
             {
-                var property = node.PropertySymbol;
-                var backingField = (property as SourcePropertySymbol)?.BackingField;
-                if (backingField != null)
-                {
-                    if (MayRequireTracking(node.ReceiverOpt, backingField))
-                    {
-                        // special definite assignment behavior for fields of struct local variables.
-                        int unassignedSlot;
-                        if (this.State.Reachable && !IsAssigned(node, out unassignedSlot))
-                        {
-                            ReportUnassignedIfNotCapturedInLocalFunction(backingField, node.Syntax, unassignedSlot);
-                        }
-                    }
-                }
+                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
             }
         }
 

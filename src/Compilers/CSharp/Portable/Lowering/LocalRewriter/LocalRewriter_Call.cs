@@ -574,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var receiverNamedType = invokedAsExtensionMethod ?
-                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
+                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type.TypeSymbol as NamedTypeSymbol :
                                     methodOrIndexer.ContainingType;
 
             isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Set loop variable so the value for next iteration will be the index of the first non param-array argument after param-array argument(s).
                     a = firstNonParamArrayArgumentIndex - 1;
 
-                    argument = CreateParamArrayArgument(syntax, parameter.Type, paramArray.ToImmutableAndFree(), null, binder);
+                    argument = CreateParamArrayArgument(syntax, parameter.Type.TypeSymbol, paramArray.ToImmutableAndFree(), null, binder);
                 }
 
                 argumentsInEvaluationBuilder.Add(BoundCall.CreateArgumentOperation(kind, parameter, argument)); 
@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(parameterOfOptionalParametersMethod.IsParams);
 
                     // Create an empty array for omitted param array argument.
-                    argument = CreateParamArrayArgument(syntax, parameterOfOptionalParametersMethod.Type, ImmutableArray<BoundExpression>.Empty, null, binder);
+                    argument = CreateParamArrayArgument(syntax, parameterOfOptionalParametersMethod.Type.TypeSymbol, ImmutableArray<BoundExpression>.Empty, null, binder);
                     kind = ArgumentKind.ParamArray;                                                                               
                 }
                 else
@@ -1346,13 +1346,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression GetDefaultParameterSpecial(SyntaxNode syntax, ParameterSymbol parameter)
         {
             BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, this._compilation);  
-            return MakeConversionNode(defaultValue, parameter.Type, @checked: false);
+            return MakeConversionNode(defaultValue, parameter.Type.TypeSymbol, @checked: false);
         }
 
         private static BoundExpression GetDefaultParameterSpecialForIOperation(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             BoundExpression defaultValue = GetDefaultParameterSpecialNoConversion(syntax, parameter, compilation);
-            return MakeConversionForIOperation(defaultValue, parameter.Type, syntax, compilation, diagnostics, @checked: false);
+            return MakeConversionForIOperation(defaultValue, parameter.Type.TypeSymbol, syntax, compilation, diagnostics, @checked: false);
         }
 
         private static BoundExpression GetDefaultParameterSpecialNoConversion(SyntaxNode syntax, ParameterSymbol parameter, CSharpCompilation compilation)

@@ -163,7 +163,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CallSiteBinder,
         System_Runtime_CompilerServices_CallSite,
         System_Runtime_CompilerServices_CallSite_T,
-        System_Runtime_CompilerServices_NullableAttribute,
 
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T,
@@ -254,16 +253,17 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T3,
         System_ValueTuple_T4,
         System_ValueTuple_T5,
+        System_ValueTuple_T6,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
-        System_ValueTuple_T6,
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
 
         System_Runtime_CompilerServices_TupleElementNamesAttribute,
 
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
+        System_Runtime_CompilerServices_NullableAttribute,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute,
 
         NextAvailable,
@@ -423,7 +423,6 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.CallSiteBinder",
             "System.Runtime.CompilerServices.CallSite",
             "System.Runtime.CompilerServices.CallSite`1",
-            "System.Runtime.CompilerServices.NullableAttribute",
 
             "System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken",
             "System.Runtime.InteropServices.WindowsRuntime.EventRegistrationTokenTable`1",
@@ -513,10 +512,10 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple`3",
             "System.ValueTuple`4",
             "System.ValueTuple`5",
+            "System.ValueTuple`6",
 
             "", // extension marker
 
-            "System.ValueTuple`6",
             "System.ValueTuple`7",
             "System.ValueTuple`8",
 
@@ -524,7 +523,8 @@ namespace Microsoft.CodeAnalysis
 
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
-            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute"
+            "System.Runtime.CompilerServices.NullableAttribute",
+            "System.Runtime.CompilerServices.ReferenceAssemblyAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -563,10 +563,7 @@ namespace Microsoft.CodeAnalysis
                         break;
                     case WellKnownType.ExtSentinel:
                         typeIdName = "";
-                        continue;
-                    case (WellKnownType.NextAvailable - 1):
-                        typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
-                        continue;
+                        break;
                     default:
                         typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
                         break;

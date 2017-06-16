@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
-                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), _userMainReturnTypeSyntax);
+                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type.TypeSymbol), _userMainReturnTypeSyntax);
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         argsToParamsOpt: default(ImmutableArray<int>),
                         resultKind: LookupResultKind.Viable,
                         binderOpt: binder,
-                        type: userMain.ReturnType)
+                        type: userMain.ReturnType.TypeSymbol)
                 { WasCompilerGenerated = true };
 
                 // The diagnostics that would be produced here will already have been captured and returned.
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<ParameterSymbol> Parameters => _parameters;
 
-            public override TypeSymbol ReturnType => _getAwaiterGetResultCall.Type;
+            public override TypeSymbolWithAnnotations ReturnType => TypeSymbolWithAnnotations.Create(_getAwaiterGetResultCall.Type);
 
             internal override BoundBlock CreateBody()
             {

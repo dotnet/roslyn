@@ -1512,9 +1512,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
         ERR_ExplicitNullableAttribute = 8623,
 
-        ERR_BadDynamicMethodArgDefaultLiteral = 9000,
-        ERR_DefaultLiteralNotValid = 9001,
-
         #endregion diagnostics introduced for C# 7.1
     }
 }

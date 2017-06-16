@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected MethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected CommonMethodWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (MethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonMethodWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -1463,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                var data = GetDecodedWellKnownAttributeData() as MethodWellKnownAttributeData;
                 return data?.NullableOptOut ?? base.NullableOptOut;
             }
         }

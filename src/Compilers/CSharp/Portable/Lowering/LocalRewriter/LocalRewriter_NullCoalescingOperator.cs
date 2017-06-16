@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // MakeConversion(temp, rewrittenResultType)
             BoundExpression convertedLeft = GetConvertedLeftForNullCoalescingOperator(boundTemp, leftConversion, rewrittenResultType);
-            Debug.Assert(convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
+            Debug.Assert(convertedLeft.HasErrors || convertedLeft.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));
 
             // (temp != null) ? MakeConversion(temp, LeftConversion) : RightOperand
             BoundExpression conditionalExpression = RewriteConditionalOperator(

@@ -1596,7 +1596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!(method.ReturnType is NamedTypeSymbol namedType))
+            if (!(method.ReturnType.TypeSymbol is NamedTypeSymbol namedType))
             {
                 return false;
             }
@@ -1609,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = method.ExtractReturnTypeSyntax();
-            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, method.ReturnType);
+            var dumbInstance = new BoundLiteral(syntax, ConstantValue.Null, namedType);
             var binder = GetBinder(syntax);
             BoundExpression result;
             var success = binder.GetAwaitableExpressionInfo(dumbInstance, out _, out _, out _, out result, syntax, diagnostics);
@@ -1632,7 +1632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, false);
             }
 
-            TypeSymbol returnType = method.ReturnType;
+            TypeSymbol returnType = method.ReturnType.TypeSymbol;
             bool returnsTaskOrTaskOfInt = false;
             if (returnType.SpecialType != SpecialType.System_Int32 && returnType.SpecialType != SpecialType.System_Void)
             {
@@ -1670,7 +1670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (false, returnsTaskOrTaskOfInt);
             }
 
-            var array = (ArrayTypeSymbol)firstType;
+            var array = (ArrayTypeSymbol)firstType.TypeSymbol;
             return (array.IsSZArray && array.ElementType.SpecialType == SpecialType.System_String, returnsTaskOrTaskOfInt);
         }
 

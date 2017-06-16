@@ -140,8 +140,6 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags,
         System_Runtime_CompilerServices_CallSite_T__Create,
         System_Runtime_CompilerServices_CallSite_T__Target,
-        System_Runtime_CompilerServices_NullableAttribute__ctor,
-        System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
 
         System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject,
         System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle,
@@ -419,6 +417,8 @@ namespace Microsoft.CodeAnalysis
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
+        System_Runtime_CompilerServices_NullableAttribute__ctor,
+        System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
 
         Count

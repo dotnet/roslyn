@@ -15731,7 +15731,7 @@ class C
             Assert.Equal("x1.Bob", x1Bob.ToString());
             var x1Symbol = model.GetSymbolInfo(x1Bob.Expression).Symbol as LocalSymbol;
             Assert.Equal("(System.Int32 Alice, System.String Bob)", x1Symbol.Type.ToTestDisplayString());
-            var bobField = x1Symbol.Type.GetMember("Bob");
+            var bobField = x1Symbol.Type.TypeSymbol.GetMember("Bob");
 
             Assert.Equal(SymbolKind.Field, bobField.Kind);
             var secondElement = nodes.OfType<TupleExpressionSyntax>().First().Arguments[1];

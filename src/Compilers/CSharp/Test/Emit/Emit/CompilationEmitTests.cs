@@ -684,7 +684,7 @@ public class D : ITest1
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType;
+                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
                 Assert.Equal("S", s.ToTestDisplayString());
                 Assert.NotNull(s.GetAttribute("System.Runtime.InteropServices", "TypeIdentifierAttribute"));
 
@@ -773,7 +773,7 @@ public class D
                 var method = (PEMethodSymbol)itest1.GetMember("M");
                 Assert.Equal("S ITest1.M()", method.ToTestDisplayString());
 
-                var s = (NamedTypeSymbol)method.ReturnType;
+                var s = (NamedTypeSymbol)method.ReturnType.TypeSymbol;
                 Assert.Equal("S", s.ToTestDisplayString());
 
                 var field = s.GetMember("field");
