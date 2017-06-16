@@ -34,8 +34,6 @@ var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
-// In developer builds the commit sha is <developer build>. Need to make sure
-// we escape the values so that 
 var CommitSha = Args[3].Replace("<", "").Replace(">", "");
 var CommitIsDeveloperBuild = CommitSha == "<developer build>";
 if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
@@ -44,8 +42,8 @@ if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
     Environment.Exit(1);
 }
 var CommitPathMessage = CommitIsDeveloperBuild
-    ? $"This package was built from the source at https://github.com/dotnet/roslyn/commit/{CommitSha}"
-    : "This an unofficial build from a developer's machine";
+    ? "This an unofficial build from a developer's machine"
+    : $"This package was built from the source at https://github.com/dotnet/roslyn/commit/{CommitSha}";
 
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
