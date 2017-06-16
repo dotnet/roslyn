@@ -140,6 +140,35 @@ class C
         }
 
         [Fact]
+        public void TestNamedParams2()
+        {
+            var source = @"
+class C
+{
+    static void M(params int[] x)
+    {
+    }
+    static void Main()
+    {
+        M(1, x: 2);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (9,14): error CS1744: Named argument 'x' specifies a parameter for which a positional argument has already been given
+                //         M(1, x: 2);
+                Diagnostic(ErrorCode.ERR_NamedArgumentUsedInPositional, "x").WithArguments("x").WithLocation(9, 14)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("M(1, x: 2)", invocation.ToString());
+            Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        }
+
+        [Fact]
         public void TestTwiceNamedParams()
         {
             var source = @"
@@ -233,7 +262,6 @@ class C
         M(x: 1, 2);
     }
 }";
-            // PROTOTYPE(non-trailing) weird error
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
             comp.VerifyDiagnostics(
                 // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
