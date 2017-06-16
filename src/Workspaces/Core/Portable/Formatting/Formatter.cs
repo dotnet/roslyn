@@ -77,16 +77,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static async Task<Document> FormatAsync(Document document, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(await FormatAsync(root, document.Project.Solution.Workspace, options, cancellationToken).ConfigureAwait(false));
-        }
+        public static Task<Document> FormatAsync(Document document, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
+            => FormatAsync(document, spans: null, options: options, cancellationToken: cancellationToken);
 
         /// <summary>
         /// Formats the whitespace in an area of a document corresponding to a text span.
@@ -96,16 +88,8 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="options">An optional set of formatting options. If these options are not supplied the current set of options from the document's workspace will be used.</param>
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
-        public static async Task<Document> FormatAsync(Document document, TextSpan span, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(Format(root, span, document.Project.Solution.Workspace, options, cancellationToken));
-        }
+        public static Task<Document> FormatAsync(Document document, TextSpan span, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
+            => FormatAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
 
         /// <summary>
         /// Formats the whitespace in areas of a document corresponding to multiple non-overlapping spans.
@@ -125,11 +109,6 @@ namespace Microsoft.CodeAnalysis.Formatting
             if (document == null)
             {
                 throw new ArgumentNullException(nameof(document));
-            }
-
-            if (spans == null)
-            {
-                throw new ArgumentNullException(nameof(spans));
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -283,16 +262,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (spans == null)
-            {
-                throw new ArgumentNullException(nameof(spans));
-            }
-
             var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
             if (languageFormatter != null)
             {
                 options = options ?? workspace.Options;
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
+                spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
                 return (await languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken).ConfigureAwait(false)).GetFormattedRoot(cancellationToken);
             }
             else
@@ -374,16 +349,12 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (spans == null)
-            {
-                throw new ArgumentNullException(nameof(spans));
-            }
-
             var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
             if (languageFormatter != null)
             {
                 options = options ?? workspace.Options;
                 rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
+                spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
                 return (await languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken).ConfigureAwait(false)).GetTextChanges(cancellationToken);
             }
             else
