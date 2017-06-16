@@ -207,6 +207,7 @@
     <Compile Include="Classification\AbstractClassificationService.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="Formatting\IFormattingService.cs" />
     <Compile Include="Remote\RemoteFeatureOptions.cs" />
   </ItemGroup>
   <ItemGroup>

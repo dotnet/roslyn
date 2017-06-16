@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -100,7 +101,12 @@ namespace Microsoft.CodeAnalysis.Formatting
         /// <param name="cancellationToken">An optional cancellation token.</param>
         /// <returns>The formatted document.</returns>
         public static Task<Document> FormatAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options = null, CancellationToken cancellationToken = default(CancellationToken))
-            => FormatAsync(document, spans, options, rules: null, cancellationToken: cancellationToken);
+        {
+            var formattingService = document.GetLanguageService<IFormattingService>();
+            return formattingService == null
+                ? SpecializedTasks.FromResult(document)
+                : formattingService.FormatAsync(document, spans, options, cancellationToken);
+        }
 
         internal static async Task<Document> FormatAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
@@ -238,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             var formattingResult = await GetFormattingResult(node, spans, workspace, options, rules, cancellationToken).ConfigureAwait(false);
             return formattingResult == null 
-                ? SpecializedCollections.EmptyList<TextChange>() 
+                ? SpecializedCollections.EmptyList<TextChange>()
                 : formattingResult.GetTextChanges(cancellationToken);
         }
 
