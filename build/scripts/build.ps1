@@ -72,24 +72,23 @@ function Process-Arguments() {
     }
 }
 
-# TODO need to think about delpoyextensions default and ci, local, etc ... 
-
-function Run-MSBuild() {
-    # TODO: Use everything we have in BuildAndTest.proj
-    # /p:PathMap="$($repoDir)=q:\roslyn" /p:Feature=pdb-path-determinism 
-    # /p:TreatWarningsAsErrors=true
-    # /p:RoslynRuntimeIdentifier=win7-x64 
-
+function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
     # Because we override the C#/VB toolset to build against our LKG package, it is important
     # that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise,
     # we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
     # MSBuildAdditionalCommandLineArgs=
-    $buildArgs = "/warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal"
-    foreach ($arg in $args) { 
-        $buildArgs += " $arg"
-    }
+    $args = "/p:TreatWarningsAsErrors=true /warnaserror /nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal";
     
-    Exec-Command $msbuild $buildArgs
+    if ($logFile -ne "") {
+        $args += " /filelogger /fileloggerparameters:Verbosity=normal,logFile=$logFile";
+    }
+
+    if ($cibuild) { 
+        $args += " /p:PathMap=`"$($repoDir)=q:\roslyn`" /p:Feature=pdb-path-determinism" 
+    }
+
+    $args += " $buildArgs"
+    Exec-Command $msbuild $args
 }
 
 # Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
@@ -101,25 +100,25 @@ function Make-BootstrapBuild() {
 
     $bootstrapLog = Join-Path $binariesDir "Bootstrap.log"
     Write-Host "Building Bootstrap compiler"
-    Run-MSBuild /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration /fileloggerparameters:LogFile=$($bootstrapLog) | Out-Host
+    Run-MSBuild "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration" -logFile $bootstrapLog | Out-Host
     $dir = Join-Path $binariesDir "Bootstrap"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
     Move-Item "$configDir\Exes\Toolset\*" $dir
 
     Write-Host "Cleaning Bootstrap compiler artifacts"
-    Run-MSBuild /t:Clean "build\Toolset\Toolset.csproj" /p:Configuration=$buildConfiguration | Out-Host 
+    Run-MSBuild "/t:Clean build\Toolset\Toolset.csproj /p:Configuration=$buildConfiguration" | Out-Host 
     Stop-BuildProcesses
     return $dir
 }
 
 function Test-PerfCorrectness() {
-    Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
+    Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
     Exec-Block { & ".\Binaries\$buildConfiguration\Exes\Perf.Runner\Roslyn.Test.Performance.Runner.exe" --ci-test } | Out-Host
 }
 
 function Test-PerfRun() { 
-    Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
+    Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
 
     # Check if we have credentials to upload to benchview
     $extraArgs = @()
@@ -149,7 +148,6 @@ function Test-PerfRun() {
     }
 }
 
-# TODO: delete this. Standardize on RunTests
 function Test-XUnitCoreClr() { 
 
     $unitDir = Join-Path $binariesDir "CoreClrTest"
@@ -158,7 +156,7 @@ function Test-XUnitCoreClr() {
     Create-Directory $logDir 
 
     Write-Host "Publishing CoreClr tests"
-    Run-MSBuild "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj" /m /v:m /t:Publish /p:RuntimeIdentifier=win7-x64 /p:PublishDir=$unitDir | Out-Host
+    Run-MSBuild "src\Test\DeployCoreClrTestRuntime\DeployCoreClrTestRuntime.csproj /m /v:m /t:Publish /p:RuntimeIdentifier=win7-x64 /p:PublishDir=$unitDir" | Out-Host
 
     $corerun = Join-Path $unitDir "CoreRun.exe"
     $args = Join-Path $unitDir "xunit.console.netcore.exe"
@@ -189,10 +187,10 @@ function Test-XUnit() {
 
     if ($build) {
         $deployArg = if ($deployExtensionViaBuild) { "true" } else { "false" }
-        Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=$deployArg
+        Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=$deployArg"
         
         if ($testDesktop) { 
-            Run-MSBuild src\Samples\Samples.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
+            Run-MSBuild "src\Samples\Samples.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
         }
 
         Stop-BuildProcesses
@@ -384,7 +382,7 @@ try {
     } 
 
     if ($build) {
-        Run-MSBuild Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false
+        Run-MSBuild "Roslyn.sln /p:Configuration=$buildConfiguration /p:DeployExtension=false"
     }
 
     exit 0
