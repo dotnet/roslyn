@@ -252,6 +252,18 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         internal static async Task<SyntaxNode> FormatAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
+            var formattingResult = await GetFormattingResult(node, spans, workspace, options, rules, cancellationToken).ConfigureAwait(false);
+            return formattingResult.GetFormattedRoot(cancellationToken);
+        }
+
+        internal static async Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        {
+            var formattingResult = await GetFormattingResult(node, spans, workspace, options, rules, cancellationToken).ConfigureAwait(false);
+            return formattingResult.GetTextChanges(cancellationToken);
+        }
+
+        internal static Task<IFormattingResult> GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
+        {
             if (workspace == null)
             {
                 throw new ArgumentNullException(nameof(workspace));
@@ -263,17 +275,15 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
-            if (languageFormatter != null)
+            if (languageFormatter == null)
             {
-                options = options ?? workspace.Options;
-                rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
-                spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
-                return (await languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken).ConfigureAwait(false)).GetFormattedRoot(cancellationToken);
+                return SpecializedTasks.Default<IFormattingResult>();
             }
-            else
-            {
-                return node;
-            }
+
+            options = options ?? workspace.Options;
+            rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
+            spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
+            return languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken);
         }
 
         /// <summary>
@@ -335,32 +345,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         internal static IList<TextChange> GetFormattedTextChanges(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
         {
             return GetFormattedTextChangesAsync(node, spans, workspace, options, rules, cancellationToken).WaitAndGetResult(cancellationToken);
-        }
-
-        internal static async Task<IList<TextChange>> GetFormattedTextChangesAsync(SyntaxNode node, IEnumerable<TextSpan> spans, Workspace workspace, OptionSet options, IEnumerable<IFormattingRule> rules, CancellationToken cancellationToken)
-        {
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
-            if (node == null)
-            {
-                throw new ArgumentNullException(nameof(node));
-            }
-
-            var languageFormatter = workspace.Services.GetLanguageServices(node.Language).GetService<ISyntaxFormattingService>();
-            if (languageFormatter != null)
-            {
-                options = options ?? workspace.Options;
-                rules = rules ?? GetDefaultFormattingRules(workspace, node.Language);
-                spans = spans ?? SpecializedCollections.SingletonEnumerable(node.FullSpan);
-                return (await languageFormatter.FormatAsync(node, spans, options, rules, cancellationToken).ConfigureAwait(false)).GetTextChanges(cancellationToken);
-            }
-            else
-            {
-                return SpecializedCollections.EmptyList<TextChange>();
-            }
         }
 
         private static IEnumerable<TextSpan> GetAnnotatedSpans(SyntaxNode node, SyntaxAnnotation annotation)
