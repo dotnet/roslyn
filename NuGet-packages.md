@@ -18,14 +18,16 @@ Once installed, this package requires Microsoft Build Tools 2015.
 
 ## ValueTuple
 
-To facilitate adoption of C# 7.0 and VB 15 tuples, the required underlying types were made available as a standalone package (see [ValueTuple](https://www.nuget.org/packages/System.ValueTuple) on nuget). But the types were also built into newer versions of the different .Net stacks.
+To facilitate adoption of C# 7.0 and VB 15 tuples, the required underlying types were made available as a standalone package (see [ValueTuple](https://www.nuget.org/packages/System.ValueTuple) on nuget). But the types were progressively built into newer versions of the different .NET frameworks.
 
 |                        | Version that includes ValueTuple |
 |------------------------|----------------------------------|
 | Full/desktop framework | .NET Framework 4.7 and Windows 10 Creators Edition Update (RS2) | 
-| Core | 2.0 | 
+| Core | .NET Core 2.0 | 
 | Mono | Mono 5.0 | 
 | .Net Standard | .Net Standard 2.0 | 
 
-The package supports multiple target frameworks, include PCL (moniker `portable_net40+sl4+win8+wp8`, where `ValueTuple.dll` only depends on `mscorlib`), .NET Standard 1.0 (moniker `netstandard1.0`) and more.
-The package provides type forwards to the in-box implementation of `ValueTuple` types for target frameworks that have it (for example, monikers `net47`, `netstandard2.0`, `netcoreapp2.0`).
+The package supports multiple target frameworks, providing an implementation for older targets including PCL (moniker `portable_net40+sl4+win8+wp8`, where `ValueTuple.dll` only depends on `mscorlib`) and .NET Standard 1.0 (`netstandard1.0`).
+For newer targets such as `net47`, `netstandard2.0`, `netcoreapp2.0`, the package provides type forwards to the in-box implementation.
+
+The above describes version 4.4.0 of the ValueTuple package.
