@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Remote
     internal partial class CodeAnalysisService : IRemoteAddImportFeatureService
     {
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
-            DocumentId documentId, TextSpan span, string diagnosticId,
+            DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
             bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources)
         {
             using (UserOperationBooster.Boost())
@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var symbolSearchService = new SymbolSearchService(this);
 
                 var result = await service.GetFixesAsync(
-                    document, span, diagnosticId, symbolSearchService, searchReferenceAssemblies, 
+                    document, span, diagnosticId, placeSystemNamespaceFirst,
+                    symbolSearchService, searchReferenceAssemblies,
                     packageSources, CancellationToken).ConfigureAwait(false);
 
                 return result;

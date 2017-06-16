@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -63,6 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             using (var testDriver = new TestDiagnosticAnalyzerDriver(document.Project, provider))
             {
                 var diagnostics = await testDriver.GetAllDiagnosticsAsync(provider, document, span);
+
                 AssertNoAnalyzerExceptionDiagnostics(diagnostics);
 
                 var fixer = providerAndFixer.Item2;

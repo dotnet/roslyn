@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -54,12 +55,15 @@ namespace Microsoft.CodeAnalysis.AddImport
             // We might have multiple different diagnostics covering the same span.  Have to
             // process them all as we might produce different fixes for each diagnostic.
 
+            var documentOptions = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst);
+
             foreach (var diagnostic in context.Diagnostics)
             {
                 var fixes = await addImportService.GetFixesAsync(
-                    document, span, diagnostic.Id, symbolSearchService,
-                    searchReferenceAssemblies, packageSources,
-                    cancellationToken).ConfigureAwait(false);
+                    document, span, diagnostic.Id, placeSystemNamespaceFirst,
+                    symbolSearchService, searchReferenceAssemblies, 
+                    packageSources, cancellationToken).ConfigureAwait(false);
 
                 var codeActions = ArrayBuilder<CodeAction>.GetInstance();
 
