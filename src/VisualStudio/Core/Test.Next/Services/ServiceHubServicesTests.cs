@@ -93,7 +93,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var result = await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeDocumentData[]>(
+                var result = await client.RunCodeAnalysisServiceOnRemoteHostAsync<ImmutableArray<DesignerAttributeDocumentData>>(
                     solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
                     solution.Projects.First().Id, CancellationToken.None);
 

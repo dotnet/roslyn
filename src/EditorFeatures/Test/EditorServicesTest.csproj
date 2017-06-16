@@ -232,6 +232,7 @@
     <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
     <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
     <Compile Include="EditAndContinue\TraceLogTests.cs" />
+    <Compile Include="EditAndContinue\EditAndContinueDiagnosticUpdateSourceTests.cs" />
     <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
     <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
     <Compile Include="Structure\BlockStructureServiceTests.cs" />

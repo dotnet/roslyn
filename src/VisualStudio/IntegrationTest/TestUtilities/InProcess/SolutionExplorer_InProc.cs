@@ -120,6 +120,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             return references;
         }
 
+        public void RenameFile(string projectName, string oldFileName, string newFileName)
+        {
+            var projectItem = GetProjectItem(projectName, oldFileName);
+
+            projectItem.Name = newFileName;
+        }
+
         public void EditProjectFile(string projectName)
         {
             var solutionExplorer = ((DTE2)GetDTE()).ToolWindows.SolutionExplorer;
@@ -410,7 +417,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (open)
             {
-                projectItem.Open();
+                OpenFile(projectName, fileName);
             }
         }
 
@@ -659,14 +666,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFileWithDesigner(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-            var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
-            var window = project.ProjectItems.Item(fileName).Open(EnvDTE.Constants.vsViewKindDesigner);
+            var projectItem = GetProjectItem(projectName, relativeFilePath);
+            var window = projectItem.Open(EnvDTE.Constants.vsViewKindDesigner);
             window.Activate();
 
             var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(fileName))
+            while (!dte.ActiveWindow.Caption.Contains(projectItem.Name))
             {
                 Thread.Yield();
             }
@@ -674,13 +679,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void OpenFile(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
 
             ExecuteCommand(WellKnownCommandNames.File_OpenFile, filePath);
 
             var dte = GetDTE();
-            while (!dte.ActiveWindow.Caption.Contains(fileName))
+            while (!dte.ActiveWindow.Caption.Contains(Path.GetFileName(filePath)))
             {
                 Thread.Yield();
             }
@@ -688,54 +692,74 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public void CloseFile(string projectName, string relativeFilePath, bool saveFile)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-
-            var dte = GetDTE();
-            var documents = dte.Documents.Cast<EnvDTE.Document>();
-            var fileToClose = documents.FirstOrDefault(document => document.Name.Equals(fileName));
-            if (fileToClose == null)
-            {
-                throw new InvalidOperationException($"File '{fileName}' not closed because it couldn't be found.  Available files: {string.Join(", ", documents.Select(x => x.Name))}.");
-            }
+            var document = GetOpenDocument(projectName, relativeFilePath);
             if (saveFile)
             {
-                SaveFile(fileName);
-                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesYes);
+                SaveFileWithExtraValidation(document);
+                document.Close(EnvDTE.vsSaveChanges.vsSaveChangesYes);
             }
             else
             {
-                fileToClose.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
+                document.Close(EnvDTE.vsSaveChanges.vsSaveChangesNo);
             }
+        }
+
+        private EnvDTE.Document GetOpenDocument(string projectName, string relativeFilePath)
+        {
+            var filePath = GetAbsolutePathForProjectRelativeFilePath(projectName, relativeFilePath);
+            var documents = GetDTE().Documents.Cast<EnvDTE.Document>();
+            var document = documents.FirstOrDefault(d => d.FullName == filePath);
+
+            if (document == null)
+            {
+                throw new InvalidOperationException($"Open document '{filePath} could not be found. Available documents: {string.Join(", ", documents.Select(x => x.FullName))}.");
+            }
+
+            return document;
+        }
+
+        private EnvDTE.ProjectItem GetProjectItem(string projectName, string relativeFilePath)
+        {
+            var projects = _solution.Projects.Cast<EnvDTE.Project>();
+            var project = projects.FirstOrDefault(x => x.Name == projectName);
+
+            if (project == null)
+            {
+                throw new InvalidOperationException($"Project '{projectName} could not be found. Available projects: {string.Join(", ", projects.Select(x => x.Name))}.");
+            }
+
+            var projectPath = Path.GetDirectoryName(project.FullName);
+            var fullFilePath = Path.Combine(projectPath, relativeFilePath);
+
+            var projectItems = project.ProjectItems.Cast<EnvDTE.ProjectItem>();
+            var document = projectItems.FirstOrDefault(d => d.FileNames[1].Equals(fullFilePath));
+
+            if (document == null)
+            {
+                throw new InvalidOperationException($"File '{fullFilePath}' could not be found.  Available files: {string.Join(", ", projectItems.Select(x => x.FileNames[1]))}.");
+            }
+
+            return document;
         }
 
         public void SaveFile(string projectName, string relativeFilePath)
         {
-            var filePath = GetFilePath(projectName, relativeFilePath);
-            var fileName = Path.GetFileName(filePath);
-            SaveFile(fileName);
+            SaveFileWithExtraValidation(GetOpenDocument(projectName, relativeFilePath));
         }
 
-        private static void SaveFile(string fileName)
+        private static void SaveFileWithExtraValidation(EnvDTE.Document document)
         {
-            var dte = GetDTE();
-            var fileToSave = dte.Documents.Cast<EnvDTE.Document>().FirstOrDefault(document => document.Name.Equals(fileName));
-            if (fileToSave == null)
-            {
-                var fileNames = dte.Documents.Cast<EnvDTE.Document>().Select(d => d.Name);
-                throw new InvalidOperationException($"File '{fileName}' not saved because it couldn't be found.  Available files: {string.Join(", ", fileNames)}.");
-            }
-            var textDocument = (EnvDTE.TextDocument)fileToSave.Object(nameof(EnvDTE.TextDocument));
+            var textDocument = (EnvDTE.TextDocument)document.Object(nameof(EnvDTE.TextDocument));
             var currentTextInDocument = textDocument.StartPoint.CreateEditPoint().GetText(textDocument.EndPoint);
-            var fullPath = fileToSave.FullName;
-            fileToSave.Save();
+            var fullPath = document.FullName;
+            document.Save();
             if (File.ReadAllText(fullPath) != currentTextInDocument)
             {
                 throw new InvalidOperationException("The text that we thought we were saving isn't what we saved!");
             }
         }
 
-        private string GetFilePath(string projectName, string relativeFilePath)
+        private string GetAbsolutePathForProjectRelativeFilePath(string projectName, string relativeFilePath)
         {
             var project = _solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
             var projectPath = Path.GetDirectoryName(project.FullName);

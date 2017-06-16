@@ -153,8 +153,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FindUsages\AbstractFindUsagesService.cs" />
-    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.DefinitionTrackingContext.cs" />
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpanFactory.cs" />
     <Compile Include="FindUsages\FindUsagesHelpers.cs" />
     <Compile Include="FindUsages\FindUsagesContext.cs" />
     <Compile Include="FindUsages\IDefinitionsAndReferencesFactory.cs" />
@@ -162,6 +162,8 @@
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTagDefinition.cs" />
     <Compile Include="Implementation\Intellisense\QuickInfo\Providers\LinkedFileDiscrepancyException.cs" />
     <Compile Include="Implementation\Intellisense\Completion\CompletionFilterReason.cs" />
     <Compile Include="Implementation\Intellisense\Completion\FilterResult.cs" />
@@ -179,6 +181,7 @@
     <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTag.cs" />
     <Compile Include="ReferenceHighlighting\Tags\WrittenReferenceHighlightTagDefinition.cs" />
     <Compile Include="Implementation\InfoBar\EditorInfoBarService.cs" />
+    <Compile Include="Shared\Extensions\ITextBufferEditExtensions.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />
@@ -339,8 +342,6 @@
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsAdornmentTaggerProvider.cs" />
     <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="FindUsages\AbstractFindUsagesService.ProgressAdapter.cs" />
     <Compile Include="GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
@@ -512,10 +513,10 @@
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardSeverity.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardViewModel.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\RenameShortcutKeys.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\FixupTag.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\FixupTagDefinition.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\ValidTag.cs" />
-    <Compile Include="Implementation\InlineRename\HighlightTags\ValidTagDefinition.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFixupTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFixupTagDefinition.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFieldBackgroundAndBorderTag.cs" />
+    <Compile Include="Implementation\InlineRename\HighlightTags\RenameFieldBackgroundAndBorderTagDefinition.cs" />
     <Compile Include="Implementation\InlineRename\IEditorInlineRenameService.cs" />
     <Compile Include="Implementation\InlineRename\InlineRenameService.cs" />
     <Compile Include="Implementation\InlineRename\InlineRenameSession.cs" />
@@ -804,9 +805,6 @@
     <Compile Include="Shared\Utilities\ResettableDelay.cs" />
     <Compile Include="Shared\Utilities\ViewHostingControl.cs" />
     <Compile Include="Shared\Utilities\VirtualTreePoint.cs" />
-    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
-    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.SymbolRenameInfo.cs" />
     <Compile Include="Implementation\InlineRename\AbstractEditorInlineRenameService.InlineRenameLocationSet.cs" />
     <Compile Include="TextViewRoles.cs" />

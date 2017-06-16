@@ -11,11 +11,8 @@
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <ServiceablePackage>true</ServiceablePackage>
-    <!-- Temporary workaround for CLR bug, VSO #290723. Please remove the below line once this bug is fixed. -->
-    <SkipApplyOptimizations>true</SkipApplyOptimizations>
     <DefineConstants>$(DefineConstants);WORKSPACE</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -208,6 +205,7 @@
       <Link>InternalUtilities\SyntaxTreeExtensions.cs</Link>
     </Compile>
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="Remote\RemoteFeatureOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />
@@ -459,7 +457,6 @@
     <Compile Include="FindSymbols\FindReferences\StreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\IStreamingFindReferencesProgress.cs" />
     <Compile Include="FindSymbols\SymbolAndProjectId.cs" />
-    <Compile Include="FindSymbols\SymbolFinderOptions.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindLiteralReferences.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.FirstEntityHandleProvider.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />

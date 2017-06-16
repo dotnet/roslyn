@@ -15,11 +15,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
-        Public ReadOnly Property Option_ClosedFileDiagnostics As String
-            Get
-                Return BasicVSResources.Enable_full_solution_analysis
-            End Get
-        End Property
+        Public ReadOnly Property Option_Analysis As String =
+            ServicesVSResources.Analysis
+
+        Public ReadOnly Property Option_Enable_full_solution_analysis As String =
+            ServicesVSResources.Enable_full_solution_analysis
+
+        Public ReadOnly Property Option_Perform_editor_feature_analysis_in_external_process As String =
+            ServicesVSResources.Perform_editor_feature_analysis_in_external_process
 
         Public ReadOnly Property Option_DisplayLineSeparators As String
             Get

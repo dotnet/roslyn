@@ -88,6 +88,13 @@ function Redirect-Temp() {
     ${env:TMP} = $temp
 }
 
+# Temporary code to help track down a NuGet cache corruption bug.
+# https://github.com/dotnet/roslyn/issues/19882
+function Test-NuGetCache([string]$place) {
+    Write-Host "Testing NuGet cache: $place"
+    Exec-Block { & ".\build\scripts\test-nuget-cache.ps1" }
+}
+
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
@@ -108,9 +115,17 @@ try {
     $msbuildDir = Split-Path -parent $msbuild
     $configDir = Join-Path $binariesDIr $buildConfiguration
 
+    Test-NuGetCache "start of CI"
+
     if (-not $skipRestore) { 
         Write-Host "Running restore"
+
+        # Temporary work around to help NuGet team debug a restore issue
+        ${env:NUGET_SHOW_STACK}="true"
         Restore-All -msbuildDir $msbuildDir 
+        Remove-Item env:\NUGET_SHOW_STACK
+
+        Test-NuGetCache "after restore"
     }
 
     # Ensure the binaries directory exists because msbuild can fail when part of the path to LogFile isn't present.
@@ -208,5 +223,7 @@ catch {
     exit 1
 }
 finally {
+    Test-NuGetCache "end of ci"
+
     Pop-Location
 }
