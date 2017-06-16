@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             // if this analysis is explicitly asked by user, boost priority of this request
             using (RoslynLogger.LogBlock(FunctionId.CodeAnalysisService_CalculateDiagnosticsAsync, arguments.ProjectId.DebugName, CancellationToken))
-            using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : null)
+            using (arguments.ForcedAnalysis ? UserOperationBooster.Boost() : default)
             {
                 try
                 {
