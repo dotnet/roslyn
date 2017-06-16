@@ -1,6 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SyntacticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<IEnumerable<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, parseOptions: options))
             {
@@ -26,10 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var tree = await document.GetSyntaxTreeAsync();
 
                 var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var result = new List<ClassifiedSpan>();
+                var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
                 service.AddSyntacticClassifications(tree, textSpan, result, CancellationToken.None);
 
-                return result;
+                return result.ToImmutableAndFree();
             }
         }
 

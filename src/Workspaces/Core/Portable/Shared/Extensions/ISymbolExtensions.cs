@@ -565,7 +565,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            return namespaceOrType.GetMembers().Any(nt => nt.IsOrContainsAccessibleAttribute(withinType, withinAssembly));
+            // PERF: Avoid allocating a lambda capture as this method is recursive
+            foreach (var namedType in namespaceOrType.GetTypeMembers())
+            {
+                if (namedType.IsOrContainsAccessibleAttribute(withinType, withinAssembly))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static IEnumerable<IPropertySymbol> GetValidAnonymousTypeProperties(this ISymbol symbol)

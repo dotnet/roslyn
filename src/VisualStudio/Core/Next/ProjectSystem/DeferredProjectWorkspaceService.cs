@@ -43,7 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem
                     new DeferredProjectInformation(
                         kvp.Value.TargetPath,
                         kvp.Value.CommandLineArgs,
-                        kvp.Value.ProjectReferences.Select(p => p.Substring("/ProjectReference:".Length)).ToImmutableArray()))));
+                        kvp.Value.ProjectReferences.IsDefaultOrEmpty
+                            ? ImmutableArray<string>.Empty
+                            : kvp.Value.ProjectReferences.Select(p => p.Substring("/ProjectReference:".Length)).ToImmutableArray()))));
             return result;
         }
     }
