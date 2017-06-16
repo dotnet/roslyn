@@ -82,7 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// 
         /// this is the channel consumer of remote host client will playing with
         /// </summary>
-        private class ServiceJsonRpcClient : JsonRpcClient
+        private class ServiceJsonRpcClient : JsonRpcEx
         {
             private readonly object _callbackTarget;
 
@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// each remote host client will have its own back channel so that it can work isolated
         /// with other clients.
         /// </summary>
-        private class SnapshotJsonRpcClient : JsonRpcClient
+        private class SnapshotJsonRpcClient : JsonRpcEx
         {
             private readonly ServiceHubJsonRpcConnection _owner;
             private readonly CancellationTokenSource _source;

@@ -15,12 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// Helper type that abstract out JsonRpc communication with extra capability of
     /// using raw stream to move over big chunk of data
     /// </summary>
-    internal class JsonRpcClient : IDisposable
+    internal class JsonRpcEx : IDisposable
     {
         private readonly JsonRpc _rpc;
         private readonly CancellationToken _cancellationToken;
 
-        public JsonRpcClient(
+        public JsonRpcEx(
             Stream stream, object callbackTarget, bool useThisAsCallback, CancellationToken cancellationToken)
         {
             Contract.Requires(stream != null);
