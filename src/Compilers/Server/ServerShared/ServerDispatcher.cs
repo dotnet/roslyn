@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 MaybeCreateGCTask();
                 WaitForAnyCompletion(cancellationToken);
                 CheckCompletedTasks(cancellationToken);
-            } while (_connectionList.Count > 0 || _state == State.Running);
+            }
+            while (_connectionList.Count > 0 || _state == State.Running);
         }
 
         private void CheckCompletedTasks(CancellationToken cancellationToken)
