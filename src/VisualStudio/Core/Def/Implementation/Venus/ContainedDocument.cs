@@ -775,7 +775,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     affectedSpans.Add(currentVisibleSpanIndex);
                 }
 
-                edit.Apply();
+                edit.ApplyAndLogExceptions();
             }
         }
 
