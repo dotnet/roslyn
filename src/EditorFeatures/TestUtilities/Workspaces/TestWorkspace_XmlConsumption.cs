@@ -492,10 +492,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                 if (strongNameProviderAttribute != null)
                 {
                     var type = Type.GetType((string)strongNameProviderAttribute);
-                    // DesktopStrongNameProvider does not have a default constructor but an constructor with optional parameters. Activator.CreateInstance does not work with this.
-                    strongNameProvider = (type == typeof(DesktopStrongNameProvider))
-                        ? new DesktopStrongNameProvider()
-                        : (StrongNameProvider)Activator.CreateInstance(type);
+                    // DesktopStrongNameProvider and SigningTestHelpers.VirtualizedStrongNameProvider do
+                    // not have a default constructor but constructors with optional parameters.
+                    // Activator.CreateInstance does not work with this.
+                    if (type == typeof(DesktopStrongNameProvider))
+                    {
+                        strongNameProvider = new DesktopStrongNameProvider();
+                    }
+                    else if (type == typeof(SigningTestHelpers.VirtualizedStrongNameProvider))
+                    {
+                        strongNameProvider = new SigningTestHelpers.VirtualizedStrongNameProvider();
+                    }
+                    else
+                    {
+                        strongNameProvider = (StrongNameProvider)Activator.CreateInstance(type);
+                    }
                 }
 
                 var delaySignAttribute = compilationOptionsElement.Attribute(DelaySignAttributeName);

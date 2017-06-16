@@ -239,77 +239,73 @@ using IVT = System.Runtime.CompilerServices.InternalsVisibleToAttribute;
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionInsertsPublicKeyOnCommit() As Task
-            Using strongKeyFileFixture = New StrongNameKeyFileFixture
-                Using state = TestState.CreateTestStateFromWorkspace(
-                    <Workspace>
-                        <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
-                            <CompilationOptions CryptoKeyFile=<%= strongKeyFileFixture.StrongKeyFile %> StrongNameProvider="Microsoft.CodeAnalysis.DesktopStrongNameProvider,Microsoft.CodeAnalysis"/>
-                        </Project>
-                        <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
-                            <Document>
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
+                        <CompilationOptions
+                            CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
+                            StrongNameProvider=<%= GetType(SigningTestHelpers.VirtualizedStrongNameProvider).AssemblyQualifiedName %>/>
+                    </Project>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document>
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("$$")]
                         </Document>
-                        </Project>
-                    </Workspace>)
-                    state.SendInvokeCompletionList()
-                    Await state.AssertSelectedCompletionItem("ClassLibrary1")
-                    state.SendTab()
-                    Await state.WaitForAsynchronousOperationsAsync()
-                    state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c5c26d5ff8f59b47acc55d4feb5c19009317137e55a34ca2a107ac29b3badc6870d858cb2fbf0a71a04caf749f0517dc31a89b85b004f030ed3e785bb45090499682fb0b2a78e02a9b94de1e778e0611648d0925f3c1e6c76d099f668a79b1868940a20a48c7695ffcfb75fe0946692aa8dedafe727e3cbc07f64d646d2ef6f5"")]")
-                End Using
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ClassLibrary1")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsPublicKeyIfKeyIsSpecifiedByAttribute() As Task
-            Using strongKeyFileFixture = New StrongNameKeyFileFixture
-                Using state = TestState.CreateTestStateFromWorkspace(
-                    <Workspace>
-                        <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
-                            <CompilationOptions StrongNameProvider="Microsoft.CodeAnalysis.DesktopStrongNameProvider,Microsoft.CodeAnalysis"/>
-                            <Document>
-                                [assembly: System.Reflection.AssemblyKeyFile("<%= strongKeyFileFixture.StrongKeyFile.Replace("\", "\\") %>")]
-                            </Document>
-                        </Project>
-                        <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
-                            <Document>
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
+                        <CompilationOptions
+                            StrongNameProvider=<%= GetType(SigningTestHelpers.VirtualizedStrongNameProvider).AssemblyQualifiedName %>/>
+                        <Document>
+                            [assembly: System.Reflection.AssemblyKeyFile("<%= SigningTestHelpers.PublicKeyFile.Replace("\", "\\") %>")]
+                        </Document>
+                    </Project>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document>
     [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("$$")]
-                            </Document>
-                        </Project>
-                    </Workspace>)
-                    state.SendInvokeCompletionList()
-                    Await state.AssertSelectedCompletionItem("ClassLibrary1")
-                    state.SendTab()
-                    Await state.WaitForAsynchronousOperationsAsync()
-                    state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c5c26d5ff8f59b47acc55d4feb5c19009317137e55a34ca2a107ac29b3badc6870d858cb2fbf0a71a04caf749f0517dc31a89b85b004f030ed3e785bb45090499682fb0b2a78e02a9b94de1e778e0611648d0925f3c1e6c76d099f668a79b1868940a20a48c7695ffcfb75fe0946692aa8dedafe727e3cbc07f64d646d2ef6f5"")]")
-                End Using
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ClassLibrary1")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]")
             End Using
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function CodeCompletionContainsPublicKeyIfDelayedSigningIsEnabled() As Task
-            Using strongKeyFileFixture = New StrongNameKeyFileFixture
-                Using state = TestState.CreateTestStateFromWorkspace(
-                    <Workspace>
-                        <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
-                            <CompilationOptions
-                                CryptoKeyFile=<%= strongKeyFileFixture.StrongKeyFile %>
-                                StrongNameProvider="Microsoft.CodeAnalysis.DesktopStrongNameProvider,Microsoft.CodeAnalysis"
-                                DelaySign="True"
-                            />
-                        </Project>
-                        <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
-                            <Document>
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1">
+                        <CompilationOptions
+                            CryptoKeyFile=<%= SigningTestHelpers.PublicKeyFile %>
+                            StrongNameProvider=<%= GetType(SigningTestHelpers.VirtualizedStrongNameProvider).AssemblyQualifiedName %>
+                            DelaySign="True"/>
+                    </Project>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document>
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("$$")]
                         </Document>
-                        </Project>
-                    </Workspace>)
-                    state.SendInvokeCompletionList()
-                    Await state.AssertSelectedCompletionItem("ClassLibrary1")
-                    state.SendTab()
-                    Await state.WaitForAsynchronousOperationsAsync()
-                    state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=0024000004800000940000000602000000240000525341310004000001000100c5c26d5ff8f59b47acc55d4feb5c19009317137e55a34ca2a107ac29b3badc6870d858cb2fbf0a71a04caf749f0517dc31a89b85b004f030ed3e785bb45090499682fb0b2a78e02a9b94de1e778e0611648d0925f3c1e6c76d099f668a79b1868940a20a48c7695ffcfb75fe0946692aa8dedafe727e3cbc07f64d646d2ef6f5"")]")
-                End Using
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertSelectedCompletionItem("ClassLibrary1")
+                state.SendTab()
+                Await state.WaitForAsynchronousOperationsAsync()
+                state.AssertMatchesTextStartingAtLine(1, "[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""ClassLibrary1, PublicKey=00240000048000009400000006020000002400005253413100040000010001002b986f6b5ea5717d35c72d38561f413e267029efa9b5f107b9331d83df657381325b3a67b75812f63a9436ceccb49494de8f574f8e639d4d26c0fcf8b0e9a1a196b80b6f6ed053628d10d027e032df2ed1d60835e5f47d32c9ef6da10d0366a319573362c821b5f8fa5abc5bb22241de6f666a85d82d6ba8c3090d01636bd2bb"")]")
             End Using
         End Function
 
