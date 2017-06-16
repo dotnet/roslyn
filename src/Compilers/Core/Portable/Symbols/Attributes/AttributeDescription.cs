@@ -322,6 +322,8 @@ namespace Microsoft.CodeAnalysis
             s_signature_HasThis_Void_CompilationRelaxations
         };
 
+        private static readonly byte[][] s_signaturesOfReferenceAssemblyAttribute = { s_signature_HasThis_Void };
+
         private static readonly byte[][] s_signaturesOfDebuggableAttribute =
         {
             s_signature_HasThis_Void_Boolean_Boolean,
@@ -397,6 +399,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[][] s_signaturesOfNullableOptOutForAssemblyAttribute = { s_signature_HasThis_Void_String };
         private static readonly byte[][] s_signaturesOfNullableOptOutAttribute = { s_signature_HasThis_Void_Boolean };
 
+        private static readonly byte[][] s_signaturesOfExperimentalAttribute = { s_signature_HasThis_Void };
         private static readonly byte[][] s_signaturesOfExcludeFromCodeCoverageAttribute = { s_signature_HasThis_Void };
 
         // early decoded attributes:
@@ -478,6 +481,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription AsyncStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "AsyncStateMachineAttribute", s_signaturesOfAsyncStateMachineAttribute);
         internal static readonly AttributeDescription IteratorStateMachineAttribute = new AttributeDescription("System.Runtime.CompilerServices", "IteratorStateMachineAttribute", s_signaturesOfIteratorStateMachineAttribute);
         internal static readonly AttributeDescription CompilationRelaxationsAttribute = new AttributeDescription("System.Runtime.CompilerServices", "CompilationRelaxationsAttribute", s_signaturesOfCompilationRelaxationsAttribute);
+        internal static readonly AttributeDescription ReferenceAssemblyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "ReferenceAssemblyAttribute", s_signaturesOfReferenceAssemblyAttribute);
         internal static readonly AttributeDescription RuntimeCompatibilityAttribute = new AttributeDescription("System.Runtime.CompilerServices", "RuntimeCompatibilityAttribute", s_signaturesOfRuntimeCompatibilityAttribute);
         internal static readonly AttributeDescription DebuggableAttribute = new AttributeDescription("System.Diagnostics", "DebuggableAttribute", s_signaturesOfDebuggableAttribute);
         internal static readonly AttributeDescription TypeForwardedToAttribute = new AttributeDescription("System.Runtime.CompilerServices", "TypeForwardedToAttribute", s_signaturesOfTypeForwardedToAttribute);
@@ -509,6 +513,7 @@ namespace Microsoft.CodeAnalysis
         internal static readonly AttributeDescription NullableAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableAttribute", s_signaturesOfNullableAttribute);
         internal static readonly AttributeDescription NullableOptOutForAssemblyAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableOptOutForAssemblyAttribute", s_signaturesOfNullableOptOutForAssemblyAttribute);
         internal static readonly AttributeDescription NullableOptOutAttribute = new AttributeDescription("System.Runtime.CompilerServices", "NullableOptOutAttribute", s_signaturesOfNullableOptOutAttribute);
+        internal static readonly AttributeDescription ExperimentalAttribute = new AttributeDescription("Windows.Foundation.Metadata", "ExperimentalAttribute", s_signaturesOfExperimentalAttribute);
         internal static readonly AttributeDescription ExcludeFromCodeCoverageAttribute = new AttributeDescription("System.Diagnostics.CodeAnalysis", "ExcludeFromCodeCoverageAttribute", s_signaturesOfExcludeFromCodeCoverageAttribute);
     }
 }

@@ -2719,7 +2719,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(node.Method.IsDefinition);
             Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
             _builder.EmitOpCode(ILOpCode.Ldtoken);
-            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
+
+            // For partial methods, we emit pseudo token based on the symbol for the partial
+            // definition part as opposed to the symbol for the partial implementation part.
+            // We will need to resolve the symbol associated with each pseudo token in order
+            // to compute the real method definition tokens later. For partial methods, this
+            // resolution can only succeed if the associated symbol is the symbol for the
+            // partial definition and not the symbol for the partial implementation (see
+            // MethodSymbol.ResolvedMethodImpl()).
+            var symbol = node.Method.PartialDefinitionPart ?? node.Method;
+
+            EmitSymbolToken(symbol, node.Syntax, null, encodeAsRawDefinitionToken: true);
         }
 
         private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)

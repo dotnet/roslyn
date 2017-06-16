@@ -1,5 +1,5 @@
 [CmdletBinding(PositionalBinding=$false)]
-param ( [string]$buildDir = $(throw "Need a directory containing a compiler build to test with"), 
+param ( [string]$bootstrapDir = $(throw "Need a directory containing a compiler build to test with"), 
         [bool]$debugDeterminism = $false)
 
 Set-StrictMode -version 2.0
@@ -21,7 +21,8 @@ $script:dataMap = @{}
 
 function Run-Build() {
     param ( [string]$rootDir = $(throw "Need a root directory to build"),
-            [string]$pathMapBuildOption = "")
+            [string]$pathMapBuildOption = "",
+            [switch]$restore = $false)
 
     $sln = Join-Path $rootDir "Roslyn.sln"
     $debugDir = Join-Path $rootDir "Binaries\Debug"
@@ -39,8 +40,13 @@ function Run-Build() {
         Write-Host "Cleaning the Binaries"
         Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /t:clean $sln"
 
+        if ($restore) {
+            Write-Host "Restoring the packages"
+            Restore-Project -fileName $sln -nuget (Ensure-NuGet) -msbuildDir (Split-Path -parent $msbuild)
+        }
+
         Write-Host "Building the Solution"
-        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:buildDir /p:Features=`"debug-determinism;pdb-path-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln"
+        Exec-Command $msbuild "/nologo /v:m /nodeReuse:false /m /p:DebugDeterminism=true /p:BootstrapBuildPath=$script:bootstrapDir /p:Features=`"debug-determinism`" /p:UseRoslynAnalyzers=false $pathMapBuildOption $sln"
     }
     finally {
         Pop-Location
@@ -50,13 +56,14 @@ function Run-Build() {
 function Run-Analysis() {
     param ( [string]$rootDir = $(throw "Need a root directory to build"),
             [bool]$buildMap = $(throw "Whether to build the map or analyze it"),
-            [string]$pathMapBuildOption = "")
+            [string]$pathMapBuildOption = "",
+            [switch]$restore = $false)
             
     $debugDir = Join-Path $rootDir "Binaries\Debug"
     $errorList = @()
     $allGood = $true
 
-    Run-Build $rootDir $pathMapBuildOption
+    Run-Build $rootDir $pathMapBuildOption -restore:$restore
 
     Push-Location $debugDir
 
@@ -164,7 +171,7 @@ function Run-Test() {
     $altRootDir = Join-Path $origBinDir "q"
     & robocopy $origRootDir $altRootDir /E /XD $origBinDir /XD ".git" /njh /njs /ndl /nc /ns /np /nfl
     $pathMapBuildOption = "/p:PathMap=`"$altRootDir=$origRootDir`""
-    Run-Analysis -rootDir $altRootDir -buildMap $false -pathMapBuildOption $pathMapBuildOption
+    Run-Analysis -rootDir $altRootDir -buildMap $false -pathMapBuildOption $pathMapBuildOption -restore
     Remove-Item -re -fo $altRootDir
 }
 
@@ -172,8 +179,8 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
     $msbuild = Ensure-MSBuild
-    if (-not ([IO.Path]::IsPathRooted($script:buildDir))) {
-        Write-Host "The build path must be absolute"
+    if (-not ([IO.Path]::IsPathRooted($script:bootstrapDir))) {
+        Write-Host "The bootstrap build path must be absolute"
         exit 1
     }
 

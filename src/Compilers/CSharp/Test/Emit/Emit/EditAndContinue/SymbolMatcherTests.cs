@@ -434,7 +434,7 @@ class C
             var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
             Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
 
-            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag());
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
             var x1 = fields[0];
@@ -504,7 +504,7 @@ class C
             var displayClass = peAssemblyBuilder.GetSynthesizedTypes(c).Single();
             Assert.Equal("<>c__DisplayClass0_0", displayClass.Name);
 
-            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag());
+            var emitContext = new EmitContext(peAssemblyBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             var fields = displayClass.GetFields(emitContext).ToArray();
             AssertEx.SetEqual(fields.Select(f => f.Name), new[] { "x1", "x2" });
@@ -518,6 +518,432 @@ class C
 
             Assert.Equal("x1", mappedX1.Name);
             Assert.Null(mappedX2);
+        }
+
+        [Fact]
+        public void TupleField_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) x;
+}";
+            var source1 = @"
+class C
+{
+    public (int a, bool b) x;
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<FieldSymbol>("C.x");
+            var other = matcher.MapDefinition(member);
+            // If a type changes within a tuple, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void TupleField_NameChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) x;
+}";
+            var source1 = @"
+class C
+{
+    public (int a, int c) x;
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<FieldSymbol>("C.x");
+            var other = matcher.MapDefinition(member);
+            // Types must match because just an element name was changed.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void TupleMethod_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X() { return null };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, bool b) X() { return null };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.X");
+            var other = matcher.MapDefinition(member);
+            // If a type changes within a tuple, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void TupleMethod_NameChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X() { return null };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, int c) X() { return null };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.X");
+            var other = matcher.MapDefinition(member);
+            // Types must match because just an element name was changed.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void TupleProperty_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X { get { return null; } };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, bool b) X { get { return null; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<PropertySymbol>("C.X");
+            var other = matcher.MapDefinition(member);
+            // If a type changes within a tuple, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void TupleProperty_NameChange()
+        {
+            var source0 = @"
+class C
+{  
+    public (int a, int b) X { get { return null; } };
+}";
+            var source1 = @"
+class C
+{
+    public (int a, int c) X { get { return null; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<PropertySymbol>("C.X");
+            var other = matcher.MapDefinition(member);
+            // Types must match because just an element name was changed.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void TupleStructField_TypeChange()
+        {
+            var source0 = @"
+public struct Vector
+{
+    public (int x, int y) Coordinates;
+}";
+            var source1 = @"
+public struct Vector
+{
+    public (int x, int y, int z) Coordinates;
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
+            var other = matcher.MapDefinition(member);
+            // If a type changes within a tuple, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void TupleStructField_NameChange()
+        {
+            var source0 = @"
+public struct Vector
+{
+    public (int x, int y) Coordinates;
+}";
+            var source1 = @"
+public struct Vector
+{
+    public (int x, int z) Coordinates;
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<FieldSymbol>("Vector.Coordinates");
+            var other = matcher.MapDefinition(member);
+            // Types must match because just an element name was changed.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void TupleDelegate_TypeChange()
+        {
+            var source0 = @"
+public class C
+{
+    public delegate (int, int) F();
+}";
+            var source1 = @"
+public class C
+{
+    public delegate (int, bool) F();
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
+            var other = matcher.MapDefinition(member);
+            // Tuple delegate defines a type. We should be able to match old and new types by name.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void TupleDeletagate_NameChange()
+        {
+            var source0 = @"
+public class C
+{
+    public delegate (int, int) F();
+}";
+            var source1 = @"
+public class C
+{
+    public delegate (int x, int y) F();
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<SourceNamedTypeSymbol>("C.F");
+            var other = matcher.MapDefinition(member);
+            // Types must match because just an element name was changed.
+            Assert.NotNull(other);
+        }
+
+        [Fact]
+        public void RefMethod_TypeChange()
+        {
+            var source0 = @"
+class C
+{  
+    public ref int GetFirst(int[] numbers, bool[] bools) { return ref numbers[0]; } };
+}";
+            var source1 = @"
+class C
+{
+    public ref bool GetFirst(int[] numbers, bool[] bools) { return ref bools[0]; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
+            var other = matcher.MapDefinition(member);
+            // If a type changes, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void RefMethod_RefChange()
+        {
+            var source0 = @"
+class C
+{  
+    public ref bool GetFirst(bool[] bools) { return ref bools[0]; } };
+}";
+            var source1 = @"
+class C
+{
+    public bool GetFirst(bool[] bools) { return bools[0]; } };
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<MethodSymbol>("C.GetFirst");
+            var other = matcher.MapDefinition(member);
+            // If a type changes, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void RefProperty_TypeChange()
+        {
+            var source0 = @"
+struct S
+{
+    int[] ints;
+    bool[] bools;
+    public ref int X { get => ref ints[0]; }
+}";
+            var source1 = @"
+struct S
+{
+    int[] ints;
+    bool[] bools;
+    public ref bool X { get => ref bools[0]; }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<PropertySymbol>("S.X");
+            var other = matcher.MapDefinition(member);
+            // If a type changes, we do not expect types to match.
+            Assert.Null(other);
+        }
+
+        [Fact]
+        public void RefProperty_RefChange()
+        {
+            var source0 = @"
+struct S
+{
+    int[] ints;
+    public ref int X { get => ref ints[0]; }
+}";
+            var source1 = @"
+struct S
+{
+    int[] ints;
+    public int X { get => ints[0]; }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+
+            var matcher = new CSharpSymbolMatcher(
+                null,
+                compilation1.SourceAssembly,
+                default(EmitContext),
+                compilation0.SourceAssembly,
+                default(EmitContext),
+                null);
+
+            var member = compilation1.GetMember<PropertySymbol>("S.X");
+            var other = matcher.MapDefinition(member);
+            // If a type changes, we do not expect types to match.
+            Assert.Null(other);
         }
     }
 }

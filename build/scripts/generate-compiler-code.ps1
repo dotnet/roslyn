@@ -8,13 +8,9 @@ Set-StrictMode -version 2.0
 $ErrorActionPreference="Stop"
 
 function Run-Tool($tool, $toolArgs) {
-    $toolName = Split-path -leaf $tool
+    $toolName = Split-Path -leaf $tool
     Write-Host "Running $toolName"
-    if (-not (Test-Path $tool)) {
-        throw "$tool does not exist"
-    }
-
-    Exec-Command "$coreRun" "`"$tool`" $toolArgs" | Out-Host
+    Exec-Command $tool $toolArgs | Out-Host
 }
 
 function Run-LanguageCore($language, $languageSuffix, $languageDir, $syntaxTool, $errorFactsTool, $generatedDir, $generatedTestDir) {
@@ -87,20 +83,56 @@ function Run-GetText() {
     }
 }
 
+# Build all of the tools that we need to generate the syntax trees and ensure
+# they are in a published / runnable state.
+function Build-Tools() {
+    $msbuild = Ensure-MSBuild
+    $msbuildDir = Split-Path -parent $msbuild
+    $nuget = Ensure-NuGet
+
+    $list = @(
+        'boundTreeGenerator;BoundTreeGenerator;BoundTreeGenerator\CompilersBoundTreeGenerator.csproj',
+        'csharpErrorFactsGenerator;CSharpErrorFactsGenerator;CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj',
+        'csharpSyntaxGenerator;CSharpSyntaxGenerator;CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj',
+        'basicErrorFactsGenerator;VBErrorFactsGenerator;VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj',
+        'basicSyntaxGenerator;VBSyntaxGenerator;VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj')
+
+    Push-Location (Join-Path $repoDir 'src\Tools\Source\CompilerGeneratorTools\Source')
+    try {
+        foreach ($item in $list) { 
+            $all = $item.Split(';')
+            $varName = $all[0]
+            $exeName = $all[1]
+            $proj = $all[2]
+            $fileName = [IO.Path]::GetFileNameWithoutExtension($proj)
+            Write-Host "Building $fileName"
+            Restore-Project $proj -nuget $nuget -msbuildDir $msbuildDir
+            Exec-Command $msbuild "/t:Publish /p:Configuration=Debug /p:RuntimeIdentifier=win7-x64 /v:m $proj" | Out-Null
+
+            $exePath = Join-Path $binariesDir "Debug\Exes\$fileName\win7-x64\publish\$($exeName).exe"
+            if (-not (Test-Path $exePath)) { 
+                Write-Host "Did not find exe after build: $exePath"
+                throw "Missing exe"
+            }
+
+            Set-Variable -Name $varName -Value $exePath -Scope Script
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
+    Build-Tools
+
     $compilerToolsDir = Join-Path $binariesDir "Debug\Exes\DeployCompilerGeneratorToolsRuntime"
-    $csharpSyntaxGenerator = Join-Path $compilerToolsDir "CSharpSyntaxGenerator.exe"
-    $csharpErrorFactsGenerator = Join-Path $compilerToolsDir "CSharpErrorFactsGenerator.exe"
     $csharpDir = Join-Path $repoDir "src\Compilers\CSharp\Portable"
     $csharpTestDir = Join-Path $repoDir "src\Compilers\CSharp\Test\Syntax"
-    $basicSyntaxGenerator = Join-Path $compilerToolsDir "VBSyntaxGenerator.exe"
-    $basicErrorFactsGenerator = Join-Path $compilerToolsDir "VBErrorFactsGenerator.exe"
     $basicDir = Join-Path $repoDir "src\Compilers\VisualBasic\Portable"
     $basicTestDir = Join-Path $repoDir "src\Compilers\VisualBasic\Test\Syntax"
-    $boundTreeGenerator = Join-Path $compilerToolsDir "BoundTreeGenerator.exe"
-    $coreRun = Join-Path $compilerToolsDir "CoreRun.exe"
 
     Run-Language "CSharp" "cs" $csharpDir $csharpTestDir $csharpSyntaxGenerator $csharpErrorFactsGenerator
     Run-Language "VB" "vb" $basicDir $basicTestDir $basicSyntaxGenerator $basicErrorFactsGenerator

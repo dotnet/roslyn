@@ -526,9 +526,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         protected override IList<ParameterName> GenerateParameterNames(
-            SemanticModel semanticModel, IList<ArgumentSyntax> arguments)
+            SemanticModel semanticModel, IList<ArgumentSyntax> arguments, CancellationToken cancellationToken)
         {
-            return semanticModel.GenerateParameterNames(arguments);
+            return semanticModel.GenerateParameterNames(arguments, reservedNames: null, cancellationToken: cancellationToken);
         }
 
         public override string GetRootNamespace(CompilationOptions options)
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 returnsByRef: false,

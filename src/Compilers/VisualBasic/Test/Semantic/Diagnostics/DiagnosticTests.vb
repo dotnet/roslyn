@@ -30,6 +30,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Next
         End Sub
 
+        ''' <summary>
+        ''' ERRID should not have duplicates.
+        ''' </summary>
+        <Fact()>
+        Public Sub NoDuplicates()
+            Dim excludedIds = {ERRID.ERRWRN_Last}
+            Dim values = [Enum].GetValues(GetType(ERRID))
+            Dim [set] = New HashSet(Of ERRID)
+            For Each id As ERRID In values
+                If Array.IndexOf(excludedIds, id) >= 0 Then
+                    Continue For
+                End If
+                Assert.True([set].Add(id))
+            Next
+        End Sub
+
     End Class
 
 End Namespace

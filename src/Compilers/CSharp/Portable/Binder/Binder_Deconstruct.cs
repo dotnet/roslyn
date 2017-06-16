@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -13,8 +14,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
     /// This portion of the binder converts deconstruction-assignment syntax (AssignmentExpressionSyntax nodes with the left
-    /// being a tuple expression or declaration expression) into a BoundAssignmentOperator (or bad node).
-    /// The BoundAssignmentOperator will have:
+    /// being a tuple expression or declaration expression) into a BoundDeconstructionAssignmentOperator (or bad node).
+    /// The BoundDeconstructionAssignmentOperator will have:
     /// - a BoundTupleLiteral as its Left,
     /// - a BoundConversion as its Right, holding:
     ///     - a tree of Conversion objects with Kind=Deconstruction, information about a Deconstruct method (optional) and
@@ -461,7 +462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementNames: default(ImmutableArray<string>),
                 compilation: compilation,
                 diagnostics: diagnostics,
-                shouldCheckConstraints: false);
+                shouldCheckConstraints: false,
+                errorPositions: default(ImmutableArray<bool>));
         }
 
         private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics, bool hasErrors)
@@ -470,6 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(count);
             var locationsBuilder = ArrayBuilder<Location>.GetInstance(count);
+            var namesBuilder = ArrayBuilder<string>.GetInstance(count);
             foreach (var variable in variables)
             {
                 if (variable.HasNestedVariables)
@@ -477,23 +480,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var nestedTuple = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, hasErrors);
                     valuesBuilder.Add(nestedTuple);
                     typesBuilder.Add(nestedTuple.Type);
+                    namesBuilder.Add(null);
                 }
                 else
                 {
                     var single = variable.Single;
                     valuesBuilder.Add(single);
                     typesBuilder.Add(single.Type);
+                    namesBuilder.Add(ExtractDeconstructResultElementName(single));
                 }
                 locationsBuilder.Add(variable.Syntax.Location);
             }
 
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+            RemoveDuplicateInferredTupleNames(namesBuilder, uniqueFieldNames);
+            uniqueFieldNames.Free();
+            ImmutableArray<string> tupleNames = namesBuilder.ToImmutableAndFree();
+
+            bool disallowInferredNames = this.Compilation.LanguageVersion.DisallowInferredTupleElementNames();
+            var inferredPositions = tupleNames.SelectAsArray(n => n != null);
+
             var type = TupleTypeSymbol.Create(syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
-                elementNames: default(ImmutableArray<string>), compilation: this.Compilation,
-                shouldCheckConstraints: !hasErrors, syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
+                tupleNames, this.Compilation,
+                shouldCheckConstraints: !hasErrors,
+                errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>),
+                syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
 
-            return new BoundTupleLiteral(syntax: syntax, argumentNamesOpt: default(ImmutableArray<string>),
-                arguments: valuesBuilder.ToImmutableAndFree(), type: type);
+            // Always track the inferred positions in the bound node, so that conversions don't produce a warning
+            // for "dropped names" on tuple literal when the name was inferred.
+            return new BoundTupleLiteral(syntax, tupleNames, inferredPositions, arguments: valuesBuilder.ToImmutableAndFree(), type: type);
+        }
+
+        /// <summary>Extract inferred name from a single deconstruction variable.</summary>
+        private static string ExtractDeconstructResultElementName(BoundExpression expression)
+        {
+            if (expression.Kind == BoundKind.DiscardExpression)
+            {
+                return null;
+            }
+
+            return InferTupleElementName(expression.Syntax);
         }
 
         /// <summary>

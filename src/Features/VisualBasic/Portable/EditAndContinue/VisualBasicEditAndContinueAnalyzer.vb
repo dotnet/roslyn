@@ -3155,25 +3155,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             ' 
             ' Unlike exception regions matching where we use LCS, we allow reordering of the statements.
 
-            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, SyntaxKind.SyncLockBlock, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of SyncLockBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.SyncLockBlock}, oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.SyncLockStatement.Expression, n2.SyncLockStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, SyntaxKind.WithBlock, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of WithBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.WithBlock}, oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.WithStatement.Expression, n2.WithStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, SyntaxKind.UsingBlock, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of UsingBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.UsingBlock}, oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.UsingStatement.Expression, n2.UsingStatement.Expression),
                 areSimilar:=Nothing)
 
-            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, SyntaxKind.ForEachBlock, oldActiveStatement, newActiveStatement,
+            ReportUnmatchedStatements(Of ForOrForEachBlockSyntax)(diagnostics, match, New Integer() {SyntaxKind.ForEachBlock}, oldActiveStatement, newActiveStatement,
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
-        End Sub
-
-        Friend Overrides Sub ReportSemanticRudeEdits(oldModel As SemanticModel, oldNode As SyntaxNode, newModel As SemanticModel, newNode As SyntaxNode, diagnostics As List(Of RudeEditDiagnostic))
         End Sub
 
 #End Region

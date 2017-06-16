@@ -46,6 +46,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        /// <summary>
+        /// ErrorCode should not have duplicates.
+        /// </summary>
+        [Fact]
+        public void NoDuplicates()
+        {
+            var values = Enum.GetValues(typeof(ErrorCode));
+            var set = new HashSet<ErrorCode>();
+            foreach (ErrorCode value in values)
+            {
+                Assert.True(set.Add(value));
+            }
+        }
+
         [Fact]
         public void TestDiagnostic()
         {
@@ -169,9 +183,8 @@ class X
         [Fact]
         public void WarningLevel_1()
         {
-            for (int i = 0; i < 10000; i++)
+            foreach (ErrorCode errorCode in Enum.GetValues(typeof(ErrorCode)))
             {
-                ErrorCode errorCode = (ErrorCode)i;
                 string errorCodeName = errorCode.ToString();
                 if (errorCodeName.StartsWith("WRN", StringComparison.Ordinal))
                 {
@@ -201,12 +214,15 @@ class X
             Assert.Equal(3, ErrorFacts.GetWarningLevel(ErrorCode.WRN_IsDynamicIsConfusing));
             Assert.Equal(2, ErrorFacts.GetWarningLevel(ErrorCode.WRN_NoSources));
 
-            // There is space in the range of error codes from 7000-8999 that we might add for new errors in post-Dev10.
             // If a new warning is added, this test will fail and adding the new case with the expected error level will be required.
 
-            for (int i = 7000; i < 9000; i++)
+            foreach (ErrorCode errorCode in Enum.GetValues(typeof(ErrorCode)))
             {
-                ErrorCode errorCode = (ErrorCode)i;
+                if ((int)errorCode < 7000)
+                {
+                    continue;
+                }
+
                 string errorCodeName = errorCode.ToString();
                 if (errorCodeName.StartsWith("WRN", StringComparison.Ordinal))
                 {
@@ -229,6 +245,8 @@ class X
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
                         case ErrorCode.WRN_AlignmentMagnitude:
                         case ErrorCode.WRN_TupleLiteralNameMismatch:
+                        case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_DefaultInSwitch:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:

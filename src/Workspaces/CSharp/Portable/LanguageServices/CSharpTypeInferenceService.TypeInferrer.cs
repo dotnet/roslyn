@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SimpleLambdaExpressionSyntax simpleLambdaExpression: return InferTypeInSimpleLambdaExpression(simpleLambdaExpression);
                     case SwitchLabelSyntax switchLabel: return InferTypeInSwitchLabel(switchLabel);
                     case SwitchStatementSyntax switchStatement: return InferTypeInSwitchStatement(switchStatement);
+                    case ThrowExpressionSyntax throwExpression: return InferTypeInThrowExpression(throwExpression);
                     case ThrowStatementSyntax throwStatement: return InferTypeInThrowStatement(throwStatement);
                     case UsingStatementSyntax usingStatement: return InferTypeInUsingStatement(usingStatement);
                     case WhileStatementSyntax whileStatement: return InferTypeInWhileStatement(whileStatement);
@@ -310,6 +311,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return InferTypeInElementAccessExpression(elementAccess, index, argument);
                     }
+
+                    if (argument.IsParentKind(SyntaxKind.TupleExpression))
+                    {
+                        return InferTypeInTupleExpression((TupleExpressionSyntax)argument.Parent, argument);
+                    }
                 }
 
                 if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
@@ -329,6 +335,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInTupleExpression(
+                TupleExpressionSyntax tupleExpression, ArgumentSyntax argument)
+            {
+                var index = tupleExpression.Arguments.IndexOf(argument);
+                var parentTypes = InferTypes(tupleExpression);
+
+                return parentTypes.Select(typeInfo => typeInfo.InferredType)
+                                  .OfType<INamedTypeSymbol>()
+                                  .Where(namedType => namedType.IsTupleType && index < namedType.TupleElements.Length)
+                                  .Select(tupleType => new TypeInferenceInfo(tupleType.TupleElements[index].Type));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInAttributeArgument(AttributeArgumentSyntax argument, SyntaxToken? previousToken = null, ArgumentSyntax argumentOpt = null)
@@ -1952,6 +1970,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.GetSpecialType(SpecialType.System_Int32)));
+            }
+
+            private IEnumerable<TypeInferenceInfo> InferTypeInThrowExpression(ThrowExpressionSyntax throwExpression, SyntaxToken? previousToken = null)
+            {
+                // If we have a position, it has to be after the 'throw' keyword.
+                if (previousToken.HasValue && previousToken.Value != throwExpression.ThrowKeyword)
+                {
+                    return SpecializedCollections.EmptyEnumerable<TypeInferenceInfo>();
+                }
+
+                return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(this.Compilation.ExceptionType()));
             }
 
             private IEnumerable<TypeInferenceInfo> InferTypeInThrowStatement(ThrowStatementSyntax throwStatement, SyntaxToken? previousToken = null)

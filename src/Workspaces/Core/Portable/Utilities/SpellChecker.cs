@@ -10,21 +10,21 @@ using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
-    internal class SpellChecker
+    internal class SpellChecker : IObjectWritable, IChecksummedObject
     {
-        private const string SerializationFormat = "2";
+        private const string SerializationFormat = "3";
 
-        public VersionStamp Version { get; }
+        public Checksum Checksum { get; }
         private readonly BKTree _bkTree;
 
-        public SpellChecker(VersionStamp version, BKTree bKTree)
+        public SpellChecker(Checksum checksum, BKTree bKTree)
         {
-            Version = version;
+            Checksum = checksum;
             _bkTree = bKTree;
         }
 
-        public SpellChecker(VersionStamp version, IEnumerable<StringSlice> corpus)
-            : this(version, BKTree.Create(corpus))
+        public SpellChecker(Checksum checksum, IEnumerable<StringSlice> corpus)
+            : this(checksum, BKTree.Create(corpus))
         {
         }
 
@@ -42,25 +42,25 @@ namespace Roslyn.Utilities
             return array;
         }
 
-        internal void WriteTo(ObjectWriter writer)
+        void IObjectWritable.WriteTo(ObjectWriter writer)
         {
             writer.WriteString(SerializationFormat);
-            Version.WriteTo(writer);
+            Checksum.WriteTo(writer);
             _bkTree.WriteTo(writer);
         }
 
-        internal static SpellChecker ReadFrom(ObjectReader reader)
+        internal static SpellChecker TryReadFrom(ObjectReader reader)
         {
             try
             {
                 var formatVersion = reader.ReadString();
                 if (string.Equals(formatVersion, SerializationFormat, StringComparison.Ordinal))
                 {
-                    var version = VersionStamp.ReadFrom(reader);
+                    var checksum = Checksum.ReadFrom(reader);
                     var bkTree = BKTree.ReadFrom(reader);
                     if (bkTree != null)
                     {
-                        return new SpellChecker(version, bkTree);
+                        return new SpellChecker(checksum, bkTree);
                     }
                 }
             }
@@ -140,7 +140,10 @@ namespace Roslyn.Utilities
             _source = null;
             _editDistance = null;
             _lastAreSimilarResult = default(CacheResult);
-            s_pool.Push(this);
+            lock (s_poolGate)
+            {
+                s_pool.Push(this);
+            }
         }
 
         public static bool AreSimilar(string originalText, string candidateText)

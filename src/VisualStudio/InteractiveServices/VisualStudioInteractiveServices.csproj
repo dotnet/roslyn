@@ -91,6 +91,27 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
+    <PackageReference Include="EnvDTE">
+      <Version>$(EnvDTEVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="EnvDTE80">
+      <Version>$(EnvDTE80Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost">
+      <Version>$(MicrosoftVisualStudioComponentModelHostVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Editor">
+      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
+      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow">
+      <Version>$(MicrosoftVisualStudioVsInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="System.ValueTuple">
+      <Version>$(SystemValueTupleVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Interactive\AbstractResetInteractiveCommand.cs" />
@@ -103,7 +124,6 @@
     <Compile Include="Interactive\VsUpdateSolutionEvents.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

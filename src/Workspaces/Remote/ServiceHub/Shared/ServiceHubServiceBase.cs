@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -26,8 +26,25 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly AssetStorage AssetStorage;
         protected readonly CancellationToken CancellationToken;
 
+        /// <summary>
+        /// Session Id of this service. caller and callee share this id which one
+        /// can use to find matching caller and callee when debugging or logging
+        /// </summary>
         private int _sessionId;
+
+        /// <summary>
+        /// Mark whether the solution checksum it got is for primary branch or not 
+        /// 
+        /// this flag will be passed down to solution controller to help
+        /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
+        /// </summary>
+        private bool _fromPrimaryBranch;
+
+        /// <summary>
+        /// solution this connection belong to
+        /// </summary>
         private Checksum _solutionChecksumOpt;
+
         private RoslynServices _lazyRoslynServices;
 
         [Obsolete("For backward compatibility. this will be removed once all callers moved to new ctor")]
@@ -66,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Remote
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
             // setup
-            Rpc = new JsonRpc(stream, stream, this);
+            Rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), this);
             Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             Rpc.Disconnected += OnRpcDisconnected;
         }
@@ -89,13 +106,9 @@ namespace Microsoft.CodeAnalysis.Remote
         protected Task<Solution> GetSolutionAsync()
         {
             Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, CancellationToken);
-        }
 
-        protected Task<Solution> GetSolutionWithSpecificOptionsAsync(OptionSet options)
-        {
-            Contract.ThrowIfNull(_solutionChecksumOpt);
-            return RoslynServices.SolutionService.GetSolutionAsync(_solutionChecksumOpt, options, CancellationToken);
+            var solutionController = (ISolutionController)RoslynServices.SolutionService;
+            return solutionController.GetSolutionAsync(_solutionChecksumOpt, _fromPrimaryBranch, CancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -108,14 +121,15 @@ namespace Microsoft.CodeAnalysis.Remote
             Log(TraceEventType.Error, message);
         }
 
-        public virtual void Initialize(int sessionId, byte[] solutionChecksum)
+        public virtual void Initialize(int sessionId, bool fromPrimaryBranch, Checksum solutionChecksum)
         {
             // set session related information
             _sessionId = sessionId;
+            _fromPrimaryBranch = fromPrimaryBranch;
 
             if (solutionChecksum != null)
             {
-                _solutionChecksumOpt = new Checksum(solutionChecksum);
+                _solutionChecksumOpt = solutionChecksum;
             }
         }
 

@@ -483,7 +483,7 @@ class K
                 Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "value__").WithArguments("A.value__"));
 
             // PEVerify should not report "Field value__ ... is not marked RTSpecialName".
-            var verifier = new CompilationVerifier(this, compilation);
+            var verifier = new CompilationVerifier(compilation);
             verifier.EmitAndVerify(
                 "Error: Field name value__ is reserved for Enums only.",
                 "Error: Field name value__ is reserved for Enums only.",

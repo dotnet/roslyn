@@ -108,16 +108,23 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return;
             }
 
+            var isOnlyReadAndIsInInterface = state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo;
+
+            if (isOnlyReadAndIsInInterface || state.IsInConstructor)
+            {
+                result.Add(new GenerateVariableCodeAction(
+                    (TService)this, document, state, generateProperty: true,
+                    isReadonly: true, isConstant: false, returnsByRef: state.IsInRefContext));
+            }
+
+            GenerateWritableProperty(result, document, state);
+        }
+
+        private void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        {
             result.Add(new GenerateVariableCodeAction(
                 (TService)this, document, state, generateProperty: true,
                 isReadonly: false, isConstant: false, returnsByRef: state.IsInRefContext));
-
-            if (state.TypeToGenerateIn.TypeKind == TypeKind.Interface && !state.IsWrittenTo)
-            {
-                result.Add(new GenerateVariableCodeAction(
-                    (TService)this, document, state, generateProperty: true, 
-                    isReadonly: true, isConstant: false, returnsByRef: state.IsInRefContext));
-            }
         }
 
         private void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
@@ -132,9 +139,10 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 }
                 else
                 {
-                    result.Add(new GenerateVariableCodeAction(
-                        (TService)this, document, state, generateProperty: false,
-                        isReadonly: false, isConstant: false, returnsByRef: false));
+                    if (!state.OfferReadOnlyFieldFirst)
+                    {
+                        GenerateWriteableField(result, document, state);
+                    }
 
                     // If we haven't written to the field, or we're in the constructor for the type
                     // we're writing into, then we can generate this field read-only.
@@ -144,8 +152,20 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                             (TService)this, document, state, generateProperty: false,
                             isReadonly: true, isConstant: false, returnsByRef: false));
                     }
+
+                    if (state.OfferReadOnlyFieldFirst)
+                    {
+                        GenerateWriteableField(result, document, state);
+                    }
                 }
             }
+        }
+
+        private void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
+        {
+            result.Add(new GenerateVariableCodeAction(
+                (TService)this, document, state, generateProperty: false,
+                isReadonly: false, isConstant: false, returnsByRef: false));
         }
 
         private void AddLocalCodeActions(ArrayBuilder<CodeAction> result, Document document, State state)

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
             {
                 return this.Document.SemanticModel.GenerateParameterNames(
-                    _invocationExpression.ArgumentList);
+                    _invocationExpression.ArgumentList, cancellationToken);
             }
 
             protected override bool DetermineReturnsByRef(CancellationToken cancellationToken)

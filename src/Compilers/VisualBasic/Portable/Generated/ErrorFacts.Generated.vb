@@ -168,7 +168,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.WRN_AnalyzerCannotBeCreated,
                      ERRID.WRN_NoAnalyzerInAssembly,
                      ERRID.WRN_UnableToLoadAnalyzer,
-                     ERRID.WRN_AttributeIgnoredWhenPublicSigning
+                     ERRID.WRN_AttributeIgnoredWhenPublicSigning,
+                     ERRID.WRN_Experimental
                     Return True
                 Case Else
                     Return False

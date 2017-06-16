@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
-                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, smallestCtorArguments);
+                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, null, smallestCtorArguments);
 
                 if (underlyingTupleTypeChain.Count > 0)
                 {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                       .Add(currentCreation);
 
                         MethodSymbol constructor = tuple8Ctor.AsMember(underlyingTupleTypeChain.Pop());
-                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, ctorArguments);
+                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, null, ctorArguments);
                     }
                     while (underlyingTupleTypeChain.Count > 0);
                 }
@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentCreation.Expanded, 
                     currentCreation.ArgsToParamsOpt, 
                     currentCreation.ConstantValue, 
-                    currentCreation.InitializerExpressionOpt, 
+                    currentCreation.InitializerExpressionOpt,
+                    currentCreation.BinderOpt,
                     type);
 
                 return currentCreation;

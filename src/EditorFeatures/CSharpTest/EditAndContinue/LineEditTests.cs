@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class LineEditTests : RudeEditTestBase
+    public class LineEditTests : EditingTestBase
     {
         #region Methods
 

@@ -42,10 +42,11 @@ var ProjectURL = @"http://msdn.com/roslyn";
 var Tags = @"Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics";
 
 // Read preceding variables from MSBuild file
-var doc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Dependencies.props"));
+var packagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/Packages.props"));
+var fixedPackagesDoc = XDocument.Load(Path.Combine(SolutionRoot, "build/Targets/FixedPackages.props"));
 XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
 
-var dependencyVersions = from e in doc.Root.Descendants()
+var dependencyVersions = from e in packagesDoc.Root.Descendants().Concat(fixedPackagesDoc.Root.Descendants())
                          where e.Name.LocalName.EndsWith("Version")
                          select new { VariableName = e.Name.LocalName, Value=e.Value };
 
@@ -75,8 +76,6 @@ var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
-var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
-var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
@@ -110,6 +109,7 @@ string[] NonRedistPackageNames = {
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
@@ -127,6 +127,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
@@ -203,9 +204,8 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "authors", Authors },
         { "projectURL", ProjectURL },
         { "tags", Tags },
-        { "thirdPartyNoticesPath", ThirdPartyNoticesPath },
-        { "netCompilersPropsPath", NetCompilersPropsPath },
         { "emptyDirPath", emptyDir },
+        { "additionalFilesPath", NuGetAdditionalFilesPath }
     };
 
     foreach (var dependencyVersion in dependencyVersions)

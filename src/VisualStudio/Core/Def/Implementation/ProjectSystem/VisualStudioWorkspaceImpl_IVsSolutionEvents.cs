@@ -18,13 +18,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void AdviseSolutionEvents(IVsSolution solution)
         {
             _vsSolution = solution;
-            _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
-            _solutionEventsCookie = solutionEventsCookie;
+            if (_solutionEventsCookie == null)
+            {
+                _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
+                _solutionEventsCookie = solutionEventsCookie;
+            }
         }
 
         public void UnadviseSolutionEvents()
         {
-            if (_solutionEventsCookie.HasValue)
+            if (_solutionEventsCookie != null)
             {
                 _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
                 _solutionEventsCookie = null;

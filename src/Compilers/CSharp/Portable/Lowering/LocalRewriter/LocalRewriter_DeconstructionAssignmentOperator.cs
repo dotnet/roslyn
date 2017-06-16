@@ -99,48 +99,64 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var tupleType = TupleTypeSymbol.Create(locationOpt: null, elementTypes: builder.SelectAsArray(e => e.Type),
                 elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>),
-                compilation: _compilation, shouldCheckConstraints: false);
+                compilation: _compilation, shouldCheckConstraints: false, errorPositions: default(ImmutableArray<bool>));
 
-            return new BoundTupleLiteral(right.Syntax, default(ImmutableArray<string>), builder.ToImmutableAndFree(), tupleType);
+            return new BoundTupleLiteral(right.Syntax, default(ImmutableArray<string>), default(ImmutableArray<bool>), builder.ToImmutableAndFree(), tupleType);
         }
 
         private ImmutableArray<BoundExpression> GetRightParts(BoundExpression right, Conversion conversion,
             ref ArrayBuilder<LocalSymbol> temps, DeconstructionSideEffects effects, ref bool inInit)
         {
-            ImmutableArray<BoundExpression> rightParts;
-
+            // Example:
+            // var (x, y) = new Point(1, 2);
             var deconstructionInfo = conversion.DeconstructionInfo;
             if (!deconstructionInfo.IsDefault)
             {
-                Debug.Assert(right.Kind != BoundKind.TupleLiteral && right.Kind != BoundKind.ConvertedTupleLiteral);
+                Debug.Assert(!IsTupleExpression(right.Kind));
 
                 BoundExpression evaluationResult = EvaluateSideEffectingArgumentToTemp(VisitExpression(right),
                     inInit ? effects.init : effects.deconstructions, ref temps);
 
-                rightParts = InvokeDeconstructMethod(deconstructionInfo, evaluationResult, effects.deconstructions, ref temps);
                 inInit = false;
-            }
-            else if (right.Kind == BoundKind.TupleLiteral || right.Kind == BoundKind.ConvertedTupleLiteral)
-            {
-                rightParts = ((BoundTupleExpression)right).Arguments;
-            }
-            else if (right.Kind == BoundKind.Conversion)
-            {
-                var tupleConversion = (BoundConversion)right;
-                Debug.Assert(tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral);
-                rightParts = ((BoundTupleExpression)tupleConversion.Operand).Arguments;
-            }
-            else if (right.Type.IsTupleType)
-            {
-                rightParts = AccessTupleFields(VisitExpression(right), temps, effects.deconstructions);
-                inInit = false;
-            }
-            else
-            {
-                throw ExceptionUtilities.Unreachable;
+                return InvokeDeconstructMethod(deconstructionInfo, evaluationResult, effects.deconstructions, ref temps);
             }
 
-            return rightParts;
+            // Example:
+            // var (x, y) = (1, 2);
+            if (IsTupleExpression(right.Kind))
+            {
+                return ((BoundTupleExpression)right).Arguments;
+            }
+
+            // Example:
+            // (byte x, byte y) = (1, 2);
+            // (int x, string y) = (1, null);
+            if (right.Kind == BoundKind.Conversion)
+            {
+                var tupleConversion = (BoundConversion)right;
+                if ((tupleConversion.Conversion.Kind == ConversionKind.ImplicitTupleLiteral || tupleConversion.Conversion.Kind == ConversionKind.Identity)
+                    && IsTupleExpression(tupleConversion.Operand.Kind))
+                {
+                    return ((BoundTupleExpression)tupleConversion.Operand).Arguments;
+                }
+            }
+
+            // Example:
+            // var (x, y) = GetTuple();
+            // var (x, y) = ((byte, byte)) (1, 2);
+            // var (a, _) = ((short, short))((int, int))(1L, 2L);
+            if (right.Type.IsTupleType)
+            {
+                inInit = false;
+                return AccessTupleFields(VisitExpression(right), temps, effects.deconstructions);
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        private static bool IsTupleExpression(BoundKind kind)
+        {
+            return kind == BoundKind.TupleLiteral || kind == BoundKind.ConvertedTupleLiteral;
         }
 
         // This returns accessors and may create a temp for the tuple, but will not create temps for the tuple elements.

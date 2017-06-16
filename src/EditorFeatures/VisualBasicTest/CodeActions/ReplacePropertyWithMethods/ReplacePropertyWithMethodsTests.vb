@@ -415,7 +415,7 @@ end class",
 end class")
         End Function
 
-        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment1() As Task
             Await TestInRegularAndScriptAsync(
@@ -439,13 +439,13 @@ End Interface",
 End Interface", ignoreTrivia:=False)
         End Function
 
-        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment2() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
     ''' <value>
     '''     An that provides access to the language service for the active configured project.
@@ -454,22 +454,22 @@ End Interface", ignoreTrivia:=False)
 End Interface",
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
-    ''' <returns>
+    ''' <param name=""Value"">
     '''     An that provides access to the language service for the active configured project.
-    ''' </returns>
+    ''' </param>
     Sub SetActiveProjectContext(Value As Object)
 End Interface", ignoreTrivia:=False)
         End Function
 
-        <WorkItem(18235, "https://github.com/dotnet/roslyn/pull/18235")>
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
         Public Async Function TestDocumentationComment3() As Task
             Await TestInRegularAndScriptAsync(
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
     ''' <value>
     '''     An that provides access to the language service for the active configured project.
@@ -478,14 +478,136 @@ End Interface", ignoreTrivia:=False)
 End Interface",
 "Interface ILanguageServiceHost
     ''' <summary>
-    '''     Gets the active workspace project context that provides access to the language service for the active configured project.
+    '''     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
     ''' </summary>
     ''' <returns>
     '''     An that provides access to the language service for the active configured project.
     ''' </returns>
     Function GetActiveProjectContext() As Object
+    ''' <summary>
+    '''     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
+    ''' </summary>
+    ''' <param name=""Value"">
+    '''     An that provides access to the language service for the active configured project.
+    ''' </param>
     Sub SetActiveProjectContext(Value As Object)
 End Interface", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment4() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Sets <see cref=""ActiveProjectContext""/>.
+    ''' </summary>
+    ''' <seealso cref=""ActiveProjectContext""/>
+    WriteOnly Property [||]ActiveProjectContext As Object
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    Private X As Integer
+End Structure",
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Sets <see cref=""SetActiveProjectContext(Object)""/>.
+    ''' </summary>
+    ''' <seealso cref=""SetActiveProjectContext(Object)""/>
+    Sub SetActiveProjectContext(Value As Object)
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(Object)""/>
+    Private X As Integer
+End Structure", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment5() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets or sets <see cref=""ActiveProjectContext""/>.
+    ''' </summary>
+    ''' <seealso cref=""ActiveProjectContext""/>
+    Property [||]ActiveProjectContext As Object
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    Private X As Integer
+End Structure",
+"Interface ILanguageServiceHost
+    ''' <summary>
+    '''     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    ''' </summary>
+    ''' <seealso cref=""GetActiveProjectContext()""/>
+    Function GetActiveProjectContext() As Object
+    ''' <summary>
+    '''     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    ''' </summary>
+    ''' <seealso cref=""GetActiveProjectContext()""/>
+    Sub SetActiveProjectContext(Value As Object)
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
+    Private X As Integer
+End Structure", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/18261"), Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestDocumentationComment6() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface ISomeInterface(Of T)
+    ''' <seealso cref=""Context""/>
+    WriteOnly Property [||]Context As ISomeInterface(Of T)
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ISomeInterface(Of T).Context""/>
+    Private X As Integer
+End Structure",
+"Interface ISomeInterface(Of T)
+    ''' <seealso cref=""SetContext(ISomeInterface(Of T))""/>
+    Sub SetContext(Value As ISomeInterface(Of T))
+End Interface
+Structure AStruct
+    ''' <seealso cref=""ISomeInterface(Of T).SetContext(ISomeInterface(Of T))""/>
+    Private X As Integer
+End Structure", ignoreTrivia:=False)
+        End Function
+
+        <WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)>
+        Public Async Function TestInterfaceReplacement1() As Task
+            Await TestInRegularAndScriptAsync(
+"Interface IFoo
+    Property [||]Foo As Integer
+End Interface
+
+Class C
+    Implements IFoo
+
+    Public Property Foo As Integer Implements IFoo.Foo
+End Class",
+"Interface IFoo
+    Function GetFoo() As Integer
+    Sub SetFoo(Value As Integer)
+End Interface
+
+Class C
+    Implements IFoo
+
+    Private _Foo As Integer
+
+    Public Function GetFoo() As Integer Implements IFoo.GetFoo
+        Return _Foo
+    End Function
+
+    Public Sub SetFoo(AutoPropertyValue As Integer) Implements IFoo.SetFoo
+        _Foo = AutoPropertyValue
+    End Sub
+End Class")
         End Function
     End Class
 End Namespace

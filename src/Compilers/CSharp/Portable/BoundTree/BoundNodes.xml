@@ -3,6 +3,8 @@
 
 
 <!-- 
+ To re-generate source from this file, run build/scripts/generate-compiler-code.cmd
+
  Important things to know about reference types, value types, and nulls.
 
  By default, all fields of reference type are checked (in debug) to be non-null.
@@ -1199,6 +1201,9 @@
     <Field Name="InvokedAsExtensionMethod" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    
+    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
 
   <Node Name="BoundEventAssignmentOperator" Base="BoundExpression">
@@ -1244,6 +1249,9 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
+
+    <!-- BinderOpt is added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
   </Node>
   
 
@@ -1268,6 +1276,9 @@
     -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+
+    <!-- Which argument names were inferred (as opposed to explicitly provided)? -->
+    <Field Name="InferredNamesOpt" Type="ImmutableArray&lt;bool&gt;" Null="allow"/>
   </Node>
 
   <!-- 
@@ -1486,6 +1497,10 @@
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
+
+    <!-- BinderOpt and UseSetterForDefaultArgumentGeneration are added as a temporary solution for IOperation implementation and should probably be removed in the future -->
+    <Field Name="BinderOpt" Type="Binder" Null="allow"/>
+    <Field Name="UseSetterForDefaultArgumentGeneration" Type="bool"/>
   </Node>
 
   <Node Name="BoundDynamicIndexerAccess" Base="BoundExpression">

@@ -4,7 +4,8 @@
 
   <!-- This controls the version numbers of the build that we are producing -->
 
-  <Import Project="Dependencies.props" />
+  <Import Project="Packages.props" />
+  <Import Project="FixedPackages.props" />
 
   <PropertyGroup>
     <!-- This is the assembly version of Roslyn from the .NET assembly perspective. It should only be revved during significant point releases. -->
@@ -14,7 +15,7 @@
     <!-- The release moniker for our packages.  Developers should use "dev" and official builds pick the branch
          moniker listed below -->
     <RoslynNuGetMoniker Condition="'$(RoslynNuGetMoniker)' == ''">dev</RoslynNuGetMoniker>
-    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta1</RoslynNuGetMoniker>
+    <RoslynNuGetMoniker Condition="'$(OfficialBuild)' == 'true'">beta3</RoslynNuGetMoniker>
     <!-- This is the base of the NuGet versioning for prerelease packages -->
     <NuGetPreReleaseVersion>$(RoslynFileVersionBase)-$(RoslynNuGetMoniker)</NuGetPreReleaseVersion>
 

@@ -69,9 +69,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports
                 return;
             }
 
-            var workspace = workspaceOptions.Workspace;
-            var service = workspace.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
-                                            .GetService<IUnnecessaryImportsService>();
+            var service = workspaceOptions.Services.GetLanguageServices(context.SemanticModel.Compilation.Language)
+                                                   .GetService<IUnnecessaryImportsService>();
 
             var unnecessaryImports = service.GetUnnecessaryImports(context.SemanticModel, cancellationToken);
             if (unnecessaryImports.Any())

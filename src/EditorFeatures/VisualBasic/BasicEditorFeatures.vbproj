@@ -129,7 +129,6 @@
     <Compile Include="Highlighting\KeywordHighlighters\XmlEmbeddedExpressionHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlighters\XmlProcessingInstructionHighlighter.vb" />
     <Compile Include="Highlighting\KeywordHighlightingHelpers.vb" />
-    <Compile Include="HighlightReferences\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="ImplementAbstractClass\ImplementAbstractClassCommandHandler.vb" />
     <Compile Include="ImplementInterface\ImplementInterfaceCommandHandler.vb" />
     <Compile Include="InlineRename\VisualBasicEditorInlineRenameService.vb" />
@@ -155,7 +154,6 @@
     <Compile Include="NavigationBar\GenerateMethodItem.vb" />
     <Compile Include="NavigationBar\VisualBasicNavigationBarItemService.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.vb" />
-    <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.vb" />
     <Compile Include="RenameTracking\BasicRenameTrackingLanguageHeuristicsService.vb" />
     <Compile Include="RenameTracking\RenameTrackingCodeFixProvider.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />
@@ -177,6 +175,15 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor.Shared.Extensions" />
@@ -208,9 +215,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

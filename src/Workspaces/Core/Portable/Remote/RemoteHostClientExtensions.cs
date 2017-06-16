@@ -3,6 +3,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Experiments;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
@@ -41,6 +43,61 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var clientService = workspace.Services.GetService<IRemoteHostClientService>();
             return clientService?.TryGetRemoteHostClientAsync(cancellationToken);
+        }
+
+        public static Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+             this Solution solution, Option<bool> featureOption, CancellationToken cancellationToken)
+             => TryCreateCodeAnalysisServiceSessionAsync(solution, featureOption, callbackTarget: null, cancellationToken: cancellationToken);
+
+        public static bool IsOutOfProcessEnabled(this Workspace workspace, Option<bool> featureOption)
+        {
+            // If the feature has explicitly opted out of OOP then we won't run it OOP.
+            var outOfProcessAllowed = workspace.Options.GetOption(featureOption);
+            if (!outOfProcessAllowed)
+            {
+                return false;
+            }
+
+            if (workspace.Options.GetOption(RemoteFeatureOptions.OutOfProcessAllowed))
+            {
+                // If the user has explicitly enabled OOP, then the feature is allowed to run in OOP.
+                return true;
+            }
+
+            // Otherwise we check if the user is in the AB experiment enabling OOP.
+
+            var experimentEnabled = workspace.Services.GetService<IExperimentationService>();
+            if (!experimentEnabled.IsExperimentEnabled(WellKnownExperimentNames.RoslynFeatureOOP))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public static async Task<RemoteHostClient> TryGetRemoteHostClientAsync(
+            this Workspace workspace, Option<bool> featureOption, CancellationToken cancellationToken)
+        {
+            if (!workspace.IsOutOfProcessEnabled(featureOption))
+            {
+                return null;
+            }
+
+            var client = await workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+            return client;
+        }
+
+        public static async Task<RemoteHostClient.Session> TryCreateCodeAnalysisServiceSessionAsync(
+            this Solution solution, Option<bool> option, object callbackTarget, CancellationToken cancellationToken)
+        {
+            var workspace = solution.Workspace;
+            var client = await TryGetRemoteHostClientAsync(workspace, option, cancellationToken).ConfigureAwait(false);
+            if (client == null)
+            {
+                return null;
+            }
+
+            return await client.TryCreateCodeAnalysisServiceSessionAsync(solution, callbackTarget, cancellationToken).ConfigureAwait(false);
         }
 
         public static Task RunOnRemoteHostAsync(
