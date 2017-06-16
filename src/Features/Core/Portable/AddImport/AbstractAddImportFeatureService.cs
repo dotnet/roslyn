@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.AddImport
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
 
-        internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
+        protected abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
         protected abstract (string description, bool hasExistingImport) GetDescription(Document document, INamespaceOrTypeSymbol symbol, SemanticModel semanticModel, SyntaxNode root, CancellationToken cancellationToken);
@@ -457,17 +457,6 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             return method.ReduceExtensionMethod(receiver) != null;
-        }
-
-        private static void CalculateContext(
-            TSimpleNameSyntax nameNode, ISyntaxFactsService syntaxFacts, out string name, out int arity,
-            out bool inAttributeContext, out bool hasIncompleteParentMember)
-        {
-            // Has to be a simple identifier or generic name.
-            syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
-
-            inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
-            hasIncompleteParentMember = syntaxFacts.HasIncompleteParentMember(nameNode);
         }
 
         private static bool NotGlobalNamespace(SymbolReference reference)
