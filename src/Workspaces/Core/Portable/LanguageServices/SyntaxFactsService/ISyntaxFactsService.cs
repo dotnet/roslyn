@@ -157,6 +157,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         RefKind GetRefKindOfArgument(SyntaxNode node);
 
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
+        bool LooksGeneric(SyntaxNode simpleName);
+
         SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
 
         SeparatedSyntaxList<SyntaxNode> GetArgumentsOfInvocationExpression(SyntaxNode node);

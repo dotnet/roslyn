@@ -159,7 +159,6 @@
     <Compile Include="Implementation\Utilities\AutomationDelegatingListView.cs" />
     <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
     <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
-    <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
     <Compile Include="Implementation\ContainedLanguageRefactorNotifyService.cs" />
     <Compile Include="Implementation\VirtualMemoryNotificationListener.cs" />
     <Compile Include="Implementation\Watson\WatsonReporter.cs" />
@@ -199,7 +198,6 @@
     <Compile Include="Telemetry\VSTelemetryCache.cs" />
     <Compile Include="Telemetry\VSTelemetryLogger.cs" />
     <Compile Include="Utilities\IVsEditorAdaptersFactoryServiceExtensions.cs" />
-    <Compile Include="Utilities\VSCodeAnalysisColors.cs" />
     <Compile Include="Implementation\WorkspaceCacheService.cs" />
     <Compile Include="Implementation\Workspace\WorkspaceFailureOutputPane.cs" />
     <Compile Include="Implementation\ProjectSystem\VisualStudioWorkspaceImpl.AbstractAddRemoveUndoUnit.cs" />

@@ -492,6 +492,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
+        Public Function LooksGeneric(name As SyntaxNode) As Boolean Implements ISyntaxFactsService.LooksGeneric
+            Return name.IsKind(SyntaxKind.GenericName)
+        End Function
+
         Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode, Optional allowImplicitTarget As Boolean = False) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfMemberAccessExpression
             Return TryCast(node, MemberAccessExpressionSyntax)?.GetExpressionOfMemberAccessExpression(allowImplicitTarget)
         End Function
