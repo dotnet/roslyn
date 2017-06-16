@@ -141,8 +141,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static string ExtractShortCommitHash(string hash)
         {
-            // leave "<developer build>" alone, but truncate SHA to 8 characters
-            if (hash != null && hash.Length >= 8 && hash[0] != '<')
+            if (hash != null && hash.Length >= 8)
             {
                 return hash.Substring(0, 8);
             }

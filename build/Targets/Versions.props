@@ -76,12 +76,17 @@
 
   <Choose>
     <When Condition="'$(OfficialBuild)' != 'true'">
-      <!-- On non-official builds we don't burn in a git sha.  In large part because it
-           hurts our determinism efforts as binaries which should be the same between
+      <!-- On non-official builds we don't burn in the actual git sha.  In large part because 
+           it hurts our determinism efforts as binaries which should be the same between
            builds will not (due to developers building against different HEAD
-           values). -->
+           values). 
+
+           Using a valid SHA as parts of our down stream tooling (example NuGet packaging) expect 
+           a value that is a legal SHA. Using 42 as the base as it will be recognizable as 
+           incorrect in the same way our assembly version numbers
+           -->
       <PropertyGroup>
-        <GitHeadSha>&lt;developer build&gt;</GitHeadSha>
+        <GitHeadSha>42424242424</GitHeadSha>
       </PropertyGroup>
     </When>
     <When Condition="'$(BUILD_SOURCEVERSION)' != ''">

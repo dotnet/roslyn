@@ -3010,7 +3010,7 @@ class A { }
                 // (1,8): error CS1029: #error: 'version'
                 // #error version
                 Diagnostic(ErrorCode.ERR_ErrorDirective, "version").WithArguments("version").WithLocation(1, 8),
-                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (<developer build>)'. Language version: 4.
+                // (1,8): error CS8304: Compiler version: '42.42.42.42424 (42424242)'. Language version: 4.
                 // #error version
                 Diagnostic(ErrorCode.ERR_CompilerAndLanguageVersion, "version").WithArguments(GetExpectedVersion(), "4").WithLocation(1, 8)
                 );

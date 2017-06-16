@@ -10,6 +10,8 @@
 
 Supported Platforms:
 - .NET Framework 4.6
+
+    This package was built from the source at $commitUrl$
     </description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
