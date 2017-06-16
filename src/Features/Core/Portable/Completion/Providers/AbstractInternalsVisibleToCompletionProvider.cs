@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,13 +18,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract bool IsPositionEntirelyWithinStringLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
 
+        internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
+        {
+            var ch = text[insertedCharacterPosition];
+            return ch == '\"';
+        }
+
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var cancellationToken = context.CancellationToken;
             var syntaxTree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
             if (IsPositionEntirelyWithinStringLiteral(syntaxTree, context.Position, cancellationToken))
             {
+                var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
                 var token = syntaxTree.FindTokenOnLeftOfPosition(context.Position, cancellationToken);
                 var attributeSyntaxNode = GetAttributeSyntaxNodeOfToken(syntaxFactsService, token);
                 if (attributeSyntaxNode == null)
@@ -79,8 +86,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 return false;
             }
 
-            var compilation = semanticModel.Compilation;
-            var internalsVisibleToAttributeSymbol = compilation.GetTypeByMetadataName(typeof(InternalsVisibleToAttribute).FullName);
+            var internalsVisibleToAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(typeof(InternalsVisibleToAttribute).FullName);
             return type.Equals(internalsVisibleToAttributeSymbol);
         }
 
@@ -115,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             {
                 assemblyName += ", PublicKey=" + publicKey;
             }
+
             var textChange = new TextChange(item.Span, assemblyName);
             return CompletionChange.Create(textChange);
         }

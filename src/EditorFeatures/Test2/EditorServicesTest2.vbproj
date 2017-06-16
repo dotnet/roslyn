@@ -246,8 +246,8 @@
     <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
     <Compile Include="IntelliSense\CompletionServiceTests.vb" />
     <Compile Include="IntelliSense\StrongNameKeyFileFixture.vb" />
-    <Compile Include="IntelliSense\VisualBasicCompletionProviderInternalsVisibleToTests.vb" />
-    <Compile Include="IntelliSense\CSharpCompletionProviderInternalsVisibleToTests.vb" />
+    <Compile Include="IntelliSense\VisualBasicCompletionCommandHandlerTests_InternalsVisibleTo.vb" />
+    <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_InternalsVisibleTo.vb" />
     <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
     <Compile Include="IntelliSense\CompletionRulesTests.vb" />
     <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
