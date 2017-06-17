@@ -208,6 +208,7 @@
     <Compile Include="Classification\AbstractClassificationService.cs" />
     <Compile Include="Classification\IClassificationService.cs" />
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
+    <Compile Include="Remote\RemoteHostSessionHelpers.cs" />
     <Compile Include="Remote\RemoteFeatureOptions.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -384,7 +385,6 @@
     <Compile Include="FindSymbols\SymbolFinder_Declarations_CustomQueries.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindReferences_Current.cs" />
     <Compile Include="FindSymbols\SymbolFinder_FindRenamableReferences.cs" />
-    <Compile Include="FindSymbols\SymbolFinder_Remote.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeIndex.LiteralInfo.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\AbstractDocumentationCommentService.cs" />
     <Compile Include="LanguageServices\SyntaxFactsService\IDocumentationCommentService.cs" />
@@ -638,7 +638,6 @@
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />
-    <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
     <Compile Include="Versions\PersistedVersionStampLogger.cs" />
     <Compile Include="Workspace\AdhocWorkspace.cs" />
     <Compile Include="Workspace\DocumentActiveContextChangedEventArgs.cs" />

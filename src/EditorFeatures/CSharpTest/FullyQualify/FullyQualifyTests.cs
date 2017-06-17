@@ -1,17 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.FullyQualify
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
 {
     public class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
     {
@@ -1351,6 +1350,34 @@ using System.Collections.Generic;
 
 class Program : [|IReadOnlyCollection|]
 {
+}");
+        }
+
+        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
+        {
+            var code = @"
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        [|IEnumerable|] < Int32 >
+        return ImmutableArray.CreateRange();
+    }
+}";
+            await TestActionCountAsync(code, count: 1);
+
+            await TestInRegularAndScriptAsync(
+code,
+@"
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        System.Collections.Generic.IEnumerable < Int32 >
+        return ImmutableArray.CreateRange();
+    }
 }");
         }
     }

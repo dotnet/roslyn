@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.VisualStudio.LanguageServices.Remote;
 using Roslyn.Utilities;
 using StreamJsonRpc;
@@ -27,23 +28,17 @@ namespace Microsoft.CodeAnalysis.Remote
         protected readonly CancellationToken CancellationToken;
 
         /// <summary>
-        /// Session Id of this service. caller and callee share this id which one
-        /// can use to find matching caller and callee when debugging or logging
-        /// </summary>
-        private int _sessionId;
-
-        /// <summary>
-        /// Mark whether the solution checksum it got is for primary branch or not 
+        /// PinnedSolutionInfo.ScopeId. scope id of the solution. caller and callee share this id which one
+        /// can use to find matching caller and callee while exchanging data
+        /// 
+        /// PinnedSolutionInfo.FromPrimaryBranch Marks whether the solution checksum it got is for primary branch or not 
         /// 
         /// this flag will be passed down to solution controller to help
         /// solution service's cache policy. for more detail, see <see cref="SolutionService"/>
+        /// 
+        /// PinnedSolutionInfo.SolutionChecksum indicates solution this connection belong to
         /// </summary>
-        private bool _fromPrimaryBranch;
-
-        /// <summary>
-        /// solution this connection belong to
-        /// </summary>
-        private Checksum _solutionChecksumOpt;
+        private PinnedSolutionInfo _solutionInfo;
 
         private RoslynServices _lazyRoslynServices;
 
@@ -96,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 if (_lazyRoslynServices == null)
                 {
-                    _lazyRoslynServices = new RoslynServices(_sessionId, AssetStorage);
+                    _lazyRoslynServices = new RoslynServices(_solutionInfo.ScopeId, AssetStorage);
                 }
 
                 return _lazyRoslynServices;
@@ -105,10 +100,10 @@ namespace Microsoft.CodeAnalysis.Remote
 
         protected Task<Solution> GetSolutionAsync()
         {
-            Contract.ThrowIfNull(_solutionChecksumOpt);
+            Contract.ThrowIfNull(_solutionInfo);
 
             var solutionController = (ISolutionController)RoslynServices.SolutionService;
-            return solutionController.GetSolutionAsync(_solutionChecksumOpt, _fromPrimaryBranch, CancellationToken);
+            return solutionController.GetSolutionAsync(_solutionInfo.SolutionChecksum, _solutionInfo.FromPrimaryBranch, CancellationToken);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -121,16 +116,11 @@ namespace Microsoft.CodeAnalysis.Remote
             Log(TraceEventType.Error, message);
         }
 
-        public virtual void Initialize(int sessionId, bool fromPrimaryBranch, Checksum solutionChecksum)
+        public virtual void Initialize(PinnedSolutionInfo info)
         {
-            // set session related information
-            _sessionId = sessionId;
-            _fromPrimaryBranch = fromPrimaryBranch;
-
-            if (solutionChecksum != null)
-            {
-                _solutionChecksumOpt = solutionChecksum;
-            }
+            // set pinned solution info
+            _lazyRoslynServices = null;
+            _solutionInfo = info;
         }
 
         public void Dispose()

@@ -173,8 +173,8 @@
     <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcClient.cs">
       <Link>Remote\JsonRpcClient.cs</Link>
     </Compile>
-    <Compile Include="..\..\visualstudio\core\next\remote\JsonRpcSession.cs">
-      <Link>Remote\JsonRpcSession.cs</Link>
+    <Compile Include="..\..\VisualStudio\Core\Next\Remote\JsonRpcConnection.cs">
+      <Link>Remote\JsonRpcConnection.cs</Link>
     </Compile>
     <Compile Include="AbstractCommandHandlerTestState.cs" />
     <Compile Include="Async\AsynchronousOperationBlocker.cs" />
