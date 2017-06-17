@@ -49,7 +49,7 @@
     </Compile>
     <Compile Update="VBFeaturesResources.Designer.vb">
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
-    <Compile Include="CodeFixes\UseDefaultOptionalParameter\UseDefaultOptionalParameterCodeRefactoringProvider.vb" />
+    <Compile Include="CodeFixes\UseDefaultOptionalParameter\UseDefaultOptionalParameter.vb" />
     <Compile Include="DocumentHighlighting\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.vb" />
     <Compile Include="InitializeParameter\VisualBasicAddParameterCheckCodeRefactoringProvider.vb" />

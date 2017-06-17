@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
             context.RegisterSyntaxNodeAction(AddressOf Analyse, S_Kinds)
         End Sub
 
-        Friend Const ID As String = "BC00000" '= VBFeaturesResources.DefaultOptionalParameter
+        Friend Const ID As String = "BC00000"
 
         Private Shared ReadOnly S_DiagnosticDescriptor As New DiagnosticDescriptor(ID,
                                                       VBFeaturesResources.DefaultOptionalParameter,
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
 
         Private Sub Analyse(context As SyntaxNodeAnalysisContext)
             Dim Parameter = TryCast(context.Node, ParameterSyntax)
-            If Parameter?.Default Is Nothing AndAlso Parameter?.Default.Value IsNot Nothing Then Return
+            If Parameter?.Default Is Nothing Then Return
             Dim sym = TryCast(context.ContainingSymbol, IParameterSymbol)
             If Not sym?.IsOptional Then Return
             Dim [Default] = Parameter.Default.Value
