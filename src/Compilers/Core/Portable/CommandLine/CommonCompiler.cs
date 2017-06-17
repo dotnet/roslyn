@@ -78,6 +78,7 @@ namespace Microsoft.CodeAnalysis
         public abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger, ErrorLogger errorLoggerOpt);
         public abstract void PrintLogo(TextWriter consoleOutput);
         public abstract void PrintHelp(TextWriter consoleOutput);
+        public abstract void PrintLangVersions(TextWriter consoleOutput);
 
         /// <summary>
         /// Print compiler version
@@ -517,6 +518,12 @@ namespace Microsoft.CodeAnalysis
             if (Arguments.DisplayVersion)
             {
                 PrintVersion(consoleOutput);
+                return Succeeded;
+            }
+
+            if (Arguments.DisplayLangVersions)
+            {
+                PrintLangVersions(consoleOutput);
                 return Succeeded;
             }
 

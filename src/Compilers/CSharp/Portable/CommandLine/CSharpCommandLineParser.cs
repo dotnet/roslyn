@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool displayLogo = true;
             bool displayHelp = false;
             bool displayVersion = false;
+            bool displayLangVersions = false;
             bool optimize = false;
             bool checkOverflow = false;
             bool allowUnsafe = false;
@@ -837,6 +838,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // treat them as identifiers (behaviour in native compiler). This error helps users identify that breaking change.
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_LanguageVersionCannotHaveLeadingZeroes, value);
                             }
+                            else if (value == "?")
+                            {
+                                displayLangVersions = true;
+                            }
                             else if (!value.TryParse(out languageVersion))
                             {
                                 AddDiagnostic(diagnostics, ErrorCode.ERR_BadCompatMode, value);
@@ -1347,6 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 DisplayLogo = displayLogo,
                 DisplayHelp = displayHelp,
                 DisplayVersion = displayVersion,
+                DisplayLangVersions = displayLangVersions,
                 ManifestResources = managedResources.AsImmutable(),
                 CompilationOptions = options,
                 ParseOptions = parseOptions,
