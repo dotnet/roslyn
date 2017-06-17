@@ -2932,6 +2932,116 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [Fact]
+        public void ConversionExpression_Implicit_ExpressionTreeConversion()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Expression<Func<int, bool>> /*<bind>*/exp = num => num < 5/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'Expression< ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'Expression< ... *</bind>*/;')
+    Variables: Local_1: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>) (Syntax: 'num => num < 5')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'num => num < 5')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'num < 5')
+            IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'num < 5')
+              IBinaryOperatorExpression (BinaryOperationKind.IntegerLessThan) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'num < 5')
+                Left: IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'num')
+                Right: ILiteralExpression (Text: 5) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 5) (Syntax: '5')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ExpressionTreeConversion_InvalidIncorrectLambdaType()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Expression<Func<int, bool>> /*<bind>*/exp = num => num/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Expression< ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Expression< ... *</bind>*/;')
+    Variables: Local_1: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp
+    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsInvalid) (Syntax: 'num => num')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'num => num')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: 'num')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'num')
+              IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: 'num')
+                IParameterReferenceExpression: num (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'num')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0029: Cannot implicitly convert type 'int' to 'bool'
+                //         Expression<Func<int, bool>> /*<bind>*/exp = num => num/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "num").WithArguments("int", "bool").WithLocation(9, 60),
+                // CS1662: Cannot convert lambda expression to intended delegate type because some of the return types in the block are not implicitly convertible to the delegate return type
+                //         Expression<Func<int, bool>> /*<bind>*/exp = num => num/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_CantConvAnonMethReturns, "num").WithArguments("lambda expression").WithLocation(9, 60)
+            };
+
+            // Due to https://github.com/dotnet/roslyn/issues/20291, we cannot verify that the types of the ioperation tree and the sematic model
+            // match, as they do not actually match.
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics); //,
+                //AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ExpressionTreeConversion_InvalidSyntax()
+        {
+            string source = @"
+using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Expression<Func<int, bool>> /*<bind>*/exp = num =>/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'Expression< ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'Expression< ... *</bind>*/;')
+    Variables: Local_1: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>> exp
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Linq.Expressions.Expression<System.Func<System.Int32, System.Boolean>>, IsInvalid) (Syntax: 'num =>/*</bind>*/')
+        ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null, IsInvalid) (Syntax: 'num =>/*</bind>*/')
+          IBlockStatement (1 statements) (OperationKind.BlockStatement, IsInvalid) (Syntax: '')
+            IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: '')
+              IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.Boolean, IsInvalid) (Syntax: '')
+                IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term ';'
+                //         Expression<Func<int, bool>> /*<bind>*/exp = num =>/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(9, 70)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
         #endregion
 
         private class ExpectedSymbolVerifier
@@ -2943,7 +3053,6 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             public static IConversionExpression IVariableDeclarationStatementSelector(IOperation operation) =>
                 (IConversionExpression)((IVariableDeclarationStatement)operation).Declarations.Single().Initializer;
-
 
             public Func<IOperation, IConversionExpression> OperationSelector { get; set; } = IVariableDeclarationStatementSelector;
 
