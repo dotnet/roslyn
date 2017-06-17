@@ -10,15 +10,46 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Execution
 {
     /// <summary>
+    /// Information related to pinned solution
+    /// </summary>
+    internal class PinnedSolutionInfo
+    {
+        /// <summary>
+        /// Unique ID for this pinned solution
+        /// 
+        /// This later used to find matching solution between VS and remote host
+        /// </summary>
+        public readonly int ScopeId;
+
+        /// <summary>
+        /// This indicates whether this scope is for primary branch or not (not forked solution)
+        /// 
+        /// Features like OOP will use this flag to see whether caching information related to this solution
+        /// can benefit other requests or not
+        /// </summary>
+        public readonly bool FromPrimaryBranch;
+        public readonly Checksum SolutionChecksum;
+
+        public PinnedSolutionInfo(int scopeId, bool fromPrimaryBranch, Checksum solutionChecksum)
+        {
+            ScopeId = scopeId;
+            FromPrimaryBranch = fromPrimaryBranch;
+            SolutionChecksum = solutionChecksum;
+        }
+    }
+
+    /// <summary>
     /// checksum scope that one can use to pin assets in memory while working on remote host
     /// </summary>
     internal sealed class PinnedRemotableDataScope : IDisposable
     {
+        private static int s_scopeId = 1;
+
         private readonly AssetStorages _storages;
         private readonly AssetStorages.Storage _storage;
         private bool _disposed;
 
-        public readonly Checksum SolutionChecksum;
+        public readonly PinnedSolutionInfo SolutionInfo;
 
         public PinnedRemotableDataScope(
             AssetStorages storages,
@@ -30,20 +61,16 @@ namespace Microsoft.CodeAnalysis.Execution
             _storages = storages;
             _storage = storage;
 
-            SolutionChecksum = solutionChecksum;
+            SolutionInfo = new PinnedSolutionInfo(
+                Interlocked.Increment(ref s_scopeId),
+                _storage.SolutionState.BranchId == Workspace.PrimaryBranchId,
+                solutionChecksum);
 
             _storages.RegisterSnapshot(this, storage);
         }
 
-        /// <summary>
-        /// This indicates whether this scope is for primary branch or not (not forked solution)
-        /// 
-        /// Features like OOP will use this flag to see whether caching information related to this solution
-        /// can benefit other requests or not
-        /// </summary>
-        public bool ForPrimaryBranch => _storage.SolutionState.BranchId == Workspace.PrimaryBranchId;
-
         public Workspace Workspace => _storage.SolutionState.Workspace;
+        public Checksum SolutionChecksum => SolutionInfo.SolutionChecksum;
 
         /// <summary>
         /// Add asset that is not part of solution to be part of this snapshot.

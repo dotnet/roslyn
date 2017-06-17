@@ -4643,5 +4643,35 @@ namespace Outer
 }
 ");
         }
+
+        [WorkItem(19575, "https://github.com/dotnet/roslyn/issues/19575")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)]
+        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression()
+        {
+            var code = @"
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        [|IEnumerable|] < Int32 >
+        return ImmutableArray.CreateRange();
+    }
+}";
+            await TestActionCountAsync(code, count: 1);
+
+            await TestInRegularAndScriptAsync(
+code,
+@"
+using System.Collections.Generic;
+
+class C
+{
+    private void GetEvaluationRuleNames()
+    {
+        IEnumerable < Int32 >
+        return ImmutableArray.CreateRange();
+    }
+}");
+        }
     }
 }
