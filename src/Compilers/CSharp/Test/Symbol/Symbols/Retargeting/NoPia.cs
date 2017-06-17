@@ -1499,7 +1499,7 @@ public class C
     public void TestDeconstruction()
     {
         int x, y;
-        (x, y) = new C();
+        var resultingTuple = ((x, y) = new C());
     }
     public void Deconstruct(out int a, out int b) { a = b = 1; }
 }";
@@ -1515,9 +1515,9 @@ public class C
                 // (14,16): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
                 //         return (1, 2);
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(1, 2)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(14, 16),
-                // (19,9): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 9)
+                // (19,31): error CS1768: Type 'ValueTuple<T1, T2>' cannot be embedded because it has a generic argument. Consider setting the 'Embed Interop Types' property to false.
+                //         var resultingTuple = ((x, y) = new C());
+                Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType, "(x, y)").WithArguments("System.ValueTuple<T1, T2>").WithLocation(19, 31)
             };
 
             var comp1 = CreateStandardCompilation(source, options: TestOptions.ReleaseDll,

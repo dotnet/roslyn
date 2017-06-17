@@ -108,6 +108,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         ArrayBuilder<DeconstructionVariable> checkedVariables,
                                                         DiagnosticBag diagnostics)
         {
+            bool resultIsUsed = IsDeconstructionResultUsed(left);
+
             if ((object)boundRHS.Type == null || boundRHS.Type.IsErrorType())
             {
                 // we could still not infer a type for the RHS
@@ -117,9 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = boundRHS.Type ?? voidType;
                 return new BoundDeconstructionAssignmentOperator(
                             node,
-                            DeconstructionVariablesAsTuple(node, checkedVariables, diagnostics, hasErrors: true),
+                            DeconstructionVariablesAsTuple(node, checkedVariables, resultIsUsed ? diagnostics : null, hasErrors: true),
                             new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
                                 constantValueOpt: null, type: type, hasErrors: true),
+                            resultIsUsed,
                             voidType,
                             hasErrors: true);
             }
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FailRemainingInferences(checkedVariables, diagnostics);
 
-            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, hasErrors);
+            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, resultIsUsed ? diagnostics : null, hasErrors);
             TypeSymbol returnType = hasErrors ? CreateErrorType() : lhsTuple.Type;
 
             var boundConversion = new BoundConversion(
@@ -149,7 +152,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors: hasErrors)
             { WasCompilerGenerated = true };
 
-            return new BoundDeconstructionAssignmentOperator(node, lhsTuple, boundConversion, returnType);
+            return new BoundDeconstructionAssignmentOperator(node, lhsTuple, boundConversion, resultIsUsed, returnType);
+        }
+
+        private bool IsDeconstructionResultUsed(ExpressionSyntax left)
+        {
+            var parent = left.Parent;
+            if (parent is null || left.Parent.Kind() == SyntaxKind.ForEachVariableStatement)
+            {
+                return false;
+            }
+
+            Debug.Assert(parent.Kind() == SyntaxKind.SimpleAssignmentExpression);
+
+            var grandParent = parent.Parent;
+            if (grandParent is null)
+            {
+                return false;
+            }
+
+            switch (grandParent.Kind())
+            {
+                case SyntaxKind.ExpressionStatement:
+                    return ((ExpressionStatementSyntax)grandParent).Expression != parent;
+
+                case SyntaxKind.ForStatement:
+                    // Incrementors and Initializers doesn't have to produce a value
+                    var loop = (ForStatementSyntax)grandParent;
+                    return !loop.Incrementors.Contains(parent) && !loop.Initializers.Contains(parent);
+
+                default:
+                    return true;
+            }
         }
 
         /// <summary>When boundRHS is a tuple literal, fix it up by inferring its types.</summary>

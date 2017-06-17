@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var right = node.Right;
             Debug.Assert(right.Conversion.Kind == ConversionKind.Deconstruction);
 
-            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand);
+            return RewriteDeconstruction(node.Left, right.Conversion, right.Operand, node.IsUsed);
         }
 
         /// <summary>
@@ -32,18 +32,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - the conversion phase
         /// - the assignment phase
         /// </summary>
-        private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right)
+        private BoundExpression RewriteDeconstruction(BoundTupleExpression left, Conversion conversion, BoundExpression right, bool isUsed)
         {
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var effects = DeconstructionSideEffects.GetInstance();
             ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, temps, effects.init);
 
-            BoundExpression returnTuple = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, inInit: true);
-            if (!returnTuple.HasErrors)
+            BoundExpression returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, inInit: true);
+            if (!returnValue.HasErrors)
             {
-                returnTuple = VisitExpression(returnTuple);
+                if (isUsed)
+                {
+                    returnValue = VisitExpression(returnValue);
+                }
+                else
+                {
+                    returnValue = new BoundVoid(left.Syntax, left.Type);
+                }
             }
-            BoundExpression result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnTuple);
+            BoundExpression result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
             Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
 
             return result;
