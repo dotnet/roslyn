@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
 

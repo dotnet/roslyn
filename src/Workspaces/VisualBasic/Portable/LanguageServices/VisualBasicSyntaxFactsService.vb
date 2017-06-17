@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax

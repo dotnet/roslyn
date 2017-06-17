@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Test.Utilities.CSharpInstrumentationChecker;

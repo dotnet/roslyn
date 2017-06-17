@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch
