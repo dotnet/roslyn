@@ -1679,6 +1679,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_FieldCantBeRefAny" xml:space="preserve">
     <value>Field or property cannot be of type '{0}'</value>
   </data>
+  <data name="ERR_FieldAutoPropCantBeByRefLike" xml:space="preserve">
+    <value>Field or auto-implemented property cannot be of type '{0}' unless it is an instance member of a ref struct.</value>
+  </data>
   <data name="ERR_ArrayElementCantBeRefAny" xml:space="preserve">
     <value>Array elements cannot be of type '{0}'</value>
   </data>

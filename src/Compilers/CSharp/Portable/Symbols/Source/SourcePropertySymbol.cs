@@ -1332,14 +1332,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
                                 this.Type.CheckAllConstraints(conversions, _location, diagnostics);
 
-                                // autoproperties can have span-like types only
-                                // inside a span-like type and when not static
-                                var canReturnSpan = !this.IsAutoProperty || 
-                                                    (!this.IsStatic && this.ContainingType.IsByRefLikeType);
-
-                                if (this.Type.IsRestrictedType(ignoreSpanLikeTypes: canReturnSpan))
+                                var type = this.Type;
+                                if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type);
+                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, type);
+                                }
+                                else if (this.IsAutoProperty && type.IsByRefLikeType && (this.IsStatic || !this.ContainingType.IsByRefLikeType))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, this.CSharpSyntaxNode.Type.Location, type);
                                 }
 
                                 this.AddDeclarationDiagnostics(diagnostics);

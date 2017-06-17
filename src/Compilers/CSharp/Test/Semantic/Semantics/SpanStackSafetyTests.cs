@@ -306,41 +306,41 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (22,16): error CS0610: Field or property cannot be of type 'Span<int>'
+                // (22,16): error CS8519: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
                 //         public Span<int> fi2; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
-                // (21,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
+                // (21,23): error CS8519: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 //         public static Span<byte> fs2;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
-                // (10,19): error CS0610: Field or property cannot be of type 'Span<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
+                // (10,19): error CS8519: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 //     public static Span<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
-                // (11,12): error CS0610: Field or property cannot be of type 'Span<int>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
+                // (11,12): error CS8519: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
                 //     public Span<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
-                // (15,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
+                // (15,23): error CS8519: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 //         public static Span<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
             );
 
             comp = CreateCompilationWithMscorlibAndSpanSrc(text);
 
             comp.VerifyDiagnostics(
-                // (22,16): error CS0610: Field or property cannot be of type 'Span<int>'
+                // (22,16): error CS8519: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
                 //         public Span<int> fi2; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
-                // (21,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(22, 16),
+                // (21,23): error CS8519: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 //         public static Span<byte> fs2;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
-                // (10,19): error CS0610: Field or property cannot be of type 'Span<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(21, 23),
+                // (10,19): error CS8519: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 //     public static Span<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
-                // (11,12): error CS0610: Field or property cannot be of type 'Span<int>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(10, 19),
+                // (11,12): error CS8519: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
                 //     public Span<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
-                // (15,23): error CS0610: Field or property cannot be of type 'Span<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(11, 12),
+                // (15,23): error CS8519: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 //         public static Span<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(15, 23)
             );
         }
 
@@ -376,41 +376,41 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (22,16): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                // (22,16): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
                 //         public SpanLike<int> fi2; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
-                // (21,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
+                // (21,23): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
                 //         public static SpanLike<byte> fs2;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
-                // (10,19): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
+                // (10,19): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
                 //     public static SpanLike<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
-                // (11,12): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
+                // (11,12): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
                 //     public SpanLike<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
-                // (15,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
+                // (15,23): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
                 //         public static SpanLike<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
             );
 
             comp = CreateCompilationWithMscorlibAndSpanSrc(text);
 
             comp.VerifyDiagnostics(
-                // (22,16): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                // (22,16): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
                 //         public SpanLike<int> fi2; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
-                // (21,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(22, 16),
+                // (21,23): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
                 //         public static SpanLike<byte> fs2;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
-                // (10,19): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(21, 23),
+                // (10,19): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
                 //     public static SpanLike<byte> fs;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
-                // (11,12): error CS0610: Field or property cannot be of type 'SpanLike<int>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(10, 19),
+                // (11,12): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<int>' unless it is an instance member of a ref struct.
                 //     public SpanLike<int> fi; 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
-                // (15,23): error CS0610: Field or property cannot be of type 'SpanLike<byte>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<int>").WithArguments("System.SpanLike<int>").WithLocation(11, 12),
+                // (15,23): error CS8519: Field or auto-implemented property cannot be of type 'SpanLike<byte>' unless it is an instance member of a ref struct.
                 //         public static SpanLike<byte> fs1;
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "SpanLike<byte>").WithArguments("System.SpanLike<byte>").WithLocation(15, 23)
             );
         }
 
@@ -606,12 +606,12 @@ public class Program
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (17,19): error CS0610: Field or property cannot be of type 'Span<byte>'
+                // (17,19): error CS8519: Field or auto-implemented property cannot be of type 'Span<byte>' unless it is an instance member of a ref struct.
                 //     public static Span<byte> aps {get;}
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(17, 19),
-                // (18,12): error CS0610: Field or property cannot be of type 'Span<int>'
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<byte>").WithArguments("System.Span<byte>").WithLocation(17, 19),
+                // (18,12): error CS8519: Field or auto-implemented property cannot be of type 'Span<int>' unless it is an instance member of a ref struct.
                 //     public Span<int> api {get; set;} 
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "Span<int>").WithArguments("System.Span<int>").WithLocation(18, 12)
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "Span<int>").WithArguments("System.Span<int>").WithLocation(18, 12)
             );
         }
 
