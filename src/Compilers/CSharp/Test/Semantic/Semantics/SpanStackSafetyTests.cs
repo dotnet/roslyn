@@ -450,6 +450,134 @@ public class Program
             );
         }
 
+        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [Fact]
+        public void RefIteratorInAsync()
+        {
+            var text = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+    }
+
+    static async Task<int> Test()
+    {
+        var obj = new C1();
+
+        foreach (var i in obj)
+        {
+            await Task.Yield();
+            System.Console.WriteLine(i);
+        }
+
+        return 123;
+    }
+}
+
+class C1
+{
+    public S1 GetEnumerator()
+    {
+        return new S1();
+    }
+
+    public ref struct S1
+    {
+        public int Current => throw new NotImplementedException();
+
+        public bool MoveNext()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
+                // (15,9): error CS8518: foreach statement cannot operate on variables of type 'C1' in async or iterator methods.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1").WithLocation(15, 9)
+            );
+        }
+
+        [WorkItem(20226, "https://github.com/dotnet/roslyn/issues/20226")]
+        [Fact]
+        public void RefIteratorInIterator()
+        {
+            var text = @"
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // this is valid
+        Action a = () =>
+        {
+            foreach (var i in new C1())
+            {
+            }
+        };
+
+        a();
+    }
+
+    static IEnumerable<int> Test()
+    {
+        // this is valid
+        Action a = () =>
+        {
+            foreach (var i in new C1())
+            {
+            }
+        };
+
+        a();
+
+        // this is an error
+        foreach (var i in new C1())
+        {
+        }
+
+        yield return 1;
+    }
+}
+
+class C1
+{
+    public S1 GetEnumerator()
+    {
+        return new S1();
+    }
+
+    public ref struct S1
+    {
+        public int Current => throw new NotImplementedException();
+
+        public bool MoveNext()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
+";
+
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
+
+            comp.VerifyDiagnostics(
+                // (33,9): error CS8518: foreach statement cannot operate on variables of type 'C1' in async or iterator methods.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1").WithLocation(33, 9)
+            );
+        }
 
         [Fact]
         public void Properties()

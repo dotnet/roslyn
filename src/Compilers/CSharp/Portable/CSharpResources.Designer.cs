@@ -1907,6 +1907,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; in async or iterator methods..
+        /// </summary>
+        internal static string ERR_BadSpecialByRefIterator {
+            get {
+                return ResourceManager.GetString("ERR_BadSpecialByRefIterator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameters or locals of type &apos;{0}&apos; cannot be declared in async methods or lambda expressions..
         /// </summary>
         internal static string ERR_BadSpecialByRefLocal {
