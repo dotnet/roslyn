@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParameter
 
-    <DiagnosticAnalyzer(LanguageNames.VisualBasic), [Shared]>
+    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend NotInheritable Class UseDefaultOptionalParameter_Analyser
         Inherits DiagnosticAnalyzer
 

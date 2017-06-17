@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.I
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
-            Return New UseDefaultOptionalParameterCodeRefactoringProvider()
+            Return New InvertIfCodeRefactoringProvider()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
