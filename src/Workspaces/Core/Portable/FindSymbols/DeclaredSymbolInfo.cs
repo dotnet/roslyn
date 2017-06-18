@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -82,6 +81,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ImmutableArray<string> InheritanceNames { get; }
 
         public DeclaredSymbolInfo(
+            StringTable stringTable,
             string name,
             string nameSuffix,
             string containerDisplayName,
@@ -91,12 +91,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             TextSpan span,
             ImmutableArray<string> inheritanceNames,
             int parameterCount = 0, int typeParameterCount = 0)
-            : this()
         {
-            Name = name;
-            NameSuffix = nameSuffix;
-            ContainerDisplayName = containerDisplayName;
-            FullyQualifiedContainerName = fullyQualifiedContainerName;
+            Name = Intern(stringTable, name);
+            NameSuffix = Intern(stringTable, nameSuffix);
+            ContainerDisplayName = Intern(stringTable, containerDisplayName);
+            FullyQualifiedContainerName = Intern(stringTable, fullyQualifiedContainerName);
             Span = span;
             InheritanceNames = inheritanceNames;
 
@@ -108,6 +107,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             _flags = (uint)kind | ((uint)accessibility << 4) | ((uint)parameterCount << 8) | ((uint)typeParameterCount << 12);
         }
+
+        public static string Intern(StringTable stringTable, string name)
+            => name == null ? null : stringTable.Add(name);
 
         private static DeclaredSymbolInfoKind GetKind(uint flags)
             => (DeclaredSymbolInfoKind)(flags & Lower4BitMask);
@@ -138,7 +140,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(ObjectReader reader)
+        internal static DeclaredSymbolInfo ReadFrom_ThrowsOnFailure(StringTable stringTable, ObjectReader reader)
         {
             var name = reader.ReadString();
             var nameSuffix = reader.ReadString();
@@ -157,6 +159,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var span = new TextSpan(spanStart, spanLength);
             return new DeclaredSymbolInfo(
+                stringTable,
                 name: name,
                 nameSuffix: nameSuffix,
                 containerDisplayName: containerDisplayName,
