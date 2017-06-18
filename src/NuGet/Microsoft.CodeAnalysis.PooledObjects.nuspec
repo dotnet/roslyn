@@ -21,6 +21,6 @@
   </metadata>
   <files>
     <file src="$srcDirPath$\Dependencies\PooledObjects\**\*.cs" target="contentFiles/cs/netstandard1.3" />
-    <file src="$srcDirPath$\Dependencies\PooledObjects\**\*.cs" target="contentFiles/cs/net35" />
+    <file src="$srcDirPath$\Dependencies\PooledObjects\**\*.cs" target="contentFiles/cs/net45" />
   </files>
 </package>
