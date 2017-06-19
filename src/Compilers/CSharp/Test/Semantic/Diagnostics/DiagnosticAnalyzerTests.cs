@@ -925,7 +925,7 @@ public class B
             var badSpan = new Text.TextSpan(100000, 10000);
 
             string message = new ArgumentException(
-                string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, badSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+                string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, AnalyzerWithInvalidDiagnosticSpan.Descriptor.Id, badSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
 
             compilation.VerifyDiagnostics();
 
@@ -935,7 +935,7 @@ public class B
                 .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
                     expected:
                     Diagnostic("AD0001")
-                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticLocation", "System.ArgumentException", message)
+                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message)
                         .WithLocation(1, 1)
                 );
         }
