@@ -385,7 +385,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         diagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt).ToImmutableArrayOrEmpty();
                     }
 
+#if DEBUG
+                    // since all ProjectDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
+                    // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
+                    // from intern teams.
                     await VerifyDiagnosticLocationsAsync(diagnostics, project, cancellationToken).ConfigureAwait(false);
+#endif
 
                     return diagnostics;
                 }
@@ -425,7 +430,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
                     }
 
+#if DEBUG
+                    // since all ProjectDiagnosticAnalyzers are from internal users, we only do debug check. also this can be expensive at runtime
+                    // since it requires await. if we find any offender through NFW, we should be able to fix those since all those should
+                    // from intern teams.
                     await VerifyDiagnosticLocationsAsync(diagnostics, document.Project, cancellationToken).ConfigureAwait(false);
+#endif
 
                     return diagnostics;
                 }
