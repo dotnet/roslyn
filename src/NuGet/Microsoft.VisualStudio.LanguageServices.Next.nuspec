@@ -2,12 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.LanguageServices.Next</id>
-    <description>
+    <summary>
       .NET Compiler Platform ("Roslyn") support for Visual Studio "15".
 
 Supported Platforms:
 - .NET Framework 4.6
-    </description>
+    </summary>
+    <description>$commitPathMessage$</description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Remote.ServiceHub" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Remote.Workspaces" version="[$version$]" />
