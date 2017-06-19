@@ -31,6 +31,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenLocalFunctionTests : CSharpTestBase
     {
         [Fact]
+        [WorkItem(17719, "https://github.com/dotnet/roslyn/issues/17719")]
+        public void Repro17719()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        T GetField<T>(string name, T @default = default(T))
+        {
+          return @default;
+        }
+        Console.WriteLine(GetField<int>(string.Empty));
+    }
+}", expectedOutput: "0");
+        }
+
+        [Fact]
         [WorkItem(17890, "https://github.com/dotnet/roslyn/issues/17890")]
         public void Repro17890()
         {
