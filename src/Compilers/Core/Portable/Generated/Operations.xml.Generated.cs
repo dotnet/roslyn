@@ -3051,6 +3051,62 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal abstract partial class BaseAnonymousObjectCreationExpression : Operation, IAnonymousObjectCreationExpression
+    {
+        protected BaseAnonymousObjectCreationExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.AnonymousObjectCreationExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Initializers { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitAnonymousObjectCreationExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAnonymousObjectCreationExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal sealed partial class AnonymousObjectCreationExpression : BaseAnonymousObjectCreationExpression, IAnonymousObjectCreationExpression
+    {
+        public AnonymousObjectCreationExpression(ImmutableArray<IOperation> initializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Initializers = initializers;
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# or VB new/New anonymous object creation expression.
+    /// </summary>
+    internal sealed partial class LazyAnonymousObjectCreationExpression : BaseAnonymousObjectCreationExpression, IAnonymousObjectCreationExpression
+    {
+        private readonly Lazy<ImmutableArray<IOperation>> _lazyInitializers;
+
+        public LazyAnonymousObjectCreationExpression(Lazy<ImmutableArray<IOperation>> initializers, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyInitializers = initializers;
+        }
+        /// <summary>
+        /// Explicitly-specified member initializers.
+        /// </summary>
+        public override ImmutableArray<IOperation> Initializers => _lazyInitializers.Value;
+    }
+
+    /// <summary>
     /// Represents an argument value that has been omitted in an invocation.
     /// </summary>
     internal sealed partial class OmittedArgumentExpression : Operation, IOmittedArgumentExpression

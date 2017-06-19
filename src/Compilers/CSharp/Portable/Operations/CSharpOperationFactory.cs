@@ -179,6 +179,10 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundInterpolationOperation((BoundStringInsert)boundNode);
                 case BoundKind.LocalFunctionStatement:
                     return CreateBoundLocalFunctionStatementOperation((BoundLocalFunctionStatement)boundNode);
+                case BoundKind.AnonymousObjectCreationExpression:
+                    return CreateBoundAnonymousObjectCreationExpressionOperation((BoundAnonymousObjectCreationExpression)boundNode);
+                case BoundKind.AnonymousPropertyDeclaration:
+                    return CreateBoundAnonymousPropertyDeclarationOperation((BoundAnonymousPropertyDeclaration)boundNode);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
@@ -337,6 +341,28 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = boundLiteral.Type;
             Optional<object> constantValue = ConvertToOptional(boundLiteral.ConstantValue);
             return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
+        }
+
+        private IAnonymousObjectCreationExpression CreateBoundAnonymousObjectCreationExpressionOperation(BoundAnonymousObjectCreationExpression boundAnonymousObjectCreationExpression)
+        {
+            Lazy<ImmutableArray<IOperation>> memberInitializers = new Lazy<ImmutableArray<IOperation>>(() => GetAnonymousObjectCreationInitializers(boundAnonymousObjectCreationExpression));
+            bool isInvalid = boundAnonymousObjectCreationExpression.HasErrors;
+            SyntaxNode syntax = boundAnonymousObjectCreationExpression.Syntax;
+            ITypeSymbol type = boundAnonymousObjectCreationExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundAnonymousObjectCreationExpression.ConstantValue);
+            return new LazyAnonymousObjectCreationExpression(memberInitializers, isInvalid, syntax, type, constantValue);
+        }
+
+        private IPropertyReferenceExpression CreateBoundAnonymousPropertyDeclarationOperation(BoundAnonymousPropertyDeclaration boundAnonymousPropertyDeclaration)
+        {
+            PropertySymbol property = boundAnonymousPropertyDeclaration.Property;
+            Lazy<IOperation> instance = new Lazy<IOperation>(() => null);
+            ISymbol member = boundAnonymousPropertyDeclaration.Property;
+            bool isInvalid = boundAnonymousPropertyDeclaration.HasErrors;
+            SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
+            ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
+            Optional<object> constantValue = ConvertToOptional(boundAnonymousPropertyDeclaration.ConstantValue);
+            return new LazyPropertyReferenceExpression(property, instance, member, isInvalid, syntax, type, constantValue);
         }
 
         private IObjectCreationExpression CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)

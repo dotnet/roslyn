@@ -14,27 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract class SemanticModelTestBase : CSharpTestBase
     {
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
-        {
-            return GetSyntaxNodeList(syntaxTree.GetRoot(), null);
-        }
-
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
-        {
-            if (synList == null)
-                synList = new List<SyntaxNode>();
-
-            synList.Add(node);
-
-            foreach (var child in node.ChildNodesAndTokens())
-            {
-                if (child.IsNode)
-                    synList = GetSyntaxNodeList(child.AsNode(), synList);
-            }
-
-            return synList;
-        }
-
         protected int GetPositionForBinding(SyntaxTree tree)
         {
             return GetSyntaxNodeForBinding(GetSyntaxNodeList(tree)).SpanStart;
@@ -45,47 +24,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             const string tag = "/*pos*/";
 
             return code.IndexOf(tag, StringComparison.Ordinal) + tag.Length;
-        }
-
-        protected SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
-        {
-            return GetSyntaxNodeOfTypeForBinding<SyntaxNode>(synList);
-        }
-
-        protected readonly string startString = "/*<bind>*/";
-        protected readonly string endString = "/*</bind>*/";
-
-        protected TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
-        {
-            foreach (var node in synList.OfType<TNode>())
-            {
-                string exprFullText = node.ToFullString();
-                exprFullText = exprFullText.Trim();
-
-                if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains(endString))
-                        if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-
-                if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
-                {
-                    if (exprFullText.Contains(startString))
-                        if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
-                            return node;
-                        else
-                            continue;
-                    else
-                        return node;
-                }
-            }
-
-            return null;
         }
 
         protected List<ExpressionSyntax> GetExprSyntaxList(SyntaxTree syntaxTree)

@@ -128,7 +128,9 @@ namespace Microsoft.CodeAnalysis
         ConditionalAccessInstanceExpression = 0x11d,
         /// <summary>Indicates an <see cref="IInterpolatedStringExpression"/>.</summary>
         InterpolatedStringExpression = 0x11e,
-        
+        /// <summary>Indicates an <see cref="IAnonymousObjectCreationExpression"/>.</summary>
+        AnonymousObjectCreationExpression = 0x11f,
+
         // Expressions that occur only in C#.
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>

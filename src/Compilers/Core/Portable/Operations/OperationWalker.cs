@@ -353,6 +353,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.Initializers);
         }
 
+        public override void VisitAnonymousObjectCreationExpression(IAnonymousObjectCreationExpression operation)
+        {
+            VisitArray(operation.Initializers);
+        }
+
         public override void VisitFieldInitializer(IFieldInitializer operation)
         {
             Visit(operation.Value);

@@ -291,9 +291,7 @@
     <Compile Include="Emitter\Model\NamedTypeReference.cs" />
     <Compile Include="Emitter\Model\NamedTypeSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\NamespaceSymbolAdapter.cs" />
-    <Compile Include="Emitter\Model\ParameterSymbolAdapter.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Emitter\Model\ParameterSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ParameterTypeInformation.cs" />
     <Compile Include="Emitter\Model\PEAssemblyBuilder.cs" />
     <Compile Include="Emitter\Model\PEModuleBuilder.cs" />
