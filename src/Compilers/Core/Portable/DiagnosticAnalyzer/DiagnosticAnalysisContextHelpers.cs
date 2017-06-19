@@ -89,10 +89,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            if (!compilation.ContainsSyntaxTree(location.SourceTree) || location.SourceTree.Length < location.SourceSpan.End)
+            if (!compilation.ContainsSyntaxTree(location.SourceTree))
             {
                 // Disallow diagnostics with source locations outside this compilation.
-                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
+            }
+
+            if (location.SourceTree.Length < location.SourceSpan.End)
+            {
+                // Disallow diagnostics with source locations outside this compilation.
+                throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
             }
         }
 

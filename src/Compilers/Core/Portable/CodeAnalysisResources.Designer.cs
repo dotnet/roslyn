@@ -740,11 +740,20 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location {1} in file &apos;{2}&apos;, which is not part of the compilation being analyzed..
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location in file &apos;{1}&apos;, which is not part of the compilation being analyzed..
         /// </summary>
         internal static string InvalidDiagnosticLocationReported {
             get {
                 return ResourceManager.GetString("InvalidDiagnosticLocationReported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location &apos;{1}&apos; in file &apos;{2}&apos;, which is outside of the given file..
+        /// </summary>
+        internal static string InvalidDiagnosticSpanReported {
+            get {
+                return ResourceManager.GetString("InvalidDiagnosticSpanReported", resourceCulture);
             }
         }
         

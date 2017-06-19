@@ -618,32 +618,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             if (project.GetDocument(location.SourceTree) == null)
                             {
                                 // Disallow diagnostics with source locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
                             }
 
                             if (location.SourceTree.Length < location.SourceSpan.End)
                             {
                                 // Disallow diagnostics with source locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
                             }
                         }
                         break;
                     case LocationKind.ExternalFile:
                         {
-
-                            var document = TryGetDocumentWithFilePath(project, location.GetLineSpan().Path);
+                            var filePath = location.GetLineSpan().Path;
+                            var document = TryGetDocumentWithFilePath(project, filePath);
                             if (document == null)
                             {
                                 // this is not a roslyn file. we don't care about this file.
                                 return;
                             }
 
-                            // we do this for every diagnostic, so this can be really expansive but we dont have any other way.
+                            // this can be potentially expensive since it will load text if it is not already loaded.
+                            // but, this text is most likely already loaded since producer of this diagnostic (Document/ProjectDiagnosticAnalyzers)
+                            // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
+                            // project cache goes away. when text is already there, await should return right away.
                             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
                             if (text.Length < location.SourceSpan.End)
                             {
                                 // Disallow diagnostics with locations outside this project.
-                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
+                                throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");
                             }
                         }
                         break;

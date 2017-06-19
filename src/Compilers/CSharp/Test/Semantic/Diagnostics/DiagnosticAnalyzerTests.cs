@@ -897,7 +897,7 @@ public class B
             var treeInAnotherCompilation = anotherCompilation.SyntaxTrees.Single();
 
             string message = new ArgumentException(
-                string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, treeInAnotherCompilation.GetRoot().Location.SourceSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+                string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, treeInAnotherCompilation.FilePath), "diagnostic").Message;
 
             compilation.VerifyDiagnostics();
 
@@ -913,6 +913,31 @@ public class B
                             .WithLocation(1, 1)
                     );
             }
+        }
+
+        [Fact]
+        public void TestReportingDiagnosticWithInvalidSpan()
+        {
+            var source1 = @"class C1 { void M() { int i = 0; i++; } }";
+            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var treeInAnotherCompilation = compilation.SyntaxTrees.Single();
+
+            var badSpan = new Text.TextSpan(100000, 10000);
+
+            string message = new ArgumentException(
+                string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, AnalyzerWithInvalidDiagnosticLocation.Descriptor.Id, badSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+
+            compilation.VerifyDiagnostics();
+
+            var analyzer = new AnalyzerWithInvalidDiagnosticSpan(badSpan);
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+            compilation
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                    expected:
+                    Diagnostic("AD0001")
+                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticLocation", "System.ArgumentException", message)
+                        .WithLocation(1, 1)
+                );
         }
 
         [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]

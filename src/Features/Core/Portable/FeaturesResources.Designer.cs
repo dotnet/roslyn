@@ -2575,12 +2575,22 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location {1} in file &apos;{2}&apos;, which is not part of the compilation being analyzed..
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location &apos;{1}&apos; in file &apos;{2}&apos;, which is outside of the given file..
         /// </summary>
-        internal static string Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_compilation_being_analyzed {
+        internal static string Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file {
             get {
-                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_not_part_of_the_" +
-                        "compilation_being_analyzed", resourceCulture);
+                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_g" +
+                        "iven_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location in file &apos;{1}&apos;, which is not part of the compilation being analyzed..
+        /// </summary>
+        internal static string Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed {
+            get {
+                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_co" +
+                        "mpilation_being_analyzed", resourceCulture);
             }
         }
         

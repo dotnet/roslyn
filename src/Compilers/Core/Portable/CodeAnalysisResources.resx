@@ -450,7 +450,7 @@
     <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
-    <value>Reported diagnostic '{0}' has a source location {1} in file '{2}', which is not part of the compilation being analyzed.</value>
+    <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
   <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
     <value>The type '{0}' is not understood by the serialization binder.</value>
@@ -611,5 +611,8 @@
   </data>
   <data name="Stream_contains_invalid_data" xml:space="preserve">
     <value>Stream contains invalid data</value>
+  </data>
+  <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
+    <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
   </data>
 </root>
