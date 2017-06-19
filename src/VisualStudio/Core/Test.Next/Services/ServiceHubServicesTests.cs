@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
 using Roslyn.Test.Utilities;
@@ -92,7 +93,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var result = await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeDocumentData[]>(
+                var result = await client.RunCodeAnalysisServiceOnRemoteHostAsync<ImmutableArray<DesignerAttributeDocumentData>>(
                     solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
                     solution.Projects.First().Id, CancellationToken.None);
 

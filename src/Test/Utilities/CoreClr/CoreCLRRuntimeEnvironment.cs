@@ -72,23 +72,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
         }
 
-        public (int ExitCode, string Output) Execute(string moduleName, int expectedOutputLength)
+        public int Execute(string moduleName, string[] args, string expectedOutput)
         {
             var emitData = GetEmitData();
             emitData.RuntimeData.ExecuteRequested = true;
-            return emitData.LoadContext.Execute(GetMainImage(), expectedOutputLength);
-        }
+            var (ExitCode, Output) = emitData.LoadContext.Execute(GetMainImage(), args, expectedOutput?.Length);
 
-        public int Execute(string moduleName, string expectedOutput)
-        {
-            var (exitCode, actualOutput) = Execute(moduleName, expectedOutput.Length);
-
-            if (expectedOutput.Trim() != actualOutput.Trim())
+            if (expectedOutput != null && expectedOutput.Trim() != Output.Trim())
             {
-                throw new ExecutionException(expectedOutput, actualOutput, moduleName);
+                throw new ExecutionException(expectedOutput, Output, moduleName);
             }
 
-            return exitCode;
+            return ExitCode;
         }
 
         private EmitData GetEmitData() => _emitData ?? throw new InvalidOperationException("Must call Emit before calling this method");

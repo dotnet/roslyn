@@ -140,6 +140,7 @@
     <Compile Include="Emit\AsyncMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\IteratorMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\StateMachineMoveNextDebugInfo.cs" />
+    <Compile Include="PEWriter\ExtendedPEBuilder.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectBinderSnapshot.cs" />
@@ -898,6 +899,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>

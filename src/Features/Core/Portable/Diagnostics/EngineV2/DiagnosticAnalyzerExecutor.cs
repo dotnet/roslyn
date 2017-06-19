@@ -58,32 +58,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
             {
-                var service = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
-                if (service == null)
+                var workspace = project.Solution.Workspace;
+                if (workspace.Options.GetOption(RemoteFeatureOptions.DiagnosticsEnabled))
                 {
-                    // host doesn't support RemoteHostService such as under unit test
-                    return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
+                    var service = project.Solution.Workspace.Services.GetService<IRemoteHostClientService>();
+                    if (service != null)
+                    {
+                        var remoteHostClient = await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                        if (remoteHostClient != null)
+                        {
+                            // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
+                            var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, cancellationToken);
+                            var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken);
+
+                            // run them concurrently in vs and remote host
+                            await Task.WhenAll(inProcResultTask, outOfProcResultTask).ConfigureAwait(false);
+
+                            // make sure things are not cancelled
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            // merge 2 results
+                            return DiagnosticAnalysisResultMap.Create(
+                                inProcResultTask.Result.AnalysisResult.AddRange(outOfProcResultTask.Result.AnalysisResult),
+                                inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
+                        }
+                    }
                 }
 
-                var remoteHostClient = await service.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
-                if (remoteHostClient == null)
-                {
-                    // remote host is not running. this can happen if remote host is disabled.
-                    return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
-                }
-
-                var outOfProcResult = await AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, cancellationToken).ConfigureAwait(false);
-
-                // make sure things are not cancelled
-                cancellationToken.ThrowIfCancellationRequested();
-
-                return DiagnosticAnalysisResultMap.Create(outOfProcResult.AnalysisResult, outOfProcResult.TelemetryInfo);
+                // host doesn't support RemoteHostService such as under unit test
+                // remote host is not running. this can happen if remote host is disabled.
+                return await AnalyzeInProcAsync(analyzerDriver, project, cancellationToken).ConfigureAwait(false);
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
                 CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
             {
-                if (analyzerDriver.Analyzers.Length == 0)
+                if (analyzerDriver == null ||
+                    analyzerDriver.Analyzers.Length == 0)
                 {
                     // quick bail out
                     return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -107,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var snapshotService = solution.Workspace.Services.GetService<ISolutionSynchronizationService>();
 
                 // TODO: this should be moved out
-                var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers);
+                var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)));
                 if (analyzerMap.Count == 0)
                 {
                     return DiagnosticAnalysisResultMap.Create(ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResult>.Empty, ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Empty);
@@ -139,6 +150,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     return result;
                 }
+            }
+
+            private CompilationWithAnalyzers CreateAnalyzerDriver(CompilationWithAnalyzers analyzerDriver, Func<DiagnosticAnalyzer, bool> predicate)
+            {
+                var analyzers = analyzerDriver.Analyzers.Where(predicate).ToImmutableArray();
+                if (analyzers.Length == 0)
+                {
+                    // return null since we can't create CompilationWithAnalyzers with 0 analyzers
+                    return null;
+                }
+
+                return analyzerDriver.Compilation.WithAnalyzers(analyzers, analyzerDriver.AnalysisOptions);
             }
 
             private CustomAsset GetOptionsAsset(Solution solution, string language, CancellationToken cancellationToken)

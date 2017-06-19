@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 attributes: ImmutableArray<AttributeData>.Empty,
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 returnsByRef: false,

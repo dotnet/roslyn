@@ -210,6 +210,24 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static void NotEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null,
+            string itemSeparator = null, Func<T, string> itemInspector = null)
+        {
+            if (ReferenceEquals(expected, actual))
+            {
+                Fail("expected and actual references are identical\r\n" + message);
+            }
+
+            if (expected == null || actual == null)
+            {
+                return;
+            }
+            else if (SequenceEqual(expected, actual, comparer))
+            {
+                Fail("expected and actual sequences match\r\n" + message);
+            }
+        }
+
         private static bool SequenceEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null)
         {
             var enumerator1 = expected.GetEnumerator();
@@ -374,6 +392,13 @@ namespace Roslyn.Test.Utilities
             Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
         }
 
+        public static void AssertStartsWithToleratingWhitespaceDifferences(string expectedSubString, string actualString)
+        {
+            expectedSubString = NormalizeWhitespace(expectedSubString);
+            actualString = NormalizeWhitespace(actualString);
+            Assert.StartsWith(expectedSubString, actualString, StringComparison.Ordinal);
+        }
+
         internal static string NormalizeWhitespace(string input)
         {
             var output = new StringBuilder();
@@ -422,6 +447,10 @@ namespace Roslyn.Test.Utilities
                 if (expected is IEnumerable<byte>)
                 {
                     itemInspector = b => $"0x{b:X2}";
+                }
+                else if (expected is IEnumerable<string>)
+                {
+                    itemInspector = new Func<T, string>(obj => (obj != null) ? string.Format("\"{0}\"", obj.ToString()) : "<null>");
                 }
                 else
                 {

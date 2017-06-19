@@ -91,8 +91,7 @@ namespace RunTests
                     lowPriority: false,
                     displayWindow: false,
                     captureOutput: true,
-                    cancellationToken: cancellationToken,
-                    processMonitor: p => CrashDumps.TryMonitorProcess(p, dumpOutputFilePath)).ConfigureAwait(false);
+                    cancellationToken: cancellationToken);
                 var span = DateTime.UtcNow - start;
 
                 if (processOutput.ExitCode != 0)

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
@@ -156,13 +157,21 @@ namespace Microsoft.CodeAnalysis.Execution
         public void RegisterSnapshot(PinnedRemotableDataScope snapshot, AssetStorages.Storage storage)
         {
             // duplicates are not allowed, there can be multiple snapshots to same solution, so no ref counting.
-            Contract.ThrowIfFalse(_storages.TryAdd(snapshot, storage));
+            if (!_storages.TryAdd(snapshot, storage))
+            {
+                // this should make failure more explicit
+                FailFast.OnFatalException(new Exception("who is adding same snapshot?"));
+            }
         }
 
         public void UnregisterSnapshot(PinnedRemotableDataScope snapshot)
         {
             // calling it multiple times for same snapshot is not allowed.
-            Contract.ThrowIfFalse(_storages.TryRemove(snapshot, out var dummy));
+            if (!_storages.TryRemove(snapshot, out var dummy))
+            {
+                // this should make failure more explicit
+                FailFast.OnFatalException(new Exception("who is removing same snapshot?"));
+            }
         }
 
         private IEnumerable<Storage> GetStorages(PinnedRemotableDataScope scope)

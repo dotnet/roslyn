@@ -1535,7 +1535,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 var syntax = local.GetDeclaratorSyntax();
                 int syntaxOffset = _method.CalculateLocalSyntaxOffset(syntax.SpanStart, syntax.SyntaxTree);
 
-                int ordinal = _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset);
+                // Synthesized locals emitted for switch case patterns are all associated with the switch statement 
+                // and have distinct types. We use theier types to match them, not the ordinal as the ordinal might
+                // change if switch cases are reordered.
+                int ordinal = (localKind != SynthesizedLocalKind.SwitchCasePatternMatching) ?
+                    _synthesizedLocalOrdinals.AssignLocalOrdinal(localKind, syntaxOffset) : 0;
 
                 // user-defined locals should have 0 ordinal:
                 Debug.Assert(ordinal == 0 || localKind != SynthesizedLocalKind.UserDefined);

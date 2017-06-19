@@ -1,13 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
 using Roslyn.Utilities;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -30,10 +29,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected abstract ConversionsBase CreateInstance(int currentRecursionDepth);
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
-
-        protected abstract Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
-
-        protected abstract Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast);
 
         internal AssemblySymbol CorLibrary { get { return corLibrary; } }
 
@@ -420,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        internal Conversion ClassifyStandardImplicitConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion ClassifyStandardImplicitConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source);
@@ -1340,9 +1335,71 @@ namespace Microsoft.CodeAnalysis.CSharp
         public Conversion ConvertExtensionMethodThisArg(TypeSymbol parameterType, TypeSymbol thisType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)thisType != null);
-            var conversion = this.ClassifyImplicitConversionFromType(thisType, parameterType, ref useSiteDiagnostics);
+            var conversion = this.ClassifyImplicitExtensionMethodThisArgConversion(null, thisType, parameterType, ref useSiteDiagnostics);
             return IsValidExtensionMethodThisArgConversion(conversion) ? conversion : Conversion.NoConversion;
         }
+
+        // Spec 7.6.5.2: "An extension method ... is eligible if ... [an] implicit identity, reference,
+        // or boxing conversion exists from expr to the type of the first parameter"
+        public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert(sourceExpressionOpt == null || (object)sourceExpressionOpt.Type == sourceType);
+            Debug.Assert((object)destination != null);
+
+            if ((object)sourceType != null)
+            {
+                if (HasIdentityConversion(sourceType, destination))
+                {
+                    return Conversion.Identity;
+                }
+
+                if (HasBoxingConversion(sourceType, destination, ref useSiteDiagnostics))
+                {
+                    return Conversion.Boxing;
+                }
+
+                if (HasImplicitReferenceConversion(sourceType, destination, ref useSiteDiagnostics))
+                {
+                    return Conversion.ImplicitReference;
+                }
+            }
+
+            if (sourceExpressionOpt?.Kind == BoundKind.TupleLiteral)
+            {
+                var tupleConversion = GetTupleLiteralConversion(
+                    (BoundTupleLiteral)sourceExpressionOpt,
+                    destination,
+                    ref useSiteDiagnostics,
+                    ConversionKind.ImplicitTupleLiteral,
+                    (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d, ref u),
+                    arg: false);
+                if (tupleConversion.Exists)
+                {
+                    return tupleConversion;
+                }
+            }
+
+            if ((object)sourceType != null)
+            {
+                var tupleConversion = ClassifyTupleConversion(
+                    sourceType,
+                    destination,
+                    ref useSiteDiagnostics,
+                    ConversionKind.ImplicitTuple,
+                    (ConversionsBase conversions, TypeSymbol s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s, d, ref u),
+                    arg: false);
+                if (tupleConversion.Exists)
+                {
+                    return tupleConversion;
+                }
+            }
+
+            return Conversion.NoConversion;
+        }
+
+        // It should be possible to remove IsValidExtensionMethodThisArgConversion
+        // since ClassifyImplicitExtensionMethodThisArgConversion should only
+        // return valid conversions. https://github.com/dotnet/roslyn/issues/19622
 
         // Spec 7.6.5.2: "An extension method ... is eligible if ... [an] implicit identity, reference,
         // or boxing conversion exists from expr to the type of the first parameter"
@@ -1368,6 +1425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 default:
+                    // Caller should have not have calculated another conversion.
+                    Debug.Assert(conversion.Kind == ConversionKind.NoConversion);
                     return false;
             }
         }
@@ -1716,36 +1775,98 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private Conversion ClassifyImplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            ImmutableArray<TypeSymbol> sourceTypes;
-            ImmutableArray<TypeSymbol> destTypes;
+        private delegate Conversion ClassifyConversionFromExpressionDelegate(ConversionsBase conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
+        private delegate Conversion ClassifyConversionFromTypeDelegate(ConversionsBase conversions, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
 
-            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
-                !destination.TryGetElementTypesIfTupleOrCompatible(out destTypes) ||
-                sourceTypes.Length != destTypes.Length)
+        private Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return GetTupleLiteralConversion(
+                source,
+                destination,
+                ref useSiteDiagnostics,
+                ConversionKind.ImplicitTupleLiteral,
+                (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromExpression(s, d, ref u),
+                arg: false);
+        }
+
+        private Conversion GetExplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
+        {
+            return GetTupleLiteralConversion(
+                source,
+                destination,
+                ref useSiteDiagnostics,
+                ConversionKind.ExplicitTupleLiteral,
+                (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyConversionFromExpression(s, d, ref u, a),
+                forCast);
+        }
+
+        private Conversion GetTupleLiteralConversion(
+            BoundTupleLiteral source,
+            TypeSymbol destination,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ConversionKind kind,
+            ClassifyConversionFromExpressionDelegate classifyConversion,
+            bool arg)
+        {
+            var arguments = source.Arguments;
+
+            // check if the type is actually compatible type for a tuple of given cardinality
+            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
             {
                 return Conversion.NoConversion;
             }
 
-            var nestedConversions = ArrayBuilder<Conversion>.GetInstance(sourceTypes.Length);
-            for (int i = 0; i < sourceTypes.Length; i++)
+            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(arguments.Length == targetElementTypes.Length);
+
+            // check arguments against flattened list of target element types 
+            var argumentConversions = ArrayBuilder<Conversion>.GetInstance(arguments.Length);
+            for (int i = 0; i < arguments.Length; i++)
             {
-                var conversion = ClassifyImplicitConversionFromType(sourceTypes[i], destTypes[i], ref useSiteDiagnostics);
-                if (!conversion.Exists)
+                var argument = arguments[i];
+                var result = classifyConversion(this, argument, targetElementTypes[i], ref useSiteDiagnostics, arg);
+                if (!result.Exists)
                 {
-                    nestedConversions.Free();
+                    argumentConversions.Free();
                     return Conversion.NoConversion;
                 }
 
-                nestedConversions.Add(conversion);
+                argumentConversions.Add(result);
             }
 
-            return new Conversion(ConversionKind.ImplicitTuple, nestedConversions.ToImmutableAndFree());
+            return new Conversion(kind, argumentConversions.ToImmutableAndFree());
+        }
+
+        private Conversion ClassifyImplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return ClassifyTupleConversion(
+                source,
+                destination,
+                ref useSiteDiagnostics,
+                ConversionKind.ImplicitTuple,
+                (ConversionsBase conversions, TypeSymbol s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromType(s, d, ref u),
+                arg: false);
         }
 
         private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
+            return ClassifyTupleConversion(
+                source,
+                destination,
+                ref useSiteDiagnostics,
+                ConversionKind.ExplicitTuple,
+                (ConversionsBase conversions, TypeSymbol s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyConversionFromType(s, d, ref u, a),
+                forCast);
+        }
+
+        private Conversion ClassifyTupleConversion(
+            TypeSymbol source,
+            TypeSymbol destination,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            ConversionKind kind,
+            ClassifyConversionFromTypeDelegate classifyConversion,
+            bool arg)
+        {
             ImmutableArray<TypeSymbol> sourceTypes;
             ImmutableArray<TypeSymbol> destTypes;
 
@@ -1759,7 +1880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nestedConversions = ArrayBuilder<Conversion>.GetInstance(sourceTypes.Length);
             for (int i = 0; i < sourceTypes.Length; i++)
             {
-                var conversion = ClassifyConversionFromType(sourceTypes[i], destTypes[i], ref useSiteDiagnostics, forCast);
+                var conversion = classifyConversion(this, sourceTypes[i], destTypes[i], ref useSiteDiagnostics, arg);
                 if (!conversion.Exists)
                 {
                     nestedConversions.Free();
@@ -1769,7 +1890,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 nestedConversions.Add(conversion);
             }
 
-            return new Conversion(ConversionKind.ExplicitTuple, nestedConversions.ToImmutableAndFree());
+            return new Conversion(kind, nestedConversions.ToImmutableAndFree());
         }
 
         private Conversion ClassifyExplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)

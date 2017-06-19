@@ -191,7 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         CompletionItem CreateCompletionItem(string name, Glyph glyph, string sortText)
         {
-            return CommonCompletionItem.Create(name, CompletionItemRules.Default, glyph: glyph, sortText: sortText);
+            return CommonCompletionItem.Create(
+                name, 
+                CompletionItemRules.Default, 
+                glyph: glyph, 
+                sortText: sortText, 
+                description: CSharpFeaturesResources.Suggested_name.ToSymbolDisplayParts());
         }
     }
 }

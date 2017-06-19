@@ -7,11 +7,12 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml.Linq;
 
-string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
+string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory> <git sha>";
 
-if (Args.Count() != 3)
+if (Args.Count() != 4)
 {
     Console.WriteLine(usage);
     Environment.Exit(1);
@@ -32,6 +33,17 @@ var BuildVersion = Args[1].Trim();
 var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
+
+var CommitSha = Args[3].Replace("<", "").Replace(">", "");
+var CommitIsDeveloperBuild = CommitSha == "<developer build>";
+if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
+{
+    Console.WriteLine("Invalid Git sha value: expected <developer build> or a valid sha");
+    Environment.Exit(1);
+}
+var CommitPathMessage = CommitIsDeveloperBuild
+    ? "This an unofficial build from a developer's machine"
+    : $"This package was built from the source at https://github.com/dotnet/roslyn/commit/{CommitSha}";
 
 var LicenseUrlRedist = @"http://go.microsoft.com/fwlink/?LinkId=529443";
 var LicenseUrlNonRedist = @"http://go.microsoft.com/fwlink/?LinkId=529444";
@@ -76,8 +88,6 @@ var IsCoreBuild = File.Exists(Path.Combine(ToolsetPath, "corerun"));
 #endregion
 
 var NuGetAdditionalFilesPath = Path.Combine(SolutionRoot, "build/NuGetAdditionalFiles");
-var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNotices.rtf");
-var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
 string[] RedistPackageNames = {
     "Microsoft.CodeAnalysis",
@@ -111,6 +121,7 @@ string[] NonRedistPackageNames = {
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.VisualStudio.IntegrationTest.Utilities",
     "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient",
 };
@@ -128,6 +139,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.NETCore.Compilers",
     "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.ServiceHub",
     "Microsoft.CodeAnalysis.Remote.Workspaces",
@@ -204,9 +216,9 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         { "authors", Authors },
         { "projectURL", ProjectURL },
         { "tags", Tags },
-        { "thirdPartyNoticesPath", ThirdPartyNoticesPath },
-        { "netCompilersPropsPath", NetCompilersPropsPath },
         { "emptyDirPath", emptyDir },
+        { "additionalFilesPath", NuGetAdditionalFilesPath },
+        { "commitPathMessage", CommitPathMessage }
     };
 
     foreach (var dependencyVersion in dependencyVersions)

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.InitializeParameter
                         new DeclarationModifiers(),
                         parameter.Type,
                         returnsByRef: false,
-                        explicitInterfaceSymbol: null,
+                        explicitInterfaceImplementations: default,
                         name: uniqueName,
                         parameters: default(ImmutableArray<IParameterSymbol>),
                         getMethod: getMethod,

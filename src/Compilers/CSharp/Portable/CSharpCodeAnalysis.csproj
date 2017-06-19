@@ -272,6 +272,7 @@
     <Compile Include="Emitter\EditAndContinue\EmitHelpers.cs" />
     <Compile Include="Emitter\EditAndContinue\PEDeltaAssemblyBuilder.cs" />
     <Compile Include="Emitter\EditAndContinue\CSharpSymbolMatcher.cs" />
+    <Compile Include="Emitter\Model\SourceAssemblySymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ArrayTypeSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\AssemblyReference.cs" />
     <Compile Include="Emitter\Model\AttributeDataAdapter.cs" />
@@ -871,6 +872,7 @@
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Scripting.Destkop.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.Desktop.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor2.UnitTests" />
   </ItemGroup>

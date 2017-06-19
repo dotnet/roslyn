@@ -90,6 +90,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return;
             }
 
+            var service = project.LanguageServices.GetService<IDesignerAttributeService>();
+            if (service == null)
+            {
+                // project doesn't support designer attribute service.
+                return;
+            }
+
             // Try to compute this data in the remote process.  If that fails, then compute
             // the results in the local process.
             var pathToResult = await TryAnalyzeProjectInRemoteProcessAsync(project, cancellationToken).ConfigureAwait(false);
@@ -114,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     return null;
                 }
 
-                var serializedResults = await session.InvokeAsync<DesignerAttributeDocumentData[]>(
+                var serializedResults = await session.InvokeAsync<ImmutableArray<DesignerAttributeDocumentData>>(
                     nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), project.Id).ConfigureAwait(false);
 
                 var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);

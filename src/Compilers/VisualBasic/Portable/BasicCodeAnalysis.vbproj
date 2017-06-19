@@ -326,6 +326,7 @@
     <Compile Include="DocumentationComments\DocumentationCommentIDVisitor.vb" />
     <Compile Include="DocumentationComments\PEDocumenationCommentUtils.vb" />
     <Compile Include="DocumentationComments\SourceDocumentationCommentUtils.vb" />
+    <Compile Include="Emit\SourceAssemblySymbolAdapter.vb" />
     <Compile Include="Emit\ArrayTypeSymbolAdapter.vb" />
     <Compile Include="Emit\AssemblyReference.vb" />
     <Compile Include="Emit\AttributeDataAdapter.vb" />

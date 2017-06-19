@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
@@ -13,14 +14,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly IWpfTextView _textView;
         private readonly InlineRenameService _renameService;
+        private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IAdornmentLayer _adornmentLayer;
 
         private static readonly ConditionalWeakTable<InlineRenameSession, DashboardViewModel> s_createdViewModels =
             new ConditionalWeakTable<InlineRenameSession, DashboardViewModel>();
 
-        public DashboardAdornmentManager(InlineRenameService renameService, IWpfTextView textView)
+        public DashboardAdornmentManager(
+            InlineRenameService renameService,
+            IEditorFormatMapService editorFormatMapService,
+            IWpfTextView textView)
         {
             _renameService = renameService;
+            _editorFormatMapService = editorFormatMapService;
             _textView = textView;
 
             _adornmentLayer = textView.GetAdornmentLayer(DashboardAdornmentProvider.AdornmentLayerName);
@@ -54,7 +60,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_renameService.ActiveSession != null &&
                 ViewIncludesBufferFromWorkspace(_textView, _renameService.ActiveSession.Workspace))
             {
-                var newAdornment = new Dashboard(s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)), _textView);
+                var newAdornment = new Dashboard(
+                    s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
+                    _editorFormatMapService,
+                    _textView);
                 _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
                     (tag, adornment) => ((Dashboard)adornment).Dispose());
             }

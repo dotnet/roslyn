@@ -43,8 +43,8 @@ bootstrap: restore
 	$(BUILD_CMD) src/Compilers/CSharp/CscCore && \
 	$(BUILD_CMD) src/Compilers/VisualBasic/VbcCore && \
 	mkdir -p $(BOOTSTRAP_PATH)/csc && mkdir -p $(BOOTSTRAP_PATH)/vbc && \
-	dotnet publish -r $(RUNTIME_ID) src/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc && \
-	dotnet publish -r $(RUNTIME_ID) src/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc
+	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) src/Compilers/CSharp/CscCore -o $(BOOTSTRAP_PATH)/csc && \
+	dotnet publish -c $(BUILD_CONFIGURATION) -r $(RUNTIME_ID) src/Compilers/VisualBasic/VbcCore -o $(BOOTSTRAP_PATH)/vbc
 	rm -rf Binaries/$(BUILD_CONFIGURATION)
 
 test:

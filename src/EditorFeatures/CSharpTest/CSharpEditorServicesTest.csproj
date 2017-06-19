@@ -206,6 +206,7 @@
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceTypeCompletionProviderTests.cs" />
     <Compile Include="Completion\CompletionProviders\ExplicitInterfaceMemberCompletionProviderTests.cs" />
     <Compile Include="AddUsing\AddUsingTestsWithAddImportDiagnosticProvider.cs" />
+    <Compile Include="EditAndContinue\StatementMatchingTests.cs" />
     <Compile Include="InitializeParameter\AddParameterCheckTests.cs" />
     <Compile Include="AddParameter\AddParameterTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
@@ -246,7 +247,7 @@
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.cs" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.cs" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
-    <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
     <Compile Include="Diagnostics\UpgradeProject\UpgradeProjectTests.cs" />
     <Compile Include="Completion\CompletionProviders\DeclarationNameCompletionProviderTests_NameDeclarationInfoTests.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParametersFromMembers\AddConstructorParametersFromMembersTests.cs" />
@@ -359,10 +360,10 @@
     <Compile Include="EditAndContinue\CSharpEditAndContinueAnalyzerTests.cs" />
     <Compile Include="EditAndContinue\Helpers\CSharpEditAndContinueTestHelpers.cs" />
     <Compile Include="EditAndContinue\Helpers\Extensions.cs" />
-    <Compile Include="EditAndContinue\Helpers\RudeEditTestBase.cs" />
+    <Compile Include="EditAndContinue\Helpers\EditingTestBase.cs" />
     <Compile Include="EditAndContinue\LineEditTests.cs" />
-    <Compile Include="EditAndContinue\RudeEditStatementTests.cs" />
-    <Compile Include="EditAndContinue\RudeEditTopLevelTests.cs" />
+    <Compile Include="EditAndContinue\StatementEditingTests.cs" />
+    <Compile Include="EditAndContinue\TopLevelEditingTests.cs" />
     <Compile Include="EditAndContinue\SyntaxComparerTests.cs" />
     <Compile Include="EditAndContinue\SyntaxUtilitiesTests.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldCommandHandlerTests.cs" />
@@ -396,6 +397,7 @@
     <Compile Include="UseCollectionInitializer\UseCollectionInitializerTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionForNullableTests.cs" />
     <Compile Include="UseCoalesceExpression\UseCoalesceExpressionTests.cs" />
+    <Compile Include="UseDefaultLiteral\UseDefaultLiteralTests.cs" />
     <Compile Include="UseExplicitTupleName\UseExplicitTupleNameTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConstructorsRefactoringTests.cs" />
     <Compile Include="UseExpressionBody\Refactoring\UseExpressionBodyForConversionOperatorsRefactoringTests.cs" />
