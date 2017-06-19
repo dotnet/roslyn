@@ -2207,17 +2207,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowArglist,
             bool isDelegateCreation = false)
         {
-            // Only report the first "duplicate name" or "named before positional" error, 
-            // so as to avoid "cascading" errors.
-            bool hadError = false;
-
             // Only report the first "non-trailing named args required C# 7.2" error,
             // so as to avoid "cascading" errors.
             bool hadLangVersionError = false;
 
             foreach (var argumentSyntax in arguments)
             {
-                BindArgumentAndName(result, diagnostics, ref hadError, ref hadLangVersionError,
+                BindArgumentAndName(result, diagnostics, ref hadLangVersionError,
                     argumentSyntax, allowArglist, isDelegateCreation: isDelegateCreation);
             }
         }
@@ -2252,7 +2248,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
-            ref bool hadError,
             ref bool hadLangVersionError,
             ArgumentSyntax argumentSyntax,
             bool allowArglist,
@@ -2269,7 +2264,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindArgumentAndName(
                 result,
                 diagnostics,
-                ref hadError,
                 ref hadLangVersionError,
                 argumentSyntax,
                 boundArgument,
@@ -2277,14 +2271,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKind);
 
             // check for ref/out property/indexer, only needed for 1 parameter version
-            if (!hadError && isDelegateCreation && origRefKind != RefKind.None && result.Arguments.Count == 1)
+            if (!result.HadAnalysisError && isDelegateCreation && origRefKind != RefKind.None && result.Arguments.Count == 1)
             {
                 var arg = result.Argument(0);
                 switch (arg.Kind)
                 {
                     case BoundKind.PropertyAccess:
                     case BoundKind.IndexerAccess:
-                        hadError = !CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
+                        result.HadAnalysisError = !CheckIsVariable(argumentSyntax, arg, BindValueKind.RefOrOut, false, diagnostics);
                         return;
                 }
             }
@@ -2438,7 +2432,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void BindArgumentAndName(
             AnalyzedArguments result,
             DiagnosticBag diagnostics,
-            ref bool hadError,
             ref bool hadLangVersionError,
             CSharpSyntaxNode argumentSyntax,
             BoundExpression boundArgumentExpression,
@@ -2498,15 +2491,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (hasNameCollision)
+                if (hasNameCollision && !result.HadAnalysisError)
                 {
-                    if (!hadError)
-                    {
-                        // CS: Named argument '{0}' cannot be specified multiple times
-                        Error(diagnostics, ErrorCode.ERR_DuplicateNamedArgument, nameColonSyntax.Name, name);
-
-                        hadError = true;
-                    }
+                    // CS: Named argument '{0}' cannot be specified multiple times
+                    Error(diagnostics, ErrorCode.ERR_DuplicateNamedArgument, nameColonSyntax.Name, name);
+                    result.HadAnalysisError = true;
                 }
 
                 result.Names.Add(nameColonSyntax.Name);
@@ -3310,6 +3299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (initializerArgumentListOpt != null)
                 {
                     this.BindArgumentsAndNames(initializerArgumentListOpt, diagnostics, analyzedArguments, allowArglist: true);
+                    diagnostics = analyzedArguments.AvoidCascading(diagnostics);
                 }
 
                 NamedTypeSymbol initializerType = containingType;
@@ -3525,6 +3515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, isDelegateCreation: true);
+                diagnostics = analyzedArguments.AvoidCascading(diagnostics);
 
                 bool hasErrors = false;
                 if (analyzedArguments.HasErrors)
@@ -3695,6 +3686,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // new C(__arglist()) is legal
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
+                diagnostics = analyzedArguments.AvoidCascading(diagnostics);
 
                 // No point in performing overload resolution if the type is static or a tuple literal.  
                 // Just return a bad expression containing the arguments.
@@ -4712,6 +4704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: false);
+                diagnostics = analyzedArguments.AvoidCascading(diagnostics);
 
                 if (analyzedArguments.Arguments.Count > 0)
                 {
@@ -4733,6 +4726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             AnalyzedArguments analyzedArguments = AnalyzedArguments.GetInstance();
             BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments);
+            diagnostics = analyzedArguments.AvoidCascading(diagnostics);
+
             bool hasArguments = analyzedArguments.Arguments.Count > 0;
             analyzedArguments.Free();
 
@@ -6319,6 +6314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 BindArgumentsAndNames(argumentList, diagnostics, analyzedArguments);
+                diagnostics = analyzedArguments.AvoidCascading(diagnostics);
 
                 if (receiver.Kind == BoundKind.PropertyGroup)
                 {

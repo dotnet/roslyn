@@ -198,6 +198,38 @@ class C
         }
 
         [Fact]
+        public void TestTwiceNamedParamsWithOldLangVer()
+        {
+            var source = @"
+class C
+{
+    static void M(int x, int y, int z)
+    {
+    }
+    static void Main()
+    {
+        M(x: 1, x: 2, 3);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(
+                // (9,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         M(x: 1, x: 2, 3);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(9, 17),
+                // (9,23): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
+                //         M(x: 1, x: 2, 3);
+                Diagnostic(ErrorCode.ERR_NamedArgumentSpecificationBeforeFixedArgument, "3").WithArguments("7.2").WithLocation(9, 23)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            Assert.Equal("M(x: 1, x: 2, 3)", invocation.ToString());
+            Assert.Null(model.GetSymbolInfo(invocation).Symbol);
+        }
+
+        [Fact]
         public void TestNamedParams3()
         {
             var source = @"
@@ -510,16 +542,105 @@ public class C
                 Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "3").WithLocation(12, 21),
                 // (12,24): error CS1016: Named attribute argument expected
                 // [MyAttribute(P=1, c:3, 2)]
-                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "2").WithLocation(12, 24),
-                // (12,19): error CS8321: Named argument 'c' is used out-of-position but is followed by an unnamed argument
-                // [MyAttribute(P=1, c:3, 2)]
-                Diagnostic(ErrorCode.ERR_BadNonTrailingNamedArgument, "c").WithArguments("c").WithLocation(12, 19)
+                Diagnostic(ErrorCode.ERR_NamedArgumentExpected, "2").WithLocation(12, 24)
                 );
         }
 
-        // PROTOTYPE(non-trailing) add the error code to UpgradeProject code fixer
-        // new C(...)
-        // Constructor(...) : this(...)
-        // delegate invocation
+        [Fact]
+        public void TestErrorsDoNotCascadeInInvocation()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        M(x: 1, x: 2, __arglist());
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (6,17): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         M(x: 1, x: 2, __arglist());
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 17)
+                );
+        }
+
+        [Fact]
+        public void TestErrorsDoNotCascadeInArglist()
+        {
+            var source = @"
+class C
+{
+    static void M()
+    {
+        M(__arglist(x: 1, x: 2, __arglist()));
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (6,27): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         M(__arglist(x: 1, x: 2, __arglist()));
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 27),
+                // (6,33): error CS0226: An __arglist expression may only appear inside of a call or new expression
+                //         M(__arglist(x: 1, x: 2, __arglist()));
+                Diagnostic(ErrorCode.ERR_IllegalArglist, "__arglist()").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
+        public void TestErrorsDoNotCascadeInConstructorInitializer()
+        {
+            var source = @"
+class C
+{
+    C() : this(x: 1, x: 2, 3) { }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (4,22): error CS1740: Named argument 'x' cannot be specified multiple times
+                //     C() : this(x: 1, x: 2, 3) { }
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(4, 22)
+                );
+        }
+
+        [Fact]
+        public void TestErrorsDoNotCascadeInObjectCreation()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        new C(x: 1, x: 2, 3);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (6,21): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         new C(x: 1, x: 2, 3);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(6, 21)
+                );
+        }
+
+        [Fact]
+        public void TestErrorsDoNotCascadeInElementAccess()
+        {
+            var source = @"
+class C
+{
+    int this[int i] { get { throw null; } set { throw null; } }
+    void M()
+    {
+        var c = new C();
+        System.Console.Write(c[x: 1, x: 2, 3]);
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            comp.VerifyDiagnostics(
+                // (8,38): error CS1740: Named argument 'x' cannot be specified multiple times
+                //         System.Console.Write(c[x: 1, x: 2, 3]);
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "x").WithArguments("x").WithLocation(8, 38)
+                );
+        }
     }
 }

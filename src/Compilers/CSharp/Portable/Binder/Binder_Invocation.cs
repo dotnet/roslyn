@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
                 string name = boundExpression.Kind == BoundKind.MethodGroup ? GetName(node.Expression) : null;
                 BindArgumentsAndNames(node.ArgumentList, diagnostics, analyzedArguments, allowArglist: true);
-                result = BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, diagnostics);
+                result = BindInvocationExpression(node, node.Expression, name, boundExpression, analyzedArguments, analyzedArguments.AvoidCascading(diagnostics));
             }
 
             analyzedArguments.Free();

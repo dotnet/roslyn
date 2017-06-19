@@ -18610,10 +18610,7 @@ public class Cls
             compilation.VerifyDiagnostics(
                 // (7,25): error CS1740: Named argument 'y' cannot be specified multiple times
                 //         Test1(y: ref x, y: out var y);
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(7, 25),
-                // (7,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Cls.Test1(int, ref int)'
-                //         Test1(y: ref x, y: out var y);
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test1").WithArguments("x", "Cls.Test1(int, ref int)").WithLocation(7, 9)
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "y").WithArguments("y").WithLocation(7, 25)
                 );
 
             var tree = compilation.SyntaxTrees.Single();

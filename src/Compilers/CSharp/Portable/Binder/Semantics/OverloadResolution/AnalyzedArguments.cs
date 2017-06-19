@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -9,12 +8,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    // Note: instances of this object are pooled
     internal sealed class AnalyzedArguments
     {
         public readonly ArrayBuilder<BoundExpression> Arguments;
         public readonly ArrayBuilder<IdentifierNameSyntax> Names;
         public readonly ArrayBuilder<RefKind> RefKinds;
         public bool IsExtensionMethodInvocation;
+        public bool HadAnalysisError;
         private ThreeState _lazyHasDynamicArgument;
 
         internal AnalyzedArguments()
@@ -30,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Names.Clear();
             this.RefKinds.Clear();
             this.IsExtensionMethodInvocation = false;
+            this.HadAnalysisError = false;
             _lazyHasDynamicArgument = ThreeState.Unknown;
         }
 
@@ -48,6 +50,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             IdentifierNameSyntax syntax = Names[i];
             return syntax == null ? null : syntax.Identifier.ValueText;
         }
+        
+        public DiagnosticBag AvoidCascading(DiagnosticBag bag)
+        {
+            return HadAnalysisError ? new DiagnosticBag() : bag;
+        }
 
         public ImmutableArray<string> GetNames()
         {
@@ -55,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (count == 0)
             {
-                return default(ImmutableArray<string>);
+                return default;
             }
 
             var builder = ArrayBuilder<string>.GetInstance(this.Names.Count);

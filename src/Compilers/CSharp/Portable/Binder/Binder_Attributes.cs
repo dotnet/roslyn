@@ -148,10 +148,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
+            // Avoid argument errors causing cascading diagnostics from overload resolution
+            var overloadResolutionDiagnostics = analyzedArguments.HasErrors ? new DiagnosticBag() : diagnostics;
+
             // Bind attributeType's constructor based on the bound constructor arguments
             MethodSymbol attributeConstructor = attributeTypeForBinding.IsErrorType() ?
                 null :
-                BindAttributeConstructor(node, attributeTypeForBinding, analyzedArguments.ConstructorArguments, diagnostics, ref resultKind, suppressErrors: attributeType.IsErrorType(), useSiteDiagnostics: ref useSiteDiagnostics);
+                BindAttributeConstructor(node, attributeTypeForBinding, analyzedArguments.ConstructorArguments, overloadResolutionDiagnostics, ref resultKind, suppressErrors: attributeType.IsErrorType(), useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if ((object)attributeConstructor != null)
@@ -273,15 +276,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var boundConstructorArguments = AnalyzedArguments.GetInstance();
             var boundNamedArguments = ImmutableArray<BoundExpression>.Empty;
+
             if (attributeArgumentList != null)
             {
                 ArrayBuilder<BoundExpression> boundNamedArgumentsBuilder = null;
                 HashSet<string> boundNamedArgumentsSet = null;
-
-                // Avoid "cascading" errors for constructor arguments.
-                // We will still generate errors for each duplicate named attribute argument,
-                // matching Dev10 compiler behavior.
-                bool hadError = false;
 
                 // Only report the first "non-trailing named args required C# 7.2" error,
                 // so as to avoid "cascading" errors.
@@ -302,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
-                            ref hadError,
                             ref hadLangVersionError,
                             argument,
                             BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
@@ -313,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // Error CS1016: Named attribute argument expected
                             // This has been reported by the parser.
-                            hadError = true;
+                            boundConstructorArguments.HadAnalysisError = true;
                         }
                     }
                     else
@@ -330,9 +328,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if (boundNamedArgumentsSet.Contains(argumentName))
                         {
+                            // We will still generate errors for each duplicate named attribute argument,
+                            // matching Dev10 compiler behavior.
+
                             // Duplicate named argument
                             Error(diagnostics, ErrorCode.ERR_DuplicateNamedAttributeArgument, argument, argumentName);
-                            hadError = true;
+                            boundConstructorArguments.HadAnalysisError = true;
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
@@ -347,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new AnalyzedAttributeArguments(boundConstructorArguments, boundNamedArguments);
+            return new AnalyzedAttributeArguments(boundConstructorArguments, boundNamedArguments, boundConstructorArguments.HadAnalysisError);
         }
 
         private BoundExpression BindNamedAttributeArgument(AttributeArgumentSyntax namedArgument, NamedTypeSymbol attributeType, DiagnosticBag diagnostics)
@@ -1164,11 +1165,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly AnalyzedArguments ConstructorArguments;
             internal readonly ImmutableArray<BoundExpression> NamedArguments;
+            internal readonly bool HasErrors;
 
-            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ImmutableArray<BoundExpression> namedArguments)
+            internal AnalyzedAttributeArguments(AnalyzedArguments constructorArguments, ImmutableArray<BoundExpression> namedArguments, bool hasErrors)
             {
                 this.ConstructorArguments = constructorArguments;
                 this.NamedArguments = namedArguments;
+                this.HasErrors = hasErrors;
             }
         }
 
