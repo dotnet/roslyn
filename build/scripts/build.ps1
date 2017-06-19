@@ -223,6 +223,7 @@ function Test-XUnit() {
     }
 
     if ($cibuild) {
+        # Use a 50 minute timeout on CI
         $args += " -xml -timeout:50"
 
         $procdumpPath = Ensure-ProcDump
