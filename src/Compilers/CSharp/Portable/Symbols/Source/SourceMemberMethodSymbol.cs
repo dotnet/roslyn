@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceMemberMethodSymbol : MethodSymbol, IAttributeTargetSymbol
+    internal abstract class SourceMemberMethodSymbol : SourceMethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
         protected struct Flags

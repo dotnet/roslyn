@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class LocalFunctionSymbol : MethodSymbol
+    internal sealed class LocalFunctionSymbol : SourceMethodSymbol
     {
 
         private readonly Binder _binder;
