@@ -2,31 +2,14 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport
 {
     internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
     {
-        private async Task<ImmutableArray<AddImportFixData>> GetFixesInRemoteProcessAsync(
-            RemoteHostClient.Session session, Document document, TextSpan span, 
-            string diagnosticId, bool placeSystemNamespaceFirst,
-            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources)
-        {
-            var result = await session.InvokeAsync<ImmutableArray<AddImportFixData>>(
-                nameof(IRemoteAddImportFeatureService.GetFixesAsync),
-                document.Id, span, diagnosticId, placeSystemNamespaceFirst, 
-                searchReferenceAssemblies, packageSources).ConfigureAwait(false);
-
-            return result;
-        }
-
         /// <summary>
         /// Used to supply the OOP server a callback that it can use to search for ReferenceAssemblies or
         /// nuget packages.  We can't necessarily do that search directly in the OOP server as our 
@@ -56,31 +39,25 @@ namespace Microsoft.CodeAnalysis.AddImport
                 throw new NotImplementedException();
             }
 
-            public async Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
+            public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
                 string source, string name, int arity)
             {
-                var result = await _symbolSearchService.FindPackagesWithTypeAsync(
-                    source, name, arity, _cancellationToken).ConfigureAwait(false);
-
-                return result;
+                return _symbolSearchService.FindPackagesWithTypeAsync(
+                    source, name, arity, _cancellationToken);
             }
 
-            public async Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
+            public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
                 string source, string name)
             {
-                var result = await _symbolSearchService.FindPackagesWithAssemblyAsync(
-                    source, name, _cancellationToken).ConfigureAwait(false);
-
-                return result;
+                return _symbolSearchService.FindPackagesWithAssemblyAsync(
+                    source, name, _cancellationToken);
             }
 
-            public async Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
+            public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
                 string name, int arity)
             {
-                var result = await _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
-                    name, arity, _cancellationToken).ConfigureAwait(false);
-
-                return result;
+                return _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
+                    name, arity, _cancellationToken);
             }
         }
     }

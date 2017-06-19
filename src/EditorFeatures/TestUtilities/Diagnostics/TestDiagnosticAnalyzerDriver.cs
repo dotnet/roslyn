@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
-    public class TestDiagnosticAnalyzerDriver : IDisposable
+    public class TestDiagnosticAnalyzerDriver
     {
         private readonly ImmutableArray<DiagnosticAnalyzer> _workspaceAnalyzers;
         private readonly TestDiagnosticAnalyzerService _diagnosticAnalyzerService;
@@ -112,11 +112,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(DiagnosticAnalyzer workspaceAnalyzerOpt, Project project)
         {
             return GetDiagnosticsAsync(workspaceAnalyzerOpt, null, default(TextSpan), project, getDocumentDiagnostics: false, getProjectDiagnostics: true);
-        }
-
-        public void Dispose()
-        {
-            CompilationWithAnalyzers.ClearAnalyzerState(_workspaceAnalyzers);
         }
     }
 }
