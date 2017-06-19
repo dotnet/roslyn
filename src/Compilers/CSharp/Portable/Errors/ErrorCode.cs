@@ -1489,5 +1489,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AmbigBinaryOpsOnDefault = 8315,
 
         #endregion diagnostics introduced for C# 7.1
+
+        #region diagnostics introduced for C# 7.2
+        ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        #endregion diagnostics introduced for C# 7.2
     }
 }

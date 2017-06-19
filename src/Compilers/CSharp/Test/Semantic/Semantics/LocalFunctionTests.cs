@@ -2168,9 +2168,9 @@ class Program
 ";
             var option = TestOptions.ReleaseExe;
             CreateStandardCompilation(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7 or greater.
+                // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void Local() { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Local").WithArguments("local functions", "7").WithLocation(6, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "Local").WithArguments("local functions", "7.0").WithLocation(6, 14)
                 );
         }
 
@@ -2700,18 +2700,12 @@ namespace System
                 // (6,61): error CS0103: The name 'z1' does not exist in the current context
                 //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(6, 61),
-                // (6,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(6, 56),
                 // (7,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out int z2), z2)").WithArguments("b").WithLocation(7, 30),
                 // (7,61): error CS0103: The name 'z2' does not exist in the current context
                 //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z2").WithArguments("z2").WithLocation(7, 61),
-                // (7,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local2(bool b = M(M(out int z2), z2), int s2 = z2) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(7, 56),
                 // (8,35): error CS8185: A declaration is not allowed in this context.
                 //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "int z3").WithLocation(8, 35),
@@ -2721,27 +2715,18 @@ namespace System
                 // (8,76): error CS0103: The name 'z3' does not exist in the current context
                 //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z3").WithArguments("z3").WithLocation(8, 76),
-                // (8,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local3(bool b = M(M((int z3, int a2) = (1, 2)), z3), int a3 = z3) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(8, 71),
                 // (10,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(arg is var z4, z4)").WithArguments("b").WithLocation(10, 30),
                 // (10,61): error CS0103: The name 'z4' does not exist in the current context
                 //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z4").WithArguments("z4").WithLocation(10, 61),
-                // (10,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local4(bool b = M(arg is var z4, z4), int s1 = z4) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s1").WithArguments("?", "int").WithLocation(10, 56),
                 // (11,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M(M(out var z5), z5)").WithArguments("b").WithLocation(11, 30),
                 // (11,61): error CS0103: The name 'z5' does not exist in the current context
                 //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z5").WithArguments("z5").WithLocation(11, 61),
-                // (11,56): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local5(bool b = M(M(out var z5), z5), int s2 = z5) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s2").WithArguments("?", "int").WithLocation(11, 56),
                 // (12,35): error CS8185: A declaration is not allowed in this context.
                 //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
                 Diagnostic(ErrorCode.ERR_DeclarationExpressionNotPermitted, "var z6").WithLocation(12, 35),
@@ -2751,9 +2736,6 @@ namespace System
                 // (12,76): error CS0103: The name 'z6' does not exist in the current context
                 //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z6").WithArguments("z6").WithLocation(12, 76),
-                // (12,71): error CS1750: A value of type '?' cannot be used as a default parameter because there are no standard conversions to type 'int'
-                //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
-                Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "a3").WithArguments("?", "int").WithLocation(12, 71),
                 // (14,17): error CS0103: The name 'z1' does not exist in the current context
                 //         int t = z1 + z2 + z3 + z4 + z5 + z6;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "z1").WithArguments("z1").WithLocation(14, 17),

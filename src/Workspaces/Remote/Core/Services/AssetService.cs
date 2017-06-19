@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.Remote
         // PREVIEW: unfortunately, I need dummy workspace since workspace services can be workspace specific
         private static readonly Serializer s_serializer = new Serializer(new AdhocWorkspace(RoslynServices.HostServices, workspaceKind: "dummy"));
 
-        private readonly int _sessionId;
+        private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
 
-        public AssetService(int sessionId, AssetStorage assetStorage)
+        public AssetService(int scopeId, AssetStorage assetStorage)
         {
-            _sessionId = sessionId;
+            _scopeId = scopeId;
             _assetStorage = assetStorage;
         }
 
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SpecializedCollections.EmptyList<ValueTuple<Checksum, object>>();
             }
 
-            var source = _assetStorage.TryGetAssetSource(_sessionId);
+            var source = _assetStorage.TryGetAssetSource(_scopeId);
             cancellationToken.ThrowIfCancellationRequested();
 
             Contract.ThrowIfNull(source);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 // ask one of asset source for data
-                return await source.RequestAssetsAsync(_sessionId, checksums, cancellationToken).ConfigureAwait(false);
+                return await source.RequestAssetsAsync(_scopeId, checksums, cancellationToken).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {
