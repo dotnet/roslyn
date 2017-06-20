@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed class LocalVariableUsePass : FieldUsePass
+    internal sealed class LocalVariableUsePass : BoundTreeWalkerWithStackGuard
     {
         /// <summary>
         /// Variables that were used anywhere, in the sense required to suppress warnings about
@@ -46,20 +46,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly HashSet<LocalSymbol> _usedVariables;
 
         /// <summary>
-        /// Local functions that were used anywhere, in the sense required to suppress warnings about
-        /// unused variables.
+        /// Local functions that were used anywhere, in the sense required to suppress warnings
+        /// about unused local functions.
         /// </summary>
         private readonly HashSet<LocalFunctionSymbol> _usedLocalFunctions;
-
-        private bool _insideNameOf;
 
         /// <summary>
         /// Create a visitor for use within a method (e.g. local functions).
         /// Keep track of what local variables are referenced, by placing them in the HashSets.
-        /// Also track field references, by marking them on the SourceAssembly.
         /// </summary>
-        public LocalVariableUsePass(SourceAssemblySymbol sourceAssembly, HashSet<LocalSymbol> usedVariables, HashSet<LocalFunctionSymbol> usedLocalFunctions)
-            : base(sourceAssembly)
+        public LocalVariableUsePass(HashSet<LocalSymbol> usedVariables, HashSet<LocalFunctionSymbol> usedLocalFunctions)
         {
             _usedVariables = usedVariables;
             _usedLocalFunctions = usedLocalFunctions;
@@ -73,29 +69,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
         {
-            Debug.Assert(!_insideNameOf);
-            _insideNameOf = true;
-
-            var result = base.VisitNameOfOperator(node);
-
-            Debug.Assert(_insideNameOf);
-            _insideNameOf = false;
-
-            return result;
-        }
-
-        public override BoundNode VisitMethodGroup(BoundMethodGroup node)
-        {
-            if (this._insideNameOf &&
-                node.Methods.Length == 1 &&
-                node.Methods[0].MethodKind == MethodKind.LocalFunction)
+            if (node.Argument is BoundMethodGroup methodGroup &&
+                methodGroup.Methods.Length == 1 &&
+                methodGroup.Methods[0].MethodKind == MethodKind.LocalFunction)
             {
                 // Generic local functions don't matter: the only way they can appear in a constant pattern
                 // is if they are in nameof, and nameof does not allow constructed generic local functions.
-                _usedLocalFunctions.Add((LocalFunctionSymbol)node.Methods[0]);
+                _usedLocalFunctions.Add((LocalFunctionSymbol)methodGroup.Methods[0]);
             }
-
-            return base.VisitMethodGroup(node);
+            return base.VisitNameOfOperator(node);
         }
     }
 }

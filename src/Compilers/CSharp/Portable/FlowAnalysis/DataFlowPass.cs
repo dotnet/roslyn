@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = requireOutParamsAssigned;
             this.topLevelMethod = member as MethodSymbol;
-            _variableUsePass = new LocalVariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
+            _variableUsePass = new LocalVariableUsePass(_usedVariables, _usedLocalFunctions);
         }
 
         internal DataFlowPass(
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _emptyStructTypeCache = emptyStructs ?? new EmptyStructTypeCache(compilation, !strict);
             _requireOutParamsAssigned = true;
             this.topLevelMethod = member as MethodSymbol;
-            _variableUsePass = new LocalVariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
+            _variableUsePass = new LocalVariableUsePass(_usedVariables, _usedLocalFunctions);
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.currentMethodOrLambda = member as MethodSymbol;
             _unassignedVariableAddressOfSyntaxes = unassignedVariableAddressOfSyntaxes;
             _emptyStructTypeCache = new NeverEmptyStructTypeCache();
-            _variableUsePass = new LocalVariableUsePass(compilation.SourceAssembly, _usedVariables, _usedLocalFunctions);
+            _variableUsePass = new LocalVariableUsePass(_usedVariables, _usedLocalFunctions);
         }
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

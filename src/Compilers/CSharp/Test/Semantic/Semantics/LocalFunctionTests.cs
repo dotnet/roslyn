@@ -3182,16 +3182,7 @@ class Program
 ";
 
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
-            CompileAndVerify(comp.VerifyDiagnostics(), expectedOutput: @"
-LocalVariable
-LocalFunction
-2
-5
-StrAdd1StrAdd2
-10
-True
-GenericLocal
-");
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3250,7 +3241,7 @@ class Program
 ";
 
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
-            CompileAndVerify(comp.VerifyDiagnostics(), expectedOutput: "");
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3292,7 +3283,7 @@ class C
             var attributeConstructor2 = speculativeModel.GetSymbolInfo(x).Symbol;
             Assert.Equal("A", attributeConstructor2.ContainingType.Name);
 
-            comp.VerifyEmitDiagnostics(
+            comp.VerifyDiagnostics(
                 // (4,24): warning CS0169: The field 'Program.Unused' is never used
                 //     private static int Unused;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Unused").WithArguments("Program.Unused").WithLocation(4, 24)
