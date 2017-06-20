@@ -2998,7 +2998,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20291")]
         public void ConversionExpression_Implicit_ExpressionTreeConversion_InvalidIncorrectLambdaType()
         {
             string source = @"
@@ -3075,6 +3075,58 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
+        [Fact]
+        public void ConversionExpression_Implicit_ReturnStatementConversion()
+        {
+            string source = @"
+class C1
+{
+    public long M1()
+    {
+        int i = 1;
+        /*<bind>*/return i;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return i;')
+  IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64) (Syntax: 'i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_ReturnStatementConversion_InvalidConversion()
+        {
+            string source = @"
+class C1
+{
+    public int M1()
+    {
+        float f = 1;
+        /*<bind>*/return f;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return f;')
+  IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int32) (Syntax: 'f')
+    ILocalReferenceExpression: f (OperationKind.LocalReferenceExpression, Type: System.Single) (Syntax: 'f')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0266: Cannot implicitly convert type 'float' to 'int'. An explicit conversion exists (are you missing a cast?)
+                //         /*<bind>*/return f;/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "f").WithArguments("float", "int").WithLocation(7, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
         #endregion
 
         private class ExpectedSymbolVerifier
@@ -3084,14 +3136,19 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             public static SyntaxNode IdentitySelector(SyntaxNode syntaxNode) => syntaxNode;
 
+            public static SyntaxNode ReturnStatementSelector(SyntaxNode syntaxNode) => ((ReturnStatementSyntax)syntaxNode).Expression;
+
             public static IConversionExpression IVariableDeclarationStatementSelector(IOperation operation) =>
                 (IConversionExpression)((IVariableDeclarationStatement)operation).Declarations.Single().Initializer;
 
-            public Func<IOperation, IConversionExpression> OperationSelector { get; set; } = IVariableDeclarationStatementSelector;
+            public static IConversionExpression IReturnDeclarationStatementSelector(IOperation operation) =>
+                (IConversionExpression)((IReturnStatement)operation).ReturnedValue;
+
+            public Func<IOperation, IConversionExpression> OperationSelector { get; set; }
 
             public Func<IConversionExpression, IOperation> ConversionChildSelector { get; set; } = (conversion) => conversion.Operand;
 
-            public Func<SyntaxNode, SyntaxNode> SyntaxSelector { get; set; } = VariableDeclaratorSelector;
+            public Func<SyntaxNode, SyntaxNode> SyntaxSelector { get; set; }
 
             /// <summary>
             /// Verifies that the given operation has the type information that the semantic model has for the given
@@ -3103,30 +3160,55 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
             /// <see cref="ConversionChildSelector"/> is used to select what child node of the IConversion to compare original types to.
             /// this is useful for multiple conversion scenarios where we end up with multiple IConversion nodes in the tree.
             /// </summary>
-            public void Verify(IOperation operation, Compilation compilation, SyntaxNode syntaxNode)
+            public void Verify(IOperation variableDeclaration, Compilation compilation, SyntaxNode syntaxNode)
             {
-                switch (operation.Kind)
-                {
-                    case OperationKind.VariableDeclarationStatement:
-                        VerifyVariableDeclarationStatement((IVariableDeclarationStatement)operation, compilation, syntaxNode);
-                        break;
-                    default:
-                        Assert.False(true, $"Unexpected kind of statement {operation.Kind}");
-                        break;
-                }
-            }
-
-            private void VerifyVariableDeclarationStatement(IVariableDeclarationStatement variableDeclaration, Compilation compilation, SyntaxNode syntaxNode)
-            {
-                var finalSyntax = SyntaxSelector(syntaxNode);
+                var finalSyntax = GetAndInvokeSyntaxSelector(syntaxNode);
                 var semanticModel = compilation.GetSemanticModel(finalSyntax.SyntaxTree);
                 var typeInfo = semanticModel.GetTypeInfo(finalSyntax);
 
-                var initializer = OperationSelector(variableDeclaration);
+                var initializer = GetAndInvokeOperationSelector(variableDeclaration);
 
                 var conversion = initializer;
                 Assert.Equal(conversion.Type, typeInfo.ConvertedType);
                 Assert.Equal(ConversionChildSelector(conversion).Type, typeInfo.Type);
+            }
+
+            private SyntaxNode GetAndInvokeSyntaxSelector(SyntaxNode syntax)
+            {
+                if (SyntaxSelector != null)
+                {
+                    return SyntaxSelector(syntax);
+                }
+                else
+                {
+                    switch (syntax)
+                    {
+                        case VariableDeclaratorSyntax _:
+                            return VariableDeclaratorSelector(syntax);
+                        case ReturnStatementSyntax _:
+                            return ReturnStatementSelector(syntax);
+                        default:
+                            throw new ArgumentException($"Cannot handle syntax of type {syntax.GetType()}");
+                    }
+                }
+            }
+
+            private IConversionExpression GetAndInvokeOperationSelector(IOperation operation)
+            {
+                if (OperationSelector != null)
+                {
+                    return OperationSelector(operation);
+                }
+
+                switch(operation)
+                {
+                    case IVariableDeclarationStatement _:
+                        return IVariableDeclarationStatementSelector(operation);
+                    case IReturnStatement _:
+                        return IReturnDeclarationStatementSelector(operation);
+                    default:
+                        throw new ArgumentException($"Cannot handle arguments of type {operation.GetType()}");
+                }
             }
         }
     }
