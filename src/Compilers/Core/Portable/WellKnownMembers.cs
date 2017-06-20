@@ -973,21 +973,6 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                        // Field Signature
 
-                // System_Runtime_CompilerServices_NullableAttribute__ctor
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_NullableAttribute,                                       // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-
-                // System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Runtime_CompilerServices_NullableAttribute,                                       // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
-
                 // System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers,                                         // DeclaringTypeId
@@ -2647,37 +2632,37 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ValueTuple_T6__Item1
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T6 - WellKnownType.ExtSentinel),                                                                   // DeclaringTypeId
+                (byte)WellKnownType.System_ValueTuple_T6,                                                                   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                        // Field Signature
 
                 // System_ValueTuple_T6__Item2
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T6 - WellKnownType.ExtSentinel),                                                                   // DeclaringTypeId
+                (byte)WellKnownType.System_ValueTuple_T6,                                                                   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 1,                                                        // Field Signature
 
                 // System_ValueTuple_T6__Item3
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T6 - WellKnownType.ExtSentinel),                                                                   // DeclaringTypeId
+                (byte)WellKnownType.System_ValueTuple_T6,                                                                   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 2,                                                        // Field Signature
 
                 // System_ValueTuple_T6__Item4
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T6 - WellKnownType.ExtSentinel),                                                                   // DeclaringTypeId
+                (byte)WellKnownType.System_ValueTuple_T6,                                                                   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 3,                                                        // Field Signature
 
                 // System_ValueTuple_T6__Item5
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T6 - WellKnownType.ExtSentinel),                                                                   // DeclaringTypeId
+                (byte)WellKnownType.System_ValueTuple_T6,                                                                   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 4,                                                        // Field Signature
 
                 // System_ValueTuple_T6__Item6
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T6 - WellKnownType.ExtSentinel),                                                                   // DeclaringTypeId
+                (byte)WellKnownType.System_ValueTuple_T6,                                                                   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 5,                                                        // Field Signature
 
@@ -2823,7 +2808,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ValueTuple_T6__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T6 - WellKnownType.ExtSentinel),                                                                   // DeclaringTypeId
+                (byte)WellKnownType.System_ValueTuple_T6,                                                                   // DeclaringTypeId
                 0,                                                                                                          // Arity
                     6,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
@@ -2882,7 +2867,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
-                // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
                 (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation - WellKnownType.ExtSentinel),  // DeclaringTypeId
                 0,                                                                                                                                  // Arity
@@ -2893,6 +2878,40 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                  // Arity
+                    5,                                                                                                                              // Method Signature
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Guid,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.ByReference, (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_Runtime_CompilerServices_NullableAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_NullableAttribute - WellKnownType.ExtSentinel),                                       // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+
+                // System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_NullableAttribute - WellKnownType.ExtSentinel),                                       // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
+
+                // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
+                (byte)MemberFlags.Constructor,                                                                                                      // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ReferenceAssemblyAttribute - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                  // Arity
+                    0,                                                                                                                              // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3015,8 +3034,6 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags
                 "Create",                                   // System_Runtime_CompilerServices_CallSite_T__Create
                 "Target",                                   // System_Runtime_CompilerServices_CallSite_T__Target
-                ".ctor",                                    // System_Runtime_CompilerServices_NullableAttribute__ctor
-                ".ctor",                                    // System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
                 "GetObjectValue",                           // System_Runtime_CompilerServices_RuntimeHelpers__GetObjectValueObject
                 "InitializeArray",                          // System_Runtime_CompilerServices_RuntimeHelpers__InitializeArrayArrayRuntimeFieldHandle
                 "get_OffsetToStringData",                   // System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData
@@ -3252,7 +3269,12 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames
 
                 "Format",                                   // System_String__Format_IFormatProvider
-                "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
+                "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile
+                "CreatePayload",                            // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles
+
+                ".ctor",                                    // System_Runtime_CompilerServices_NullableAttribute__ctor
+                ".ctor",                                    // System_Runtime_CompilerServices_NullableAttribute__ctorTransformFlags
+                ".ctor",                                    // System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

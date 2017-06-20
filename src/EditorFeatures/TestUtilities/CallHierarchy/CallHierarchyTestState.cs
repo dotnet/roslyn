@@ -11,10 +11,10 @@ using Microsoft.CodeAnalysis.Editor.CSharp.CallHierarchy;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 using Microsoft.CodeAnalysis.Editor.Implementation.Notification;
-using Microsoft.CodeAnalysis.Editor.SymbolMapping;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
         {
             var catalog = TestExportProvider.MinimumCatalogWithCSharpAndVisualBasic
                 .WithPart(typeof(CallHierarchyProvider))
-                .WithPart(typeof(SymbolMappingServiceFactory))
+                .WithPart(typeof(DefaultSymbolMappingService))
                 .WithPart(typeof(EditorNotificationServiceFactory))
                 .WithParts(additionalTypes);
 

@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        protected EventWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        protected CommonEventWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (EventWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonEventWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         /// <summary>
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpAttributeData boundAttribute;
             ObsoleteAttributeData obsoleteData;
 
-            if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
             {
                 if (obsoleteData != null)
                 {
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                var data = GetDecodedWellKnownAttributeData() as EventWellKnownAttributeData;
                 return data?.NullableOptOut ?? base.NullableOptOut;
             }
         }

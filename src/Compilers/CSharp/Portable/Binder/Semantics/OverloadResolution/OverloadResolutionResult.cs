@@ -986,32 +986,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (arguments.IsExtensionMethodThisArgument(arg))
                 {
                     Debug.Assert((arg == 0) && (parm == arg));
-                    var conversion = badArg.Result.ConversionForArg(parm);
+                    Debug.Assert(!badArg.Result.ConversionForArg(parm).IsImplicit);
 
-                    if (conversion.IsImplicit)
-                    {
-                        // CS1928: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' has some invalid arguments
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadExtensionArgTypes,
-                            location,
-                            symbols,
-                            argument.Display,
-                            name,
-                            method);
-                    }
-                    else
-                    {
-                        // CS1929: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'
-                        diagnostics.Add(
-                            ErrorCode.ERR_BadInstanceArgType,
-                            sourceLocation,
-                            symbols,
-                            argument.Display,
-                            name,
-                            method,
-                            parameter);
-                        Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter), "If they ever differ, just call the method when constructing the diagnostic.");
-                    }
+                    // CS1929: '{0}' does not contain a definition for '{1}' and the best extension method overload '{2}' requires a receiver of type '{3}'
+                    diagnostics.Add(
+                        ErrorCode.ERR_BadInstanceArgType,
+                        sourceLocation,
+                        symbols,
+                        argument.Display,
+                        name,
+                        method,
+                        parameter);
+                    Debug.Assert((object)parameter == UnwrapIfParamsArray(parameter), "If they ever differ, just call the method when constructing the diagnostic.");
                 }
                 else
                 {

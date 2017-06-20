@@ -18,6 +18,7 @@
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>Vsix</RoslynProjectType>
     <IsProductComponent>true</IsProductComponent>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
@@ -201,8 +202,7 @@
     <ProjectReference Include="..\Setup.Dependencies\VisualStudioSetup.Dependencies.csproj">
       <Project>{1688e1e5-d510-4e06-86f3-f8db10b1393d}</Project>
       <Name>VisualStudioSetup.Dependencies</Name>
-      <IncludeOutputGroupsInVSIX>
-      </IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX></IncludeOutputGroupsInVSIX>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
@@ -210,28 +210,26 @@
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
     <NuGetPackageToIncludeInVsix Include="SQLitePCLRaw.bundle_green" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
-    <!-- Visual Studio ships with some, but not all, of the assemblies in Microsoft.Composition, but we need them all -->
-    <NuGetPackageToIncludeInVsix Include="Microsoft.Composition" />
+    <!-- Visual Studio ships with some, but not all, of the assemblies in System.Composition, but we need them all -->
+    <NuGetPackageToIncludeInVsix Include="System.Composition.TypedParts" />
+    <NuGetPackageToIncludeInVsix Include="System.Composition.Convention" />
+    <NuGetPackageToIncludeInVsix Include="System.Composition.Hosting" />
   </ItemGroup>
   <ItemGroup>
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_v2.dll" />
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.provider.e_sqlite3.net45\1.1.2\lib\net45\SQLitePCLRaw.provider.e_sqlite3.dll" />
-      <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.core\1.1.2\lib\net45\SQLitePCLRaw.core.dll" />
-      <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
-          <Link>x86\e_sqlite3.dll</Link>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <IncludeInVSIX>true</IncludeInVSIX>
-      </Content>
-      <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
-          <Link>x64\e_sqlite3.dll</Link>
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-          <IncludeInVSIX>true</IncludeInVSIX>
-      </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.DiaSymReader.Native.amd64.dll" />
-    <VSIXSourceItem Include="$(OutputPath)Microsoft.DiaSymReader.Native.x86.dll" />
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_green.dll" />
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.bundle_green\1.1.2\lib\net45\SQLitePCLRaw.batteries_v2.dll" />
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.provider.e_sqlite3.net45\1.1.2\lib\net45\SQLitePCLRaw.provider.e_sqlite3.dll" />
+    <VSIXSourceItem Include="$(NuGetPackageRoot)\SQLitePCLRaw.core\1.1.2\lib\net45\SQLitePCLRaw.core.dll" />
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x86\native\e_sqlite3.dll">
+      <Link>x86\e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
+    <Content Include="$(NuGetPackageRoot)\sqlitepclraw.lib.e_sqlite3.v110_xp\1.1.2\runtimes\win7-x64\native\e_sqlite3.dll">
+      <Link>x64\e_sqlite3.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <IncludeInVSIX>true</IncludeInVSIX>
+    </Content>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -241,13 +239,18 @@
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="source.extension.vsixmanifest">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb">
+      <Version>$(MicrosoftDiaSymReaderPortablePdbVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="ManagedEsent">
+      <Version>$(ManagedEsentVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyRedirects.cs" />

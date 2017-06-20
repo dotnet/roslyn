@@ -524,8 +524,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     symbol.Type.Accept(this.NotFirstVisitor);
-                    AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
                 }
+                AddCustomModifiersIfRequired(symbol.CustomModifiers, leadingSpace: true, trailingSpace: false);
             }
 
             if (includeName && includeType)

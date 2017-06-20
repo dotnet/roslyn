@@ -5766,6 +5766,51 @@ namespace ConsoleApplication1
             Assert.Equal(2, errs.Count());
         }
 
+        [Fact]
+        public void PartialTypeDiagnostics_Constructors()
+        {
+            var file1 = @"
+partial class C
+{
+    C() {}
+}
+";
+
+            var file2 = @"
+partial class C
+{
+    C() {}
+}
+";
+            var file3 = @"
+partial class C
+{
+    C() {}
+}
+";
+
+            var tree1 = Parse(file1);
+            var tree2 = Parse(file2);
+            var tree3 = Parse(file3);
+            var comp = CreateStandardCompilation(new[] { tree1, tree2, tree3 });
+            var model1 = comp.GetSemanticModel(tree1);
+            var model2 = comp.GetSemanticModel(tree2);
+            var model3 = comp.GetSemanticModel(tree3);
+
+            model1.GetDeclarationDiagnostics().Verify();
+
+            model2.GetDeclarationDiagnostics().Verify(
+                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+
+            model3.GetDeclarationDiagnostics().Verify(
+                // (4,5): error CS0111: Type 'C' already defines a member called '.ctor' with the same parameter types
+                Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments(".ctor", "C").WithLocation(4, 5));
+
+            Assert.Equal(3, comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Length);
+        }
+
+
         [WorkItem(1076661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1076661")]
         [Fact]
         public void Bug1076661()

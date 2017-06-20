@@ -82,6 +82,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Completion\CompletionProviders\CSharpReplCommandCompletionProvider.cs" />
+    <Compile Include="Completion\FileSystem\DirectiveCompletionProviderUtilities.cs" />
     <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="CSharpInteractiveEditorResources.Designer.cs">
@@ -100,6 +101,15 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
+      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
+      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CSharpInteractiveEditorResources.resx">
@@ -109,7 +119,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

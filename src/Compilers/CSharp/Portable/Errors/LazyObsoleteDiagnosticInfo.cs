@@ -6,45 +6,46 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LazyObsoleteDiagnosticInfo : LazyDiagnosticsInfo
+    internal sealed class LazyObsoleteDiagnosticInfo : DiagnosticInfo
     {
+        private DiagnosticInfo _lazyActualObsoleteDiagnostic;
+
         private readonly object _symbolOrSymbolWithAnnotations;
         private readonly Symbol _containingSymbol;
         private readonly BinderFlags _binderFlags;
 
-        internal LazyObsoleteDiagnosticInfo(Symbol symbol, Symbol containingSymbol, BinderFlags binderFlags)
+        internal LazyObsoleteDiagnosticInfo(object symbol, Symbol containingSymbol, BinderFlags binderFlags)
+            : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
             _symbolOrSymbolWithAnnotations = symbol;
             _containingSymbol = containingSymbol;
             _binderFlags = binderFlags;
+            _lazyActualObsoleteDiagnostic = null;
         }
 
-        internal LazyObsoleteDiagnosticInfo(SymbolWithAnnotations symbol, Symbol containingSymbol, BinderFlags binderFlags)
+        internal override DiagnosticInfo GetResolvedInfo()
         {
-            _symbolOrSymbolWithAnnotations = symbol;
-            _containingSymbol = containingSymbol;
-            _binderFlags = binderFlags;
-        }
-
-        protected override DiagnosticInfo ResolveInfo()
-        {
-            // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming
-            // from a different compilation's source. In that case, force completion of attributes.
-            var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((SymbolWithAnnotations)_symbolOrSymbolWithAnnotations).Symbol;
-            symbol.ForceCompleteObsoleteAttribute();
-
-            if (symbol.ObsoleteState == ThreeState.True)
+            if (_lazyActualObsoleteDiagnostic == null)
             {
-                var inObsoleteContext = ObsoleteAttributeHelpers.GetObsoleteContextState(_containingSymbol, forceComplete: true);
-                Debug.Assert(inObsoleteContext != ThreeState.Unknown);
+                // A symbol's Obsoleteness may not have been calculated yet if the symbol is coming
+                // from a different compilation's source. In that case, force completion of attributes.
+                var symbol = (_symbolOrSymbolWithAnnotations as Symbol) ?? ((SymbolWithAnnotations)_symbolOrSymbolWithAnnotations).Symbol;
+                symbol.ForceCompleteObsoleteAttribute();
 
-                if (inObsoleteContext == ThreeState.False)
-                {
-                    return ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, _binderFlags);
-                }
+                var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, _containingSymbol, forceComplete: true);
+                Debug.Assert(kind != ObsoleteDiagnosticKind.Lazy);
+                Debug.Assert(kind != ObsoleteDiagnosticKind.LazyPotentiallySuppressed);
+
+                var info = (kind == ObsoleteDiagnosticKind.Diagnostic) ?
+                    ObsoleteAttributeHelpers.CreateObsoleteDiagnostic(symbol, _binderFlags) :
+                    null;
+
+                // If this symbol is not obsolete or is in an obsolete context, we don't want to report any diagnostics.
+                // Therefore make this a Void diagnostic.
+                Interlocked.CompareExchange(ref _lazyActualObsoleteDiagnostic, info ?? CSDiagnosticInfo.VoidDiagnosticInfo, null);
             }
 
-            return null;
+            return _lazyActualObsoleteDiagnostic;
         }
     }
 }

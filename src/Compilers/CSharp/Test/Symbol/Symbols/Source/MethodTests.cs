@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -200,6 +202,104 @@ public partial class A {
             var m = a.GetMembers("M");
             Assert.Equal(1, m.Length);
             Assert.Equal(1, m.First().Locations.Length);
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_DeclBeforeDef()
+        {
+            var text =
+@"public partial class A {
+  partial void M();
+}
+public partial class A {
+  partial void M() {}
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialDefinition());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).First();
+
+            var otherSymbol = m.PartialImplementationPart;
+            Assert.True(otherSymbol.IsPartialImplementation());
+
+            Assert.Equal(node, returnSyntax);
+            Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_DefBeforeDecl()
+        {
+            var text =
+@"public partial class A {
+  partial void M() {}
+}
+public partial class A {
+  partial void M();
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialDefinition());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Last();
+
+            var otherSymbol = m.PartialImplementationPart;
+            Assert.True(otherSymbol.IsPartialImplementation());
+
+            Assert.Equal(node, returnSyntax);
+            Assert.Equal(node, otherSymbol.ExtractReturnTypeSyntax());
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_OnlyDef()
+        {
+            var text =
+@"public partial class A {
+  partial void M() {}
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialImplementation());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single().GetRoot();
+            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
+
+            Assert.Equal(node, returnSyntax);
+        }
+
+        [Fact]
+        public void PartialExtractSyntaxLocation_OnlyDecl()
+        {
+            var text =
+@"public partial class A {
+  partial void M();
+}
+";
+            var comp = CreateStandardCompilation(text);
+            var global = comp.GlobalNamespace;
+            var a = global.GetTypeMembers("A", 0).Single();
+            var m = (MethodSymbol) a.GetMembers("M").Single();
+            Assert.True(m.IsPartialDefinition());
+            var returnSyntax = m.ExtractReturnTypeSyntax();
+
+            var tree = comp.SyntaxTrees.Single().GetRoot();
+            var node = tree.DescendantNodes().OfType<PredefinedTypeSyntax>().Where(n => n.Keyword.Kind() == SyntaxKind.VoidKeyword).Single();
+
+            Assert.Equal(node, returnSyntax);
         }
 
         [Fact]
@@ -1571,7 +1671,7 @@ class C : I
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1615,7 +1715,7 @@ class F : System.IFormattable
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1662,7 +1762,7 @@ class C : I
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1716,7 +1816,7 @@ class IC : Namespace.I<int>
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDef.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(@class, explicitOverride.ContainingType);
             Assert.Equal(classMethod, explicitOverride.ImplementingMethod);
@@ -1857,7 +1957,7 @@ public class C : B
             var typeDefC = (Cci.ITypeDefinition)classC;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(classC, explicitOverride.ContainingType);
             Assert.Equal(methodC, explicitOverride.ImplementingMethod);
@@ -1901,7 +2001,7 @@ public class C : B
             var typeDefC = (Cci.ITypeDefinition)classC;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)classC.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverride = typeDefC.GetExplicitImplementationOverrides(context).Single();
             Assert.Equal(classC, explicitOverride.ContainingType);
             Assert.Equal(methodC, explicitOverride.ImplementingMethod);

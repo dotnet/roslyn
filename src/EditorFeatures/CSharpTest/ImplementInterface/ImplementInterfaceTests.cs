@@ -47,6 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementInterface
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithNoneEnforcement),
                  SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithNoneEnforcement));
 
+        private static readonly ParseOptions CSharp7_1 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1);
+
         internal async Task TestWithAllCodeStyleOptionsOffAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool ignoreTrivia = true,
@@ -2347,6 +2349,56 @@ class C : I, I2
     }
 }",
 index: 1);
+        }
+
+        [WorkItem(18556, "https://github.com/dotnet/roslyn/issues/18556")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestImplementInterfaceThroughExplicitProperty()
+        {
+            await TestActionCountAsync(
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+}",
+count: 3);
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+}",
+@"interface IA
+{
+    IB B { get; }
+}
+interface IB
+{
+    int M();
+}
+class AB : IA, [|IB|]
+{
+    IB IA.B => null;
+
+    public int M()
+    {
+        return ((IA)this).B.M();
+    }
+}", index: 1);
         }
 
         [WorkItem(768799, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/768799")]
@@ -6738,6 +6790,38 @@ class Class : IInterface
 }", parameters: new TestParameters(options: Option(
     ImplementTypeOptions.PropertyGenerationBehavior,
     ImplementTypePropertyGenerationBehavior.PreferAutoProperties)));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestOptionalParameterWithDefaultLiteral()
+        {
+            await TestWithAllCodeStyleOptionsOffAsync(
+@"
+using System.Threading;
+
+interface IInterface
+{
+    void Method1(CancellationToken cancellationToken = default(CancellationToken));
+}
+
+class Class : [|IInterface|]
+{
+}",
+@"
+using System.Threading;
+
+interface IInterface
+{
+    void Method1(CancellationToken cancellationToken = default(CancellationToken));
+}
+
+class Class : IInterface
+{
+    public void Method1(CancellationToken cancellationToken = default)
+    {
+        throw new System.NotImplementedException();
+    }
+}", parseOptions: CSharp7_1);
         }
     }
 }

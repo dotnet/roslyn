@@ -9,15 +9,13 @@
     <OutputType>Library</OutputType>
     <AssemblyName>DeplyDesktopTestRuntime_DoNotUse</AssemblyName>
     <Nonshipping>true</Nonshipping>
-    <TargetFrameworkIdentifier />
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>DeploymentTest</RoslynProjectType>
+    <RoslynUnitTestDir>UnitTests\Portable</RoslynUnitTestDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CodeStyle\Core\Analyzers\CodeStyle.csproj">
       <Project>{275812ee-dedb-4232-9439-91c9757d2ae4}</Project>

@@ -2,6 +2,7 @@
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
     Public Class PDBNamespaceScopes
@@ -383,7 +384,7 @@ End Class
             Dim emitResult1 = c.Emit(peStream:=peStream1, pdbStream:=pdbStream)
             Dim emitResult2 = c.Emit(peStream:=peStream2)
 
-            PdbValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
+            MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2)
         End Sub
 
         <Fact>

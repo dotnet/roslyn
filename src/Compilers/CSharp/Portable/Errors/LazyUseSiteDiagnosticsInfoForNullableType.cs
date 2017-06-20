@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed class LazyUseSiteDiagnosticsInfoForNullableType : LazyDiagnosticsInfo
+    internal sealed class LazyUseSiteDiagnosticsInfoForNullableType : LazyDiagnosticInfo
     {
         private readonly TypeSymbolWithAnnotations _possiblyNullableTypeSymbol;
 

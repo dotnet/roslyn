@@ -718,7 +718,7 @@ class C
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables: true)));
 
                 // only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(new[] { 0x06000005 }, diff1.UpdatedMethods.Select(m => MetadataTokens.GetToken(m)));
+                diff1.VerifyUpdatedMethods("0x06000005");
 
                 // Verify delta metadata contains expected rows.
                 using (var md1 = diff1.GetMetadata())
@@ -856,7 +856,7 @@ class C
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables: true)));
 
                 // only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(new[] { 0x06000004 }, diff1.UpdatedMethods.Select(m => MetadataTokens.GetToken(m)));
+                diff1.VerifyUpdatedMethods("0x06000004");
 
                 using (var md1 = diff1.GetMetadata())
                 {

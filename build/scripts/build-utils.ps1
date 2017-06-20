@@ -44,6 +44,7 @@ function Exec-Command([string]$command, [string]$commandArgs) {
     $startInfo.RedirectStandardOutput = $true
     $startInfo.UseShellExecute = $false
     $startInfo.CreateNoWindow = $true
+    $startInfo.WorkingDirectory = Get-Location
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $startInfo
@@ -133,12 +134,12 @@ function Create-Directory([string]$dir) {
 # Return the version of the NuGet package as used in this repo
 function Get-PackageVersion([string]$name) {
     $name = $name.Replace(".", "")
-    $deps = Join-Path $repoDir "build\Targets\Dependencies.props"
+    $deps = Join-Path $repoDir "build\Targets\Packages.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
     $node = $x.Project.PropertyGroup[$nodeName]
     if ($node -eq $null) { 
-        throw "Cannot find package $name in Dependencies.props"
+        throw "Cannot find package $name in Packages.props"
     }
 
     return $node.InnerText
@@ -223,7 +224,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
-    $version = "0.1.2"
+    $version = "0.2.0-alpha"
     $name = "RoslynTools.MSBuild"
     $p = Ensure-BasicTool $name $version
     $p = Join-Path $p "tools\msbuild"
@@ -258,12 +259,17 @@ function Clear-PackageCache() {
 # Restore a single project
 function Restore-Project([string]$fileName, [string]$nuget, [string]$msbuildDir) {
     $nugetConfig = Join-Path $repoDir "nuget.config"
-    $filePath = Join-Path $repoDir $fileName
-    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Out-Null
+
+    $filePath = $fileName
+    if (-not (Test-Path $filePath)) {
+        $filePath = Join-Path $repoDir $fileName
+    }
+
+    Exec-Block { & $nuget restore -verbosity quiet -configfile $nugetConfig -MSBuildPath $msbuildDir -Project2ProjectTimeOut 1200 $filePath } | Write-Host
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-Packages([switch]$clean = $false, [string]$msbuildDir = "", [string]$project = "") {
+function Restore-Packages([string]$msbuildDir = "", [string]$project = "") {
     $nuget = Ensure-NuGet
     if ($msbuildDir -eq "") {
         $msbuildDir = Get-MSBuildDir
@@ -271,38 +277,29 @@ function Restore-Packages([switch]$clean = $false, [string]$msbuildDir = "", [st
 
     Write-Host "Restore using MSBuild at $msbuildDir"
 
-    if ($clean) {
-        Write-Host "Deleting project.lock.json files"
-        Get-ChildItem $repoDir -re -in project.lock.json | Remove-Item
-    }
-
     if ($project -ne "") {
         Write-Host "Restoring project $project"
-        Restore-Project -fileName $project -nuget $nuget -msbuildDir $msbuildDir
+        Restore-Project -fileName $project -msbuildDir $msbuildDir -nuget $nuget
     }
     else {
         $all = @(
-            "Toolsets:build\ToolsetPackages\project.json",
-            "Toolsets (Dev14 VS SDK build tools):build\ToolsetPackages\dev14.project.json",
-            "Toolsets (Dev15 VS SDK RC build tools):build\ToolsetPackages\dev15rc.project.json",
+            "Base Toolset:build\ToolsetPackages\BaseToolset.csproj",
+            "Closed Toolset:build\ToolsetPackages\ClosedToolset.csproj",
+            "Roslyn:Roslyn.sln",
             "Samples:src\Samples\Samples.sln",
             "Templates:src\Setup\Templates\Templates.sln",
-            "Toolsets Compiler:build\Toolset\Toolset.csproj",
-            "Roslyn:Roslyn.sln",
-            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln",
-            "DevDiv Roslyn Packages:src\Setup\DevDivPackages\Roslyn\project.json",
-            "DevDiv Debugger Packages:src\Setup\DevDivPackages\Debugger\project.json")
+            "DevDivInsertionFiles:src\Setup\DevDivInsertionFiles\DevDivInsertionFiles.sln")
 
         foreach ($cur in $all) {
             $both = $cur.Split(':')
             Write-Host "Restoring $($both[0])"
-            Restore-Project -fileName $both[1] -nuget $nuget -msbuildDir $msbuildDir
+            Restore-Project -fileName $both[1] -msbuildDir $msbuildDir -nuget $nuget
         }
     }
 }
 
 # Restore all of the projects that the repo consumes
-function Restore-All([switch]$clean = $false, [string]$msbuildDir = "") {
-    Restore-Packages -clean:$clean -msbuildDir $msbuildDir
+function Restore-All([string]$msbuildDir = "") {
+    Restore-Packages -msbuildDir $msbuildDir
 }
 

@@ -48,7 +48,7 @@ namespace Roslyn.Test.Utilities.Remote
         {
             _inprocServices = inprocServices;
 
-            _rpc = new JsonRpc(stream, stream, target: this);
+            _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target: this);
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             // handle disconnected situation
@@ -65,7 +65,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is the back channel the system uses to move data between VS and remote host
             var snapshotStream = getSnapshotAsync.Value == null ? null : await _inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false);
 
-            // get stream from service hub to communicate service specific information
+            // get stream from service hub to communicate service specific information 
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 

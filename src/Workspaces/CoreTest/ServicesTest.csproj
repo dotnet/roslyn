@@ -11,6 +11,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -96,6 +98,7 @@
     <Compile Include="UtilityTest\BKTreeTests.cs" />
     <Compile Include="UtilityTest\FilePathUtilitiesTests.cs" />
     <Compile Include="UtilityTest\SpellCheckerTests.cs" />
+    <Compile Include="WorkspaceServiceTests\ReferenceCountedDisposableTests.cs" />
     <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
     <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
     <Compile Include="Differencing\MatchTests.cs" />
@@ -141,6 +144,21 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Tpl.Dataflow">
+      <Version>$(MicrosoftTplDataflowVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Build.Runtime">
+      <Version>$(MicrosoftBuildRuntimeVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
@@ -149,7 +167,6 @@
     <Folder Include="Host\Utilities\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.CSharp.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

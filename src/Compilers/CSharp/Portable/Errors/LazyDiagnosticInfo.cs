@@ -4,11 +4,11 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal abstract class LazyDiagnosticsInfo : DiagnosticInfo
+    internal abstract class LazyDiagnosticInfo : DiagnosticInfo
     {
         private DiagnosticInfo _lazyInfo;
 
-        protected LazyDiagnosticsInfo()
+        protected LazyDiagnosticInfo()
             : base(CSharp.MessageProvider.Instance, (int)ErrorCode.Unknown)
         {
         }

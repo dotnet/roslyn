@@ -443,7 +443,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0037: Cannot convert null to 'bool' because it is a non-nullable value type
                 //             case null: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("bool").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -469,7 +472,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0029: Cannot implicitly convert type 'int' to 'bool'
                 //             case 3: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "3").WithArguments("int", "bool").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -495,7 +501,10 @@ null";
             compilation.VerifyDiagnostics(
                 // (10,18): error CS0031: Constant value '1000' cannot be converted to a 'byte'
                 //             case 1000: // error: impossible given the type
-                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_ConstOutOfRange, "1000").WithArguments("1000", "byte").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
                 );
         }
 
@@ -590,6 +599,29 @@ null";
     public static void Main(string[] args)
     {
         switch ((object)null)
+        {
+            case object o:
+                break; // unreachable
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void Subsumption04b()
+        {
+            var source =
+@"public class X
+{
+    public static void Main(string[] args)
+    {
+        switch ((string)null)
         {
             case object o:
                 break; // unreachable
@@ -802,9 +834,9 @@ class Program
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
                 Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
-                // (18,13): error CS8070: Control cannot fall out of switch from final case label ('case Color x when false:')
-                //             case Color x when false:
-                Diagnostic(ErrorCode.ERR_SwitchFallOut, "case Color x when false:").WithArguments("case Color x when false:").WithLocation(18, 13)
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
                 );
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
@@ -819,7 +851,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_GotoCaseShouldConvert, "goto case 3;").WithArguments("Color").WithLocation(15, 17),
                 // (15,17): error CS0159: No such label 'case 3:' within the scope of the goto statement
                 //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
-                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17)
+                Diagnostic(ErrorCode.ERR_LabelNotFound, "goto case 3;").WithArguments("case 3:").WithLocation(15, 17),
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 goto case 3; // warning CS0469: The 'goto case' value is not implicitly convertible to type 'Color'
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "goto").WithLocation(15, 17)
                 );
         }
 
@@ -1693,12 +1728,27 @@ class Program
                 // (52,55): error CS0103: The name 'c' does not exist in the current context
                 //             if (o is (System.Int32 a, System.Int32 b) c) {}
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "c").WithArguments("c").WithLocation(52, 55),
-                // (23,13): error CS0163: Control cannot fall through from one case label ('case (int, int) ') to another
+                // (23,29): warning CS0162: Unreachable code detected
                 //             case (int, int) z:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int, int) ").WithArguments("case (int, int) ").WithLocation(23, 13),
-                // (24,13): error CS0163: Control cannot fall through from one case label ('case (int a, int b) ') to another
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(23, 29),
+                // (24,33): warning CS0162: Unreachable code detected
                 //             case (int a, int b) c:
-                Diagnostic(ErrorCode.ERR_SwitchFallThrough, "case (int a, int b) ").WithArguments("case (int a, int b) ").WithLocation(24, 13),
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "c").WithLocation(24, 33),
+                // (25,31): warning CS0162: Unreachable code detected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(25, 31),
+                // (30,29): warning CS0162: Unreachable code detected
+                //             case (int, int) z:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(30, 29),
+                // (32,31): warning CS0162: Unreachable code detected
+                //             case (long, long) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(32, 31),
+                // (37,47): warning CS0162: Unreachable code detected
+                //             case (System.Int32, System.Int32) z:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "z").WithLocation(37, 47),
+                // (39,47): warning CS0162: Unreachable code detected
+                //             case (System.Int64, System.Int64) d:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "d").WithLocation(39, 47),
                 // (23,29): warning CS0164: This label has not been referenced
                 //             case (int, int) z:
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "z").WithLocation(23, 29),
@@ -1839,7 +1889,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "is").WithArguments("is").WithLocation(7, 18),
                 // (7,21): error CS0246: The type or namespace name 'EnvDTE' could not be found (are you missing a using directive or an assembly reference?)
                 //             case is EnvDTE.Project x1:
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "EnvDTE").WithArguments("EnvDTE").WithLocation(7, 21),
+                // (8,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(8, 17)
                 );
 
             var tree = compilation.SyntaxTrees.Single();
@@ -2986,6 +3039,231 @@ class Program
                 //             case (string)null: // error: subsumed
                 Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
                 );
+        }
+
+        [Fact]
+        public void SubsumedCasesAreUnreachable_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch (args.Length)
+        {
+            case 1:
+                break;
+            case System.IComparable c:
+                break;
+            case 2: // error: subsumed
+                break; // unreachable
+            case int n: // error: subsumed
+                break; // unreachable
+            case var i: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                //             case 2: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case 2:").WithLocation(12, 13),
+                // (14,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case int n: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int n").WithLocation(14, 18),
+                // (16,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case var i: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "var i").WithLocation(16, 18),
+                // (13,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(13, 17),
+                // (15,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(15, 17),
+                // (17,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                );
+        }
+
+        [Fact]
+        public void SwitchTuple()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        switch ((x: 1, y: 2))
+        {
+            case System.IComparable c:
+                break;
+            case System.ValueTuple<int, int> x: // error: subsumed
+                break; // unreachable
+            default:
+                break; // ok; default case is always considered reachable
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics(
+                // (10,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case System.ValueTuple<int, int> x: // error: subsumed
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "System.ValueTuple<int, int> x").WithLocation(10, 18),
+                // (11,17): warning CS0162: Unreachable code detected
+                //                 break; // unreachable
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(11, 17)
+                );
+        }
+
+        [Fact]
+        public void ByValueThenByTypeTwice()
+        {
+            var source =
+@"
+class Program
+{
+    static bool b = false;
+    static int i = 2;
+    static void Main(string[] args)
+    {
+        switch (i)
+        {
+            case 1:
+                break;
+            case System.IComparable c when b:
+                break;
+            case System.IFormattable f when b:
+                break;
+            default:
+                System.Console.WriteLine(nameof(Main));
+                break;
+        }
+    }
+}
+";
+            var compilation = CreateStandardCompilation(
+                source, options: TestOptions.ReleaseExe, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation, expectedOutput: "Main");
+        }
+
+        [Fact, WorkItem(18948, "https://github.com/dotnet/roslyn/issues/18948")]
+        public void AsyncGenericPatternCrash()
+        {
+            var source =
+@"
+using System.Threading.Tasks;
+
+static class Ex
+{
+    public static async Task<T> SwitchWithAwaitInPatternFails<T>(Task self, T defaultValue)
+    {
+        switch (self)
+        {
+            case Task<T> resultTask:
+                return await resultTask.ConfigureAwait(false);
+
+            default:
+                await self.ConfigureAwait(false);
+                return default(T);
+        }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(
+                source, options: TestOptions.ReleaseDll.WithOptimizationLevel(OptimizationLevel.Release), references: new[] { SystemCoreRef, CSharpRef });
+            compilation.VerifyDiagnostics();
+            var comp = CompileAndVerify(compilation);
+        }
+
+        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        public void SemanticModelForBrokenSwitch_01()
+        {
+            // a syntax error that happens to look like a pattern switch if you squint
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        bool x = true;
+
+        switch (x) {
+            case
+
+        var q = 3;
+        var y = q/*BIND*/;
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            compilation.VerifyDiagnostics(
+                // (8,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                //             case
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, @"case
+
+        var q ").WithArguments("pattern matching", "7").WithLocation(8, 13),
+                // (10,15): error CS1003: Syntax error, ':' expected
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments(":", "=").WithLocation(10, 15),
+                // (10,15): error CS1525: Invalid expression term '='
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(10, 15),
+                // (13,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2),
+                // (10,9): error CS8070: Control cannot fall out of switch from final case label ('var q')
+                //         var q = 3;
+                Diagnostic(ErrorCode.ERR_SwitchFallOut, "var q").WithArguments("var q").WithLocation(10, 9)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
+                .Single();
+            var type = model.GetTypeInfo(node);
+        }
+
+        [Fact, WorkItem(388743, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=388743")]
+        public void SemanticModelForBrokenSwitch_02()
+        {
+            // a simple legal pattern switch but run in language version 6
+            var source =
+@"class Sample
+{
+    void M()
+    {
+        bool b = true;
+        switch (b) {
+            case var q:
+                System.Console.WriteLine(q/*BIND*/);
+                break;
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll, parseOptions: TestOptions.Regular6);
+            compilation.VerifyDiagnostics(
+                // (7,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                //             case var q:
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case var q:").WithArguments("pattern matching", "7").WithLocation(7, 13)
+                );
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes()
+                .OfType<IdentifierNameSyntax>()
+                .Where(n => n.Identifier.ValueText == "q" && n.ToFullString().Contains("/*BIND*/"))
+                .Single();
+            var type = model.GetTypeInfo(node);
+            Assert.Equal(SpecialType.System_Boolean, type.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Boolean, type.ConvertedType.SpecialType);
         }
     }
 }

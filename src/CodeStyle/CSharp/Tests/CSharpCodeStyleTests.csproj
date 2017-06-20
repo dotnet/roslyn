@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>True</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -11,8 +11,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests</AssemblyName>
     <TargetExt>.dll</TargetExt>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <TargetFramework>netstandard1.3</TargetFramework>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>
   </PropertyGroup>
@@ -53,7 +52,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

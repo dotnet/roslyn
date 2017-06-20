@@ -3,11 +3,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting;
+using Microsoft.CodeAnalysis.Editor.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -42,7 +41,7 @@ class {|definition:C|}
             VerifyNone("void");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19059"), Trait(Traits.Feature, Traits.Features.Classification)]
         public void WrittenReference()
         {
             var markup = @"

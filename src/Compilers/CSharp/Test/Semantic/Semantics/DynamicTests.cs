@@ -2651,6 +2651,29 @@ class C : List<int>
                 Diagnostic(ErrorCode.ERR_BadAsyncExpressionTree, "async (x) => { return await d; }"));
         }
 
+        [Fact]
+        [WorkItem(18320, "https://github.com/dotnet/roslyn/issues/18320")]
+        public void TestMissingMicrosoftCSharpDllReference()
+        {
+            string source = @"
+public class Class1
+{
+    public dynamic GetResponse()
+    {
+        return null;
+    }
+    public async void GetResponseTest()
+    {
+        var result = await GetResponse();
+    }
+}";
+            CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
+                // (10,28): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
+                //         var result = await GetResponse();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "GetResponse()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(10, 28)
+                );
+        }
+
         #endregion
 
         #region Query

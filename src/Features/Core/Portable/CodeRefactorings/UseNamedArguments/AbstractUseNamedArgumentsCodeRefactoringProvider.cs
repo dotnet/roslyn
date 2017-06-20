@@ -19,22 +19,32 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken);
         }
 
-        protected abstract class Analyzer<TBaseArgumentSyntax, TArgumentSyntax, TArgumentListSyntax> : IAnalyzer
+        protected abstract class Analyzer<TBaseArgumentSyntax, TSimpleArgumentSyntax, TArgumentListSyntax> : IAnalyzer
             where TBaseArgumentSyntax : SyntaxNode
-            where TArgumentSyntax : TBaseArgumentSyntax
+            where TSimpleArgumentSyntax : TBaseArgumentSyntax
             where TArgumentListSyntax : SyntaxNode
         {
             public async Task ComputeRefactoringsAsync(
                 CodeRefactoringContext context, SyntaxNode root, CancellationToken cancellationToken)
             {
-                var document = context.Document;
-
                 if (context.Span.Length > 0)
                 {
                     return;
                 }
 
-                var argument = root.FindNode(context.Span).FirstAncestorOrSelf<TBaseArgumentSyntax>() as TArgumentSyntax;
+                var position = context.Span.Start;
+                var token = root.FindToken(position);
+                if (token.Span.Start == position &&
+                    IsCloseParenOrComma(token))
+                {
+                    token = token.GetPreviousToken();
+                    if (token.Span.End != position)
+                    {
+                        return;
+                    }
+                }
+
+                var argument = root.FindNode(token.Span).FirstAncestorOrSelfUntil<TBaseArgumentSyntax>(node => node is TArgumentListSyntax) as TSimpleArgumentSyntax;
                 if (argument == null)
                 {
                     return;
@@ -48,10 +58,11 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 // Arguments can be arbitrarily large.  Only offer this feature if the caret is on hte
                 // line that the argument starts on.
 
+                var document = context.Document;
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
                 var argumentStartLine = sourceText.Lines.GetLineFromPosition(argument.Span.Start).LineNumber;
-                var caretLine = sourceText.Lines.GetLineFromPosition(context.Span.Start).LineNumber;
+                var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;
 
                 if (argumentStartLine != caretLine)
                 {
@@ -83,34 +94,44 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                     return;
                 }
 
-                var argumentList = (TArgumentListSyntax)argument.Parent;
-                var (index, count) = GetArgumentListIndexAndCount(argument, argumentList);
+                var argumentList = argument.Parent as TArgumentListSyntax;
+                if (argumentList == null)
+                {
+                    return;
+                }
 
                 var arguments = GetArguments(argumentList);
-                for (var i = index; i < count; i++)
+                var argumentCount = arguments.Count;
+                var argumentIndex = arguments.IndexOf(argument);
+                if (argumentIndex >= parameters.Length)
                 {
-                    if (!(arguments[i] is TArgumentSyntax))
+                    return;
+                }
+
+                if (!IsLegalToAddNamedArguments(parameters, argumentCount))
+                {
+                    return;
+                }
+
+                for (var i = argumentIndex; i < argumentCount; i++)
+                {
+                    if (!(arguments[i] is TSimpleArgumentSyntax))
                     {
                         return;
                     }
                 }
 
-                if (!IsLegalToAddNamedArguments(parameters, count))
-                {
-                    return;
-                }
-
-                var argumentName = parameters[index].Name;
+                var argumentName = parameters[argumentIndex].Name;
                 context.RegisterRefactoring(
                     new MyCodeAction(
                         string.Format(FeaturesResources.Add_argument_name_0, argumentName),
-                        c => AddNamedArgumentsAsync(root, document, argument, parameters, index)));
+                        c => AddNamedArgumentsAsync(root, document, argument, parameters, argumentIndex)));
             }
 
             private Task<Document> AddNamedArgumentsAsync(
                 SyntaxNode root,
                 Document document,
-                TArgumentSyntax firstArgument,
+                TSimpleArgumentSyntax firstArgument,
                 ImmutableArray<IParameterSymbol> parameters,
                 int index)
             {
@@ -120,18 +141,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
                 return Task.FromResult(document.WithSyntaxRoot(newRoot));
             }
 
-            private (int, int) GetArgumentListIndexAndCount(TArgumentSyntax argument, TArgumentListSyntax argumentList)
-            {
-                var arguments = GetArguments(argumentList);
-                return (arguments.IndexOf(argument), arguments.Count);
-            }
-
             private TArgumentListSyntax GetOrSynthesizeNamedArguments(
                 ImmutableArray<IParameterSymbol> parameters, TArgumentListSyntax argumentList, int index)
             {
                 var arguments = GetArguments(argumentList);
                 var namedArguments = arguments
-                    .Select((argument, i) => i >= index && argument is TArgumentSyntax s && IsPositionalArgument(s)
+                    .Select((argument, i) => i >= index && argument is TSimpleArgumentSyntax s && IsPositionalArgument(s)
                         ? WithName(s, parameters[i].Name).WithTriviaFrom(argument)
                         : argument);
 
@@ -141,9 +156,10 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.UseNamedArguments
             protected abstract TArgumentListSyntax WithArguments(
                 TArgumentListSyntax argumentList, IEnumerable<TBaseArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators);
 
+            protected abstract bool IsCloseParenOrComma(SyntaxToken token);
             protected abstract bool IsLegalToAddNamedArguments(ImmutableArray<IParameterSymbol> parameters, int argumentCount);
-            protected abstract TArgumentSyntax WithName(TArgumentSyntax argument, string name);
-            protected abstract bool IsPositionalArgument(TArgumentSyntax argument);
+            protected abstract TSimpleArgumentSyntax WithName(TSimpleArgumentSyntax argument, string name);
+            protected abstract bool IsPositionalArgument(TSimpleArgumentSyntax argument);
             protected abstract SeparatedSyntaxList<TBaseArgumentSyntax> GetArguments(TArgumentListSyntax argumentList);
             protected abstract SyntaxNode GetReceiver(SyntaxNode argument);
         }

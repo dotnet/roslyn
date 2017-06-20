@@ -136,14 +136,12 @@
     <Compile Include="Highlighting\KeywordHighlighters\UnsafeStatementHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\UsingStatementHighlighter.cs" />
     <Compile Include="Highlighting\KeywordHighlighters\YieldStatementHighlighter.cs" />
-    <Compile Include="HighlightReferences\CSharpDocumentHighlightsService.cs" />
     <Compile Include="InlineRename\CSharpEditorInlineRenameService.cs" />
     <Compile Include="LanguageServices\CSharpContentTypeLanguageService.cs" />
     <Compile Include="LineSeparators\CSharpLineSeparatorService.cs" />
     <Compile Include="NavigationBar\CSharpNavigationBarItemService.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoProvider.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoProvider.cs" />
-    <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.cs" />
@@ -163,6 +161,12 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.XML" />
     <Reference Include="WindowsBase" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
+      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
+      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CSharpEditorResources.resx">
@@ -172,10 +176,8 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

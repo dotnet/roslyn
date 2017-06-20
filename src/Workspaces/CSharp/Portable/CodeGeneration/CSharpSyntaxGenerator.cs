@@ -1903,6 +1903,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
+        internal override SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
+        {
+            switch (declaration)
+            {
+                case MethodDeclarationSyntax methodDeclaration:
+                    return WithAccessibility(
+                        methodDeclaration.WithExplicitInterfaceSpecifier(CreateExplicitInterfaceSpecifier(explicitInterfaceImplementations)),
+                        Accessibility.NotApplicable);
+            }
+
+            return declaration;
+        }
+
+        private ExplicitInterfaceSpecifierSyntax CreateExplicitInterfaceSpecifier(ImmutableArray<IMethodSymbol> explicitInterfaceImplementations)
+            => SyntaxFactory.ExplicitInterfaceSpecifier(
+                explicitInterfaceImplementations[0].ContainingType.GenerateNameSyntax());
+
         public override SyntaxNode WithTypeConstraint(SyntaxNode declaration, string typeParameterName, SpecialTypeConstraintKind kinds, IEnumerable<SyntaxNode> types)
         {
             switch (declaration.Kind())
@@ -3524,9 +3541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private BlockSyntax CreateBlock(IEnumerable<SyntaxNode> statements)
-        {
-            return SyntaxFactory.Block(AsStatementList(statements));
-        }
+            => SyntaxFactory.Block(AsStatementList(statements)).WithAdditionalAnnotations(Simplifier.Annotation);
 
         private SyntaxList<StatementSyntax> AsStatementList(IEnumerable<SyntaxNode> nodes)
         {
@@ -3667,9 +3682,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             => SyntaxFactory.Literal(text, value);
 
         public override SyntaxNode DefaultExpression(SyntaxNode type)
-        {
-            return SyntaxFactory.DefaultExpression((TypeSyntax)type);
-        }
+            => SyntaxFactory.DefaultExpression((TypeSyntax)type).WithAdditionalAnnotations(Simplifier.Annotation);
 
         public override SyntaxNode DefaultExpression(ITypeSymbol type)
         {
@@ -3703,7 +3716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             // Default to a "default(<typename>)" expression.
-            return SyntaxFactory.DefaultExpression(type.GenerateTypeSyntax());
+            return DefaultExpression(type.GenerateTypeSyntax());
         }
 
         private ExpressionSyntax Parenthesize(SyntaxNode expression)

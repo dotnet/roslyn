@@ -1550,7 +1550,7 @@ class C : I2 { }
             var typeDef = (Cci.ITypeDefinition)@class;
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var cciInterfaces = typeDef.Interfaces(context)
                 .Select(impl => impl.TypeRef).Cast<NamedTypeSymbol>().AsImmutable();
             Assert.True(cciInterfaces.SetEquals(bothInterfaces, EqualityComparer<NamedTypeSymbol>.Default));

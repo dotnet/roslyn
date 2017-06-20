@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                         throw new ArgumentException(CodeAnalysisResources.NullValueInPathMap, nameof(pathMap));
                     }
 
-                    if (IsPathSeparator(key[key.Length - 1]))
+                    if (PathUtilities.IsAnyDirectorySeparator(key[key.Length - 1]))
                     {
                         throw new ArgumentException(CodeAnalysisResources.KeyInPathMapEndsWithSeparator, nameof(pathMap));
                     }
@@ -83,35 +83,7 @@ namespace Microsoft.CodeAnalysis
         public override string NormalizePath(string path, string baseFilePath)
         {
             string normalizedPath = FileUtilities.NormalizeRelativePath(path, baseFilePath, _baseDirectory);
-            return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : NormalizePathPrefix(normalizedPath, _pathMap);
-        }
-
-        private static string NormalizePathPrefix(string normalizedPath, ImmutableArray<KeyValuePair<string, string>> pathMap)
-        {
-            // find the first key in the path map that matches a prefix of the normalized path (followed by a path separator).
-            // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
-            foreach (var kv in pathMap)
-            {
-                var oldPrefix = kv.Key;
-                if (!(oldPrefix?.Length > 0)) continue;
-                if (normalizedPath.StartsWith(oldPrefix, StringComparison.Ordinal) && normalizedPath.Length > oldPrefix.Length && IsPathSeparator(normalizedPath[oldPrefix.Length]))
-                {
-                    var replacementPrefix = kv.Value;
-
-                    // Replace that prefix.
-                    var replacement = replacementPrefix + normalizedPath.Substring(oldPrefix.Length);
-
-                    // Normalize the path separators if used uniformly in the replacement
-                    bool hasSlash = replacementPrefix.IndexOf('/') >= 0;
-                    bool hasBackslash = replacementPrefix.IndexOf('\\') >= 0;
-                    return
-                        (hasSlash && !hasBackslash) ? replacement.Replace('\\', '/') :
-                        (hasBackslash && !hasSlash) ? replacement.Replace('/', '\\') :
-                        replacement;
-                }
-            }
-
-            return normalizedPath;
+            return (normalizedPath == null || _pathMap.IsDefaultOrEmpty) ? normalizedPath : PathUtilities.NormalizePathPrefix(normalizedPath, _pathMap);
         }
 
         public override string ResolveReference(string path, string baseFilePath)
@@ -123,12 +95,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return FileUtilities.TryNormalizeAbsolutePath(resolvedPath);
-        }
-
-        // For purposes of command-line processing, allow both \ and / to act as path separators.
-        internal static bool IsPathSeparator(char c)
-        {
-            return (c == '\\') || (c == '/');
         }
 
         public override Stream OpenRead(string resolvedPath)

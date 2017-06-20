@@ -210,18 +210,6 @@ namespace A.B {
                 options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 sourceLinkStream: new TestStream(canRead: false, canWrite: true, canSeek: true)));
 
-            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
-               peStream: new MemoryStream(),
-               pdbStream: new MemoryStream(),
-               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.Pdb),
-               sourceLinkStream: new MemoryStream()));
-
-            Assert.Throws<ArgumentException>("sourceLinkStream", () => comp.Emit(
-               peStream: new MemoryStream(),
-               pdbStream: null,
-               options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
-               sourceLinkStream: new MemoryStream()));
-
             Assert.Throws<ArgumentException>("embeddedTexts", () => comp.Emit(
                 peStream: new MemoryStream(),
                 pdbStream: new MemoryStream(),

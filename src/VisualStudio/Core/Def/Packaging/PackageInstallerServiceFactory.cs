@@ -56,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private bool _solutionChanged;
         private HashSet<ProjectId> _changedProjects = new HashSet<ProjectId>();
 
-        private readonly ConcurrentDictionary<ProjectId, Dictionary<string, string>> _projectToInstalledPackageAndVersion =
-            new ConcurrentDictionary<ProjectId, Dictionary<string, string>>();
+        private readonly ConcurrentDictionary<ProjectId, ProjectState> _projectToInstalledPackageAndVersion =
+            new ConcurrentDictionary<ProjectId, ProjectState>();
 
         [ImportingConstructor]
         public PackageInstallerService(
@@ -77,7 +77,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public event EventHandler PackageSourcesChanged;
 
-        public bool IsEnabled => _packageServices != null;
+        private bool IsEnabled => _packageServices != null;
+
+        bool IPackageInstallerService.IsEnabled(ProjectId projectId)
+        {
+            if (_packageServices == null)
+            {
+                return false;
+            }
+
+            if (_projectToInstalledPackageAndVersion.TryGetValue(projectId, out var state))
+            {
+                return state.IsEnabled;
+            }
+
+            // If we haven't scanned the project yet, assume that we're available for it.
+            return true;
+        }
 
         protected override void EnableService()
         {
@@ -270,10 +286,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
+            catch (ArgumentException e) when (IsKnownNugetIssue(e))
+            {
+                // Nuget may throw an ArgumentException when there is something about the project 
+                // they do not like/support.
+            }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                return null;
             }
+
+            return null;
+        }
+
+        private bool IsKnownNugetIssue(ArgumentException exception)
+        {
+            // See https://github.com/NuGet/Home/issues/4706
+            // Nuget throws on legal projects.  We do not want to report this exception
+            // as it is known (and NFWs are expensive), but we do want to report if we 
+            // run into anything else.
+            return exception.Message.Contains("is not a valid version string");
         }
 
         private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -388,8 +419,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private void ProcessProjectChange(Solution solution, ProjectId projectId)
         {
             this.AssertIsForeground();
+
             // Remove anything we have associated with this project.
-            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var installedPackages);
+            _projectToInstalledPackageAndVersion.TryRemove(projectId, out var projectState);
 
             var project = solution.GetProject(projectId);
             if (project == null)
@@ -416,26 +448,42 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            installedPackages = new Dictionary<string, string>();
+            var installedPackages = new MultiDictionary<string, string>();
+            var isEnabled = false;
 
             // Calling into NuGet.  Assume they may fail for any reason.
             try
             {
                 var installedPackageMetadata = _packageServices.GetInstalledPackages(dteProject);
-                installedPackages.AddRange(installedPackageMetadata.Select(m => new KeyValuePair<string, string>(m.Id, m.VersionString)));
+                foreach (var metadata in installedPackageMetadata)
+                {
+                    if (metadata.VersionString != null)
+                    {
+                        installedPackages.Add(metadata.Id, metadata.VersionString);
+                    }
+                }
+
+                isEnabled = true;
+            }
+            catch (ArgumentException e) when (IsKnownNugetIssue(e))
+            {
+                // Nuget may throw an ArgumentException when there is something about the project 
+                // they do not like/support.
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
             }
 
-            _projectToInstalledPackageAndVersion.AddOrUpdate(projectId, installedPackages, (_1, _2) => installedPackages);
+            var state = new ProjectState(isEnabled, installedPackages);
+            _projectToInstalledPackageAndVersion.AddOrUpdate(
+                projectId, state, (_1, _2) => state);
         }
 
         public bool IsInstalled(Workspace workspace, ProjectId projectId, string packageName)
         {
             ThisCanBeCalledOnAnyThread();
             return _projectToInstalledPackageAndVersion.TryGetValue(projectId, out var installedPackages) &&
-                installedPackages.ContainsKey(packageName);
+                installedPackages.InstalledPackageToVersion.ContainsKey(packageName);
         }
 
         public ImmutableArray<string> GetInstalledVersions(string packageName)
@@ -443,13 +491,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             ThisCanBeCalledOnAnyThread();
 
             var installedVersions = new HashSet<string>();
-            foreach (var installedPackages in _projectToInstalledPackageAndVersion.Values)
+            foreach (var state in _projectToInstalledPackageAndVersion.Values)
             {
-                string version = null;
-                if (installedPackages?.TryGetValue(packageName, out version) == true && version != null)
-                {
-                    installedVersions.Add(version);
-                }
+                installedVersions.AddRange(state.InstalledPackageToVersion[packageName]);
             }
 
             // Order the versions with a weak heuristic so that 'newer' versions come first.
@@ -494,16 +538,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             foreach (var kvp in this._projectToInstalledPackageAndVersion)
             {
-                var installedPackageAndVersion = kvp.Value;
-                if (installedPackageAndVersion != null)
+                var state = kvp.Value;
+                var versionSet = state.InstalledPackageToVersion[packageName];
+                if (versionSet.Contains(version))
                 {
-                    if (installedPackageAndVersion.TryGetValue(packageName, out var installedVersion) && installedVersion == version)
+                    var project = solution.GetProject(kvp.Key);
+                    if (project != null)
                     {
-                        var project = solution.GetProject(kvp.Key);
-                        if (project != null)
-                        {
-                            result.Add(project);
-                        }
+                        result.Add(project);
                     }
                 }
             }

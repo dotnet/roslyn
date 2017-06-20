@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (local.Type.IsRestrictedType())
                 {
-                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.ToDisplayString());
+                    diagnostics.Add(ErrorCode.ERR_ByRefTypeAndAwait, local.Locations[0], local.Type.TypeSymbol);
                 }
 
                 _locals.Add(local);
@@ -1041,7 +1041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.InitializerExpressionOpt == null);
             BoundSpillSequenceBuilder builder = null;
             var arguments = this.VisitExpressionList(ref builder, node.Arguments, node.ArgumentRefKindsOpt);
-            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.Type));
+            return UpdateExpression(builder, node.Update(node.Constructor, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.ConstantValueOpt, node.InitializerExpressionOpt, node.BinderOpt, node.Type));
         }
 
         public override BoundNode VisitPointerElementAccess(BoundPointerElementAccess node)

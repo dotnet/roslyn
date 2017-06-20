@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             ObsoleteAttributeData obsoleteData;
-            if (EarlyDecodeDeprecatedOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
+            if (EarlyDecodeDeprecatedOrExperimentalOrObsoleteAttribute(ref arguments, out boundAttribute, out obsoleteData))
             {
                 if (obsoleteData != null)
                 {

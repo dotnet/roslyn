@@ -157,7 +157,10 @@ End Class";
                 var project = workspace.CurrentSolution.Projects.First();
 
                 var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(new MyUpdateSource(workspace)).CreateService(workspace.Services);
-                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
+                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
                 var result = await executor.AnalyzeAsync(analyzerDriver, project, CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
@@ -175,7 +178,10 @@ End Class";
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
-            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
+            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
             var result = await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     }
                 }
 
-                edit.Apply();
+                edit.ApplyAndLogExceptions();
                 if (!edit.HasEffectiveChanges && !this.UndoStack.Any())
                 {
                     transaction.Cancel();

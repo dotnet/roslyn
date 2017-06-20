@@ -19,6 +19,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
             End If
 
+            If context.TargetToken.IsKind(SyntaxKind.DotToken) Then
+                Return SpecializedTasks.EmptyImmutableArray(Of ISymbol)()
+            End If
+
             Dim typeInferenceService = context.GetLanguageService(Of ITypeInferenceService)()
             Dim inferredType = typeInferenceService.InferType(context.SemanticModel, position, objectAsDefault:=True, cancellationToken:=cancellationToken)
             If inferredType Is Nothing Then

@@ -91,7 +91,7 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(x, y)", lhs.ToString());
-                Assert.Equal("(System.Int64, System.String)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int64 x, System.String y)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
 
                 var right = tree.GetRoot().DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
                 Assert.Equal(@"new C()", right.ToString());
@@ -1020,7 +1020,19 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var x = nodes.OfType<VariableDeclaratorSyntax>().ElementAt(2);
+
+                Assert.Equal("(System.Int32 x, System.Int32 y) z", model.GetDeclaredSymbol(x).ToTestDisplayString());
+            };
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
@@ -1043,6 +1055,110 @@ class C
   IL_0023:  pop
   IL_0024:  ret
 }");
+        }
+
+        [Fact]
+        public void ValueTupleReturnIsEmittedIfUsed_WithCSharp7_1()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        var z = ((x, y) = new C());
+        z.ToString();
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var x = nodes.OfType<VariableDeclaratorSyntax>().ElementAt(2);
+
+                Assert.Equal("(System.Int32 x, System.Int32 y) z", model.GetDeclaredSymbol(x).ToTestDisplayString());
+            };
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ValueTupleReturnMissingMemberWithCSharp7()
+        {
+            string source = @"
+class C
+{
+    public void M()
+    {
+        int x, y;
+        var nested = ((x, y) = (1, 2));
+        System.Console.Write(nested.x);
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            comp.VerifyDiagnostics(
+                // (8,37): error CS8305: Tuple element name 'x' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
+                //         System.Console.Write(nested.x);
+                Diagnostic(ErrorCode.ERR_TupleInferredNamesNotAvailable, "x").WithArguments("x", "7.1").WithLocation(8, 37)
+                );
+        }
+
+        [Fact]
+        public void ValueTupleReturnWithInferredNamesWithCSharp7_1()
+        {
+            string source = @"
+class C
+{
+    public void M()
+    {
+        int x, y, Item1, Rest;
+        var a = ((x, y) = (1, 2));
+        var b = ((x, x) = (1, 2));
+        var c = ((_, x) = (1, 2));
+        var d = ((Item1, Rest) = (1, 2));
+        var nested = ((x, Item1, y, (_, x, x), (x, y)) = (1, 2, 3, (4, 5, 6), (7, 8)));
+        (int, int) f = ((x, y) = (1, 2));
+    }
+}
+";
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+                var declarations = nodes.OfType<VariableDeclaratorSyntax>();
+                Assert.Equal("(System.Int32 x, System.Int32 y) a", model.GetDeclaredSymbol(declarations.ElementAt(4)).ToTestDisplayString());
+
+                Assert.Equal("(System.Int32, System.Int32) b", model.GetDeclaredSymbol(declarations.ElementAt(5)).ToTestDisplayString());
+
+                Assert.Equal("(System.Int32, System.Int32 x) c", model.GetDeclaredSymbol(declarations.ElementAt(6)).ToTestDisplayString());
+
+                Assert.Equal("(System.Int32, System.Int32) d", model.GetDeclaredSymbol(declarations.ElementAt(7)).ToTestDisplayString());
+
+                Assert.Equal("(System.Int32 x, System.Int32, System.Int32 y, (System.Int32, System.Int32, System.Int32), (System.Int32 x, System.Int32 y)) nested",
+                    model.GetDeclaredSymbol(declarations.ElementAt(8)).ToTestDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -1273,25 +1389,31 @@ class C
             string source = @"
 class C
 {
+    static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
+    static ref int z { get { return ref field; } }
 
     static void Main()
     {
-        (x, y) = new C();
+        (x, y, z) = new C();
         System.Console.WriteLine(y);
+        System.Console.WriteLine($""field: {field}"");
     }
 
-    public void Deconstruct(out int a, out string b)
+    public void Deconstruct(out int a, out string b, out int c)
     {
         a = 1;
         b = ""hello"";
+        c = 2;
     }
 }
 ";
             string expected =
 @"setX 1
-hello";
+hello
+field: 2
+";
             var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
         }
@@ -1302,21 +1424,216 @@ hello";
             string source = @"
 class C
 {
+    static int field;
     static long x { set { System.Console.WriteLine($""setX {value}""); } }
     static string y { get; set; }
+    static ref int z { get { return ref field; } }
 
     static void Main()
     {
-        (x, y) = (1, ""hello"");
+        (x, y, z) = (1, ""hello"", 2);
         System.Console.WriteLine(y);
+        System.Console.WriteLine($""field: {field}"");
     }
 }
 ";
             string expected =
 @"setX 1
-hello";
+hello
+field: 2
+";
             var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(18554, "https://github.com/dotnet/roslyn/issues/18554")]
+        public void AssigningIntoIndexers()
+        {
+            string source = @"
+using System;
+class C
+{
+    int field;
+    ref int this[int x, int y, int z, int opt = 1]
+    {
+        get
+        {
+            Console.WriteLine($""this.get"");
+            return ref field;
+        }
+    }
+
+    int this[int x, long y, int z, int opt = 1]
+    {
+        set
+        {
+            Console.WriteLine($""this.set({value})"");
+        }
+    }
+
+    int M(int i)
+    {
+        Console.WriteLine($""M({i})"");
+        return 0;
+    }
+
+    void Test()
+    {
+        (this[z: M(1), x: M(2), y: 10], this[z: M(3), x: M(4), y: 10L]) = this;
+        Console.WriteLine($""field: {field}"");
+    }
+
+    static void Main()
+    {
+        new C().Test();
+    }
+
+    void Deconstruct(out int a, out int b)
+    {
+        Console.WriteLine(nameof(Deconstruct));
+        a = 1;
+        b = 2;
+    }
+}
+";
+
+            var expectedOutput =
+@"M(1)
+M(2)
+this.get
+M(3)
+M(4)
+Deconstruct
+this.set(2)
+field: 1
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(18554, "https://github.com/dotnet/roslyn/issues/18554")]
+        public void AssigningTupleIntoIndexers()
+        {
+            string source = @"
+using System;
+class C
+{
+    int field;
+    ref int this[int x, int y, int z, int opt = 1]
+    {
+        get
+        {
+            Console.WriteLine($""this.get"");
+            return ref field;
+        }
+    }
+
+    int this[int x, long y, int z, int opt = 1]
+    {
+        set
+        {
+            Console.WriteLine($""this.set({value})"");
+        }
+    }
+
+    int M(int i)
+    {
+        Console.WriteLine($""M({i})"");
+        return 0;
+    }
+
+    void Test()
+    {
+        (this[z: M(1), x: M(2), y: 10], this[z: M(3), x: M(4), y: 10L]) = (1, 2);
+        Console.WriteLine($""field: {field}"");
+    }
+
+    static void Main()
+    {
+        new C().Test();
+    }
+}
+";
+
+            var expectedOutput =
+@"M(1)
+M(2)
+this.get
+M(3)
+M(4)
+this.set(2)
+field: 1
+";
+            var comp = CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssigningIntoIndexerWithOptionalValueParameter()
+        {
+            var ilSource = @"
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (
+        01 00 04 49 74 65 6d 00 00
+    )
+    .method public hidebysig specialname 
+        instance void set_Item (
+            int32 i,
+            [opt] int32 'value'
+        ) cil managed 
+    {
+        .param [2] = int32(1)
+        .maxstack 8
+        IL_0000: ldstr ""this.set({0})""
+        IL_0005: ldarg.2            
+        IL_0006: box[mscorlib]System.Int32 
+        IL_000b: call string[mscorlib] System.String::Format(string, object) 
+        IL_0010: call void [mscorlib]System.Console::WriteLine(string) 
+        IL_0015: ret                
+        } // end of method C::set_Item
+
+    .method public hidebysig specialname rtspecialname 
+        instance void .ctor () cil managed 
+    {
+        .maxstack 8
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor() 
+        IL_0006: ret
+    } // end of method C::.ctor
+    .property instance int32 Item(
+        int32 i
+    )
+    {
+        .set instance void C::set_Item(int32, int32)
+    }
+
+} // end of class C
+";
+
+            var source = @"
+class Program
+{
+
+    static void Main()
+    {
+        var c = new C();
+        (c[1], c[2]) = (1, 2);
+    }
+}
+";
+
+            string expectedOutput =
+@"this.set(1)
+this.set(2)
+";
+
+            var comp = CreateCompilationWithCustomILSource(source, ilSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1759,7 +2076,7 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(x, (y, z))", lhs.ToString());
-                Assert.Equal("(System.Int32, (System.String, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x, (System.String y, System.String z))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator);
@@ -2105,7 +2422,7 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().First();
                 Assert.Equal(@"var (x1, (x2, x3))", lhs.ToString());
-                Assert.Equal("(System.Int32, (System.Int32, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhs).Symbol);
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<ParenthesizedVariableDesignationSyntax>().ElementAt(1);
@@ -2127,6 +2444,108 @@ class C
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedVarDeconstructionDeclaration_WithCSharp7_1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (int x1, var (x2, (x3, x4)), var x5) = (1, (2, (3, ""hello"")), 5);
+        System.Console.WriteLine($""{x1} {x2} {x3} {x4} {x5}"");
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(int x1, var (x2, (x3, x4)), var x5)", lhs.ToString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, (System.Int32 x3, System.String x4)), System.Int32 x5)",
+                    model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(lhs).Symbol);
+
+                var x234 = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
+                Assert.Equal(@"var (x2, (x3, x4))", x234.ToString());
+                Assert.Equal("(System.Int32 x2, (System.Int32 x3, System.String x4))", model.GetTypeInfo(x234).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(x234).Symbol);
+
+                var x34 = tree.GetRoot().DescendantNodes().OfType<ParenthesizedVariableDesignationSyntax>().ElementAt(1);
+                Assert.Equal(@"(x3, x4)", x34.ToString());
+                Assert.Null(model.GetTypeInfo(x34).Type);
+                Assert.Null(model.GetSymbolInfo(x34).Symbol);
+
+                var x1 = GetDeconstructionVariable(tree, "x1");
+                var x1Ref = GetReference(tree, "x1");
+                VerifyModelForDeconstructionLocal(model, x1, x1Ref);
+
+                var x2 = GetDeconstructionVariable(tree, "x2");
+                var x2Ref = GetReference(tree, "x2");
+                VerifyModelForDeconstructionLocal(model, x2, x2Ref);
+
+                var x3 = GetDeconstructionVariable(tree, "x3");
+                var x3Ref = GetReference(tree, "x3");
+                VerifyModelForDeconstructionLocal(model, x3, x3Ref);
+
+                var x4 = GetDeconstructionVariable(tree, "x4");
+                var x4Ref = GetReference(tree, "x4");
+                VerifyModelForDeconstructionLocal(model, x4, x4Ref);
+
+                var x5 = GetDeconstructionVariable(tree, "x5");
+                var x5Ref = GetReference(tree, "x5");
+                VerifyModelForDeconstructionLocal(model, x5, x5Ref);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3 hello 5", additionalRefs: s_valueTupleRefs,
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedVarDeconstructionAssignment_WithCSharp7_1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x1, x2, x3;
+        (x1, (x2, x3)) = (1, (2, 3));
+        System.Console.WriteLine($""{x1} {x2} {x3}"");
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var x123 = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal(@"(x1, (x2, x3))", x123.ToString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.Int32 x3))",
+                    model.GetTypeInfo(x123).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(x123).Symbol);
+
+                var x23 = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+                Assert.Equal(@"(x2, x3)", x23.ToString());
+                Assert.Equal("(System.Int32 x2, System.Int32 x3)", model.GetTypeInfo(x23).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(x23).Symbol);
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: s_valueTupleRefs,
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
             comp.VerifyDiagnostics();
         }
 
@@ -2153,12 +2572,12 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal("(var x1, var (x2, x3))", lhs.ToString());
-                Assert.Equal("(System.Int32, (System.Int32, System.String))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x1, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhs).Symbol);
 
                 var lhsNested = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
                 Assert.Equal("var (x2, x3)", lhsNested.ToString());
-                Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32 x2, System.String x3)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(lhsNested).Symbol);
 
                 var x1 = GetDeconstructionVariable(tree, "x1");
@@ -2175,6 +2594,43 @@ class C
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2 hello", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedVarDeconstructionDeclarationWithCSharp7_1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (var x1, byte _, var (x2, x3)) = (1, 2, (3, ""hello""));
+        System.Console.WriteLine(x1 + "" "" + x2 + "" "" + x3);
+    }
+}
+";
+
+            Action<ModuleSymbol> validator = (ModuleSymbol module) =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                var tree = compilation.SyntaxTrees.First();
+                var model = compilation.GetSemanticModel(tree);
+
+                var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+                Assert.Equal("(var x1, byte _, var (x2, x3))", lhs.ToString());
+                Assert.Equal("(System.Int32 x1, System.Byte, (System.Int32 x2, System.String x3))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(lhs).Symbol);
+
+                var lhsNested = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(2);
+                Assert.Equal("var (x2, x3)", lhsNested.ToString());
+                Assert.Equal("(System.Int32 x2, System.String x3)", model.GetTypeInfo(lhsNested).Type.ToTestDisplayString());
+                Assert.Null(model.GetSymbolInfo(lhsNested).Symbol);
+            };
+
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             comp.VerifyDiagnostics();
         }
 
@@ -2276,7 +2732,7 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(string x1, byte x2, var x3)", lhs.ToString());
-                Assert.Equal("(System.String, System.Byte, System.Int32)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.String x1, System.Byte x2, System.Int32 x3)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
 
                 var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
                 Assert.Equal(@"(null, 2, 3)", literal.ToString());
@@ -2312,7 +2768,7 @@ class C
 
                 var lhs = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
                 Assert.Equal(@"(string x1, var x2)", lhs.ToString());
-                Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
+                Assert.Equal("(System.String x1, (System.Int32, System.Int32) x2)", model.GetTypeInfo(lhs).Type.ToTestDisplayString());
 
                 var literal = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
                 Assert.Equal(@"(null, (1, 2))", literal.ToString());
@@ -2869,11 +3325,16 @@ class C
                 // extra check on var
                 var x12Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
                 Assert.Equal("var", x12Var.Type.ToString());
+                Assert.Equal("(System.Int32 x1, System.Int32 x2)", model.GetTypeInfo(x12Var).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(x12Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
             };
 
             var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs, sourceSymbolValidator: validator);
             comp.VerifyDiagnostics();
+
+            var comp7_1 = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: s_valueTupleRefs,
+                sourceSymbolValidator: validator, parseOptions: TestOptions.Regular7_1);
+            comp7_1.VerifyDiagnostics();
 
             comp.VerifyIL("C.Main",
 @"{
@@ -4549,7 +5010,7 @@ System.Console.Write($""{x1} {x2} {x3}"");
             // extra check on var
             var x123Var = (DeclarationExpressionSyntax)x1.Parent.Parent;
             Assert.Equal("var", x123Var.Type.ToString());
-            Assert.Null(model.GetTypeInfo(x123Var.Type).Type); 
+            Assert.Null(model.GetTypeInfo(x123Var.Type).Type);
             Assert.Null(model.GetSymbolInfo(x123Var.Type).Symbol); // The var in `var (x1, x2)` has no symbol
         }
 
@@ -4735,7 +5196,7 @@ class C
             var discard3 = GetDiscardDesignations(tree).ElementAt(2);
             var declaration3 = (DeclarationExpressionSyntax)discard3.Parent.Parent;
             Assert.Equal("var (_, z)", declaration3.ToString());
-            Assert.Equal("(C, System.Int32)", model.GetTypeInfo(declaration3).Type.ToTestDisplayString());
+            Assert.Equal("(C, System.Int32 z)", model.GetTypeInfo(declaration3).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(declaration3).Symbol);
         }
 
@@ -4811,6 +5272,36 @@ class C
             var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
             Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
             Assert.Equal("System.Int32", model.GetTypeInfo(discard).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void EscapedUnderscoreInDeclaration()
+        {
+            var source =
+@"
+class C
+{
+    static void Main()
+    {
+        (@_, var x) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0103: The name '_' does not exist in the current context
+                //         (@_, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "@_").WithArguments("_").WithLocation(6, 10),
+                // (6,9): error CS8184: A deconstruction cannot mix declarations and expressions on the left-hand-side.
+                //         (@_, var x) = (1, 2);
+                Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(@_, var x)").WithLocation(6, 9)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            Assert.Empty(GetDiscardIdentifiers(tree));
         }
 
         [Fact]
@@ -4919,7 +5410,7 @@ class C
 
             var tuple1 = (TupleExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("(_, x)", tuple1.ToString());
-            Assert.Equal("(System.Int64, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.Int32 x)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(tuple1).Symbol);
         }
 
@@ -4949,7 +5440,7 @@ class C
             Assert.Null(model.GetDeclaredSymbol(discard1));
             var tuple1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", tuple1.ToString());
-            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32 x)", model.GetTypeInfo(tuple1).Type.ToTestDisplayString());
         }
 
         [Fact]
@@ -5009,7 +5500,7 @@ class C
             var declaration1 = (DeclarationExpressionSyntax)discard1.Parent.Parent;
             Assert.Equal("var (_, x)", declaration1.ToString());
             Assert.Null(model.GetTypeInfo(discard1).Type);
-            Assert.Equal("(System.Int32, System.String)", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String x)", model.GetTypeInfo(declaration1).Type.ToTestDisplayString());
 
             IdentifierNameSyntax discard2 = GetDiscardIdentifiers(tree).First();
             Assert.Equal("(_, (var y, int z))", discard2.Parent.Parent.ToString());
@@ -5018,7 +5509,7 @@ class C
 
             var yz = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
             Assert.Equal("(var y, int z)", yz.ToString());
-            Assert.Equal("(System.String, System.Int32)", model.GetTypeInfo(yz).Type.ToTestDisplayString());
+            Assert.Equal("(System.String y, System.Int32 z)", model.GetTypeInfo(yz).Type.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(yz).Symbol);
 
             var y = tree.GetRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ElementAt(1);
@@ -5265,10 +5756,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(21, 15),
                 // (12,17): warning CS0162: Unreachable code detected
                 //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17),
-                // (17,17): warning CS0162: Unreachable code detected
-                //                 break;
-                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(17, 17)
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
                 );
         }
 
@@ -5391,7 +5879,11 @@ class C
 ";
 
             var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,26): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (M(out var x).P, x) = (1, x);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(6, 26)
+                );
             CompileAndVerify(comp, expectedOutput: "Written 1. 42");
         }
 
@@ -5515,12 +6007,12 @@ System.Console.Write($""{x3}"");
                 Assert.Equal("var (_, x3)", nestedDeclaration.ToString());
                 Assert.Null(model.GetDeclaredSymbol(nestedDeclaration));
                 Assert.Null(model.GetDeclaredSymbol(discard2));
-                Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(nestedDeclaration).Type.ToTestDisplayString());
+                Assert.Equal("(System.Int32, System.Int32 x3)", model.GetTypeInfo(nestedDeclaration).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(nestedDeclaration).Symbol);
 
                 var tuple = (TupleExpressionSyntax)discard2.Parent.Parent.Parent.Parent;
                 Assert.Equal("(var _, var (_, x3))", tuple.ToString());
-                Assert.Equal("(System.String, (System.Int32, System.Int32))", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+                Assert.Equal("(System.String, (System.Int32, System.Int32 x3))", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
                 Assert.Null(model.GetSymbolInfo(tuple).Symbol);
             };
 
@@ -6163,7 +6655,7 @@ public class MyClass
                 Diagnostic(ErrorCode.ERR_MustDeclareForeachIteration, "(arr[out int size], int b)").WithLocation(9, 18)
                 );
         }
-        
+
         [Fact]
         [WorkItem(16962, "https://github.com/dotnet/roslyn/issues/16962")]
         public void Events_01()
@@ -6576,6 +7068,183 @@ class C
             var verifier = CompileAndVerify(comp, expectedOutput: "3");
         }
 
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static object y = 2;
+    void M()
+    {
+        ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (8,11): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(8, 11),
+                // (8,18): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "this.x").WithLocation(8, 18),
+                // (8,26): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         ((x, x), this.x, C.y) = ((x, (1, 2)), x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "C.y").WithLocation(8, 26)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment2()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static object y = 2;
+    void M()
+    {
+        object z = 3;
+        (x, (y, z)) = (x, (y, z));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, (y, z));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x"),
+                // (9,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, (y, z));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "y").WithLocation(9, 14),
+                // (9,17): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, (y, z));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "z").WithLocation(9, 17)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithUserDefinedConversionOnElement()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static C y = null;
+    void M()
+    {
+        (x, y) = (x, (C)(D)y);
+    }
+    public static implicit operator C(D d) => null;
+}
+class D
+{
+    public static implicit operator D(C c) => null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (8,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, y) = (x, (C)(D)y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(8, 10)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithNestedConversions()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    int y = 2;
+    byte b = 3;
+    void M()
+    {
+        // The conversions on the right-hand-side:
+        // - a deconstruction conversion
+        // - an implicit tuple literal conversion on the entire right-hand-side
+        // - another implicit tuple literal conversion on the nested tuple
+        // - a conversion on element `b`
+        (_, (x, y)) = (1, (x, b));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (14,14): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (_, (x, y)) = (1, (x, b));
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(14, 14)
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithExplicitTupleConversion()
+        {
+            var source =
+@"
+class C
+{
+    int y = 2;
+    byte b = 3;
+    void M()
+    {
+        // The conversions on the right-hand-side:
+        // - a deconstruction conversion on the entire right-hand-side
+        // - an identity conversion as its operand
+        // - an explicit tuple literal conversion as its operand
+        (y, _) = ((int, int))(y, b);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void DeconstructionWarnsForSelfAssignment_WithDeconstruct()
+        {
+            var source =
+@"
+class C
+{
+    object x = 1;
+    static object y = 2;
+    void M()
+    {
+        object z = 3;
+        (x, (y, z)) = (x, y);
+    }
+}
+static class Extensions
+{
+    public static void Deconstruct(this object input, out object output1, out object output2)
+    {
+        output1 = input;
+        output2 = input;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics(
+                // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
+                //         (x, (y, z)) = (x, y);
+                Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(9, 10)
+                );
+        }
+
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]
         public void TestDiscardedAssignmentNotLvalue()
         {
@@ -6601,6 +7270,101 @@ class Program
 ";
             string expectedOutput = @"1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        var (a, b) = ((byte, byte))t;
+        System.Console.Write($""{a} {b}"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"1 2", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var t = (new C(), new D());
+        var (a, _) = ((byte, byte))t;
+        System.Console.Write($""{a}"");
+    }
+    public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
+}
+class D
+{
+    public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
+}";
+            CompileAndVerify(source, expectedOutput: @"Convert Convert2 1", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction3()
+        {
+            var source = @"
+class C
+{
+    static int A { set { System.Console.Write(""A ""); } }
+    static int B { set { System.Console.Write(""B""); } }
+    static void Main()
+    {
+        (A, B) = ((byte, byte))(new C(), new D());
+    }
+    public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
+    public C() { System.Console.Write(""C ""); }
+}
+class D
+{
+    public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
+    public D() { System.Console.Write(""D ""); }
+}";
+            CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 A B", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction4()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var (a, _) = ((short, short))((int, int))(1L, 2L);
+        System.Console.Write($""{a}"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"1", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void UserDefinedCastInDeconstruction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        var (a, b) = ((byte, byte))c;
+        System.Console.Write($""{a} {b}"");
+    }
+    public static explicit operator (byte, byte)(C c)
+    {
+        return (3, 4);
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"3 4", additionalRefs: s_valueTupleRefs);
         }
     }
 }

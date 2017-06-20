@@ -11,7 +11,9 @@
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CompilerServer.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>UnitTest</RoslynProjectType>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
@@ -20,11 +22,6 @@
     <ProjectReference Include="..\..\..\Test\Utilities\Portable\TestUtilities.csproj">
       <Project>{ccbd3438-3e84-40a9-83ad-533f23bcfca5}</Project>
       <Name>TestUtilities</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Core\MSBuildTask\MSBuildTask.csproj">
-      <Project>{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}</Project>
-      <Name>MSBuildTask</Name>
-      <Aliases>MSBuildTask</Aliases>
     </ProjectReference>
     <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
       <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
@@ -68,6 +65,21 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
+    <PackageReference Include="Microsoft.DiaSymReader">
+      <Version>$(MicrosoftDiaSymReaderVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="Moq">
+      <Version>$(MoqVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit">
+      <Version>$(xunitVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.console">
+      <Version>$(xunitrunnerconsoleVersion)</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>$(xunitrunnervisualstudioVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnalyzerConsistencyCheckerTests.cs" />
@@ -80,7 +92,6 @@
     <Compile Include="DesktopBuildServerControllerTests.cs" />
     <Compile Include="EndToEndDeterminismTest.cs" />
     <Compile Include="VBCSCompilerServerTests.cs" />
-    <Compile Include="MockEngine.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
     <Compile Include="ServerUtil.cs" />
     <Compile Include="TestableCompilerServerHost.cs" />
@@ -88,9 +99,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

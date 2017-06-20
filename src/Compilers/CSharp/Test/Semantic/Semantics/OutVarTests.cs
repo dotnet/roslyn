@@ -1015,6 +1015,7 @@ public class Cls
 
             var typeInfo = model.GetTypeInfo(decl);
             Assert.Equal(expectedType, typeInfo.Type);
+            Assert.Equal(expectedType, model.GetOperationInternal(decl)?.Type);
 
             // Note: the following assertion is not, in general, correct for declaration expressions,
             // even though this helper is used to handle declaration expressions.
@@ -32238,12 +32239,12 @@ class C
                 // (11,18): error CS0150: A constant value is expected
                 //             case M(nameof(M(out var z2)), z2):
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "M(nameof(M(out var z2)), z2)").WithLocation(11, 18),
-                // (8,43): error CS0165: Use of unassigned local variable 'z1'
-                //             case M(nameof(M(out int z1)), z1):
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z1").WithArguments("z1").WithLocation(8, 43),
-                // (11,43): error CS0165: Use of unassigned local variable 'z2'
-                //             case M(nameof(M(out var z2)), z2):
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "z2").WithArguments("z2").WithLocation(11, 43)
+                // (9,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(z1);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(9, 17),
+                // (12,17): warning CS0162: Unreachable code detected
+                //                 System.Console.WriteLine(z2);
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "System").WithLocation(12, 17)
                 );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -32771,6 +32772,53 @@ class C
         }
 
         [Fact]
+        [WorkItem(445600, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=445600")]
+        public void GetEnclosingBinderInternalRecovery_11()
+        {
+            var text = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        foreach 
+        other(some().F(a => TestOutVar(out var x) ? x : 1));
+    }
+
+    static void TestOutVar(out int a)
+    {
+        a = 0;
+    }
+}
+";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics(
+                // (6,16): error CS1003: Syntax error, '(' expected
+                //         foreach 
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(", "").WithLocation(6, 16),
+                // (7,60): error CS1515: 'in' expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InExpected, ";").WithLocation(7, 60),
+                // (7,60): error CS0230: Type and identifier are both required in a foreach statement
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_BadForeachDecl, ";").WithLocation(7, 60),
+                // (7,60): error CS1525: Invalid expression term ';'
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(7, 60),
+                // (7,60): error CS1026: ) expected
+                //         other(some().F(a => TestOutVar(out var x) ? x : 1));
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(7, 60)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var xDecl = GetOutVarDeclaration(tree, "x");
+            var xRef = GetReferences(tree, "x", 1);
+            VerifyModelForOutVarWithoutDataFlow(model, xDecl, xRef);
+            Assert.Equal("System.Int32", compilation.GetSemanticModel(tree).GetTypeInfo(xRef[0]).Type.ToTestDisplayString());
+        }
+
+        [Fact]
         [WorkItem(17208, "https://github.com/dotnet/roslyn/issues/17208")]
         public void ErrorRecoveryShouldIgnoreNonDelegates()
         {
@@ -32911,6 +32959,43 @@ public class C
             Assert.Equal("System.Object", info.ElementType.ToTestDisplayString());
             Assert.Equal("System.Collections.Generic.IEnumerator<System.Object> System.Collections.Generic.IEnumerable<System.Object>.GetEnumerator()",
                 info.GetEnumeratorMethod.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(19382, "https://github.com/dotnet/roslyn/issues/19382")]
+        public void DiscardAndArgList()
+        {
+            var text = @"
+using System;
+public class C
+{
+    static void Main()
+    {
+        M(out _, __arglist(2, 3, true));
+    }
+    
+    static void M(out int x, __arglist)
+    {    
+        x = 0;
+        DumpArgs(new ArgIterator(__arglist));
+    }
+
+    static void DumpArgs(ArgIterator args)
+    {
+        while(args.GetRemainingCount() > 0)
+        {
+            TypedReference tr = args.GetNextArg();
+            object arg = TypedReference.ToObject(tr);
+            Console.Write(arg);
+        }
+    }
+}";
+            var compilation = CreateStandardCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                );
+
+            CompileAndVerify(compilation, expectedOutput: "23True");
         }
     }
 

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerRefOutDifference: true,
             considerCallingConvention: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// Same as <see cref="ExplicitImplementationComparer"/> except that it specially treats nullable types.  
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerRefOutDifference: true,
             considerCallingConvention: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic,
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames,
             useSpecialHandlingForNullableTypes: true);
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// This instance is used as a fallback when it is determined that one member does not implicitly implement
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic); //shouldn't actually matter for source members
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames); //shouldn't actually matter for source members
 
         /// <summary>
         /// This instance is used to determine if two C# member declarations in source conflict with each other.
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false,
             considerRefOutDifference: false,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic); //shouldn't actually matter for source members
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames); //shouldn't actually matter for source members
 
         /// <summary>
         /// This instance is used to check whether one member overrides another, according to the C# definition.
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// Same as <see cref="CSharpOverrideComparer"/> except that it specially treats nullable types.  
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic,
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames,
             useSpecialHandlingForNullableTypes: true);
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// Same as <see cref="CSharpOverrideComparer"/> except that it pays attention to custom modifiers and return type.  
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// Same as <see cref="CSharpCustomModifierOverrideComparer"/> except that it specially treats nullable types.  
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreDynamic,
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames,
             useSpecialHandlingForNullableTypes: true);
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefOutDifference: false,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// This instance is intended to reflect the definition of signature equality used by the runtime 
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: true,
             considerRefOutDifference: false,
-            typeComparison: TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// Same as <see cref="RuntimeSignatureComparer"/>, but distinguishes between <c>ref</c> and <c>out</c>. During override resolution,
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: true,
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// This instance is the same as RuntimeSignatureComparer.
@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false, // constraints are checked by caller instead
             considerCallingConvention: true,
             considerRefOutDifference: false,
-            typeComparison: TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// This instance is used to search for members that have identical signatures in every regard.
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: true,
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreDynamic); //if it was a true explicit impl, we expect it to remain so after retargeting
+            typeComparison: TypeCompareKind.IgnoreDynamicAndTupleNames); //if it was a true explicit impl, we expect it to remain so after retargeting
 
         /// <summary>
         /// This instance is used for performing approximate overload resolution of documentation
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             considerTypeConstraints: false,
             considerCallingConvention: false, //ignore static-ness
             considerRefOutDifference: true,
-            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamic);
+            typeComparison: TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds | TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         // Compare the "unqualified" part of the member name (no explicit part)
         private readonly bool _considerName;

@@ -40,6 +40,14 @@ namespace Microsoft.CodeAnalysis.Semantics
             }
         }
 
+        internal override void VisitNoneOperation(IOperation operation)
+        {
+            if (operation is IOperationWithChildren operationWithChildren)
+            {
+                VisitArray(operationWithChildren.Children);
+            }
+        }
+
         public override void VisitBlockStatement(IBlockStatement operation)
         {
             VisitArray(operation.Statements);
@@ -337,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitObjectCreationExpression(IObjectCreationExpression operation)
         {
             VisitArray(operation.ArgumentsInEvaluationOrder);
-            VisitArray(operation.MemberInitializers);
+            VisitArray(operation.Initializers);
         }
 
         public override void VisitFieldInitializer(IFieldInitializer operation)

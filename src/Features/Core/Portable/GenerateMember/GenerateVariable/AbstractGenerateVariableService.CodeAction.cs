@@ -46,11 +46,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 _equivalenceKey = Title;
             }
 
-            protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
+            protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
+                var solution = _document.Project.Solution;
                 var syntaxTree = _document.SyntaxTree;
                 var generateUnsafe = _state.TypeMemberType.IsUnsafe() &&
                                      !_state.IsContainedInUnsafeType;
+
+                var otions = new CodeGenerationOptions(
+                    afterThisLocation: _state.AfterThisLocation,
+                    beforeThisLocation: _state.BeforeThisLocation,
+                    contextLocation: _state.IdentifierToken.GetLocation());
 
                 if (_generateProperty)
                 {
@@ -59,45 +65,35 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                         ? null 
                         : CreateAccessor(DetermineMinimalAccessibility(_state), cancellationToken);
 
-                    var result = await CodeGenerator.AddPropertyDeclarationAsync(
-                        _document.Project.Solution,
-                        _state.TypeToGenerateIn,
-                        CodeGenerationSymbolFactory.CreatePropertySymbol(
-                            attributes: default(ImmutableArray<AttributeData>),
-                            accessibility: DetermineMaximalAccessibility(_state),
-                            modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
-                            type: _state.TypeMemberType,
-                            returnsByRef: _returnsByRef,
-                            explicitInterfaceSymbol: null,
-                            name: _state.IdentifierToken.ValueText,
-                            isIndexer: _state.IsIndexer,
-                            parameters: _state.Parameters,
-                            getMethod: getAccessor,
-                            setMethod: setAccessor),
-                        new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
-                        cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                    var propertySymbol = CodeGenerationSymbolFactory.CreatePropertySymbol(
+                        attributes: default(ImmutableArray<AttributeData>),
+                        accessibility: DetermineMaximalAccessibility(_state),
+                        modifiers: new DeclarationModifiers(isStatic: _state.IsStatic, isUnsafe: generateUnsafe),
+                        type: _state.TypeMemberType,
+                        returnsByRef: _returnsByRef,
+                        explicitInterfaceImplementations: default,
+                        name: _state.IdentifierToken.ValueText,
+                        isIndexer: _state.IsIndexer,
+                        parameters: _state.Parameters,
+                        getMethod: getAccessor,
+                        setMethod: setAccessor);
 
-                    return result;
+                    return CodeGenerator.AddPropertyDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, propertySymbol, otions, cancellationToken);
                 }
                 else
                 {
-                    var result = await CodeGenerator.AddFieldDeclarationAsync(
-                        _document.Project.Solution,
-                        _state.TypeToGenerateIn,
-                        CodeGenerationSymbolFactory.CreateFieldSymbol(
-                            attributes: default(ImmutableArray<AttributeData>),
-                            accessibility: DetermineMinimalAccessibility(_state),
-                            modifiers: _isConstant ?
-                                new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe) :
-                                new DeclarationModifiers(isStatic: _state.IsStatic, isReadOnly: _isReadonly, isUnsafe: generateUnsafe),
-                            type: _state.TypeMemberType,
-                            name: _state.IdentifierToken.ValueText),
-                        new CodeGenerationOptions(contextLocation: _state.IdentifierToken.GetLocation()),
-                        cancellationToken: cancellationToken)
-                        .ConfigureAwait(false);
+                    var fieldSymbol = CodeGenerationSymbolFactory.CreateFieldSymbol(
+                        attributes: default(ImmutableArray<AttributeData>),
+                        accessibility: DetermineMinimalAccessibility(_state),
+                        modifiers: _isConstant
+                            ? new DeclarationModifiers(isConst: true, isUnsafe: generateUnsafe)
+                            : new DeclarationModifiers(isStatic: _state.IsStatic, isReadOnly: _isReadonly, isUnsafe: generateUnsafe),
+                        type: _state.TypeMemberType,
+                        name: _state.IdentifierToken.ValueText);
 
-                    return result;
+                    return CodeGenerator.AddFieldDeclarationAsync(
+                        solution, _state.TypeToGenerateIn, fieldSymbol, otions, cancellationToken);
                 }
             }
 

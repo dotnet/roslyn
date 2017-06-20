@@ -1,17 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ProjectGuid>{76242A2D-2600-49DD-8C15-FEA07ECB1843}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.ResultProvider</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
-    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
-    <ProjectTypeGuids>{14182A97-F7F0-4C62-8B27-98AA8AE2109A};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
+    <TargetFramework>netstandard1.3</TargetFramework>
+    <!-- Package Microsoft.VisualStudio.Debugger.Engine 15.0.26201-gamma is not compatible with netstandard1.3 -->
+    <PackageTargetFallback>portable-net45+win8</PackageTargetFallback>
+    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
+    <NoWarn>$(NoWarn);40057</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -42,7 +43,8 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine" Version="$(MicrosoftVisualStudioDebuggerEngineVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Metadata" Version="$(MicrosoftVisualStudioDebuggerMetadataVersion)" />
   </ItemGroup>
   <Import Project="..\BasicResultProvider.projitems" Label="Shared" />
   <Import Project="..\..\..\..\..\..\build\Targets\Vsdconfig.targets" />

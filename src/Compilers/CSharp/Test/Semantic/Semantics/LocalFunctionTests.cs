@@ -3090,5 +3090,52 @@ class Test : System.Attribute
             Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
         }
+
+        [Fact]
+        [WorkItem(19778, "https://github.com/dotnet/roslyn/issues/19778")]
+        public void BindDynamicInvocation()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void M()
+    {
+        dynamic L<T>(Func<dynamic, T> t, object p) => p;
+        L(m => L(d => d, null), null);
+        L(m => L(d => d, m), null);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            comp.VerifyEmitDiagnostics(
+                // (8,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+                //         L(m => L(d => d, m), null);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "d => d").WithLocation(8, 18));
+        }
+
+        [Fact]
+        [WorkItem(19778, "https://github.com/dotnet/roslyn/issues/19778")]
+        public void BindDynamicInvocation_Async()
+        {
+            var source =
+@"using System;
+using System.Threading.Tasks;
+class C
+{
+    static void M()
+    {
+        async Task<dynamic> L<T>(Func<dynamic, T> t, object p)
+            => await L(async m => L(async d => await d, m), p);
+    }
+}";
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            comp.VerifyEmitDiagnostics(
+                // (8,37): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
+                //             => await L(async m => L(async d => await d, m), p);
+                Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "async d => await d").WithLocation(8, 37),
+                // (8,32): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //             => await L(async m => L(async d => await d, m), p);
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "=>").WithLocation(8, 32));
+        }
     }
 }

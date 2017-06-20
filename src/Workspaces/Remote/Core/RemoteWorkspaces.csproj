@@ -45,15 +45,16 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <PackageReference Include="System.Composition" Version="$(SystemCompositionVersion)" />
+    <PackageReference Include="System.Collections.Immutable">
+      <Version>$(SystemCollectionsImmutableVersion)</Version>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor.ServiceHub" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub" />
@@ -69,6 +70,7 @@
     <Compile Include="Services\AssetStorage.cs" />
     <Compile Include="Services\ChecksumSynchronizer.cs" />
     <Compile Include="Services\CompilationService.cs" />
+    <Compile Include="Services\ISolutionController.cs" />
     <Compile Include="Services\ProjectCacheHostServiceFactory.cs" />
     <Compile Include="Services\RoslynServices.cs" />
     <Compile Include="Services\SolutionCreator.cs" />
@@ -77,6 +79,7 @@
     <Compile Include="Services\TemporaryWorkspace.cs" />
     <Compile Include="Services\TemporaryWorkspaceOptionsServiceFactory.cs" />
     <Compile Include="Storage\RemotePersistentStorageLocationService.cs" />
+    <Compile Include="TestUtils.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

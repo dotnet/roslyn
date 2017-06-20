@@ -13,6 +13,15 @@
         <!-- We have a Margin here, to get some distance to the Scrollbar See: https://github.com/dotnet/roslyn/issues/14979-->
         <StackPanel Margin="0,0,3,0">
 
+            <GroupBox x:Uid="AnalysisGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Analysis}">
+                <StackPanel>
+                    <CheckBox x:Name="Enable_full_solution_analysis"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_full_solution_analysis}" />
+                    <CheckBox x:Name="Perform_editor_feature_analysis_in_external_process"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Perform_editor_feature_analysis_in_external_process}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="ImportDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Import_Directives}">
                 <StackPanel>
@@ -73,8 +82,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers}" />
                     <CheckBox x:Name="GenerateXmlDocCommentsForTripleApostrophes"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_GenerateXmlDocCommentsForTripleApostrophes}" />
-                    <CheckBox x:Name="ClosedFileDiagnostics"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
                 </StackPanel>

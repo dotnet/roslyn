@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Forces binding and decoding of attributes.
         /// </remarks>
-        private ModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
+        private CommonModuleWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
             var attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 attributesBag = this.GetAttributesBag();
             }
 
-            return (ModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
+            return (CommonModuleWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
         }
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                var data = GetDecodedWellKnownAttributeData() as ModuleWellKnownAttributeData;
                 return data?.NullableOptOut ?? base.NullableOptOut;
             }
         }
