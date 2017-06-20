@@ -1247,4 +1247,10 @@ This version used in: {2}</value>
   <data name="default_expression_can_be_simplified" xml:space="preserve">
     <value>'default' expression can be simplified</value>
   </data>
+  <data name="Unreachable_code_detected" xml:space="preserve">
+    <value>Unreachable code detected</value>
+  </data>
+  <data name="Remove_unreachable_code" xml:space="preserve">
+    <value>Remove unreachable code</value>
+  </data>
 </root>

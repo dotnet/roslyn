@@ -933,4 +933,10 @@ Additional information: {1}</value>
   <data name="Perform_editor_feature_analysis_in_external_process" xml:space="preserve">
     <value>Perform editor _feature analysis in external process (experimental)</value>
   </data>
+  <data name="Fade_out_unreachable_code" xml:space="preserve">
+    <value>Fade out unreachable code</value>
+  </data>
+  <data name="Fading" xml:space="preserve">
+    <value>Fading</value>
+  </data>
 </root>
