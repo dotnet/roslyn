@@ -56,6 +56,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.VisualBasic.CodeGeneration.VisualBasicCodeGenerationServiceFactory),
                 typeof(CodeAnalysis.CSharp.CSharpSyntaxFactsServiceFactory),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSyntaxFactsServiceFactory),
+                typeof(CodeAnalysis.CSharp.FindSymbols.CSharpDeclaredSymbolInfoFactoryService),
+                typeof(CodeAnalysis.VisualBasic.FindSymbols.VisualBasicDeclaredSymbolInfoFactoryService),
                 typeof(CodeAnalysis.CSharp.CSharpSymbolDeclarationService),
                 typeof(CodeAnalysis.VisualBasic.VisualBasicSymbolDeclarationService),
                 typeof(CodeAnalysis.CSharp.Formatting.CSharpFormattingService),

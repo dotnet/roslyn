@@ -2,10 +2,10 @@
 
 using System;
 using System.Globalization;
-using System.Text;
-using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
-using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 using System.Reflection;
+using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
+using ExceptionUtilities = Roslyn.Utilities.ExceptionUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

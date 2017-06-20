@@ -99,6 +99,7 @@
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
     <Compile Include="Extensions\BaseMethodDeclarationSyntaxExtensions.cs" />
     <Compile Include="Formatting\CSharpFormattingService.cs" />
+    <Compile Include="FindSymbols\CSharpDeclaredSymbolInfoFactoryService.cs" />
     <Compile Include="Simplification\Reducers\CSharpDefaultExpressionReducer.Rewriter.cs" />
     <Compile Include="Diagnostics\CSharpDiagnosticPropertiesService.cs" />
     <Compile Include="Execution\CSharpOptionsSerializationService.cs" />
