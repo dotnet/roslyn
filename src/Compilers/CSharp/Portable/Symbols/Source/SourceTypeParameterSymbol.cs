@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     mergedAttributesBuilder.Add(syntax.AttributeLists);
                 }
 
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod != null && sourceMethod.IsPartial)
                 {
                     var implementingPart = sourceMethod.SourcePartialImplementation;
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 bool lazyAttributesStored = false;
 
-                var sourceMethod = this.ContainingSymbol as SourceMemberMethodSymbol;
+                var sourceMethod = this.ContainingSymbol as SourceOrdinaryMethodSymbol;
                 if ((object)sourceMethod == null || (object)sourceMethod.SourcePartialDefinition == null)
                 {
                     lazyAttributesStored = LoadAndValidateAttributes(
@@ -382,9 +382,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class SourceMethodTypeParameterSymbol : SourceTypeParameterSymbolBase
     {
-        private readonly SourceMemberMethodSymbol _owner;
+        private readonly SourceOrdinaryMethodSymbol _owner;
 
-        public SourceMethodTypeParameterSymbol(SourceMemberMethodSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
+        public SourceMethodTypeParameterSymbol(SourceOrdinaryMethodSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
             : base(name, ordinal, locations, syntaxRefs)
         {
             _owner = owner;
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract class OverriddenMethodTypeParameterMapBase
     {
         // Method representing overriding or explicit implementation.
-        private readonly SourceMemberMethodSymbol _overridingMethod;
+        private readonly SourceOrdinaryMethodSymbol _overridingMethod;
 
         // Type map shared by all type parameters for this explicit implementation.
         private TypeMap _lazyTypeMap;
@@ -506,12 +506,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Overridden or explicitly implemented method. May be null in error cases.
         private MethodSymbol _lazyOverriddenMethod = ErrorMethodSymbol.UnknownMethod;
 
-        protected OverriddenMethodTypeParameterMapBase(SourceMemberMethodSymbol overridingMethod)
+        protected OverriddenMethodTypeParameterMapBase(SourceOrdinaryMethodSymbol overridingMethod)
         {
             _overridingMethod = overridingMethod;
         }
 
-        public SourceMemberMethodSymbol OverridingMethod
+        public SourceOrdinaryMethodSymbol OverridingMethod
         {
             get { return _overridingMethod; }
         }
@@ -557,18 +557,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected abstract MethodSymbol GetOverriddenMethod(SourceMemberMethodSymbol overridingMethod);
+        protected abstract MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod);
     }
 
     internal sealed class OverriddenMethodTypeParameterMap : OverriddenMethodTypeParameterMapBase
     {
-        public OverriddenMethodTypeParameterMap(SourceMemberMethodSymbol overridingMethod)
+        public OverriddenMethodTypeParameterMap(SourceOrdinaryMethodSymbol overridingMethod)
             : base(overridingMethod)
         {
             Debug.Assert(overridingMethod.IsOverride);
         }
 
-        protected override MethodSymbol GetOverriddenMethod(SourceMemberMethodSymbol overridingMethod)
+        protected override MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
         {
             MethodSymbol method = overridingMethod;
             Debug.Assert(method.IsOverride);
@@ -583,13 +583,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class ExplicitInterfaceMethodTypeParameterMap : OverriddenMethodTypeParameterMapBase
     {
-        public ExplicitInterfaceMethodTypeParameterMap(SourceMemberMethodSymbol implementationMethod)
+        public ExplicitInterfaceMethodTypeParameterMap(SourceOrdinaryMethodSymbol implementationMethod)
             : base(implementationMethod)
         {
             Debug.Assert(implementationMethod.IsExplicitInterfaceImplementation);
         }
 
-        protected override MethodSymbol GetOverriddenMethod(SourceMemberMethodSymbol overridingMethod)
+        protected override MethodSymbol GetOverriddenMethod(SourceOrdinaryMethodSymbol overridingMethod)
         {
             var explicitImplementations = overridingMethod.ExplicitInterfaceImplementations;
             Debug.Assert(explicitImplementations.Length <= 1);
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _map = map;
         }
 
-        public SourceMemberMethodSymbol Owner
+        public SourceOrdinaryMethodSymbol Owner
         {
             get { return _map.OverridingMethod; }
         }

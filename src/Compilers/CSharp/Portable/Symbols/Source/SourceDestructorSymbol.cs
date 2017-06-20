@@ -7,7 +7,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceDestructorSymbol : SourceMethodSymbol
+    internal sealed class SourceDestructorSymbol : SourceMemberMethodSymbol
     {
         private TypeSymbol _lazyReturnType;
         private readonly bool _isExpressionBodied;

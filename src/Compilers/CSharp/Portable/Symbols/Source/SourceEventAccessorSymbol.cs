@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Base class for event accessors - synthesized and user defined.
     /// </summary>
-    internal abstract class SourceEventAccessorSymbol : SourceMethodSymbol
+    internal abstract class SourceEventAccessorSymbol : SourceMemberMethodSymbol
     {
         private readonly SourceEventSymbol _event;
 

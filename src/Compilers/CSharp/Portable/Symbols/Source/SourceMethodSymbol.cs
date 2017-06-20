@@ -14,7 +14,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal abstract class SourceMethodSymbol : MethodSymbol, IAttributeTargetSymbol
+    internal abstract class SourceMemberMethodSymbol : MethodSymbol, IAttributeTargetSymbol
     {
         // The flags type is used to compact many different bits of information.
         protected struct Flags
@@ -190,12 +190,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _cachedDiagnostics;
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, Location location)
             : this(containingType, syntaxReferenceOpt, bodySyntaxReferenceOpt, ImmutableArray.Create(location))
         {
         }
 
-        protected SourceMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
+        protected SourceMemberMethodSymbol(NamedTypeSymbol containingType, SyntaxReference syntaxReferenceOpt, SyntaxReference bodySyntaxReferenceOpt, ImmutableArray<Location> locations)
         {
             Debug.Assert((object)containingType != null);
             Debug.Assert(!locations.IsEmpty);
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Overridden by <see cref="SourceMemberMethodSymbol"/>, 
+        /// Overridden by <see cref="SourceOrdinaryMethodSymbol"/>, 
         /// which might return locations of partial methods.
         /// </summary>
         public override ImmutableArray<Location> Locations
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Used for example for event accessors. The "remove" method delegates attribute binding to the "add" method. 
         /// The bound attribute data are then applied to both accessors.
         /// </remarks>
-        protected virtual SourceMethodSymbol BoundAttributesSource
+        protected virtual SourceMemberMethodSymbol BoundAttributesSource
         {
             get
             {
@@ -913,7 +913,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag(ref CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag, bool forReturnType)
         {
-            SourceMethodSymbol copyFrom = this.BoundAttributesSource;
+            SourceMemberMethodSymbol copyFrom = this.BoundAttributesSource;
 
             // prevent infinite recursion:
             Debug.Assert(!ReferenceEquals(copyFrom, this));

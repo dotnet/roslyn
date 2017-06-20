@@ -1845,10 +1845,10 @@ class C
 
             var @class = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
 
-            var method1 = (SourceMethodSymbol)@class.GetMembers("Method1").Single();
-            var method2 = (SourceMethodSymbol)@class.GetMembers("Method2").Single();
-            var method3 = (SourceMethodSymbol)@class.GetMembers("Method3").Single();
-            var method4 = (SourceMethodSymbol)@class.GetMembers("Method4").Single();
+            var method1 = (SourceMemberMethodSymbol)@class.GetMembers("Method1").Single();
+            var method2 = (SourceMemberMethodSymbol)@class.GetMembers("Method2").Single();
+            var method3 = (SourceMemberMethodSymbol)@class.GetMembers("Method3").Single();
+            var method4 = (SourceMemberMethodSymbol)@class.GetMembers("Method4").Single();
 
             Assert.True(method1.IsVirtual);
             Assert.True(method2.IsVirtual);

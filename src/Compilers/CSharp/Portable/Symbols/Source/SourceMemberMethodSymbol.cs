@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SourceMemberMethodSymbol : SourceMethodSymbol
+    internal sealed class SourceOrdinaryMethodSymbol : SourceMemberMethodSymbol
     {
         private readonly ImmutableArray<TypeParameterSymbol> _typeParameters;
         private readonly TypeSymbol _explicitInterfaceType;
@@ -37,9 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This should be set, if at all, before this symbol appears among the members of its owner.  
         /// The implementation part is not listed among the "members" of the enclosing type.
         /// </summary>
-        private SourceMemberMethodSymbol _otherPartOfPartial;
+        private SourceOrdinaryMethodSymbol _otherPartOfPartial;
 
-        public static SourceMemberMethodSymbol CreateMethodSymbol(
+        public static SourceOrdinaryMethodSymbol CreateMethodSymbol(
             NamedTypeSymbol containingType,
             Binder bodyBinder,
             MethodDeclarationSyntax syntax,
@@ -57,10 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? MethodKind.Ordinary
                 : MethodKind.ExplicitInterfaceImplementation;
 
-            return new SourceMemberMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, diagnostics);
+            return new SourceOrdinaryMethodSymbol(containingType, explicitInterfaceType, name, location, syntax, methodKind, diagnostics);
         }
 
-        private SourceMemberMethodSymbol(
+        private SourceOrdinaryMethodSymbol(
             NamedTypeSymbol containingType,
             TypeSymbol explicitInterfaceType,
             string name,
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal static void InitializePartialMethodParts(SourceMemberMethodSymbol definition, SourceMemberMethodSymbol implementation)
+        internal static void InitializePartialMethodParts(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation)
         {
             Debug.Assert(definition.IsPartialDefinition);
             Debug.Assert(implementation.IsPartialImplementation);
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this is a partial implementation part returns the definition part and vice versa.
         /// </summary>
-        internal SourceMemberMethodSymbol OtherPartOfPartial
+        internal SourceOrdinaryMethodSymbol OtherPartOfPartial
         {
             get { return _otherPartOfPartial; }
         }
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns the implementation part of a partial method definition, 
         /// or null if this is not a partial method or it is the definition part.
         /// </summary>
-        internal SourceMemberMethodSymbol SourcePartialDefinition
+        internal SourceOrdinaryMethodSymbol SourcePartialDefinition
         {
             get
             {
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns the definition part of a partial method implementation, 
         /// or null if this is not a partial method or it is the implementation part.
         /// </summary>
-        internal SourceMemberMethodSymbol SourcePartialImplementation
+        internal SourceOrdinaryMethodSymbol SourcePartialImplementation
         {
             get
             {
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override SourceMethodSymbol BoundAttributesSource
+        protected override SourceMemberMethodSymbol BoundAttributesSource
         {
             get
             {
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// parts of a partial method. Diagnostics are reported on the
         /// implementing part, matching Dev10 behavior.
         /// </summary>
-        private static void PartialMethodChecks(SourceMemberMethodSymbol definition, SourceMemberMethodSymbol implementation, DiagnosticBag diagnostics)
+        private static void PartialMethodChecks(SourceOrdinaryMethodSymbol definition, SourceOrdinaryMethodSymbol implementation, DiagnosticBag diagnostics)
         {
             Debug.Assert(!ReferenceEquals(definition, implementation));
 
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Returns true if the two partial methods have the same constraints.
         /// </summary>
-        private static bool HaveSameConstraints(SourceMemberMethodSymbol part1, SourceMemberMethodSymbol part2)
+        private static bool HaveSameConstraints(SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
         {
             Debug.Assert(!ReferenceEquals(part1, part2));
             Debug.Assert(part1.Arity == part2.Arity);
