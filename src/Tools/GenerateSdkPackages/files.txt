@@ -20,6 +20,7 @@ Microsoft.VisualStudio.Utilities.dll
 Microsoft.VisualStudio.Platform.VSEditor.dll
 Microsoft.VisualStudio.Platform.VSEditor.Interop.dll
 Microsoft.VisualStudio.Shell.Interop.15.0.DesignTime.dll
+Microsoft.VisualStudio.Shell.Interop.15.3.DesignTime.dll
 Microsoft.Internal.Performance.CodeMarkers.DesignTime.dll
 PackageAndDeploy\Microsoft.VisualStudio.Shell.Framework.dll
 PackageAndDeploy\Microsoft.VisualStudio.Shell.15.0.dll
