@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (await CheckTypeInfoOfAttributeAsync(context, attributeSyntaxNode).ConfigureAwait(false))
                 {
-                    await AddAssemblyCompletionItemsAsync(context, cancellationToken);
+                    await AddAssemblyCompletionItemsAsync(context, cancellationToken).ConfigureAwait(false);
                 }
             }
         }
