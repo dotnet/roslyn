@@ -923,7 +923,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitVoid(BoundVoid node)
+        public override BoundNode VisitUnusedResult(BoundUnusedResult node)
         {
             return null;
         }

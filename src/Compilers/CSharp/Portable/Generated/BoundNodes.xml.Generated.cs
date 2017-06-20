@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         CompoundAssignmentOperator,
         AssignmentOperator,
         DeconstructionAssignmentOperator,
-        Void,
+        UnusedResult,
         NullCoalescingOperator,
         ConditionalOperator,
         ArrayAccess,
@@ -1198,18 +1198,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundVoid : BoundExpression
+    internal sealed partial class BoundUnusedResult : BoundExpression
     {
-        public BoundVoid(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.Void, syntax, type, hasErrors)
+        public BoundUnusedResult(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
+            : base(BoundKind.UnusedResult, syntax, type, hasErrors)
         {
 
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
         }
 
-        public BoundVoid(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.Void, syntax, type)
+        public BoundUnusedResult(SyntaxNode syntax, TypeSymbol type)
+            : base(BoundKind.UnusedResult, syntax, type)
         {
 
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -1219,14 +1219,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
-            return visitor.VisitVoid(this);
+            return visitor.VisitUnusedResult(this);
         }
 
-        public BoundVoid Update(TypeSymbol type)
+        public BoundUnusedResult Update(TypeSymbol type)
         {
             if (type != this.Type)
             {
-                var result = new BoundVoid(this.Syntax, type, this.HasErrors);
+                var result = new BoundUnusedResult(this.Syntax, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6177,8 +6177,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitAssignmentOperator(node as BoundAssignmentOperator, arg);
                 case BoundKind.DeconstructionAssignmentOperator: 
                     return VisitDeconstructionAssignmentOperator(node as BoundDeconstructionAssignmentOperator, arg);
-                case BoundKind.Void: 
-                    return VisitVoid(node as BoundVoid, arg);
+                case BoundKind.UnusedResult: 
+                    return VisitUnusedResult(node as BoundUnusedResult, arg);
                 case BoundKind.NullCoalescingOperator: 
                     return VisitNullCoalescingOperator(node as BoundNullCoalescingOperator, arg);
                 case BoundKind.ConditionalOperator: 
@@ -6535,7 +6535,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node, arg);
         }
-        public virtual R VisitVoid(BoundVoid node, A arg)
+        public virtual R VisitUnusedResult(BoundUnusedResult node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7139,7 +7139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return this.DefaultVisit(node);
         }
-        public virtual BoundNode VisitVoid(BoundVoid node)
+        public virtual BoundNode VisitUnusedResult(BoundUnusedResult node)
         {
             return this.DefaultVisit(node);
         }
@@ -7770,7 +7770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Visit(node.Right);
             return null;
         }
-        public override BoundNode VisitVoid(BoundVoid node)
+        public override BoundNode VisitUnusedResult(BoundUnusedResult node)
         {
             return null;
         }
@@ -8565,7 +8565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(left, right, node.IsUsed, type);
         }
-        public override BoundNode VisitVoid(BoundVoid node)
+        public override BoundNode VisitUnusedResult(BoundUnusedResult node)
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(type);
@@ -9567,9 +9567,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             );
         }
-        public override TreeDumperNode VisitVoid(BoundVoid node, object arg)
+        public override TreeDumperNode VisitUnusedResult(BoundUnusedResult node, object arg)
         {
-            return new TreeDumperNode("void", null, new TreeDumperNode[]
+            return new TreeDumperNode("unusedResult", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("type", node.Type, null)
             }

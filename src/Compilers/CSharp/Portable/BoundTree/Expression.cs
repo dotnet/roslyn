@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundVoid : BoundExpression
+    internal sealed partial class BoundUnusedResult : BoundExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 

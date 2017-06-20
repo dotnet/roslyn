@@ -1090,6 +1090,7 @@ class C
         }
 
         [Fact]
+        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
         public void ValueTupleNotRequiredIfReturnIsNotUsed()
         {
             string source = @"
@@ -1138,7 +1139,8 @@ class C
         }
 
         [Fact]
-        public void ValueTupleNotRequiredIfReturnIsUsed2()
+        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        public void ValueTupleNotRequiredIfReturnIsNotUsed2()
         {
             string source = @"
 class C
@@ -1182,7 +1184,8 @@ class C
         }
 
         [Fact]
-        public void ValueTupleRequiredRightHandSideIsTuple()
+        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        public void ValueTupleRequiredWhenRightHandSideIsTuple()
         {
             string source = @"
 class C
@@ -7383,6 +7386,64 @@ class C
                 // (4,5): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
                 //     Error M()
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(4, 5)
+                );
+        }
+
+        [Fact]
+        public void TestDeconstructOnErrorTypeFromImageReference()
+        {
+            var missing_cs = "public class Missing { }";
+            var missing  = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+
+            var lib_cs = "public class C { public Missing M() { throw null; } }";
+            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
+
+            var source =
+@"
+class D
+{
+    void M()
+    {
+        int x, y;
+        (x, y) = new C().M();
+        throw null;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (x, y) = new C().M();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new C().M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void TestDeconstructOnErrorTypeFromCompilationReference()
+        {
+            var missing_cs = "public class Missing { }";
+            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+
+            var lib_cs = "public class C { public Missing M() { throw null; } }";
+            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.ToMetadataReference() }, options: TestOptions.DebugDll);
+
+            var source =
+@"
+class D
+{
+    void M()
+    {
+        int x, y;
+        (x, y) = new C().M();
+        throw null;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.ToMetadataReference() }, options: TestOptions.DebugDll); // no ValueTuple reference
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (x, y) = new C().M();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new C().M").WithArguments("Missing", "missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18)
                 );
         }
 

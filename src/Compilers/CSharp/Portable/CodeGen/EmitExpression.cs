@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitThrowExpression((BoundThrowExpression)expression, used);
                     break;
 
-                case BoundKind.Void:
+                case BoundKind.UnusedResult:
                     Debug.Assert(!used);
                     break;
 

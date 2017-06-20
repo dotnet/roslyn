@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    returnValue = new BoundVoid(left.Syntax, left.Type);
+                    returnValue = new BoundUnusedResult(left.Syntax, left.Type);
                 }
             }
             BoundExpression result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
