@@ -785,24 +785,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             var parameter = parameters[0];
-            if (parameter.IsParams)
+            switch(parameter.RefKind)
             {
-                return false;
-            }
-            else if (parameter.RefKind == RefKind.Ref)
-            {
-                // Ref extension methods are accepted only if the receiver is a value type or a generic type constrained to struct.
-                return parameter.Type.IsValueType;
-            }
-            else if (parameter.RefKind == RefKind.RefReadOnly)
-            {
-                // Ref readonly extension methods are accepted only if the receiver is a value type.
-                return parameter.Type.TypeKind == TypeKind.Struct;
-            }
-            else
-            {
-                // Otherwise, only accept non-ref extension methods.
-                return parameter.RefKind == RefKind.None;
+                case RefKind.None:
+                case RefKind.Ref:
+                case RefKind.RefReadOnly:
+                    return !parameter.IsParams;
+                default:
+                    return false;
             }
         }
 

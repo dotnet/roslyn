@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public bool IsExtensionMethod
             {
                 get { return (_flags & IsExtensionMethodBit) != 0; }
-                set { _flags = value ? (_flags | IsExtensionMethodBit) : (_flags & ~IsExtensionMethodBit); }
             }
 
             public bool IsMetadataVirtualLocked
@@ -254,11 +253,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected void SetReturnsVoid(bool returnsVoid)
         {
             this.flags.ReturnsVoid = returnsVoid;
-        }
-
-        protected void SetIsExtensionMethod(bool isExtensionMethod)
-        {
-            this.flags.IsExtensionMethod = isExtensionMethod;
         }
 
         /// <remarks>

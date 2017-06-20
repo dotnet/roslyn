@@ -2488,7 +2488,7 @@ Dim o As New Object()
 
         <Fact>
         Public Sub ConsumeRefExtensionMethods()
-            Dim options = New CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_1)
+            Dim options = New CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.Latest)
             Dim csharp = CreateCSharpCompilation("
 public static class Extensions
 {
@@ -2517,7 +2517,7 @@ End Module
 
         <Fact>
         Public Sub ConsumeRefReadOnlyExtensionMethods()
-            Dim options = New CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.CSharp7_1)
+            Dim options = New CSharpParseOptions(CodeAnalysis.CSharp.LanguageVersion.Latest)
             Dim csharp = CreateCSharpCompilation("
 public static class Extensions
 {

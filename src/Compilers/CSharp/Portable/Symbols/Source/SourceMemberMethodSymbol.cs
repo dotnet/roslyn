@@ -223,12 +223,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
-                    this.SetIsExtensionMethod(false);
                 }
                 else if (parameter0RefKind == RefKind.RefReadOnly && parameter0Type.TypeKind != TypeKind.Struct)
                 {
                     diagnostics.Add(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, location, Name);
-                    this.SetIsExtensionMethod(false);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
@@ -246,8 +244,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else if (!IsStatic)
                 {
                     diagnostics.Add(ErrorCode.ERR_BadExtensionMeth, location);
-                    // PROTOTYPE(readonly-ref): to match PEMethodSymbol, should we SetIsExtensionMethod(false)? See #20282 for more details
-                    // Also, should we unset that flag for parameter.IsParams and parameter0RefKind == RefKind.Out?
                 }
                 else
                 {
