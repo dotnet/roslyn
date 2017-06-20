@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
                 if (await CheckTypeInfoOfAttributeAsync(context, attributeSyntaxNode).ConfigureAwait(false))
                 {
-                    AddAssemblyCompletionItems(context, cancellationToken);
+                    await AddAssemblyCompletionItemsAsync(context, cancellationToken);
                 }
             }
         }
@@ -90,12 +90,19 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             return type.Equals(internalsVisibleToAttributeSymbol);
         }
 
-        private static void AddAssemblyCompletionItems(CompletionContext context, CancellationToken cancellationToken)
+        private static async Task AddAssemblyCompletionItemsAsync(CompletionContext context, CancellationToken cancellationToken)
         {
             var currentProject = context.Document.Project;
+            var currentCompilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var currentAssemblyInfo = currentCompilation.Assembly;
             foreach (var project in context.Document.Project.Solution.Projects)
             {
                 if (project == currentProject)
+                {
+                    continue;
+                }
+
+                if (await HasProjectAlreadyAccessToInternals(currentAssemblyInfo, project, cancellationToken).ConfigureAwait(false))
                 {
                     continue;
                 }
@@ -108,6 +115,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                     properties: ImmutableDictionary.Create<string, string>().Add(ProjectGuidKey, projectGuid));
                 context.AddItem(completionItem);
             }
+        }
+
+        private static async Task<bool> HasProjectAlreadyAccessToInternals(IAssemblySymbol sourceAssembly, Project project, CancellationToken cancellationToken)
+        {
+            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            return sourceAssembly.GivesAccessTo(compilation.Assembly);
         }
 
         public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey = default(char?), CancellationToken cancellationToken = default(CancellationToken))

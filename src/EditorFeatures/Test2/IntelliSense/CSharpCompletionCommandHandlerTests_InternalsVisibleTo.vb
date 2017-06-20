@@ -336,5 +336,26 @@ namespace Test
             End Using
         End Function
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionContainsOnlyAssembliesThatAreNotAlreadyIVT() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary1"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary2"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="ClassLibrary3"/>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="C.cs">
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ClassLibrary1")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ClassLibrary2")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("$$
+                        </Document>
+                    </Project>
+                </Workspace>)
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1", "ClassLibrary2"}))
+                Assert.True(state.CompletionItemsContainsAll({"ClassLibrary3"}))
+            End Using
+        End Function
     End Class
 End Namespace
