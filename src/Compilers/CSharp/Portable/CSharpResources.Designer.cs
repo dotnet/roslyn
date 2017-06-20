@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The abstract method &apos;{0}&apos; cannot be marked virtual.
+        ///   Looks up a localized string similar to The abstract {0} &apos;{1}&apos; cannot be marked virtual.
         /// </summary>
         internal static string ERR_AbstractNotVirtual {
             get {

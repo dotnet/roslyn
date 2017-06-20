@@ -391,6 +391,7 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
+    <Compile Include="RemoveUnreachableCode\RemoveUnreachableCodeTests.cs" />
     <Compile Include="Structure\ArrowExpressionClauseStructureTests.cs" />
     <Compile Include="Structure\InitializerExpressionStructureTests.cs" />
     <Compile Include="SuggestionTags\SuggestionTagProducerTests.cs" />

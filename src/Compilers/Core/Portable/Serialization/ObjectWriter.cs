@@ -488,7 +488,15 @@ namespace Roslyn.Utilities
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait();
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {
@@ -748,7 +756,15 @@ namespace Roslyn.Utilities
                         _cancellationToken,
                         TaskCreationOptions.LongRunning,
                         TaskScheduler.Default);
-                    task.Wait(_cancellationToken);
+
+                    // We must not proceed until the additional task completes. After returning from a write, the underlying
+                    // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                    // completes its write then an access violation can occur attempting to write to unmapped memory.
+                    //
+                    // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                    // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                    // so the wait can complete.
+                    task.GetAwaiter().GetResult();
                 }
                 else
                 {

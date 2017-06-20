@@ -90,6 +90,9 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void OpenFile(ProjectUtils.Project project, string fileName)
             => _inProc.OpenFile(project.Name, fileName);
 
+        public void UpdateFile(string projectName, string fileName, string contents, bool open = false)
+            => _inProc.UpdateFile(projectName, fileName, contents, open);
+
         public void RenameFile(ProjectUtils.Project project, string oldFileName, string newFileName)
             => _inProc.RenameFile(project.Name, oldFileName, newFileName);
 

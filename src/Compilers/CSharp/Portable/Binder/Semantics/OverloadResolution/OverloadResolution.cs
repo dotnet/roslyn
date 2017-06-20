@@ -549,6 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         allowRefOmittedArguments: allowRefOmittedArguments,
                         completeResults: completeResults,
                         useSiteDiagnostics: ref useSiteDiagnostics);
+
                     if (PreferExpandedFormOverNormalForm(normalResult.Result, expandedResult.Result))
                     {
                         result = expandedResult;
