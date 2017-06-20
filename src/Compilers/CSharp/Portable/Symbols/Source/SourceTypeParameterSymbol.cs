@@ -382,13 +382,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
     internal sealed class SourceMethodTypeParameterSymbol : SourceTypeParameterSymbolBase
     {
-        private readonly SourceOrdinaryMethodSymbol _owner;
+        private readonly SourceMethodSymbol _owner;
 
-        public SourceMethodTypeParameterSymbol(SourceOrdinaryMethodSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
+        public SourceMethodTypeParameterSymbol(SourceMethodSymbol owner, string name, int ordinal, ImmutableArray<Location> locations, ImmutableArray<SyntaxReference> syntaxRefs)
             : base(name, ordinal, locations, syntaxRefs)
         {
             _owner = owner;
         }
+
+        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
+            => _owner.AddDeclarationDiagnostics(diagnostics);
 
         public override TypeParameterKind TypeParameterKind
         {
@@ -437,57 +440,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
         {
-            var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
+            var constraintClauses = _owner.TypeParameterConstraintClauses;
+            var constraintTypes = constraintClauses.IsEmpty
+                ? ImmutableArray<TypeSymbol>.Empty
+                : constraintClauses[Ordinal]?.ConstraintTypes ?? ImmutableArray<TypeSymbol>.Empty;
             return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
         }
 
         private TypeParameterConstraintKind GetDeclaredConstraints()
         {
-            return _owner.GetTypeParameterConstraints(this.Ordinal);
+            var constraintClauses = _owner.TypeParameterConstraintClauses;
+            return constraintClauses.IsEmpty
+                ? TypeParameterConstraintKind.None
+                : constraintClauses[Ordinal]?.Constraints ?? TypeParameterConstraintKind.None;
         }
-    }
-
-    // TODO: https://github.com/dotnet/roslyn/issues/17244 This type is probably not necessary
-    internal sealed class LocalFunctionTypeParameterSymbol : SourceTypeParameterSymbolBase
-    {
-        private readonly LocalFunctionSymbol _owner;
-
-        public LocalFunctionTypeParameterSymbol(
-            LocalFunctionSymbol owner,
-            string name,
-            int ordinal,
-            ImmutableArray<Location> locations,
-            ImmutableArray<SyntaxReference> syntaxRefs)
-            : base(name, ordinal, locations, syntaxRefs)
-        {
-            _owner = owner;
-        }
-
-        internal override void AddDeclarationDiagnostics(DiagnosticBag diagnostics)
-            => _owner.AddDeclarationDiagnostics(diagnostics);
-
-        public override TypeParameterKind TypeParameterKind => TypeParameterKind.Method;
-
-        public override Symbol ContainingSymbol => _owner;
-
-        public override bool HasConstructorConstraint
-            => (GetDeclaredConstraints() & TypeParameterConstraintKind.Constructor) != 0;
-
-        public override bool HasValueTypeConstraint
-            => (GetDeclaredConstraints() & TypeParameterConstraintKind.ValueType) != 0;
-
-        public override bool HasReferenceTypeConstraint
-            => (GetDeclaredConstraints() & TypeParameterConstraintKind.ReferenceType) != 0;
-
-        protected override ImmutableArray<TypeParameterSymbol> ContainerTypeParameters => _owner.TypeParameters;
-
-        protected override TypeParameterBounds ResolveBounds(ConsList<TypeParameterSymbol> inProgress, DiagnosticBag diagnostics)
-        {
-            var constraintTypes = _owner.GetTypeParameterConstraintTypes(this.Ordinal);
-            return this.ResolveBounds(this.ContainingAssembly.CorLibrary, inProgress.Prepend(this), constraintTypes, false, this.DeclaringCompilation, diagnostics);
-        }
-
-        private TypeParameterConstraintKind GetDeclaredConstraints() => _owner.GetTypeParameterConstraints(Ordinal);
     }
 
     /// <summary>

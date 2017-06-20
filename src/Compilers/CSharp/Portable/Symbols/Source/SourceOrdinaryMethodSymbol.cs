@@ -471,62 +471,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _typeParameters; }
         }
 
-        internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
+        public override ImmutableArray<TypeParameterConstraintClause> TypeParameterConstraintClauses
         {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
-        }
-
-        internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
-        {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
-            return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
-        }
-
-        private TypeParameterConstraintClause GetTypeParameterConstraintClause(int ordinal)
-        {
-            if (_lazyTypeParameterConstraints.IsDefault)
+            get
             {
-                var diagnostics = DiagnosticBag.GetInstance();
-                if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, MakeTypeParameterConstraints(diagnostics)))
+                if (_lazyTypeParameterConstraints.IsDefault)
                 {
-                    this.AddDeclarationDiagnostics(diagnostics);
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    var syntax = GetSyntax();
+                    var constraints = this.MakeTypeParameterConstraints(
+                        TypeParameters,
+                        syntax.ConstraintClauses,
+                        syntax.Identifier.GetLocation(),
+                        diagnostics);
+
+                    if (ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeParameterConstraints, constraints))
+                    {
+                        this.AddDeclarationDiagnostics(diagnostics);
+                    }
+                    diagnostics.Free();
                 }
-                diagnostics.Free();
+
+                return _lazyTypeParameterConstraints;
             }
-
-            var clauses = _lazyTypeParameterConstraints;
-            return (clauses.Length > 0) ? clauses[ordinal] : null;
-        }
-
-        private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
-        {
-            var typeParameters = this.TypeParameters;
-            if (typeParameters.Length == 0)
-            {
-                return ImmutableArray<TypeParameterConstraintClause>.Empty;
-            }
-
-            var syntax = GetSyntax();
-            var constraintClauses = syntax.ConstraintClauses;
-            if (constraintClauses.Count == 0)
-            {
-                return ImmutableArray<TypeParameterConstraintClause>.Empty;
-            }
-
-            var syntaxTree = syntax.SyntaxTree;
-            var compilation = this.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory(syntaxTree);
-            var binder = binderFactory.GetBinder(constraintClauses[0]);
-
-            // Wrap binder from factory in a generic constraints specific binder
-            // to avoid checking constraints when binding type names.
-            Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
-            binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
-
-            var result = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
-            this.CheckConstraintTypesVisibility(new SourceLocation(syntax.Identifier), result, diagnostics);
-            return result;
         }
 
         public override bool IsVararg
