@@ -379,7 +379,7 @@ exit |= DoWork(NonRedistPackageNames, LicenseUrlNonRedist);
 exit |= DoWork(TestPackageNames, LicenseUrlTest);
 exit |= DoWork(SourcePackageNames, LicenseUrlSource);
 
-var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).ToArray();
+var allPackageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames).Concat(SourcePackageNames).ToArray();
 var roslynPackageNames = GetRoslynPackageNames(allPackageNames);
 GeneratePublishingConfig(roslynPackageNames);
 

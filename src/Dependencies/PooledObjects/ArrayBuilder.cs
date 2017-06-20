@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.PooledObjects
 {
