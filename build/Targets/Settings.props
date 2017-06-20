@@ -71,6 +71,9 @@
 
     <RoslynNetSdkRootPath>$(MSBuildSDKsPath)\Microsoft.NET.Sdk\Sdk\</RoslynNetSdkRootPath> 
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+
+    <!-- Live Unit Testing does not currently support PackageReference style restore unless the Sdk="Microsoft.NET.Sdk" attribute is used on projects. -->
+    <ProjectAssetsFile Condition="'$(BuildingForLiveUnitTesting)' == 'true'">$(LiveUnitTestingOriginalBaseIntermediateOutputPath)project.assets.json</ProjectAssetsFile>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
