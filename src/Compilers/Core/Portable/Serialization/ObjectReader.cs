@@ -139,8 +139,15 @@ namespace Roslyn.Utilities
                     _cancellationToken,
                     TaskCreationOptions.LongRunning,
                     TaskScheduler.Default);
-                task.Wait(_cancellationToken);
-                value = task.Result;
+
+                // We must not proceed until the additional task completes. After returning from a read, the underlying
+                // stream providing access to raw memory will be closed; if this occurs before the separate thread
+                // completes its read then an access violation can occur attempting to read from unmapped memory.
+                //
+                // CANCELLATION: If cancellation is required, DO NOT attempt to cancel the operation by cancelling this
+                // wait. Cancellation must only be implemented by modifying 'task' to cancel itself in a timely manner
+                // so the wait can complete.
+                value = task.GetAwaiter().GetResult();
             }
             else
             {

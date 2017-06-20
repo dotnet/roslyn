@@ -4138,7 +4138,7 @@ C2.M
         }
 
         [Fact]
-        public void AmbiguousTupleTypesForCreation()
+        public void AmbiguousTupleTypesForCreationWithVar()
         {
             var source = @"
 class C3
@@ -4156,7 +4156,39 @@ class C3
             comp.VerifyDiagnostics(
                 // (6,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported, or is declared in multiple referenced assemblies
                 //         var x = (1, 1);
-                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17),
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void AmbiguousTupleTypesForCreation()
+        {
+            var source = @"
+class C3
+{
+    public static void Main()
+    {
+        (int, int) x = (1, 1);
+    }
+}
+";
+            var comp1 = CreateStandardCompilation(trivial2uple, assemblyName: "comp1");
+            var comp2 = CreateStandardCompilation(trivial2uple);
+
+            var comp = CreateStandardCompilation(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) });
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         (int, int) x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
+                // (6,24): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         (int, int) x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 24),
+                // (6,20): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         (int, int) x = (1, 1);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 20)
                 );
         }
 
@@ -4269,7 +4301,10 @@ namespace System
             comp.VerifyDiagnostics(
                 // (7,39): error CS0229: Ambiguity between '(string, string).Item1' and '(string, string).Item1'
                 //         System.Console.WriteLine($"{x.Item1}");
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Item1").WithArguments("(string, string).Item1", "(string, string).Item1").WithLocation(7, 39)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Item1").WithArguments("(string, string).Item1", "(string, string).Item1").WithLocation(7, 39),
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = ("Alice", "Bob");
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
                 );
         }
 
@@ -9267,7 +9302,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(9, 38),
                 // (10,25): error CS0306: The type 'int*' may not be used as a type argument
                 //         ValueTuple<int, int*> t3 = t2;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(10, 25)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(10, 25),
+                // (8,13): warning CS0219: The variable 't1' is assigned but its value is never used
+                //         var t1 = (1, (int*)null);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(8, 13)
             );
         }
 
@@ -9523,12 +9561,18 @@ class Program
                 // (12,61): error CS0306: The type 'int*' may not be used as a type argument
                 //         ValueTuple<int, int, int, int, int, int, int, (int, int*)> t6 = t4;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(12, 61),
+                // (8,13): warning CS0219: The variable 't2' is assigned but its value is never used
+                //         var t2 = (1, 2, 3, 4, 5, 6, 7, (int*)null);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(8, 13),
                 // (17,85): error CS0306: The type 'int*' may not be used as a type argument
                 //         (int, int, int, int, int, int, int, int, int, int, int, int, int, int, int, int*) v1 = q;
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "int*").WithArguments("int*").WithLocation(17, 85),
                 // (18,70): error CS0306: The type 'int*' may not be used as a type argument
                 //         var v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, (int*)null);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "(int*)null").WithArguments("int*").WithLocation(18, 70)
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "(int*)null").WithArguments("int*").WithLocation(18, 70),
+                // (18,13): warning CS0219: The variable 'v2' is assigned but its value is never used
+                //         var v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, (int*)null);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v2").WithArguments("v2").WithLocation(18, 13)
             );
         }
 
@@ -9566,7 +9610,10 @@ class C
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "new System.ArgIterator()").WithArguments("System.ArgIterator").WithLocation(8, 50),
                 // (8,43): error CS0029: Cannot implicitly convert type '(int, int, System.ArgIterator)' to '(int x, System.ArgIterator y)'
                 //         (int x, System.ArgIterator y) z = (1, 2, new System.ArgIterator());
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2, new System.ArgIterator())").WithArguments("(int, int, System.ArgIterator)", "(int x, System.ArgIterator y)").WithLocation(8, 43)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2, new System.ArgIterator())").WithArguments("(int, int, System.ArgIterator)", "(int x, System.ArgIterator y)").WithLocation(8, 43),
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = (1, 2, new System.ArgIterator());
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
                 );
         }
 
@@ -21637,7 +21684,10 @@ class C
             compilation.VerifyDiagnostics(
                 // (6,17): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 //         var o = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 17)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 17),
+                // (6,13): warning CS0219: The variable 'o' is assigned but its value is never used
+                //         var o = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(6, 13)
                 );
         }
 
@@ -23299,6 +23349,38 @@ class C
             Assert.Null(model.GetTypeInfo(second).Type);
             Assert.Null(model.GetTypeInfo(second).ConvertedType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(second).Kind);
+        }
+
+        [Fact]
+        [WorkItem(20208, "https://github.com/dotnet/roslyn/issues/20208")]
+        public void UnusedTupleAssignedToVar()
+        {
+            var source = @"
+class C
+{
+	public static void Main ()
+	{
+		(int, int) t1 = (1, 2);
+		var t2 = (3, 4);
+	}
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,14): warning CS0219: The variable 't1' is assigned but its value is never used
+                // 		(int, int) t1 = (1, 2);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t1").WithArguments("t1").WithLocation(6, 14),
+                // (7,7): warning CS0219: The variable 't2' is assigned but its value is never used
+                // 		var t2 = (3, 4);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "t2").WithArguments("t2").WithLocation(7, 7)
+                );
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple).Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(tuple).Kind);
         }
 
         [Fact]

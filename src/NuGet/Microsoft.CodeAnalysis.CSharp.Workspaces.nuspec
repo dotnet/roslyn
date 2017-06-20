@@ -2,9 +2,10 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata minClientVersion="3.3">
     <id>Microsoft.CodeAnalysis.CSharp.Workspaces</id>
-    <description>
+    <summary>
       .NET Compiler Platform ("Roslyn") support for analyzing C# projects and solutions.
-    </description>
+    </summary>
+    <description>$commitPathMessage$</description>
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.CSharp" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
