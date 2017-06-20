@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal partial class Binder
     {
-        private BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        internal BoundExpression BindDeconstruction(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, bool resultIsUsedOverride = false)
         {
             var left = node.Left;
             var right = node.Right;
             DeclarationExpressionSyntax declaration = null;
             ExpressionSyntax expression = null;
-            var result = BindDeconstruction(node, left, right, diagnostics, ref declaration, ref expression);
+            var result = BindDeconstruction(node, left, right, diagnostics, ref declaration, ref expression, resultIsUsedOverride);
             if (declaration != null)
             {
                 // only allowed at the top level, or in a for loop
@@ -78,6 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Where to report diagnostics</param>
         /// <param name="declaration">A variable set to the first variable declaration found in the left</param>
         /// <param name="expression">A variable set to the first expression in the left that isn't a declaration or discard</param>
+        /// <param name="resultIsUsedOverride">The expression evaluator needs bind deconstructions (both assignments and declarations) as expression-statements
+        ///     and still access the returned value</param>
         /// <param name="rightPlaceholder"></param>
         /// <returns></returns>
         internal BoundDeconstructionAssignmentOperator BindDeconstruction(
@@ -87,6 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             ref DeclarationExpressionSyntax declaration,
             ref ExpressionSyntax expression,
+            bool resultIsUsedOverride = false,
             BoundDeconstructValuePlaceholder rightPlaceholder = null)
         {
             DeconstructionVariable locals = BindDeconstructionVariables(left, diagnostics, ref declaration, ref expression);
@@ -95,7 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundRight = rightPlaceholder ?? BindValue(right, diagnostics, BindValueKind.RValue);
             boundRight = FixTupleLiteral(locals.NestedVariables, boundRight, deconstruction, diagnostics);
 
-            var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, diagnostics);
+            bool resultIsUsed = resultIsUsedOverride || IsDeconstructionResultUsed(left);
+            var assignment = BindDeconstructionAssignment(deconstruction, left, boundRight, locals.NestedVariables, resultIsUsed, diagnostics);
             DeconstructionVariable.FreeDeconstructionVariables(locals.NestedVariables);
 
             return assignment;
@@ -106,10 +110,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                         ExpressionSyntax left,
                                                         BoundExpression boundRHS,
                                                         ArrayBuilder<DeconstructionVariable> checkedVariables,
+                                                        bool resultIsUsed,
                                                         DiagnosticBag diagnostics)
         {
-            bool resultIsUsed = IsDeconstructionResultUsed(left);
-
             if ((object)boundRHS.Type == null || boundRHS.Type.IsErrorType())
             {
                 // we could still not infer a type for the RHS
