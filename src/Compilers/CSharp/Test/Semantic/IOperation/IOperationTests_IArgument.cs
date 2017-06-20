@@ -1719,9 +1719,9 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
             {
             }
 
-            public static void Verify(IOperation operation)
-            {                                                   
-                Instance.Visit(operation);             
+            public static void Verify(IOperation operation, Compilation compilationIgnored, SyntaxNode syntaxNode)
+            {
+                Instance.Visit(operation);
             }
 
             public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
