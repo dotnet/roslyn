@@ -4,7 +4,7 @@
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -12,7 +12,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -53,54 +53,22 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="System.Collections.Immutable">
-      <Version>$(SystemCollectionsImmutableVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
-      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy">
-      <Version>$(MicrosoftVisualStudioLanguageCallHierarchyVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
-      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
-      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Imaging">
-      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime">
-      <Version>$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
-      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Validation">
-      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Threading">
-      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie">
-      <Version>$(MicrosoftCodeAnalysisElfieVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.RemoteControl">
-      <Version>$(MicrosoftVisualStudioRemoteControlVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="System.Collections.Immutable" Version="$(SystemCollectionsImmutableVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Version="$(MicrosoftCodeAnalysisElfieVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.RemoteControl" Version="$(MicrosoftVisualStudioRemoteControlVersion)" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />

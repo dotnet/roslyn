@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
@@ -144,21 +144,11 @@
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
-    <PackageReference Include="xunit">
-      <Version>$(xunitVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.console">
-      <Version>$(xunitrunnerconsoleVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="xunit.runner.visualstudio">
-      <Version>$(xunitrunnervisualstudioVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Tpl.Dataflow">
-      <Version>$(MicrosoftTplDataflowVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Runtime">
-      <Version>$(MicrosoftBuildRuntimeVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="xunit" Version="$(xunitVersion)" />
+    <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
+    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" />
+    <PackageReference Include="Microsoft.Build.Runtime" Version="$(MicrosoftBuildRuntimeVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
