@@ -24,7 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// </summary>
     internal class RemotableDataJsonRpcEx : JsonRpcEx
     {
-        private readonly ISolutionSynchronizationService _remotableDataService;
+        private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _source;
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _gate = new object();
             _count = 1;
 
-            _remotableDataService = workspace.Services.GetService<ISolutionSynchronizationService>();
+            _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
 
             // cancellation will be removed once I get to cancellation refactoring
             _source = new CancellationTokenSource();

@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    [ExportWorkspaceServiceFactory(typeof(ISolutionSynchronizationService)), Shared]
-    internal class SolutionSynchronizationServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IRemotableDataService)), Shared]
+    internal class RemotableDataServiceFactory : IWorkspaceServiceFactory
     {
         private readonly AssetStorages _assetStorages = new AssetStorages();
 
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new Service(workspaceServices, _assetStorages);
         }
 
-        internal class Service : ISolutionSynchronizationService
+        internal class Service : IRemotableDataService
         {
             private readonly HostWorkspaceServices _workspaceServices;
             private readonly AssetStorages _assetStorages;

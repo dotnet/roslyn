@@ -186,7 +186,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_AddGlobalAssetsAsync, cancellationToken))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var snapshotService = _workspace.Services.GetService<IRemotableDataService>();
                     var assetBuilder = new CustomAssetBuilder(_workspace);
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 using (Logger.LogBlock(FunctionId.RemoteHostClientService_RemoveGlobalAssets, CancellationToken.None))
                 {
-                    var snapshotService = _workspace.Services.GetService<ISolutionSynchronizationService>();
+                    var snapshotService = _workspace.Services.GetService<IRemotableDataService>();
 
                     foreach (var reference in _analyzerService.GetHostAnalyzerReferences())
                     {

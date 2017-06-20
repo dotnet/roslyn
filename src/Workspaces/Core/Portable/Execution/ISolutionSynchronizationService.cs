@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// a service that lets one to create <see cref="PinnedRemotableDataScope"/> that can be used to pin solution
     /// while working on remote host
     /// </summary>
-    internal interface ISolutionSynchronizationService : IWorkspaceService
+    internal interface IRemotableDataService : IWorkspaceService
     {
         /// <summary>
         /// Add global <see cref="CustomAsset"/> which stays alive while host is alive.
