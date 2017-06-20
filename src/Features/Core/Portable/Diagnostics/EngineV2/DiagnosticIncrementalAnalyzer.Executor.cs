@@ -631,7 +631,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed, id, location.SourceTree.FilePath), "diagnostic");
                             }
 
-                            if (location.SourceTree.Length < location.SourceSpan.End)
+                            if (location.SourceSpan.End > location.SourceTree.Length)
                             {
                                 // Disallow diagnostics with source locations outside this project.
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             // should have loaded it to produce the diagnostic at the first place. once loaded, it should stay in memory until
                             // project cache goes away. when text is already there, await should return right away.
                             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                            if (text.Length < location.SourceSpan.End)
+                            if (location.SourceSpan.End > text.Length)
                             {
                                 // Disallow diagnostics with locations outside this project.
                                 throw new ArgumentException(string.Format(FeaturesResources.Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file, id, location.SourceSpan, filePath), "diagnostic");

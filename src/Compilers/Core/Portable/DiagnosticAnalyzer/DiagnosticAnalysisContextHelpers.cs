@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticLocationReported, id, location.SourceTree.FilePath), "diagnostic");
             }
 
-            if (location.SourceTree.Length < location.SourceSpan.End)
+            if (location.SourceSpan.End > location.SourceTree.Length)
             {
                 // Disallow diagnostics with source locations outside this compilation.
                 throw new ArgumentException(string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, id, location.SourceSpan, location.SourceTree.FilePath), "diagnostic");
