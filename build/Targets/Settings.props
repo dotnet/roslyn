@@ -172,6 +172,7 @@
         <RemoveIntegerChecks>true</RemoveIntegerChecks>
         <RootNamespace></RootNamespace>
         <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
+        <NoWarn>$(NoWarn);40057</NoWarn>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />

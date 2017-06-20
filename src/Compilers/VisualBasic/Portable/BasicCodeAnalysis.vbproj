@@ -10,7 +10,7 @@
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
     <ServiceablePackage>true</ServiceablePackage>
-    <NoWarn>$(NoWarn);42014;40057</NoWarn>
+    <NoWarn>$(NoWarn);42014</NoWarn>
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
     <!-- This is required to prevent downgrade references from CscCore/VbcCode since we must
          reference Microsoft.NETCore.App to target the shared framework (bug
