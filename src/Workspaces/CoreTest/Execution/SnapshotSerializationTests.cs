@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var checksum = snapshot.SolutionChecksum;
-                var solutionSyncObject = snapshotService.GetRemotableData(checksum, CancellationToken.None);
+                var solutionSyncObject = snapshot.GetRemotableData(checksum, CancellationToken.None);
 
                 VerifySynchronizationObjectInService(snapshotService, solutionSyncObject);
 
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(checksum).ConfigureAwait(false);
                 VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
 
-                var projectsSyncObject = snapshotService.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
+                var projectsSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
                 VerifySynchronizationObjectInService(snapshotService, projectsSyncObject);
 
                 Assert.Equal(solutionObject.Projects.Count, 0);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var checksum = snapshot.SolutionChecksum;
-                var solutionSyncObject = snapshotService.GetRemotableData(checksum, CancellationToken.None);
+                var solutionSyncObject = snapshot.GetRemotableData(checksum, CancellationToken.None);
 
                 VerifySynchronizationObjectInService(snapshotService, solutionSyncObject);
 
@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 VerifyChecksumInService(snapshotService, solutionObject.Info, WellKnownSynchronizationKind.SolutionAttributes);
 
-                var projectSyncObject = snapshotService.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
+                var projectSyncObject = snapshot.GetRemotableData(solutionObject.Projects.Checksum, CancellationToken.None);
                 VerifySynchronizationObjectInService(snapshotService, projectSyncObject);
 
                 Assert.Equal(solutionObject.Projects.Count, 1);
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var snapshotService = (new SolutionSynchronizationServiceFactory()).CreateService(document.Project.Solution.Workspace.Services) as ISolutionSynchronizationService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
-                var syncObject = snapshotService.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
+                var syncObject = snapshot.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
                 VerifySynchronizationObjectInService(snapshotService, syncObject);
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var snapshotService = (new SolutionSynchronizationServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSynchronizationService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
-                var syncObject = snapshotService.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
+                var syncObject = snapshot.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(syncObject.Checksum).ConfigureAwait(false);
 
                 VerifySynchronizationObjectInService(snapshotService, syncObject);

@@ -176,6 +176,9 @@
     <Compile Include="..\..\VisualStudio\Core\Next\Remote\JsonRpcConnection.cs">
       <Link>Remote\JsonRpcConnection.cs</Link>
     </Compile>
+    <Compile Include="..\..\VisualStudio\Core\Next\Remote\RemotableDataJsonRpcEx.cs">
+      <Link>Remote\RemotableDataJsonRpcEx.cs</Link>
+    </Compile>
     <Compile Include="AbstractCommandHandlerTestState.cs" />
     <Compile Include="Async\AsynchronousOperationBlocker.cs" />
     <Compile Include="Async\Checkpoint.cs" />

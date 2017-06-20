@@ -15,7 +15,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// Helper type that abstract out JsonRpc communication with extra capability of
     /// using raw stream to move over big chunk of data
     /// </summary>
-    internal class JsonRpcEx : IDisposable
+    internal abstract class JsonRpcEx : IDisposable
     {
         private readonly JsonRpc _rpc;
         private readonly CancellationToken _cancellationToken;
@@ -34,6 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnDisconnected;
         }
 
+        public abstract void Dispose();
+
         public async Task InvokeAsync(string targetName, params object[] arguments)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -42,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 await _rpc.InvokeAsync(targetName, arguments).ConfigureAwait(false);
             }
-            catch 
+            catch
             {
                 // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
                 // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
@@ -82,10 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, _cancellationToken);
         }
 
-        public void Dispose()
+        protected void Disconnect()
         {
-            OnDisposed();
-
             _rpc.Dispose();
         }
 
@@ -94,11 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // _rpc need to be explicitly started
             _rpc.StartListening();
-        }
-
-        protected virtual void OnDisposed()
-        {
-            // do nothing
         }
 
         protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)

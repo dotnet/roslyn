@@ -42,11 +42,11 @@ namespace Microsoft.CodeAnalysis.Execution
         /// <summary>
         /// Get <see cref="RemotableData"/> corresponding to given <see cref="Checksum"/>. 
         /// </summary>
-        RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken);
+        RemotableData GetRemotableData(int scopeId, Checksum checksum, CancellationToken cancellationToken);
 
         /// <summary>
         /// Get <see cref="RemotableData"/>s corresponding to given <see cref="Checksum"/>s. 
         /// </summary>
-        IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
+        IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

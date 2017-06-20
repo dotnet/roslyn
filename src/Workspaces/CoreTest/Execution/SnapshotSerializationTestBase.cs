@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // re-create asset from object
             var syncService = (SolutionSynchronizationServiceFactory.Service)service;
-            var syncObject = service.GetRemotableData(checksum, CancellationToken.None);
+            var syncObject = syncService.GetRemotableData_TestOnly(checksum, CancellationToken.None);
 
             var recoveredValue = await service.GetValueAsync<T>(checksum);
             var recreatedSyncObject = assetGetter(recoveredValue, kind, syncService.Serializer_TestOnly);
@@ -256,7 +256,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         internal static void VerifyChecksumInService(ISolutionSynchronizationService snapshotService, Checksum checksum, WellKnownSynchronizationKind kind)
         {
             Assert.NotNull(checksum);
-            var otherObject = snapshotService.GetRemotableData(checksum, CancellationToken.None);
+            var service = (SolutionSynchronizationServiceFactory.Service)snapshotService;
+            var otherObject = service.GetRemotableData_TestOnly(checksum, CancellationToken.None);
 
             ChecksumEqual(checksum, kind, otherObject.Checksum, otherObject.Kind);
         }

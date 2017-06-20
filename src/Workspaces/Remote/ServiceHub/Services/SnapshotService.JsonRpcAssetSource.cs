@@ -25,8 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             private readonly SnapshotService _owner;
 
-            public JsonRpcAssetSource(SnapshotService owner, int scopeId) :
-                base(owner.AssetStorage, scopeId)
+            public JsonRpcAssetSource(SnapshotService owner) : base(owner.AssetStorage)
             {
                 _owner = owner;
             }
@@ -76,7 +75,7 @@ This data should always be correct as we're never persisting the data between se
                         var kind = (WellKnownSynchronizationKind)reader.ReadInt32();
 
                         // in service hub, cancellation means simply closed stream
-                        var @object = _owner.RoslynServices.AssetService.Deserialize<object>(kind, reader, cancellationToken);
+                        var @object = AssetService.Deserialize<object>(kind, reader, cancellationToken);
 
                         results.Add(ValueTuple.Create(responseChecksum, @object));
                     }
