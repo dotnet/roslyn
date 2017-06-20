@@ -25,13 +25,13 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             private readonly SnapshotService _owner;
 
-            public JsonRpcAssetSource(SnapshotService owner, int sessionId) :
-                base(owner.AssetStorage, sessionId)
+            public JsonRpcAssetSource(SnapshotService owner, int scopeId) :
+                base(owner.AssetStorage, scopeId)
             {
                 _owner = owner;
             }
 
-            public override async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int sessionId, ISet<Checksum> checksums, CancellationToken callerCancellationToken)
+            public override async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken callerCancellationToken)
             {
                 // it should succeed as long as matching VS is alive
                 // TODO: add logging mechanism using Logger
@@ -43,16 +43,16 @@ namespace Microsoft.CodeAnalysis.Remote
                 //
                 // 2. Request to required this asset has cancelled. (callerCancellationToken)
                 using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_owner.CancellationToken, callerCancellationToken))
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, sessionId, checksums, mergedCancellationToken.Token))
+                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, mergedCancellationToken.Token))
                 {
                     return await _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
-                        new object[] { sessionId, checksums.ToArray() },
-                        (s, c) => ReadAssets(s, sessionId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
+                        new object[] { scopeId, checksums.ToArray() },
+                        (s, c) => ReadAssets(s, scopeId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
                 }
             }
 
             private IList<ValueTuple<Checksum, object>> ReadAssets(
-                Stream stream, int sessionId, ISet<Checksum> checksums, CancellationToken cancellationToken)
+                Stream stream, int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
                 var results = new List<ValueTuple<Checksum, object>>();
 
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Remote
 @"We only ge a reader for data transmitted between live processes.
 This data should always be correct as we're never persisting the data between sessions.");
 
-                    var responseSessionId = reader.ReadInt32();
-                    Contract.ThrowIfFalse(sessionId == responseSessionId);
+                    var responseScopeId = reader.ReadInt32();
+                    Contract.ThrowIfFalse(scopeId == responseScopeId);
 
                     var count = reader.ReadInt32();
                     Contract.ThrowIfFalse(count == checksums.Count);

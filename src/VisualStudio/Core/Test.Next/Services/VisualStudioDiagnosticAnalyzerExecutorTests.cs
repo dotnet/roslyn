@@ -146,7 +146,7 @@ End Class";
                 snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
 
                 var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
