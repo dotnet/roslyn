@@ -2791,81 +2791,80 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
         }
 
-        [WorkItem(863401, "DevDiv/Personal")]
         [Fact]
-        public void CS1101ERR_BadRefWithThis()
+        public void BadParameterModifiers_ThisWithRef()
         {
             var test = @"
 using System;
 public static class Extensions
 {
     //No type parameters
-    public static void Foo1(ref this int i) {}
+    public static void Foo1(this ref int i) {}
     //Single type parameter
-    public static void Foo1<T>(ref this T t) {}
+    public static void Foo1<T>(this ref T t) where T : struct {}
     //Multiple type parameters
-    public static void Foo1<T,U,V>(ref this U u) {}
+    public static void Foo1<T,U,V>(this ref U u) where U : struct {}
 }
-public static class GenExtensions<X>
+public static class GenExtensions<X> where X : struct
 {
     //No type parameters
-    public static void Foo2(ref this int i) {}
-    public static void Foo2(ref this X x) {}
+    public static void Foo2(this ref int i) {}
+    public static void Foo2(this ref X x) {}
     //Single type parameter
-    public static void Foo2<T>(ref this T t) {}
-    public static void Foo2<T>(ref this X x) {}
+    public static void Foo2<T>(this ref T t) where T : struct {}
+    public static void Foo2<T>(this ref X x) {}
     //Multiple type parameters
-    public static void Foo2<T,U,V>(ref this U u) {}
-    public static void Foo2<T,U,V>(ref this X x) {}
+    public static void Foo2<T,U,V>(this ref U u) where U : struct {}
+    public static void Foo2<T,U,V>(this ref X x) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (22,40): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T,U,V>(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(22, 40),
+                // (10,41): error CS8404:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo1<T,U,V>(this ref U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 41),
+                // (22,41): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T,U,V>(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(22, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (10,40): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo1<T,U,V>(ref this U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(10, 40),
-                // (16,33): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(16, 33),
+                // (8,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo1<T>(this ref T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(8, 37),
+                // (16,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(16, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (18,36): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T>(ref this T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(18, 36),
+                // (6,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo1(this ref int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 34),
+                // (18,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T>(this ref T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(18, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (19,36): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T>(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(19, 36),
+                // (19,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T>(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(19, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (21,40): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T,U,V>(ref this U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(21, 40),
+                // (21,41): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T,U,V>(this ref U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(21, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (15,33): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2(ref this int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(15, 33),
+                // (15,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2(this ref int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(15, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (8,36): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo1<T>(ref this T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(8, 36),
-                // (6,33): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo1(ref this int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(6, 33));
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [Fact]
@@ -2971,23 +2970,13 @@ public static class Extensions
 {
     //No type parameters
     public static void Test(this in int i) {}
-    //Single type parameter
-    public static void Test<T>(this in T t) {}
-    //Multiple type parameters
-    public static void Test<T,U,V>(this in U u) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (5,34): error CS8404:  The parameter modifier 'in' cannot be used with 'this' 
+                // (5,34): error CS8416:  The parameter modifier 'in' cannot be used after the modifier 'this' 
                 //     public static void Test(this in int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(5, 34),
-                // (7,37): error CS8404:  The parameter modifier 'in' cannot be used with 'this' 
-                //     public static void Test<T>(this in T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(7, 37),
-                // (9,41): error CS8404:  The parameter modifier 'in' cannot be used with 'this' 
-                //     public static void Test<T,U,V>(this in U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(9, 41));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(5, 34));
         }
 
         [Fact]
@@ -3404,33 +3393,24 @@ public static void Method6<T, U, V>(this ref readonly int i) { }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (14,42): error CS8404:  The parameter modifier 'ref' cannot be used with 'this' 
+                // (14,42): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
                 // public static void Method6<T, U, V>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(14, 42),
-                // (14,46): error CS8404:  The parameter modifier 'readonly' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(14, 42),
+                // (14,46): error CS8416:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
                 // public static void Method6<T, U, V>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(14, 46),
-                // (6,33): error CS8404:  The parameter modifier 'ref' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(14, 46),
+                // (6,33): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
                 // public static void Method2(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(6, 33),
-                // (6,37): error CS8404:  The parameter modifier 'readonly' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 33),
+                // (6,37): error CS8416:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
                 // public static void Method2(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(6, 37),
-                // (9,44): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                // public static void Method3<T>(ref readonly this int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(9, 44),
-                // (10,36): error CS8404:  The parameter modifier 'ref' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(6, 37),
+                // (10,36): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
                 // public static void Method4<T>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(10, 36),
-                // (10,40): error CS8404:  The parameter modifier 'readonly' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 36),
+                // (10,40): error CS8416:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
                 // public static void Method4<T>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(10, 40),
-                // (13,50): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                // public static void Method5<T, U, V>(ref readonly this int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(13, 50),
-                // (5,41): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                // public static void Method1(ref readonly this int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(5, 41));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(10, 40));
         }
 
         [Fact]

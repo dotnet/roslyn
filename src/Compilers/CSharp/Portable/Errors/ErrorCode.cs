@@ -1508,6 +1508,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnReadonlyNotField2 = 8411,
         ERR_ExplicitReservedAttr = 8412,
         ERR_TypeReserved = 8413,
+        ERR_RefExtensionMustBeValueTypeOrConstrainedToOne = 8414,
+        ERR_RefReadOnlyExtensionMustBeValueType = 8415,
+        ERR_BadParameterModifiersOrder = 8416,
 
         //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 
         ERR_FieldsInRoStruct = 8514,

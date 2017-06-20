@@ -2945,7 +2945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int argumentPosition = 0; argumentPosition < paramCount; argumentPosition++)
             {
                 BoundExpression argument = arguments.Argument(argumentPosition);
-                RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                 Conversion conversion;
 
                 if (isVararg && argumentPosition == paramCount - 1)
@@ -2964,8 +2963,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    RefKind argumentRefKind = arguments.RefKind(argumentPosition);
                     RefKind parameterRefKind = parameters.ParameterRefKinds.IsDefault ? RefKind.None : parameters.ParameterRefKinds[argumentPosition];
                     bool forExtensionMethodThisArg = arguments.IsExtensionMethodThisArgument(argumentPosition);
+
+                    if (forExtensionMethodThisArg)
+                    {
+                        Debug.Assert(argumentRefKind == RefKind.None);
+                        if (parameterRefKind == RefKind.Ref)
+                        {
+                            // For ref extension methods, we omit the "ref" modifier on the receiver arguments
+                            // Passing the parameter RefKind for finding the correct conversion.
+                            // For ref-readonly extension methods, argumentRefKind is always None.
+                            argumentRefKind = parameterRefKind;
+                        }
+                    }
 
                     conversion = CheckArgumentForApplicability(
                         candidate,

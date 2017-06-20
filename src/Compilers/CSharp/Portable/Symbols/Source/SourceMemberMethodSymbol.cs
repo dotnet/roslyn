@@ -211,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtensionMethod)
             {
                 var parameter0Type = this.Parameters[0].Type;
+                var parameter0RefKind = this.Parameters[0].RefKind;
                 if (!parameter0Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
@@ -218,6 +219,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(parameterSyntax.Type != null);
                     var loc = parameterSyntax.Type.Location;
                     diagnostics.Add(ErrorCode.ERR_BadTypeforThis, loc, parameter0Type);
+                }
+                else if (parameter0RefKind == RefKind.Ref && !parameter0Type.IsValueType)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, location, Name);
+                }
+                else if (parameter0RefKind == RefKind.RefReadOnly && parameter0Type.TypeKind != TypeKind.Struct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_RefReadOnlyExtensionMustBeValueType, location, Name);
                 }
                 else if ((object)ContainingType.ContainingType != null)
                 {
