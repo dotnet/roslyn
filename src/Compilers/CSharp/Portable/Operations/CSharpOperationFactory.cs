@@ -1143,16 +1143,26 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new LazySwitchStatement(value, cases, isInvalid, syntax, type, constantValue);
         }
 
-        private IPatternCaseClause CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
+        private ICaseClause CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
         {
             LabelSymbol label = boundPatternSwitchLabel.Label;
-            Lazy<IPattern> pattern = new Lazy<IPattern>(() => (IPattern)Create(boundPatternSwitchLabel.Pattern));
-            Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
             bool isInvalid = boundPatternSwitchLabel.HasErrors;
             SyntaxNode syntax = boundPatternSwitchLabel.Syntax;
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
-            return new LazyPatternCaseClause(label, pattern, guardExpression, isInvalid, syntax, type, constantValue);
+
+            if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern)
+            {
+                // Default switch label in pattern switch statement is represented as a regular case clause.
+                Lazy<IOperation> value = new Lazy<IOperation>(() => null);
+                return new LazySingleValueCaseClause(value, BinaryOperationKind.None, CaseKind.Default, isInvalid, syntax, type, constantValue);
+            }
+            else
+            {
+                Lazy<IPattern> pattern = new Lazy<IPattern>(() => (IPattern)Create(boundPatternSwitchLabel.Pattern));
+                Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
+                return new LazyPatternCaseClause(label, pattern, guardExpression, isInvalid, syntax, type, constantValue);
+            }
         }
 
         private IIsPatternExpression CreateBoundIsPatternExpressionOperation(BoundIsPatternExpression boundIsPatternExpression)

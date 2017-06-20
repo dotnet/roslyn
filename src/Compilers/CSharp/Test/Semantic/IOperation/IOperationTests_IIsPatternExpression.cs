@@ -212,7 +212,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
         }
 
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
-        public void TestIsPatternExpression_ConstantPatternWithNoConversion()
+        public void TestIsPatternExpression_ConstantPatternWithNoValidImplicitOrExplicitConversion()
         {
             string source = @"
 using System;
@@ -270,7 +270,7 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean, I
         }
 
         [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
-        public void TestIsPatternExpression_NonConstantExpressionInsteadOfPatternDeclaration()
+        public void TestIsPatternExpression_InvalidConstantPatternDeclaration()
         {
             string source = @"
 using System;
@@ -472,6 +472,94 @@ IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (
                 // CS1736: Default parameter value for 'x' must be a compile-time constant
                 //     void M(string x = /*<bind>*/string.Empty is string y/*</bind>*/)
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "string.Empty is string y").WithArguments("x").WithLocation(5, 33)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
+        public void TestIsPatternExpression_InvalidInFieldInitializer()
+        {
+            string source = @"
+class C
+{
+    private readonly static object o = 1;
+    private readonly bool b = /*<bind>*/o is int x/*</bind>*/ && x >= 5;
+}
+";
+            string expectedOperationTree = @"
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
+  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //     private readonly bool b = /*<bind>*/o is int x/*</bind>*/ && x >= 5;
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(5, 46)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
+        public void TestIsPatternExpression_InvalidInConstructorInitializer()
+        {
+            string source = @"
+class C
+{
+    public C(object o): 
+        this (/*<bind>*/o is int x/*</bind>*/ && x >= 5)
+    {
+    }
+
+    public C (bool b)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
+  Expression: IParameterReferenceExpression: o (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'o')
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8200: Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.
+                //         this (/*<bind>*/o is int x/*</bind>*/ && x >= 5)
+                Diagnostic(ErrorCode.ERR_ExpressionVariableInConstructorOrFieldInitializer, "int x").WithLocation(5, 30)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
+        public void TestIsPatternExpression_InvalidInAttributeArgument()
+        {
+            string source = @"
+class A: System.Attribute
+{
+    public A (bool i)
+    {
+    }
+}
+
+[A(/*<bind>*/o is int x/*</bind>*/ && x >= 5)]
+class C
+{
+    private const object o = 1;
+}
+";
+            string expectedOperationTree = @"
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int x')
+  Expression: IFieldReferenceExpression: System.Object C.o (Static) (OperationKind.FieldReferenceExpression, Type: System.Object, Constant: 1) (Syntax: 'o')
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0134: 'C.o' is of type 'object'. A const field of a reference type other than string can only be initialized with null.
+                //     private const object o = 1;
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, "1").WithArguments("C.o", "object").WithLocation(12, 30),
+                // CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(/*<bind>*/o is int x/*</bind>*/ && x >= 5)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "o is int x/*</bind>*/ && x >= 5").WithLocation(9, 14)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<IsPatternExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

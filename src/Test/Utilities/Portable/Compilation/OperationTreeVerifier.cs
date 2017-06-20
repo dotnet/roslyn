@@ -1153,7 +1153,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IPatternCaseClause));
             LogSymbol(operation.Label, " (Label Symbol");
             LogString(")");
-            LogCommonPropertiesAndNewLine(operation);
+            LogCaseClauseCommon(operation);
 
             Visit(operation.Pattern, "Pattern");
             Visit(operation.GuardExpression, "Guard Expression");

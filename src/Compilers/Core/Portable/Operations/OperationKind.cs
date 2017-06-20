@@ -141,12 +141,11 @@ namespace Microsoft.CodeAnalysis
         AddressOfExpression = 0x203,
         /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
         PointerIndirectionReferenceExpression = 0x204,
-        // 0x205 is open for future use.
+        /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
+        IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x206,
-        /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
-        IsPatternExpression = 0x207,
-
+        
         // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
