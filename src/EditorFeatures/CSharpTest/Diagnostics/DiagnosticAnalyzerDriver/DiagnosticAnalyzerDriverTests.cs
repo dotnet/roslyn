@@ -324,7 +324,8 @@ class C
             {
                 var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync());
 
-                Assert.Throws<ArgumentException>(() => compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer }));
+                var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
+                AssertEx.Any(diagnostics, d => d.Id == AnalyzerHelper.AnalyzerExceptionDiagnosticId);
             }
         }
 
