@@ -2,9 +2,10 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.Net.Compilers.netcore</id>
-    <description>
+    <summary>
       CoreCLR-compatible versions of the C# and VB compilers.
-    </description>
+    </summary>
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
