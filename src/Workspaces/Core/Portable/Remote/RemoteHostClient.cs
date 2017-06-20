@@ -101,47 +101,19 @@ namespace Microsoft.CodeAnalysis.Remote
             // this will be removed soon.
             protected readonly CancellationToken CancellationToken;
 
-            // scope will be also removed from the connection
-            private readonly object _gate;
-            private PinnedRemotableDataScope _scopeDoNotAccessDirectly;
-
             private bool _disposed;
 
             protected Connection(CancellationToken cancellationToken)
             {
-                _gate = new object();
-
                 _disposed = false;
-                _scopeDoNotAccessDirectly = null;
 
                 CancellationToken = cancellationToken;
             }
 
             protected abstract Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope);
 
-            public PinnedRemotableDataScope PinnedRemotableDataScope
-            {
-                get
-                {
-                    lock (_gate)
-                    {
-                        return _scopeDoNotAccessDirectly;
-                    }
-                }
-                set
-                {
-                    lock (_gate)
-                    {
-                        _scopeDoNotAccessDirectly = value;
-                    }
-                }
-            }
-
             public virtual Task RegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
             {
-                // make sure all thread can read the info
-                PinnedRemotableDataScope = scope;
-
                 return OnRegisterPinnedRemotableDataScopeAsync(scope);
             }
 
