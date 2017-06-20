@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return new ServiceHubJsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.Share(), cancellationToken);
+            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.Share(), cancellationToken);
         }
 
         protected override void OnStarted()

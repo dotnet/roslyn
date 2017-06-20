@@ -10,10 +10,10 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
-    internal class ServiceHubJsonRpcConnection : RemoteHostClient.Connection
+    internal class JsonRpcConnection : RemoteHostClient.Connection
     {
         // communication channel related to service information
-        private readonly ServiceJsonRpcClient _serviceClient;
+        private readonly ServiceJsonRpcEx _serviceRpc;
 
         // communication channel related to snapshot information
         private readonly RemotableDataJsonRpcEx _remoteDataRpc;
@@ -21,14 +21,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         // close connection when cancellation has raised
         private readonly CancellationTokenRegistration _cancellationRegistration;
 
-        public ServiceHubJsonRpcConnection(
+        public JsonRpcConnection(
             object callbackTarget,
             Stream serviceStream,
             RemotableDataJsonRpcEx dataRpc,
             CancellationToken cancellationToken) :
             base(cancellationToken)
         {
-            _serviceClient = new ServiceJsonRpcClient(serviceStream, callbackTarget, cancellationToken);
+            _serviceRpc = new ServiceJsonRpcEx(serviceStream, callbackTarget, cancellationToken);
             _remoteDataRpc = dataRpc;
 
             // dispose session when cancellation has raised
@@ -37,27 +37,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override async Task OnRegisterPinnedRemotableDataScopeAsync(PinnedRemotableDataScope scope)
         {
-            await _serviceClient.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, scope.SolutionInfo).ConfigureAwait(false);
+            await _serviceRpc.InvokeAsync(WellKnownServiceHubServices.ServiceHubServiceBase_Initialize, scope.SolutionInfo).ConfigureAwait(false);
         }
 
         public override Task InvokeAsync(string targetName, params object[] arguments)
         {
-            return _serviceClient.InvokeAsync(targetName, arguments);
+            return _serviceRpc.InvokeAsync(targetName, arguments);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
         {
-            return _serviceClient.InvokeAsync<T>(targetName, arguments);
+            return _serviceRpc.InvokeAsync<T>(targetName, arguments);
         }
 
         public override Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
         {
-            return _serviceClient.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
+            return _serviceRpc.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
         }
 
         public override Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
         {
-            return _serviceClient.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
+            return _serviceRpc.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
         }
 
         protected override void OnDisposed()
@@ -68,7 +68,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _cancellationRegistration.Dispose();
 
             // dispose service and snapshot channels
-            _serviceClient.Dispose();
+            _serviceRpc.Dispose();
             _remoteDataRpc.Dispose();
         }
 
@@ -77,11 +77,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// 
         /// this is the channel consumer of remote host client will playing with
         /// </summary>
-        private class ServiceJsonRpcClient : JsonRpcEx
+        private class ServiceJsonRpcEx : JsonRpcEx
         {
             private readonly object _callbackTarget;
 
-            public ServiceJsonRpcClient(Stream stream, object callbackTarget, CancellationToken cancellationToken)
+            public ServiceJsonRpcEx(Stream stream, object callbackTarget, CancellationToken cancellationToken)
                 : base(stream, callbackTarget, useThisAsCallback: false, cancellationToken: cancellationToken)
             {
                 // this one doesn't need cancellation token since it has nothing to cancel
