@@ -1090,7 +1090,7 @@ class C
         }
 
         [Fact]
-        public void ValueTupleNotRequiredIfReturnIsUsed()
+        public void ValueTupleNotRequiredIfReturnIsNotUsed()
         {
             string source = @"
 class C
@@ -7360,6 +7360,29 @@ static class Extensions
                 // (9,10): warning CS1717: Assignment made to same variable; did you mean to assign something else?
                 //         (x, (y, z)) = (x, y);
                 Diagnostic(ErrorCode.WRN_AssignmentToSelf, "x").WithLocation(9, 10)
+                );
+        }
+
+        [Fact]
+        public void TestDeconstructOnErrorType()
+        {
+            var source =
+@"
+class C
+{
+    Error M()
+    {
+        int x, y;
+        (x, y) = M();
+        throw null;
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll); // no ValueTuple reference
+            comp.VerifyDiagnostics(
+                // (4,5): error CS0246: The type or namespace name 'Error' could not be found (are you missing a using directive or an assembly reference?)
+                //     Error M()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Error").WithArguments("Error").WithLocation(4, 5)
                 );
         }
 

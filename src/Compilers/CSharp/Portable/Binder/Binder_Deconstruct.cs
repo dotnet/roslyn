@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundDeconstructionAssignmentOperator(node, lhsTuple, boundConversion, resultIsUsed, returnType);
         }
 
-        private bool IsDeconstructionResultUsed(ExpressionSyntax left)
+        private static bool IsDeconstructionResultUsed(ExpressionSyntax left)
         {
             var parent = left.Parent;
-            if (parent is null || left.Parent.Kind() == SyntaxKind.ForEachVariableStatement)
+            if (parent is null || parent.Kind() == SyntaxKind.ForEachVariableStatement)
             {
                 return false;
             }
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((ExpressionStatementSyntax)grandParent).Expression != parent;
 
                 case SyntaxKind.ForStatement:
-                    // Incrementors and Initializers doesn't have to produce a value
+                    // Incrementors and Initializers don't have to produce a value
                     var loop = (ForStatementSyntax)grandParent;
                     return !loop.Incrementors.Contains(parent) && !loop.Initializers.Contains(parent);
 
