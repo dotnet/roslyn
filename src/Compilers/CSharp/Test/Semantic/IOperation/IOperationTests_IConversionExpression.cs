@@ -460,6 +460,38 @@ class S1
 {
     void M1()
     {
+        long /*<bind>*/i1 = default/*</bind>*/;
+    }
+}
+";
+            string expectedOperationTree = @"
+IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'long /*<bin ... *</bind>*/;')
+  IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'long /*<bin ... *</bind>*/;')
+    Variables: Local_1: System.Int64 i1
+    Initializer: IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Int64, Constant: 0) (Syntax: 'default')
+        IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: System.Int64, Constant: 0) (Syntax: 'default')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0219: The variable 'i1' is assigned but its value is never used
+                //         long /*<bind>*/i1 = default(int)/*</bind>*/;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i1").WithArguments("i1").WithLocation(8, 24)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                parseOptions: TestOptions.Regular7_1,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+        }
+
+        [Fact]
+        public void ConversionExpression_Implicit_DefaultOfImplicitlyConvertableTypeToValueConversion()
+        {
+            string source = @"
+using System;
+
+class S1
+{
+    void M1()
+    {
         long /*<bind>*/i1 = default(int)/*</bind>*/;
     }
 }
@@ -1501,6 +1533,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+            Func<int, float> f = (int num) => num;
         }
 
         [Fact]
@@ -3002,8 +3035,8 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
 
             // Due to https://github.com/dotnet/roslyn/issues/20291, we cannot verify that the types of the ioperation tree and the sematic model
             // match, as they do not actually match.
-            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics); //,
-                //AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
+                AdditionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
         }
 
         [Fact]
