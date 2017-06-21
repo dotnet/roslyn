@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -53,7 +54,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
             _formatter = New FormatterMock(workspace)
             _inlineRenameService = New InlineRenameServiceMock()
-            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter, _inlineRenameService)
+            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter,
+                                                                       _inlineRenameService,
+                                                                       workspace.GetService(Of IGlobalOperationNotificationService))
 
             ' Make sure the manager exists for the buffer
             Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)

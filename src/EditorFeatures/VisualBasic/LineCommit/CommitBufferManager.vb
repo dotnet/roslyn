@@ -2,6 +2,7 @@
 
 Imports System.Threading
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 
@@ -13,6 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
+        Private ReadOnly _notificationService As IGlobalOperationNotificationService
         Private _referencingViews As Integer
 
         ''' <summary>
@@ -30,15 +32,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Public Sub New(
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
-            inlineRenameService As IInlineRenameService)
+            inlineRenameService As IInlineRenameService,
+            notificationService As IGlobalOperationNotificationService)
 
             Contract.ThrowIfNull(buffer)
             Contract.ThrowIfNull(commitFormatter)
             Contract.ThrowIfNull(inlineRenameService)
+            Contract.ThrowIfNull(notificationService)
 
             _buffer = buffer
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
+            _notificationService = notificationService
         End Sub
 
         Private Sub Connect()
@@ -108,14 +113,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         Return
                     End If
 
-                    Dim dirtyRegion = _dirtyState.DirtyRegion.GetSpan(_buffer.CurrentSnapshot)
-                    Dim info As FormattingInfo
-                    If Not TryComputeExpandedSpanToFormat(dirtyRegion, info, cancellationToken) Then
-                        Return
-                    End If
+                    Using _notificationService.Start("LineCommit")
 
-                    Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
-                    _commitFormatter.CommitRegionAsync(info.SpanToFormat, isExplicitFormat, info.UseSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken).Wait(cancellationToken)
+
+                        Dim dirtyRegion = _dirtyState.DirtyRegion.GetSpan(_buffer.CurrentSnapshot)
+                        Dim info As FormattingInfo
+                        If Not TryComputeExpandedSpanToFormat(dirtyRegion, info, cancellationToken) Then
+                            Return
+                        End If
+
+                        Dim tree = _dirtyState.BaseDocument.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)
+                        _commitFormatter.CommitRegionAsync(info.SpanToFormat, isExplicitFormat, info.UseSemantics, dirtyRegion, _dirtyState.BaseSnapshot, tree, cancellationToken).Wait(cancellationToken)
+                    End Using
                 End Using
             Finally
                 ' We may have tracked a dirty region while committing or it may have been aborted.
