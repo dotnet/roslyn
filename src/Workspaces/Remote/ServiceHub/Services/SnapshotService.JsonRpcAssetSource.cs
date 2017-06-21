@@ -30,23 +30,13 @@ namespace Microsoft.CodeAnalysis.Remote
                 _owner = owner;
             }
 
-            public override async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken callerCancellationToken)
+            public override async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
-                // it should succeed as long as matching VS is alive
-                // TODO: add logging mechanism using Logger
-
-                // this can be called in two ways. 
-                // 1. Connection to get asset is closed (the asset source we were using is disconnected - _assetChannelCancellationToken)
-                //    if this asset source's channel is closed, service will move to next asset source to get the asset as long as callerCancellationToken
-                //    is not cancelled
-                //
-                // 2. Request to required this asset has cancelled. (callerCancellationToken)
-                using (var mergedCancellationToken = CancellationTokenSource.CreateLinkedTokenSource(_owner.CancellationToken, callerCancellationToken))
-                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, mergedCancellationToken.Token))
+                using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
                 {
                     return await _owner.Rpc.InvokeAsync(WellKnownServiceHubServices.AssetService_RequestAssetAsync,
                         new object[] { scopeId, checksums.ToArray() },
-                        (s, c) => ReadAssets(s, scopeId, checksums, c), mergedCancellationToken.Token).ConfigureAwait(false);
+                        (s, c) => ReadAssets(s, scopeId, checksums, c), cancellationToken).ConfigureAwait(false);
                 }
             }
 

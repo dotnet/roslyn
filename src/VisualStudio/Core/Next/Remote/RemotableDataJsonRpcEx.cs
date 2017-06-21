@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly CancellationTokenSource _source;
 
         public RemotableDataJsonRpc(Microsoft.CodeAnalysis.Workspace workspace, Stream stream)
-            : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: CancellationToken.None)
+            : base(stream, callbackTarget: null, useThisAsCallback: true)
         {
             _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
 
