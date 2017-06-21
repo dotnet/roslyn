@@ -3913,5 +3913,61 @@ class Program
     }
 }");
         }
+
+        [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnCallToMethodWithParamsArgs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var takesArgs = new[] { ""Hello"", ""World"" };
+        TakesParams([|(object)|]takesArgs);
+    }
+
+    private static void TakesParams(params object[] foo)
+    {
+        Console.WriteLine(foo.Length);
+    }
+}");
+        }
+
+        [WorkItem(18978, "https://github.com/dotnet/roslyn/issues/18978")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task RemoveCastOnCallToMethodWithParamsArgsIfImplicitConversionExists()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var takesArgs = new[] { ""Hello"", ""World"" };
+        TakesParams([|(System.IComparable[])|]takesArgs);
+    }
+
+    private static void TakesParams(params object[] foo)
+    {
+        System.Console.WriteLine(foo.Length);
+    }
+}",
+@"
+class Program
+{
+    public static void Main(string[] args)
+    {
+        var takesArgs = new[] { ""Hello"", ""World"" };
+        TakesParams(takesArgs);
+    }
+
+    private static void TakesParams(params object[] foo)
+    {
+        System.Console.WriteLine(foo.Length);
+    }
+}");
+        }
     }
 }

@@ -51,7 +51,7 @@ Critical IDE features in the areas of **Typing**, **Navigating**, and **Viewing*
 | | **Indentation** <br />- Typing `Enter` in an unfinished statement indents the next line | | |
 | **Navigating** | **Go To Definition** <br />- F12 from callsites to definition | | |
 | | **Go To Implementation** <br />- Ctrl+F12 to jump from virtual members to their implementations<br />- Jump from inheritable types to their implementations | | |
-| | **Find All References** <br />- Lists references to a symbol in "Find Symbol Results" window<br />- Shows results in hierarchy grouped by definition [VS2015+]<br />- Results should be groupable/filterable/classified appropriately [VS2017+] | | |
+| | **Find All References** <br />- Lists references to a symbol in "Find Symbol Results" window<br />- Shows results in hierarchy grouped by definition [VS2015+]<br />- Results should be groupable/filterable/classified appropriately [VS2017+] <br />- Find All References on literals [VS2017 Update 3] | | |
 | **Viewing** | **Colorization** <br />- Keywords, literals, and identifiers colored appropriately in code | | |
 | | **Error Squiggles** <br />- Squiggles appear as expected on reasonable spans | | |
 
@@ -66,6 +66,7 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Change Signature (with UI)**<br />- Updates all direct & cascaded definitions/callsites<br />- Shows appropriate signature & parameter previews in UI<br />- Reorder and Remove in the same session [VS2015+] | | |
 | | **Extract Interface (with UI)**<br />- Generated Interface has expected shape<br />- UI shows appropriate method previews | | |
 | | **Generate Type (with UI)**<br />- Dialog gives all valid options<br /> | | |
+| | **Generate Overrides** [VS2017 Update 3] | | |
 | **Refactorings** | **Rename Tracking**<br />- Tracking span tracks & dismisses as expected<br />- Invokable from references [VS2015+]| | |
 | | **Extract Method**<br />- Extracted method has the expected signature<br />- All arguments/return values handled correctly<br />- Extracted code block is reasonable<br />- Automatically starts Inline Rename | | |
 | | **Introduce Variable**<br />- Introduced variable has the expected signature and initializer expression<br />- "Introduce for All" correctly finds dupes | | |
@@ -76,16 +77,18 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | **Fixes** | **Add Using**<br />- Triggers on appropriate constructs<br />- Including NuGet references<br />- Including Referenced Assemblies<br />- Includes spelling fixes | | |
 | | **Generate Local**<br />- Select an expression and introduce a local variable to represent it<br />- This should start an Inline Rename session | | |
 | | **Generate Field**<br />- Select an expression and introduce a field to represent it<br />- This should start an Inline Rename session | | |
-| | **Generate Method/Constructor**<br />- Call a nonexistent method or constructor to generate it from its usage<br />- Generated method has the expected signature and accessibility | | |
+| | **Generate Method/Constructor**<br />- Call a nonexistent method or constructor to generate it from its usage<br />- Generated method has the expected signature and accessibility<br />- Add parameter to existing constructor from callsite [VS2017 Update 3] | | |
 | | **Generate Constructor from members**<br />- Select fields/properties to generate a constructor accepting corresponding arguments<br />- Generated constructor has the expected signature and accessibility | | |
 | | **Implement Interface**<br />- Only missing methods added<br />- All added methods have the expected signature and accessibility | | |
 | | **Implement IDisposable**<br />- Implement IDisposable and you should see a large block of code properly implementing that particular interface | | |
 | | **Implement Abstract Class**<br />- Inherit from an abstract class, and you should be able to auto-generate all of the missing members | | |
+| | **Remove Unused Variables** [VS2017 Update 3]| | |
 | | **Remove Unused Usings** | | |
 | | **Sort Usings** | | |
 | | **Convert Get Methods to Properties**<br />- Name a method `GetStuff` and convert it to a property called `Stuff` | | |
 | | **Make Method Async/Sync**<br />- Add an `await` to a synchronous method, you should be offered to add the async keyword<br />- Remove all `await` keywords from an async method, you should be offered to remove the async keyword | | |
 | | **Use Object Initializer Over Property Assignment**<br />- Create a new instance of a type and then assign each of its properties on subsequent lines<br />- You should be offered to convert that to an object initializer | | |
+| | **Insert Digit Separators** [VS2017 Update 3] | | |
 | **Code Gen** | **Snippets**<br />- Tab completion, presence in completion list<br />- Insertion via Snippet Picker UI (Ctrl + K, Ctrl + X) or (Ctrl + K, Ctrl + S)<br />- (VB) Snippet Picker UI via `?<Tab>`<br />- (VB) Special snippet completion list (`p?<esc><tab>`) | | |
 | | **Event Hookup on Tab** (*C# only*)<br />- Type "+=" after an event name and QuickInfo shows<br />- Invoking should pick good name & launch Inline Rename | | N/A |
 | | **End Construct Generation** (*VB only*)<br />- Type `Sub Test()` and hit enter, the `End Sub` should be generated automatically | N/A | |
@@ -94,6 +97,10 @@ For the remaining set of IDE features, only crashes and asserts are considered b
 | | **Move type to file**<br />- Lightbulb to move type to another file when the type name doesn't match the filename<br />- Option to change the file name if the type doesn't match the file name | | |
 | | **Convert between properties and Get methods**<br />- Offers to change a method named `GetStuff` to a property named `Stuff` | | |
 | | **Add missing cases**<br />Use a `switch` on a strict subset of an Enum's members<br />- It should offer to generate the rest of the cases | | |
+| | **Add null checks for parameters** [VS2017 Update 3] | | |
+| | **Change base for numeric literals** [VS2017 Update 3] | | |
+| | **Convert if to switch** [VS2017 Update 3] | | |
+| | **Resolve git merge conflicts** [VS2017 Update 3] | | |
 
 ### IDE Features
 | Category | Feature/Description | C# Signoff/Notes | VB Signoff/Notes |

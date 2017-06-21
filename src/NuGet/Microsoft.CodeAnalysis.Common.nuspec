@@ -5,6 +5,8 @@
     <summary>A shared package used by the Microsoft .NET Compiler Platform ("Roslyn").</summary>
     <description>
       A shared package used by the Microsoft .NET Compiler Platform ("Roslyn"). Do not install this package manually, it will be added as a prerequisite by other packages that require it.
+
+      $commitPathMessage$
     </description>
     <dependencies>
       <group targetFramework="netstandard1.3">

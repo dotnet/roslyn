@@ -6144,5 +6144,58 @@ unsafe public class C {
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "ok");
         }
+
+        [Fact]
+        [WorkItem(406203, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=406203")]
+        [WorkItem(406205, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=406205")]
+        public void DoubleEvaluation()
+        {
+            var source =
+@"using System;
+public class X
+{
+    public static void Main(string[] args)
+    {
+        {
+            int? a = 0;
+            if (a++ is int b)
+            {
+                Console.WriteLine(b);
+            }
+            Console.WriteLine(a);
+        }
+        {
+            int? a = 0;
+            if (++a is int b)
+            {
+                Console.WriteLine(b);
+            }
+            Console.WriteLine(a);
+        }
+        {
+            if (Func() is int b)
+            {
+                Console.WriteLine(b);
+            }
+        }
+    }
+    public static int? Func()
+    {
+        Console.WriteLine(""Func called"");
+        return 2;
+    }
+}
+";
+            var expectedOutput = @"0
+1
+1
+1
+Func called
+2";
+            var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.IO;
+using Microsoft.CodeAnalysis.Execution;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.Remote
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Remote
             Rpc.StartListening();
         }
 
-        public override void Initialize(int sessionId, bool primary, Checksum solutionChecksum)
+        public override void Initialize(PinnedSolutionInfo solutionInfo)
         {
-            base.Initialize(sessionId, primary, solutionChecksum);
+            base.Initialize(solutionInfo);
 
             lock (_gate)
             {
@@ -38,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                _source = new JsonRpcAssetSource(this, sessionId);
+                _source = new JsonRpcAssetSource(this, solutionInfo.ScopeId);
             }
         }
 
