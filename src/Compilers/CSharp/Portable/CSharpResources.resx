@@ -5138,6 +5138,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PatternWrongGenericTypeInVersion" xml:space="preserve">
     <value>An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.</value>
   </data>
+  <data name="WRN_UnreferencedLocalFunction" xml:space="preserve">
+    <value>The local function '{0}' is declared but never used</value>
+  </data>
+  <data name="WRN_UnreferencedLocalFunction_Title" xml:space="preserve">
+    <value>Local function is declared but never used</value>
+  </data>
   <data name="ERR_ExplicitReservedAttr" xml:space="preserve">
     <value>Do not use '{0}'. This is reserved for compiler usage.</value>
   </data>

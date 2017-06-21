@@ -1492,6 +1492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #region diagnostics introduced for C# 7.2
         ERR_FeatureNotAvailableInVersion7_2 = 8320,
+        WRN_UnreferencedLocalFunction = 8321,
         #endregion diagnostics introduced for C# 7.2
 
         //PROTOTYPE(ReadonlyRefs): make err IDs contiguous before merging to master. 

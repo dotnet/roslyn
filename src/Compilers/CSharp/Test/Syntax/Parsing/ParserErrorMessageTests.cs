@@ -2009,9 +2009,9 @@ public class a {
                 // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
                 //         for (int i=0; i < 3; i++) void j() { }
                 Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "void j() { }").WithLocation(6, 35),
-                // (6,40): warning CS0168: The variable 'j' is declared but never used
+                // (6,40): warning CS8321: The local function 'j' is declared but never used
                 //         for (int i=0; i < 3; i++) void j() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 40));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "j").WithArguments("j").WithLocation(6, 40));
         }
 
         // Preprocessor:
@@ -5209,9 +5209,9 @@ class A<out T>
                 // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
                 //         void Local<in T>() { }
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
-                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                // (5,14): warning CS8321: The local function 'Local' is declared but never used
                 //         void Local<in T>() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
