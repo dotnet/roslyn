@@ -9,9 +9,9 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
+#pragma warning disable CS0618 // Type or member is obsolete
 namespace Microsoft.CodeAnalysis.Editor.Structure
 {
-
     internal class RoslynBlockTag : BlockTag
     {
         private readonly BlockTagState _state;
@@ -76,3 +76,5 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

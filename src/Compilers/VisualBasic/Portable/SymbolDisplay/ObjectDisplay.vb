@@ -2,7 +2,7 @@
 
 Imports System.Globalization
 Imports System.Reflection
-Imports Microsoft.CodeAnalysis.Collections
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
 

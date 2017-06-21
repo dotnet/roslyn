@@ -2,7 +2,8 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.VisualStudio.IntegrationTest.Utilities</id>
-    <description>Utility methods used to run Visual Studio integration tests.</description>
+    <summary>Utility methods used to run Visual Studio integration tests.</summary>
+    <description>$commitPathMessage$</description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <version>$version$</version>
