@@ -60,12 +60,12 @@ namespace Microsoft.CodeAnalysis.CommandLine
         protected override Task<BuildResponse> RunServerCompilation(
             List<string> arguments,
             BuildPaths buildPaths,
-            string sessionKey,
+            string pipeName,
             string keepAlive,
             string libDirectory,
             CancellationToken cancellationToken)
         {
-            return RunServerCompilationCore(_language, arguments, buildPaths, sessionKey, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
+            return RunServerCompilationCore(_language, arguments, buildPaths, pipeName, keepAlive, libDirectory, TimeoutOverride, TryCreateServer, cancellationToken);
         }
 
         public static Task<BuildResponse> RunServerCompilation(
@@ -129,13 +129,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
 
         /// <summary>
-        /// Given the full path to the directory containing the compiler exes,
+        /// Given the full path to the directory containing the compiler exes and an optional session moniker,
         /// retrieves the name of the pipe for client/server communication on
         /// that instance of the compiler.
         /// </summary>
-        protected override string GetSessionKey(BuildPaths buildPaths)
+        protected override string ConstructPipeName(BuildPaths buildPaths, string sharedCompilationId = null)
         {
-            return BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+            return BuildServerConnection.GetPipeNameForPathOpt(buildPaths.ClientDirectory, sharedCompilationId);
         }
     }
 }

@@ -95,9 +95,10 @@ namespace Microsoft.CodeAnalysis.CommandLine
             BuildPathsAlt buildPaths,
             string keepAlive,
             string libEnvVariable,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            string sharedCompilationId = null)
         {
-            var pipeNameOpt = GetPipeNameForPathOpt(buildPaths.ClientDirectory);
+            var pipeNameOpt = GetPipeNameForPathOpt(buildPaths.ClientDirectory, sharedCompilationId);
 
             return RunServerCompilationCore(
                 language,
@@ -489,9 +490,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
         /// </returns>
-        internal static string GetPipeNameForPathOpt(string compilerExeDirectory)
+        internal static string GetPipeNameForPathOpt(string compilerExeDirectory, string sharedCompilationId = null)
         {
-            var basePipeName = GetBasePipeName(compilerExeDirectory);
+            var basePipeName = GetBasePipeName(compilerExeDirectory, sharedCompilationId);
 
             // Prefix with username and elevation
             var currentIdentity = WindowsIdentity.GetCurrent();
@@ -506,17 +507,28 @@ namespace Microsoft.CodeAnalysis.CommandLine
             return $"{userName}.{isAdmin}.{basePipeName}";
         }
 
-        internal static string GetBasePipeName(string compilerExeDirectory)
+        internal static string GetBasePipeName(string compilerExeDirectory, string sharedCompilationId = null)
         {
             // Normalize away trailing slashes.  File APIs include / exclude this with no 
             // discernable pattern.  Easiest to normalize it here vs. auditing every caller
             // of this method.
             compilerExeDirectory = compilerExeDirectory.TrimEnd(Path.DirectorySeparatorChar);
 
+            // Store refined compilerExeDirectory value as the basis for a raw pipe name to be hashed.
+            string rawPipeName = compilerExeDirectory;
+
+            // Append the sharedCompilationId value if it is provided.
+            if (!string.IsNullOrWhiteSpace(sharedCompilationId?.TrimStart('\0')))
+            {
+                // Trim away any whitespace from the sharedCompilationId.  Prepending a null terminator as "delimiter"
+                // between the path name and the sharedCompilationId.
+                rawPipeName += '\0' + sharedCompilationId.TrimStart('\0').Trim();
+            }
+
             string basePipeName;
             using (var sha = SHA256.Create())
             {
-                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(compilerExeDirectory));
+                var bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(rawPipeName));
                 basePipeName = Convert.ToBase64String(bytes)
                     .Replace("/", "_")
                     .Replace("=", string.Empty);

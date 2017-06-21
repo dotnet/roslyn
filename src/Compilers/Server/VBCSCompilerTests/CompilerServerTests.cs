@@ -140,19 +140,19 @@ End Module")
             bool hasShared;
             string keepAlive;
             string errorMessage;
-            string pipeName;
+            string sharedCompilationId;
             List<string> parsedArgs;
             if (CommandLineParser.TryParseClientArgs(
                     arguments.Split(' '),
                     out parsedArgs,
                     out hasShared,
                     out keepAlive,
-                    out pipeName,
+                    out sharedCompilationId,
                     out errorMessage))
             {
-                if (hasShared && string.IsNullOrEmpty(pipeName))
+                if (hasShared && string.IsNullOrEmpty(sharedCompilationId))
                 {
-                    throw new InvalidOperationException("Must specify a pipe name in these suites to ensure we're not running out of proc servers");
+                    throw new InvalidOperationException("Must specify a shared compilation id in these suites to ensure we're not running out of proc servers");
                 }
             }
         }
@@ -228,7 +228,7 @@ End Module")
             // Verify csc will fall back to command line when server fails to process
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
@@ -242,7 +242,7 @@ End Module")
             {
                 var files = new Dictionary<string, string> { { "hello.cs", "♕" } };
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, files);
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /nologo hello.cs", _tempDirectory, files);
                 Assert.Equal(result.ExitCode, 1);
                 Assert.True(result.ContainsErrors);
                 Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
@@ -263,7 +263,7 @@ End Module")
                     CSharpCompilerClientExecutable,
                     srcFile,
                     tempOut.Path,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
@@ -282,7 +282,7 @@ End Module")
             {
                 var result = ProcessUtilities.Run(
                     BasicCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /nologo test.vb",
+                    $"/shared:{serverData.SharedCompilationId} /nologo test.vb",
                     _tempDirectory.Path);
 
                 Assert.Equal(result.ExitCode, 1);
@@ -308,7 +308,7 @@ End Module")
                     BasicCompilerClientExecutable,
                     srcFile,
                     tempOut.Path,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
@@ -325,7 +325,7 @@ End Module")
         {
             using (var serverData = ServerUtil.CreateServerFailsConnection())
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.vb", _tempDirectory, s_helloWorldSrcVb);
+                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /nologo hello.vb", _tempDirectory, s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
                 await serverData.Verify(connections: 1, completed: 0).ConfigureAwait(true);
             }
@@ -337,7 +337,7 @@ End Module")
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -366,7 +366,7 @@ End Module")
             {
                 var files = new Dictionary<string, string> { { "c.cs", "class C {}" } };
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
-                                                    $"/shared:{serverData.PipeName} /nologo /t:library /platform:x86 c.cs",
+                                                    $"/shared:{serverData.SharedCompilationId} /nologo /t:library /platform:x86 c.cs",
                                                     _tempDirectory,
                                                     files);
                 VerifyResult(result);
@@ -382,7 +382,7 @@ End Module")
             {
                 var files = new Dictionary<string, string> { { "c.vb", "Class C\nEnd Class" } };
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
-                                                    $"/shared:{serverData.PipeName} /nologo /t:library /platform:x86 c.vb",
+                                                    $"/shared:{serverData.SharedCompilationId} /nologo /t:library /platform:x86 c.vb",
                                                     _tempDirectory,
                                                     files);
                 VerifyResult(result);
@@ -397,7 +397,7 @@ End Module")
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
-                                                    $"/shared:{serverData.PipeName} /nologo /r:mscorlib.dll hello.cs",
+                                                    $"/shared:{serverData.SharedCompilationId} /nologo /r:mscorlib.dll hello.cs",
                                                     _tempDirectory,
                                                     s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.\r\n");
@@ -412,7 +412,7 @@ End Module")
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
-                                                    $"/shared:{serverData.PipeName} /nologo /r:Microsoft.VisualBasic.dll hello.vb",
+                                                    $"/shared:{serverData.SharedCompilationId} /nologo /r:Microsoft.VisualBasic.dll hello.vb",
                                                     _tempDirectory,
                                                     s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
@@ -427,7 +427,7 @@ End Module")
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
-                    $"/shared:{serverData.PipeName} /nologo /r:mscorlib.dll /r:Microsoft.VisualBasic.dll hello.vb",
+                    $"/shared:{serverData.SharedCompilationId} /nologo /r:mscorlib.dll /r:Microsoft.VisualBasic.dll hello.vb",
                     _tempDirectory,
                     s_helloWorldSrcVb);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB\r\n");
@@ -451,7 +451,7 @@ class Hello
     { Console.WriteLine(""Hello, world."") }
 }"}};
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} hello.cs", _tempDirectory, files);
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} hello.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -480,7 +480,7 @@ Module Module1
     End Sub
 End Class"}};
 
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:Microsoft.VisualBasic.dll hellovb.vb", _tempDirectory, files);
+                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /r:Microsoft.VisualBasic.dll hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -499,7 +499,7 @@ End Class"}};
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} missingfile.cs", _tempDirectory, new Dictionary<string, string>());
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} missingfile.cs", _tempDirectory, new Dictionary<string, string>());
 
                 // Should output errors, but not create output file.
                 Assert.Equal("", result.Errors);
@@ -517,7 +517,7 @@ End Class"}};
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:missing.dll hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /r:missing.dll hello.cs", _tempDirectory, s_helloWorldSrcCs);
 
                 // Should output errors, but not create output file.
                 Assert.Equal("", result.Errors);
@@ -542,7 +542,7 @@ End Class"}};
                                                { "app.cs", "class Test { static void Main() {} }"},
                                                };
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:Lib.cs app.cs", _tempDirectory, files);
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /r:Lib.cs app.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Equal("", result.Errors);
@@ -560,7 +560,7 @@ End Class"}};
         {
             using (var serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} missingfile.vb", _tempDirectory, new Dictionary<string, string>());
+                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} missingfile.vb", _tempDirectory, new Dictionary<string, string>());
 
                 // Should output errors, but not create output file.
                 Assert.Equal("", result.Errors);
@@ -590,7 +590,7 @@ Module Module1
     End Sub
 End Module"}};
 
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /r:Microsoft.VisualBasic.dll /r:missing.dll hellovb.vb", _tempDirectory, files);
+                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /nologo /r:Microsoft.VisualBasic.dll /r:missing.dll hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Equal("", result.Errors);
@@ -619,7 +619,7 @@ End Class" },
     End Sub
 End Module"}};
 
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:Lib.vb app.vb", _tempDirectory, files);
+                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.SharedCompilationId} /r:Lib.vb app.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Equal("", result.Errors);
@@ -653,7 +653,7 @@ End Class
             using (var serverData = ServerUtil.CreateServer())
             using (var tmpFile = GetResultFile(rootDirectory, "lib.dll"))
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src1.vb /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
+                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src1.vb /shared:{serverData.SharedCompilationId} /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
@@ -670,7 +670,7 @@ Module Module1
     End Sub
 End Module
 "}};
-                    result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello1.vb /shared:{serverData.PipeName} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", rootDirectory, files);
+                    result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello1.vb /shared:{serverData.SharedCompilationId} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", rootDirectory, files);
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
@@ -691,7 +691,7 @@ Public Sub Main()
 End Sub
 End Module
 "}};
-                        result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello2.vb /shared:{serverData.PipeName} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello2.exe", rootDirectory, files);
+                        result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello2.vb /shared:{serverData.SharedCompilationId} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello2.exe", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -715,7 +715,7 @@ Public Class Library
 End Class
 "}};
 
-                        result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src2.vb /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
+                        result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src2.vb /shared:{serverData.SharedCompilationId} /nologo /t:library /out:lib.dll", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -732,7 +732,7 @@ Module Module1
     End Sub
 End Module
 "}};
-                            result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello3.vb /shared:{serverData.PipeName} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello3.exe", rootDirectory, files);
+                            result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello3.vb /shared:{serverData.SharedCompilationId} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
@@ -775,7 +775,7 @@ public class Library
     { return ""library1""; }
 }"}};
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
+                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src1.cs /shared:{serverData.SharedCompilationId} /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal("", result.Errors);
                 Assert.Equal(0, result.ExitCode);
@@ -791,7 +791,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-                    result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello1.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
+                    result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello1.cs /shared:{serverData.SharedCompilationId} /nologo /r:lib.dll /out:hello1.exe", rootDirectory, files);
                     Assert.Equal("", result.Output);
                     Assert.Equal("", result.Errors);
                     Assert.Equal(0, result.ExitCode);
@@ -813,7 +813,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello2 from {0}"", Library.GetString()); }
 }"}};
-                        result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello2.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
+                        result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello2.cs /shared:{serverData.SharedCompilationId} /nologo /r:lib.dll /out:hello2.exe", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -836,7 +836,7 @@ public class Library
     { return ""library3""; }
 }"}};
 
-                        result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src2.cs /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
+                        result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src2.cs /shared:{serverData.SharedCompilationId} /nologo /t:library /out:lib.dll", rootDirectory, files);
                         Assert.Equal("", result.Output);
                         Assert.Equal("", result.Errors);
                         Assert.Equal(0, result.ExitCode);
@@ -852,7 +852,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello3 from {0}"", Library.GetString2()); }
 }"}};
-                            result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
+                            result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello3.cs /shared:{serverData.SharedCompilationId} /nologo /r:lib.dll /out:hello3.exe", rootDirectory, files);
                             Assert.Equal("", result.Output);
                             Assert.Equal("", result.Errors);
                             Assert.Equal(0, result.ExitCode);
@@ -874,7 +874,7 @@ class Hello
             GC.KeepAlive(rootDirectory);
         }
 
-        private async static Task<DisposableFile> RunCompilationAsync(RequestLanguage language, string pipeName, int i, TempDirectory compilationDir, TempDirectory tempDir)
+        private async static Task<DisposableFile> RunCompilationAsync(RequestLanguage language, string sharedCompilationId, int i, TempDirectory compilationDir, TempDirectory tempDir)
         {
             TempFile sourceFile;
             string exeFileName;
@@ -923,7 +923,7 @@ End Module";
                 workingDir: compilationDir.Path,
                 sdkDir: RuntimeEnvironment.GetRuntimeDirectory(),
                 tempDir: tempDir.Path);
-            var result = await client.RunCompilationAsync(new[] { $"/shared:{pipeName}", "/nologo", Path.GetFileName(sourceFile.Path), $"/out:{exeFileName}" }, buildPaths);
+            var result = await client.RunCompilationAsync(new[] { $"/shared:{sharedCompilationId}", "/nologo", Path.GetFileName(sourceFile.Path), $"/out:{exeFileName}" }, buildPaths);
             Assert.Equal(0, result.ExitCode);
             Assert.True(result.RanOnServer);
 
@@ -951,7 +951,7 @@ End Module";
                     var language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
                     var compilationDir = Temp.CreateDirectory();
                     var tempDir = Temp.CreateDirectory();
-                    tasks[i] = RunCompilationAsync(language, serverData.PipeName, i, compilationDir, tempDir);
+                    tasks[i] = RunCompilationAsync(language, serverData.SharedCompilationId, i, compilationDir, tempDir);
                 }
 
                 await Task.WhenAll(tasks);
@@ -985,7 +985,7 @@ public class Library
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
-                                                    $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
+                                                    $"src1.cs /shared:{serverData.SharedCompilationId} /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
                                                     _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1003,7 +1003,7 @@ class Hello
     public static void Main()
     { Console.WriteLine(""Hello1 from {0}"", Library.GetString()); }
 }"}};
-                result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello1.cs /shared:{serverData.PipeName} /nologo /r:lib.dll /out:hello1.exe", _tempDirectory, files,
+                result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"hello1.cs /shared:{serverData.SharedCompilationId} /nologo /r:lib.dll /out:hello1.exe", _tempDirectory, files,
                                                 additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
                 Assert.Equal("", result.Output);
@@ -1037,7 +1037,7 @@ End Class
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
-                                                    $"src1.vb /shared:{serverData.PipeName} /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
+                                                    $"src1.vb /shared:{serverData.SharedCompilationId} /nologo /t:library /out:" + libDirectory.Path + "\\lib.dll",
                                                     _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1056,7 +1056,7 @@ Module Module1
     End Sub
 End Module
 "}};
-                result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello1.vb /shared:{serverData.PipeName} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", _tempDirectory, files,
+                result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"hello1.vb /shared:{serverData.SharedCompilationId} /nologo /r:Microsoft.VisualBasic.dll /r:lib.dll /out:hello1.exe", _tempDirectory, files,
                                                 additionalEnvironmentVars: new Dictionary<string, string>() { { "LIB", libDirectory.Path } });
 
                 Assert.Equal("", result.Output);
@@ -1083,7 +1083,7 @@ End Module
                     CSharpCompilerClientExecutable,
                     srcFile,
                     tempOut.Path,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'".Trim(),
@@ -1107,7 +1107,7 @@ End Module
                     BasicCompilerClientExecutable,
                     srcFile,
                     tempOut.Path,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
@@ -1135,7 +1135,7 @@ End Module
                     CSharpCompilerClientExecutable,
                     srcFile,
                     tempOut.Path,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♕'".Trim(),
@@ -1159,7 +1159,7 @@ End Module
                     BasicCompilerClientExecutable,
                     srcFile,
                     tempOut.Path,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(@"SRC.VB(1) : error BC30037: Character is not valid.
@@ -1197,7 +1197,7 @@ End Module
             using (var serverData = ServerUtil.CreateServer())
             {
                 var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
-                                                    $"ref_mscorlib2.cs /shared:{serverData.PipeName} /nologo /nostdlib /noconfig /t:library /r:mscorlib20.dll",
+                                                    $"ref_mscorlib2.cs /shared:{serverData.SharedCompilationId} /nologo /nostdlib /noconfig /t:library /r:mscorlib20.dll",
                                                     _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1221,7 +1221,7 @@ class Program
 }
 "}};
                 result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
-                                                $"main.cs /shared:{serverData.PipeName} /nologo /nostdlib /noconfig /r:mscorlib40.dll /r:ref_mscorlib2.dll",
+                                                $"main.cs /shared:{serverData.SharedCompilationId} /nologo /nostdlib /noconfig /r:mscorlib40.dll /r:ref_mscorlib2.dll",
                                                 _tempDirectory, files);
 
                 Assert.Equal("", result.Output);
@@ -1248,7 +1248,7 @@ class Program
                         CSharpCompilerClientExecutable,
                         rspFile,
                         tempOut,
-                        serverData.PipeName));
+                        serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal("src.cs(1,1): error CS1056: Unexpected character '♕'",
@@ -1275,7 +1275,7 @@ class Program
                         BasicCompilerClientExecutable,
                         rspFile,
                         tempOut,
-                        serverData.PipeName));
+                        serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(@"src.vb(1) : error BC30037: Character is not valid.
@@ -1284,6 +1284,47 @@ class Program
 ~", tempOut.ReadAllText().Trim().Replace(srcFile, "src.vb"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+            }
+        }
+
+        [Fact]
+        public void TestSharedCompilationIdMultiServer()
+        {
+            using (ServerData serverData1 = ServerUtil.CreateServer())
+            using (ServerData serverData2 = ServerUtil.CreateServer())
+            {
+                var testFile1 = _tempDirectory.CreateFile("test1.cs").WriteAllText(
+@"using System;
+public class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""Hello world"");
+    }
+}")
+                .Path;
+                var testFile2 = _tempDirectory.CreateFile("test2.cs").WriteAllText(
+@"using System;
+public class Program
+{
+    static void Main()
+    {
+        Console.WriteLine(""Hello world"");
+    }
+}")
+                .Path;
+
+                var result1 = ProcessUtilities.Run(CSharpCompilerClientExecutable, $"test1.cs /nologo /shared:{serverData1.SharedCompilationId} /out:app1.exe", _tempDirectory.Path);
+                var result2 = ProcessUtilities.Run(CSharpCompilerClientExecutable, $"test1.cs /nologo /shared:{serverData1.SharedCompilationId} /out:app1.exe", _tempDirectory.Path);
+
+                Assert.Equal(0, result1.ExitCode);
+                Assert.Equal("", result1.Output);
+                Assert.Equal("", result1.Errors);
+                Assert.Equal(0, result2.ExitCode);
+                Assert.Equal("", result2.Output);
+                Assert.Equal("", result2.Errors);
+                serverData1.Verify(connections: 1, completed: 1).ConfigureAwait(true);
+                serverData2.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
         }
 
@@ -1347,7 +1388,7 @@ class Program
                     CSharpCompilerClientExecutable,
                     srcFile,
                     tmp,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal(0, result.ExitCode);
 
@@ -1380,7 +1421,7 @@ class Program
                     BasicCompilerClientExecutable,
                     srcFile,
                     tmp,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal(0, result.ExitCode);
 
@@ -1390,7 +1431,7 @@ class Program
                     string.Format("/C {0} /shared:{2} /nologo /t:library {1}",
                     BasicCompilerClientExecutable,
                     srcFile,
-                    serverData.PipeName));
+                    serverData.SharedCompilationId));
 
                 Assert.Equal("", result.Output.Trim());
                 Assert.Equal(0, result.ExitCode);
