@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (this.IsByRefLikeType)
                         {
-                            // '{0}': static classes cannot implement interfaces
+                            // '{0}': ref structs cannot implement interfaces
                             diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this, baseType);
                         }
 
