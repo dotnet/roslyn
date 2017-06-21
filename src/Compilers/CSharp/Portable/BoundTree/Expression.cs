@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Semantics;
@@ -119,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //TODO: https://github.com/dotnet/roslyn/issues/18722
                     //      Right now, for erroneous code, we exposes all expression in place of arguments as IArgument with Parameter set to null,
                     //      so user needs to check IsInvalid first before using anything we returned. Need to implement a new interface for invalid invocation instead.
-                    if (n.HasErrors || (object)optionalParametersMethod == null)
+                    if ((object)optionalParametersMethod == null || n.HasAnyErrors || parameters.Select(p => p.Type).Any(t => t.IsErrorType()))
                     {
                         // optionalParametersMethod can be null if we are writing to a readonly indexer or reading from an writeonly indexer,
                         // in which case HasErrors property would be true, but we still want to treat this as invalid invocation.
