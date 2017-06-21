@@ -86,9 +86,6 @@ namespace RunTests
                 var environmentVariables = new Dictionary<string, string>();
                 environmentVariables.Add(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey, _options.ProcDumpPath);
 
-                // Set environment variables for the current process.
-                Environment.SetEnvironmentVariable(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey, _options.ProcDumpPath);
-
                 var outputDirectory = _options.LogFilePath != null
                     ? Path.GetDirectoryName(_options.LogFilePath)
                     : Directory.GetCurrentDirectory();
@@ -103,7 +100,7 @@ namespace RunTests
                     captureOutput: true,
                     cancellationToken: cancellationToken,
                     environmentVariables: environmentVariables,
-                    onProcessStartHandler: (process) => ProcDumpRunner.StartProcDump(process.Id, process.ProcessName, outputDirectory, Logger.Log)
+                    onProcessStartHandler: (process) => ProcDumpRunner.StartProcDump(_options.ProcDumpPath, process.Id, process.ProcessName, outputDirectory, Logger.Log)
                     );
                 var span = DateTime.UtcNow - start;
 

@@ -23,7 +23,7 @@ namespace RunTests
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
-        private const long MaxTotalDumpSizeInMegabytes = 2048; 
+        private const long MaxTotalDumpSizeInMegabytes = 4096; 
 
         internal static int Main(string[] args)
         {
@@ -391,18 +391,15 @@ namespace RunTests
         {
             var directory = Directory.GetCurrentDirectory();
             var dumpFiles = Directory.EnumerateFiles(directory, "*.dmp", SearchOption.AllDirectories).ToArray();
-            long currentSize = 0;
+            long currentTotalSize = 0;
 
             foreach(var dumpFile in dumpFiles)
             {
                 long fileSizeInMegabytes = (new FileInfo(dumpFile).Length / 1024) / 1024;
-                if (currentSize + fileSizeInMegabytes > MaxTotalDumpSizeInMegabytes)
+                currentTotalSize += fileSizeInMegabytes;
+                if (currentTotalSize > MaxTotalDumpSizeInMegabytes)
                 {
                     File.Delete(dumpFile);
-                }
-                else
-                {
-                    currentSize += fileSizeInMegabytes;
                 }
             }
         }

@@ -15,30 +15,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         // /accepteula command line option to automatically accept the Sysinternals license agreement.
         // -ma	Write a 'Full' dump file. Includes All the Image, Mapped and Private memory.
         // -e	Write a dump when the process encounters an unhandled exception. Include the 1 to create dump on first chance exceptions.
-        // -h	Write dump if process has a hung window (does not respond to window messages for at least 5 seconds).
         // -t	Write a dump when the process terminates.
         // -w 	Wait for the specified process to launch if it's not running.
-        private const string ProcDumpKeys = "/accepteula -ma -e -h -t -w";
+        private const string ProcDumpSwitches = "/accepteula -ma -e -t -w";
 
         /// <summary>
         /// Starts procdump.exe against the process.
         /// </summary>
+        /// <param name="procDumpPath">The path to the procdump executable</param>
         /// <param name="processId">process id</param>
         /// <param name="processName">process name</param>
         /// <param name="loggingMethod">method to log diagnostics to</param>
         /// <param name="destinationDirectory">destination directory for dumps</param>
-        public static void StartProcDump(int processId, string processName, string destinationDirectory, Action<string> loggingMethod)
+        public static void StartProcDump(string procDumpPath, int processId, string processName, string destinationDirectory, Action<string> loggingMethod)
         {
-            var environmentVariables = Environment.GetEnvironmentVariables();
-            if (environmentVariables.Contains(ProcDumpPathEnvironmentVariableKey))
+            if (!string.IsNullOrWhiteSpace(procDumpPath))
             {
-                var procDumpPath = (string)environmentVariables[ProcDumpPathEnvironmentVariableKey];
                 var procDumpFilePath = Path.Combine(procDumpPath, ProcDumpExeFileName);
-
                 var dumpDirectory = Path.Combine(destinationDirectory, "Dumps");
                 Directory.CreateDirectory(dumpDirectory);
 
-                var procDumpProcess = Process.Start(procDumpFilePath, $" {ProcDumpKeys} {processId} {dumpDirectory}");
+                var procDumpProcess = Process.Start(procDumpFilePath, $" {ProcDumpSwitches} {processId} \"{dumpDirectory}\"");
                 loggingMethod($"Launched ProcDump attached to {processName} (process Id: {processId})");
             }
             else

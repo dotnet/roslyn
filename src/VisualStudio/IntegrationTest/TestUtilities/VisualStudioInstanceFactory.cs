@@ -156,7 +156,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
                 hostProcess = StartNewVisualStudioProcess(installationPath);
 
-                ProcDumpRunner.StartProcDump(hostProcess.Id, hostProcess.ProcessName, Path.Combine(GetAssemblyDirectory(), "xUnitResults"), s => Debug.WriteLine(s));
+                var procDumpPath = Environment.GetEnvironmentVariable(ProcDumpRunner.ProcDumpPathEnvironmentVariableKey);
+                ProcDumpRunner.StartProcDump(procDumpPath, hostProcess.Id, hostProcess.ProcessName, Path.Combine(GetAssemblyDirectory(), "xUnitResults"), s => Debug.WriteLine(s));
 
                 // We wait until the DTE instance is up before we're good
                 dte = IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.TryLocateDteForProcess(hostProcess)).Result;
