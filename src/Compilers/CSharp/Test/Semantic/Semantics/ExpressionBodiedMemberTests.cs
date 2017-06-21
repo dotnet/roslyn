@@ -934,9 +934,9 @@ public class C
                 // (6,9): error CS8057: Block bodies and expression bodies cannot both be provided.
                 //         int Bar() { return 0; } => 0;
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int Bar() { return 0; } => 0;").WithLocation(6, 9),
-                // (6,13): warning CS0168: The variable 'Bar' is declared but never used
+                // (6,13): warning CS8321: The local function 'Bar' is declared but never used
                 //         int Bar() { return 0; } => 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Bar").WithArguments("Bar").WithLocation(6, 13));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Bar").WithArguments("Bar").WithLocation(6, 13));
         }
 
         [Fact]
