@@ -83,6 +83,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             InitializePreviewElement(previewContent);
         }
 
+        public string AutomationName => ServicesVSResources.Preview_pane;
+
         private void InitializePreviewElement(IReadOnlyList<object> previewItems)
         {
             var previewElement = CreatePreviewElement(previewItems);

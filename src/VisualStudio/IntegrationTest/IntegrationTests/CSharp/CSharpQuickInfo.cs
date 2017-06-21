@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo_MetadataDocumentation()
         {
             SetUpEditor(@"
@@ -34,7 +34,7 @@ class Program
                 VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo_Documentation()
         {
             SetUpEditor(@"
@@ -49,7 +49,7 @@ class Program$$
             Assert.Equal("class\u200e Program\r\nHello!", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"
@@ -68,7 +68,7 @@ class العربية123
 This is an XML doc comment defined in code.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void SectionOrdering()
         {
             SetUpEditor(@"

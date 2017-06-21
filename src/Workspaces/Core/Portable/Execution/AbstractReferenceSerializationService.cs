@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 return false;
             }
 
-            using (var pooled = Creator.CreateList<(string name, long size)>())
+            using (var pooled = Creator.CreateList<(string name, long offset, long size)>())
             {
                 foreach (var storage in storages)
                 {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.Execution
                         return false;
                     }
 
-                    pooled.Object.Add((storage2.Name, storage2.Size));
+                    pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
                 }
 
                 WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
@@ -440,6 +440,7 @@ namespace Microsoft.CodeAnalysis.Execution
                 {
                     writer.WriteInt32((int)MetadataImageKind.Module);
                     writer.WriteString(tuple.name);
+                    writer.WriteInt64(tuple.offset);
                     writer.WriteInt64(tuple.size);
                 }
 
@@ -528,9 +529,10 @@ namespace Microsoft.CodeAnalysis.Execution
                 Contract.ThrowIfNull(service2);
 
                 var name = reader.ReadString();
+                var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                storage = service2.AttachTemporaryStreamStorage(name, size, cancellationToken);
+                storage = service2.AttachTemporaryStreamStorage(name, offset, size, cancellationToken);
                 length = size;
 
                 return;

@@ -134,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredTupleNames = MessageBase + 12719,
         IDS_FeatureGenericPatternMatching = MessageBase + 12720,
         IDS_FeatureAsyncMain = MessageBase + 12721,
+        IDS_LangVersions = MessageBase +  12722,
 
         //PROTOTYPE(readonlyRef): make contiguous
         IDS_FeatureReadonlyReferences = MessageBase + 12818,

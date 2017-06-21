@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void QuickInfo1()
         {
             SetUpEditor(@"
@@ -30,7 +30,7 @@ End Class");
             Assert.Equal("Class\u200e System.String\r\nRepresents text as a sequence of UTF-16 code units.To browse the .NET Framework source code for this type, see the Reference Source.", VisualStudio.Editor.GetQuickInfo());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/19914"), Trait(Traits.Feature, Traits.Features.QuickInfo)]
         public void International()
         {
             SetUpEditor(@"

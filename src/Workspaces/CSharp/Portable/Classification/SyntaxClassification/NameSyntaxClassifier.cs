@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -15,47 +16,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
 {
     internal class NameSyntaxClassifier : AbstractSyntaxClassifier
     {
-        public override IEnumerable<ClassifiedSpan> ClassifyNode(
+        public override void AddClassifications(
             SyntaxNode syntax,
             SemanticModel semanticModel,
+            ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             var name = syntax as NameSyntax;
             if (name != null)
             {
-                return ClassifyTypeSyntax(name, semanticModel, cancellationToken);
-            }
-
-            return null;
-        }
-
-        public override IEnumerable<Type> SyntaxNodeTypes
-        {
-            get
-            {
-                yield return typeof(NameSyntax);
+                ClassifyTypeSyntax(name, semanticModel, result, cancellationToken);
             }
         }
 
-        private IEnumerable<ClassifiedSpan> ClassifyTypeSyntax(
+        public override ImmutableArray<Type> SyntaxNodeTypes { get; } = ImmutableArray.Create(typeof(NameSyntax));
+
+        private void ClassifyTypeSyntax(
             NameSyntax name,
             SemanticModel semanticModel,
+            ArrayBuilder<ClassifiedSpan> result,
             CancellationToken cancellationToken)
         {
             if (!IsNamespaceName(name))
             {
                 var symbolInfo = semanticModel.GetSymbolInfo(name, cancellationToken);
 
-                if (TryClassifySymbol(name, symbolInfo, semanticModel, cancellationToken, out var result) ||
-                    TryClassifyFromIdentifier(name, symbolInfo, out result) ||
-                    TryClassifyValueIdentifier(name, symbolInfo, out result) ||
-                    TryClassifyNameOfIdentifier(name, symbolInfo, out result))
-                {
-                    return result;
-                }
+                var _ =
+                    TryClassifySymbol(name, symbolInfo, semanticModel, result, cancellationToken) ||
+                    TryClassifyFromIdentifier(name, symbolInfo, result) ||
+                    TryClassifyValueIdentifier(name, symbolInfo, result) ||
+                    TryClassifyNameOfIdentifier(name, symbolInfo, result);
             }
-
-            return null;
         }
 
         private static bool IsNamespaceName(NameSyntax name)
@@ -72,12 +63,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken,
-            out IEnumerable<ClassifiedSpan> result)
+            ArrayBuilder<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
             if (symbolInfo.CandidateReason == CandidateReason.Ambiguous)
             {
-                return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, cancellationToken, out result);
+                return TryClassifyAmbiguousSymbol(name, symbolInfo, semanticModel, result, cancellationToken);
             }
 
             // Only classify if we get one good symbol back, or if it bound to a constructor symbol with
@@ -85,11 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             var symbol = TryGetSymbol(name, symbolInfo, semanticModel);
             if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
             {
-                result = SpecializedCollections.SingletonEnumerable(classifiedSpan);
+                result.Add(classifiedSpan);
                 return true;
             }
 
-            result = null;
             return false;
         }
 
@@ -97,27 +87,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
             NameSyntax name,
             SymbolInfo symbolInfo,
             SemanticModel semanticModel,
-            CancellationToken cancellationToken,
-            out IEnumerable<ClassifiedSpan> result)
+            ArrayBuilder<ClassifiedSpan> result,
+            CancellationToken cancellationToken)
         {
             // If everything classifies the same way, then just pick that classification.
-            var set = new HashSet<ClassifiedSpan>();
-            foreach (var symbol in symbolInfo.CandidateSymbols)
+            var set = PooledHashSet<ClassifiedSpan>.GetInstance();
+            try
             {
-                if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
+                foreach (var symbol in symbolInfo.CandidateSymbols)
                 {
-                    set.Add(classifiedSpan);
+                    if (TryClassifySymbol(name, symbol, semanticModel, cancellationToken, out var classifiedSpan))
+                    {
+                        set.Add(classifiedSpan);
+                    }
                 }
-            }
 
-            if (set.Count == 1)
+                if (set.Count == 1)
+                {
+                    result.Add(set.First());
+                    return true;
+                }
+
+                return false;
+            }
+            finally
             {
-                result = SpecializedCollections.SingletonEnumerable(set.First());
-                return true;
+                set.Free();
             }
-
-            result = null;
-            return false;
         }
 
         private bool TryClassifySymbol(
@@ -244,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private bool TryClassifyFromIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            out IEnumerable<ClassifiedSpan> result)
+            ArrayBuilder<ClassifiedSpan> result)
         {
             // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
             // doesn't bind to anything then optimistically color from as a keyword.
@@ -256,34 +252,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 var token = identifierName.Identifier;
                 if (identifierName.IsRightSideOfAnyAssignExpression() || identifierName.IsVariableDeclaratorValue())
                 {
-                    result = SpecializedCollections.SingletonEnumerable(
-                        new ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword));
+                    result.Add(new ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword));
                     return true;
                 }
             }
 
-            result = null;
             return false;
         }
 
         private bool TryClassifyValueIdentifier(
             NameSyntax name,
             SymbolInfo symbolInfo,
-            out IEnumerable<ClassifiedSpan> result)
+            ArrayBuilder<ClassifiedSpan> result)
         {
             var identifierName = name as IdentifierNameSyntax;
             if (symbolInfo.Symbol.IsImplicitValueParameter())
             {
-                result = SpecializedCollections.SingletonEnumerable(
-                    new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+                result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
                 return true;
             }
 
-            result = null;
             return false;
         }
 
-        private bool TryClassifyNameOfIdentifier(NameSyntax name, SymbolInfo symbolInfo, out IEnumerable<ClassifiedSpan> result)
+        private bool TryClassifyNameOfIdentifier(
+            NameSyntax name, SymbolInfo symbolInfo, ArrayBuilder<ClassifiedSpan> result)
         {
             var identifierName = name as IdentifierNameSyntax;
             if (identifierName != null &&
@@ -291,11 +284,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                 symbolInfo.Symbol == null &&
                 !symbolInfo.CandidateSymbols.Any())
             {
-                result = SpecializedCollections.SingletonEnumerable(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+                result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
                 return true;
             }
 
-            result = null;
             return false;
         }
 

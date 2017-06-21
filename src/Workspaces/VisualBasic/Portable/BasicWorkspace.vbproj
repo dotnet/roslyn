@@ -9,7 +9,6 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Workspaces</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ServiceablePackage>true</ServiceablePackage>
     <NoWarn>$(NoWarn);40057</NoWarn>
   </PropertyGroup>
@@ -58,6 +57,7 @@
     <Compile Include="Classification\SyntaxClassification\ImportAliasClauseSyntaxClassifier.vb" />
     <Compile Include="Classification\SyntaxClassification\NameSyntaxClassifier.vb" />
     <Compile Include="Classification\SyntaxClassification\VisualBasicSyntaxClassificationService.vb" />
+    <Compile Include="Classification\VisualBasicClassificationService.vb" />
     <Compile Include="Classification\Worker.DocumentationCommentClassifier.vb" />
     <Compile Include="Classification\Worker.vb" />
     <Compile Include="Classification\Worker.XmlClassifier.vb" />
@@ -163,9 +163,11 @@
     <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.vb" />
     <Compile Include="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
+    <Compile Include="Formatting\VisualBasicFormattingService.vb" />
     <Compile Include="Formatting\VisualBasicSyntaxFormattingService.vb" />
     <Compile Include="LanguageServices\VisualBasicCompilationFactoryService.vb" />
     <Compile Include="LanguageServices\VisualBasicCommandLineParserService.vb" />
+    <Compile Include="FindSymbols\VisualBasicDeclaredSymbolInfoFactoryService.vb" />
     <Compile Include="LanguageServices\VisualBasicDocumentationCommentService.vb" />
     <Compile Include="LanguageServices\VisualBasicSemanticFactsService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDeclarationService.vb" />

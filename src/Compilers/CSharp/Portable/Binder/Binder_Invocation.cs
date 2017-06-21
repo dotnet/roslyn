@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -641,8 +642,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(queryClause == null);
 
             var validResult = resolution.OverloadResolutionResult.ValidResult;
+            var args = resolution.AnalyzedArguments.Arguments.ToImmutable();
 
-            var args = resolution.AnalyzedArguments.Arguments;
+            ReportBadDynamicArguments(syntax, args, diagnostics, queryClause);
+
             var localFunction = validResult.Member;
             var methodResult = validResult.Result;
 
@@ -659,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var lastParamIndex = parameters.Length - 1;
 
-                for (int i = 0; i < args.Count; ++i)
+                for (int i = 0; i < args.Length; ++i)
                 {
                     var arg = args[i];
                     if (arg.HasDynamicType() &&

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseObjectInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 

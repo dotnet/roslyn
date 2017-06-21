@@ -55,8 +55,8 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
+    <PackageReference Include="System.Composition">
+      <Version>$(SystemCompositionVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

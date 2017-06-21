@@ -1961,8 +1961,57 @@ public class a {
     }
 }
 ";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}").WithLocation(6, 35),
+                // (6,35): warning CS0164: This label has not been referenced
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "MyLabel").WithLocation(6, 35));
+        }
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}"));
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt2()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) int j;
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int j;").WithLocation(6, 35),
+                // (6,39): warning CS0168: The variable 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt3()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) void j() { }
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "void j() { }").WithLocation(6, 35),
+                // (6,40): warning CS0168: The variable 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 40));
         }
 
         // Preprocessor:
@@ -5580,17 +5629,82 @@ class MyClass
             var test = @"
 class MyClass
 {
-    public static int Main()
+    public static int Main(System.Collections.IEnumerable e)
     {
-        for (int i = 0; i < 10; i += 1);   // CS0642, semicolon intentional?
-        if(true);
+        for (int i = 0; i < 10; i += 1);
+        foreach (var v in e);
         while(false);
+
+        if(true);else;
+        using(null);
+        lock(null);
+        do;while(false);
+
+        for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+        foreach (var v in e);{}
+        while(false);{}
+
         return 0;
     }
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (10,17): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 17),
+                // (10,22): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 22),
+                // (11,20): warning CS0642: Possible mistaken empty statement
+                //         using(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 20),
+                // (12,19): warning CS0642: Possible mistaken empty statement
+                //         lock(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(12, 19),
+                // (13,11): warning CS0642: Possible mistaken empty statement
+                //         do;while(false);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(13, 11),
+                // (15,40): warning CS0642: Possible mistaken empty statement
+                //         for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(15, 40),
+                // (16,29): warning CS0642: Possible mistaken empty statement
+                //         foreach (var v in e);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(16, 29),
+                // (17,21): warning CS0642: Possible mistaken empty statement
+                //         while(false);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(17, 21));
+        }
+
+        [Fact]
+        public void CS0642_DoNotWarnForMissingEmptyStatement()
+        {
+            var test = @"
+class MyClass
+{
+    public static int Main(bool b)
+    {
+        if (b)
+    
+    public
+";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,15): error CS1002: ; expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 15),
+                // (6,15): error CS1513: } expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
+                // (9,1): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
+                // (8,11): error CS1513: } expected
+                //     public
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 11),
+                // (4,23): error CS0161: 'MyClass.Main(bool)': not all code paths return a value
+                //     public static int Main(bool b)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("MyClass.Main(bool)").WithLocation(4, 23));
         }
 
         [Fact, WorkItem(529895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529895")]
