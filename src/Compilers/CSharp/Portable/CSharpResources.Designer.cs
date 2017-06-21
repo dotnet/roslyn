@@ -14212,6 +14212,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The local function &apos;{0}&apos; is declared but never used.
+        /// </summary>
+        internal static string WRN_UnreferencedLocalFunction {
+            get {
+                return ResourceManager.GetString("WRN_UnreferencedLocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local function is declared but never used.
+        /// </summary>
+        internal static string WRN_UnreferencedLocalFunction_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnreferencedLocalFunction_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The variable &apos;{0}&apos; is declared but never used.
         /// </summary>
         internal static string WRN_UnreferencedVar {

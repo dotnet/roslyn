@@ -4688,9 +4688,9 @@ class A<out T>
                 // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
                 //         void Local<in T>() { }
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
-                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                // (5,14): warning CS8321: The local function 'Local' is declared but never used
                 //         void Local<in T>() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
