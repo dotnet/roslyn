@@ -83,17 +83,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLocal(node);
         }
 
-        public override BoundNode VisitNameOfOperator(BoundNameOfOperator node)
+        private void VisitMethodReference(MethodSymbol symbol)
         {
-            if (node.Argument is BoundMethodGroup methodGroup &&
-                methodGroup.Methods.Length == 1 &&
-                methodGroup.Methods[0].MethodKind == MethodKind.LocalFunction)
+            if (symbol?.MethodKind == MethodKind.LocalFunction)
             {
-                // Generic local functions don't matter: the only way they can appear in a constant pattern
-                // is if they are in nameof, and nameof does not allow constructed generic local functions.
-                _usedLocalFunctions.Add((LocalFunctionSymbol)methodGroup.Methods[0]);
+                // Make sure we use the unconstructed local function, if it is generic
+                _usedLocalFunctions.Add((LocalFunctionSymbol)symbol.OriginalDefinition);
             }
-            return base.VisitNameOfOperator(node);
+        }
+
+        public override BoundNode VisitCall(BoundCall node)
+        {
+            VisitMethodReference(node.Method);
+            return base.VisitCall(node);
+        }
+
+        public override BoundNode VisitMethodGroup(BoundMethodGroup node)
+        {
+            // Local functions can only appear in method groups of size 1.
+            if (node.Methods.Length == 1)
+            {
+                VisitMethodReference(node.Methods[0]);
+            }
+            return base.VisitMethodGroup(node);
         }
     }
 }

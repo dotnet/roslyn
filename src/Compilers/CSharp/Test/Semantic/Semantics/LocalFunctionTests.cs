@@ -3403,5 +3403,75 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(11, 13)
                 );
         }
+
+        [Fact]
+        [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void InvalidLocfuncReferencesMarkUsed()
+        {
+            var source = @"
+using System;
+class A : Attribute
+{
+    public A(string x) { }
+    public A(Func<string> x) { }
+}
+class Program
+{
+    static string Overload() => string.Empty;
+    static string Method1() => string.Empty;
+    static string Method2() => string.Empty;
+    static string Method3() => string.Empty;
+    [A(Method1())]
+    [A(Method2)]
+    [A(new Func<string>(Method3))]
+    static void Main()
+    {
+        string Func1() => string.Empty;
+        void Call(string s = Func1()) { }
+        string Func2() => string.Empty;
+        void Conversion(Func<string> s = Func2) { }
+        string Func3() => string.Empty;
+        void DelCreation(Func<string> s = new Func<string>(Func3)) { }
+        Call(string.Empty);
+        Conversion(() => string.Empty);
+        DelCreation(() => string.Empty);
+        string Overload() => string.Empty;
+        void Overloaded(Func<string> s = Overload) { }
+        Program.Overload(); // mark it as used
+        Overloaded(() => string.Empty);
+        string Generic<T>() => string.Empty;
+        void GenericCall(string s = Generic<int>()) { }
+        GenericCall(string.Empty);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (14,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [A(Method1())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Method1()").WithLocation(14, 8),
+                // (15,6): error CS0181: Attribute constructor parameter 'x' has type 'Func<string>', which is not a valid attribute parameter type
+                //     [A(Method2)]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("x", "System.Func<string>").WithLocation(15, 6),
+                // (16,6): error CS0181: Attribute constructor parameter 'x' has type 'Func<string>', which is not a valid attribute parameter type
+                //     [A(new Func<string>(Method3))]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("x", "System.Func<string>").WithLocation(16, 6),
+                // (20,30): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         void Call(string s = Func1()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Func1()").WithArguments("s").WithLocation(20, 30),
+                // (22,42): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         void Conversion(Func<string> s = Func2) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Func2").WithArguments("s").WithLocation(22, 42),
+                // (24,43): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         void DelCreation(Func<string> s = new Func<string>(Func3)) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new Func<string>(Func3)").WithArguments("s").WithLocation(24, 43),
+                // (29,42): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         void Overloaded(Func<string> s = Overload) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Overload").WithArguments("s").WithLocation(29, 42),
+                // (33,37): error CS1736: Default parameter value for 's' must be a compile-time constant
+                //         void GenericCall(string s = Generic<int>()) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Generic<int>()").WithArguments("s").WithLocation(33, 37)
+                );
+        }
     }
 }
