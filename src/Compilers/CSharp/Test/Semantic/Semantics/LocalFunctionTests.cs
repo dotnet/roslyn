@@ -3289,5 +3289,119 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "Unused").WithArguments("Program.Unused").WithLocation(4, 24)
                 );
         }
+
+        [Fact]
+        [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void AttributesMarkUsed()
+        {
+            var source = @"
+class A : System.Attribute
+{
+    public A(string x) { }
+}
+class Program
+{
+    static void Main()
+    {
+        int x;
+        void AttrParam([A(nameof(x))] int a) { }
+        void AttrParamLocfunc([A(nameof(AttrParam))] int a) { }
+        AttrParamLocfunc(2);
+        int y;
+        void AttrType<[A(nameof(y))] T>(int a) { }
+        void AttrTypeLocfunc<[A(nameof(AttrType))] T>(int a) { }
+        AttrTypeLocfunc<int>(2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (11,24): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void AttrParam([A(nameof(x))] int a) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(x))]").WithLocation(11, 24),
+                // (12,31): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void AttrParamLocfunc([A(nameof(AttrParam))] int a) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(AttrParam))]").WithLocation(12, 31),
+                // (15,23): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void AttrType<[A(nameof(y))] T>(int a) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(y))]").WithLocation(15, 23),
+                // (15,33): error CS0103: The name 'y' does not exist in the current context
+                //         void AttrType<[A(nameof(y))] T>(int a) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(15, 33),
+                // (16,30): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void AttrTypeLocfunc<[A(nameof(AttrType))] T>(int a) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(AttrType))]").WithLocation(16, 30),
+                // (16,40): error CS0103: The name 'AttrType' does not exist in the current context
+                //         void AttrTypeLocfunc<[A(nameof(AttrType))] T>(int a) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "AttrType").WithArguments("AttrType").WithLocation(16, 40),
+                // (10,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(10, 13),
+                // (14,13): warning CS0168: The variable 'y' is declared but never used
+                //         int y;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(14, 13),
+                // (11,14): warning CS0168: The variable 'AttrParam' is declared but never used
+                //         void AttrParam([A(nameof(x))] int a) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "AttrParam").WithArguments("AttrParam").WithLocation(11, 14),
+                // (15,14): warning CS0168: The variable 'AttrType' is declared but never used
+                //         void AttrType<[A(nameof(y))] T>(int a) { }
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "AttrType").WithArguments("AttrType").WithLocation(15, 14)
+                );
+
+            // these produce syntax errors that wildly throw things off, so keep them separate
+            source = @"
+class A : System.Attribute
+{
+    public A(int x) { }
+}
+class Program
+{
+    static void Main()
+    {
+        var y = 2;
+        var z = 2;
+        {
+            [return: A(y)] void AttrRet(int a) { }
+        }
+        {
+            [A(z)] void AttrFunc(int a) { }
+        }
+    }
+}
+";
+            comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (12,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 10),
+                // (12,10): error CS1513: } expected
+                //         {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 10),
+                // (15,9): error CS1022: Type or namespace definition, or end-of-file expected
+                //         {
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(15, 9),
+                // (17,9): error CS1022: Type or namespace definition, or end-of-file expected
+                //         }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(17, 9),
+                // (18,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(18, 5),
+                // (19,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(19, 1),
+                // (16,16): error CS0103: The name 'z' does not exist in the current context
+                //             [A(z)] void AttrFunc(int a) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "z").WithArguments("z").WithLocation(16, 16),
+                // (13,24): error CS0103: The name 'y' does not exist in the current context
+                //             [return: A(y)] void AttrRet(int a) { }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(13, 24),
+                // (10,13): warning CS0219: The variable 'y' is assigned but its value is never used
+                //         var y = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "y").WithArguments("y").WithLocation(10, 13),
+                // (11,13): warning CS0219: The variable 'z' is assigned but its value is never used
+                //         var z = 2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "z").WithArguments("z").WithLocation(11, 13)
+                );
+        }
     }
 }
