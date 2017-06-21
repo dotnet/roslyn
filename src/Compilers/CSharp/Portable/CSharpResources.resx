@@ -1679,6 +1679,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_FieldCantBeRefAny" xml:space="preserve">
     <value>Field or property cannot be of type '{0}'</value>
   </data>
+  <data name="ERR_FieldAutoPropCantBeByRefLike" xml:space="preserve">
+    <value>Field or auto-implemented property cannot be of type '{0}' unless it is an instance member of a ref struct.</value>
+  </data>
   <data name="ERR_ArrayElementCantBeRefAny" xml:space="preserve">
     <value>Array elements cannot be of type '{0}'</value>
   </data>
@@ -1957,6 +1960,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_StaticClassInterfaceImpl" xml:space="preserve">
     <value>'{0}': static classes cannot implement interfaces</value>
+  </data>
+    <data name="ERR_RefStructInterfaceImpl" xml:space="preserve">
+    <value>'{0}': ref structs cannot implement interfaces</value>
   </data>
   <data name="ERR_OperatorInStaticClass" xml:space="preserve">
     <value>'{0}': static classes cannot contain user-defined operators</value>
@@ -3613,6 +3619,9 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   </data>
   <data name="ERR_BadSpecialByRefLocal" xml:space="preserve">
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
+  </data>
+  <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
+    <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
   </data>
   <data name="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync" xml:space="preserve">
     <value>Security attribute '{0}' cannot be applied to an Async method.</value>

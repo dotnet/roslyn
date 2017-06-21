@@ -1916,6 +1916,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to foreach statement cannot operate on enumerators of type &apos;{0}&apos; in async or iterator methods because &apos;{0}&apos; is a ref struct..
+        /// </summary>
+        internal static string ERR_BadSpecialByRefIterator {
+            get {
+                return ResourceManager.GetString("ERR_BadSpecialByRefIterator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Parameters or locals of type &apos;{0}&apos; cannot be declared in async methods or lambda expressions..
         /// </summary>
         internal static string ERR_BadSpecialByRefLocal {
@@ -4531,6 +4540,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FeatureNotValidInExpressionTree {
             get {
                 return ResourceManager.GetString("ERR_FeatureNotValidInExpressionTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field or auto-implemented property cannot be of type &apos;{0}&apos; unless it is an instance member of a ref struct..
+        /// </summary>
+        internal static string ERR_FieldAutoPropCantBeByRefLike {
+            get {
+                return ResourceManager.GetString("ERR_FieldAutoPropCantBeByRefLike", resourceCulture);
             }
         }
         
@@ -8500,6 +8518,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_RefReturnStructThis {
             get {
                 return ResourceManager.GetString("ERR_RefReturnStructThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: ref structs cannot implement interfaces.
+        /// </summary>
+        internal static string ERR_RefStructInterfaceImpl {
+            get {
+                return ResourceManager.GetString("ERR_RefStructInterfaceImpl", resourceCulture);
             }
         }
         

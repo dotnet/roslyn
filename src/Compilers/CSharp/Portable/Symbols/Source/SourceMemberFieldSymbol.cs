@@ -50,9 +50,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantHaveVoidType, TypeSyntax.Location);
             }
-            else if (type.IsRestrictedType(ignoreSpanLikeTypes: !this.IsStatic && containingType.IsByRefLikeType))
+            else if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax.Location, type);
+            }
+            else if (type.IsByRefLikeType && (this.IsStatic || !containingType.IsByRefLikeType))
+            {
+                diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax.Location, type);
             }
             else if (IsConst && !type.CanBeConst())
             {
