@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
             {
-                diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), builder.CollectionType);
+                diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
             }
 
             diagnostics.Add(_syntax.ForEachKeyword.GetLocation(), useSiteDiagnostics);

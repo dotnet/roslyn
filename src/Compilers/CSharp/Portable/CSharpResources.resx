@@ -3621,7 +3621,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>Parameters or locals of type '{0}' cannot be declared in async methods or lambda expressions.</value>
   </data>
   <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
-    <value>foreach statement cannot operate on variables of type '{0}' in async or iterator methods.</value>
+    <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct.</value>
   </data>
   <data name="ERR_SecurityCriticalOrSecuritySafeCriticalOnAsync" xml:space="preserve">
     <value>Security attribute '{0}' cannot be applied to an Async method.</value>

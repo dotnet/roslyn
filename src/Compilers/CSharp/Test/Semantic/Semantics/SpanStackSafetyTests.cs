@@ -501,9 +501,9 @@ class C1
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (15,9): error CS8518: foreach statement cannot operate on variables of type 'C1' in async or iterator methods.
+                // (15,9): error CS8518: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
                 //         foreach (var i in obj)
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1").WithLocation(15, 9)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(15, 9)
             );
         }
 
@@ -573,9 +573,9 @@ class C1
             CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
 
             comp.VerifyDiagnostics(
-                // (33,9): error CS8518: foreach statement cannot operate on variables of type 'C1' in async or iterator methods.
+                // (33,9): error CS8518: foreach statement cannot operate on enumerators of type 'C1.S1' in async or iterator methods because 'C1.S1' is a ref struct.
                 //         foreach (var i in new C1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1").WithLocation(33, 9)
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("C1.S1").WithLocation(33, 9)
             );
         }
 

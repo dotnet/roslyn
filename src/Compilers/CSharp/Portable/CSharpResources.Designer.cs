@@ -1907,7 +1907,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; in async or iterator methods..
+        ///   Looks up a localized string similar to foreach statement cannot operate on enumerators of type &apos;{0}&apos; in async or iterator methods because &apos;{0}&apos; is a ref struct..
         /// </summary>
         internal static string ERR_BadSpecialByRefIterator {
             get {
