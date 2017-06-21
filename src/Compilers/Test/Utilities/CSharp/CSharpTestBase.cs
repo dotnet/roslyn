@@ -1110,6 +1110,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region IOperation tree validation
 
+        protected (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
+            where TSyntaxNode : SyntaxNode
+        {
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
+            if (syntaxNode == null)
+            {
+                return (null, null);
+            }
+
+            return (model.GetOperationInternal(syntaxNode), syntaxNode);
+        }
+
         protected IOperation GetOperationForTest<TSyntaxNode>(CSharpCompilation compilation)
             where TSyntaxNode : SyntaxNode
         {
