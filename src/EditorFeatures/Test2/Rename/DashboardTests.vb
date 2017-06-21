@@ -592,7 +592,11 @@ class D : B
                 Dim listeners = DirectCast(workspace.ExportProvider.GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(), IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
                 Dim renameListener = New AggregateAsynchronousOperationListener(listeners, FeatureAttribute.Rename)
 
-                Using dashboard = New Dashboard(New DashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)), cursorDocument.GetTextView())
+                Using dashboard = New Dashboard(
+                    New DashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
+                    editorFormatMapService:=Nothing,
+                    textView:=cursorDocument.GetTextView())
+
                     Await WaitForRename(workspace)
 
                     Dim model = DirectCast(dashboard.DataContext, DashboardViewModel)
