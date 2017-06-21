@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         #region IOperation tree validation
 
         protected (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
-            where TSyntaxNode : SyntaxNode
+    where TSyntaxNode : SyntaxNode
         {
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1124,24 +1124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return (model.GetOperationInternal(syntaxNode), syntaxNode);
         }
 
-        protected IOperation GetOperationForTest<TSyntaxNode>(CSharpCompilation compilation)
-            where TSyntaxNode : SyntaxNode
-        {
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            SyntaxNode syntaxNode = GetSyntaxNodeOfTypeForBinding<TSyntaxNode>(GetSyntaxNodeList(tree));
-            if (syntaxNode == null)
-            {
-                return null;
-            }
-
-            return model.GetOperationInternal(syntaxNode);
-        }
-
         protected string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
             where TSyntaxNode : SyntaxNode
         {
-            var operation = GetOperationForTest<TSyntaxNode>(compilation);
+            var (operation, syntax) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
         }
 
@@ -1157,13 +1143,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation> AdditionalOperationTreeVerifier = null)
+        protected void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
-            var actualOperation = GetOperationForTest<TSyntaxNode>(compilation);
+            var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             var actualOperationTree = GetOperationTreeForTest(actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
-            AdditionalOperationTreeVerifier?.Invoke(actualOperation);
+            AdditionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
         }
 
         protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
@@ -1173,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
-        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action<IOperation> AdditionalOperationTreeVerifier = null)
+        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
@@ -1189,7 +1175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             MetadataReference[] additionalReferences = null,
-            Action<IOperation> AdditionalOperationTreeVerifier = null)
+            Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var references = additionalReferences == null ? s_defaultOperationReferences : additionalReferences.Concat(s_defaultOperationReferences);
@@ -1204,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             CSharpCompilationOptions compilationOptions = null,
             CSharpParseOptions parseOptions = null,
             MetadataReference[] additionalReferences = null,
-            Action<IOperation> AdditionalOperationTreeVerifier = null)
+            Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var ilReference = CreateMetadataReferenceFromIlSource(ilSource);
