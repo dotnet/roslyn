@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Constructor argument
                         var boundArgumentExpression = BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false);
-                        variableUsePass?.Visit(boundArgumentExpression);
+                        variableUsePass?.Analyze(boundArgumentExpression, diagnostics);
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
-                        variableUsePass?.Visit(boundNamedArgument);
+                        variableUsePass?.Analyze(boundNamedArgument, diagnostics);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }

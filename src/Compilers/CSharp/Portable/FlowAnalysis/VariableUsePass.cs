@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This pass is used for things like attribute arguments and default parameter expressions,
     /// which are otherwise not analyzed for use references.
     /// </summary>
-    internal class FieldUsePass : BoundTreeWalkerWithStackGuard
+    internal sealed class FieldUsePass : BoundTreeWalkerWithStackGuard
     {
         /// <summary>
         /// The current source assembly.
@@ -28,6 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public FieldUsePass(SourceAssemblySymbol sourceAssembly)
         {
             _sourceAssembly = sourceAssembly;
+        }
+
+        /// <summary>
+        /// Diagnostics are used when a CancelledByStackGuardException is thrown.
+        /// </summary>
+        public void Analyze(BoundNode node, DiagnosticBag diagnostics)
+        {
+            try
+            {
+                Visit(node);
+            }
+            catch (CancelledByStackGuardException ex)
+            {
+                ex.AddAnError(diagnostics);
+            }
         }
 
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
@@ -54,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Create a visitor for use within a method (e.g. local functions).
         /// Keep track of what local variables are referenced, by placing them in the HashSets.
+        /// Can throw <see cref="BoundTreeVisitor.CancelledByStackGuardException"/>.
         /// </summary>
         public LocalVariableUsePass(HashSet<LocalSymbol> usedVariables, HashSet<LocalFunctionSymbol> usedLocalFunctions)
         {
