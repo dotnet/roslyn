@@ -4542,14 +4542,11 @@ checkNullable:
                     Dim paramSpecifiers As ParameterSpecifiers = 0
                     Dim modifiers = ParseParameterSpecifiers(paramSpecifiers)
                     Dim param = ParseParameter(attributes, modifiers)
-                    If CheckFeatureAvailability(Feature.OptionalParameterDefault) Then
+
+                    ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
+                    ' being reported. For now keep backwards compatibility.
+                    If param.ContainsDiagnostics OrElse CheckFeatureAvailability(Feature.OptionalParameterDefault) Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
-                    Else
-                        ' TODO - Bug 889301 - Dev10 does a resync here when there is an error.  That prevents ERRID_InvalidParameterSyntax below from
-                        ' being reported. For now keep backwards compatibility.
-                        If param.ContainsDiagnostics Then
-                            param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
-                        End If
                     End If
                     Dim comma As PunctuationSyntax = Nothing
                     If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
@@ -4731,7 +4728,7 @@ checkNullable:
 
                 Dim initializer As EqualsValueSyntax = Nothing
 
-            If value IsNot Nothing AndAlso (Not value.IsMissing AndAlso Not equals.IsMissing) Then
+            If value IsNot Nothing AndAlso (Not equals.IsMissing) Then
 
                 If value.ContainsDiagnostics Then
                     value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
