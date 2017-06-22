@@ -67,7 +67,9 @@
     <Compile Include="IOperation\IOperationTests_IIfStatement.cs" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.cs" />
     <Compile Include="IOperation\IOperationTests_ILambdaExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_IPatternSwitchCase.cs" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.cs" />
+    <Compile Include="IOperation\IOperationTests_IIsPatternExpression.cs" />
     <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.cs" />
     <Compile Include="IOperation\IOperationTests_ILocalFunctionStatement.cs" />
     <Compile Include="IOperation\IOperationTests_IReturnStatement.cs" />

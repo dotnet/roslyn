@@ -4607,4 +4607,234 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public override IBlockStatement Body => _lazyBody.Value;
     }
+
+    /// <summary>
+    /// Represents a C# constant pattern.
+    /// </summary>
+    internal abstract partial class BaseConstantPattern : Operation, IConstantPattern
+    {
+        protected BaseConstantPattern(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.ConstantPattern, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Constant value of the pattern.
+        /// </summary>
+        public abstract IOperation Value { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitConstantPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitConstantPattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# constant pattern.
+    /// </summary>
+    internal sealed partial class ConstantPattern : BaseConstantPattern, IConstantPattern
+    {
+        public ConstantPattern(IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        /// <summary>
+        /// Constant value of the pattern.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# constant pattern.
+    /// </summary>
+    internal sealed partial class LazyConstantPattern : BaseConstantPattern, IConstantPattern
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazyConstantPattern(Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+        }
+        /// <summary>
+        /// Constant value of the pattern.
+        /// </summary>
+        public override IOperation Value => _lazyValue.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# declaration pattern.
+    /// </summary>
+    internal sealed partial class DeclarationPattern : Operation, IDeclarationPattern
+    {
+        public DeclarationPattern(ISymbol declaredSymbol, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(OperationKind.DeclarationPattern, isInvalid, syntax, type, constantValue)
+        {
+            DeclaredSymbol = declaredSymbol;
+        }
+        /// <summary>
+        /// Symbol declared by the pattern.
+        /// </summary>
+        public ISymbol DeclaredSymbol { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitDeclarationPattern(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitDeclarationPattern(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# pattern case clause.
+    /// </summary>
+    internal abstract partial class BasePatternCaseClause : CaseClause, IPatternCaseClause
+    {
+        protected BasePatternCaseClause(ILabelSymbol label, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+                    base(CaseKind.Pattern, OperationKind.PatternCaseClause, isInvalid, syntax, type, constantValue)
+        {
+            Label = label;
+        }
+        /// <summary>
+        /// Label associated with the case clause.
+        /// </summary>
+        public ILabelSymbol Label { get; }
+        /// <summary>
+        /// Pattern associated with case clause.
+        /// </summary>
+        public abstract IPattern Pattern { get; }
+        /// <summary>
+        /// Guard expression associated with the pattern case clause.
+        /// </summary>
+        public abstract IOperation GuardExpression { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPatternCaseClause(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPatternCaseClause(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# pattern case clause.
+    /// </summary>
+    internal sealed partial class PatternCaseClause : BasePatternCaseClause, IPatternCaseClause
+    {
+        public PatternCaseClause(ILabelSymbol label, IPattern pattern, IOperation guardExpression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(label, isInvalid, syntax, type, constantValue)
+        {
+            Pattern = pattern;
+            GuardExpression = guardExpression;
+        }
+        /// <summary>
+        /// Pattern associated with case clause.
+        /// </summary>
+        public override IPattern Pattern { get; }
+        /// <summary>
+        /// Guard expression associated with the pattern case clause.
+        /// </summary>
+        public override IOperation GuardExpression { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# pattern case clause.
+    /// </summary>
+    internal sealed partial class LazyPatternCaseClause : BasePatternCaseClause, IPatternCaseClause
+    {
+        private readonly Lazy<IPattern> _lazyPattern;
+        private readonly Lazy<IOperation> _lazyGuardExpression;
+
+        public LazyPatternCaseClause(ILabelSymbol label, Lazy<IPattern> lazyPattern, Lazy<IOperation> lazyGuardExpression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(label, isInvalid, syntax, type, constantValue)
+        {
+            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException("lazyPattern");
+            _lazyGuardExpression = lazyGuardExpression ?? throw new System.ArgumentNullException("lazyGuardExpression");
+        }
+        /// <summary>
+        /// Pattern associated with case clause.
+        /// </summary>
+        public override IPattern Pattern => _lazyPattern.Value;
+        /// <summary>
+        /// Guard expression associated with the pattern case clause.
+        /// </summary>
+        public override IOperation GuardExpression => _lazyGuardExpression.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# is pattern expression. For example, "x is int i".
+    /// </summary>
+    internal abstract partial class BaseIsPatternExpression : Operation, IIsPatternExpression
+    {
+        protected BaseIsPatternExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.IsPatternExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public abstract IOperation Expression { get; }
+        /// <summary>
+        /// Pattern.
+        /// </summary>
+        public abstract IPattern Pattern { get; }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitIsPatternExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitIsPatternExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a C# is pattern expression. For example, "x is int i".
+    /// </summary>
+    internal sealed partial class IsPatternExpression : BaseIsPatternExpression, IIsPatternExpression
+    {
+        public IsPatternExpression(IOperation expression, IPattern pattern, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            Expression = expression;
+            Pattern = pattern;
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public override IOperation Expression { get; }
+        /// <summary>
+        /// Pattern.
+        /// </summary>
+        public override IPattern Pattern { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# is pattern expression. For example, "x is int i".
+    /// </summary>
+    internal sealed partial class LazyIsPatternExpression : BaseIsPatternExpression, IIsPatternExpression
+    {
+        private readonly Lazy<IOperation> _lazyExpression;
+        private readonly Lazy<IPattern> _lazyPattern;
+        
+        public LazyIsPatternExpression(Lazy<IOperation> lazyExpression, Lazy<IPattern> lazyPattern, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+            : base(isInvalid, syntax, type, constantValue)
+        {
+            _lazyExpression = lazyExpression ?? throw new System.ArgumentNullException("lazyExpression");
+            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException("lazyPattern");
+        }
+        /// <summary>
+        /// Expression.
+        /// </summary>
+        public override IOperation Expression => _lazyExpression.Value;
+        /// <summary>
+        /// Pattern.
+        /// </summary>
+        public override IPattern Pattern => _lazyPattern.Value;
+    }
 }

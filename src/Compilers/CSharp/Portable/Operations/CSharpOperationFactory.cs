@@ -179,6 +179,18 @@ namespace Microsoft.CodeAnalysis.Semantics
                     return CreateBoundInterpolationOperation((BoundStringInsert)boundNode);
                 case BoundKind.LocalFunctionStatement:
                     return CreateBoundLocalFunctionStatementOperation((BoundLocalFunctionStatement)boundNode);
+                case BoundKind.ConstantPattern:
+                    return CreateBoundConstantPatternOperation((BoundConstantPattern)boundNode);
+                case BoundKind.DeclarationPattern:
+                    return CreateBoundDeclarationPatternOperation((BoundDeclarationPattern)boundNode);
+                case BoundKind.WildcardPattern:
+                    return null;
+                case BoundKind.PatternSwitchStatement:
+                    return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement)boundNode);
+                case BoundKind.PatternSwitchLabel:
+                    return CreateBoundPatternSwitchLabelOperation((BoundPatternSwitchLabel)boundNode);
+                case BoundKind.IsPatternExpression:
+                    return CreateBoundIsPatternExpressionOperation((BoundIsPatternExpression)boundNode);
                 default:
                     var constantValue = ConvertToOptional((boundNode as BoundExpression)?.ConstantValue);
                     return Operation.CreateOperationNone(boundNode.HasErrors, boundNode.Syntax, constantValue, getChildren: () => GetIOperationChildren(boundNode));
@@ -1098,6 +1110,70 @@ namespace Microsoft.CodeAnalysis.Semantics
             ITypeSymbol type = null;
             Optional<object> constantValue = default(Optional<object>);
             return new LazyInterpolatedStringText(text, isInvalid, syntax, type, constantValue);
+        }
+
+        private IConstantPattern CreateBoundConstantPatternOperation(BoundConstantPattern boundConstantPattern)
+        {
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundConstantPattern.Value));
+            bool isInvalid = boundConstantPattern.HasErrors;
+            SyntaxNode syntax = boundConstantPattern.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            return new LazyConstantPattern(value, isInvalid, syntax, type, constantValue);
+        }
+
+        private IDeclarationPattern CreateBoundDeclarationPatternOperation(BoundDeclarationPattern boundDeclarationPattern)
+        {
+            ISymbol variable = boundDeclarationPattern.Variable;
+            bool isInvalid = boundDeclarationPattern.HasErrors;
+            SyntaxNode syntax = boundDeclarationPattern.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            return new DeclarationPattern(variable, isInvalid, syntax, type, constantValue);
+        }
+
+        private ISwitchStatement CreateBoundPatternSwitchStatementOperation(BoundPatternSwitchStatement boundPatternSwitchStatement)
+        {
+            Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundPatternSwitchStatement.Expression));
+            Lazy<ImmutableArray<ISwitchCase>> cases = new Lazy<ImmutableArray<ISwitchCase>>(() => GetPatternSwitchStatementCases(boundPatternSwitchStatement));
+            bool isInvalid = boundPatternSwitchStatement.HasErrors;
+            SyntaxNode syntax = boundPatternSwitchStatement.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+            return new LazySwitchStatement(value, cases, isInvalid, syntax, type, constantValue);
+        }
+
+        private ICaseClause CreateBoundPatternSwitchLabelOperation(BoundPatternSwitchLabel boundPatternSwitchLabel)
+        {
+            LabelSymbol label = boundPatternSwitchLabel.Label;
+            bool isInvalid = boundPatternSwitchLabel.HasErrors;
+            SyntaxNode syntax = boundPatternSwitchLabel.Syntax;
+            ITypeSymbol type = null;
+            Optional<object> constantValue = default(Optional<object>);
+
+            if (boundPatternSwitchLabel.Pattern.Kind == BoundKind.WildcardPattern)
+            {
+                // Default switch label in pattern switch statement is represented as a regular case clause.
+                Lazy<IOperation> value = new Lazy<IOperation>(() => null);
+                return new LazySingleValueCaseClause(value, BinaryOperationKind.None, CaseKind.Default, isInvalid, syntax, type, constantValue);
+            }
+            else
+            {
+                Lazy<IPattern> pattern = new Lazy<IPattern>(() => (IPattern)Create(boundPatternSwitchLabel.Pattern));
+                Lazy<IOperation> guardExpression = new Lazy<IOperation>(() => Create(boundPatternSwitchLabel.Guard));
+                return new LazyPatternCaseClause(label, pattern, guardExpression, isInvalid, syntax, type, constantValue);
+            }
+        }
+
+        private IIsPatternExpression CreateBoundIsPatternExpressionOperation(BoundIsPatternExpression boundIsPatternExpression)
+        {
+            Lazy<IOperation> expression = new Lazy<IOperation>(() => Create(boundIsPatternExpression.Expression));
+            Lazy<IPattern> pattern = new Lazy<IPattern>(() => (IPattern)Create(boundIsPatternExpression.Pattern));
+            bool isInvalid = boundIsPatternExpression.HasErrors;
+            SyntaxNode syntax = boundIsPatternExpression.Syntax;
+            ITypeSymbol type = boundIsPatternExpression.Type;
+            Optional<object> constantValue = ConvertToOptional(boundIsPatternExpression.ConstantValue);
+            return new LazyIsPatternExpression(expression, pattern, isInvalid, syntax, type, constantValue);
         }
     }
 }
