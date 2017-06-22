@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Semantics
 {
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case BoundKind.DeclarationPattern:
                     return CreateBoundDeclarationPatternOperation((BoundDeclarationPattern)boundNode);
                 case BoundKind.WildcardPattern:
-                    return null;
+                    throw ExceptionUtilities.Unreachable;
                 case BoundKind.PatternSwitchStatement:
                     return CreateBoundPatternSwitchStatementOperation((BoundPatternSwitchStatement)boundNode);
                 case BoundKind.PatternSwitchLabel:

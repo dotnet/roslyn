@@ -675,5 +675,54 @@ ISwitchStatement (1 cases) (OperationKind.SwitchStatement, IsInvalid) (Syntax: '
 
             VerifyOperationTreeAndDiagnosticsForTest<CaseSwitchLabelSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [Fact, WorkItem(19927, "https://github.com/dotnet/roslyn/issues/19927")]
+        public void TestPatternCaseClause_RedundantPatternDeclarationClauses()
+        {
+            string source = @"
+using System;
+class X
+{
+    void M(object p)
+    {
+        /*<bind>*/switch (p)
+        {
+            case int x:
+                break;
+            case int y:
+                break;
+            case X z:
+                break;
+        }/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+ISwitchStatement (3 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (p) ... }')
+  Switch expression: IParameterReferenceExpression: p (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'p')
+  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case int x: ... break;')
+        Clauses: IPatternCaseClause (Label Symbol: case int x:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case int x:')
+            Pattern: IDeclarationPattern (Declared Symbol: System.Int32 x) (OperationKind.DeclarationPattern) (Syntax: 'int x')
+        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+    ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case int y: ... break;')
+        Clauses: IPatternCaseClause (Label Symbol: case int y:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case int y:')
+            Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'int y')
+        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+    ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case X z: ... break;')
+        Clauses: IPatternCaseClause (Label Symbol: case X z:) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case X z:')
+            Pattern: IDeclarationPattern (Declared Symbol: X z) (OperationKind.DeclarationPattern) (Syntax: 'X z')
+        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS8120: The switch case has already been handled by a previous case.
+                //             case int y:
+                Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "int y").WithLocation(11, 18),
+                // CS0162: Unreachable code detected
+                //                 break;
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<SwitchStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }
