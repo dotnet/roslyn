@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -316,6 +317,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     hadApplicableCandidates = true;
                     break;
+                }
+            }
+
+            // Look in base interfaces, or effective interfaces for type parameters  
+            if (!hadApplicableCandidates)
+            {
+                ImmutableArray<NamedTypeSymbol> interfaces = default;
+                if (type0.IsInterfaceType())
+                {
+                    interfaces = type0.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+                else if (type0.IsTypeParameter())
+                {
+                    interfaces = ((TypeParameterSymbol)type0).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                }
+
+                if (!interfaces.IsDefaultOrEmpty)
+                {
+                    operators.Clear();
+                    results.Clear();
+
+                    foreach (NamedTypeSymbol @interface in interfaces)
+                    {
+                        GetUserDefinedUnaryOperatorsFromType(@interface, kind, name, operators);
+                    }
+
+                    if (CandidateOperators(operators, operand, results, ref useSiteDiagnostics))
+                    {
+                        hadApplicableCandidates = true;
+                    }
                 }
             }
 

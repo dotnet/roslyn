@@ -51,6 +51,8 @@ class Test1 : I1
 
 - Declaring static fields, auto-properties and field-like events (**protected** modifier is not allowed).
 
+- Declaring operators ```+ - ! ~ ++ -- true false * / % & | ^ << >> > < >= <=``` in interfaces.
+
 
 **Open issues and work items** are tracked in https://github.com/dotnet/roslyn/issues/17952.
 

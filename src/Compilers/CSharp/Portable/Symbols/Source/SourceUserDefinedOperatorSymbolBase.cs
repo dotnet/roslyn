@@ -57,9 +57,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false);
 
-            if (this.ContainingType.IsInterface)
+            if (this.ContainingType.IsInterface && 
+                (methodKind == MethodKind.Conversion || name == WellKnownMemberNames.EqualityOperatorName || name == WellKnownMemberNames.InequalityOperatorName))
             {
-                // If we have an operator in an interface, we already have reported that fact as 
+                // If we have a conversion or equality/inequality operator in an interface, we already have reported that fact as 
                 // an error. No need to cascade the error further.
                 return;
             }
@@ -160,9 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.SetReturnsVoid(_lazyReturnType.SpecialType == SpecialType.System_Void);
 
-            // If we have an operator in an interface or static class then we already 
-            // have reported that fact as  an error. No need to cascade the error further.
-            if (this.ContainingType.IsInterfaceType() || this.ContainingType.IsStatic)
+            // If we have a conversion/equality/inequality operator in an interface or static class then we already 
+            // have reported that fact as an error. No need to cascade the error further.
+            if ((this.ContainingType.IsInterfaceType() && 
+                (MethodKind == MethodKind.Conversion || Name == WellKnownMemberNames.EqualityOperatorName || Name == WellKnownMemberNames.InequalityOperatorName)) || 
+                this.ContainingType.IsStatic)
             {
                 return;
             }

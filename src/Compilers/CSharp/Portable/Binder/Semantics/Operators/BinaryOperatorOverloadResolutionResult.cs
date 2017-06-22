@@ -118,8 +118,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void Free()
         {
-            this.Results.Clear();
+            Clear();
             Pool.Free(this);
+        }
+
+        public void Clear()
+        {
+            this.Results.Clear();
         }
 
         public static readonly ObjectPool<BinaryOperatorOverloadResolutionResult> Pool = CreatePool();

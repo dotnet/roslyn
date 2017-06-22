@@ -30867,5 +30867,2738 @@ public interface I2
             CompileAndVerify(compilation1, expectedOutput: "I2.Main");
         }
 
+        [Fact]
+        public void Operators_01()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator +(I1 x)
+    {
+        System.Console.WriteLine(""+"");
+        return x;
+    }
+
+    public static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""-"");
+        return x;
+    }
+
+    public static I1 operator !(I1 x)
+    {
+        System.Console.WriteLine(""!"");
+        return x;
+    }
+
+    public static I1 operator ~(I1 x)
+    {
+        System.Console.WriteLine(""~"");
+        return x;
+    }
+
+    public static I1 operator ++(I1 x)
+    {
+        System.Console.WriteLine(""++"");
+        return x;
+    }
+
+    public static I1 operator --(I1 x)
+    {
+        System.Console.WriteLine(""--"");
+        return x;
+    }
+
+    public static bool operator true(I1 x)
+    {
+        System.Console.WriteLine(""true"");
+        return true;
+    }
+
+    public static bool operator false(I1 x)
+    {
+        System.Console.WriteLine(""false"");
+        return false;
+    }
+
+    public static I1 operator +(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""+2"");
+        return x;
+    }
+
+    public static I1 operator -(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""-2"");
+        return x;
+    }
+
+    public static I1 operator *(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""*"");
+        return x;
+    }
+
+    public static I1 operator /(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""/"");
+        return x;
+    }
+
+    public static I1 operator %(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""%"");
+        return x;
+    }
+
+    public static I1 operator &(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""&"");
+        return x;
+    }
+
+    public static I1 operator |(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""|"");
+        return x;
+    }
+
+    public static I1 operator ^(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""^"");
+        return x;
+    }
+
+    public static I1 operator <<(I1 x, int y)
+    {
+        System.Console.WriteLine(""<<"");
+        return x;
+    }
+
+    public static I1 operator >>(I1 x, int y)
+    {
+        System.Console.WriteLine("">>"");
+        return x;
+    }
+
+    public static I1 operator >(I1 x, I1 y)
+    {
+        System.Console.WriteLine("">"");
+        return x;
+    }
+
+    public static I1 operator <(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""<"");
+        return x;
+    }
+
+    public static I1 operator >=(I1 x, I1 y)
+    {
+        System.Console.WriteLine("">="");
+        return x;
+    }
+
+    public static I1 operator <=(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""<="");
+        return x;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I1 y = new Test2();
+
+        x = +x;
+        x = -x;
+        x = !x;
+        x = ~x;
+        x = ++x;
+        x = x--;
+
+        x = x + y;
+        x = x - y;
+        x = x * y;
+        x = x / y;
+        x = x % y;
+        if (x && y) { }
+        x = x | y;
+        x = x ^ y;
+        x = x << 1;
+        x = x >> 2;
+        x = x > y;
+        x = x < y;
+        x = x >= y;
+        x = x <= y;
+    }
+}
+";
+
+            var expectedOutput =
+@"
++
+-
+!
+~
+++
+--
++2
+-2
+*
+/
+%
+false
+&
+true
+|
+^
+<<
+>>
+>
+<
+>=
+<=
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+
+            // Avoid sharing mscorlib symbols with other tests since we are about to change
+            // RuntimeSupportsDefaultInterfaceImplementation property for it.
+            var standardRefs = StandardReferencesWithoutSharingCachedSymbols;
+
+            var compilation4 = CreateCompilation(source2, standardRefs, options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation = false;
+            compilation4 = compilation4.AddReferences(compilationReference);
+            Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics();
+            CompileAndVerify(compilation4, expectedOutput: expectedOutput);
+
+            var compilation5 = CreateCompilation(source2, standardRefs.Concat(new[] { metadataReference }), options: TestOptions.DebugExe,
+                                                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.False(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation5.VerifyDiagnostics();
+            CompileAndVerify(compilation5, expectedOutput: expectedOutput);
+
+            var compilation6 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation6.VerifyDiagnostics(
+                // (4,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator +(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "+").WithArguments("default interface implementation", "7.1").WithLocation(4, 31),
+                // (10,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator -(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "-").WithArguments("default interface implementation", "7.1").WithLocation(10, 31),
+                // (16,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator !(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "!").WithArguments("default interface implementation", "7.1").WithLocation(16, 31),
+                // (22,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator ~(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "~").WithArguments("default interface implementation", "7.1").WithLocation(22, 31),
+                // (28,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator ++(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "++").WithArguments("default interface implementation", "7.1").WithLocation(28, 31),
+                // (34,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator --(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "--").WithArguments("default interface implementation", "7.1").WithLocation(34, 31),
+                // (40,33): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static bool operator true(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "true").WithArguments("default interface implementation", "7.1").WithLocation(40, 33),
+                // (46,33): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static bool operator false(I1 x)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "false").WithArguments("default interface implementation", "7.1").WithLocation(46, 33),
+                // (52,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator +(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "+").WithArguments("default interface implementation", "7.1").WithLocation(52, 31),
+                // (58,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator -(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "-").WithArguments("default interface implementation", "7.1").WithLocation(58, 31),
+                // (64,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator *(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "*").WithArguments("default interface implementation", "7.1").WithLocation(64, 31),
+                // (70,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator /(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "/").WithArguments("default interface implementation", "7.1").WithLocation(70, 31),
+                // (76,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator %(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "%").WithArguments("default interface implementation", "7.1").WithLocation(76, 31),
+                // (82,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator &(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "&").WithArguments("default interface implementation", "7.1").WithLocation(82, 31),
+                // (88,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator |(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "|").WithArguments("default interface implementation", "7.1").WithLocation(88, 31),
+                // (94,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator ^(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "^").WithArguments("default interface implementation", "7.1").WithLocation(94, 31),
+                // (100,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator <<(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "<<").WithArguments("default interface implementation", "7.1").WithLocation(100, 31),
+                // (106,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator >>(I1 x, int y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, ">>").WithArguments("default interface implementation", "7.1").WithLocation(106, 31),
+                // (112,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator >(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, ">").WithArguments("default interface implementation", "7.1").WithLocation(112, 31),
+                // (118,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator <(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "<").WithArguments("default interface implementation", "7.1").WithLocation(118, 31),
+                // (124,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator >=(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, ">=").WithArguments("default interface implementation", "7.1").WithLocation(124, 31),
+                // (130,31): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //     public static I1 operator <=(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "<=").WithArguments("default interface implementation", "7.1").WithLocation(130, 31)
+                );
+
+            var compilation7 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var expected7 = new DiagnosticDescription[]
+            {
+                // (9,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = +x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "+x").WithArguments("default interface implementation", "7.1").WithLocation(9, 13),
+                // (10,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = -x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "-x").WithArguments("default interface implementation", "7.1").WithLocation(10, 13),
+                // (11,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = !x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "!x").WithArguments("default interface implementation", "7.1").WithLocation(11, 13),
+                // (12,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = ~x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "~x").WithArguments("default interface implementation", "7.1").WithLocation(12, 13),
+                // (13,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = ++x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "++x").WithArguments("default interface implementation", "7.1").WithLocation(13, 13),
+                // (14,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x--;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x--").WithArguments("default interface implementation", "7.1").WithLocation(14, 13),
+                // (16,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x + y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x + y").WithArguments("default interface implementation", "7.1").WithLocation(16, 13),
+                // (17,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x - y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x - y").WithArguments("default interface implementation", "7.1").WithLocation(17, 13),
+                // (18,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x * y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x * y").WithArguments("default interface implementation", "7.1").WithLocation(18, 13),
+                // (19,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x / y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x / y").WithArguments("default interface implementation", "7.1").WithLocation(19, 13),
+                // (20,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x % y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x % y").WithArguments("default interface implementation", "7.1").WithLocation(20, 13),
+                // (21,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         if (x && y) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x && y").WithArguments("default interface implementation", "7.1").WithLocation(21, 13),
+                // (21,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         if (x && y) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x && y").WithArguments("default interface implementation", "7.1").WithLocation(21, 13),
+                // (22,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x | y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x | y").WithArguments("default interface implementation", "7.1").WithLocation(22, 13),
+                // (23,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x ^ y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x ^ y").WithArguments("default interface implementation", "7.1").WithLocation(23, 13),
+                // (24,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x << 1;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x << 1").WithArguments("default interface implementation", "7.1").WithLocation(24, 13),
+                // (25,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x >> 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x >> 2").WithArguments("default interface implementation", "7.1").WithLocation(25, 13),
+                // (26,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x > y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x > y").WithArguments("default interface implementation", "7.1").WithLocation(26, 13),
+                // (27,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x < y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x < y").WithArguments("default interface implementation", "7.1").WithLocation(27, 13),
+                // (28,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x >= y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x >= y").WithArguments("default interface implementation", "7.1").WithLocation(28, 13),
+                // (29,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x <= y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x <= y").WithArguments("default interface implementation", "7.1").WithLocation(29, 13)
+            };
+            compilation7.VerifyDiagnostics(expected7);
+
+            var compilation8 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation8.VerifyDiagnostics(expected7);
+
+            var source3 =
+@"
+class Test3 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test3();
+        I1 y = new Test3();
+        if (x) { }
+        x = x & y;
+    }
+}
+";
+
+            var compilation9 = CreateStandardCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation9.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var expected9 = new DiagnosticDescription[]
+            {
+                // (8,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         if (x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x").WithArguments("default interface implementation", "7.1").WithLocation(8, 13),
+                // (9,13): error CS8107: Feature 'default interface implementation' is not available in C# 7. Please use language version 7.1 or greater.
+                //         x = x & y;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "x & y").WithArguments("default interface implementation", "7.1").WithLocation(9, 13)
+            };
+            compilation9.VerifyDiagnostics(expected9);
+
+            var compilation10 = CreateStandardCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation10.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation10.VerifyDiagnostics(expected9);
+        }
+
+        [Fact]
+        public void Operators_02()
+        {
+            var source1 =
+@"
+public class C1
+{
+    public static int operator +(C1 x, I1 y)
+    {
+        System.Console.WriteLine(""C1.+"");
+        return 0;
+    }
+    public static int operator -(I1 x, C1 y)
+    {
+        System.Console.WriteLine(""C1.-"");
+        return 0;
+    }
+}
+
+public class C2 : C1
+{}
+
+class Test : I1
+{
+    static void Main()
+    {
+        I1 x = new Test();
+        C2 y = new C2();
+
+        var r = y + x;
+        r = x - y;
+    }
+}
+";
+
+            var source2 =
+@"
+public interface I1
+{
+}
+";
+
+            var source3 =
+@"
+public interface I1
+{
+    public static int operator +(C2 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 0;
+    }
+    public static int operator -(I1 x, C2 y)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return 0;
+    }
+}
+";
+
+            var expectedOutput = @"
+C1.+
+C1.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe);
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            var compilation2 = CreateStandardCompilation(source1 + source3, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_03()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator ==(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""=="");
+        return x;
+    }
+
+    public static I1 operator !=(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""!="");
+        return x;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I1 y = new Test2();
+
+        x = x == y;
+        x = x != y;
+    }
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     public static I1 operator ==(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "==").WithLocation(4, 31),
+                // (10,31): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     public static I1 operator !=(I1 x, I1 y)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "!=").WithLocation(10, 31),
+                // (24,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                //         x = x == y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x == y").WithArguments("bool", "I1").WithLocation(24, 13),
+                // (25,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                //         x = x != y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x != y").WithArguments("bool", "I1").WithLocation(25, 13)
+                );
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation2.VerifyDiagnostics(
+                // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                //         x = x == y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x == y").WithArguments("bool", "I1").WithLocation(9, 13),
+                // (10,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                //         x = x != y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x != y").WithArguments("bool", "I1").WithLocation(10, 13)
+                );
+
+            var ilSource = @"
+.class interface public abstract auto ansi I1
+{
+  .method public hidebysig specialname static 
+          class I1  op_Equality(class I1 x,
+                                class I1 y) cil managed
+  {
+    // Code size       18 (0x12)
+    .maxstack  1
+    .locals init (class I1 V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""==""
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  nop
+    IL_000c:  ldarg.0
+    IL_000d:  stloc.0
+    IL_000e:  br.s       IL_0010
+
+    IL_0010:  ldloc.0
+    IL_0011:  ret
+  } // end of method I1::op_Equality
+
+  .method public hidebysig specialname static 
+          class I1  op_Inequality(class I1 x,
+                                  class I1 y) cil managed
+  {
+    // Code size       18 (0x12)
+    .maxstack  1
+    .locals init (class I1 V_0)
+    IL_0000:  nop
+    IL_0001:  ldstr      ""!=""
+    IL_0006:  call       void [mscorlib]System.Console::WriteLine(string)
+    IL_000b:  nop
+    IL_000c:  ldarg.0
+    IL_000d:  stloc.0
+    IL_000e:  br.s       IL_0010
+
+    IL_0010:  ldloc.0
+    IL_0011:  ret
+  } // end of method I1::op_Inequality
+
+} // end of class I1
+";
+
+            var compilation3 = CreateCompilationWithCustomILSource(source2, ilSource, options: TestOptions.DebugExe);
+            compilation3.VerifyDiagnostics(
+                // (9,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                //         x = x == y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x == y").WithArguments("bool", "I1").WithLocation(9, 13),
+                // (10,13): error CS0029: Cannot implicitly convert type 'bool' to 'I1'
+                //         x = x != y;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x != y").WithArguments("bool", "I1").WithLocation(10, 13)
+                );
+
+            var source3 =
+@"
+class Test2 : I1
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I1 y = new Test2();
+
+        System.Console.WriteLine(x == y);
+        System.Console.WriteLine(x != y);
+    }
+}
+";
+            var compilation4 = CreateCompilationWithCustomILSource(source3, ilSource, options: TestOptions.DebugExe);
+            compilation4.VerifyDiagnostics();
+            CompileAndVerify(compilation4, expectedOutput: @"
+False
+True
+");
+        }
+
+        [Fact]
+        public void Operators_04()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static implicit operator int(I1 x)
+    {
+        return 0;
+    }
+    public static explicit operator byte(I1 x)
+    {
+        return 0;
+    }
+
+    public static void Test(I1 x)
+    {
+        int y = x;
+        y = (int)x;
+        var z = (byte)x;
+        z = x;
+    }
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            compilation1.VerifyDiagnostics(
+                // (4,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     public static implicit operator int(I1 x)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "int").WithLocation(4, 37),
+                // (8,37): error CS0567: Interfaces cannot contain conversion, equality, or inequality operators
+                //     public static explicit operator byte(I1 x)
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainConversionOrEqualityOperators, "byte").WithLocation(8, 37),
+                // (15,17): error CS0029: Cannot implicitly convert type 'I1' to 'int'
+                //         int y = x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I1", "int").WithLocation(15, 17),
+                // (16,13): error CS0030: Cannot convert type 'I1' to 'int'
+                //         y = (int)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int)x").WithArguments("I1", "int").WithLocation(16, 13),
+                // (17,17): error CS0030: Cannot convert type 'I1' to 'byte'
+                //         var z = (byte)x;
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(byte)x").WithArguments("I1", "byte").WithLocation(17, 17),
+                // (18,13): error CS0029: Cannot implicitly convert type 'I1' to 'byte'
+                //         z = x;
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("I1", "byte").WithLocation(18, 13)
+                );
+        }
+
+        [Fact]
+        public void Operators_05()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""-"");
+        return x;
+    }
+}
+
+public interface I2 : I1
+{}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+
+        I1 y = -x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+
+            var source3 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        Test2 x = new Test2();
+
+        I1 y = -x;
+    }
+}
+";
+
+            var compilation9 = CreateStandardCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation9.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var expected9 = new DiagnosticDescription[]
+            {
+                // (8,16): error CS0023: Operator '-' cannot be applied to operand of type 'Test2'
+                //         I1 y = -x;
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, "-x").WithArguments("-", "Test2").WithLocation(8, 16)
+            };
+            compilation9.VerifyDiagnostics(expected9);
+
+            var compilation10 = CreateStandardCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation10.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation10.VerifyDiagnostics(expected9);
+        }
+
+        [Fact]
+        public void Operators_06()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I2 : I1
+{
+    public static I2 operator -(I2 x)
+    {
+        System.Console.WriteLine(""I2.-"");
+        return x;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var y = -x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I2.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_07()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I3
+{
+    public static I3 operator -(I3 x)
+    {
+        System.Console.WriteLine(""I3.-"");
+        return x;
+    }
+}
+
+public interface I4 : I1, I3
+{
+    public static I4 operator -(I4 x)
+    {
+        System.Console.WriteLine(""I4.-"");
+        return x;
+    }
+}
+
+public interface I2 : I4
+{
+}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var y = -x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I4.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_08()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I3
+{
+    public static I3 operator -(I3 x)
+    {
+        System.Console.WriteLine(""I3.-"");
+        return x;
+    }
+}
+
+public interface I4 : I1, I3
+{
+}
+
+public interface I2 : I4
+{
+}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var y = -x;
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (7,17): error CS0035: Operator '-' is ambiguous on an operand of type 'I2'
+                //         var y = -x;
+                Diagnostic(ErrorCode.ERR_AmbigUnaryOp, "-x").WithArguments("-", "I2").WithLocation(7, 17)
+            };
+
+            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void Operators_09()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : Test2, I1 {}
+
+class Test2
+{
+    static void Main()
+    {
+        Test(new Test1());
+    }
+
+    static void Test<T>(T x) where T : Test2, I1
+    {
+        var y = -x;
+    }
+
+    public static Test2 operator -(Test2 x)
+    {
+        System.Console.WriteLine(""Test2.-"");
+        return x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+Test2.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_10()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I3
+{
+    public static I3 operator -(I3 x)
+    {
+        System.Console.WriteLine(""I3.-"");
+        return x;
+    }
+}
+
+public interface I4 : I1, I3
+{
+    public static I4 operator -(I4 x)
+    {
+        System.Console.WriteLine(""I4.-"");
+        return x;
+    }
+}
+
+public interface I2 : I4
+{
+}";
+
+            var source2 =
+@"
+class Test1 : Test2, I2 {}
+
+class Test2
+{
+    static void Main()
+    {
+        Test(new Test1());
+    }
+
+    static void Test<T>(T x) where T : Test2, I2
+    {
+        var y = -x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I4.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_11()
+        {
+            var source0 =
+@"
+public interface I1
+{ }
+
+public interface I2
+{ }
+";
+            var source1 =
+@"
+public class C1
+{
+    public static C1 operator +(C1 x, I2 y)
+    {
+        System.Console.WriteLine(""C1.+1"");
+        return x;
+    }
+    public static C1 operator +(C1 x, I1 y)
+    {
+        System.Console.WriteLine(""C1.+2"");
+        return x;
+    }
+}
+
+";
+
+            var source2 =
+@"
+public interface I3 :  I1, I2
+{ }
+";
+            var source3 =
+@"
+class Test2 : I3
+{
+    static void Main()
+    {
+        I3 x = new Test2();
+        var y = new C1() + x;
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (7,17): error CS0034: Operator '+' is ambiguous on operands of type 'C1' and 'I3'
+                //         var y = new C1() + x;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "new C1() + x").WithArguments("+", "C1", "I3").WithLocation(7, 17)
+            };
+
+            var compilation0 = CreateStandardCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation0.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation0.VerifyDiagnostics();
+
+            CompilationReference compilationReference0 = compilation0.ToMetadataReference();
+            MetadataReference metadataReference0 = compilation0.EmitToImageReference();
+
+            var compilation1 = CreateStandardCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateStandardCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            var source4 =
+@"
+public interface I1
+{ 
+    public static C1 operator +(C1 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return x;
+    }
+}
+
+public interface I2
+{ }
+";
+            var compilation3 = CreateStandardCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+
+            CompilationReference compilationReference3 = compilation3.ToMetadataReference();
+            MetadataReference metadataReference3 = compilation3.EmitToImageReference();
+
+            var compilation4 = CreateStandardCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(expected);
+
+            var compilation5 = CreateStandardCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation5.VerifyDiagnostics(expected);
+
+            var source5 =
+    @"
+public interface I3 :  I1, I2
+{ 
+    public static C1 operator +(C1 x, I3 y)
+    {
+        System.Console.WriteLine(""I3.+"");
+        return x;
+    }
+}
+";
+            var compilation6 = CreateStandardCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation6.VerifyDiagnostics();
+
+            CompilationReference compilationReference6 = compilation6.ToMetadataReference();
+            MetadataReference metadataReference6 = compilation6.EmitToImageReference();
+
+            var compilation7 = CreateStandardCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation7, expectedOutput: "I3.+");
+
+            var compilation8 = CreateStandardCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation8, expectedOutput: "I3.+");
+        }
+
+        [Fact]
+        public void Operators_12()
+        {
+            var source0 =
+@"
+public interface I1
+{ }
+
+public interface I2
+{ }
+";
+            var source1 =
+@"
+public class C1
+{
+    public static C1 operator +(I2 x, C1 y)
+    {
+        System.Console.WriteLine(""C1.+1"");
+        return y;
+    }
+    public static C1 operator +(I1 x, C1 y)
+    {
+        System.Console.WriteLine(""C1.+2"");
+        return y;
+    }
+}
+
+";
+
+            var source2 =
+@"
+public interface I3 :  I1, I2
+{ }
+";
+            var source3 =
+@"
+class Test2 : I3
+{
+    static void Main()
+    {
+        I3 x = new Test2();
+        var y = x + new C1();
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (7,17): error CS0034: Operator '+' is ambiguous on operands of type 'I3' and 'C1'
+                //         var y = x + new C1();
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + new C1()").WithArguments("+", "I3", "C1").WithLocation(7, 17)
+            };
+
+            var compilation0 = CreateStandardCompilation(source0 + source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation0.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation0.VerifyDiagnostics();
+
+            CompilationReference compilationReference0 = compilation0.ToMetadataReference();
+            MetadataReference metadataReference0 = compilation0.EmitToImageReference();
+
+            var compilation1 = CreateStandardCompilation(source3, new[] { compilationReference0 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            var compilation2 = CreateStandardCompilation(source3, new[] { metadataReference0 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            var source4 =
+@"
+public interface I1
+{ 
+    public static C1 operator +(I1 x, C1 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return y;
+    }
+}
+
+public interface I2
+{ }
+";
+            var compilation3 = CreateStandardCompilation(source4 + source1 + source2, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+
+            CompilationReference compilationReference3 = compilation3.ToMetadataReference();
+            MetadataReference metadataReference3 = compilation3.EmitToImageReference();
+
+            var compilation4 = CreateStandardCompilation(source3, new[] { compilationReference3 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation4.VerifyDiagnostics(expected);
+
+            var compilation5 = CreateStandardCompilation(source3, new[] { metadataReference3 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation5.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation5.VerifyDiagnostics(expected);
+
+            var source5 =
+    @"
+public interface I3 :  I1, I2
+{ 
+    public static C1 operator +(I3 x, C1 y)
+    {
+        System.Console.WriteLine(""I3.+"");
+        return y;
+    }
+}
+";
+            var compilation6 = CreateStandardCompilation(source4 + source1 + source5, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation6.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation6.VerifyDiagnostics();
+
+            CompilationReference compilationReference6 = compilation6.ToMetadataReference();
+            MetadataReference metadataReference6 = compilation6.EmitToImageReference();
+
+            var compilation7 = CreateStandardCompilation(source3, new[] { compilationReference6 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation7.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation7, expectedOutput: "I3.+");
+
+            var compilation8 = CreateStandardCompilation(source3, new[] { metadataReference6 }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation8.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            CompileAndVerify(compilation8, expectedOutput: "I3.+");
+        }
+
+        [Fact]
+        public void Operators_13()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static int operator +(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 1;
+    }
+}
+
+public interface I2
+{
+    public static int operator +(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I2.+"");
+        return 2;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2: I1, I2
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I2 y = new Test2();
+        var z = x + y;
+        z = y + x;
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I1' and 'I2'
+                //         var z = x + y;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "I1", "I2").WithLocation(8, 17),
+                // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I2' and 'I1'
+                //         z = y + x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I2", "I1").WithLocation(9, 13)
+            };
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void Operators_14()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static int operator +(I2 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 1;
+    }
+}
+
+public interface I2 : I1
+{
+    public static int operator +(I2 x, I1 y)
+    {
+        System.Console.WriteLine(""I2.+"");
+        return 2;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I2 y = new Test2();
+        var z = y + x;
+        z = x + y;
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I2' and 'I1'
+                //         var z = y + x;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "y + x").WithArguments("+", "I2", "I1").WithLocation(8, 17),
+                // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I1' and 'I2'
+                //         z = x + y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I2").WithLocation(9, 13)
+            };
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void Operators_15()
+        {
+            var source1 =
+@"
+public class I1
+{
+    public static int operator +(I1 x, C2 y)
+    {
+        System.Console.WriteLine(""I1.+1"");
+        return 1;
+    }
+    public static int operator +(C2 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.+2"");
+        return 1;
+    }
+}
+
+public class I2 : I1
+{
+    public static int operator +(I2 x, C1 y)
+    {
+        System.Console.WriteLine(""I2.+1"");
+        return 1;
+    }
+    public static int operator +(C1 x, I2 y)
+    {
+        System.Console.WriteLine(""I2.+2"");
+        return 1;
+    }
+}
+
+public class C1 { }
+public class C2 : C1 { }
+";
+
+            var source2 =
+@"
+class Test2: I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        C2 y = new C2();
+        var z = x + y;
+        z = y + x;    }
+}
+";
+
+            var expectedOutput =
+@"
+I2.+1
+I2.+2
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_16()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    public static int operator +(I1<T> x, I1<T> y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 1;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2: I1<object>
+{
+    static void Main()
+    {
+        I1<object> x = new Test2();
+        I1<dynamic> y = new Test2();
+        var z = x + y;
+        z = y + x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I1.+
+I1.+
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_17()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator +(I1 x, C1 y)
+    {
+        System.Console.WriteLine(""I1.+1"");
+        return x;
+    }
+    public static I1 operator +(C1 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.+2"");
+        return y;
+    }
+}
+
+public interface I2 : I1
+{}
+
+public class C1{} 
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        C1 y = new C1();
+        var z = x + y;
+        z = y + x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I1.+1
+I1.+2
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+
+            var source3 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        Test2 x = new Test2();
+        C1 y = new C1();
+        var z = x + y;
+        z = y + x;
+    }
+}
+";
+
+            var compilation9 = CreateStandardCompilation(source3, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation9.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            var expected9 = new DiagnosticDescription[]
+            {
+                // (8,17): error CS0019: Operator '+' cannot be applied to operands of type 'Test2' and 'C1'
+                //         var z = x + y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "Test2", "C1").WithLocation(8, 17),
+                // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'C1' and 'Test2'
+                //         z = y + x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "C1", "Test2").WithLocation(9, 13)
+            };
+            compilation9.VerifyDiagnostics(expected9);
+
+            var compilation10 = CreateStandardCompilation(source3, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            Assert.True(compilation10.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation10.VerifyDiagnostics(expected9);
+        }
+
+        [Fact]
+        public void Operators_18()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static int operator +(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 1;
+    }
+}
+
+public interface I2 : I1
+{}
+";
+
+            var source2 =
+@"
+class Test2: I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        I1 y = new Test2();
+        var z = x + y;
+        z = y + x;
+        z = x + x;
+        z = y + y;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I1.+
+I1.+
+I1.+
+I1.+
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_19()
+        {
+            var source1 =
+@"
+public interface I1<T>
+{
+    public static int operator +(I1<T> x, I1<T> y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 1;
+    }
+}
+
+public interface I2<T> : I1<T>
+{}
+";
+
+            var source2 =
+@"
+class Test2: I2<object>
+{
+    static void Main()
+    {
+        I2<object> x = new Test2();
+        I2<dynamic> y = new Test2();
+        var z = x + y;
+        z = y + x;
+        I1<object> u = x;
+        I1<dynamic> v = y;
+        z = y + u;
+        z = u + y;
+        z = x + v;
+        z = v + x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I1.+
+I1.+
+I1.+
+I1.+
+I1.+
+I1.+
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_20()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I2 : I1
+{
+    public static I2 operator -(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I2.-"");
+        return y;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        I2 y = new Test2();
+        var z = x - y;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I2.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_21()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I2 : I1
+{
+    public static I2 operator -(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I2.-"");
+        return y;
+    }
+}
+
+public interface I3 : I2
+{}
+";
+
+            var source2 =
+@"
+class Test2 : I3
+{
+    static void Main()
+    {
+        I3 x = new Test2();
+        I3 y = new Test2();
+        var z = x - y;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I2.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_22()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I2 : I1
+{
+    public static I2 operator -(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I2.-"");
+        return y;
+    }
+}
+
+public interface I3 : I2
+{}
+
+public interface I4 : I3
+{}
+";
+
+            var source2 =
+@"
+class Test2 : I3, I4
+{
+    static void Main()
+    {
+        I3 x = new Test2();
+        I4 y = new Test2();
+        var z = x - y;
+        z = y - x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I2.-
+I2.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_23()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static int operator +(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 1;
+    }
+}
+
+public interface I2 : I1
+{
+    public static int operator +(I1 x, I2 y)
+    {
+        System.Console.WriteLine(""I2.+"");
+        return 2;
+    }
+}
+
+public interface I3 : I2
+{}
+";
+
+            var source2 =
+@"
+class Test2 : I3
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I3 y = new Test2();
+        var z = x + y;
+        z = y + x;
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I1' and 'I3'
+                //         var z = x + y;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + y").WithArguments("+", "I1", "I3").WithLocation(8, 17),
+                // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I3' and 'I1'
+                //         z = y + x;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "y + x").WithArguments("+", "I3", "I1").WithLocation(9, 13)
+            };
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void Operators_24()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static int operator +(I2 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.+"");
+        return 1;
+    }
+}
+
+public interface I2 : I1
+{
+    public static int operator +(I2 x, I1 y)
+    {
+        System.Console.WriteLine(""I2.+"");
+        return 2;
+    }
+}
+
+public interface I3 : I2
+{}
+";
+
+            var source2 =
+@"
+class Test2 : I3
+{
+    static void Main()
+    {
+        I1 x = new Test2();
+        I3 y = new Test2();
+        var z = y + x;
+        z = x + y;
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (8,17): error CS0034: Operator '+' is ambiguous on operands of type 'I3' and 'I1'
+                //         var z = y + x;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "y + x").WithArguments("+", "I3", "I1").WithLocation(8, 17),
+                // (9,13): error CS0019: Operator '+' cannot be applied to operands of type 'I1' and 'I3'
+                //         z = x + y;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x + y").WithArguments("+", "I1", "I3").WithLocation(9, 13)
+            };
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void Operators_25()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+
+public interface I3
+{
+    public static I3 operator -(I3 x, I3 y)
+    {
+        System.Console.WriteLine(""I3.-"");
+        return x;
+    }
+}
+
+public interface I4 : I1, I3
+{
+}
+
+public interface I2 : I4
+{
+}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var y = x - x;
+    }
+}
+";
+
+            var expected = new DiagnosticDescription[]
+            {
+                // (7,17): error CS0034: Operator '-' is ambiguous on operands of type 'I2' and 'I2'
+                //         var y = x - x;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x - x").WithArguments("-", "I2", "I2").WithLocation(7, 17)
+            };
+
+            var compilation1 = CreateStandardCompilation(source2 + source1, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(expected);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics(expected);
+        }
+
+        [Fact]
+        public void Operators_26()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x, C1 y)
+    {
+        System.Console.WriteLine(""I1.-1"");
+        return x;
+    }
+    public static I1 operator -(C1 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.-2"");
+        return y;
+    }
+}
+
+public interface I3
+{
+    public static I3 operator -(I3 x, C2 y)
+    {
+        System.Console.WriteLine(""I3.-1"");
+        return x;
+    }
+    public static I3 operator -(C2 x, I3 y)
+    {
+        System.Console.WriteLine(""I3.-2"");
+        return y;
+    }
+}
+
+public interface I4
+{
+    public static I4 operator -(I4 x, C1 y)
+    {
+        System.Console.WriteLine(""I4.-1"");
+        return x;
+    }
+    public static I4 operator -(C1 x, I4 y)
+    {
+        System.Console.WriteLine(""I4.-2"");
+        return y;
+    }
+}
+
+public interface I5 : I1, I3, I4
+{
+}
+
+public interface I2 : I5
+{
+}
+
+public class C1{}
+public class C2 : C1{}
+";
+
+            var source2 =
+@"
+class Test2 : I2
+{
+    static void Main()
+    {
+        I2 x = new Test2();
+        var c = new C2();
+        var y = x - c;
+        y = c - x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I3.-1
+I3.-2
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_27()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.-"");
+        return x;
+    }
+}
+";
+
+            var source2 =
+@"
+class Test1 : Test2, I1 {}
+
+class Test2
+{
+    static void Main()
+    {
+        Test(new Test1());
+    }
+
+    static void Test<T>(T x) where T : Test2, I1
+    {
+        var y = x - x;
+    }
+
+    public static Test2 operator -(Test2 x, Test2 y)
+    {
+        System.Console.WriteLine(""Test2.-"");
+        return x;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+Test2.-
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_28()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator -(I1 x, C1 y)
+    {
+        System.Console.WriteLine(""I1.-1"");
+        return x;
+    }
+    public static I1 operator -(C1 x, I1 y)
+    {
+        System.Console.WriteLine(""I1.-2"");
+        return y;
+    }
+}
+
+public interface I3
+{
+    public static I3 operator -(I3 x, C2 y)
+    {
+        System.Console.WriteLine(""I3.-1"");
+        return x;
+    }
+    public static I3 operator -(C2 x, I3 y)
+    {
+        System.Console.WriteLine(""I3.-2"");
+        return y;
+    }
+}
+
+public interface I4
+{
+    public static I4 operator -(I4 x, C1 y)
+    {
+        System.Console.WriteLine(""I4.-1"");
+        return x;
+    }
+    public static I4 operator -(C1 x, I4 y)
+    {
+        System.Console.WriteLine(""I4.-2"");
+        return y;
+    }
+}
+
+public interface I5 : I1, I3, I4
+{
+}
+
+public interface I2 : I5
+{
+}
+
+public class C1{}
+public class C2 : C1{}
+";
+
+            var source2 =
+@"
+class Test1 : Test2, I2 {}
+
+class Test2
+{
+    static void Main()
+    {
+        Test(new Test1());
+    }
+
+    static void Test<T>(T x) where T : Test2, I2
+    {
+        var c = new C2();
+        var y = c - x;
+        y = x - c;
+    }
+}
+";
+
+            var expectedOutput =
+@"
+I3.-2
+I3.-1
+";
+
+            var compilation1 = CreateStandardCompilation(source1 + source2, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics();
+            CompileAndVerify(compilation1, expectedOutput: expectedOutput);
+
+            CompilationReference compilationReference = compilation1.ToMetadataReference();
+            MetadataReference metadataReference = compilation1.EmitToImageReference();
+
+            var compilation2 = CreateStandardCompilation(source2, new[] { compilationReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation2.VerifyDiagnostics();
+            CompileAndVerify(compilation2, expectedOutput: expectedOutput);
+
+            var compilation3 = CreateStandardCompilation(source2, new[] { metadataReference }, options: TestOptions.DebugExe,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation3.VerifyDiagnostics();
+            CompileAndVerify(compilation3, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void Operators_29()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator +(int x) => throw null;
+    public static I1 operator -(int x) => throw null;
+    public static I1 operator !(int x) => throw null;
+    public static I1 operator ~(int x) => throw null;
+    public static I1 operator ++(int x) => throw null;
+    public static I1 operator --(int x) => throw null;
+    public static bool operator true(int x) => throw null;
+    public static bool operator false(int x) => throw null;
+    public static I1 operator +(int x, int y) => throw null;
+    public static I1 operator -(int x, int y) => throw null;
+    public static I1 operator *(int x, int y) => throw null;
+    public static I1 operator /(int x, int y) => throw null;
+    public static I1 operator %(int x, int y) => throw null;
+    public static I1 operator &(int x, int y) => throw null;
+    public static I1 operator |(int x, int y) => throw null;
+    public static I1 operator ^(int x, int y) => throw null;
+    public static I1 operator <<(int x, int y) => throw null;
+    public static I1 operator >>(int x, int y) => throw null;
+    public static I1 operator >(int x, int y) => throw null;
+    public static I1 operator <(int x, int y) => throw null;
+    public static I1 operator >=(int x, int y) => throw null;
+    public static I1 operator <=(int x, int y) => throw null;
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static I1 operator +(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "+").WithLocation(4, 31),
+                // (5,31): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static I1 operator -(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "-").WithLocation(5, 31),
+                // (6,31): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static I1 operator !(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "!").WithLocation(6, 31),
+                // (7,31): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static I1 operator ~(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "~").WithLocation(7, 31),
+                // (8,31): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     public static I1 operator ++(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, "++").WithLocation(8, 31),
+                // (9,31): error CS0559: The parameter type for ++ or -- operator must be the containing type
+                //     public static I1 operator --(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadIncDecSignature, "--").WithLocation(9, 31),
+                // (10,33): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static bool operator true(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "true").WithLocation(10, 33),
+                // (11,33): error CS0562: The parameter of a unary operator must be the containing type
+                //     public static bool operator false(int x) => throw null;
+                Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "false").WithLocation(11, 33),
+                // (12,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator +(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(12, 31),
+                // (13,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator -(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "-").WithLocation(13, 31),
+                // (14,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator *(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "*").WithLocation(14, 31),
+                // (15,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator /(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "/").WithLocation(15, 31),
+                // (16,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator %(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "%").WithLocation(16, 31),
+                // (17,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator &(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "&").WithLocation(17, 31),
+                // (18,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator |(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "|").WithLocation(18, 31),
+                // (19,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator ^(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "^").WithLocation(19, 31),
+                // (20,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static I1 operator <<(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<").WithLocation(20, 31),
+                // (21,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static I1 operator >>(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(21, 31),
+                // (22,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator >(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, ">").WithLocation(22, 31),
+                // (23,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator <(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "<").WithLocation(23, 31),
+                // (24,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator >=(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, ">=").WithLocation(24, 31),
+                // (25,31): error CS0563: One of the parameters of a binary operator must be the containing type
+                //     public static I1 operator <=(int x, int y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "<=").WithLocation(25, 31)
+                );
+        }
+
+        [Fact]
+        public void Operators_30()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    public static I1 operator <<(I1 x, I1 y) => throw null;
+    public static I1 operator >>(I1 x, I1 y) => throw null;
+}
+
+public interface I2
+{
+    public static bool operator true(I2 x) => throw null;
+}
+
+public interface I3
+{
+    public static bool operator false(I3 x) => throw null;
+}
+
+public interface I4
+{
+    public static int operator true(I4 x) => throw null;
+    public static int operator false(I4 x) => throw null;
+}
+";
+
+            var compilation1 = CreateStandardCompilation(source1, options: TestOptions.DebugDll,
+                                                         parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest));
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+            compilation1.VerifyDiagnostics(
+                // (4,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static I1 operator <<(I1 x, I1 y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, "<<").WithLocation(4, 31),
+                // (5,31): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
+                //     public static I1 operator >>(I1 x, I1 y) => throw null;
+                Diagnostic(ErrorCode.ERR_BadShiftOperatorSignature, ">>").WithLocation(5, 31),
+                // (10,33): error CS0216: The operator 'I2.operator true(I2)' requires a matching operator 'false' to also be defined
+                //     public static bool operator true(I2 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "true").WithArguments("I2.operator true(I2)", "false").WithLocation(10, 33),
+                // (15,33): error CS0216: The operator 'I3.operator false(I3)' requires a matching operator 'true' to also be defined
+                //     public static bool operator false(I3 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OperatorNeedsMatch, "false").WithArguments("I3.operator false(I3)", "true").WithLocation(15, 33),
+                // (20,32): error CS0215: The return type of operator True or False must be bool
+                //     public static int operator true(I4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OpTFRetType, "true").WithLocation(20, 32),
+                // (21,32): error CS0215: The return type of operator True or False must be bool
+                //     public static int operator false(I4 x) => throw null;
+                Diagnostic(ErrorCode.ERR_OpTFRetType, "false").WithLocation(21, 32)
+                );
+        }
+
     }
 }

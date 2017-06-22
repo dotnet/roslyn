@@ -1083,11 +1083,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue &&
-                (object)possiblyBest.Signature.Method != null)
+            if (possiblyBest.HasValue)
             {
-                Symbol symbol = possiblyBest.Signature.Method;
-                ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
+                MethodSymbol operatorMethod = possiblyBest.Signature.Method;
+                if ((object)operatorMethod != null)
+                {
+                    ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
+
+                    if (operatorMethod.ContainingType.IsInterface &&
+                        operatorMethod.ContainingModule != Compilation.SourceModule)
+                    {
+                        Binder.CheckFeatureAvailability(node, MessageID.IDS_DefaultInterfaceImplementation, diagnostics);
+                    }
+                }
             }
 
             result.Free();
@@ -1169,11 +1177,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultKind = possiblyBest.HasValue ? LookupResultKind.Viable : LookupResultKind.Empty;
             }
 
-            if (possiblyBest.HasValue &&
-                (object)possiblyBest.Signature.Method != null)
+            if (possiblyBest.HasValue)
             {
-                Symbol symbol = possiblyBest.Signature.Method;
-                ReportDiagnosticsIfObsolete(diagnostics, symbol, node, hasBaseReceiver: false);
+                MethodSymbol operatorMethod = possiblyBest.Signature.Method;
+                if ((object)operatorMethod != null)
+                {
+                    ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
+
+                    if (operatorMethod.ContainingType.IsInterface &&
+                        operatorMethod.ContainingModule != Compilation.SourceModule)
+                    {
+                        Binder.CheckFeatureAvailability(node, MessageID.IDS_DefaultInterfaceImplementation, diagnostics);
+                    }
+                }
             }
 
             result.Free();

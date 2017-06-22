@@ -1,11 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -39,7 +41,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: The set of candidate user-defined operators provided by the types (if any) of x and y for the 
             // SPEC operation operator op(x, y) is determined. 
 
-            bool hadUserDefinedCandidate = GetUserDefinedOperators(underlyingKind, left, right, result.Results, ref useSiteDiagnostics);
+            TypeSymbol leftOperatorSourceOpt = left.Type?.StrippedType();
+            TypeSymbol rightOperatorSourceOpt = right.Type?.StrippedType();
+            bool leftSourceIsInterface = leftOperatorSourceOpt?.IsInterfaceType() == true;
+            bool rightSourceIsInterface = rightOperatorSourceOpt?.IsInterfaceType() == true;
+            BinaryOperatorOverloadResolutionResult resultFromNonInterfaces = null;
+
+            // The following is a slight rewording of the specification to emphasize that not all
+            // operands of a binary operation need to have a type.
+
+            // TODO (tomat): The spec needs to be updated to use identity conversion instead of type equality.
+
+            // Spec 7.3.4 Binary operator overload resolution:
+            //   An operation of the form x op y, where op is an overloadable binary operator is processed as follows:
+            //   The set of candidate user-defined operators provided by the types (if any) of x and y for the 
+            //   operation operator op(x, y) is determined. The set consists of the union of the candidate operators
+            //   provided by the type of x (if any) and the candidate operators provided by the type of y (if any), 
+            //   each determined using the rules of 7.3.5. Candidate operators only occur in the combined set once.
+
+            bool leftHadUserDefinedCandidate = false;
+            bool rightHadUserDefinedCandidate = false;
+
+            // In order to preserve backward compatibility, at first we ignore interface sources.
+
+            if (!leftSourceIsInterface)
+            {
+                leftHadUserDefinedCandidate = GetUserDefinedOperators(kind, leftOperatorSourceOpt, left, right, result.Results, ref useSiteDiagnostics);
+            }
+
+            if (!rightSourceIsInterface && rightOperatorSourceOpt != leftOperatorSourceOpt)
+            {
+                var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
+                rightHadUserDefinedCandidate = GetUserDefinedOperators(kind, rightOperatorSourceOpt, left, right, rightOperators, ref useSiteDiagnostics);
+                AddDistinctOperators(result.Results, rightOperators);
+                rightOperators.Free();
+            }
 
             // SPEC: If the set of candidate user-defined operators is not empty, then this becomes the set of candidate 
             // SPEC: operators for the operation. Otherwise, the predefined binary operator op implementations, including 
@@ -60,18 +96,181 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // Roslyn matches the specification and takes the break from the native compiler.
 
-            if (!hadUserDefinedCandidate)
+            if (!leftHadUserDefinedCandidate && !rightHadUserDefinedCandidate)
             {
+                Debug.Assert(result.Results.Count == 0);
                 result.Results.Clear();
                 GetAllBuiltInOperators(kind, left, right, result.Results, ref useSiteDiagnostics);
             }
-
+            else if (kind != BinaryOperatorKind.Equal && kind != BinaryOperatorKind.NotEqual &&
+                     ((!leftHadUserDefinedCandidate && 
+                       ShouldGetUserDefinedBinaryOperatorsFromInterfaces(leftOperatorSourceOpt, leftSourceIsInterface, ref useSiteDiagnostics)) || 
+                      (!rightHadUserDefinedCandidate && leftOperatorSourceOpt != rightOperatorSourceOpt && 
+                       ShouldGetUserDefinedBinaryOperatorsFromInterfaces(rightOperatorSourceOpt, rightSourceIsInterface, ref useSiteDiagnostics))))
+            {
+                Debug.Assert(result.Results.Any(r => r.IsValid));
+                // Copy candidates to avoid repeating lookup in case we need to add operators from interfaces
+                resultFromNonInterfaces = BinaryOperatorOverloadResolutionResult.GetInstance();
+                resultFromNonInterfaces.Results.AddRange(result.Results);
+            }
+            
             // SPEC: The overload resolution rules of 7.5.3 are applied to the set of candidate operators to select the best 
             // SPEC: operator with respect to the argument list (x, y), and this operator becomes the result of the overload 
             // SPEC: resolution process. If overload resolution fails to select a single best operator, a binding-time 
             // SPEC: error occurs.
 
             BinaryOperatorOverloadResolution(left, right, result, ref useSiteDiagnostics);
+
+            // If resolution failed, try with interface sources
+            if (!result.Best.HasValue && 
+                (!leftHadUserDefinedCandidate || !rightHadUserDefinedCandidate) &&
+                kind != BinaryOperatorKind.Equal && kind != BinaryOperatorKind.NotEqual)
+            {
+                var resultFromInterfaces = BinaryOperatorOverloadResolutionResult.GetInstance();
+                bool leftHadUserDefinedCandidateFromInterfaces = false;
+                bool rightHadUserDefinedCandidateFromInterfaces = false;
+                string name = OperatorFacts.BinaryOperatorNameFromOperatorKind(kind);
+                var lookedInInterfaces = PooledDictionary<TypeSymbol, bool>.GetInstance();
+
+                if (!leftHadUserDefinedCandidate)
+                {
+                    leftHadUserDefinedCandidateFromInterfaces = GetUserDefinedBinaryOperatorsFromInterfaces(kind, name,
+                        leftOperatorSourceOpt, leftSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, resultFromInterfaces.Results);
+                }
+
+                if (!rightHadUserDefinedCandidate && leftOperatorSourceOpt != rightOperatorSourceOpt)
+                {
+                    var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
+                    rightHadUserDefinedCandidateFromInterfaces = GetUserDefinedBinaryOperatorsFromInterfaces(kind, name, 
+                        rightOperatorSourceOpt, rightSourceIsInterface, left, right, ref useSiteDiagnostics, lookedInInterfaces, rightOperators);
+
+                    AddDistinctOperators(resultFromInterfaces.Results, rightOperators);
+                    rightOperators.Free();
+                }
+
+                Debug.Assert(resultFromNonInterfaces != null || 
+                             lookedInInterfaces.Count == 0 ||
+                             (!leftHadUserDefinedCandidate && !rightHadUserDefinedCandidate));
+
+                if (leftHadUserDefinedCandidateFromInterfaces || rightHadUserDefinedCandidateFromInterfaces)
+                {
+                    result.Clear();
+
+                    if (resultFromNonInterfaces != null)
+                    {
+                        result.Results.AddRange(resultFromNonInterfaces.Results);
+                    }
+
+                    result.Results.AddRange(resultFromInterfaces.Results);
+                    BinaryOperatorOverloadResolution(left, right, result, ref useSiteDiagnostics);
+                }
+
+                resultFromInterfaces.Free();
+                lookedInInterfaces.Free();
+            }
+
+            if (resultFromNonInterfaces != null)
+            {
+                resultFromNonInterfaces.Free();
+            }
+        }
+
+        private static bool ShouldGetUserDefinedBinaryOperatorsFromInterfaces(
+            TypeSymbol operatorSourceOpt, bool sourceIsInterface,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            return (object)operatorSourceOpt != null &&
+                   (sourceIsInterface ||
+                    (operatorSourceOpt.IsTypeParameter() &&
+                     !((TypeParameterSymbol)operatorSourceOpt).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics).IsEmpty));
+        }
+
+        private bool GetUserDefinedBinaryOperatorsFromInterfaces(BinaryOperatorKind kind, string name, 
+            TypeSymbol operatorSourceOpt, bool sourceIsInterface,
+            BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics, 
+            Dictionary<TypeSymbol, bool> lookedInInterfaces, ArrayBuilder<BinaryOperatorAnalysisResult> candidates)
+        {
+            Debug.Assert(candidates.Count == 0);
+
+            if ((object)operatorSourceOpt == null)
+            {
+                return false;
+            }
+
+            bool hadUserDefinedCandidateFromInterfaces = false;
+            ImmutableArray<NamedTypeSymbol> interfaces = default;
+
+            if (sourceIsInterface)
+            {
+
+                if (!lookedInInterfaces.TryGetValue(operatorSourceOpt, out _))
+                {
+                    var operators = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
+                    GetUserDefinedBinaryOperatorsFromType((NamedTypeSymbol)operatorSourceOpt, kind, name, operators);
+                    hadUserDefinedCandidateFromInterfaces = CandidateOperators(operators, left, right, candidates, ref useSiteDiagnostics);
+                    operators.Free();
+                    Debug.Assert(hadUserDefinedCandidateFromInterfaces == candidates.Any(r => r.IsValid));
+
+                    lookedInInterfaces.Add(operatorSourceOpt, hadUserDefinedCandidateFromInterfaces);
+                    if (!hadUserDefinedCandidateFromInterfaces)
+                    {
+                        candidates.Clear();
+                        interfaces = operatorSourceOpt.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                    }
+                }
+            }
+            else if (operatorSourceOpt.IsTypeParameter())
+            {
+                interfaces = ((TypeParameterSymbol)operatorSourceOpt).AllEffectiveInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            }
+
+            if (!interfaces.IsDefaultOrEmpty)
+            {
+                var operators = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
+                var results = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
+                var shadowedInterfaces = PooledHashSet<NamedTypeSymbol>.GetInstance();
+
+                foreach (NamedTypeSymbol @interface in interfaces)
+                {
+                    if (shadowedInterfaces.Contains(@interface))
+                    {
+                        // this interface is "shadowed" by a derived interface
+                        continue;
+                    }
+
+                    if (lookedInInterfaces.TryGetValue(@interface, out bool hadUserDefinedCandidate))
+                    {
+                        if (hadUserDefinedCandidate)
+                        {
+                            // this interface "shadows" all its base interfaces
+                            shadowedInterfaces.AddAll(@interface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+                        }
+
+                        // no need to perform another lookup in this interface
+                        continue;
+                    }
+
+                    operators.Clear();
+                    results.Clear();
+                    GetUserDefinedBinaryOperatorsFromType(@interface, kind, name, operators);
+                    hadUserDefinedCandidate = CandidateOperators(operators, left, right, results, ref useSiteDiagnostics);
+                    Debug.Assert(hadUserDefinedCandidate == results.Any(r => r.IsValid));
+                    lookedInInterfaces.Add(@interface, hadUserDefinedCandidate);
+                    if (hadUserDefinedCandidate)
+                    {
+                        hadUserDefinedCandidateFromInterfaces = true;
+                        candidates.AddRange(results);
+                        // this interface "shadows" all its base interfaces
+                        shadowedInterfaces.AddAll(@interface.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
+                    }
+                }
+
+                operators.Free();
+                results.Free();
+                shadowedInterfaces.Free();
+            }
+
+            return hadUserDefinedCandidateFromInterfaces;
         }
 
         private void AddDelegateOperation(BinaryOperatorKind kind, TypeSymbol delegateType,
@@ -544,67 +743,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hadApplicableCandidate;
         }
 
-        // Returns an analysis of every matching user-defined binary operator, including whether the
-        // operator is applicable or not.
-
-        private bool GetUserDefinedOperators(
-            BinaryOperatorKind kind,
-            BoundExpression left,
-            BoundExpression right,
-            ArrayBuilder<BinaryOperatorAnalysisResult> results,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert(left != null);
-            Debug.Assert(right != null);
-
-            // The following is a slight rewording of the specification to emphasize that not all
-            // operands of a binary operation need to have a type.
-
-            // TODO (tomat): The spec needs to be updated to use identity conversion instead of type equality.
-
-            // Spec 7.3.4 Binary operator overload resolution:
-            //   An operation of the form x op y, where op is an overloadable binary operator is processed as follows:
-            //   The set of candidate user-defined operators provided by the types (if any) of x and y for the 
-            //   operation operator op(x, y) is determined. The set consists of the union of the candidate operators
-            //   provided by the type of x (if any) and the candidate operators provided by the type of y (if any), 
-            //   each determined using the rules of 7.3.5. Candidate operators only occur in the combined set once.
-
-            var operators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
-            TypeSymbol leftType = left.Type;
-            TypeSymbol strippedLeftType = leftType?.StrippedType();
-
-            bool hadApplicableCandidate = false;
-
-            if ((object)strippedLeftType != null && !OperatorFacts.DefinitelyHasNoUserDefinedOperators(strippedLeftType))
-            {
-                hadApplicableCandidate = GetUserDefinedOperators(kind, strippedLeftType, left, right, operators, ref useSiteDiagnostics);
-                if (!hadApplicableCandidate)
-                {
-                    operators.Clear();
-                }
-            }
-
-            TypeSymbol rightType = right.Type;
-            TypeSymbol strippedRightType = rightType?.StrippedType();
-            if ((object)strippedRightType != null && !strippedRightType.Equals(strippedLeftType) &&
-                !OperatorFacts.DefinitelyHasNoUserDefinedOperators(strippedRightType))
-            {
-                var rightOperators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
-                hadApplicableCandidate |= GetUserDefinedOperators(kind, strippedRightType, left, right, rightOperators, ref useSiteDiagnostics);
-                AddDistinctOperators(operators, rightOperators);
-                rightOperators.Free();
-            }
-
-            if (hadApplicableCandidate)
-            {
-                results.AddRange(operators);
-            }
-
-            operators.Free();
-
-            return hadApplicableCandidate;
-        }
-
         private static void AddDistinctOperators(ArrayBuilder<BinaryOperatorAnalysisResult> result, ArrayBuilder<BinaryOperatorAnalysisResult> additionalOperators)
         {
             int initialCount = result.Count;
@@ -646,6 +784,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<BinaryOperatorAnalysisResult> results,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            Debug.Assert(results.Count == 0);
+            if ((object)type0 == null || OperatorFacts.DefinitelyHasNoUserDefinedOperators(type0))
+            {
+                return false;
+            }
+
             // Spec 7.3.5 Candidate user-defined operators
             // SPEC: Given a type T and an operation operator op(A), where op is an overloadable 
             // SPEC: operator and A is an argument list, the set of candidate user-defined operators 
@@ -693,6 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             operators.Free();
 
+            Debug.Assert(hadApplicableCandidates == results.Any(r => r.IsValid));
             return hadApplicableCandidates;
         }
 
