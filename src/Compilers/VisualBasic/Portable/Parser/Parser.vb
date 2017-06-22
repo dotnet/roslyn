@@ -4730,9 +4730,9 @@ checkNullable:
                 End If
             End If
 
-                Dim initializer As EqualsValueSyntax = Nothing
+            Dim initializer As EqualsValueSyntax = Nothing
 
-            If value IsNot Nothing AndAlso (Not equals.IsMissing) Then
+            If value IsNot Nothing AndAlso (Not value.IsMissing AndAlso Not equals.IsMissing) Then
 
                 If value.ContainsDiagnostics Then
                     value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)

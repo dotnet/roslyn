@@ -2001,6 +2001,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Remove the default value.
+        '''</summary>
+        Friend ReadOnly Property Remove_the_default_value() As String
+            Get
+                Return ResourceManager.GetString("Remove_the_default_value", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Remove Unnecessary Cast.
         '''</summary>
         Friend ReadOnly Property Remove_Unnecessary_Cast() As String

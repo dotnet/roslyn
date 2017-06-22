@@ -23,7 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
             context.RegisterSyntaxNodeAction(AddressOf Analyse, S_Kinds)
         End Sub
 
-        Friend Const ID As String = "BC00000"
+        Friend Const ID As String = "BC00000" 'PROTOTYPE: Update with `offical` id.
+        Private ReadOnly S_Kinds As SyntaxKind() = {SyntaxKind.Parameter}
 
         Private Shared ReadOnly S_DiagnosticDescriptor As New DiagnosticDescriptor(ID,
                                                       VBFeaturesResources.DefaultOptionalParameter,
@@ -37,14 +38,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
             End Get
         End Property
 
-        Private ReadOnly S_Kinds As SyntaxKind() = {SyntaxKind.Parameter}
 
         Private Sub Analyse(context As SyntaxNodeAnalysisContext)
             Dim Parameter = TryCast(context.Node, ParameterSyntax)
-            If Parameter?.Default Is Nothing AndAlso Parameter?.Default.Value IsNot Nothing Then Return
+            If Parameter Is Nothing Then Exit Sub
+            If Parameter.Default Is Nothing Then Exit Sub
+            If Parameter.Default.Value IsNot Nothing Then Return
             Dim sym = TryCast(context.ContainingSymbol, IParameterSymbol)
-            If Not sym?.IsOptional Then Return
+            If sym Is Nothing Then Exit Sub
+            If Not sym.IsOptional Then Exit Sub
             Dim [Default] = Parameter.Default.Value
+            If [Default] Is Nothing Then Exit Sub
             If [Default].IsKind(SyntaxKind.NothingLiteralExpression, SyntaxKind.FalseLiteralExpression) OrElse
                 [Default].ToString() = "0" Then
                 context.ReportDiagnostic(Diagnostic.Create(S_DiagnosticDescriptor, location:=Parameter.Default.GetLocation))
@@ -56,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
     <ExportCodeFixProvider(LanguageNames.VisualBasic, NameOf(UseDefaultOptionalParameter_CodeFix)), [Shared]>
     Friend NotInheritable Class UseDefaultOptionalParameter_CodeFix
         Inherits CodeFixProvider
-        Private Const title As String = "Remove the default value"
 
         Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get
@@ -64,13 +67,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
             End Get
         End Property
 
+        Private Shared ReadOnly Title As String = VBFeaturesResources.Remove_the_default_value
+
         Public Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
             Dim Diagnostic = context.Diagnostics.FirstOrDefault
             If Diagnostic Is Nothing Then Return
-            'Dim diagnosticSpan = Diagnostic.Location.SourceSpan
-            ' Find the type declaration identified by the diagnostic.
-
             Dim Parameter = root.FindToken(context.Span.Start).Parent.AncestorsAndSelf().OfType(Of ParameterSyntax)().FirstOrDefault()
             If Parameter Is Nothing Then Return
             Dim Fix = Async Function(c As CancellationToken)
@@ -78,7 +80,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
                       End Function
 
             ' Register a code action that will invoke the fix.
-            context.RegisterCodeFix(New MyCodeAction(title:=title, createChangedDocument:=Fix), diagnostic:=Diagnostic)
+            context.RegisterCodeFix(
+                New MyCodeAction(title:=Title, createChangedDocument:=Fix), diagnostic:=Diagnostic)
         End Function
 
         Private Class MyCodeAction

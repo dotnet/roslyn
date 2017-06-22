@@ -12082,7 +12082,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to FEATURE_OptionalParameterDefault.
+        '''  Looks up a localized string similar to Optional Parameter Default.
         '''</summary>
         Friend ReadOnly Property FEATURE_OptionalParameterDefault() As String
             Get

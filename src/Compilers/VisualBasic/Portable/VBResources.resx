@@ -5501,7 +5501,7 @@
     <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
   </data>
   <data name="FEATURE_OptionalParameterDefault" xml:space="preserve">
-    <value>FEATURE_OptionalParameterDefault</value>
+    <value>Optional Parameter Default</value>
   </data>
 </root>
 
