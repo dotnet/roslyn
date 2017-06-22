@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
 
         Private Sub Analyse(context As SyntaxNodeAnalysisContext)
             Dim Parameter = TryCast(context.Node, ParameterSyntax)
-            If Parameter?.Default Is Nothing Then Return
+            If Parameter?.Default Is Nothing AndAlso Parameter?.Default.Value IsNot Nothing Then Return
             Dim sym = TryCast(context.ContainingSymbol, IParameterSymbol)
             If Not sym?.IsOptional Then Return
             Dim [Default] = Parameter.Default.Value
@@ -66,16 +66,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
 
         Public Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim root = Await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(False)
-            Dim Diagnostic = context.Diagnostics.First()
-            Dim diagnosticSpan = Diagnostic.Location.SourceSpan
+            Dim Diagnostic = context.Diagnostics.FirstOrDefault
+            If Diagnostic Is Nothing Then Return
+            'Dim diagnosticSpan = Diagnostic.Location.SourceSpan
             ' Find the type declaration identified by the diagnostic.
-            Dim Parameter = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType(Of ParameterSyntax)().FirstOrDefault()
+
+            Dim Parameter = root.FindToken(context.Span.Start).Parent.AncestorsAndSelf().OfType(Of ParameterSyntax)().FirstOrDefault()
             If Parameter Is Nothing Then Return
-            Dim Fix = Async Function(c As CancellationToken) As Task(Of Document)
-                          Return Await context.Document.ReplaceNodeAsync(Parameter, Parameter.WithDefault(Nothing), context.CancellationToken).ConfigureAwait(False)
+            Dim Fix = Async Function(c As CancellationToken)
+                          Return context.Document.WithSyntaxRoot(Await Parameter.WithDefault(Nothing).SyntaxTree.GetRootAsync(c).ConfigureAwait(False))
                       End Function
+
             ' Register a code action that will invoke the fix.
-            context.RegisterCodeFix(New MyCodeAction(title:=title, createChangedDocument:=Fix), Diagnostic)
+            context.RegisterCodeFix(New MyCodeAction(title:=title, createChangedDocument:=Fix), diagnostic:=Diagnostic)
         End Function
 
         Private Class MyCodeAction
@@ -83,6 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.UseDefaultOptionalParamet
             Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
                 MyBase.New(title, createChangedDocument, title)
             End Sub
+
         End Class
 
     End Class
