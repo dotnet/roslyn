@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CodeCompletionContainsIsEmptyUntilDoubleQuotesAreEntered() As Task
+        Public Async Function CodeCompletionIsEmptyUntilDoubleQuotesAreEntered() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
@@ -87,6 +87,43 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 state.SendTypeChars(""""c)
                 Await state.AssertCompletionSession()
                 Assert.True(state.CompletionItemsContainsAll({"ClassLibrary1"}))
+            End Using
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function CodeCompletionIsNotTriggeredByArrayElementAccess() As Task
+            Using state = TestState.CreateTestStateFromWorkspace(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="ClassLibrary1"/>
+                    <Project Language="Visual Basic" CommonReferences="true" AssemblyName="TestAssembly">
+                        <Document FilePath="A.vb"><![CDATA[
+Namespace A
+	Public Class C
+		Public Sub M()
+			Dim d = New System.Collections.Generic.Dictionary(Of String, String)()
+			Dim v = d$$
+		End Sub
+	End Class
+End Namespace
+]]>
+                        </Document>
+                    </Project>
+                </Workspace>)
+                Dim AssertNoCompletionAndCompletionDoesNotContainClassLibrary1 As Func(Of Task) =
+                    Async Function()
+                        Await state.AssertNoCompletionSession()
+                        state.SendInvokeCompletionList()
+                        Await state.WaitForAsynchronousOperationsAsync()
+                        Assert.True(
+                            state.CurrentCompletionPresenterSession Is Nothing OrElse
+                            Not state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                    End Function
+                Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
+                state.SendTypeChars("("c)
+                Await state.WaitForAsynchronousOperationsAsync()
+                Assert.False(state.CompletionItemsContainsAny({"ClassLibrary1"}))
+                state.SendTypeChars(""""c)
+                Await AssertNoCompletionAndCompletionDoesNotContainClassLibrary1()
             End Using
         End Function
 
