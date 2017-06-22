@@ -46,8 +46,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case Feature.IOperation
                     Return "IOperation"
-                Case Feature.IOperation
-                    Return "OptionalParameterDefault"
+                    'Case Feature.IOperation
+                    '    Return "OptionalParameterDefault"
                 Case Else
                     Return Nothing
             End Select
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic15_5
 
                 Case Feature.OptionalParameterDefault
-                    Return LanguageVersion.VisualBasic15
+                    Return LanguageVersion.VisualBasic15_3 ' PROTOTYPE: Temporary Langauge Version
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.PrivateProtected
                     Return ERRID.FEATURE_PrivateProtected
 
-                Case Feature.OptionalParameterDefault
+                Case Feature.OptionalParameterDefault ' PROTOTYPE: VB Language Feature
                     Return ERRID.FEATURE_OptionalParameterDefault
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)

@@ -686,8 +686,8 @@ p1 as vb$anonymous1
 ]]>,
             Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
 p1 as vb$anonymous1
-)]]>.Value),
-        Diagnostic(ERRID.ERR_ExpectedEOS, "a"))
+)]]>.Value).WithLocation(2, 15),
+        Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1").WithLocation(3, 10))
 
     End Sub
 
