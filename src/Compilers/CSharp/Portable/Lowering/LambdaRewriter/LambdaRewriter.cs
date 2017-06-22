@@ -1364,9 +1364,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     lambdaScope = _analysis.ScopeParent[node.Body];
                     _ = _frames.TryGetValue(lambdaScope, out containerAsFrame);
-                    structClosures = GetStructClosures(
-                        containerAsFrame: containerAsFrame,
-                        lambdaScope: lambdaScope);
+                    structClosures = GetStructClosures(containerAsFrame, lambdaScope);
                 }
                 else
                 {
