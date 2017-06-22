@@ -7027,6 +7027,18 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub OnepulTypeSymbol()
+
+            Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
+            Dim intType As ITypeSymbol = comp.GetSpecialType(SpecialType.System_Int32)
+
+            Dim tupleType As INamedTypeSymbol = comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray.Create(intType), elementNames:=Nothing)
+            Dim tt As TupleTypeSymbol = CType(tupleType, TupleTypeSymbol)
+            Assert.Equal(1, tt.TupleElementTypes.Length)
+            Assert.Equal(intType, tt.TupleElementTypes(0))
+        End Sub
+
+        <Fact>
         Public Sub CreateTupleTypeSymbol2_BadArguments()
 
             Dim comp = VisualBasicCompilation.Create("test", references:={MscorlibRef}) ' no ValueTuple
@@ -7034,9 +7046,8 @@ End Class
 
             Assert.Throws(Of ArgumentNullException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=Nothing, elementNames:=Nothing))
 
-            ' 0-tuple and 1-tuple are not supported at this point
+            ' 0-tuple are not supported at this point
             Assert.Throws(Of ArgumentException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray(Of ITypeSymbol).Empty, elementNames:=Nothing))
-            Assert.Throws(Of ArgumentException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray.Create(intType), elementNames:=Nothing))
 
             ' If names are provided, you need as many as element types
             Assert.Throws(Of ArgumentException)(Sub() comp.CreateTupleTypeSymbol(elementTypes:=ImmutableArray.Create(intType, intType), elementNames:=ImmutableArray.Create("Item1")))
