@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="implicitImpl">A member on currType that could implement the interface, or null.</param>
         /// <param name="closeMismatch">A member on currType that could have been an attempt to implement the interface, or null.</param>
         /// <remarks>
-        /// There is some similarity between this member and MemberSymbol.FindOverriddenOrHiddenMembersInType.
+        /// There is some similarity between this member and OverriddenOrHiddenMembersHelpers.FindOverriddenOrHiddenMembersInType.
         /// When making changes to this member, think about whether or not they should also be applied in MemberSymbol.
         /// One key difference is that custom modifiers are considered when looking up overridden members, but
         /// not when looking up implicit implementations.  We're preserving this behavior from Dev10.

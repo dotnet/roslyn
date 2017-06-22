@@ -541,7 +541,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var returnType1 = SubstituteType(typeMap1, unsubstitutedReturnType1);
             var returnType2 = SubstituteType(typeMap2, unsubstitutedReturnType2);
-            return returnType1.Equals(returnType2, typeComparison);
+            if (!returnType1.Equals(returnType2, typeComparison))
+            {
+                return false;
+            }
+
+            if (((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0) &&
+                !HaveSameCustomModifiers(refCustomModifiers1, typeMap1, refCustomModifiers2, typeMap2))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static TypeMap GetTypeMap(Symbol member)
@@ -685,6 +696,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
+                if ((typeComparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) == 0 &&
+                    !HaveSameCustomModifiers(param1.RefCustomModifiers, typeMap1, param2.RefCustomModifiers, typeMap2))
+                {
+                    return false;
+                }
+
                 var refKind1 = param1.RefKind;
                 var refKind2 = param2.RefKind;
 
@@ -711,6 +728,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static TypeSymbolWithAnnotations SubstituteType(TypeMap typeMap, TypeSymbolWithAnnotations typeSymbol)
         {
             return typeMap == null ? typeSymbol : typeSymbol.SubstituteType(typeMap);
+        }
+
+        private static bool HaveSameCustomModifiers(ImmutableArray<CustomModifier> customModifiers1, TypeMap typeMap1, ImmutableArray<CustomModifier> customModifiers2, TypeMap typeMap2)
+        {
+            // the runtime compares custom modifiers using (effectively) SequenceEqual
+            return SubstituteModifiers(typeMap1, customModifiers1).SequenceEqual(SubstituteModifiers(typeMap2, customModifiers2));
         }
 
         private static ImmutableArray<CustomModifier> SubstituteModifiers(TypeMap typeMap, ImmutableArray<CustomModifier> customModifiers)

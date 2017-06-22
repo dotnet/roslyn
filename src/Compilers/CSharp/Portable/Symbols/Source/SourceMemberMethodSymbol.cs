@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var syntaxTree = syntax.SyntaxTree;
             var compilation = this.DeclaringCompilation;
             var binderFactory = compilation.GetBinderFactory(syntaxTree);
-            var binder = binderFactory.GetBinder(constraintClauses[0]);
+            var binder = binderFactory.GetBinder(constraintClauses[0], syntax, this);
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.
