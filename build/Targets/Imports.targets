@@ -513,6 +513,17 @@
     </ItemGroup>
   </Target>
 
+  <!--
+     Work around to fix Intellisense file generation for XAML projects
+
+     https://github.com/dotnet/project-system/issues/2488
+  -->
+  <Target Name="WorkaroundForXAMLIntellisenseBuildIssue" AfterTargets="_CheckCompileDesignTimePrerequisite">
+    <PropertyGroup>
+       <BuildingProject>false</BuildingProject>
+    </PropertyGroup>
+  </Target>
+
   <Target Name="PreventProjectReferencesFromBuilding">
     <PropertyGroup>
       <BuildProjectReferences>false</BuildProjectReferences>
@@ -526,4 +537,5 @@
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
+
 </Project>
