@@ -4870,6 +4870,86 @@ IInvalidExpression (OperationKind.InvalidExpression, Type: System.Action, IsInva
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact]
+        public void ConversionExpression_Explicit_ReturnConversion()
+        {
+            string source = @"
+using System;
+
+class C1
+{
+    int M1()
+    {
+        /*<bind>*/return (int)1.0;/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return (int)1.0;')
+  IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, Constant: 1) (Syntax: '(int)1.0')
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.Double, Constant: 1) (Syntax: '1.0')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void XConversionExpression_Explicit_ReturnConversion_InvalidConversion()
+        {
+            string source = @"
+using System;
+
+class C1
+{
+    int M1()
+    {
+        /*<bind>*/return (int)"""";/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return (int)"""";')
+  IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '(int)""""')
+    ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: """") (Syntax: '""""')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0030: Cannot convert type 'string' to 'int'
+                //         /*<bind>*/return (int)"";/*</bind>*/
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"(int)""""").WithArguments("string", "int").WithLocation(8, 26)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        public void ConversionExpression_Explicit_ReturnConversion_InvalidSyntax()
+        {
+            string source = @"
+using System;
+
+class C1
+{
+    int M1()
+    {
+        /*<bind>*/return (int);/*</bind>*/
+    }
+}
+";
+            string expectedOperationTree = @"
+IReturnStatement (OperationKind.ReturnStatement, IsInvalid) (Syntax: 'return (int);')
+  IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: System.Int32, IsInvalid) (Syntax: '(int)')
+    IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
+";
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS1525: Invalid expression term ';'
+                //         /*<bind>*/return (int);/*</bind>*/
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(8, 31)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         #endregion
 
         private class ExpectedSymbolVerifier
