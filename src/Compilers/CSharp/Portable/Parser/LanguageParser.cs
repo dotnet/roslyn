@@ -4027,6 +4027,8 @@ tryAgain:
 
         private void ParseParameterModifiers(SyntaxListBuilder modifiers)
         {
+            var seenRefModifier = false;
+
             while (IsParameterModifier(this.CurrentToken.Kind))
             {
                 var modifier = this.EatToken();
@@ -4035,10 +4037,18 @@ tryAgain:
                 {
                     case SyntaxKind.ThisKeyword:
                         modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
+                        if (seenRefModifier)
+                        {
+                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
+                        }
                         break;
                     case SyntaxKind.InKeyword:
                     case SyntaxKind.ReadOnlyKeyword:
                         modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadonlyReferences);
+                        seenRefModifier = true;
+                        break;
+                    case SyntaxKind.RefKeyword:
+                        seenRefModifier = true;
                         break;
                 }
 
