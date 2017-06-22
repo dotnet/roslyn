@@ -1,12 +1,16 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -28,7 +32,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Async Function CreateAsync(test As XElement) As Task(Of CommitTestData)
-            Dim workspace = Await TestWorkspace.CreateAsync(test)
+            Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockGlobalOperationNotificationServiceFactory))
+            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(catalog)
+            Dim workspace = Await TestWorkspace.CreateAsync(test, exportProvider:=exportProvider)
             Return New CommitTestData(workspace)
         End Function
 
@@ -56,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             _inlineRenameService = New InlineRenameServiceMock()
             Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter,
                                                                        _inlineRenameService,
-                                                                       workspace.GetService(Of IGlobalOperationNotificationService))
+                                                                       New MockGlobalOperationNotificationServiceFactory())
 
             ' Make sure the manager exists for the buffer
             Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)
@@ -114,6 +120,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Class
         End Class
 
+        <Export(GetType(IGlobalOperationNotificationService))>
+        <ExportWorkspaceServiceFactory(GetType(IGlobalOperationNotificationService)), [Shared]>
+        Friend Class MockGlobalOperationNotificationServiceFactory
+            Implements IWorkspaceServiceFactory, IGlobalOperationNotificationService
+
+
+            Public Function CreateService(workspaceServices As HostWorkspaceServices) As IWorkspaceService Implements IWorkspaceServiceFactory.CreateService
+                Return Me
+            End Function
+
+            Public Event Started As EventHandler Implements IGlobalOperationNotificationService.Started
+            Public Event Stopped As EventHandler(Of GlobalOperationEventArgs) Implements IGlobalOperationNotificationService.Stopped
+
+            Public Function Start(operation As String) As GlobalOperationRegistration Implements IGlobalOperationNotificationService.Start
+                Return Nothing
+            End Function
+        End Class
+
         Private Class FormatterMock
             Implements ICommitFormatter
 
@@ -127,12 +151,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Sub
 
             Public Async Function CommitRegionAsync(spanToFormat As SnapshotSpan,
-                                    isExplicitFormat As Boolean,
-                                    useSemantics As Boolean,
-                                    dirtyRegion As SnapshotSpan,
-                                    baseSnapshot As ITextSnapshot,
-                                    baseTree As SyntaxTree,
-                                    cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
+                                isExplicitFormat As Boolean,
+                                useSemantics As Boolean,
+                                dirtyRegion As SnapshotSpan,
+                                baseSnapshot As ITextSnapshot,
+                                baseTree As SyntaxTree,
+                                cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
                 GotCommit = True
                 UsedSemantics = useSemantics
 

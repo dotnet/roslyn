@@ -114,8 +114,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     End If
 
                     Using _notificationService.Start("LineCommit")
-
-
                         Dim dirtyRegion = _dirtyState.DirtyRegion.GetSpan(_buffer.CurrentSnapshot)
                         Dim info As FormattingInfo
                         If Not TryComputeExpandedSpanToFormat(dirtyRegion, info, cancellationToken) Then
