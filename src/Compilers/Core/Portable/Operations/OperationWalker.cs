@@ -444,5 +444,26 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Alignment);
             Visit(operation.FormatString);
         }
+
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            Visit(operation.Value);
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            Visit(operation.Expression);
+            Visit(operation.Pattern);
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            Visit(operation.Pattern);
+            Visit(operation.GuardExpression);
+        }
     }
 }

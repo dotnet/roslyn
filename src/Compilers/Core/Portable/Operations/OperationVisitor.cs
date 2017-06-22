@@ -409,6 +409,26 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             DefaultVisit(operation);
         }
+
+        public virtual void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitConstantPattern(IConstantPattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            DefaultVisit(operation);
+        }
     }
 
     /// <summary>
@@ -821,6 +841,26 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitInterpolation(IInterpolation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIsPatternExpression(IIsPatternExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitConstantPattern(IConstantPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDeclarationPattern(IDeclarationPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitPatternCaseClause(IPatternCaseClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

@@ -194,6 +194,17 @@ namespace Microsoft.CodeAnalysis.Semantics
             });
         }
 
+        private ImmutableArray<ISwitchCase> GetPatternSwitchStatementCases(BoundPatternSwitchStatement statement)
+        {
+            return statement.SwitchSections.SelectAsArray(switchSection =>
+            {
+                var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
+                var body = switchSection.Statements.SelectAsArray(s => Create(s));
+
+                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+            });
+        }
+
         private static BinaryOperationKind GetLabelEqualityKind(BoundSwitchLabel label)
         {
             BoundExpression caseValue = label.ExpressionOpt;

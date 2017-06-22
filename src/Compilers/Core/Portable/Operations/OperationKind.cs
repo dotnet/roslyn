@@ -143,10 +143,11 @@ namespace Microsoft.CodeAnalysis
         AddressOfExpression = 0x203,
         /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
         PointerIndirectionReferenceExpression = 0x204,
-        // 0x205 is open for future use.
+        /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
+        IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x206,
-
+        
         // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
@@ -193,5 +194,12 @@ namespace Microsoft.CodeAnalysis
         InterpolatedStringText = 0x40d,
         /// <summary>Indicates an <see cref="IInterpolation"/>.</summary>
         Interpolation = 0x40e,
+
+        /// <summary>Indicates an <see cref="IConstantPattern"/>.</summary>
+        ConstantPattern = 0x40f,
+        /// <summary>Indicates an <see cref="IDeclarationPattern"/>.</summary>
+        DeclarationPattern = 0x410,
+        /// <summary>Indicates an <see cref="IPatternCaseClause"/>.</summary>
+        PatternCaseClause = 0x411,
     }
 }

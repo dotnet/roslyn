@@ -534,5 +534,29 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             base.VisitInterpolation(operation);
         }
+
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            base.VisitConstantPattern(operation);
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            var declaredSymbol = operation.DeclaredSymbol;
+
+            base.VisitDeclarationPattern(operation);
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            base.VisitIsPatternExpression(operation);
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            var label = operation.Label;
+
+            base.VisitPatternCaseClause(operation);
+        }
     }
 }

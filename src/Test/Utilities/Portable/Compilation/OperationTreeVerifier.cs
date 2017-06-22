@@ -1131,6 +1131,42 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.FormatString, "FormatString");
         }
 
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            LogString(nameof(IConstantPattern));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Value, "Value");
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            LogString(nameof(IDeclarationPattern));
+            LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            LogString(nameof(IIsPatternExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            Visit(operation.Pattern, "Pattern");
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            LogString(nameof(IPatternCaseClause));
+            LogSymbol(operation.Label, " (Label Symbol");
+            LogString(")");
+            LogCaseClauseCommon(operation);
+
+            Visit(operation.Pattern, "Pattern");
+            Visit(operation.GuardExpression, "Guard Expression");
+        }
+
         #endregion
     }
 }

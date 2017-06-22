@@ -25,19 +25,4 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Body);
     }
-
-    partial class BoundPatternSwitchStatement
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.SwitchSections).Insert(0, this.Expression);
-    }
-
-    partial class BoundPatternSwitchSection
-    {
-        protected override ImmutableArray<BoundNode> Children => StaticCast<BoundNode>.From(this.SwitchLabels).AddRange(this.Statements);
-    }
-
-    partial class BoundPatternSwitchLabel
-    {
-        protected override ImmutableArray<BoundNode> Children => ImmutableArray.Create<BoundNode>(this.Pattern, this.Guard);
-    }
 }
