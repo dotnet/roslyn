@@ -325,6 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(
             this SourceMethodSymbol containingSymbol,
+            Binder binder,
             ImmutableArray<TypeParameterSymbol> typeParameters,
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses,
             Location location,
@@ -334,10 +335,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return ImmutableArray<TypeParameterConstraintClause>.Empty;
             }
-
-            var compilation = containingSymbol.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory(constraintClauses[0].SyntaxTree);
-            var binder = binderFactory.GetBinder(constraintClauses[0]);
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.

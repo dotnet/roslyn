@@ -409,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var constraints = this.MakeTypeParameterConstraints(
+                        _binder,
                         TypeParameters,
                         _syntax.ConstraintClauses,
                         _syntax.Identifier.GetLocation(),

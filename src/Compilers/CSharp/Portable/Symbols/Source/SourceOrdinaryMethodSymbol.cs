@@ -479,7 +479,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
                     var syntax = GetSyntax();
+                    var withTypeParametersBinder =
+                        this.DeclaringCompilation
+                        .GetBinderFactory(syntax.SyntaxTree)
+                        .GetBinder(syntax.ReturnType, syntax, this);
                     var constraints = this.MakeTypeParameterConstraints(
+                        withTypeParametersBinder,
                         TypeParameters,
                         syntax.ConstraintClauses,
                         syntax.Identifier.GetLocation(),
