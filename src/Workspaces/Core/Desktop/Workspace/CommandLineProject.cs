@@ -36,8 +36,10 @@ namespace Microsoft.CodeAnalysis
             var metadataService = tmpWorkspace.Services.GetRequiredService<IMetadataService>();
 
             // we only support file paths in /r command line arguments
+            var relativePathResolver =
+                new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory);
             var commandLineMetadataReferenceResolver = new WorkspaceMetadataFileReferenceResolver(
-                metadataService, new RelativePathResolver(commandLineArguments.ReferencePaths, commandLineArguments.BaseDirectory));
+                metadataService, relativePathResolver);
 
             var analyzerLoader = tmpWorkspace.Services.GetRequiredService<IAnalyzerService>().GetLoader();
             var xmlFileResolver = new XmlFileResolver(commandLineArguments.BaseDirectory);
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis
             // resolve all analyzer references.
             foreach (var path in commandLineArguments.AnalyzerReferences.Select(r => r.FilePath))
             {
-                analyzerLoader.AddDependencyLocation(path);
+                analyzerLoader.AddDependencyLocation(relativePathResolver.ResolvePath(path, baseFilePath: null));
             }
 
             var boundAnalyzerReferences = commandLineArguments.ResolveAnalyzerReferences(analyzerLoader);

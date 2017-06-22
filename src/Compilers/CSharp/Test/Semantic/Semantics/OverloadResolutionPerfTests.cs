@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -11,6 +12,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     // test timeout, without shortcuts in overload resolution.
     public class OverloadResolutionPerfTests : CSharpTestBase
     {
+        [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
+        [Fact]
+        public void Overloads()
+        {
+            const int n = 3000;
+            var builder = new StringBuilder();
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine($"    static void F() {{ F(null); }}"); // matches n overloads: F(C0), F(C1), ...
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"    static void F(C{i} c) {{ }}");
+            }
+            builder.AppendLine("}");
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"class C{i} {{ }}");
+            }
+            var source = builder.ToString();
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (3,23): error CS0121: The call is ambiguous between the following methods or properties: 'C.F(C0)' and 'C.F(C1)'
+                //     static void F() { F(null); }
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("C.F(C0)", "C.F(C1)").WithLocation(3, 23));
+        }
+
+        [WorkItem(13685, "https://github.com/dotnet/roslyn/issues/13685")]
+        [Fact]
+        public void BinaryOperatorOverloads()
+        {
+            const int n = 3000;
+            var builder = new StringBuilder();
+            builder.AppendLine("class C");
+            builder.AppendLine("{");
+            builder.AppendLine($"    static object F(C x) => x + null;"); // matches n overloads: +(C, C0), +(C, C1), ...
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"    public static object operator+(C x, C{i} y) => null;");
+            }
+            builder.AppendLine("}");
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($"class C{i} {{ }}");
+            }
+            var source = builder.ToString();
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (3,29): error CS0034: Operator '+' is ambiguous on operands of type 'C' and '<null>'
+                //     static object F(C x) => x + null;
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "x + null").WithArguments("+", "C", "<null>").WithLocation(3, 29));
+        }
+
         [Fact]
         public void StaticMethodsWithLambda()
         {
