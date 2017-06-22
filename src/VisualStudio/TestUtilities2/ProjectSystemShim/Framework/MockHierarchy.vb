@@ -22,11 +22,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         Private ReadOnly _eventSinks As New Dictionary(Of UInteger, IVsHierarchyEvents)
         Private ReadOnly _hierarchyItems As New Dictionary(Of UInteger, String)
 
-        Public Sub New(projectName As String, projectBinPath As String, projectCapabilities As String)
+        Public Sub New(projectName As String,
+                       projectFilePath As String,
+                       projectBinPath As String,
+                       projectCapabilities As String)
             _projectName = projectName
             _projectBinPath = projectBinPath
             _projectCapabilities = projectCapabilities
-            _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectName)
+            _hierarchyItems.Add(CType(VSConstants.VSITEMID.Root, UInteger), projectFilePath)
         End Sub
 
         Public Sub RenameProject(projectName As String)

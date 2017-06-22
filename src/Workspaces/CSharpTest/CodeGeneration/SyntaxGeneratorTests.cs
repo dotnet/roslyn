@@ -463,6 +463,17 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestTupleExpression()
+        {
+            VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(
+                new[] { _g.IdentifierName("x"), _g.IdentifierName("y") }), "(x, y)");
+
+            VerifySyntax<TupleExpressionSyntax>(_g.TupleExpression(
+                new[] { _g.Argument("foo", RefKind.None, _g.IdentifierName("x")),
+                        _g.Argument("bar", RefKind.None, _g.IdentifierName("y")) }), "(foo: x, bar: y)");
+        }
+
+        [Fact]
         public void TestReturnStatements()
         {
             VerifySyntax<ReturnStatementSyntax>(_g.ReturnStatement(), "return;");

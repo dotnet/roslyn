@@ -1,5 +1,5 @@
 [CmdletBinding(PositionalBinding=$false)]
-param ( [string]$bootstrapDir = $(throw "Need a directory containing a compiler build to test with"), 
+param ( [string]$bootstrapDir = "",
         [bool]$debugDeterminism = $false)
 
 Set-StrictMode -version 2.0
@@ -179,7 +179,7 @@ try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
 
     $msbuild = Ensure-MSBuild
-    if (-not ([IO.Path]::IsPathRooted($script:bootstrapDir))) {
+    if (($bootstrapDir -eq "") -or (-not ([IO.Path]::IsPathRooted($script:bootstrapDir)))) {
         Write-Host "The bootstrap build path must be absolute"
         exit 1
     }

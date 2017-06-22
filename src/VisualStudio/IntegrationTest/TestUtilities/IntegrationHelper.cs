@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using EnvDTE;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Interop;
@@ -458,7 +459,6 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         {
             object dte = null;
             var monikers = new IMoniker[1];
-            var vsProgId = VisualStudioInstanceFactory.VsProgId;
 
             NativeMethods.GetRunningObjectTable(0, out var runningObjectTable);
             runningObjectTable.EnumRunning(out var enumMoniker);
@@ -484,16 +484,14 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 moniker.GetDisplayName(bindContext, null, out var fullDisplayName);
 
                 // FullDisplayName will look something like: <ProgID>:<ProccessId>
-                if (!int.TryParse(fullDisplayName.Split(':').Last(), out var displayNameProcessId))
+                var displayNameParts = fullDisplayName.Split(':');
+                if (!int.TryParse(displayNameParts.Last(), out var displayNameProcessId))
                 {
                     continue;
                 }
 
-                var displayName = fullDisplayName.Substring(0, (fullDisplayName.Length - (displayNameProcessId.ToString().Length + 1)));
-                var fullProgId = vsProgId.StartsWith("!") ? vsProgId : $"!{vsProgId}";
-
-                if (displayName.Equals(fullProgId, StringComparison.OrdinalIgnoreCase) &&
-                    (displayNameProcessId == process.Id))
+                if (displayNameParts[0].StartsWith("!VisualStudio.DTE", StringComparison.OrdinalIgnoreCase) &&
+                    displayNameProcessId == process.Id)
                 {
                     runningObjectTable.GetObject(moniker, out dte);
                 }

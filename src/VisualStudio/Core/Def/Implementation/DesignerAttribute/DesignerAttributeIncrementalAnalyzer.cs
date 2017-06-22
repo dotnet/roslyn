@@ -121,7 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     return null;
                 }
 
-                var serializedResults = await session.InvokeAsync<DesignerAttributeDocumentData[]>(
+                var serializedResults = await session.InvokeAsync<ImmutableArray<DesignerAttributeDocumentData>>(
                     nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync), project.Id).ConfigureAwait(false);
 
                 var data = serializedResults.ToImmutableDictionary(kvp => kvp.FilePath);
@@ -129,7 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
         }
 
-        private static async Task<RemoteHostClient.Session> TryGetRemoteSessionAsync(
+        private static async Task<SessionWithSolution> TryGetRemoteSessionAsync(
             Solution solution, CancellationToken cancellationToken)
         {
             var client = await solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
@@ -138,7 +138,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 return null;
             }
 
-            return await client.TryCreateCodeAnalysisServiceSessionAsync(
+            return await client.TryCreateCodeAnalysisSessionAsync(
                 solution, cancellationToken).ConfigureAwait(false);
         }
 

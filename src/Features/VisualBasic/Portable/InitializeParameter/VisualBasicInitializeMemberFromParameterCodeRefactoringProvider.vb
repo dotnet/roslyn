@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return DirectCast(node, TypeStatementSyntax).Parent
         End Function
 
-        Protected Overrides Function GetLastStatement(blockStatement As IBlockStatement) As SyntaxNode
+        Protected Overrides Function TryGetLastStatement(blockStatement As IBlockStatement) As SyntaxNode
             Return DirectCast(blockStatement.Syntax, MethodBlockBaseSyntax).Statements.LastOrDefault()
         End Function
 
@@ -34,8 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.InitializeParameter
             Return InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination)
         End Function
 
-        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, body As SyntaxNode, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
-            InitializeParameterHelpers.InsertStatement(editor, body, statementToAddAfterOpt, statement)
+        Protected Overrides Sub InsertStatement(editor As SyntaxEditor, methodDeclaration As MethodBlockBaseSyntax, statementToAddAfterOpt As SyntaxNode, statement As StatementSyntax)
+            InitializeParameterHelpers.InsertStatement(editor, methodDeclaration, statementToAddAfterOpt, statement)
         End Sub
     End Class
 End Namespace

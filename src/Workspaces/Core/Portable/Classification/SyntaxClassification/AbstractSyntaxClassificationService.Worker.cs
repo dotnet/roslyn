@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -16,10 +18,10 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
-            private readonly List<ClassifiedSpan> _list;
+            private readonly ArrayBuilder<ClassifiedSpan> _list;
             private readonly CancellationToken _cancellationToken;
-            private readonly Func<SyntaxNode, List<ISyntaxClassifier>> _getNodeClassifiers;
-            private readonly Func<SyntaxToken, List<ISyntaxClassifier>> _getTokenClassifiers;
+            private readonly Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> _getNodeClassifiers;
+            private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
             private readonly HashSet<ClassifiedSpan> _set;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
 
@@ -27,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Classification
                 Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                List<ClassifiedSpan> list,
-                Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers,
-                Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers,
+                ArrayBuilder<ClassifiedSpan> list,
+                Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
+                Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
                 _getNodeClassifiers = getNodeClassifiers;
@@ -49,9 +51,9 @@ namespace Microsoft.CodeAnalysis.Classification
                 Workspace workspace,
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                List<ClassifiedSpan> list,
-                Func<SyntaxNode, List<ISyntaxClassifier>> getNodeClassifiers,
-                Func<SyntaxToken, List<ISyntaxClassifier>> getTokenClassifiers,
+                ArrayBuilder<ClassifiedSpan> list,
+                Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
+                Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
                 var worker = new Worker(workspace, semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, cancellationToken);
@@ -119,12 +121,15 @@ namespace Microsoft.CodeAnalysis.Classification
                 foreach (var classifier in _getNodeClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    var classifications = classifier.ClassifyNode(syntax, _semanticModel, _cancellationToken);
-                    AddClassifications(classifications);
+
+                    var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    classifier.AddClassifications(syntax, _semanticModel, result, _cancellationToken);
+                    AddClassifications(result);
+                    result.Free();
                 }
             }
 
-            private void AddClassifications(IEnumerable<ClassifiedSpan> classifications)
+            private void AddClassifications(ArrayBuilder<ClassifiedSpan> classifications)
             {
                 if (classifications != null)
                 {
@@ -150,8 +155,11 @@ namespace Microsoft.CodeAnalysis.Classification
                 foreach (var classifier in _getTokenClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
-                    var classifications = classifier.ClassifyToken(syntax, _semanticModel, _cancellationToken);
-                    AddClassifications(classifications);
+
+                    var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
+                    classifier.AddClassifications(syntax, _semanticModel, result, _cancellationToken);
+                    AddClassifications(result);
+                    result.Free();
                 }
 
                 ClassifyStructuredTrivia(syntax.TrailingTrivia);

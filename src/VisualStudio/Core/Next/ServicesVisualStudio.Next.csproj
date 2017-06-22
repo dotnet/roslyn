@@ -171,7 +171,7 @@
     <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcMessageHandler.cs" />
-    <Compile Include="Remote\JsonRpcSession.cs" />
+    <Compile Include="Remote\JsonRpcConnection.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.WorkspaceHost.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />

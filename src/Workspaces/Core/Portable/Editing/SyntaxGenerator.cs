@@ -172,6 +172,11 @@ namespace Microsoft.CodeAnalysis.Editing
                 decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
             }
 
+            if (method.ExplicitInterfaceImplementations.Length > 0)
+            {
+                decl = this.WithExplicitInterfaceImplementations(decl, method.ExplicitInterfaceImplementations);
+            }
+
             return decl;
         }
 
@@ -664,6 +669,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return declaration;
         }
+
+        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -2063,6 +2070,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an nameof expression.
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
+
+        /// <summary>
+        /// Creates an tuple expression.
+        /// </summary>
+        public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
 
         #endregion
     }
