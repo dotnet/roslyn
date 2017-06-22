@@ -95,8 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
 
             int numElements = elementTypes.Length;
-
-            if (numElements <= 1)
+            if (numElements == 0)
             {
                 throw ExceptionUtilities.Unreachable;
             }
