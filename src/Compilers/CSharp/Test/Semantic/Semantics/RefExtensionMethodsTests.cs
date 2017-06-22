@@ -1928,7 +1928,7 @@ public static class Ext
             var code = @"
 public static class Ext
 {
-    public static void Method(ref int p) { }
+    public static void Method(ref this int p) { }
 }";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics();
@@ -1947,7 +1947,7 @@ public static class Ext
             var code = @"
 public static class Ext
 {
-    public static void Method(ref readonly int p) { }
+    public static void Method(ref readonly this int p) { }
 }";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(code).VerifyDiagnostics();
@@ -1958,6 +1958,231 @@ public static class Ext
             var model = comp.GetSemanticModel(tree);
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.RefReadOnly, symbol.RefKind);
+        }
+
+        [Fact]
+        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefSyntax_SameCompilation()
+        {
+            var code = @"
+public static class Ext
+{
+    public static void Print(ref this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (4,34): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(ref this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("reference extension methods", "7.2").WithLocation(4, 34),
+                // (14,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(14, 9));
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefSyntax_DifferentCompilation()
+        {
+            var reference = CreateCompilationWithMscorlibAndSystemCore(@"
+public static class Ext
+{
+    public static void Print(ref this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(
+                text: code,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
+                // (7,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(7, 9));
+
+            CreateCompilationWithMscorlibAndSystemCore(
+                text: code,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
+                // (7,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(7, 9));
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefReadOnlySyntax_SameCompilation()
+        {
+            var code = @"
+public static class Ext
+{
+    public static void Print(ref readonly this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (4,34): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(ref readonly this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "readonly").WithArguments("readonly references", "7.2").WithLocation(4, 34),
+                // (4,43): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(ref readonly this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("reference extension methods", "7.2").WithLocation(4, 43),
+                // (14,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(14, 9));
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefReadOnlySyntax_DifferentCompilation()
+        {
+            var reference = CreateCompilationWithMscorlibAndSystemCore(@"
+public static class Ext
+{
+    public static void Print(ref readonly this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(
+                text: code,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
+                // (7,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(7, 9));
+
+            CreateCompilationWithMscorlibAndSystemCore(
+                text: code,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
+                // (7,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(7, 9));
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_InSyntax_SameCompilation()
+        {
+            var code = @"
+public static class Ext
+{
+    public static void Print(in this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+                // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
+                // (4,33): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //     public static void Print(in this int p)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("reference extension methods", "7.2").WithLocation(4, 33),
+                // (14,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(14, 9));
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "5");
+        }
+
+        [Fact]
+        public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_InSyntax_DifferentCompilation()
+        {
+            var reference = CreateCompilationWithMscorlibAndSystemCore(@"
+public static class Ext
+{
+    public static void Print(in this int p)
+    {
+        System.Console.WriteLine(p);
+    }
+}");
+
+            var code = @"
+public static class Program
+{
+    public static void Main()
+    {
+        int p = 5;
+        p.Print();
+    }
+}";
+
+            CreateCompilationWithMscorlibAndSystemCore(
+                text: code,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { reference.ToMetadataReference() }).VerifyDiagnostics(
+                // (7,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(7, 9));
+
+            CreateCompilationWithMscorlibAndSystemCore(
+                text: code,
+                parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1),
+                references: new[] { reference.EmitToImageReference() }).VerifyDiagnostics(
+                // (7,9): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
+                //         p.Print();
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "p").WithArguments("reference extension methods", "7.2").WithLocation(7, 9));
+
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.ToMetadataReference() }, expectedOutput: "5");
+            CompileAndVerify(code, additionalRefs: new[] { SystemCoreRef, reference.EmitToImageReference() }, expectedOutput: "5");
         }
 
         private const string ExtraRefReadOnlyIL = @"

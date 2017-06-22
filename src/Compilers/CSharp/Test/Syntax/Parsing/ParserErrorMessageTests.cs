@@ -5614,7 +5614,7 @@ public static class Program
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                 // (4,34): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //     public static void Print(ref readonly this int p)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "readonly").WithArguments("readonly references", "7.2").WithLocation(4, 34),
@@ -5645,7 +5645,7 @@ public static class Program
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                 // (4,30): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //     public static void Print(in this int p)
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "in").WithArguments("readonly references", "7.2").WithLocation(4, 30),
@@ -5676,7 +5676,7 @@ public static class Program
     }
 }";
 
-            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).VerifyDiagnostics(
+            CreateCompilationWithMscorlibAndSystemCore(code, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_1)).GetParseDiagnostics().Verify(
                       // (4,34): error CS8302: Feature 'reference extension methods' is not available in C# 7.1. Please use language version 7.2 or greater.
                       //     public static void Print(ref this int p)
                       Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("reference extension methods", "7.2").WithLocation(4, 34));
