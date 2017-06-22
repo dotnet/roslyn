@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Var,
         Tuples,
         RefLocalsReturns,
-        ReadonlyReferences,
+        ReadOnlyReferences,
         OutVar,
         Patterns,
         DefaultLiteral,

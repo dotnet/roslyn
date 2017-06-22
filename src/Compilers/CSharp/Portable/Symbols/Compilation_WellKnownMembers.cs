@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -31,8 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Symbol[] _lazyWellKnownTypeMembers;
 
-        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
         private bool _needsGeneratedIsReadOnlyAttribute_Value;
+        private bool _needsGeneratedIsByRefLikeAttribute_Value;
+
+        private bool _needsGeneratedIsReadOnlyAttribute_IsFrozen;
+        private bool _needsGeneratedIsByRefLikeAttribute_IsFrozen;
 
         /// <summary>
         /// Returns a value indicating whether this compilation has a member that needs IsReadOnlyAttribute to be generated during emit phase.
@@ -45,6 +49,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _needsGeneratedIsReadOnlyAttribute_IsFrozen = true;
                 return _needsGeneratedIsReadOnlyAttribute_Value;
+            }
+        }
+
+        /// <summary>
+        /// Returns a value indicating whether this compilation has a member that needs IsIsByRefLikeAttribute to be generated during emit phase.
+        /// The value is set during binding the symbols that need that attribute, and is frozen on first trial to get it.
+        /// Freezing is needed to make sure that nothing tries to modify the value after the value is read.
+        /// </summary>
+        internal bool NeedsGeneratedIsByRefLikeAttribute
+        {
+            get
+            {
+                _needsGeneratedIsByRefLikeAttribute_IsFrozen = true;
+                return _needsGeneratedIsByRefLikeAttribute_Value;
             }
         }
 
@@ -436,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal void EnsureIsReadOnlyAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForRefReadOnly)
         {
             Debug.Assert(!modifyCompilationForRefReadOnly || !_needsGeneratedIsReadOnlyAttribute_IsFrozen);
-            
+
             var isNeeded = CheckIfIsReadOnlyAttributeShouldBeEmbedded(diagnostics, location);
 
             if (isNeeded && modifyCompilationForRefReadOnly)
@@ -445,9 +463,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void EnsureIsByRefLikeAttributeExists(DiagnosticBag diagnostics, Location location, bool modifyCompilationForIsByRefLike)
+        {
+            Debug.Assert(!modifyCompilationForIsByRefLike || !_needsGeneratedIsByRefLikeAttribute_IsFrozen);
+
+            var isNeeded = CheckIfIsByRefLikeAttributeShouldBeEmbedded(diagnostics, location);
+
+            if (isNeeded && modifyCompilationForIsByRefLike)
+            {
+                _needsGeneratedIsByRefLikeAttribute_Value = true;
+            }
+        }
+
         internal bool CheckIfIsReadOnlyAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
         {
-            var userDefinedAttribute = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute);
+            return CheckIfAttributeShouldBeEmbedded(
+                diagnosticsOpt, 
+                locationOpt, 
+                WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, 
+                WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor);
+        }
+
+        internal bool CheckIfIsByRefLikeAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt)
+        {
+            return CheckIfAttributeShouldBeEmbedded(
+                diagnosticsOpt, 
+                locationOpt, 
+                WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute, 
+                WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor);
+        }
+
+        private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor)
+        {
+            var userDefinedAttribute = GetWellKnownType(attributeType);
 
             if (userDefinedAttribute is MissingMetadataTypeSymbol)
             {
@@ -467,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (diagnosticsOpt != null)
             {
                 // This should produce diagnostics if the member is missing or bad
-                Binder.GetWellKnownTypeMember(this, WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor, diagnosticsOpt, locationOpt);
+                Binder.GetWellKnownTypeMember(this, attributeCtor, diagnosticsOpt, locationOpt);
             }
 
             return false;
@@ -584,12 +632,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var stringArray = ArrayTypeSymbol.CreateSZArray(stringType.ContainingAssembly, stringType, customModifiers: ImmutableArray<CustomModifier>.Empty);
             var args = ImmutableArray.Create(new TypedConstant(stringArray, names));
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames, args);
-        }
-
-        internal SynthesizedAttributeData SynthesizeIsByRefLikeAttribute()
-        {
-            // PROTOTYPE(readonlyRefs) it is optional now as it will be generated in the next change
-            return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor, isOptionalUse: true);
         }
 
         internal static class TupleNamesEncoder

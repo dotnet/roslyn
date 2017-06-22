@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -200,6 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), Locations[0], this);
             }
 
+            foreach (var singleDeclaration in declaration.Declarations)
+            {
+                diagnostics.AddRange(singleDeclaration.Diagnostics);
+            }
+
             state.NotePartComplete(CompletionPart.TypeArguments); // type arguments need not be computed separately
         }
 
@@ -249,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Struct:
-                    allowedModifiers |= DeclarationModifiers.Ref | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Ref | DeclarationModifiers.ReadOnly | DeclarationModifiers.Unsafe;
                     break;
                 case TypeKind.Interface:
                 case TypeKind.Delegate:
@@ -670,11 +676,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsByRefLikeType
+        internal sealed override bool IsByRefLikeType
         {
             get
             {
                 return (_flags.DeclarationModifiers & DeclarationModifiers.Ref) != 0;
+            }
+        }
+
+        internal override bool IsReadOnly
+        {
+            get
+            {
+                return (_flags.DeclarationModifiers & DeclarationModifiers.ReadOnly) != 0;
             }
         }
 
@@ -1341,6 +1355,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CheckSequentialOnPartialType(diagnostics);
             CheckForProtectedInStaticClass(diagnostics);
             CheckForUnmatchedOperators(diagnostics);
+
+            if (this.IsByRefLikeType)
+            {
+                this.DeclaringCompilation.EnsureIsByRefLikeAttributeExists(diagnostics, Locations[0], modifyCompilationForIsByRefLike: true);
+            }
+
+            if (this.IsReadOnly)
+            {
+                this.DeclaringCompilation.EnsureIsReadOnlyAttributeExists(diagnostics, Locations[0], modifyCompilationForRefReadOnly: true);
+            }
         }
 
         private void CheckMemberNamesDistinctFromType(DiagnosticBag diagnostics)

@@ -381,7 +381,7 @@ class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedMethod()
         {
             var comp = CreateCompilationWithMscorlib45(@"

@@ -302,7 +302,7 @@ class C {
         var q = from Int32 $$");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInMethods()
         {
@@ -313,7 +313,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInSecondParameter()
         {
@@ -324,7 +324,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInDelegates()
         {
@@ -332,7 +332,7 @@ class Program
 public delegate int Delegate($$ int p);");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInLocalFunctions()
         {
@@ -346,7 +346,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInLambdaExpressions()
         {
@@ -362,7 +362,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsParameterModifierInAnonymousMethods()
         {
@@ -378,7 +378,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInMethodReturnTypes()
         {
@@ -392,7 +392,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInGlobalMemberDeclaration()
         {
@@ -400,7 +400,7 @@ class Program
 public $$ ");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInDelegateReturnType()
         {
@@ -412,7 +412,7 @@ class Program
 }");
         }
 
-        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadonlyReferences)]
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestInAsModifierInMemberDeclaration()
         {

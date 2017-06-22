@@ -2175,7 +2175,7 @@ static class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningVoidMethod()
         {
             var source = @"
@@ -2209,14 +2209,14 @@ static class C
                 // (6,13): error CS1547: Keyword 'void' cannot be used in this context
                 //         ref void M() { }
                 Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 13),
-                // (6,18): warning CS0168: The variable 'M' is declared but never used
+                // (6,18): warning CS8321: The local function 'M' is declared but never used
                 //         ref void M() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "M").WithArguments("M").WithLocation(6, 18)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "M").WithArguments("M").WithLocation(6, 18)
                 );
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningVoidMethodNested()
         {
             var source = @"
@@ -2267,7 +2267,7 @@ static class C
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningAsyncMethod()
         {
             var source = @"

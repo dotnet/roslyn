@@ -12,8 +12,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.ReadonlyReferences)]
-    public class CodeGenRefReadonlyReturnTests : CompilingTestBase
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    public class CodeGenRefReadOnlyReturnTests : CompilingTestBase
     {
         [Fact]
         public void RefReturnArrayAccess()
@@ -585,6 +585,59 @@ class Program
                 // (6,24): error CS8164: Cannot return by reference a result of 'Program.this[in int]' because the argument passed to parameter 'x' cannot be returned by reference
                 //         return ref this[42];
                 Diagnostic(ErrorCode.ERR_RefReturnCall, "[42]").WithArguments("Program.this[in int]", "x").WithLocation(6, 24)
+            );
+        }
+
+        [WorkItem(19930, "https://github.com/dotnet/roslyn/issues/19930")]
+        [Fact]
+        public void ReadonlyReturnByRefInStruct()
+        {
+            var text = @"
+struct S1
+{
+    readonly int x;
+
+    ref readonly S1 Test()
+    {
+        return ref this;
+    }
+
+    ref readonly int this[in int i] => ref x;
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (8,20): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return ref this;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "this").WithArguments("this").WithLocation(8, 20),
+                // (11,44): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //     ref readonly int this[in int i] => ref x;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "x").WithArguments("this").WithLocation(11, 44)
+            );
+        }
+
+        [WorkItem(19930, "https://github.com/dotnet/roslyn/issues/19930")]
+        [Fact]
+        public void ReadonlyReturnByRefRValue()
+        {
+            var text = @"
+struct S1
+{
+    ref readonly int Test()
+    {
+        return ref 42;
+    }
+}
+
+";
+
+            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8156: An expression cannot be used in this context because it may not be returned by reference
+                //         return ref 42;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "42").WithLocation(6, 20)
             );
         }
 

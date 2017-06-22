@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -110,10 +111,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
             var arguments = (SeparatedSyntaxList<TArgumentSyntax>)syntaxFacts.GetArgumentsOfObjectCreationExpression(objectCreation);
 
-            var comparer = syntaxFacts.IsCaseSensitive
-                ? StringComparer.Ordinal
-                : CaseInsensitiveComparison.Comparer;
-
+            var comparer = syntaxFacts.StringComparer;
             var constructorsAndArgumentToAdd = ArrayBuilder<(IMethodSymbol constructor, TArgumentSyntax argument, int index)>.GetInstance();
 
             foreach (var constructor in type.InstanceConstructors.OrderBy(m => m.Parameters.Length))

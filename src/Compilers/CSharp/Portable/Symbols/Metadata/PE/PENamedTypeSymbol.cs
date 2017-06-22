@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.Collections;
@@ -130,6 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             internal AttributeUsageInfo lazyAttributeUsageInfo = AttributeUsageInfo.Null;
             internal ThreeState lazyContainsExtensionMethods;
             internal ThreeState lazyIsByRefLike;
+            internal ThreeState lazyIsReadOnly;
             internal string lazyDefaultMemberName;
             internal NamedTypeSymbol lazyComImportCoClassType = ErrorTypeSymbol.UnknownResultType;
             internal ThreeState lazyHasEmbeddedAttribute = ThreeState.Unknown;
@@ -2060,7 +2062,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
-                        if (IsWellknownSpans())
+                        //PROTOTYPE(span): Span and ReadOnlySpan should have ByRefLike attribute, eventually.
+                        //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
+                        //                 are ByRefLike
+                        if (this.IsSpanType())
                         {
                             isByRefLike = ThreeState.True;
                         }
@@ -2079,25 +2084,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        //PROTOTYPE(span): Span and ReadonlySpan should have spanLike marker.
-        //                 For now assume that any "System.Span" and "System.ReadOnlySpan" structs 
-        //                 are span-like
-        private bool IsWellknownSpans()
+        internal override bool IsReadOnly
         {
-            var originalDef = this.OriginalDefinition;
-
-            if (originalDef.Name != "Span" && originalDef.Name != "ReadonlySpan")
+            get
             {
-                return false;
-            }
+                var uncommon = GetUncommonProperties();
+                if (uncommon == s_noUncommonProperties)
+                {
+                    return false;
+                }
 
-            var ns = originalDef.ContainingSymbol as NamespaceSymbol;
-            if (ns?.Name != "System")
-            {
-                return false;
-            }
+                if (!uncommon.lazyIsReadOnly.HasValue())
+                {
+                    var isReadOnly = ThreeState.False;
 
-            return ns.IsGlobalNamespace;
+                    if (this.TypeKind == TypeKind.Struct)
+                    {
+                        var moduleSymbol = this.ContainingPEModule;
+                        var module = moduleSymbol.Module;
+                        isReadOnly = module.HasIsReadOnlyAttribute(_handle).ToThreeState();
+                    }
+
+                    uncommon.lazyIsReadOnly = isReadOnly;
+                }
+
+                return uncommon.lazyIsReadOnly.Value();
+            }
         }
 
         internal override bool HasDeclarativeSecurity

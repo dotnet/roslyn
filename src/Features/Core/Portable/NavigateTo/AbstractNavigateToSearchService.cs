@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public async Task<ImmutableArray<INavigateToSearchResult>> SearchDocumentAsync(
             Document document, string searchPattern, CancellationToken cancellationToken)
         {
-            var client = await GetRemoteHostClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+            var client = await TryGetRemoteHostClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await SearchDocumentInCurrentProcessAsync(
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         public async Task<ImmutableArray<INavigateToSearchResult>> SearchProjectAsync(
             Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            var client = await GetRemoteHostClientAsync(project, cancellationToken).ConfigureAwait(false);
+            var client = await TryGetRemoteHostClientAsync(project, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return await SearchProjectInCurrentProcessAsync(

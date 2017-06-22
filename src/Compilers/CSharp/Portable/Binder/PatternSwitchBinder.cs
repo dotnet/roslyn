@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -35,19 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         HasPatternSwitchSyntax(SwitchSyntax) ||
                         !SwitchGoverningType.IsValidV6SwitchGoverningType();
             }
-        }
-
-        private static bool HasPatternSwitchSyntax(SwitchStatementSyntax switchSyntax)
-        {
-            foreach (var section in switchSyntax.Sections)
-            {
-                if (section.Labels.Any(SyntaxKind.CasePatternSwitchLabel))
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)

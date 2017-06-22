@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -643,6 +644,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns true if the type may contain embedded references
         /// </summary>
         internal abstract bool IsByRefLikeType { get; }
+
+        /// <summary>
+        /// Returns true if the type is a readonly sruct
+        /// </summary>
+        internal abstract bool IsReadOnly { get; }
 
         #region ITypeSymbol Members
 

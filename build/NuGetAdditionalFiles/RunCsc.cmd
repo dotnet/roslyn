@@ -1,2 +1,2 @@
 echo off
-dotnet %~dp0\csc.exe %*
+dotnet %~dp0\csc.dll %*

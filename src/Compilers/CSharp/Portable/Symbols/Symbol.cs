@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -1096,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToMinimalDisplayParts(this, semanticModel, position, format);
         }
 
-        protected static void ReportErrorIfHasConstraints(
+        internal static void ReportErrorIfHasConstraints(
             SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses, DiagnosticBag diagnostics)
         {
             if (constraintClauses.Count > 0)

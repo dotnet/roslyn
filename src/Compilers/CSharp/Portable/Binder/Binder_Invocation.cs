@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -641,8 +642,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(queryClause == null);
 
             var validResult = resolution.OverloadResolutionResult.ValidResult;
+            var args = resolution.AnalyzedArguments.Arguments.ToImmutable();
 
-            var args = resolution.AnalyzedArguments.Arguments;
+            ReportBadDynamicArguments(syntax, args, diagnostics, queryClause);
+
             var localFunction = validResult.Member;
             var methodResult = validResult.Result;
 
@@ -659,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var lastParamIndex = parameters.Length - 1;
 
-                for (int i = 0; i < args.Count; ++i)
+                for (int i = 0; i < args.Length; ++i)
                 {
                     var arg = args[i];
                     if (arg.HasDynamicType() &&
@@ -898,32 +901,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            // Skip building up a new array if the first argument doesn't have to be modified.
             ImmutableArray<BoundExpression> args;
-            if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
+            if (invokedAsExtensionMethod)
             {
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
+                BoundExpression receiverArgument;
+                ParameterSymbol receiverParameter = method.Parameters.First();
 
-                // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
-                // conversion here.
-                Debug.Assert(method.ParameterCount > 0);
-                Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
-                builder.Add(convertedReceiver);
-
-                bool first = true;
-                foreach (BoundExpression arg in analyzedArguments.Arguments)
+                if ((object)receiver != methodGroup.Receiver)
                 {
-                    if (first)
-                    {
-                        // Skip the first argument (the receiver), since we added our own.
-                        first = false;
-                    }
-                    else
-                    {
-                        builder.Add(arg);
-                    }
+                    // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
+                    Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
+                    receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), receiverParameter.Type, diagnostics);
                 }
+                else
+                {
+                    receiverArgument = analyzedArguments.Argument(0);
+                }
+
+                if (receiverParameter.RefKind == RefKind.Ref)
+                {
+                    // If this was a ref extension method, receiverArgument must be checked for L-value constraints.
+                    // This helper method will also replace it with a BoundBadExpression if it was invalid.
+                    receiverArgument = CheckValue(receiverArgument, BindValueKind.RefOrOut, diagnostics);
+                }
+
+                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance(analyzedArguments.Arguments.Count);
+                builder.Add(receiverArgument);
+                builder.AddRange(analyzedArguments.Arguments.Skip(1));
                 args = builder.ToImmutableAndFree();
             }
             else

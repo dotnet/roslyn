@@ -9,7 +9,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
-    [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
     public class RefStructs : ParsingTests
     {
         public RefStructs(ITestOutputHelper output) : base(output) { }
@@ -49,12 +49,12 @@ class Program
 
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics(
-                // (4,5): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,5): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //     ref struct S1{}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.1").WithLocation(4, 5),
-                // (6,12): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.1 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(4, 5),
+                // (6,12): error CS8107: Feature 'ref structs' is not available in C# 7. Please use language version 7.2 or greater.
                 //     public ref struct S2{}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.1").WithLocation(6, 12)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "ref").WithArguments("ref structs", "7.2").WithLocation(6, 12)
             );
         }
 
@@ -106,7 +106,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.DebugDll);
+            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
         }
     }

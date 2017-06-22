@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -81,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsStatic => false;
 
         internal override bool IsByRefLikeType => false;
+
+        internal override bool IsReadOnly => false;
 
         public override bool IsAbstract => false;
 

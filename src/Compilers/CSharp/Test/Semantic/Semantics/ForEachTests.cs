@@ -1319,7 +1319,7 @@ struct Enumerator
             Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
@@ -1847,7 +1847,7 @@ struct Enumerator
             Assert.False(info.NeedsDisposeMethod); // Definitely not disposable
             Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
             Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
-            Assert.Equal(ConversionKind.Boxing, info.EnumeratorConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.EnumeratorConversion.Kind);
 
             Assert.Equal(ConversionKind.ImplicitNumeric, boundNode.ElementConversion.Kind);
             Assert.Equal("System.Int64 x", boundNode.IterationVariables.Single().ToTestDisplayString());
@@ -1900,8 +1900,7 @@ public class Test
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "i < 5").WithLocation(6, 18),
                 // (6,25): error CS0103: The name 'i' does not exist in the current context
                 //     foreach(int; i < 5; i++)
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25)
-                );
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "i").WithArguments("i").WithLocation(6, 25));
             Assert.Null(boundNode.EnumeratorInfoOpt);
         }
 
@@ -3188,13 +3187,10 @@ class Program
 
             var comp4 = CreateCompilation(source4, new[] { comp2.ToMetadataReference(), comp3.ToMetadataReference() });
             comp4.VerifyDiagnostics(
-    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    //         foreach (var x in new Enumerable())
-    Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
-        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9),
-    // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-    //         foreach (var x in new Enumerable())
-    Diagnostic(ErrorCode.ERR_NoTypeDef, "foreach").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
+                // (6,9): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         foreach (var x in new Enumerable())
+                Diagnostic(ErrorCode.ERR_NoTypeDef, @"foreach (var x in new Enumerable())
+        { }").WithArguments("System.ValueType", "MissingBaseType1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 9)
                 );
         }
     }

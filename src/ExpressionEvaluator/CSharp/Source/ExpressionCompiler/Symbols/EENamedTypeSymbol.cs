@@ -323,6 +323,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
+        internal sealed override bool IsReadOnly
+        {
+            get { return false; }
+        }
+
         public override bool IsSealed
         {
             get { return true; }

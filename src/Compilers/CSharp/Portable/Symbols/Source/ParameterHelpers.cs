@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -94,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     addIsConstModifier,
                     diagnostics);
 
-                ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
+                ReportParameterErrors(owner, parameterSyntax, parameter, thisKeyword, paramsKeyword, firstDefault, diagnostics);
 
                 builder.Add(parameter);
                 ++parameterIndex;
@@ -154,17 +155,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.OutKeyword));
                         }
-                        else if (seenRef || seenRefReadOnly)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.RefKeyword));
-                        }
                         else if (seenParams)
                         {
                             diagnostics.Add(ErrorCode.ERR_BadParamModThis, modifier.GetLocation());
-                        }
-                        else if (seenIn)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ThisKeyword), SyntaxFacts.GetText(SyntaxKind.InKeyword));
                         }
                         else
                         {
@@ -179,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (seenThis)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.RefKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
                         }
                         else if (seenParams)
                         {
@@ -264,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (seenThis)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.InKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
                         }
                         else if (seenRef || seenRefReadOnly)
                         {
@@ -291,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         else if (seenThis)
                         {
-                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiers, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
+                            diagnostics.Add(ErrorCode.ERR_BadParameterModifiersOrder, modifier.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ReadOnlyKeyword), SyntaxFacts.GetText(SyntaxKind.ThisKeyword));
                         }
                         else if (seenIn)
                         {
@@ -322,13 +315,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Symbol owner,
             ParameterSyntax parameterSyntax,
             SourceParameterSymbol parameter,
+            SyntaxToken thisKeyword,
+            SyntaxToken paramsKeyword,
             int firstDefault,
             DiagnosticBag diagnostics)
         {
             TypeSymbol parameterType = parameter.Type;
             int parameterIndex = parameter.Ordinal;
             bool isDefault = parameterSyntax.Default != null;
-            SyntaxToken thisKeyword = parameterSyntax.Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword);
 
             if (thisKeyword.Kind() == SyntaxKind.ThisKeyword && parameterIndex != 0)
             {
@@ -341,12 +335,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (parameter.IsParams && owner.IsOperator())
             {
                 // error CS1670: params is not valid in this context
-                diagnostics.Add(ErrorCode.ERR_IllegalParams, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());
+                diagnostics.Add(ErrorCode.ERR_IllegalParams, paramsKeyword.GetLocation());
             }
             else if (parameter.IsParams && !parameterType.IsSZArray())
             {
                 // error CS0225: The params parameter must be a single dimensional array
-                diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, parameterSyntax.Modifiers.First(t => t.Kind() == SyntaxKind.ParamsKeyword).GetLocation());
+                diagnostics.Add(ErrorCode.ERR_ParamsMustBeArray, paramsKeyword.GetLocation());
             }
             else if (parameter.Type.IsStatic && !parameter.ContainingSymbol.ContainingType.IsInterfaceType())
             {

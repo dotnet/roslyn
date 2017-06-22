@@ -3986,7 +3986,7 @@ void ValidatorBase<T>.DoValidate(T objectToValidate)");
         #endregion
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingMethodWithRefReadOnlyParameter()
         {
             var code = @"
@@ -4015,7 +4015,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingMethodWithRefReadOnlyReturnType_RefReadOnly_RefReadOnly()
         {
             var code = @"
@@ -4045,7 +4045,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingMethodWithRefReadOnlyReturnType_Ref_RefReadOnly()
         {
             var code = @"
@@ -4075,7 +4075,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingMethodWithRefReadOnlyReturnType_RefReadOnly_Ref()
         {
             var code = @"
@@ -4105,7 +4105,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingPropertyWithRefReadOnlyReturnType_RefReadOnly_RefReadOnly()
         {
             var code = @"
@@ -4135,7 +4135,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingPropertyWithRefReadOnlyReturnType_RefReadOnly_Ref()
         {
             var code = @"
@@ -4165,7 +4165,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingPropertyWithRefReadOnlyReturnType_Ref_RefReadOnly()
         {
             var code = @"
@@ -4195,7 +4195,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingMethodWithRefReadOnlyParameterAndNewKeyword()
         {
             var code = @"
@@ -4221,7 +4221,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingMethodWithRefReadOnlyReturnTypeAndNewKeyword()
         {
             var code = @"
@@ -4248,7 +4248,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void HidingPropertyWithRefReadOnlyReturnTypeAndNewKeyword()
         {
             var code = @"
@@ -4275,7 +4275,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void OverridingMethodWithRefReadOnlyParameter()
         {
             var code = @"
@@ -4301,7 +4301,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void OverridingMethodWithRefReadOnlyReturnType()
         {
             var code = @"
@@ -4328,7 +4328,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void OverridingPropertyWithRefReadOnlyReturnType()
         {
             var code = @"
@@ -4355,7 +4355,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void DeclaringMethodWithDifferentParameterRefness()
         {
             var code = @"
@@ -4383,7 +4383,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void OverriddingRefReadOnlyMembersWillOverwriteTheCorrectSlot()
         {
             var text = @"
@@ -4432,7 +4432,7 @@ class DerivedClass : BaseClass
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void MethodOverloadsShouldPreserveReadOnlyRefnessInParameters()
         {
             var text = @"
@@ -4457,7 +4457,7 @@ class ChildClass : BaseClass
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void MethodOverloadsShouldPreserveReadOnlyRefnessInReturnTypes()
         {
             var text = @"
@@ -4483,7 +4483,7 @@ class ChildClass : BaseClass
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void PropertyOverloadsShouldPreserveReadOnlyRefnessInReturnTypes()
         {
             var code = @"
@@ -4509,7 +4509,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void IndexerOverloadsShouldPreserveReadOnlyRefnessInReturnTypes_Ref_RefReadOnly()
         {
             var code = @"
@@ -4530,7 +4530,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void IndexerOverloadsShouldPreserveReadOnlyRefnessInReturnTypes_RefReadOnly_Ref()
         {
             var code = @"
@@ -4551,7 +4551,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void IndexerOverloadsShouldPreserveReadOnlyRefnessInIndexes_Valid()
         {
             var code = @"
@@ -4568,7 +4568,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void IndexerOverloadsShouldPreserveReadOnlyRefnessInIndexes_Source()
         {
             var code = @"
@@ -4591,7 +4591,7 @@ class B : A
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void IndexerOverloadsShouldPreserveReadOnlyRefnessInIndexes_Destination()
         {
             var code = @"

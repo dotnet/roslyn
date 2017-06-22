@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Roslyn.Utilities;
 
@@ -163,6 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsStatic => false;
 
         internal sealed override bool IsByRefLikeType => false;
+
+        internal sealed override bool IsReadOnly => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
 

@@ -1323,7 +1323,7 @@ C# GEI.F(int): CG::F(T)
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void OverloadsWithDifferentParameterModifiers_Ref_RefReadOnly()
         {
             var text = @"
@@ -1340,7 +1340,7 @@ abstract class TestClass
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void OverloadsWithDifferentParameterModifiers_Out_RefReadOnly()
         {
             var text = @"

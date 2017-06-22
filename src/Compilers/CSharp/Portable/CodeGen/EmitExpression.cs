@@ -1412,26 +1412,38 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 else if (receiverType.IsVerifierValue())
                 {
                     NamedTypeSymbol methodContainingType = method.ContainingType;
-                    if (methodContainingType.IsVerifierValue() && MayUseCallForStructMethod(method))
+                    if (methodContainingType.IsVerifierValue())
                     {
-                        // NOTE: this should be either a method which overrides some abstract method or 
-                        //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
-                        //       otherwise we should not use direct 'call' and must use constrained call;
+                        // if method is defined in the struct itself it is assumed to be mutating, unless 
+                        // it is a member of a readonly struct and is not a constructor
+                        var receiverAddresskind = methodContainingType.IsReadOnly && method.MethodKind != MethodKind.Constructor ?
+                                                                        AddressKind.ReadOnly :
+                                                                        AddressKind.Writeable;
+                        if (MayUseCallForStructMethod(method))
+                        {
+                            // NOTE: this should be either a method which overrides some abstract method or 
+                            //       does not override anything (with few exceptions, see MayUseCallForStructMethod); 
+                            //       otherwise we should not use direct 'call' and must use constrained call;
 
-                        // calling a method defined in a value type
-                        Debug.Assert(receiverType == methodContainingType);
-                        // method is defined in the struct itself and is assumed to be mutating.
-                        //PROTOTYPE(readonlyRefs): when readonly structs are implemented, this will have to check "this"
-                        tempOpt = EmitReceiverRef(receiver, AddressKind.Writeable);
-                        callKind = CallKind.Call;
+                            // calling a method defined in a value type
+                            Debug.Assert(receiverType == methodContainingType);
+                            tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
+                            callKind = CallKind.Call;
+                        }
+                        else
+                        {
+                            tempOpt = EmitReceiverRef(receiver, receiverAddresskind);
+                            callKind = CallKind.ConstrainedCallVirt;
+                        }
                     }
                     else
                     {
+                        // calling a method defined in a base class.
+
+                        // When calling a method that is virtual in metadata on a struct receiver, 
+                        // we use a constrained virtual call. If possible, it will skip boxing.
                         if (method.IsMetadataVirtual())
                         {
-                            // When calling a method that is virtual in metadata on a struct receiver, 
-                            // we use a constrained virtual call. If possible, it will skip boxing.
-                            //
                             //PROTOTYPE(readonlyRefs): all methods that a struct could inherit from bases are non-mutating
                             //                         we are passing here "Writeable" just to keep verifier happy
                             //                         we should pass here "ReadOnly" and avoid unnecessary copy
@@ -1440,7 +1452,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         }
                         else
                         {
-                            // calling a method defined in a base class.
                             EmitExpression(receiver, used: true);
                             EmitBox(receiverType, receiver.Syntax);
                             callKind = CallKind.Call;
@@ -1946,12 +1957,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 // It is desirable to do in-place ctor call if possible.
                 // we could do newobj/stloc, but in-place call 
-                // produces same or better code in current JITs 
+                // produces the same or better code in current JITs 
                 if (PartialCtorResultCannotEscape(left))
                 {
                     var objCreation = (BoundObjectCreationExpression)right;
-                    InPlaceCtorCall(left, objCreation, used);
-                    return true;
+                    var ctor = objCreation.Constructor;
+
+                    // ctor can possibly see its own assignments indirectly if there are ref parameters or __arglist
+                    if (System.Linq.ImmutableArrayExtensions.All(ctor.Parameters, p => p.RefKind == RefKind.None) &&
+                        !ctor.IsVararg)
+                    {
+                        InPlaceCtorCall(left, objCreation, used);
+                        return true;
+                    }
                 }
             }
 
@@ -1990,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var temp = EmitAddress(target, AddressKind.Writeable);
             Debug.Assert(temp == null, "in-place init target should not create temps");
 
-            _builder.EmitOpCode(ILOpCode.Initobj);    //  intitobj  <MyStruct>
+            _builder.EmitOpCode(ILOpCode.Initobj);    //  initobj  <MyStruct>
             EmitSymbolToken(target.Type, target.Syntax);
 
             if (used)
@@ -2673,7 +2691,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     }
                 }
 
-                EmitInitObj(type, true, syntaxNode);
+                if (type.IsPointerType() || type.SpecialType == SpecialType.System_UIntPtr)
+                {
+                    // default(whatever*) and default(UIntPtr) can be emitted as:
+                    _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+                    _builder.EmitOpCode(ILOpCode.Conv_u);
+                }
+                else if (type.SpecialType == SpecialType.System_IntPtr)
+                {
+                    _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
+                    _builder.EmitOpCode(ILOpCode.Conv_i);
+                }
+                else
+                { 
+                    EmitInitObj(type, true, syntaxNode);
+                }
             }
         }
 
@@ -2685,7 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Default value for the given default expression is not a constant
             // Expression must be of type parameter type or a non-primitive value type
             // Emit an initobj instruction for these cases
-            EmitInitObj(expression.Type, used, expression.Syntax);
+            EmitDefaultValue(expression.Type, used, expression.Syntax);
         }
 
         private void EmitConstantExpression(TypeSymbol type, ConstantValue constantValue, bool used, SyntaxNode syntaxNode)
@@ -2704,30 +2736,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        //PROTOTYPE(readonly-ref): check the callers of this method, they may want to call EmitDefaultValue instead for its optimizations.
         private void EmitInitObj(TypeSymbol type, bool used, SyntaxNode syntaxNode)
         {
             if (used)
-            {
-                if (type.IsPointerType() || type.SpecialType == SpecialType.System_UIntPtr)
-                {
-                    // default(whatever*) and default(UIntPtr) can be emitted as:
-                    _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
-                    _builder.EmitOpCode(ILOpCode.Conv_u);
-                }
-                else if (type.SpecialType == SpecialType.System_IntPtr)
-                {
-                    _builder.EmitOpCode(ILOpCode.Ldc_i4_0);
-                    _builder.EmitOpCode(ILOpCode.Conv_i);
-                }
-                else
-                {
-                    var temp = this.AllocateTemp(type, syntaxNode);
-                    _builder.EmitLocalAddress(temp);                  //  ldloca temp
-                    _builder.EmitOpCode(ILOpCode.Initobj);            //  intitobj  <MyStruct>
-                    EmitSymbolToken(type, syntaxNode);
-                    _builder.EmitLocalLoad(temp);                     //  ldloc temp
-                    FreeTemp(temp);
-                }
+            {                
+                var temp = this.AllocateTemp(type, syntaxNode);
+                _builder.EmitLocalAddress(temp);                  //  ldloca temp
+                _builder.EmitOpCode(ILOpCode.Initobj);            //  initobj  <MyStruct>
+                EmitSymbolToken(type, syntaxNode);
+                _builder.EmitLocalLoad(temp);                     //  ldloc temp
+                FreeTemp(temp);
             }
         }
 

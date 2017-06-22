@@ -758,4 +758,13 @@ Do you want to proceed?</value>
     <value>An inline rename session is active</value>
     <comment>For screenreaders</comment>
   </data>
+  <data name="Inline_Rename_Conflict" xml:space="preserve">
+    <value>Inline Rename Conflict</value>
+  </data>
+  <data name="Inline_Rename_Field_Background_and_Border" xml:space="preserve">
+    <value>Inline Rename Field Background and Border</value>
+  </data>
+  <data name="Inline_Rename_Field_Text" xml:space="preserve">
+    <value>Inline Rename Field Text</value>
+  </data>
 </root>

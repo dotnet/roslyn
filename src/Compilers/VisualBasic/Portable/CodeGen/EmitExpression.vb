@@ -1511,7 +1511,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If (used) Then
                 Dim temp = Me.AllocateTemp(type, syntaxNode)
                 _builder.EmitLocalAddress(temp)                  '  ldloca temp
-                _builder.EmitOpCode(ILOpCode.Initobj)            '  intitobj  <MyStruct>
+                _builder.EmitOpCode(ILOpCode.Initobj)            '  initobj  <MyStruct>
                 EmitSymbolToken(type, syntaxNode)
                 _builder.EmitLocalLoad(temp)                     '  ldloc temp
                 FreeTemp(temp)
@@ -1740,7 +1740,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Dim temp = Me.EmitAddress(target, AddressKind.Writeable)
             Debug.Assert(temp Is Nothing, "temp is not expected when in-place assigning")
 
-            Me._builder.EmitOpCode(ILOpCode.Initobj)    '  intitobj  <MyStruct>
+            Me._builder.EmitOpCode(ILOpCode.Initobj)    '  initobj  <MyStruct>
             Me.EmitSymbolToken(target.Type, target.Syntax)
 
             If used Then

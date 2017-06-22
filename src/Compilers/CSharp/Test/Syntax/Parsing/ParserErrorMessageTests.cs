@@ -1004,41 +1004,42 @@ class C
     delegate T Func<T>();
     delegate T Func<A0, T>(A0 a0);
     delegate T Func<A0, A1, T>(A0 a0, A1 a1);
+    delegate T Func<A0, A1, A2, T>(A0 a0, A1 a1, A2 a2);
     delegate T Func<A0, A1, A2, A3, T>(A0 a0, A1 a1, A2 a2, A3 a3);
     static void X()
     {
-        Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-        Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-        Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-        Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-        Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-        Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
+        Func<int,int,int> f1     = (int x, y) => 1;          // err: mixed parameters
+        Func<int,int,int> f2     = (x, int y) => 1;          // err: mixed parameters
+        Func<int,int,int,int> f3 = (int x, int y, z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f4 = (int x, y, int z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f5 = (x, int y, int z) => 1;   // err: mixed parameters
+        Func<int,int,int,int> f6 = (x, y, int z) => 1;       // err: mixed parameters
     }
 }
 ";
 
-            ParseAndValidate(test,
-    // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-    // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
-    // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
-    // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
-    // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
-    //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
-    Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (10,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f1      = (int x, y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
+                // (11,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f2      = (x, int y) => 1;          // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (12,48): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f3      = (int x, int y, z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "z"),
+                // (13,41): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f4      = (int x, y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "y"),
+                // (14,37): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (14,44): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f5      = (x, int y, int z) => 1;   // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"),
+                // (15,40): error CS0748: Inconsistent lambda parameter usage; parameter types must be all explicit or all implicit
+                //         Func<int,int> f6      = (x, y, int z) => 1;       // err: mixed parameters
+                Diagnostic(ErrorCode.ERR_InconsistentLambdaParameterUsage, "int"));
         }
 
         [WorkItem(535915, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/535915")]
@@ -1960,8 +1961,57 @@ public class a {
     }
 }
 ";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}").WithLocation(6, 35),
+                // (6,35): warning CS0164: This label has not been referenced
+                //         for (int i=0; i < 3; i++) MyLabel: {}
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "MyLabel").WithLocation(6, 35));
+        }
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "MyLabel: {}"));
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt2()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) int j;
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "int j;").WithLocation(6, 35),
+                // (6,39): warning CS0168: The variable 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) int j;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "j").WithArguments("j").WithLocation(6, 39));
+        }
+
+        [Fact]
+        public void CS1023ERR_BadEmbeddedStmt3()
+        {
+            var test = @"
+struct S {
+}
+public class a {
+    public static int Main() {
+        for (int i=0; i < 3; i++) void j() { }
+        return 1;
+    }
+}
+";
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,35): error CS1023: Embedded statement cannot be a declaration or labeled statement
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "void j() { }").WithLocation(6, 35),
+                // (6,40): warning CS8321: The local function 'j' is declared but never used
+                //         for (int i=0; i < 3; i++) void j() { }
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "j").WithArguments("j").WithLocation(6, 40));
         }
 
         // Preprocessor:
@@ -2242,9 +2292,9 @@ namespace x
 }
 ";
             CreateStandardCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
+                // (7,25): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7.0 or greater.
                 //             var e = new ();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(7, 25),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(7, 25),
                 // (7,26): error CS8124: Tuple must contain at least two elements.
                 //             var e = new ();
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(7, 26),
@@ -2418,9 +2468,9 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int explicit operator ()
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(4, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7.0").WithLocation(4, 41),
                 // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
@@ -2790,85 +2840,84 @@ class Program
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "message").WithArguments("message").WithLocation(8, 22));
         }
 
-        [WorkItem(863401, "DevDiv/Personal")]
         [Fact]
-        public void CS1101ERR_BadRefWithThis()
+        public void BadParameterModifiers_ThisWithRef()
         {
             var test = @"
 using System;
 public static class Extensions
 {
     //No type parameters
-    public static void Foo1(ref this int i) {}
+    public static void Foo1(this ref int i) {}
     //Single type parameter
-    public static void Foo1<T>(ref this T t) {}
+    public static void Foo1<T>(this ref T t) where T : struct {}
     //Multiple type parameters
-    public static void Foo1<T,U,V>(ref this U u) {}
+    public static void Foo1<T,U,V>(this ref U u) where U : struct {}
 }
-public static class GenExtensions<X>
+public static class GenExtensions<X> where X : struct
 {
     //No type parameters
-    public static void Foo2(ref this int i) {}
-    public static void Foo2(ref this X x) {}
+    public static void Foo2(this ref int i) {}
+    public static void Foo2(this ref X x) {}
     //Single type parameter
-    public static void Foo2<T>(ref this T t) {}
-    public static void Foo2<T>(ref this X x) {}
+    public static void Foo2<T>(this ref T t) where T : struct {}
+    public static void Foo2<T>(this ref X x) {}
     //Multiple type parameters
-    public static void Foo2<T,U,V>(ref this U u) {}
-    public static void Foo2<T,U,V>(ref this X x) {}
+    public static void Foo2<T,U,V>(this ref U u) where U : struct {}
+    public static void Foo2<T,U,V>(this ref X x) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (22,40): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T,U,V>(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(22, 40),
+                // (10,41): error CS8404:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo1<T,U,V>(this ref U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 41),
+                // (22,41): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T,U,V>(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(22, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (10,40): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo1<T,U,V>(ref this U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(10, 40),
-                // (16,33): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(16, 33),
+                // (8,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo1<T>(this ref T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(8, 37),
+                // (16,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(16, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (18,36): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T>(ref this T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(18, 36),
+                // (6,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo1(this ref int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 34),
+                // (18,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T>(this ref T t) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(18, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (19,36): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T>(ref this X x) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(19, 36),
+                // (19,37): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T>(this ref X x) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(19, 37),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (21,40): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2<T,U,V>(ref this U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(21, 40),
+                // (21,41): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2<T,U,V>(this ref U u) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(21, 41),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
                 Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (15,33): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo2(ref this int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(15, 33),
+                // (15,34): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
+                //     public static void Foo2(this ref int i) {}
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(15, 34),
                 // (12,21): error CS1106: Extension method must be defined in a non-generic static class
                 // public static class GenExtensions<X>
-                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21),
-                // (8,36): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo1<T>(ref this T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(8, 36),
-                // (6,33): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                //     public static void Foo1(ref this int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(6, 33));
+                Diagnostic(ErrorCode.ERR_BadExtensionAgg, "GenExtensions").WithLocation(12, 21));
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void InParametersWouldErrorOutInEarlierCSharpVersions()
         {
             var code = @"
@@ -2878,9 +2927,9 @@ public class Test
 }";
 
             ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp7),
-                // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7. Please use language version 7.1 or greater.
+                // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7. Please use language version 7.2 or greater.
                 //     public void DoSomething(in int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("readonly references", "7.1")
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("readonly references", "7.2").WithLocation(4, 29)
                 );
         }
 
@@ -2962,7 +3011,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadInWithThis()
         {
             var test = @"
@@ -2970,27 +3019,17 @@ public static class Extensions
 {
     //No type parameters
     public static void Test(this in int i) {}
-    //Single type parameter
-    public static void Test<T>(this in T t) {}
-    //Multiple type parameters
-    public static void Test<T,U,V>(this in U u) {}
 }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (5,34): error CS8404:  The parameter modifier 'in' cannot be used with 'this' 
+                // (5,34): error CS8416:  The parameter modifier 'in' cannot be used after the modifier 'this' 
                 //     public static void Test(this in int i) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(5, 34),
-                // (7,37): error CS8404:  The parameter modifier 'in' cannot be used with 'this' 
-                //     public static void Test<T>(this in T t) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(7, 37),
-                // (9,41): error CS8404:  The parameter modifier 'in' cannot be used with 'this' 
-                //     public static void Test<T,U,V>(this in U u) {}
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "in").WithArguments("in", "this").WithLocation(9, 41));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "in").WithArguments("in", "this").WithLocation(5, 34));
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefWithInParameterModifiers()
         {
             var test = @"
@@ -3032,7 +3071,7 @@ public class TestType
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadOutWithInParameterModifiers()
         {
             var test = @"
@@ -3249,7 +3288,7 @@ public static class GenExtensions<X>
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void DuplicateParameterModifiersWillErrorOut()
         {
             var test = @"
@@ -3289,7 +3328,7 @@ public static class TestType
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithRefParameterModifiers()
         {
             var test = @"
@@ -3331,7 +3370,7 @@ public static void Method6<T, U, V>(ref ref readonly int i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithInParameterModifiers()
         {
             var test = @"
@@ -3382,7 +3421,7 @@ public static void Method6<T, U, V>(in ref readonly int i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithThisParameterModifiers()
         {
             var test = @"
@@ -3403,37 +3442,28 @@ public static void Method6<T, U, V>(this ref readonly int i) { }
 ";
 
             CreateCompilationWithMscorlibAndSystemCore(test).GetDeclarationDiagnostics().Verify(
-                // (14,42): error CS8404:  The parameter modifier 'ref' cannot be used with 'this' 
+                // (14,42): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
                 // public static void Method6<T, U, V>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(14, 42),
-                // (14,46): error CS8404:  The parameter modifier 'readonly' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(14, 42),
+                // (14,46): error CS8416:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
                 // public static void Method6<T, U, V>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(14, 46),
-                // (6,33): error CS8404:  The parameter modifier 'ref' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(14, 46),
+                // (6,33): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
                 // public static void Method2(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(6, 33),
-                // (6,37): error CS8404:  The parameter modifier 'readonly' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(6, 33),
+                // (6,37): error CS8416:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
                 // public static void Method2(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(6, 37),
-                // (9,44): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                // public static void Method3<T>(ref readonly this int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(9, 44),
-                // (10,36): error CS8404:  The parameter modifier 'ref' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(6, 37),
+                // (10,36): error CS8416:  The parameter modifier 'ref' cannot be used after the modifier 'this' 
                 // public static void Method4<T>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "ref").WithArguments("ref", "this").WithLocation(10, 36),
-                // (10,40): error CS8404:  The parameter modifier 'readonly' cannot be used with 'this' 
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "ref").WithArguments("ref", "this").WithLocation(10, 36),
+                // (10,40): error CS8416:  The parameter modifier 'readonly' cannot be used after the modifier 'this' 
                 // public static void Method4<T>(this ref readonly int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "readonly").WithArguments("readonly", "this").WithLocation(10, 40),
-                // (13,50): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                // public static void Method5<T, U, V>(ref readonly this int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(13, 50),
-                // (5,41): error CS8404:  The parameter modifier 'this' cannot be used with 'ref' 
-                // public static void Method1(ref readonly this int i) { }
-                Diagnostic(ErrorCode.ERR_BadParameterModifiers, "this").WithArguments("this", "ref").WithLocation(5, 41));
+                Diagnostic(ErrorCode.ERR_BadParameterModifiersOrder, "readonly").WithArguments("readonly", "this").WithLocation(10, 40));
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithParamsParameterModifiers()
         {
             var test = @"
@@ -3484,7 +3514,7 @@ public static void Method6<T, U, V>(params ref readonly int[] i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void BadRefReadOnlyWithOutParameterModifiers()
         {
             var test = @"
@@ -3535,7 +3565,7 @@ public static void Method6<T, U, V>(out ref readonly int i) { }
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void InParametersAreParsedCorrectly()
         {
             var test = @"
@@ -3599,7 +3629,7 @@ public class Test
         }
 
         [Fact]
-        [CompilerTrait(CompilerFeature.ReadonlyReferences)]
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyParametersAreParsedCorrectly()
         {
             var test = @"
@@ -4513,9 +4543,9 @@ public class MainClass
                 // (3,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(3, 32),
-                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (3,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7").WithLocation(3, 41),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(foo f)").WithArguments("tuples", "7.0").WithLocation(3, 41),
                 // (3,47): error CS8124: Tuple must contain at least two elements.
                 //     public static int implicit operator (foo f) { return 6; }    // Error
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(3, 47),
@@ -5179,9 +5209,9 @@ class A<out T>
                 // (5,20): error CS1960: Invalid variance modifier. Only interface and delegate type parameters can be specified as variant.
                 //         void Local<in T>() { }
                 Diagnostic(ErrorCode.ERR_IllegalVarianceSyntax, "in").WithLocation(5, 20),
-                // (5,14): warning CS0168: The variable 'Local' is declared but never used
+                // (5,14): warning CS8321: The local function 'Local' is declared but never used
                 //         void Local<in T>() { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(5, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(5, 14));
         }
 
         [Fact]
@@ -5599,17 +5629,82 @@ class MyClass
             var test = @"
 class MyClass
 {
-    public static int Main()
+    public static int Main(System.Collections.IEnumerable e)
     {
-        for (int i = 0; i < 10; i += 1);   // CS0642, semicolon intentional?
-        if(true);
+        for (int i = 0; i < 10; i += 1);
+        foreach (var v in e);
         while(false);
+
+        if(true);else;
+        using(null);
+        lock(null);
+        do;while(false);
+
+        for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+        foreach (var v in e);{}
+        while(false);{}
+
         return 0;
     }
 }
 ";
 
-            ParseAndValidate(test, Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"));
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (10,17): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 17),
+                // (10,22): warning CS0642: Possible mistaken empty statement
+                //         if(true);else;
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(10, 22),
+                // (11,20): warning CS0642: Possible mistaken empty statement
+                //         using(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(11, 20),
+                // (12,19): warning CS0642: Possible mistaken empty statement
+                //         lock(null);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(12, 19),
+                // (13,11): warning CS0642: Possible mistaken empty statement
+                //         do;while(false);
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(13, 11),
+                // (15,40): warning CS0642: Possible mistaken empty statement
+                //         for (int i = 0; i < 10; i += 1);{}   // CS0642, semicolon intentional?
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(15, 40),
+                // (16,29): warning CS0642: Possible mistaken empty statement
+                //         foreach (var v in e);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(16, 29),
+                // (17,21): warning CS0642: Possible mistaken empty statement
+                //         while(false);{}
+                Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";").WithLocation(17, 21));
+        }
+
+        [Fact]
+        public void CS0642_DoNotWarnForMissingEmptyStatement()
+        {
+            var test = @"
+class MyClass
+{
+    public static int Main(bool b)
+    {
+        if (b)
+    
+    public
+";
+
+            CreateStandardCompilation(test).VerifyDiagnostics(
+                // (6,15): error CS1002: ; expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 15),
+                // (6,15): error CS1513: } expected
+                //         if (b)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(6, 15),
+                // (9,1): error CS1519: Invalid token '' in class, struct, or interface member declaration
+                // 
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "").WithArguments("").WithLocation(9, 1),
+                // (8,11): error CS1513: } expected
+                //     public
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(8, 11),
+                // (4,23): error CS0161: 'MyClass.Main(bool)': not all code paths return a value
+                //     public static int Main(bool b)
+                Diagnostic(ErrorCode.ERR_ReturnExpected, "Main").WithArguments("MyClass.Main(bool)").WithLocation(4, 23));
         }
 
         [Fact, WorkItem(529895, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529895")]

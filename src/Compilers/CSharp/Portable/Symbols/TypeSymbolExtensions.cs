@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -1276,6 +1277,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var name = @namespace.Name;
             return (name.Length == length) && (string.Compare(name, 0, namespaceName, offset, length, comparison) == 0);
+        }
+
+        internal static bool IsSpanType(this TypeSymbol type)
+        {
+            if ((type as NamedTypeSymbol)?.Arity != 1)
+            {
+                // must be a generic type of arity '1'
+                return false;
+            }
+
+            if (type.Name != "Span" && type.Name != "ReadOnlySpan")
+            {
+                // must be called "Span" or "ReadOnlySpan"
+                return false;
+            }
+
+            var ns = type.ContainingSymbol as NamespaceSymbol;
+            if (ns?.Name != "System")
+            {
+                // must be in "System" namespace
+                return false;
+            }
+
+            // the "System" must be in the global namespace
+            return ns.ContainingNamespace?.IsGlobalNamespace == true;
         }
 
         internal static bool IsNonGenericTaskType(this TypeSymbol type, CSharpCompilation compilation)

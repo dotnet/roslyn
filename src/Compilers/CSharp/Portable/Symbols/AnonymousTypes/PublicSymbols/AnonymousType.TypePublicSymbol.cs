@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -188,6 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal sealed override bool IsByRefLikeType
             {
                 get { return false;  }
+            }
+
+            internal sealed override bool IsReadOnly
+            {
+                get { return false; }
             }
 
             public override bool IsSealed

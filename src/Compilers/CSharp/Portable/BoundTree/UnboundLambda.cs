@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -378,11 +379,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol DelegateInvokeMethod(NamedTypeSymbol delegateType)
         {
             return delegateType.GetDelegateType()?.DelegateInvokeMethod;
-        }
-
-        private static ImmutableArray<ParameterSymbol> DelegateParameters(MethodSymbol invokeMethod)
-        {
-            return ((object)invokeMethod == null) ? ImmutableArray<ParameterSymbol>.Empty : invokeMethod.Parameters;
         }
 
         private static TypeSymbol DelegateReturnType(MethodSymbol invokeMethod, out RefKind refKind)

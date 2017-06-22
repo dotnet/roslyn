@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
@@ -457,6 +458,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             // '{0}': static classes cannot implement interfaces
                             diagnostics.Add(ErrorCode.ERR_StaticClassInterfaceImpl, location, this, baseType);
+                        }
+
+                        if (this.IsByRefLikeType)
+                        {
+                            // '{0}': ref structs cannot implement interfaces
+                            diagnostics.Add(ErrorCode.ERR_RefStructInterfaceImpl, location, this, baseType);
                         }
 
                         if (baseType.ContainsDynamic())

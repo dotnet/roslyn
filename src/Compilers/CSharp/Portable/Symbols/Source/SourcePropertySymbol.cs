@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -178,6 +179,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var hasGetSyntax = getSyntax != null;
                 _isAutoProperty = notRegularProperty && hasGetSyntax;
                 bool isReadOnly = hasGetSyntax && setSyntax == null;
+
+                if (_isAutoProperty && !isReadOnly && !IsStatic && ContainingType.IsReadOnly)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AutoPropsInRoStruct, location);
+                }
 
                 if (_isAutoProperty || hasInitializer)
                 {
@@ -864,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (IsAbstract && IsVirtual)
             {
-                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
+                diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this.Kind.Localize(), this);
             }
             else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
@@ -1222,7 +1228,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {
                 // IsReadOnlyAttribute should not be set explicitly.
-                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReadOnlyAttr, arguments.AttributeSyntaxOpt.Location);
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
+            {
+                // IsByRefLikeAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsByRefLikeAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.TupleElementNamesAttribute))
             {
@@ -1331,14 +1342,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 var conversions = new TypeConversions(this.ContainingAssembly.CorLibrary);
                                 this.Type.CheckAllConstraints(conversions, _location, diagnostics);
 
-                                // autoproperties can have span-like types only
-                                // inside a span-like type and when not static
-                                var canReturnSpan = !this.IsAutoProperty || 
-                                                    (!this.IsStatic && this.ContainingType.IsByRefLikeType);
-
-                                if (this.Type.IsRestrictedType(ignoreSpanLikeTypes: canReturnSpan))
+                                var type = this.Type;
+                                if (type.IsRestrictedType(ignoreSpanLikeTypes: true))
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, this.Type);
+                                    diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, this.CSharpSyntaxNode.Type.Location, type);
+                                }
+                                else if (this.IsAutoProperty && type.IsByRefLikeType && (this.IsStatic || !this.ContainingType.IsByRefLikeType))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, this.CSharpSyntaxNode.Type.Location, type);
                                 }
 
                                 this.AddDeclarationDiagnostics(diagnostics);

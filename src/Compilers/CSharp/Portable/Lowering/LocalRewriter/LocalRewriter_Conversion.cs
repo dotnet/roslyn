@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -108,9 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(oldNode == null || oldNode.Syntax == syntax);
             Debug.Assert((object)rewrittenType != null);
-            @checked = @checked &&
-                (_inExpressionLambda && (explicitCastInCode || DistinctSpecialTypes(rewrittenOperand.Type, rewrittenType)) ||
-                NeedsChecked(rewrittenOperand.Type, rewrittenType));
+
+            if (_inExpressionLambda)
+            {
+                @checked = @checked && NeedsCheckedConversionInExpressionTree(rewrittenOperand.Type, rewrittenType, explicitCastInCode);
+            }
 
             switch (conversion.Kind)
             {
@@ -373,53 +376,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     type: rewrittenType);
         }
 
-        private static bool DistinctSpecialTypes(TypeSymbol source, TypeSymbol target)
-        {
-            Debug.Assert((object)target != null);
-
-            if ((object)source == null)
-            {
-                return false;
-            }
-
-            SpecialType sourceST = source.StrippedType().EnumUnderlyingType().SpecialType;
-            SpecialType targetST = target.StrippedType().EnumUnderlyingType().SpecialType;
-            return sourceST != targetST;
-        }
-
-        private const bool y = true;
-        private const bool n = false;
-
-        private static readonly bool[,] s_needsChecked =
-            {   //         chri08u08i16u16i32u32i64u64
-            /* chr */
-                          { n, y, y, y, n, n, n, n, n },
-            /* i08 */
-                          { y, n, y, n, y, n, y, n, y },
-            /* u08 */
-                          { n, y, n, n, n, n, n, n, n },
-            /* i16 */
-                          { y, y, y, n, y, n, y, n, y },
-            /* u16 */
-                          { n, y, y, y, n, n, n, n, n },
-            /* i32 */
-                          { y, y, y, y, y, n, y, n, y },
-            /* u32 */
-                          { y, y, y, y, y, y, n, n, n },
-            /* i64 */
-                          { y, y, y, y, y, y, y, n, y },
-            /* u64 */
-                          { y, y, y, y, y, y, y, y, n },
-            /* dec */
-                          { n, n, n, n, n, n, n, n, n },
-            /* r32 */
-                          { y, y, y, y, y, y, y, y, y },
-            /* r64 */
-                          { y, y, y, y, y, y, y, y, y },
-            };
-
         // Determine if the conversion can actually overflow at runtime.  If not, no need to generate a checked instruction.
-        private static bool NeedsChecked(TypeSymbol source, TypeSymbol target)
+        private static bool NeedsCheckedConversionInExpressionTree(TypeSymbol source, TypeSymbol target, bool explicitCastInCode)
         {
             Debug.Assert((object)target != null);
 
@@ -428,22 +386,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (source.IsDynamic())
-            {
-                return true;
-            }
+            SpecialType GetUnderlyingSpecialType(TypeSymbol type) =>
+                type.StrippedType().EnumUnderlyingType().SpecialType;
 
-            SpecialType sourceST = source.StrippedType().EnumUnderlyingType().SpecialType;
-            SpecialType targetST = target.StrippedType().EnumUnderlyingType().SpecialType;
+            bool IsInRange(SpecialType type, SpecialType low, SpecialType high) =>
+                low <= type && type <= high;
+
+            SpecialType sourceST = GetUnderlyingSpecialType(source);
+            SpecialType targetST = GetUnderlyingSpecialType(target);
 
             // integral to double or float is never checked, but float/double to integral 
             // may be checked.
-            bool sourceIsNumeric = SpecialType.System_Char <= sourceST && sourceST <= SpecialType.System_Double;
-            bool targetIsNumeric = SpecialType.System_Char <= targetST && targetST <= SpecialType.System_UInt64;
-            return
-                sourceIsNumeric && target.IsPointerType() ||
-                targetIsNumeric && source.IsPointerType() ||
-                sourceIsNumeric && targetIsNumeric && s_needsChecked[sourceST - SpecialType.System_Char, targetST - SpecialType.System_Char];
+            return (explicitCastInCode || sourceST != targetST) &&
+                IsInRange(sourceST, SpecialType.System_Char, SpecialType.System_Double) &&
+                IsInRange(targetST, SpecialType.System_Char, SpecialType.System_UInt64);
         }
 
         /// <summary>
