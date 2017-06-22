@@ -923,11 +923,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitUnusedResult(BoundUnusedResult node)
-        {
-            return null;
-        }
-
         public override BoundNode VisitThrowExpression(BoundThrowExpression node)
         {
             VisitRvalue(node.Expression);

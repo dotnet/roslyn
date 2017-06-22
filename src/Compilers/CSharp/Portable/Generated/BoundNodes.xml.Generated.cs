@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         CompoundAssignmentOperator,
         AssignmentOperator,
         DeconstructionAssignmentOperator,
-        UnusedResult,
         NullCoalescingOperator,
         ConditionalOperator,
         ArrayAccess,
@@ -1191,42 +1190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (left != this.Left || right != this.Right || isUsed != this.IsUsed || type != this.Type)
             {
                 var result = new BoundDeconstructionAssignmentOperator(this.Syntax, left, right, isUsed, type, this.HasErrors);
-                result.WasCompilerGenerated = this.WasCompilerGenerated;
-                return result;
-            }
-            return this;
-        }
-    }
-
-    internal sealed partial class BoundUnusedResult : BoundExpression
-    {
-        public BoundUnusedResult(SyntaxNode syntax, TypeSymbol type, bool hasErrors)
-            : base(BoundKind.UnusedResult, syntax, type, hasErrors)
-        {
-
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-        }
-
-        public BoundUnusedResult(SyntaxNode syntax, TypeSymbol type)
-            : base(BoundKind.UnusedResult, syntax, type)
-        {
-
-            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
-
-        }
-
-
-        public override BoundNode Accept(BoundTreeVisitor visitor)
-        {
-            return visitor.VisitUnusedResult(this);
-        }
-
-        public BoundUnusedResult Update(TypeSymbol type)
-        {
-            if (type != this.Type)
-            {
-                var result = new BoundUnusedResult(this.Syntax, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6177,8 +6140,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitAssignmentOperator(node as BoundAssignmentOperator, arg);
                 case BoundKind.DeconstructionAssignmentOperator: 
                     return VisitDeconstructionAssignmentOperator(node as BoundDeconstructionAssignmentOperator, arg);
-                case BoundKind.UnusedResult: 
-                    return VisitUnusedResult(node as BoundUnusedResult, arg);
                 case BoundKind.NullCoalescingOperator: 
                     return VisitNullCoalescingOperator(node as BoundNullCoalescingOperator, arg);
                 case BoundKind.ConditionalOperator: 
@@ -6532,10 +6493,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node, A arg)
-        {
-            return this.DefaultVisit(node, arg);
-        }
-        public virtual R VisitUnusedResult(BoundUnusedResult node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7136,10 +7093,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
-        {
-            return this.DefaultVisit(node);
-        }
-        public virtual BoundNode VisitUnusedResult(BoundUnusedResult node)
         {
             return this.DefaultVisit(node);
         }
@@ -7768,10 +7721,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Left);
             this.Visit(node.Right);
-            return null;
-        }
-        public override BoundNode VisitUnusedResult(BoundUnusedResult node)
-        {
             return null;
         }
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
@@ -8564,11 +8513,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundConversion right = (BoundConversion)this.Visit(node.Right);
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(left, right, node.IsUsed, type);
-        }
-        public override BoundNode VisitUnusedResult(BoundUnusedResult node)
-        {
-            TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(type);
         }
         public override BoundNode VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
         {
@@ -9563,14 +9507,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
                 new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
                 new TreeDumperNode("isUsed", node.IsUsed, null),
-                new TreeDumperNode("type", node.Type, null)
-            }
-            );
-        }
-        public override TreeDumperNode VisitUnusedResult(BoundUnusedResult node, object arg)
-        {
-            return new TreeDumperNode("unusedResult", null, new TreeDumperNode[]
-            {
                 new TreeDumperNode("type", node.Type, null)
             }
             );

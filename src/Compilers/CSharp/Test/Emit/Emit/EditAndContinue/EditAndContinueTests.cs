@@ -8311,7 +8311,7 @@ class C
 
             diff2.VerifyIL("C.G", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       63 (0x3f)
   .maxstack  2
   .locals init ([unchanged] V_0,
                 [int] V_1,
@@ -8331,30 +8331,32 @@ class C
   IL_0007:  stloc.s    V_9
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_10
-  IL_000c:  br.s       IL_0034
+  IL_000c:  br.s       IL_0036
   IL_000e:  ldloc.s    V_9
   IL_0010:  ldloc.s    V_10
   IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
   IL_0017:  dup
   IL_0018:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
   IL_001d:  stloc.2
-  IL_001e:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
-  IL_0023:  stloc.s    V_11
-  IL_0025:  nop
-  IL_0026:  ldloc.2
-  IL_0027:  call       ""void System.Console.WriteLine(int)""
-  IL_002c:  nop
-  IL_002d:  nop
-  IL_002e:  ldloc.s    V_10
-  IL_0030:  ldc.i4.1
-  IL_0031:  add
-  IL_0032:  stloc.s    V_10
-  IL_0034:  ldloc.s    V_10
-  IL_0036:  ldloc.s    V_9
-  IL_0038:  ldlen
-  IL_0039:  conv.i4
-  IL_003a:  blt.s      IL_000e
-  IL_003c:  ret
+  IL_001e:  dup
+  IL_001f:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
+  IL_0024:  stloc.s    V_11
+  IL_0026:  pop
+  IL_0027:  nop
+  IL_0028:  ldloc.2
+  IL_0029:  call       ""void System.Console.WriteLine(int)""
+  IL_002e:  nop
+  IL_002f:  nop
+  IL_0030:  ldloc.s    V_10
+  IL_0032:  ldc.i4.1
+  IL_0033:  add
+  IL_0034:  stloc.s    V_10
+  IL_0036:  ldloc.s    V_10
+  IL_0038:  ldloc.s    V_9
+  IL_003a:  ldlen
+  IL_003b:  conv.i4
+  IL_003c:  blt.s      IL_000e
+  IL_003e:  ret
 }
 ");
         }

@@ -1185,6 +1185,56 @@ class C
 
         [Fact]
         [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
+        public void ValueTupleNotRequiredIfReturnIsNotUsed3()
+        {
+            string source = @"
+class C
+{
+    public static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+    }
+
+    public C() { }
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+namespace System
+{
+    [Obsolete]
+    public struct ValueTuple<T1, T2>
+    {
+        [Obsolete]
+        public T1 Item1;
+
+        [Obsolete]
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2) { Item1 = item1; Item2 = item2; }
+    }
+}
+";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var tuple = nodes.OfType<TupleExpressionSyntax>().ElementAt(0);
+            Assert.Equal("(x, y) = new C()", tuple.Parent.ToString());
+            var tupleType = (TypeSymbol)model.GetTypeInfo(tuple).Type;
+            Assert.Equal("(System.Int32 x, System.Int32 y)", tupleType.ToTestDisplayString());
+            var underlying = tupleType.TupleUnderlyingType;
+            Assert.Equal("System.ValueTuple<System.Int32, System.Int32>", underlying.ToTestDisplayString());
+        }
+
+        [Fact]
+        [WorkItem(18629, "https://github.com/dotnet/roslyn/issues/18629")]
         public void ValueTupleRequiredWhenRightHandSideIsTuple()
         {
             string source = @"
@@ -3464,7 +3514,7 @@ class C
 
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       70 (0x46)
+  // Code size       72 (0x48)
   .maxstack  2
   .locals init (System.Collections.Generic.IEnumerator<(int, int)> V_0,
                 int V_1, //x1
@@ -3474,33 +3524,35 @@ class C
   IL_000a:  stloc.0
   .try
   {
-    IL_000b:  br.s       IL_0031
+    IL_000b:  br.s       IL_0033
     IL_000d:  ldloc.0
     IL_000e:  callvirt   ""(int, int) System.Collections.Generic.IEnumerator<(int, int)>.Current.get""
     IL_0013:  dup
     IL_0014:  ldfld      ""int System.ValueTuple<int, int>.Item1""
     IL_0019:  stloc.1
-    IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-    IL_001f:  stloc.2
-    IL_0020:  ldloc.1
-    IL_0021:  box        ""int""
-    IL_0026:  ldloc.2
-    IL_0027:  box        ""int""
-    IL_002c:  call       ""void C.Print(object, object)""
-    IL_0031:  ldloc.0
-    IL_0032:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
-    IL_0037:  brtrue.s   IL_000d
-    IL_0039:  leave.s    IL_0045
+    IL_001a:  dup
+    IL_001b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+    IL_0020:  stloc.2
+    IL_0021:  pop
+    IL_0022:  ldloc.1
+    IL_0023:  box        ""int""
+    IL_0028:  ldloc.2
+    IL_0029:  box        ""int""
+    IL_002e:  call       ""void C.Print(object, object)""
+    IL_0033:  ldloc.0
+    IL_0034:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
+    IL_0039:  brtrue.s   IL_000d
+    IL_003b:  leave.s    IL_0047
   }
   finally
   {
-    IL_003b:  ldloc.0
-    IL_003c:  brfalse.s  IL_0044
-    IL_003e:  ldloc.0
-    IL_003f:  callvirt   ""void System.IDisposable.Dispose()""
-    IL_0044:  endfinally
+    IL_003d:  ldloc.0
+    IL_003e:  brfalse.s  IL_0046
+    IL_0040:  ldloc.0
+    IL_0041:  callvirt   ""void System.IDisposable.Dispose()""
+    IL_0046:  endfinally
   }
-  IL_0045:  ret
+  IL_0047:  ret
 }");
         }
 
@@ -3548,7 +3600,7 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size       91 (0x5b)
+  // Code size       93 (0x5d)
   .maxstack  4
   .locals init ((int, int)[] V_0,
                 int V_1,
@@ -3558,47 +3610,49 @@ class C
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
   IL_0007:  stloc.1
-  IL_0008:  br.s       IL_0054
+  IL_0008:  br.s       IL_0056
   IL_000a:  ldloc.0
   IL_000b:  ldloc.1
   IL_000c:  ldelem     ""System.ValueTuple<int, int>""
   IL_0011:  dup
   IL_0012:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_0017:  stloc.2
-  IL_0018:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_001d:  stloc.3
-  IL_001e:  ldc.i4.4
-  IL_001f:  newarr     ""object""
-  IL_0024:  dup
-  IL_0025:  ldc.i4.0
-  IL_0026:  ldloc.2
-  IL_0027:  box        ""int""
-  IL_002c:  stelem.ref
-  IL_002d:  dup
-  IL_002e:  ldc.i4.1
-  IL_002f:  ldstr      "" ""
-  IL_0034:  stelem.ref
-  IL_0035:  dup
-  IL_0036:  ldc.i4.2
-  IL_0037:  ldloc.3
-  IL_0038:  box        ""int""
-  IL_003d:  stelem.ref
-  IL_003e:  dup
-  IL_003f:  ldc.i4.3
-  IL_0040:  ldstr      "" - ""
-  IL_0045:  stelem.ref
-  IL_0046:  call       ""string string.Concat(params object[])""
-  IL_004b:  call       ""void System.Console.Write(string)""
-  IL_0050:  ldloc.1
-  IL_0051:  ldc.i4.1
-  IL_0052:  add
-  IL_0053:  stloc.1
-  IL_0054:  ldloc.1
-  IL_0055:  ldloc.0
-  IL_0056:  ldlen
-  IL_0057:  conv.i4
-  IL_0058:  blt.s      IL_000a
-  IL_005a:  ret
+  IL_0018:  dup
+  IL_0019:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001e:  stloc.3
+  IL_001f:  pop
+  IL_0020:  ldc.i4.4
+  IL_0021:  newarr     ""object""
+  IL_0026:  dup
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldloc.2
+  IL_0029:  box        ""int""
+  IL_002e:  stelem.ref
+  IL_002f:  dup
+  IL_0030:  ldc.i4.1
+  IL_0031:  ldstr      "" ""
+  IL_0036:  stelem.ref
+  IL_0037:  dup
+  IL_0038:  ldc.i4.2
+  IL_0039:  ldloc.3
+  IL_003a:  box        ""int""
+  IL_003f:  stelem.ref
+  IL_0040:  dup
+  IL_0041:  ldc.i4.3
+  IL_0042:  ldstr      "" - ""
+  IL_0047:  stelem.ref
+  IL_0048:  call       ""string string.Concat(params object[])""
+  IL_004d:  call       ""void System.Console.Write(string)""
+  IL_0052:  ldloc.1
+  IL_0053:  ldc.i4.1
+  IL_0054:  add
+  IL_0055:  stloc.1
+  IL_0056:  ldloc.1
+  IL_0057:  ldloc.0
+  IL_0058:  ldlen
+  IL_0059:  conv.i4
+  IL_005a:  blt.s      IL_000a
+  IL_005c:  ret
 }");
         }
 
@@ -3645,7 +3699,7 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main",
 @"{
-  // Code size      106 (0x6a)
+  // Code size      108 (0x6c)
   .maxstack  3
   .locals init ((int, int)[,] V_0,
                 int V_1,
@@ -3668,12 +3722,12 @@ class C
   IL_0017:  ldc.i4.0
   IL_0018:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_001d:  stloc.3
-  IL_001e:  br.s       IL_0065
+  IL_001e:  br.s       IL_0067
   IL_0020:  ldloc.0
   IL_0021:  ldc.i4.1
   IL_0022:  callvirt   ""int System.Array.GetLowerBound(int)""
   IL_0027:  stloc.s    V_4
-  IL_0029:  br.s       IL_005c
+  IL_0029:  br.s       IL_005e
   IL_002b:  ldloc.0
   IL_002c:  ldloc.3
   IL_002d:  ldloc.s    V_4
@@ -3681,28 +3735,30 @@ class C
   IL_0034:  dup
   IL_0035:  ldfld      ""int System.ValueTuple<int, int>.Item1""
   IL_003a:  stloc.s    V_5
-  IL_003c:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0041:  stloc.s    V_6
-  IL_0043:  ldloc.s    V_5
-  IL_0045:  box        ""int""
-  IL_004a:  ldloc.s    V_6
-  IL_004c:  box        ""int""
-  IL_0051:  call       ""void C.Print(object, object)""
-  IL_0056:  ldloc.s    V_4
-  IL_0058:  ldc.i4.1
-  IL_0059:  add
-  IL_005a:  stloc.s    V_4
-  IL_005c:  ldloc.s    V_4
-  IL_005e:  ldloc.2
-  IL_005f:  ble.s      IL_002b
-  IL_0061:  ldloc.3
-  IL_0062:  ldc.i4.1
-  IL_0063:  add
-  IL_0064:  stloc.3
-  IL_0065:  ldloc.3
-  IL_0066:  ldloc.1
-  IL_0067:  ble.s      IL_0020
-  IL_0069:  ret
+  IL_003c:  dup
+  IL_003d:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0042:  stloc.s    V_6
+  IL_0044:  pop
+  IL_0045:  ldloc.s    V_5
+  IL_0047:  box        ""int""
+  IL_004c:  ldloc.s    V_6
+  IL_004e:  box        ""int""
+  IL_0053:  call       ""void C.Print(object, object)""
+  IL_0058:  ldloc.s    V_4
+  IL_005a:  ldc.i4.1
+  IL_005b:  add
+  IL_005c:  stloc.s    V_4
+  IL_005e:  ldloc.s    V_4
+  IL_0060:  ldloc.2
+  IL_0061:  ble.s      IL_002b
+  IL_0063:  ldloc.3
+  IL_0064:  ldc.i4.1
+  IL_0065:  add
+  IL_0066:  stloc.3
+  IL_0067:  ldloc.3
+  IL_0068:  ldloc.1
+  IL_0069:  ble.s      IL_0020
+  IL_006b:  ret
 }");
         }
 

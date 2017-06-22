@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="diagnostics">Where to report diagnostics</param>
         /// <param name="declaration">A variable set to the first variable declaration found in the left</param>
         /// <param name="expression">A variable set to the first expression in the left that isn't a declaration or discard</param>
-        /// <param name="resultIsUsedOverride">The expression evaluator needs bind deconstructions (both assignments and declarations) as expression-statements
+        /// <param name="resultIsUsedOverride">The expression evaluator needs to bind deconstructions (both assignments and declarations) as expression-statements
         ///     and still access the returned value</param>
         /// <param name="rightPlaceholder"></param>
         /// <returns></returns>
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = boundRHS.Type ?? voidType;
                 return new BoundDeconstructionAssignmentOperator(
                             node,
-                            DeconstructionVariablesAsTuple(node, checkedVariables, resultIsUsed ? diagnostics : null, hasErrors: true),
+                            DeconstructionVariablesAsTuple(node, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: true),
                             new BoundConversion(boundRHS.Syntax, boundRHS, Conversion.Deconstruction, @checked: false, explicitCastInCode: false,
                                 constantValueOpt: null, type: type, hasErrors: true),
                             resultIsUsed,
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             FailRemainingInferences(checkedVariables, diagnostics);
 
-            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, resultIsUsed ? diagnostics : null, hasErrors);
+            var lhsTuple = DeconstructionVariablesAsTuple(left, checkedVariables, diagnostics, ignoreDiagnosticsFromTuple: hasErrors || !resultIsUsed);
             TypeSymbol returnType = hasErrors ? CreateErrorType() : lhsTuple.Type;
 
             var boundConversion = new BoundConversion(
@@ -504,7 +504,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 errorPositions: default(ImmutableArray<bool>));
         }
 
-        private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables, DiagnosticBag diagnostics, bool hasErrors)
+        private BoundTupleLiteral DeconstructionVariablesAsTuple(CSharpSyntaxNode syntax, ArrayBuilder<DeconstructionVariable> variables,
+            DiagnosticBag diagnostics, bool ignoreDiagnosticsFromTuple)
         {
             int count = variables.Count;
             var valuesBuilder = ArrayBuilder<BoundExpression>.GetInstance(count);
@@ -515,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (variable.HasNestedVariables)
                 {
-                    var nestedTuple = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, hasErrors);
+                    var nestedTuple = DeconstructionVariablesAsTuple(variable.Syntax, variable.NestedVariables, diagnostics, ignoreDiagnosticsFromTuple);
                     valuesBuilder.Add(nestedTuple);
                     typesBuilder.Add(nestedTuple.Type);
                     namesBuilder.Add(null);
@@ -541,9 +542,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = TupleTypeSymbol.Create(syntax.Location,
                 typesBuilder.ToImmutableAndFree(), locationsBuilder.ToImmutableAndFree(),
                 tupleNames, this.Compilation,
-                shouldCheckConstraints: !hasErrors,
-                errorPositions: disallowInferredNames ? inferredPositions : default(ImmutableArray<bool>),
-                syntax: syntax, diagnostics: hasErrors ? null : diagnostics);
+                shouldCheckConstraints: !ignoreDiagnosticsFromTuple,
+                errorPositions: disallowInferredNames ? inferredPositions : default,
+                syntax: syntax, diagnostics: ignoreDiagnosticsFromTuple ? null : diagnostics);
 
             // Always track the inferred positions in the bound node, so that conversions don't produce a warning
             // for "dropped names" on tuple literal when the name was inferred.
