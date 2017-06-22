@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -78,16 +80,37 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
         private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync(
             Document document, TextSpan narrowSpan, TextSpan widenedSpan, CancellationToken cancellationToken)
         {
-            var classificationService = document.GetLanguageService<IEditorClassificationService>();
+            var result = await GetClassifiedSpansAsync(document, narrowSpan, widenedSpan, WorkspaceClassificationDelegationService.Instance, cancellationToken).ConfigureAwait(false);
+            if (!result.IsDefault)
+            {
+                return result;
+            }
+
+            result = await GetClassifiedSpansAsync(document, narrowSpan, widenedSpan, EditorClassificationDelegationService.Instance, cancellationToken).ConfigureAwait(false);
+            if (!result.IsDefault)
+            {
+                return result;
+            }
+
+            // For languages that don't expose a classification service, we show the entire
+            // item as plain text. Break the text into three spans so that we can properly
+            // highlight the 'narrow-span' later on when we display the item.
+            return ImmutableArray.Create(
+                new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(widenedSpan.Start, narrowSpan.Start)),
+                new ClassifiedSpan(ClassificationTypeNames.Text, narrowSpan),
+                new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(narrowSpan.End, widenedSpan.End)));
+        }
+
+
+        private static async Task<ImmutableArray<ClassifiedSpan>> GetClassifiedSpansAsync<TClassificationService>(
+            Document document, TextSpan narrowSpan, TextSpan widenedSpan, 
+            IClassificationDelegationService<TClassificationService> delegationService,
+            CancellationToken cancellationToken) where TClassificationService : class, ILanguageService
+        {
+            var classificationService = document.GetLanguageService<TClassificationService>();
             if (classificationService == null)
             {
-                // For languages that don't expose a classification service, we show the entire
-                // item as plain text. Break the text into three spans so that we can properly
-                // highlight the 'narrow-span' later on when we display the item.
-                return ImmutableArray.Create(
-                    new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(widenedSpan.Start, narrowSpan.Start)),
-                    new ClassifiedSpan(ClassificationTypeNames.Text, narrowSpan),
-                    new ClassifiedSpan(ClassificationTypeNames.Text, TextSpan.FromBounds(narrowSpan.End, widenedSpan.End)));
+                return default;
             }
 
             // Call out to the individual language to classify the chunk of text around the
@@ -103,10 +126,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
             {
                 var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-                await classificationService.AddSyntacticClassificationsAsync(
-                    document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
-                await classificationService.AddSemanticClassificationsAsync(
-                    document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
+                await delegationService.AddSyntacticClassificationsAsync(
+                    classificationService, document, widenedSpan, syntaxSpans, cancellationToken).ConfigureAwait(false);
+                await delegationService.AddSemanticClassificationsAsync(
+                    classificationService, document, widenedSpan, semanticSpans, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpans = MergeClassifiedSpans(
                     syntaxSpans, semanticSpans, widenedSpan, sourceText);

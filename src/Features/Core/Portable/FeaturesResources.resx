@@ -1252,5 +1252,10 @@ This version used in: {2}</value>
   </data>
   <data name="Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
+  <data name="Unreachable_code_detected" xml:space="preserve">
+    <value>Unreachable code detected</value>
+  </data>
+  <data name="Remove_unreachable_code" xml:space="preserve">
+    <value>Remove unreachable code</value>
   </data>
 </root>

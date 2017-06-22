@@ -1,2 +1,2 @@
 @echo off
-powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\cibuild.ps1" %*
+powershell -noprofile -executionPolicy RemoteSigned -file "%~dp0\build.ps1" -cibuild -build -restore -bootstrap %*

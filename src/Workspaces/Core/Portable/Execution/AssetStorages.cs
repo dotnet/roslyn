@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Storage CreateStorage(SolutionState solutionState)
         {
-            return new Storage(this, solutionState);
+            return new Storage(solutionState);
         }
 
         public RemotableData GetRemotableData(PinnedRemotableDataScope scope, Checksum checksum, CancellationToken cancellationToken)

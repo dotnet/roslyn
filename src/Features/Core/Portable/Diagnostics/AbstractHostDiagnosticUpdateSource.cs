@@ -88,7 +88,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var analyzers = analyzerReference.GetAnalyzers(language);
             ClearAnalyzerDiagnostics(analyzers, projectId);
-            CompilationWithAnalyzers.ClearAnalyzerState(analyzers);
         }
 
         public void ClearAnalyzerDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, ProjectId projectId)

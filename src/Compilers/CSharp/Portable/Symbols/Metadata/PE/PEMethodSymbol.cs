@@ -9,6 +9,7 @@ using System.Threading;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
@@ -794,24 +795,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 this.ParameterCount == parameterCount &&
                 this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
                 !this.IsParams();
-
-        private bool IsValidUserDefinedOperatorIs()
-        {
-            foreach (var parameter in this.Parameters)
-            {
-                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
-                {
-                    return false;
-                }
-            }
-
-            return
-                (this.ReturnsVoid || this.ReturnType.SpecialType == SpecialType.System_Boolean) &&
-                !this.IsGenericMethod &&
-                !this.IsVararg &&
-                this.ParameterCount > 0 &&
-                !this.IsParams();
-        }
 
         private MethodKind ComputeMethodKind()
         {
