@@ -5797,6 +5797,16 @@ End Class";
         }
 
         [Fact]
+        public void CreateTupleTypeSize1()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            var tupleType = comp.CreateTupleTypeSymbol(new[] { intType }.AsImmutable(), default(ImmutableArray<string>)) as TupleTypeSymbol;
+            Assert.Equal(1, tupleType.TupleElementTypes.Length);
+            Assert.Equal(intType, tupleType.TupleElementTypes[0]);
+        }
+
+        [Fact]
         public void CreateTupleTypeSymbol2_BadArguments()
         {
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef }); // no ValueTuple
@@ -5804,9 +5814,8 @@ End Class";
 
             Assert.Throws<ArgumentNullException>(() => comp.CreateTupleTypeSymbol(default(ImmutableArray<ITypeSymbol>), default(ImmutableArray<string>)));
 
-            // 0-tuple and 1-tuple are not supported at this point
+            // 0-tuple is not supported at this point
             Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(ImmutableArray<ITypeSymbol>.Empty, default(ImmutableArray<string>)));
-            Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(new[] { intType }.AsImmutable(), default(ImmutableArray<string>)));
 
             // if names are provided, you need one for each element
             Assert.Throws<ArgumentException>(() => comp.CreateTupleTypeSymbol(new[] { intType, intType }.AsImmutable(), new[] { "Item1" }.AsImmutable()));

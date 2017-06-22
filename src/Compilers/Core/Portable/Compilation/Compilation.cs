@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(elementTypes));
             }
 
-            if (elementTypes.Length <= 1)
+            if (elementTypes.Length == 0)
             {
                 throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
             }
