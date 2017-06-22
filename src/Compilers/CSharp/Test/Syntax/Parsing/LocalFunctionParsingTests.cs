@@ -367,15 +367,15 @@ class C
                 // (11,13): error CS0161: 'foo<T>()': not all code paths return a value
                 //             foo<T>) { }
                 Diagnostic(ErrorCode.ERR_ReturnExpected, "foo").WithArguments("foo<T>()").WithLocation(11, 13),
-                // (7,13): warning CS0168: The variable 'foo' is declared but never used
+                // (7,13): warning CS8321: The local function 'foo' is declared but never used
                 //             foo() where T : IFace => 5;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(7, 13),
-                // (9,13): warning CS0168: The variable 'foo' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(7, 13),
+                // (9,13): warning CS8321: The local function 'foo' is declared but never used
                 //             foo() where T : IFace { return 5; }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(9, 13),
-                // (11,13): warning CS0168: The variable 'foo' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(9, 13),
+                // (11,13): warning CS8321: The local function 'foo' is declared but never used
                 //             foo<T>) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "foo").WithArguments("foo").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "foo").WithArguments("foo").WithLocation(11, 13));
 
             var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
