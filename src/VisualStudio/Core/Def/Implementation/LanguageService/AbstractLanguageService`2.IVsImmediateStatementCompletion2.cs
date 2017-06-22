@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.DebuggerIntelliSense;
 using Microsoft.VisualStudio.OLE.Interop;
@@ -83,7 +85,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             {
                 var contextBuffer = EditorAdaptersFactoryService.GetDataBuffer(buffer);
 
-                Contract.ThrowIfFalse(contextBuffer.ContentType.IsOfType(this.ContentTypeName));
+                if (!contextBuffer.ContentType.IsOfType(this.ContentTypeName))
+                {
+                    FatalError.ReportWithoutCrash(
+                        new ArgumentException($"Expected content type {this.ContentTypeName} " +
+                        $"but got buffer of content type {contextBuffer.ContentType}"));
+
+                    return VSConstants.E_FAIL;
+                }
 
                 var context = CreateContext(view, textView, debuggerBuffer, contextBuffer, currentStatementSpan);
                 if (context.TryInitialize())
