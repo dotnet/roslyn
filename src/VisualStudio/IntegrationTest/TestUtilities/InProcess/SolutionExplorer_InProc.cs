@@ -802,6 +802,62 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             solutionExplorer.Parent.Activate();
         }
 
+        public void SelectItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        public string[] GetChildrenOfItem(string itemName)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        public string[] GetChildrenOfItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindItemAtPath(
+            EnvDTE.UIHierarchyItems currentItems,
+            string[] path)
+        {
+            EnvDTE.UIHierarchyItem item = null;
+            foreach (var name in path)
+            {
+                item = currentItems.Cast<EnvDTE.UIHierarchyItem>().FirstOrDefault(i => i.Name == name);
+
+                if (item == null)
+                {
+                    return null;
+                }
+
+                currentItems = item.UIHierarchyItems;
+            }
+
+            return item;
+        }
+
         private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
             EnvDTE.UIHierarchyItems currentItems,
             string itemName)
