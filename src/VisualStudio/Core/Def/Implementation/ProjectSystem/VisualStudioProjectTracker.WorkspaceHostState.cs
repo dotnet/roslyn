@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     var solutionInfo = SolutionInfo.Create(id, version.Value, solutionFilePath, projects: projectInfos);
 
-                    _tracker.NotifyWorkspaceHosts(host => host.OnSolutionAdded(solutionInfo));
+                    _workspaceHost.OnSolutionAdded(solutionInfo);
 
                     _solutionAdded = true;
                 }
