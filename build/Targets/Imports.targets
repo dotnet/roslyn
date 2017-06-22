@@ -319,7 +319,7 @@
        2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
           by the NuGet build task. -->
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="RunResolvePackageDependencies" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
     <ItemGroup>
       <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
         <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
@@ -363,6 +363,7 @@
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
+  <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>
