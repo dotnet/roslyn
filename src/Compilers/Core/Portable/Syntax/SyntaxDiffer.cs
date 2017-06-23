@@ -508,10 +508,10 @@ namespace Microsoft.CodeAnalysis
         private struct ChangeRecord
         {
             public readonly TextChangeRange Range;
-            public readonly Stack<SyntaxNodeOrToken> OldNodes;
-            public readonly Stack<SyntaxNodeOrToken> NewNodes;
+            public readonly Queue<SyntaxNodeOrToken> OldNodes;
+            public readonly Queue<SyntaxNodeOrToken> NewNodes;
 
-            internal ChangeRecord(TextChangeRange range, Stack<SyntaxNodeOrToken> oldNodes, Stack<SyntaxNodeOrToken> newNodes)
+            internal ChangeRecord(TextChangeRange range, Queue<SyntaxNodeOrToken> oldNodes, Queue<SyntaxNodeOrToken> newNodes)
             {
                 this.Range = range;
                 this.OldNodes = oldNodes;
@@ -593,37 +593,73 @@ namespace Microsoft.CodeAnalysis
             return TextSpan.FromBounds(start, end);
         }
 
-        private static Stack<SyntaxNodeOrToken> Combine(Stack<SyntaxNodeOrToken> first, Stack<SyntaxNodeOrToken> next)
+        private static TextSpan GetSpan(Queue<SyntaxNodeOrToken> stack, int first, int length)
         {
-            if (first == null)
+            int start = -1, end = -1, i = 0;
+            foreach (var n in stack)
+            {
+                if (i == first)
+                {
+                    start = n.Position;
+                }
+
+                if (i == first + length - 1)
+                {
+                    end = n.EndPosition;
+                    break;
+                }
+
+                i++;
+            }
+
+            Debug.Assert(start >= 0);
+            Debug.Assert(end >= 0);
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        private static Queue<SyntaxNodeOrToken> Combine(Queue<SyntaxNodeOrToken> first, Queue<SyntaxNodeOrToken> next)
+        {
+            if (first == null || first.Count == 0)
             {
                 return next;
             }
 
-            if (next == null)
+            if (next == null || next.Count == 0)
             {
                 return first;
             }
 
-            var nodes = ToArray(first, first.Count);
-            for (int i = 0; i < nodes.Length; i++)
+            foreach (var nodeOrToken in next)
             {
-                next.Push(nodes[i]);
+                first.Enqueue(nodeOrToken);
             }
 
-            return next;
+            return first;
         }
 
-        private static Stack<SyntaxNodeOrToken> CopyFirst(Stack<SyntaxNodeOrToken> stack, int n)
+        private static Queue<SyntaxNodeOrToken> CopyFirst(Stack<SyntaxNodeOrToken> stack, int n)
         {
             if (n == 0)
             {
                 return null;
             }
 
-            var nodes = ToArray(stack, n);
-            var newStack = new Stack<SyntaxNodeOrToken>(nodes);
-            return newStack;
+            var queue = new Queue<SyntaxNodeOrToken>(n);
+
+            int remaining = n;
+            foreach (var node in stack)
+            {
+                if (remaining == 0)
+                {
+                    break;
+                }
+
+                queue.Enqueue(node);
+                remaining--;
+            }
+
+            return queue;
         }
 
         private static SyntaxNodeOrToken[] ToArray(Stack<SyntaxNodeOrToken> stack, int n)
@@ -744,7 +780,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static string GetText(Stack<SyntaxNodeOrToken> stack)
+        private static string GetText(Queue<SyntaxNodeOrToken> stack)
         {
             if (stack == null || stack.Count == 0)
             {
@@ -759,7 +795,7 @@ namespace Microsoft.CodeAnalysis
             return builder.ToString();
         }
 
-        private static void CopyText(Stack<SyntaxNodeOrToken> stack, StringBuilder builder)
+        private static void CopyText(Queue<SyntaxNodeOrToken> stack, StringBuilder builder)
         {
             builder.Length = 0;
 
