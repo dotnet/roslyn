@@ -50,19 +50,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 _currentSolutionId = _workspace.CurrentSolution.Id;
                 var solutionId = _currentSolutionId;
 
-                using (var session = await _client.TryCreateServiceSessionAsync(
-                    WellKnownRemoteHostServices.RemoteHostService, callbackTarget: null, cancellationToken: CancellationToken.None).ConfigureAwait(false))
+                using (var connection = await _client.TryCreateConnectionAsync(WellKnownRemoteHostServices.RemoteHostService, CancellationToken.None).ConfigureAwait(false))
                 {
-                    if (session == null)
+                    if (connection == null)
                     {
-                        // failed to create session. remote host might not responding or gone. 
+                        // failed to create connection. remote host might not responding or gone. 
                         return;
                     }
 
-                    await session.InvokeAsync(
+                    await connection.InvokeAsync(
                         nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
 
-                    await session.InvokeAsync(
+                    await connection.InvokeAsync(
                         nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
                         _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
                 }
@@ -93,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             private async Task UnregisterPrimarySolutionAsync(
                 SolutionId solutionId, bool synchronousShutdown)
             {
-                await _client.RunOnRemoteHostAsync(
+                await _client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, _workspace.CurrentSolution,
                     nameof(IRemoteHostService.UnregisterPrimarySolutionId), new object[] { solutionId, synchronousShutdown },
                     CancellationToken.None).ConfigureAwait(false);

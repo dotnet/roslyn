@@ -163,6 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnreferencedVar:
                 case ErrorCode.WRN_UnreferencedField:
                 case ErrorCode.WRN_UnreferencedVarAssg:
+                case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_SequentialOnPartialClass:
                 case ErrorCode.WRN_UnreferencedFieldAssg:
                 case ErrorCode.WRN_AmbiguousXMLReference:

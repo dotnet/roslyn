@@ -23,7 +23,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public async Task<Session> CreateSessionAsync(Solution solution, object callbackTarget = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var innerSession = await _client.TryCreateServiceSessionAsync(RazorServiceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
+            if (solution == null)
+            {
+                // keep old behavior for Razor
+                return null;
+            }
+
+            var innerSession = await _client.TryCreateSessionAsync(RazorServiceName, solution, callbackTarget, cancellationToken).ConfigureAwait(false);
             if (innerSession == null)
             {
                 return null;
@@ -34,9 +40,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Razor
 
         public sealed class Session : IDisposable
         {
-            private readonly RemoteHostClient.Session _inner;
+            private readonly SessionWithSolution _inner;
 
-            internal Session(RemoteHostClient.Session inner)
+            internal Session(SessionWithSolution inner)
             {
                 _inner = inner;
             }
