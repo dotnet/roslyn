@@ -7820,10 +7820,10 @@ class Test2 : I1
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M3").WithArguments("I1.M3()").WithLocation(6, 27),
                 // (6,27): error CS0503: The abstract method 'I1.M3()' cannot be marked virtual
                 //     virtual abstract void M3() 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M3").WithArguments("I1.M3()").WithLocation(6, 27),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M3").WithArguments("method", "I1.M3()").WithLocation(6, 27),
                 // (4,27): error CS0503: The abstract method 'I1.M2()' cannot be marked virtual
                 //     abstract virtual void M2(); 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("I1.M2()").WithLocation(4, 27),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "M2").WithArguments("method", "I1.M2()").WithLocation(4, 27),
                 // (17,15): error CS0535: 'Test2' does not implement interface member 'I1.M3()'
                 // class Test2 : I1
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.M3()").WithLocation(17, 15),
@@ -11774,60 +11774,60 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
 {}
 ";
             ValidatePropertyModifiers_15(source1,
-                // (4,26): error CS0503: The abstract method 'I0.P0' cannot be marked virtual
+                // (4,26): error CS0503: The abstract property 'I0.P0' cannot be marked virtual
                 //     abstract virtual int P0 { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P0").WithArguments("I0.P0"),
-                // (8,26): error CS0503: The abstract method 'I1.P1' cannot be marked virtual
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P0").WithArguments("property", "I0.P0").WithLocation(4, 26),
+                // (8,26): error CS0503: The abstract property 'I1.P1' cannot be marked virtual
                 //     abstract virtual int P1 { get { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P1").WithArguments("I1.P1").WithLocation(8, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P1").WithArguments("property", "I1.P1").WithLocation(8, 26),
                 // (8,31): error CS0500: 'I1.P1.get' cannot declare a body because it is marked abstract
                 //     abstract virtual int P1 { get { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.P1.get").WithLocation(8, 31),
-                // (12,26): error CS0503: The abstract method 'I2.P2' cannot be marked virtual
+                // (12,26): error CS0503: The abstract property 'I2.P2' cannot be marked virtual
                 //     virtual abstract int P2 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P2").WithArguments("I2.P2").WithLocation(12, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P2").WithArguments("property", "I2.P2").WithLocation(12, 26),
                 // (14,9): error CS0500: 'I2.P2.get' cannot declare a body because it is marked abstract
                 //         get { throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.P2.get").WithLocation(14, 9),
                 // (15,9): error CS0500: 'I2.P2.set' cannot declare a body because it is marked abstract
                 //         set { throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.P2.set").WithLocation(15, 9),
-                // (20,26): error CS0503: The abstract method 'I3.P3' cannot be marked virtual
+                // (20,26): error CS0503: The abstract property 'I3.P3' cannot be marked virtual
                 //     abstract virtual int P3 { set { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P3").WithArguments("I3.P3").WithLocation(20, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P3").WithArguments("property", "I3.P3").WithLocation(20, 26),
                 // (20,31): error CS0500: 'I3.P3.set' cannot declare a body because it is marked abstract
                 //     abstract virtual int P3 { set { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I3.P3.set").WithLocation(20, 31),
-                // (24,26): error CS0503: The abstract method 'I4.P4' cannot be marked virtual
+                // (24,26): error CS0503: The abstract property 'I4.P4' cannot be marked virtual
                 //     abstract virtual int P4 { get => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P4").WithArguments("I4.P4").WithLocation(24, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P4").WithArguments("property", "I4.P4").WithLocation(24, 26),
                 // (24,31): error CS0500: 'I4.P4.get' cannot declare a body because it is marked abstract
                 //     abstract virtual int P4 { get => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I4.P4.get").WithLocation(24, 31),
-                // (28,26): error CS0503: The abstract method 'I5.P5' cannot be marked virtual
+                // (28,26): error CS0503: The abstract property 'I5.P5' cannot be marked virtual
                 //     abstract virtual int P5 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P5").WithArguments("I5.P5").WithLocation(28, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P5").WithArguments("property", "I5.P5").WithLocation(28, 26),
                 // (30,9): error CS0500: 'I5.P5.get' cannot declare a body because it is marked abstract
                 //         get => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I5.P5.get").WithLocation(30, 9),
                 // (31,9): error CS0500: 'I5.P5.set' cannot declare a body because it is marked abstract
                 //         set => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I5.P5.set").WithLocation(31, 9),
-                // (36,26): error CS0503: The abstract method 'I6.P6' cannot be marked virtual
+                // (36,26): error CS0503: The abstract property 'I6.P6' cannot be marked virtual
                 //     abstract virtual int P6 { set => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P6").WithArguments("I6.P6").WithLocation(36, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P6").WithArguments("property", "I6.P6").WithLocation(36, 26),
                 // (36,31): error CS0500: 'I6.P6.set' cannot declare a body because it is marked abstract
                 //     abstract virtual int P6 { set => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I6.P6.set").WithLocation(36, 31),
-                // (40,26): error CS0503: The abstract method 'I7.P7' cannot be marked virtual
+                // (40,26): error CS0503: The abstract property 'I7.P7' cannot be marked virtual
                 //     abstract virtual int P7 => throw null;
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P7").WithArguments("I7.P7").WithLocation(40, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P7").WithArguments("property", "I7.P7").WithLocation(40, 26),
                 // (40,32): error CS0500: 'I7.P7.get' cannot declare a body because it is marked abstract
                 //     abstract virtual int P7 => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "throw null").WithArguments("I7.P7.get").WithLocation(40, 32),
-                // (44,26): error CS0503: The abstract method 'I8.P8' cannot be marked virtual
+                // (44,26): error CS0503: The abstract property 'I8.P8' cannot be marked virtual
                 //     abstract virtual int P8 {get;} = 0;
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("I8.P8").WithLocation(44, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("property", "I8.P8").WithLocation(44, 26),
                 // (44,26): error CS8052: Instance auto-implemented properties inside interfaces cannot have initializers.
                 //     abstract virtual int P8 {get;} = 0;
                 Diagnostic(ErrorCode.ERR_AutoPropertyInitializerInInterface, "P8").WithArguments("I8.P8").WithLocation(44, 26),
@@ -16979,87 +16979,87 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (44,45): error CS1519: Invalid token '=' in class, struct, or interface member declaration
                 //     abstract virtual int this[int x] {get;} = 0;
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=").WithArguments("=").WithLocation(44, 45),
-                // (4,26): error CS0503: The abstract method 'I0.this[int]' cannot be marked virtual
+                // (4,26): error CS0503: The abstract property 'I0.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] { get; set; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I0.this[int]").WithLocation(4, 26),
-                // (8,26): error CS0503: The abstract method 'I1.this[int]' cannot be marked virtual
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I0.this[int]").WithLocation(4, 26),
+                // (8,26): error CS0503: The abstract property 'I1.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] { get { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I1.this[int]").WithLocation(8, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I1.this[int]").WithLocation(8, 26),
                 // (8,40): error CS0500: 'I1.this[int].get' cannot declare a body because it is marked abstract
                 //     abstract virtual int this[int x] { get { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I1.this[int].get").WithLocation(8, 40),
-                // (12,26): error CS0503: The abstract method 'I2.this[int]' cannot be marked virtual
+                // (12,26): error CS0503: The abstract property 'I2.this[int]' cannot be marked virtual
                 //     virtual abstract int this[int x] 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I2.this[int]").WithLocation(12, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I2.this[int]").WithLocation(12, 26),
                 // (14,9): error CS0500: 'I2.this[int].get' cannot declare a body because it is marked abstract
                 //         get { throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I2.this[int].get").WithLocation(14, 9),
                 // (15,9): error CS0500: 'I2.this[int].set' cannot declare a body because it is marked abstract
                 //         set { throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I2.this[int].set").WithLocation(15, 9),
-                // (20,26): error CS0503: The abstract method 'I3.this[int]' cannot be marked virtual
+                // (20,26): error CS0503: The abstract property 'I3.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] { set { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I3.this[int]").WithLocation(20, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I3.this[int]").WithLocation(20, 26),
                 // (20,40): error CS0500: 'I3.this[int].set' cannot declare a body because it is marked abstract
                 //     abstract virtual int this[int x] { set { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I3.this[int].set").WithLocation(20, 40),
-                // (24,26): error CS0503: The abstract method 'I4.this[int]' cannot be marked virtual
+                // (24,26): error CS0503: The abstract property 'I4.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] { get => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I4.this[int]").WithLocation(24, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I4.this[int]").WithLocation(24, 26),
                 // (24,40): error CS0500: 'I4.this[int].get' cannot declare a body because it is marked abstract
                 //     abstract virtual int this[int x] { get => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I4.this[int].get").WithLocation(24, 40),
-                // (28,26): error CS0503: The abstract method 'I5.this[int]' cannot be marked virtual
+                // (28,26): error CS0503: The abstract property 'I5.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I5.this[int]").WithLocation(28, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I5.this[int]").WithLocation(28, 26),
                 // (30,9): error CS0500: 'I5.this[int].get' cannot declare a body because it is marked abstract
                 //         get => throw null;
-                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I5.this[int].get"),
+                Diagnostic(ErrorCode.ERR_AbstractHasBody, "get").WithArguments("I5.this[int].get").WithLocation(30, 9),
                 // (31,9): error CS0500: 'I5.this[int].set' cannot declare a body because it is marked abstract
                 //         set => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I5.this[int].set").WithLocation(31, 9),
-                // (36,26): error CS0503: The abstract method 'I6.this[int]' cannot be marked virtual
+                // (36,26): error CS0503: The abstract property 'I6.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] { set => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I6.this[int]").WithLocation(36, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I6.this[int]").WithLocation(36, 26),
                 // (36,40): error CS0500: 'I6.this[int].set' cannot declare a body because it is marked abstract
                 //     abstract virtual int this[int x] { set => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "set").WithArguments("I6.this[int].set").WithLocation(36, 40),
-                // (40,26): error CS0503: The abstract method 'I7.this[int]' cannot be marked virtual
+                // (40,26): error CS0503: The abstract property 'I7.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] => throw null;
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I7.this[int]").WithLocation(40, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I7.this[int]").WithLocation(40, 26),
                 // (40,41): error CS0500: 'I7.this[int].get' cannot declare a body because it is marked abstract
                 //     abstract virtual int this[int x] => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "throw null").WithArguments("I7.this[int].get").WithLocation(40, 41),
-                // (44,26): error CS0503: The abstract method 'I8.this[int]' cannot be marked virtual
+                // (44,26): error CS0503: The abstract property 'I8.this[int]' cannot be marked virtual
                 //     abstract virtual int this[int x] {get;} = 0;
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("I8.this[int]").WithLocation(44, 26),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "this").WithArguments("property", "I8.this[int]").WithLocation(44, 26),
                 // (90,15): error CS0535: 'Test2' does not implement interface member 'I0.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("Test2", "I0.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I0").WithArguments("Test2", "I0.this[int]").WithLocation(90, 15),
                 // (90,19): error CS0535: 'Test2' does not implement interface member 'I1.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("Test2", "I1.this[int]").WithLocation(90, 19),
                 // (90,23): error CS0535: 'Test2' does not implement interface member 'I2.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I2.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test2", "I2.this[int]").WithLocation(90, 23),
                 // (90,27): error CS0535: 'Test2' does not implement interface member 'I3.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test2", "I3.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I3").WithArguments("Test2", "I3.this[int]").WithLocation(90, 27),
                 // (90,31): error CS0535: 'Test2' does not implement interface member 'I4.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I4.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I4").WithArguments("Test2", "I4.this[int]").WithLocation(90, 31),
                 // (90,35): error CS0535: 'Test2' does not implement interface member 'I5.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test2", "I5.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I5").WithArguments("Test2", "I5.this[int]").WithLocation(90, 35),
                 // (90,39): error CS0535: 'Test2' does not implement interface member 'I6.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I6").WithArguments("Test2", "I6.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I6").WithArguments("Test2", "I6.this[int]").WithLocation(90, 39),
                 // (90,43): error CS0535: 'Test2' does not implement interface member 'I7.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I7").WithArguments("Test2", "I7.this[int]"),
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I7").WithArguments("Test2", "I7.this[int]").WithLocation(90, 43),
                 // (90,47): error CS0535: 'Test2' does not implement interface member 'I8.this[int]'
                 // class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
-                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I8").WithArguments("Test2", "I8.this[int]")
+                Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I8").WithArguments("Test2", "I8.this[int]").WithLocation(90, 47)
                 );
         }
 
@@ -21989,21 +21989,21 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
 {}
 ";
             ValidateEventModifiers_15(source1,
-                // (4,42): error CS0503: The abstract method 'I0.P0' cannot be marked virtual
+                // (4,42): error CS0503: The abstract event 'I0.P0' cannot be marked virtual
                 //     abstract virtual event System.Action P0;
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P0").WithArguments("I0.P0").WithLocation(4, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P0").WithArguments("event", "I0.P0").WithLocation(4, 42),
                 // (8,42): error CS0065: 'I1.P1': event property must have both add and remove accessors
                 //     abstract virtual event System.Action P1 { add { throw null; } }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P1").WithArguments("I1.P1").WithLocation(8, 42),
-                // (8,42): error CS0503: The abstract method 'I1.P1' cannot be marked virtual
+                // (8,42): error CS0503: The abstract event 'I1.P1' cannot be marked virtual
                 //     abstract virtual event System.Action P1 { add { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P1").WithArguments("I1.P1").WithLocation(8, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P1").WithArguments("event", "I1.P1").WithLocation(8, 42),
                 // (8,47): error CS0500: 'I1.P1.add' cannot declare a body because it is marked abstract
                 //     abstract virtual event System.Action P1 { add { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I1.P1.add").WithLocation(8, 47),
-                // (12,42): error CS0503: The abstract method 'I2.P2' cannot be marked virtual
+                // (12,42): error CS0503: The abstract event 'I2.P2' cannot be marked virtual
                 //     virtual abstract event System.Action P2 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P2").WithArguments("I2.P2").WithLocation(12, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P2").WithArguments("event", "I2.P2").WithLocation(12, 42),
                 // (14,9): error CS0500: 'I2.P2.add' cannot declare a body because it is marked abstract
                 //         add { throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I2.P2.add").WithLocation(14, 9),
@@ -22013,24 +22013,24 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (20,42): error CS0065: 'I3.P3': event property must have both add and remove accessors
                 //     abstract virtual event System.Action P3 { remove { throw null; } }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P3").WithArguments("I3.P3").WithLocation(20, 42),
-                // (20,42): error CS0503: The abstract method 'I3.P3' cannot be marked virtual
+                // (20,42): error CS0503: The abstract event 'I3.P3' cannot be marked virtual
                 //     abstract virtual event System.Action P3 { remove { throw null; } }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P3").WithArguments("I3.P3").WithLocation(20, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P3").WithArguments("event", "I3.P3").WithLocation(20, 42),
                 // (20,47): error CS0500: 'I3.P3.remove' cannot declare a body because it is marked abstract
                 //     abstract virtual event System.Action P3 { remove { throw null; } }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I3.P3.remove").WithLocation(20, 47),
                 // (24,42): error CS0065: 'I4.P4': event property must have both add and remove accessors
                 //     abstract virtual event System.Action P4 { add => throw null; }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P4").WithArguments("I4.P4").WithLocation(24, 42),
-                // (24,42): error CS0503: The abstract method 'I4.P4' cannot be marked virtual
+                // (24,42): error CS0503: The abstract event 'I4.P4' cannot be marked virtual
                 //     abstract virtual event System.Action P4 { add => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P4").WithArguments("I4.P4").WithLocation(24, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P4").WithArguments("event", "I4.P4").WithLocation(24, 42),
                 // (24,47): error CS0500: 'I4.P4.add' cannot declare a body because it is marked abstract
                 //     abstract virtual event System.Action P4 { add => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I4.P4.add").WithLocation(24, 47),
-                // (28,42): error CS0503: The abstract method 'I5.P5' cannot be marked virtual
+                // (28,42): error CS0503: The abstract event 'I5.P5' cannot be marked virtual
                 //     abstract virtual event System.Action P5 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P5").WithArguments("I5.P5").WithLocation(28, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P5").WithArguments("event", "I5.P5").WithLocation(28, 42),
                 // (30,9): error CS0500: 'I5.P5.add' cannot declare a body because it is marked abstract
                 //         add => throw null;
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "add").WithArguments("I5.P5.add").WithLocation(30, 9),
@@ -22040,27 +22040,27 @@ class Test2 : I0, I1, I2, I3, I4, I5, I6, I7, I8
                 // (36,42): error CS0065: 'I6.P6': event property must have both add and remove accessors
                 //     abstract virtual event System.Action P6 { remove => throw null; }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P6").WithArguments("I6.P6").WithLocation(36, 42),
-                // (36,42): error CS0503: The abstract method 'I6.P6' cannot be marked virtual
+                // (36,42): error CS0503: The abstract event 'I6.P6' cannot be marked virtual
                 //     abstract virtual event System.Action P6 { remove => throw null; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P6").WithArguments("I6.P6").WithLocation(36, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P6").WithArguments("event", "I6.P6").WithLocation(36, 42),
                 // (36,47): error CS0500: 'I6.P6.remove' cannot declare a body because it is marked abstract
                 //     abstract virtual event System.Action P6 { remove => throw null; }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "remove").WithArguments("I6.P6.remove").WithLocation(36, 47),
                 // (40,42): error CS0065: 'I7.P7': event property must have both add and remove accessors
                 //     abstract virtual event System.Action P7 { add; }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P7").WithArguments("I7.P7").WithLocation(40, 42),
-                // (40,42): error CS0503: The abstract method 'I7.P7' cannot be marked virtual
+                // (40,42): error CS0503: The abstract event 'I7.P7' cannot be marked virtual
                 //     abstract virtual event System.Action P7 { add; }
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P7").WithArguments("I7.P7").WithLocation(40, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P7").WithArguments("event", "I7.P7").WithLocation(40, 42),
                 // (40,50): error CS0073: An add or remove accessor must have a body
                 //     abstract virtual event System.Action P7 { add; }
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(40, 50),
                 // (44,42): error CS0065: 'I8.P8': event property must have both add and remove accessors
-                //     abstract virtual event System.Action P8 { remove; } 
+                //     abstract virtual event System.Action P8 { remove; }
                 Diagnostic(ErrorCode.ERR_EventNeedsBothAccessors, "P8").WithArguments("I8.P8").WithLocation(44, 42),
-                // (44,42): error CS0503: The abstract method 'I8.P8' cannot be marked virtual
+                // (44,42): error CS0503: The abstract event 'I8.P8' cannot be marked virtual
                 //     abstract virtual event System.Action P8 { remove; } 
-                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("I8.P8").WithLocation(44, 42),
+                Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P8").WithArguments("event", "I8.P8").WithLocation(44, 42),
                 // (44,53): error CS0073: An add or remove accessor must have a body
                 //     abstract virtual event System.Action P8 { remove; } 
                 Diagnostic(ErrorCode.ERR_AddRemoveMustHaveBody, ";").WithLocation(44, 53),
