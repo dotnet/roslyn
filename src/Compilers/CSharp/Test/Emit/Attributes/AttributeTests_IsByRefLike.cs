@@ -659,6 +659,8 @@ class Test
 
                 var accessibility = Accessibility.Public;
                 var attributes = type.GetAttributes();
+                Assert.Equal(2, attributes.Count());
+
                 var assemblyName = module.ContainingAssembly.Name;
 
                 var attributeType = attributes[0].AttributeClass;
@@ -700,14 +702,14 @@ namespace System
 
                 var accessibility = Accessibility.Public;
                 var attributes = type.GetAttributes();
+                Assert.Equal(1, attributes.Count());
+
                 var assemblyName = module.ContainingAssembly.Name;
 
                 var attributeType = attributes[0].AttributeClass;
                 Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
                 Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
                 Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
-
-                Assert.Equal(1, attributes.Count());
             });
         }
 
@@ -753,6 +755,8 @@ class Test
 
                 var accessibility = Accessibility.Public;
                 var attributes = type.GetAttributes();
+                Assert.Equal(2, attributes.Count());
+
                 var assemblyName = module.ContainingAssembly.Name;
 
                 var attributeType = attributes[0].AttributeClass;
@@ -809,6 +813,10 @@ class Test
 
                 var accessibility = Accessibility.Public;
                 var attributes = type.GetAttributes();
+
+                Assert.Equal(3, attributes.Length);
+                Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attributes[2].AttributeClass.ToDisplayString());
+
                 var assemblyName = module.ContainingAssembly.Name;
 
                 var attributeType = attributes[0].AttributeClass;

@@ -1035,7 +1035,7 @@ namespace Microsoft.CodeAnalysis
             return FindTargetAttribute(token, AttributeDescription.IsByRefLikeAttribute).HasValue;
         }
 
-        internal const string byRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
+        internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
 
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token, 
@@ -1055,7 +1055,7 @@ namespace Microsoft.CodeAnalysis
                 ObsoleteAttributeData obsoleteData = TryExtractObsoleteDataFromAttribute(info);
                 if (obsoleteData != null &&
                     ignoreByRefLikeMarker &&
-                    obsoleteData.Message == byRefLikeMarker)
+                    obsoleteData.Message == ByRefLikeMarker)
                 {
                     return null;
                 }
