@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal abstract partial class BaseCompoundAssignmentExpression : BaseAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal abstract partial class BaseCompoundAssignmentExpression : BaseAssignmentExpression, IHasOperatorMethodExpression, IBaseCompoundAssignmentExpression
     {
         protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
