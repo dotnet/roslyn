@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -994,6 +995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             conflictingImplementation1 = null;
             conflictingImplementation2 = null;
             Symbol implementation = null;
+            PooledHashSet<NamedTypeSymbol> shadowedInterfaces = null;
 
             foreach (var interfaceType in implementingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
@@ -1004,8 +1006,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)implementation == null)
                     {
                         implementation = candidate;
+                        shadowedInterfaces = PooledHashSet<NamedTypeSymbol>.GetInstance();
+                        shadowedInterfaces.AddAll(implementation.ContainingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics));
                     }
-                    else if(!implementation.ContainingType.ImplementsInterface(interfaceType, ref useSiteDiagnostics))
+                    else if(!shadowedInterfaces.Contains(interfaceType))
                     {
                         // we have a conflict
                         conflictingImplementation1 = implementation;
@@ -1014,6 +1018,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                     }
                 }
+            }
+
+            if (shadowedInterfaces != null)
+            {
+                shadowedInterfaces.Free();
             }
 
             return implementation;

@@ -5426,20 +5426,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interfaces cannot contain conversion, equality, or inequality operators.
+        /// </summary>
+        internal static string ERR_InterfacesCantContainConversionOrEqualityOperators {
+            get {
+                return ResourceManager.GetString("ERR_InterfacesCantContainConversionOrEqualityOperators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interfaces cannot contain instance fields.
         /// </summary>
         internal static string ERR_InterfacesCantContainFields {
             get {
                 return ResourceManager.GetString("ERR_InterfacesCantContainFields", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Interfaces cannot contain operators.
-        /// </summary>
-        internal static string ERR_InterfacesCantContainOperators {
-            get {
-                return ResourceManager.GetString("ERR_InterfacesCantContainOperators", resourceCulture);
             }
         }
         
@@ -5975,7 +5975,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; specified for Main method must be a valid non-generic class or struct or interface.
+        ///   Looks up a localized string similar to &apos;{0}&apos; specified for Main method must be a non-generic class, struct, or interface.
         /// </summary>
         internal static string ERR_MainClassNotClass {
             get {

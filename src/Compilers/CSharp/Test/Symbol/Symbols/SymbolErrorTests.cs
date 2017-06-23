@@ -10399,11 +10399,17 @@ interface IA
 }
 ";
 
-            var comp = CreateStandardCompilation(text);
+            var comp = CreateStandardCompilation(text, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
-// (4,17): error CS0567: Interfaces cannot contain operators
-//    int operator +(int aa, int bb);   // CS0567
-Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
+                // (4,17): error CS0558: User-defined operator 'IA.operator +(int, int)' must be declared static and public
+                //    int operator +(int aa, int bb);   // CS0567
+                Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
+                // (4,17): error CS0501: 'IA.operator +(int, int)' must declare a body because it is not marked abstract, extern, or partial
+                //    int operator +(int aa, int bb);   // CS0567
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "+").WithArguments("IA.operator +(int, int)").WithLocation(4, 17),
+                // (4,17): error CS0563: One of the parameters of a binary operator must be the containing type
+                //    int operator +(int aa, int bb);   // CS0567
+                Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "+").WithLocation(4, 17)
                 );
         }
 
