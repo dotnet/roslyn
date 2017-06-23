@@ -12,9 +12,6 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal sealed class CompletionHelper
     {
-        private static readonly CompletionHelper CaseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-        private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
-
         private readonly object _gate = new object();
         private readonly Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> _patternMatcherMap =
              new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
@@ -22,28 +19,28 @@ namespace Microsoft.CodeAnalysis.Completion
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
-        private CompletionHelper(bool isCaseSensitive)
+        public CompletionHelper(bool isCaseSensitive)
         {
             _isCaseSensitive = isCaseSensitive;
         }
 
-        public static CompletionHelper GetHelper(Workspace workspace, string language)
-        {
-            var isCaseSensitive = true;
-            var ls = workspace.Services.GetLanguageServices(language);
-            if (ls != null)
-            {
-                var syntaxFacts = ls.GetService<ISyntaxFactsService>();
-                isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
-            }
+        //public CompletionHelper GetHelper(Workspace workspace, string language)
+        //{
+        //    var isCaseSensitive = true;
+        //    var ls = workspace.Services.GetLanguageServices(language);
+        //    if (ls != null)
+        //    {
+        //        var syntaxFacts = ls.GetService<ISyntaxFactsService>();
+        //        isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
+        //    }
 
-            return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
-        }
+        //    return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
+        //}
 
-        public static CompletionHelper GetHelper(Document document)
-        {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
-        }
+        //public static CompletionHelper GetHelper(Document document)
+        //{
+        //    return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
+        //}
 
         public ImmutableArray<TextSpan> GetHighlightedSpans(
             string text, string pattern, CultureInfo culture)
