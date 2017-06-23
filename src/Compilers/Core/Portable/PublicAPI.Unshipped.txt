@@ -351,6 +351,13 @@ Microsoft.CodeAnalysis.Semantics.IAssignmentExpression.Target.get -> Microsoft.C
 Microsoft.CodeAnalysis.Semantics.IAssignmentExpression.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Semantics.IAwaitExpression
 Microsoft.CodeAnalysis.Semantics.IAwaitExpression.AwaitedValue.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IBaseAssignmentExpression
+Microsoft.CodeAnalysis.Semantics.IBaseAssignmentExpression.Target.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IBaseAssignmentExpression.Value.get -> Microsoft.CodeAnalysis.IOperation
+Microsoft.CodeAnalysis.Semantics.IBaseCompoundAssignmentExpression
+Microsoft.CodeAnalysis.Semantics.IBaseCompoundAssignmentExpression.BinaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
+Microsoft.CodeAnalysis.Semantics.IBasePropertyReferenceExpression
+Microsoft.CodeAnalysis.Semantics.IBasePropertyReferenceExpression.Property.get -> Microsoft.CodeAnalysis.IPropertySymbol
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.BinaryOperationKind.get -> Microsoft.CodeAnalysis.Semantics.BinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.IBinaryOperatorExpression.LeftOperand.get -> Microsoft.CodeAnalysis.IOperation
