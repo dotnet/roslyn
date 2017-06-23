@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -366,6 +367,79 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                     // so they get classified/tagged correctly in the editor.
                     _conflictResolutionRenameTrackingSpans.Clear();
 
+                    var documentReplacements = documents
+                        .Select(document => (document, conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None).ToImmutableArray()))
+                        .ToImmutableArray();
+
+                    var firstDocumentReplacements = documentReplacements.FirstOrDefault(d => !d.Item2.IsEmpty);
+                    var bufferContainsLinkedDocuments = documentReplacements.Length > 1 && firstDocumentReplacements.document != null;
+                    if (bufferContainsLinkedDocuments)
+                    {
+                        // Avoid a slow merge process for the case where the changes for all linked documents
+                        // 1. Check if all documents have the same replacement spans (or no replacements)
+                        var spansMatch = true;
+                        foreach (var (document, replacements) in documentReplacements)
+                        {
+                            if (document == firstDocumentReplacements.document || replacements.IsEmpty)
+                            {
+                                continue;
+                            }
+
+                            if (replacements.Length != firstDocumentReplacements.Item2.Length)
+                            {
+                                spansMatch = false;
+                                break;
+                            }
+
+                            for (var i = 0; i < replacements.Length; i++)
+                            {
+                                if (!replacements[i].Equals(firstDocumentReplacements.Item2[i]))
+                                {
+                                    spansMatch = false;
+                                    break;
+                                }
+                            }
+
+                            if (!spansMatch)
+                            {
+                                break;
+                            }
+                        }
+
+                        // 2. If spans match, check content
+                        if (spansMatch)
+                        {
+                            bufferContainsLinkedDocuments = false;
+
+                            // Only need to check the new span's content
+                            var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                            var firstDocumentNewSpanText = firstDocumentReplacements.Item2.SelectAsArray(replacement => firstDocumentNewText.ToString(replacement.NewSpan));
+                            foreach (var (document, replacements) in documentReplacements)
+                            {
+                                if (document == firstDocumentReplacements.document || replacements.IsEmpty)
+                                {
+                                    continue;
+                                }
+
+                                var documentNewText = conflictResolution.NewSolution.GetDocument(document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                                for (var i = 0; i < replacements.Length; i++)
+                                {
+                                    if (documentNewText.ToString(replacements[i].NewSpan) != firstDocumentNewSpanText[i])
+                                    {
+                                        // Have to use the slower merge process
+                                        bufferContainsLinkedDocuments = true;
+                                        break;
+                                    }
+                                }
+
+                                if (bufferContainsLinkedDocuments)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     foreach (var document in documents)
                     {
                         var relevantReplacements = conflictResolution.GetReplacements(document.Id).Where(r => GetRenameSpanKind(r.Kind) != RenameSpanKind.None);
@@ -374,7 +448,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             continue;
                         }
 
-                        var bufferContainsLinkedDocuments = documents.Skip(1).Any();
                         var mergedReplacements = bufferContainsLinkedDocuments
                             ? GetMergedReplacementInfos(
                                 relevantReplacements,
@@ -440,6 +513,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                         kind));
                                 }
                             }
+                        }
+
+                        if (!bufferContainsLinkedDocuments)
+                        {
+                            break;
                         }
                     }
 
