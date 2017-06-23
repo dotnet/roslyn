@@ -510,6 +510,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             {
                 designTime = vbHost.IsDesignTime();
             }
+            else if (this.HostObject != null)
+            {
+                throw new InvalidOperationException();
+            }
             if (!designTime)
             {
                 if (!string.IsNullOrWhiteSpace(this.VsSessionGuid))
