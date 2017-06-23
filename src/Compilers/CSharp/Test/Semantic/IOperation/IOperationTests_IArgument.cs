@@ -1791,6 +1791,84 @@ IInvocationExpression (static void P.M2(System.Int32 x, [S s = null])) (Operatio
             VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact]
+        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        public void DefaultValueForGenericWithUndefinedTypeArgument()
+        {
+            // TODO: https://github.com/dotnet/roslyn/issues/18722
+            //       This should be treated as invalid invocation.
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, G<S> s = null)
+    {
+    }
+}
+
+class G<T>
+{
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [G<S> s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: G<S>, Constant: null) (Syntax: 'M2(1)')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, G<S> s = null)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        public void DefaultValueForNullableGenericWithUndefinedTypeArgument()
+        {
+            // TODO: https://github.com/dotnet/roslyn/issues/18722
+            //       This should be treated as invalid invocation.
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, G<S>? s = null)
+    {
+    }
+}
+
+struct G<T>
+{
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
+      IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: G<S>?) (Syntax: 'M2(1)')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, G<S> s = null)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         private class IndexerAccessArgumentVerifier : OperationWalker
         {
             public static readonly IndexerAccessArgumentVerifier Instance = new IndexerAccessArgumentVerifier();
