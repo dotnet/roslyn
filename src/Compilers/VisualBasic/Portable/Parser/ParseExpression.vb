@@ -1393,29 +1393,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 16425 - 16425
         ' .Parser::ParseArguments( [ _In_ ParseTree::ArgumentList** Target ] [ _Inout_ bool& ErrorInConstruct ] )
 
-        Private Function ParseArguments(ByRef unexpected As GreenNode, Optional RedimOrNewParent As Boolean = False) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
+        Private Function ParseArguments(ByRef unexpected As GreenNode, Optional RedimOrNewParent As Boolean = False, Optional attributeListParent As Boolean = False) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax)
             Dim arguments = _pool.AllocateSeparated(Of ArgumentSyntax)()
 
-            Do
-                ' Check for the first keyword argument.
+            Dim allowNonTrailingNamedArguments = _scanner.Options.LanguageVersion.AllowNonTrailingNamedArguments()
+            Dim seenNames As Boolean = False
 
+            Do
                 Dim isNamed As Boolean = False
                 If (CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
                     PeekToken(1).Kind = SyntaxKind.ColonEqualsToken Then
 
-                    If _scanner.Options.LanguageVersion.AllowNonTrailingNamedArguments() Then
-                        ' After VB15.6 it is possible to use named arguments in non-trailing position
-                        isNamed = True
-                    Else
-                        ParseNamedArguments(arguments)
-                        Exit Do
-                    End If
-
+                    seenNames = True
+                    isNamed = True
                 End If
 
                 Dim comma As PunctuationSyntax = Nothing
                 If isNamed Then
                     Dim argumentName As IdentifierNameSyntax = ParseIdentifierNameAllowingKeyword()
+
                     Dim colonEquals As PunctuationSyntax = Nothing
                     TryGetTokenAndEatNewLine(SyntaxKind.ColonEqualsToken, colonEquals)
                     Dim namedArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpressionCore())
@@ -1435,6 +1431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Else
                     Dim argument = ParseArgument(RedimOrNewParent)
+                    argument = ReportNonTrailingNamedArgumentIfNeeded(argument, seenNames, attributeListParent, allowNonTrailingNamedArguments)
                     arguments.Add(argument)
                 End If
 
@@ -1470,6 +1467,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             _pool.Free(arguments)
             Return result
 
+        End Function
+
+        ' After VB15.6 it is possible to use named arguments in non-trailing position, except in attribute lists (where it remains disallowed)
+        Private Shared Function ReportNonTrailingNamedArgumentIfNeeded(argument As ArgumentSyntax, seenNames As Boolean, attributeListParent As Boolean, allowNonTrailingNamedArguments As Boolean) As ArgumentSyntax
+            If seenNames Then
+                If attributeListParent Then
+                    ' PROTOTYPE(non-trailing) should we produce missing tokens (here and in the next case too)?
+                    'argumentName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                    'colonEquals = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.ColonEqualsToken)
+
+                    ' PROTOTYPE(non-trailing) give an error without recommended language version
+                    argument = ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgument, "PROTOTYPE(non-trailing)")
+
+                ElseIf Not allowNonTrailingNamedArguments Then
+                    argument = ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgument,
+                        New VisualBasicRequiredLanguageVersion(Feature.NonTrailingNamedArguments.GetLanguageVersion()))
+                End If
+            End If
+
+            Return argument
         End Function
 
         ' Parse a list of comma-separated keyword arguments.
