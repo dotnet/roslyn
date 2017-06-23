@@ -3141,6 +3141,7 @@ class C
 class Program
 {
     const int ClassConstant = 10;
+    static int ClassStatic = 10;
     static void Main()
     {
         int LocalVariable;
@@ -3165,6 +3166,9 @@ class Program
         void StrAddFunc(string s = nameof(StrAdd1) + nameof(StrAdd2)) => System.Console.WriteLine(s);
         StrAddFunc();
 
+        void ClassStaticFunc(string x = nameof(ClassStatic)) => System.Console.WriteLine(x);
+        ClassStaticFunc();
+
         void ClassConstantFunc(int x = ClassConstant * 1) => System.Console.WriteLine(x);
         ClassConstantFunc();
 
@@ -3181,8 +3185,17 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: @"
+LocalVariable
+LocalFunction
+2
+5
+StrAdd1StrAdd2
+ClassStatic
+10
+True
+GenericLocal
+");
         }
 
         [Fact]
@@ -3218,8 +3231,7 @@ class GenericClass<T>
 }
 class Program
 {
-    static void RefGenericField(string param1 = nameof(GenericClass<int>.Field))
-    { }
+    static void RefGenericField(string param1 = nameof(GenericClass<int>.Field)) { }
 
     static int F1var = 2;
     static void F1(string a = nameof(F1var)) { }
@@ -3236,12 +3248,17 @@ class Program
 
     static void Main()
     {
+        RefGenericField();
+        F1();
+        new Program()[2] = 2;
+        AttributeInParam(string.Empty);
+        NamedAttributeInParam(string.Empty);
+        NamedAttributeInParam2(string.Empty);
     }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: "");
         }
 
         [Fact]
@@ -3294,6 +3311,9 @@ class C
         [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
         public void AttributesMarkUsed()
         {
+            // Note that x, y, AttrParam, and AttrType theoretically could be marked as used.
+            // However, as local functions cannot have attributes in non-error scenarios, we ignore them.
+            // (See: Binder_Attributes.cs BindAttributeArguments)
             var source = @"
 class A : System.Attribute
 {
@@ -3301,6 +3321,8 @@ class A : System.Attribute
 }
 class Program
 {
+    static int FieldParam = 0;
+    static int FieldType = 0;
     static void Main()
     {
         int x;
@@ -3311,41 +3333,54 @@ class Program
         void AttrType<[A(nameof(y))] T>(int a) { }
         void AttrTypeLocfunc<[A(nameof(AttrType))] T>(int a) { }
         AttrTypeLocfunc<int>(2);
+        void AttrFieldParam([A(nameof(FieldParam))] int a) { }
+        void AttrFieldType<[A(nameof(FieldParam))] T>(int a) { }
+        AttrFieldParam(2);
+        AttrFieldType<int>(2);
     }
 }
 ";
             var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (11,24): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                // (13,24): error CS8205: Attributes are not allowed on local function parameters or type parameters
                 //         void AttrParam([A(nameof(x))] int a) { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(x))]").WithLocation(11, 24),
-                // (12,31): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(x))]").WithLocation(13, 24),
+                // (14,31): error CS8205: Attributes are not allowed on local function parameters or type parameters
                 //         void AttrParamLocfunc([A(nameof(AttrParam))] int a) { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(AttrParam))]").WithLocation(12, 31),
-                // (15,23): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(AttrParam))]").WithLocation(14, 31),
+                // (17,23): error CS8205: Attributes are not allowed on local function parameters or type parameters
                 //         void AttrType<[A(nameof(y))] T>(int a) { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(y))]").WithLocation(15, 23),
-                // (15,33): error CS0103: The name 'y' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(y))]").WithLocation(17, 23),
+                // (17,33): error CS0103: The name 'y' does not exist in the current context
                 //         void AttrType<[A(nameof(y))] T>(int a) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(15, 33),
-                // (16,30): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "y").WithArguments("y").WithLocation(17, 33),
+                // (18,30): error CS8205: Attributes are not allowed on local function parameters or type parameters
                 //         void AttrTypeLocfunc<[A(nameof(AttrType))] T>(int a) { }
-                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(AttrType))]").WithLocation(16, 30),
-                // (16,40): error CS0103: The name 'AttrType' does not exist in the current context
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(AttrType))]").WithLocation(18, 30),
+                // (18,40): error CS0103: The name 'AttrType' does not exist in the current context
                 //         void AttrTypeLocfunc<[A(nameof(AttrType))] T>(int a) { }
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "AttrType").WithArguments("AttrType").WithLocation(16, 40),
-                // (10,13): warning CS0168: The variable 'x' is declared but never used
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "AttrType").WithArguments("AttrType").WithLocation(18, 40),
+                // (20,29): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void AttrFieldParam([A(nameof(FieldParam))] int a) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(FieldParam))]").WithLocation(20, 29),
+                // (21,28): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //         void AttrFieldType<[A(nameof(FieldParam))]>(int a) { }
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(FieldParam))]").WithLocation(21, 28),
+                // (12,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(10, 13),
-                // (14,13): warning CS0168: The variable 'y' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(12, 13),
+                // (16,13): warning CS0168: The variable 'y' is declared but never used
                 //         int y;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(14, 13),
-                // (11,14): warning CS0168: The variable 'AttrParam' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(16, 13),
+                // (13,14): warning CS0168: The variable 'AttrParam' is declared but never used
                 //         void AttrParam([A(nameof(x))] int a) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "AttrParam").WithArguments("AttrParam").WithLocation(11, 14),
-                // (15,14): warning CS0168: The variable 'AttrType' is declared but never used
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "AttrParam").WithArguments("AttrParam").WithLocation(13, 14),
+                // (17,14): warning CS0168: The variable 'AttrType' is declared but never used
                 //         void AttrType<[A(nameof(y))] T>(int a) { }
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "AttrType").WithArguments("AttrType").WithLocation(15, 14)
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "AttrType").WithArguments("AttrType").WithLocation(17, 14),
+                // (9,16): warning CS0414: The field 'Program.FieldType' is assigned but its value is never used
+                //     static int FieldType = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "FieldType").WithArguments("Program.FieldType").WithLocation(9, 16)
                 );
 
             // these produce syntax errors that wildly throw things off, so keep them separate
@@ -3471,6 +3506,72 @@ class Program
                 // (33,37): error CS1736: Default parameter value for 's' must be a compile-time constant
                 //         void GenericCall(string s = Generic<int>()) { }
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "Generic<int>()").WithArguments("s").WithLocation(33, 37)
+                );
+        }
+
+        [Fact]
+        [WorkItem(16821, "https://github.com/dotnet/roslyn/issues/16821")]
+        public void NestedLocfuncMarksUsed()
+        {
+            // See test AttributesMarkUsed for why some locals are unused
+            var source = @"
+using System;
+class A : Attribute
+{
+    public A(string x) { }
+}
+class Program
+{
+    static int Field = 0;
+    static void Main()
+    {
+        int one;
+        void One()
+        {
+            int two;
+            void Two(string y = nameof(Field), string x = nameof(one), string z = nameof(two))
+            {
+            }
+            Two();
+        }
+        One();
+    }
+    static int AttrField = 0;
+    static void Attr()
+    {
+        int one;
+        void One()
+        {
+            int two;
+            void Two([A(nameof(AttrField))] string x, [A(nameof(one))] string y, [A(nameof(two))] string z)
+            {
+            }
+            Two(string.Empty);
+        }
+        One();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (30,22): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //             void Two([A(nameof(AttrField))] string x, [A(nameof(one))] string y, [A(nameof(two))] string z)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(AttrField))]").WithLocation(30, 22),
+                // (30,55): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //             void Two([A(nameof(AttrField))] string x, [A(nameof(one))] string y, [A(nameof(two))] string z)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(one))]").WithLocation(30, 55),
+                // (30,82): error CS8205: Attributes are not allowed on local function parameters or type parameters
+                //             void Two([A(nameof(AttrField))] string x, [A(nameof(one))] string y, [A(nameof(two))] string z)
+                Diagnostic(ErrorCode.ERR_AttributesInLocalFuncDecl, "[A(nameof(two))]").WithLocation(30, 82),
+                // (33,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'Two(string, string, string)'
+                //             Two(string.Empty);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Two").WithArguments("y", "Two(string, string, string)").WithLocation(33, 13),
+                // (29,17): warning CS0168: The variable 'two' is declared but never used
+                //             int two;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "two").WithArguments("two").WithLocation(29, 17),
+                // (26,13): warning CS0168: The variable 'one' is declared but never used
+                //         int one;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "one").WithArguments("one").WithLocation(26, 13)
                 );
         }
     }

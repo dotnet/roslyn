@@ -277,10 +277,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<BoundExpression> boundNamedArgumentsBuilder = null;
                 HashSet<string> boundNamedArgumentsSet = null;
 
-                // VariableUsePass assumes we're not in a scope that can reference local variables.
-                // Need to rework VariableUsePass if that ever changes.
-                Debug.Assert((this.ContainingMemberOrLambda as MethodSymbol)?.MethodKind != MethodKind.LocalFunction);
-
                 // Avoid "cascading" errors for constructor arguments.
                 // We will still generate errors for each duplicate named attribute argument,
                 // matching Dev10 compiler behavior.
@@ -288,7 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var shouldHaveName = false;
 
-                var variableUsePass = attributeArgumentList.Arguments.Count == 0 || this.IsSemanticModelBinder ?
+                // We assume that we cannot reference local variables in attributes in non-error cases.
+                // (as attributes in local functions are not allowed)
+                // As such, keep this simple and only visit fields.
+
+                var fieldUsePass = attributeArgumentList.Arguments.Count == 0 || this.IsSemanticModelBinder ?
                     null :
                     new FieldUsePass(this.Compilation.SourceAssembly);
 
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Constructor argument
                         var boundArgumentExpression = BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false);
-                        variableUsePass?.Analyze(boundArgumentExpression, diagnostics);
+                        fieldUsePass?.Analyze(boundArgumentExpression, diagnostics);
                         hadError |= this.BindArgumentAndName(
                             boundConstructorArguments,
                             diagnostics,
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         BoundExpression boundNamedArgument = BindNamedAttributeArgument(argument, attributeType, diagnostics);
-                        variableUsePass?.Analyze(boundNamedArgument, diagnostics);
+                        fieldUsePass?.Analyze(boundNamedArgument, diagnostics);
                         boundNamedArgumentsBuilder.Add(boundNamedArgument);
                         boundNamedArgumentsSet.Add(argumentName);
                     }

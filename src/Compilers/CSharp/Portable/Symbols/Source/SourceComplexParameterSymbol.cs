@@ -170,12 +170,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var result = MakeDefaultExpression(diagnostics, binder, out var convertedExpression);
 
-            if (binder?.IsSemanticModelBinder != true && (this.ContainingSymbol as MethodSymbol)?.MethodKind != MethodKind.LocalFunction)
+            if (binder?.IsSemanticModelBinder != true)
             {
                 // It is okay to call this multiple times (in a multithreaded environment),
                 // as the only thing VariableUsePass is add/remove members from sets,
                 // which can be performed multiple times with no further effect.
-                new FieldUsePass(this.DeclaringCompilation.SourceAssembly).Visit(convertedExpression);
+                new FieldUsePass(this.DeclaringCompilation.SourceAssembly).Analyze(convertedExpression, diagnostics);
             }
 
             return result;

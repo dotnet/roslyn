@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)_sourceAssembly != null && variable.Kind == SymbolKind.Field)
                 {
                     var field = (FieldSymbol)variable;
-                    _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.Type, value), write: true);
+                    _sourceAssembly.NoteFieldAccess(field, read: read && WriteConsideredUse(field.OriginalDefinition.Type, value), write: true);
                 }
 
                 var local = variable as LocalSymbol;
