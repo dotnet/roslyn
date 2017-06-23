@@ -3336,7 +3336,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression
+    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IBasePropertyReferenceExpression
     {
         protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, kind, isInvalid, syntax, type, constantValue)

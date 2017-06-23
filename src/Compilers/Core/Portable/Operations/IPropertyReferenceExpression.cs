@@ -5,18 +5,29 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
+    /// Represents a base interface for reference to a property.
+    /// </summary>
+    /// <remarks>
+    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
+    /// change it in the future.
+    /// </remarks>
+    public interface IBasePropertyReferenceExpression : IMemberReferenceExpression
+    {
+        /// <summary>
+        /// Referenced property.
+        /// </summary>
+        IPropertySymbol Property { get; }
+    }
+
+    /// <summary>
     /// Represents a reference to a property.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface IPropertyReferenceExpression : IMemberReferenceExpression
+    public interface IPropertyReferenceExpression : IBasePropertyReferenceExpression
     {
-        /// <summary>
-        /// Referenced property.
-        /// </summary>
-        IPropertySymbol Property { get; }
     }
 }
 
