@@ -34,7 +34,7 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Public, type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Public, type.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -50,7 +50,7 @@ ref struct S1{}
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -69,7 +69,7 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -88,7 +88,7 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 Assert.True(type.IsByRefLikeType);
 
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -107,7 +107,7 @@ class Test<T>
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
             });
         }
 
@@ -134,7 +134,7 @@ class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Public, type.GetAttributes(), referenceA.Compilation.AssemblyName);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Public, type.GetAttributes(), referenceA.Compilation.AssemblyName);
                 AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
             });
         }
@@ -429,7 +429,7 @@ public class Test
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Public, type.GetAttributes(), reference.Display);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Public, type.GetAttributes(), reference.Display);
                 AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
             });
         }
@@ -579,7 +579,7 @@ public ref struct S1{}
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertReferencedIsByRefLikeAttribute(Accessibility.Internal, property.Type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertReferencedIsByRefLikeAttributes(Accessibility.Internal, property.Type.GetAttributes(), module.ContainingAssembly.Name);
             });
 
             var code = @"
@@ -636,12 +636,203 @@ public class Test
                 );
         }
 
-        private static void AssertReferencedIsByRefLikeAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        [Fact]
+        public void IsByRefLikeObsolete()
         {
-            var attributeType = attributes.Single().AttributeClass;
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsByRefLikeAttribute : System.Attribute { }
+}
+
+class Test
+{
+    [System.Obsolete(""hello"", true)]
+    public ref struct S1 {}
+}
+";
+
+            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                Assert.True(type.IsByRefLikeType);
+
+                var accessibility = Accessibility.Public;
+                var attributes = type.GetAttributes();
+                var assemblyName = module.ContainingAssembly.Name;
+
+                var attributeType = attributes[0].AttributeClass;
+                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
+                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
+
+                var attribute = attributes[1];
+                Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
+                Assert.Equal("hello", attribute.ConstructorArguments.ElementAt(0).Value);
+                Assert.Equal(true, attribute.ConstructorArguments.ElementAt(1).Value);
+            });
+        }
+
+        [Fact]
+        public void IsByRefLikeObsoleteMissing()
+        {
+            var text = @"
+namespace System.Runtime.CompilerServices
+{
+    public class IsByRefLikeAttribute : System.Attribute { }
+}
+
+class Test
+{
+    public ref struct S1 {}
+}
+
+namespace System
+{
+    public class ObsoleteAttribute{}
+}
+";
+
+            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                Assert.True(type.IsByRefLikeType);
+
+                var accessibility = Accessibility.Public;
+                var attributes = type.GetAttributes();
+                var assemblyName = module.ContainingAssembly.Name;
+
+                var attributeType = attributes[0].AttributeClass;
+                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
+                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
+
+                Assert.Equal(1, attributes.Count());
+            });
+        }
+
+        [Fact]
+        public void IsByRefLikeDeprecated()
+        {
+            var text = @"
+using System;
+using Windows.Foundation.Metadata;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IsByRefLikeAttribute : System.Attribute { }
+}
+
+namespace Windows.Foundation.Metadata
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = true)]
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+    }
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}
+
+class Test
+{
+    [Deprecated(""hello"", DeprecationType.Deprecate, 42)]
+    public ref struct S1 {}
+}
+";
+
+            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                Assert.True(type.IsByRefLikeType);
+
+                var accessibility = Accessibility.Public;
+                var attributes = type.GetAttributes();
+                var assemblyName = module.ContainingAssembly.Name;
+
+                var attributeType = attributes[0].AttributeClass;
+                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
+                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
+
+                var attribute = attributes[1];
+                Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attribute.AttributeClass.ToDisplayString());
+                Assert.Equal(42u, attribute.ConstructorArguments.ElementAt(2).Value);
+            });
+        }
+
+        [Fact]
+        public void IsByRefLikeDeprecatedAndObsolete()
+        {
+            var text = @"
+using System;
+using Windows.Foundation.Metadata;
+
+namespace System.Runtime.CompilerServices
+{
+    public class IsByRefLikeAttribute : System.Attribute { }
+}
+
+namespace Windows.Foundation.Metadata
+{
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Enum | AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field | AttributeTargets.Event | AttributeTargets.Interface | AttributeTargets.Delegate, AllowMultiple = true)]
+    public sealed class DeprecatedAttribute : Attribute
+    {
+        public DeprecatedAttribute(System.String message, DeprecationType type, System.UInt32 version)
+        {
+        }
+    }
+    public enum DeprecationType
+    {
+        Deprecate = 0,
+        Remove = 1
+    }
+}
+
+class Test
+{
+    [Obsolete]
+    [Deprecated(""hello"", DeprecationType.Deprecate, 42)]
+    public ref struct S1 {}
+}
+";
+
+            CompileAndVerify(text, verify: false, symbolValidator: module =>
+            {
+                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                Assert.True(type.IsByRefLikeType);
+
+                var accessibility = Accessibility.Public;
+                var attributes = type.GetAttributes();
+                var assemblyName = module.ContainingAssembly.Name;
+
+                var attributeType = attributes[0].AttributeClass;
+                Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
+                Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
+                Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
+
+                var attribute = attributes[1];
+                Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
+                Assert.Equal(0, attribute.ConstructorArguments.Count());
+            });
+        }
+
+        private static void AssertReferencedIsByRefLikeAttributes(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
+        {
+            var attributeType = attributes[0].AttributeClass;
             Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
             Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
             Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
+
+            var attribute = attributes[1];
+            Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
+            Assert.Equal("Types with embedded references are not supported in this version of your compiler.", attribute.ConstructorArguments.ElementAt(0).Value);
+            Assert.Equal(false, attribute.ConstructorArguments.ElementAt(1).Value);
         }
 
         private static void AssertNotReferencedIsByRefLikeAttribute(ImmutableArray<CSharpAttributeData> attributes)

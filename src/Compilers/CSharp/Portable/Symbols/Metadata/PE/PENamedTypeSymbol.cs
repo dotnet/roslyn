@@ -2177,7 +2177,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return null;
                 }
 
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule);
+                bool ignoreByRefLikeMarker = this.IsByRefLikeType;
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref uncommon.lazyObsoleteAttributeData, _handle, ContainingPEModule, ignoreByRefLikeMarker);
                 return uncommon.lazyObsoleteAttributeData;
             }
         }
