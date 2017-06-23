@@ -520,7 +520,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Return New LazyArrayInitializer(elementValues, isInvalid, syntax, type, constantValue)
         End Function
 
-        Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IPropertyReferenceExpression
+        Private Function CreateBoundPropertyAccessOperation(boundPropertyAccess As BoundPropertyAccess) As IBasePropertyReferenceExpression
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(
                 Function()
                     If boundPropertyAccess.PropertySymbol.IsShared Then
@@ -538,7 +538,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
             Return If(boundPropertyAccess.Arguments.Length > 0,
-                DirectCast(New LazyIndexedPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue), IPropertyReferenceExpression),
+                DirectCast(New LazyIndexedPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue), IBasePropertyReferenceExpression),
                 New LazyPropertyReferenceExpression([property], instance, member, isInvalid, syntax, type, constantValue))
         End Function
 

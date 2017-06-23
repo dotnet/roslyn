@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                      }
                                                      else if (advanceExpression.Kind == OperationKind.CompoundAssignmentExpression || advanceExpression.Kind == OperationKind.IncrementExpression)
                                                      {
-                                                         ICompoundAssignmentExpression advanceAssignment = (ICompoundAssignmentExpression)advanceExpression;
+                                                         IBaseCompoundAssignmentExpression advanceAssignment = (IBaseCompoundAssignmentExpression)advanceExpression;
 
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                                              ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&

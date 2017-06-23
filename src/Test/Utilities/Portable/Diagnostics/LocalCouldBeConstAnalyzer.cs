@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operationBlockContext.RegisterOperationAction(
                            (operationContext) =>
                            {
-                               IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
+                               IBaseAssignmentExpression assignment = (IBaseAssignmentExpression)operationContext.Operation;
                                AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
                            },
                            OperationKind.AssignmentExpression,
