@@ -1126,12 +1126,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var obsoleteData = ObsoleteAttributeData;
                 Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
 
-                // user specified an Obsolete atribute, we cannot emit ours.
+                // If user specified an Obsolete atribute, we cannot emit ours.
                 // NB: we do not check the kind of deprecation. 
                 //     we will not emit Obsolete even if Deprecated or Experimental was used.
                 //     we do not want to get into a scenario where different kinds of deprecation are combined together.
                 //
-                //PROTOTYPE(spans): do we want to produce some kind of warining in this case?
+                //PROTOTYPE(spans): do we want to produce some kind of warning in this case?
                 if (obsoleteData == null)
                 {
                     AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,

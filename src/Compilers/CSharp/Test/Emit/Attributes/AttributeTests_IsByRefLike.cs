@@ -822,8 +822,121 @@ class Test
             });
         }
 
+        [Fact]
+        public void ObsoleteInSource()
+        {
+            var text = @"
+
+class C1
+{
+    void Method()
+    {
+        Test.S1 v1 = default;
+        Test.S2 v2 = default;
+    }
+}
+
+class Test
+{
+    [System.Obsolete(""Types with embedded references are not supported in this version of your compiler."", true)]
+    public struct S1 {}
+
+    [System.Obsolete(""Types with embedded references are not supported in this version of your compiler."", true)]
+    public ref struct S2 {}
+}
+";
+
+            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+                // (7,9): error CS0619: 'Test.S1' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
+                //         Test.S1 v1 = default;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S1").WithArguments("Test.S1", "Types with embedded references are not supported in this version of your compiler.").WithLocation(7, 9),
+                // (8,9): error CS0619: 'Test.S2' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
+                //         Test.S2 v2 = default;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S2").WithArguments("Test.S2", "Types with embedded references are not supported in this version of your compiler.").WithLocation(8, 9),
+                // (7,17): warning CS0219: The variable 'v1' is assigned but its value is never used
+                //         Test.S1 v1 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(7, 17),
+                // (8,17): warning CS0219: The variable 'v2' is assigned but its value is never used
+                //         Test.S2 v2 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v2").WithArguments("v2").WithLocation(8, 17)
+                );
+        }
+
+        [Fact]
+        public void ObsoleteInWrongPlaces()
+        {
+
+            var libSrc = @"
+public class Test
+{
+    [System.Obsolete(""Types with embedded references are not supported in this version of your compiler."", true)]
+    public ref struct S1 {}
+
+    [System.Obsolete(""Types with embedded references are not supported in this version of your compiler."", true)]
+    public struct S2 {}
+
+    [System.Obsolete(""Types with embedded references are not supported in this version of your compiler."", true)]
+    public static int field;
+}
+";
+
+            var libComp = CreateStandardCompilation(libSrc);
+
+            var text = @"
+class C1
+{
+    void Method()
+    {
+        //ok
+        Test.S1 v1 = default;
+    
+        //error not a ref struct
+        Test.S2 v2 = default;
+
+        //error not a ref struct
+        var x = Test.field;
+    }
+}
+";
+
+            CreateStandardCompilation(text, new[] { libComp.EmitToImageReference() }).VerifyEmitDiagnostics(
+                // (10,9): error CS0619: 'Test.S2' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
+                //         Test.S2 v2 = default;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S2").WithArguments("Test.S2", "Types with embedded references are not supported in this version of your compiler.").WithLocation(10, 9),
+                // (13,17): error CS0619: 'Test.field' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
+                //         var x = Test.field;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.field").WithArguments("Test.field", "Types with embedded references are not supported in this version of your compiler.").WithLocation(13, 17),
+                // (7,17): warning CS0219: The variable 'v1' is assigned but its value is never used
+                //         Test.S1 v1 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(7, 17),
+                // (10,17): warning CS0219: The variable 'v2' is assigned but its value is never used
+                //         Test.S2 v2 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v2").WithArguments("v2").WithLocation(10, 17)
+            );
+
+            CreateStandardCompilation(text, new[] { libComp.ToMetadataReference() }).VerifyEmitDiagnostics(
+                // (7,9): error CS0619: 'Test.S1' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
+                //         Test.S1 v1 = default;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S1").WithArguments("Test.S1", "Types with embedded references are not supported in this version of your compiler.").WithLocation(7, 9),
+                // (10,9): error CS0619: 'Test.S2' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
+                //         Test.S2 v2 = default;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.S2").WithArguments("Test.S2", "Types with embedded references are not supported in this version of your compiler.").WithLocation(10, 9),
+                // (13,17): error CS0619: 'Test.field' is obsolete: 'Types with embedded references are not supported in this version of your compiler.'
+                //         var x = Test.field;
+                Diagnostic(ErrorCode.ERR_DeprecatedSymbolStr, "Test.field").WithArguments("Test.field", "Types with embedded references are not supported in this version of your compiler.").WithLocation(13, 17),
+                // (7,17): warning CS0219: The variable 'v1' is assigned but its value is never used
+                //         Test.S1 v1 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v1").WithArguments("v1").WithLocation(7, 17),
+                // (10,17): warning CS0219: The variable 'v2' is assigned but its value is never used
+                //         Test.S2 v2 = default;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "v2").WithArguments("v2").WithLocation(10, 17)
+            );
+        }
+
         private static void AssertReferencedIsByRefLikeAttributes(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
         {
+            Assert.Equal(2, attributes.Count());
+
             var attributeType = attributes[0].AttributeClass;
             Assert.Equal("System.Runtime.CompilerServices.IsByRefLikeAttribute", attributeType.ToDisplayString());
             Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
