@@ -81,7 +81,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                         value,
                         Create(byRefArgument.InConversion),
                         Create(byRefArgument.OutConversion),
-                        parameter Is Nothing OrElse value.IsInvalid,
                         value.Syntax,
                         type:=Nothing,
                         constantValue:=Nothing)
@@ -102,7 +101,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             value,
                             inConversion:=Nothing,
                             outConversion:=Nothing,
-                            isInvalid:=parameter Is Nothing OrElse value.IsInvalid,
                             syntax:=value.Syntax,
                             type:=Nothing,
                             constantValue:=Nothing)
@@ -121,7 +119,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             value,
                             inConversion:=Nothing,
                             outConversion:=Nothing,
-                            isInvalid:=parameter Is Nothing OrElse value.IsInvalid,
                             syntax:=value.Syntax,
                             type:=Nothing,
                             constantValue:=Nothing)
@@ -171,7 +168,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                                                         value:=Nothing,
                                                                         equality:=BinaryOperationKind.None,
                                                                         caseKind:=CaseKind.Default,
-                                                                        isInvalid:=caseStatement.HasErrors,
                                                                         syntax:=caseStatement.Syntax,
                                                                         type:=Nothing,
                                                                         constantValue:=Nothing))
@@ -180,9 +176,8 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     End If
 
                     Dim body = ImmutableArray.Create(Create(boundCaseBlock.Body))
-                    Dim isInvalid = boundCaseBlock.HasErrors
                     Dim syntax = boundCaseBlock.Syntax
-                    Return DirectCast(New SwitchCase(clauses, body, isInvalid, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
+                    Return DirectCast(New SwitchCase(clauses, body, syntax, type:=Nothing, constantValue:=Nothing), ISwitchCase)
                 End Function)
         End Function
 
@@ -253,7 +248,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                     New SyntheticLocalReferenceExpression(
                                             SyntheticLocalKind.ForLoopLimitValue,
                                             Create(boundFor),
-                                            isInvalid:=False,
                                             syntax:=value.Syntax,
                                             type:=value.Type,
                                             constantValue:=Nothing), value, value.Syntax))
@@ -267,7 +261,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                     New SyntheticLocalReferenceExpression(
                                         SyntheticLocalKind.ForLoopStepValue,
                                         Create(boundFor),
-                                        isInvalid:=False,
                                         syntax:=value.Syntax,
                                         type:=value.Type,
                                         constantValue:=Nothing), value, value.Syntax))
@@ -298,7 +291,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                                         New SyntheticLocalReferenceExpression(
                                             SyntheticLocalKind.ForLoopStepValue,
                                             Create(boundFor),
-                                            isInvalid:=False,
                                             syntax:=value.Syntax,
                                             type:=value.Type,
                                             constantValue:=Nothing))
@@ -317,7 +309,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                             New SyntheticLocalReferenceExpression(
                                 SyntheticLocalKind.ForLoopLimitValue,
                                 Create(boundFor),
-                                isInvalid:=False,
                                 syntax:=operationValue.Syntax,
                                 type:=operationValue.Type,
                                 constantValue:=Nothing))
@@ -344,7 +335,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
                     Dim stepValue As IOperation = New SyntheticLocalReferenceExpression(
                                 SyntheticLocalKind.ForLoopStepValue,
                                 Create(boundFor),
-                                isInvalid:=False,
                                 syntax:=value.Syntax,
                                 type:=value.Type,
                                 constantValue:=Nothing)
@@ -391,7 +381,6 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim syntax = DirectCast(boundUsing.Syntax, UsingBlockSyntax).UsingStatement
             Return New VariableDeclarationStatement(
                             declaration,
-                            isInvalid:=False,
                             syntax:=syntax,
                             type:=Nothing,
                             constantValue:=Nothing)
@@ -403,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
 
             Return New EventAssignmentExpression(
-                        [event], instance, Create(statement.Handler), adds:=True, isInvalid:=statement.HasErrors, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                        [event], instance, Create(statement.Handler), adds:=True, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
         Private Function GetRemoveStatementExpression(statement As BoundRemoveHandlerStatement) As IOperation
@@ -412,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim instance = If([event] Is Nothing OrElse [event].IsStatic, Nothing, If(eventAccess IsNot Nothing, Create(eventAccess.ReceiverOpt), Nothing))
 
             Return New EventAssignmentExpression(
-                [event], instance, Create(statement.Handler), adds:=False, isInvalid:=statement.HasErrors, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
+                [event], instance, Create(statement.Handler), adds:=False, syntax:=statement.Syntax, type:=Nothing, constantValue:=Nothing)
         End Function
 
         Friend Class Helper

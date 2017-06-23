@@ -31,11 +31,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator increment)
         {
             string text = increment.Syntax.ToString();
-            bool isInvalid = false;
             SyntaxNode syntax = increment.Syntax;
             ITypeSymbol type = increment.Type;
             Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
-            return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
+            return new LiteralExpression(text, syntax, type, constantValue);
         }
 
         internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.Semantics
                 value,
                 inConversion: null,
                 outConversion: null,
-                isInvalid: parameter == null || value.IsInvalid,
                 syntax: value.Syntax,
                 type: value.Type,
                 constantValue: default);
@@ -162,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
             });
         }
 
@@ -173,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 var clauses = switchSection.SwitchLabels.SelectAsArray(s => (ICaseClause)Create(s));
                 var body = switchSection.Statements.SelectAsArray(s => Create(s));
 
-                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.HasErrors, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
+                return (ISwitchCase)new SwitchCase(clauses, body, switchSection.Syntax, type: null, constantValue: default(Optional<object>));
             });
         }
 

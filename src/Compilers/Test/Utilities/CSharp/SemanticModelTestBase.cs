@@ -239,12 +239,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             where TSyntaxNode : SyntaxNode
         {
             var (operation, syntax) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
-            return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
+            return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
         }
 
-        protected string GetOperationTreeForTest(IOperation operation)
+        protected string GetOperationTreeForTest(Compilation compilation, IOperation operation)
         {
-            return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
+            return operation != null ? OperationTreeVerifier.GetOperationTree(compilation, operation) : null;
         }
 
         protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
-            var actualOperationTree = GetOperationTreeForTest(actualOperation);
+            var actualOperationTree = GetOperationTreeForTest(compilation, actualOperation);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
             AdditionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
         }

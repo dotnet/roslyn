@@ -11,10 +11,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract class Operation : IOperation
     {
-        public Operation(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
+        public Operation(OperationKind kind, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
         {
             Kind = kind;
-            IsInvalid = isInvalid;
             Syntax = syntax;
             Type = type;
             ConstantValue = constantValue;
@@ -24,11 +23,6 @@ namespace Microsoft.CodeAnalysis
         /// Identifies the kind of the operation.
         /// </summary>
         public OperationKind Kind { get; }
-
-        /// <summary>
-        ///  Indicates whether the operation is invalid, either semantically or syntactically.
-        /// </summary>
-        public bool IsInvalid { get; }
 
         /// <summary>
         /// Syntax that was analyzed to produce the operation.
@@ -49,26 +43,23 @@ namespace Microsoft.CodeAnalysis
 
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
 
-        public static IOperation CreateOperationNone(bool isInvalid, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+        public static IOperation CreateOperationNone(SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
         {
-            return new NoneOperation(isInvalid, node, constantValue, getChildren);
+            return new NoneOperation(node, constantValue, getChildren);
         }
 
         private class NoneOperation : IOperation, IOperationWithChildren
         {
             private readonly Func<ImmutableArray<IOperation>> _getChildren;
 
-            public NoneOperation(bool isInvalid, SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
+            public NoneOperation(SyntaxNode node, Optional<object> constantValue, Func<ImmutableArray<IOperation>> getChildren)
             {
-                IsInvalid = isInvalid;
                 Syntax = node;
                 ConstantValue = constantValue;
                 _getChildren = getChildren;
             }
 
             public OperationKind Kind => OperationKind.None;
-
-            public bool IsInvalid { get; }
 
             public SyntaxNode Syntax { get; }
 
@@ -87,7 +78,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             public ImmutableArray<IOperation> Children => _getChildren();
-
         }
     }
 }

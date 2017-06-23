@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis
         OperationKind Kind { get; }
 
         /// <summary>
-        ///  Indicates whether the operation is invalid, either semantically or syntactically.
-        /// </summary>
-        bool IsInvalid { get; }
-
-        /// <summary>
         /// Syntax that was analyzed to produce the operation.
         /// </summary>
         SyntaxNode Syntax { get; }

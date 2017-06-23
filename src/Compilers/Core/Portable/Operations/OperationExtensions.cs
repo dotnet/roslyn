@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -9,6 +10,20 @@ namespace Microsoft.CodeAnalysis.Semantics
 {
     public static class OperationExtensions
     {
+        public static bool IsInvalid(this IOperation operation, Compilation compilation, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // once we made sure every operation has Syntax, we will return this condition
+            if (operation.Syntax == null)
+            {
+                return true;
+            }
+
+            var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+
+            // if given compilation is wrong, we will throw null ref exception
+            return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any();
+        }
+
         public static IEnumerable<IOperation> Descendants(this IOperation operation)
         {
             if (operation == null)

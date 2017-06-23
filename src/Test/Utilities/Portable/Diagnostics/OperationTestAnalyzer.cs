@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     if (operationContext.Operation.IsInvalid)
+                     if (operationContext.Operation.IsInvalid(operationContext.Compilation, operationContext.CancellationToken))
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(IsInvalidDescriptor, operationContext.Operation.Syntax.GetLocation()));
                      }
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      long priorArgumentValue = long.MinValue;
                      foreach (IArgument argument in invocation.ArgumentsInEvaluationOrder)
                      {
-                         if (argument.IsInvalid)
+                         if (argument.IsInvalid(operationContext.Compilation, operationContext.CancellationToken))
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidArgumentDescriptor, argument.Syntax.GetLocation()));
                              return;
@@ -827,11 +827,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                      foreach (var decl in declarationStatement.Declarations)
                      {
-                         if (decl.Initializer != null && !decl.Initializer.IsInvalid)
+                         if (decl.Initializer != null && !decl.Initializer.IsInvalid(operationContext.Compilation, operationContext.CancellationToken))
                          {
                              foreach (var symbol in decl.Variables)
                              {
-                                Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
+                                 Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
                              }
                          }
                      }
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                              break;
                          case OperationKind.SwitchCase:
                              var switchSection = (ISwitchCase)operationContext.Operation;
-                             if (!switchSection.IsInvalid && switchSection.Clauses.Length > 1)
+                             if (!switchSection.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) && switchSection.Clauses.Length > 1)
                              {
                                  Report(operationContext, switchSection.Syntax, MultipleCaseClausesDescriptor);
                              }
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
                      if (eventAssignment.Event == null)
                      {
-                         if (eventAssignment.EventInstance == null && eventAssignment.IsInvalid)
+                         if (eventAssignment.EventInstance == null && eventAssignment.IsInvalid(operationContext.Compilation, operationContext.CancellationToken))
                          {
                              // report inside after checking for null to make sure it does't crash.
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidEventDescriptor, eventAssignment.Syntax.GetLocation()));
@@ -1252,7 +1252,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      var addressOfOperation = (IAddressOfExpression)operationContext.Operation;
                      operationContext.ReportDiagnostic(Diagnostic.Create(AddressOfDescriptor, addressOfOperation.Syntax.GetLocation()));
 
-                     if (addressOfOperation.Reference.Kind == OperationKind.InvalidExpression && addressOfOperation.IsInvalid)
+                     if (addressOfOperation.Reference.Kind == OperationKind.InvalidExpression && addressOfOperation.IsInvalid(operationContext.Compilation, operationContext.CancellationToken))
                      {
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidAddressOfReferenceDescriptor, addressOfOperation.Reference.Syntax.GetLocation()));
                      }
@@ -1640,7 +1640,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                     var binary = (IBinaryOperatorExpression)operationContext.Operation;
                     var left = binary.LeftOperand;
                     var right = binary.RightOperand;
-                    if (!left.IsInvalid && !right.IsInvalid && !binary.UsesOperatorMethod && binary.OperatorMethod == null)
+                    if (!left.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) &&
+                        !right.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) &&
+                        !binary.UsesOperatorMethod && binary.OperatorMethod == null)
                     {
                         if (left.Kind == OperationKind.LocalReferenceExpression)
                         {
@@ -1674,7 +1676,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         var operandLocal = ((ILocalReferenceExpression)operand).Local;
                         if (operandLocal.Name == "x")
                         {
-                            if (!operand.IsInvalid && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
+                            if (!operand.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) && !unary.UsesOperatorMethod && unary.OperatorMethod == null)
                             {
                                 operationContext.ReportDiagnostic(
                                     Diagnostic.Create(UnaryOperatorDescriptor,
@@ -1816,7 +1818,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      if (operation.Kind == OperationKind.BinaryOperatorExpression)
                      {
                          var binary = (IBinaryOperatorExpression)operation;
-                         if (binary.IsInvalid && binary.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         if (binary.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) && binary.BinaryOperationKind == BinaryOperationKind.Invalid)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidBinaryDescriptor, binary.Syntax.GetLocation()));
                          }
@@ -1824,7 +1826,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      else if (operation.Kind == OperationKind.UnaryOperatorExpression)
                      {
                          var unary = (IUnaryOperatorExpression)operation;
-                         if (unary.IsInvalid && unary.UnaryOperationKind == UnaryOperationKind.Invalid)
+                         if (unary.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) && unary.UnaryOperationKind == UnaryOperationKind.Invalid)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidUnaryDescriptor, unary.Syntax.GetLocation()));
                          }
@@ -1832,7 +1834,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      else if (operation.Kind == OperationKind.IncrementExpression)
                      {
                          var inc = (IIncrementExpression)operation;
-                         if (inc.IsInvalid && inc.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         if (inc.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) && inc.BinaryOperationKind == BinaryOperationKind.Invalid)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidIncrementDescriptor, inc.Syntax.GetLocation()));
                          }
@@ -1923,7 +1925,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      var conversion = (IConversionExpression)operationContext.Operation;
                      if (conversion.ConversionKind == ConversionKind.Invalid)
                      {
-                         Debug.Assert(conversion.IsInvalid == true);
+                         Debug.Assert(conversion.IsInvalid(operationContext.Compilation, operationContext.CancellationToken) == true);
                          operationContext.ReportDiagnostic(Diagnostic.Create(InvalidConversionExpressionDescriptor, conversion.Syntax.GetLocation()));
                      }
                  },
@@ -1959,7 +1961,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          IForLoopStatement forLoop = (IForLoopStatement)loop;
                          var forCondition = forLoop.Condition;
 
-                         if (forCondition.IsInvalid)
+                         if (forCondition.IsInvalid(operationContext.Compilation, operationContext.CancellationToken))
                          {
                              // Generate a warning to prove we didn't crash
                              operationContext.ReportDiagnostic(Diagnostic.Create(ForLoopConditionCrashDescriptor, forLoop.Condition.Syntax.GetLocation()));

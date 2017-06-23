@@ -163,7 +163,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
         Dim semanticModel = compilation.GetSemanticModel(tree)
         Dim operation = semanticModel.GetOperationInternal(node)
-        Return If(operation IsNot Nothing, OperationTreeVerifier.GetOperationTree(operation), Nothing)
+        Return If(operation IsNot Nothing, OperationTreeVerifier.GetOperationTree(compilation, operation), Nothing)
     End Function
 
     Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0) As String

@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 {
     public sealed class OperationTreeVerifier : OperationWalker
     {
+        private readonly Compilation _compilation;
         private readonly IOperation _root;
         private readonly StringBuilder _builder;
 
@@ -25,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private string _currentIndent;
         private bool _pendingIndent;
 
-        public OperationTreeVerifier(IOperation root, int initialIndent)
+        public OperationTreeVerifier(Compilation compilation, IOperation root, int initialIndent)
         {
+            _compilation = compilation;
             _root = root;
             _builder = new StringBuilder();
 
@@ -34,15 +36,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _pendingIndent = true;
         }
 
-        public static void Verify(IOperation operation, string expectedOperationTree, int initialIndent = 0)
+        public static void Verify(Compilation compilation, IOperation operation, string expectedOperationTree, int initialIndent = 0)
         {
-            var actual = GetOperationTree(operation, initialIndent);
+            var actual = GetOperationTree(compilation, operation, initialIndent);
             Assert.Equal(expectedOperationTree, actual);
         }
 
-        public static string GetOperationTree(IOperation operation, int initialIndent = 0)
+        public static string GetOperationTree(Compilation compilation, IOperation operation, int initialIndent = 0)
         {
-            var walker = new OperationTreeVerifier(operation, initialIndent);
+            var walker = new OperationTreeVerifier(compilation, operation, initialIndent);
             walker.Visit(operation);
             return walker._builder.ToString();
         }
@@ -80,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             // IsInvalid
-            if (operation.IsInvalid)
+            if (operation.IsInvalid(_compilation))
             {
                 LogString(", IsInvalid");
             }
