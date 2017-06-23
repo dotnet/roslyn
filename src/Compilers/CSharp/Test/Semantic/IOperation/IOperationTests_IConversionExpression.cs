@@ -675,7 +675,7 @@ class Program
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'IFormattabl ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'IFormattabl ... *</bind>*/;')
     Variables: Local_1: System.IFormattable f1
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: System.IFormattable) (Syntax: '$""{1}""')
+    Initializer: IConversionExpression (ConversionKind.InterpolatedString, Implicit) (OperationKind.ConversionExpression, Type: System.IFormattable) (Syntax: '$""{1}""')
         IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""{1}""')
           Parts(1): IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
               Expression: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')

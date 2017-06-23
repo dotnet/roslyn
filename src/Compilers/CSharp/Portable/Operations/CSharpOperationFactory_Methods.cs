@@ -139,6 +139,9 @@ namespace Microsoft.CodeAnalysis.Semantics
                 case CSharp.ConversionKind.PointerToVoid:
                     return Semantics.ConversionKind.CSharp;
 
+                case CSharp.ConversionKind.InterpolatedString:
+                    return Semantics.ConversionKind.InterpolatedString;
+
                 default:
                     return Semantics.ConversionKind.Invalid;
             }
