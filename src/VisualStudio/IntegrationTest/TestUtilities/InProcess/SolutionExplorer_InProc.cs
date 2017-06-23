@@ -9,6 +9,7 @@ using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -212,6 +213,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var project = GetProject(projectName);
             ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
+        }
+
+        public void AddPackageReference(string projectName, string packageName, string version)
+        {
+            var project = GetProject(projectName);
+
+            if (project.Object is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+
+                var result = threadingService.ExecuteSynchronously(async () =>
+                {
+                    return await packageService.AddAsync(packageName, version);
+                });
+            }
+        }
+
+        public void RemovePackageReference(string projectName, string packageName)
+        {
+            var project = GetProject(projectName);
+
+            if (project.Object is IVsBrowseObjectContext browseObjectContext)
+            {
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
+                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+
+                var result = threadingService.ExecuteSynchronously(async () =>
+                {
+                    return await packageService.RemoveAsync(packageName);
+                });
+            }
         }
 
         public void RemoveProjectReference(string projectName, string projectReferenceName)
