@@ -89,6 +89,7 @@
     <Compile Include="SymbolsTests\AnonymousTypes\AnonymousTypesEmittedSymbolsTests.vb" />
     <Compile Include="SymbolsTests\AnonymousTypes\AnonymousTypesSemanticsTests.vb" />
     <Compile Include="SymbolsTests\CustomModifiersTests.vb" />
+    <Compile Include="SymbolsTests\Metadata\PE\IsConstModifierTests.vb" />
     <Compile Include="SymbolsTests\WellKnownTypeValidationTests.vb" />
     <Compile Include="SymbolsTests\AssemblyAndNamespaceTests.vb" />
     <Compile Include="SymbolsTests\CompilationCreationTests.vb" />

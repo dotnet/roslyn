@@ -1102,8 +1102,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
-            Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
+            If _packedFlags.IsUseSiteDiagnosticPopulated Then
+                Return _uncommonFields?._lazyUseSiteErrorInfo
+            End If
+
             If errorInfo IsNot Nothing Then
+                Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
                 errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
             End If
 

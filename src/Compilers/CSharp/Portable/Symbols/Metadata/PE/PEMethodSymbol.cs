@@ -1017,9 +1017,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
         {
-            Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
+            if (_packedFlags.IsUseSiteDiagnosticPopulated)
+            {
+                return _uncommonFields?._lazyUseSiteDiagnostic;
+            }
+
             if (diagnostic != null)
             {
+                Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
                 diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
             }
 

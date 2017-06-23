@@ -161,6 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 arglistToken: out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
+                addIsConstModifier: false,
                 diagnostics: diagnostics);
 
             ParameterHelpers.EnsureIsReadOnlyAttributeExists(parameters, diagnostics, modifyCompilationForRefReadOnly: false);
