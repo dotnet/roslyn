@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ICompoundAssignmentExpression : IAssignmentExpression, IHasOperatorMethodExpression
+    public interface ICompoundAssignmentExpression : IBaseAssignmentExpression, IHasOperatorMethodExpression
     {
         /// <summary>
         /// Kind of binary operation.

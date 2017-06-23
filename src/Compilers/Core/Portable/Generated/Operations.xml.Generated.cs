@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
-    internal abstract partial class BaseAssignmentExpression : Operation, IAssignmentExpression
+    internal abstract partial class BaseAssignmentExpression : Operation, IBaseAssignmentExpression
     {
         protected BaseAssignmentExpression(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
