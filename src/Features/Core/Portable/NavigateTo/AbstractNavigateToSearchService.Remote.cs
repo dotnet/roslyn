@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
         private static Task<RemoteHostClient.Session> GetRemoteHostSessionAsync(Project project, CancellationToken cancellationToken)
         {
+            if (!RemoteSupportedLanguages.IsSupported(project.Language))
+            {
+                return null;
+            }
+
             return project.Solution.TryCreateCodeAnalysisServiceSessionAsync(
                 RemoteFeatureOptions.NavigateToEnabled, cancellationToken);
         }

@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             using (session)
             {
-                if (session == null)
+                if (session == null || !RemoteSupportedLanguages.IsSupported(document.Project.Language))
                 {
                     return await GetFixesInCurrentProcessAsync(
                         document, span, diagnosticId, placeSystemNamespaceFirst,

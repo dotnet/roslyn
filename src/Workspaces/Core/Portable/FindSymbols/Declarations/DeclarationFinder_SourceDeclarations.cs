@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         #region Dispatch Members
 
         // These are the public entrypoints to finding source declarations.  They will attempt to
-        // remove the query to the OOP process, and will fallback to local processing if they can't.
+        // remote the query to the OOP process, and will fallback to local processing if they can't.
 
         public static async Task<ImmutableArray<SymbolAndProjectId>> FindSourceDeclarationsWithNormalQueryAsync(
             Solution solution, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
@@ -135,18 +135,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, string name, bool ignoreCase, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
+            if (RemoteSupportedLanguages.IsSupported(project.Language))
             {
-                if (session != null)
+                using (var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
                 {
-                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                        nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
-                        project.Id, name, ignoreCase, criteria).ConfigureAwait(false);
+                    if (session != null)
+                    {
+                        var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                            nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithNormalQueryAsync),
+                            project.Id, name, ignoreCase, criteria).ConfigureAwait(false);
 
-                    var rehydrated = await RehydrateAsync(
-                        project.Solution, result, cancellationToken).ConfigureAwait(false);
+                        var rehydrated = await RehydrateAsync(
+                            project.Solution, result, cancellationToken).ConfigureAwait(false);
 
-                    return (true, rehydrated);
+                        return (true, rehydrated);
+                    }
                 }
             }
 
@@ -156,18 +159,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindSourceDeclarationsWithPatternInRemoteProcessAsync(
             Project project, string pattern, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
+            if (RemoteSupportedLanguages.IsSupported(project.Language))
             {
-                if (session != null)
+                using (var session = await SymbolFinder.TryGetRemoteSessionAsync(project.Solution, cancellationToken).ConfigureAwait(false))
                 {
-                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                        nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
-                        project.Id, pattern, criteria).ConfigureAwait(false);
+                    if (session != null)
+                    {
+                        var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                            nameof(IRemoteSymbolFinder.FindProjectSourceDeclarationsWithPatternAsync),
+                            project.Id, pattern, criteria).ConfigureAwait(false);
 
-                    var rehydrated = await RehydrateAsync(
-                        project.Solution, result, cancellationToken).ConfigureAwait(false);
+                        var rehydrated = await RehydrateAsync(
+                            project.Solution, result, cancellationToken).ConfigureAwait(false);
 
-                    return (true, rehydrated);
+                        return (true, rehydrated);
+                    }
                 }
             }
 

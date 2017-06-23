@@ -93,19 +93,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<(bool, ImmutableArray<SymbolAndProjectId>)> TryFindAllDeclarationsWithNormalQueryInRemoteProcessAsync(
             Project project, SearchQuery query, SymbolFilter criteria, CancellationToken cancellationToken)
         {
-            using (var session = await SymbolFinder.TryGetRemoteSessionAsync(
-                project.Solution, cancellationToken).ConfigureAwait(false))
+            if (RemoteSupportedLanguages.IsSupported(project.Language))
             {
-                if (session != null)
+                using (var session = await SymbolFinder.TryGetRemoteSessionAsync(
+                    project.Solution, cancellationToken).ConfigureAwait(false))
                 {
-                    var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
-                        nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
-                        project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
+                    if (session != null)
+                    {
+                        var result = await session.InvokeAsync<ImmutableArray<SerializableSymbolAndProjectId>>(
+                            nameof(IRemoteSymbolFinder.FindAllDeclarationsWithNormalQueryAsync),
+                            project.Id, query.Name, query.Kind, criteria).ConfigureAwait(false);
 
-                    var rehydrated = await RehydrateAsync(
-                        project.Solution, result, cancellationToken).ConfigureAwait(false);
+                        var rehydrated = await RehydrateAsync(
+                            project.Solution, result, cancellationToken).ConfigureAwait(false);
 
-                    return (true, rehydrated);
+                        return (true, rehydrated);
+                    }
                 }
             }
 
