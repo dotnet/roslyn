@@ -31,6 +31,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 var documents = documentArgs?.Select(solution.GetDocument)
+                                             .Where(d => d != null)
                                              .ToImmutableHashSet();
 
                 await SymbolFinder.FindReferencesInCurrentProcessAsync(
