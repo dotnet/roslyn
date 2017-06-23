@@ -229,6 +229,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                     return await packageService.AddAsync(packageName, version);
                 });
             }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(AddPackageReference)}' is not supported in project '{projectName}'.");
+            }
         }
 
         public void RemovePackageReference(string projectName, string packageName)
@@ -244,6 +248,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
                 {
                     return await packageService.RemoveAsync(packageName);
                 });
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
             }
         }
 
