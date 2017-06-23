@@ -207,10 +207,12 @@ function Test-XUnit() {
         Deploy-VsixViaTool
     }
 
+    $logFilePath = Join-Path $configDir "runtests.log"
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
     $args = "$xunitDir"
+    $args += " -log:$logFilePath"
 
     if ($testDesktop) {
         if ($test32) {

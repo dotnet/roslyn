@@ -68,7 +68,7 @@ namespace RunTests
         public string XunitPath { get; set; }
 
         /// <summary>
-        /// When set the log file ffor executing tests will be written to the prescribed location.
+        /// When set the log file for executing tests will be written to the prescribed location.
         /// </summary>
         public string LogFilePath { get; set; }
 
