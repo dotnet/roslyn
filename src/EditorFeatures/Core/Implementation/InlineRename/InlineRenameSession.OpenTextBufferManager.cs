@@ -308,7 +308,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
             }
 
+            private Task<LinkedFileMergeSessionResult> ComputeMergeResultAsync(Solution newSolution, CancellationToken cancellationToken)
+            {
+                var preMergeSolution = _session._baseSolution;
+
+                var diffMergingSession = new LinkedFileDiffMergingSession(preMergeSolution, newSolution, newSolution.GetChanges(preMergeSolution), logSessionInfo: true);
+                return diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken);
+            }
+
+            [Obsolete("Update code to call ComputeMergeResultAsync prior to calling the other overload of ApplyConflictResolutionEdits.")]
             internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, IEnumerable<Document> documents, CancellationToken cancellationToken)
+            {
+                AssertIsForeground();
+
+                var mergeResult = ComputeMergeResultAsync(conflictResolution.NewSolution, cancellationToken).WaitAndGetResult(cancellationToken);
+                ApplyConflictResolutionEdits(conflictResolution, mergeResult, documents, cancellationToken);
+            }
+
+            internal void ApplyConflictResolutionEdits(IInlineRenameReplacementInfo conflictResolution, LinkedFileMergeSessionResult mergeResult, IEnumerable<Document> documents, CancellationToken cancellationToken)
             {
                 AssertIsForeground();
 
@@ -322,12 +339,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     // 1. Undo any previous edits and update the buffer to resulting document after conflict resolution
                     _session.UndoManager.UndoTemporaryEdits(_subjectBuffer, disconnect: false);
-
-                    var preMergeSolution = _session._baseSolution;
-                    var postMergeSolution = conflictResolution.NewSolution;
-
-                    var diffMergingSession = new LinkedFileDiffMergingSession(preMergeSolution, postMergeSolution, postMergeSolution.GetChanges(preMergeSolution), logSessionInfo: true);
-                    var mergeResult = diffMergingSession.MergeDiffsAsync(mergeConflictHandler: null, cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 
                     var newDocument = mergeResult.MergedSolution.GetDocument(documents.First().Id);
                     var originalDocument = _baseDocuments.Single(d => d.Id == newDocument.Id);
