@@ -286,41 +286,42 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         }
 
         public void CleanUpOpenSolution()
-        {
-            var dte = GetDTE();
-            dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
-
-            if (dte.Solution != null)
+            => InvokeOnUIThread(() =>
             {
-                var directoriesToDelete = new List<string>();
+                var dte = GetDTE();
+                dte.Documents.CloseAll(EnvDTE.vsSaveChanges.vsSaveChangesNo);
 
-                // Save the full path to each project in the solution. This is so we can
-                // cleanup any folders after the solution is closed.
-                foreach (EnvDTE.Project project in dte.Solution.Projects)
+                if (dte.Solution != null)
                 {
-                    if (!string.IsNullOrEmpty(project.FullName))
+                    var directoriesToDelete = new List<string>();
+
+                    // Save the full path to each project in the solution. This is so we can
+                    // cleanup any folders after the solution is closed.
+                    foreach (EnvDTE.Project project in dte.Solution.Projects)
                     {
-                        directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                        if (!string.IsNullOrEmpty(project.FullName))
+                        {
+                            directoriesToDelete.Add(Path.GetDirectoryName(project.FullName));
+                        }
+                    }
+
+                    // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
+                    // The solution might be zero-impact and thus has no name, so deal with that
+                    var solutionFullName = dte.Solution.FullName;
+
+                    if (!string.IsNullOrEmpty(solutionFullName))
+                    {
+                        directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
+                    }
+
+                    dte.Solution.Close(SaveFirst: false);
+
+                    foreach (var directoryToDelete in directoriesToDelete)
+                    {
+                        IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
                     }
                 }
-
-                // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
-                // The solution might be zero-impact and thus has no name, so deal with that
-                var solutionFullName = dte.Solution.FullName;
-
-                if (!string.IsNullOrEmpty(solutionFullName))
-                {
-                    directoriesToDelete.Add(Path.GetDirectoryName(solutionFullName));
-                }
-
-                dte.Solution.Close(SaveFirst: false);
-
-                foreach (var directoryToDelete in directoriesToDelete)
-                {
-                    IntegrationHelper.TryDeleteDirectoryRecursively(directoryToDelete);
-                }
-            }
-        }
+            });
 
         private EnvDTE.Project GetProject(string nameOrFileName)
             => _solution.Projects.OfType<EnvDTE.Project>().First(p

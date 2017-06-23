@@ -9,6 +9,7 @@ using System.Threading;
 using System.Reflection;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE

@@ -62,9 +62,9 @@ public class Vec
                 // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         string s = o is string k ? k : null; // pattern matching
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7.0").WithLocation(14, 20),
-                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                // (12,13): warning CS8321: The local function 'f' is declared but never used
                 //         int f() => 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
@@ -72,9 +72,9 @@ public class Vec
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
-                // (12,13): warning CS0168: The variable 'f' is declared but never used
+                // (12,13): warning CS8321: The local function 'f' is declared but never used
                 //         int f() => 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "f").WithArguments("f").WithLocation(12, 13)
                 );
         }
 

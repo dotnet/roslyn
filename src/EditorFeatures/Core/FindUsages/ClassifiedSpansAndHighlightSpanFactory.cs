@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 

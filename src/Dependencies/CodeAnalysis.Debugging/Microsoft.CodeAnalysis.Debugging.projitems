@@ -7,7 +7,7 @@
     <SharedGUID>d73adf7d-2c1c-42ae-b2ab-edc9497e4b71</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>Microsoft.CodeAnalysis.Metadata</Import_RootNamespace>
+    <Import_RootNamespace>Microsoft.CodeAnalysis.Debugging</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CustomDebugInfoConstants.cs" />
