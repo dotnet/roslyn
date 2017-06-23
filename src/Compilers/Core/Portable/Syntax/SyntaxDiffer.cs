@@ -529,13 +529,26 @@ namespace Microsoft.CodeAnalysis
 
         private void RecordReplaceOldWithNew(int oldNodeCount, int newNodeCount)
         {
-            var oldSpan = GetSpan(_oldNodes, 0, oldNodeCount);
-            var removedNodes = CopyFirst(_oldNodes, oldNodeCount);
-            RemoveFirst(_oldNodes, oldNodeCount);
-            var newSpan = GetSpan(_newNodes, 0, newNodeCount);
-            var insertedNodes = CopyFirst(_newNodes, newNodeCount);
-            RemoveFirst(_newNodes, newNodeCount);
-            RecordChange(new ChangeRecord(new TextChangeRange(oldSpan, newSpan.Length), removedNodes, insertedNodes));
+            if (oldNodeCount == 1 && newNodeCount == 1)
+            {
+                var removedNode = _oldNodes.Pop();
+                var oldSpan = removedNode.FullSpan;
+
+                var insertedNode = _newNodes.Pop();
+                var newSpan = insertedNode.FullSpan;
+
+                RecordChange(new TextChangeRange(oldSpan, newSpan.Length), removedNode, insertedNode);
+            }
+            else
+            {
+                var oldSpan = GetSpan(_oldNodes, 0, oldNodeCount);
+                var removedNodes = CopyFirst(_oldNodes, oldNodeCount);
+                RemoveFirst(_oldNodes, oldNodeCount);
+                var newSpan = GetSpan(_newNodes, 0, newNodeCount);
+                var insertedNodes = CopyFirst(_newNodes, newNodeCount);
+                RemoveFirst(_newNodes, newNodeCount);
+                RecordChange(new ChangeRecord(new TextChangeRange(oldSpan, newSpan.Length), removedNodes, insertedNodes));
+            }
         }
 
         private void RecordInsertNew(int newNodeCount)
@@ -566,6 +579,37 @@ namespace Microsoft.CodeAnalysis
             }
 
             _changes.Add(change);
+        }
+
+        private void RecordChange(TextChangeRange textChangeRange, SyntaxNodeOrToken removedNode, SyntaxNodeOrToken insertedNode)
+        {
+            if (_changes.Count > 0)
+            {
+                var last = _changes[_changes.Count - 1];
+                if (last.Range.Span.End == textChangeRange.Span.Start)
+                {
+                    // merge changes...
+                    last.OldNodes?.Enqueue(removedNode);
+                    last.NewNodes?.Enqueue(insertedNode);
+                    _changes[_changes.Count - 1] = new ChangeRecord(
+                        new TextChangeRange(new TextSpan(last.Range.Span.Start, last.Range.Span.Length + textChangeRange.Span.Length), last.Range.NewLength + textChangeRange.NewLength),
+                        last.OldNodes ?? CreateQueue(removedNode),
+                        last.NewNodes ?? CreateQueue(insertedNode));
+                    return;
+                }
+
+                Debug.Assert(textChangeRange.Span.Start >= last.Range.Span.End);
+            }
+
+            _changes.Add(new ChangeRecord(textChangeRange, CreateQueue(removedNode), CreateQueue(insertedNode)));
+
+            // Local Functions
+            Queue<SyntaxNodeOrToken> CreateQueue(SyntaxNodeOrToken nodeOrToken)
+            {
+                var queue = new Queue<SyntaxNodeOrToken>();
+                queue.Enqueue(nodeOrToken);
+                return queue;
+            }
         }
 
         private static TextSpan GetSpan(Stack<SyntaxNodeOrToken> stack, int first, int length)
