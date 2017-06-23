@@ -916,6 +916,31 @@ public class B
             }
         }
 
+        [Fact]
+        public void TestReportingDiagnosticWithInvalidSpan()
+        {
+            var source1 = @"class C1 { void M() { int i = 0; i++; } }";
+            var compilation = CreateCompilationWithMscorlib45(source1, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var treeInAnotherCompilation = compilation.SyntaxTrees.Single();
+
+            var badSpan = new Text.TextSpan(100000, 10000);
+
+            string message = new ArgumentException(
+                string.Format(CodeAnalysisResources.InvalidDiagnosticSpanReported, AnalyzerWithInvalidDiagnosticSpan.Descriptor.Id, badSpan, treeInAnotherCompilation.FilePath), "diagnostic").Message;
+
+            compilation.VerifyDiagnostics();
+
+            var analyzer = new AnalyzerWithInvalidDiagnosticSpan(badSpan);
+            var analyzers = new DiagnosticAnalyzer[] { analyzer };
+            compilation
+                .VerifyAnalyzerDiagnostics(analyzers, null, null, logAnalyzerExceptionAsDiagnostics: true,
+                    expected:
+                    Diagnostic("AD0001")
+                        .WithArguments("Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers+AnalyzerWithInvalidDiagnosticSpan", "System.ArgumentException", message)
+                        .WithLocation(1, 1)
+                );
+        }
+
         [Fact, WorkItem(13120, "https://github.com/dotnet/roslyn/issues/13120")]
         public void TestRegisteringAsyncAnalyzerMethod()
         {
@@ -1903,7 +1928,7 @@ public class RegularClass
             var tree = CSharpSyntaxTree.ParseText(source, path: "Source.cs");
             var compilation = CreateCompilationWithMscorlib45(new[] { tree });
             compilation.VerifyDiagnostics();
-            
+
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer(GeneratedCodeAnalysisFlags.None) };
             compilation.VerifyAnalyzerDiagnostics(analyzers, null, null, true,
                 Diagnostic("GeneratedCodeAnalyzerWarning", "}").WithArguments("Source.cs").WithLocation(11, 1),
