@@ -1085,21 +1085,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (possiblyBest.HasValue)
             {
-                MethodSymbol operatorMethod = possiblyBest.Signature.Method;
-                if ((object)operatorMethod != null)
-                {
-                    ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
-
-                    if (operatorMethod.ContainingType.IsInterface &&
-                        operatorMethod.ContainingModule != Compilation.SourceModule)
-                    {
-                        Binder.CheckFeatureAvailability(node, MessageID.IDS_DefaultInterfaceImplementation, diagnostics);
-                    }
-                }
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
             }
 
             result.Free();
             return possiblyBest;
+        }
+
+        private void ReportObsoleteAndFeatureAvailabilityDiagnostics(MethodSymbol operatorMethod, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            if ((object)operatorMethod != null)
+            {
+                ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
+
+                if (operatorMethod.ContainingType.IsInterface &&
+                    operatorMethod.ContainingModule != Compilation.SourceModule)
+                {
+                    Binder.CheckFeatureAvailability(node, MessageID.IDS_DefaultInterfaceImplementation, diagnostics);
+                }
+            }
         }
 
         private bool IsDefaultLiteralAllowedInBinaryOperator(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
@@ -1179,17 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (possiblyBest.HasValue)
             {
-                MethodSymbol operatorMethod = possiblyBest.Signature.Method;
-                if ((object)operatorMethod != null)
-                {
-                    ReportDiagnosticsIfObsolete(diagnostics, operatorMethod, node, hasBaseReceiver: false);
-
-                    if (operatorMethod.ContainingType.IsInterface &&
-                        operatorMethod.ContainingModule != Compilation.SourceModule)
-                    {
-                        Binder.CheckFeatureAvailability(node, MessageID.IDS_DefaultInterfaceImplementation, diagnostics);
-                    }
-                }
+                ReportObsoleteAndFeatureAvailabilityDiagnostics(possiblyBest.Signature.Method, node, diagnostics);
             }
 
             result.Free();
