@@ -5,29 +5,17 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Semantics
 {
     /// <summary>
-    /// Represents a base interface for assignment expression that includes a binary operation.
-    /// </summary>
-    /// <remarks>
-    /// This interface is reserved for implementation by its associated APIs. We reserve the right to
-    /// change it in the future.
-    /// </remarks>
-    public interface IBaseCompoundAssignmentExpression : IBaseAssignmentExpression, IHasOperatorMethodExpression
-    {
-        /// <summary>
-        /// Kind of binary operation.
-        /// </summary>
-        BinaryOperationKind BinaryOperationKind { get; }
-    }
-
-    /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ICompoundAssignmentExpression : IBaseCompoundAssignmentExpression
+    public interface ICompoundAssignmentExpression : IBaseAssignmentExpression, IHasOperatorMethodExpression
     {
+        /// <summary>
+        /// Kind of binary operation.
+        /// </summary>
+        BinaryOperationKind BinaryOperationKind { get; }
     }
 }
-

@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal abstract partial class BaseCompoundAssignmentExpression : BaseAssignmentExpression, IHasOperatorMethodExpression, IBaseCompoundAssignmentExpression
+    internal abstract partial class BaseCompoundAssignmentExpression : BaseAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
         protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
@@ -1840,27 +1840,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class IncrementExpression : BaseCompoundAssignmentExpression, IIncrementExpression
+    internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
     {
-        public IncrementExpression(UnaryOperationKind incrementOperationKind, BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
+        public BaseIncrementExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
         {
-            IncrementOperationKind = incrementOperationKind;
-            Target = target;
-            Value = value;
         }
         /// <summary>
         /// Kind of increment.
         /// </summary>
-        public UnaryOperationKind IncrementOperationKind { get; }
+        public abstract UnaryOperationKind IncrementOperationKind { get; }
         /// <summary>
         /// Target of the assignment.
         /// </summary>
-        public override IOperation Target { get; }
+        public abstract IOperation Target { get; }
         /// <summary>
-        /// Value to be assigned to the target of the assignment.
+        /// True if and only if the operation is performed by an operator method.
         /// </summary>
-        public override IOperation Value { get; }
+        public abstract bool UsesOperatorMethod { get; }
+        /// <summary>
+        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        public abstract IMethodSymbol OperatorMethod { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitIncrementExpression(this);
@@ -1874,39 +1876,66 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an increment expression.
     /// </summary>
-    internal sealed partial class LazyIncrementExpression : BaseCompoundAssignmentExpression, IIncrementExpression
+    internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementExpression
+    {
+        public IncrementExpression(UnaryOperationKind incrementOperationKind, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
+        {
+            IncrementOperationKind = incrementOperationKind;
+            Target = target;
+            UsesOperatorMethod = usesOperatorMethod;
+            OperatorMethod = operatorMethod;
+        }
+
+        /// <summary>
+        /// Kind of increment.
+        /// </summary>
+        public override UnaryOperationKind IncrementOperationKind { get; }
+        /// <summary>
+        /// Target of the assignment.
+        /// </summary>
+        public override IOperation Target { get; }
+        /// <summary>
+        /// True if and only if the operation is performed by an operator method.
+        /// </summary>
+        public override bool UsesOperatorMethod { get; }
+        /// <summary>
+        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        public override IMethodSymbol OperatorMethod { get; }
+    }
+
+    /// <summary>
+    /// Represents an increment expression.
+    /// </summary>
+    internal sealed partial class LazyIncrementExpression : BaseIncrementExpression, IIncrementExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
-        private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyIncrementExpression(UnaryOperationKind incrementOperationKind, BinaryOperationKind binaryOperationKind, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
+        public LazyIncrementExpression(UnaryOperationKind incrementOperationKind, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
         {
             IncrementOperationKind = incrementOperationKind;
             _lazyTarget = target ?? throw new System.ArgumentNullException("target");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            UsesOperatorMethod = usesOperatorMethod;
+            OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Kind of increment.
         /// </summary>
-        public UnaryOperationKind IncrementOperationKind { get; }
+        public override UnaryOperationKind IncrementOperationKind { get; }
         /// <summary>
         /// Target of the assignment.
         /// </summary>
         public override IOperation Target => _lazyTarget.Value;
-
         /// <summary>
-        /// Value to be assigned to the target of the assignment.
+        /// True if and only if the operation is performed by an operator method.
         /// </summary>
-        public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitIncrementExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitIncrementExpression(this, argument);
-        }
+        public override bool UsesOperatorMethod { get; }
+        /// <summary>
+        /// Operation method used by the operation, null if the operation does not use an operator method.
+        /// </summary>
+        public override IMethodSymbol OperatorMethod { get; }
     }
 
     /// <summary>
@@ -4821,7 +4850,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     {
         private readonly Lazy<IOperation> _lazyExpression;
         private readonly Lazy<IPattern> _lazyPattern;
-        
+
         public LazyIsPatternExpression(Lazy<IOperation> lazyExpression, Lazy<IPattern> lazyPattern, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
             : base(isInvalid, syntax, type, constantValue)
         {

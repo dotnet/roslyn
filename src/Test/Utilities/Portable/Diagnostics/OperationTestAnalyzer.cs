@@ -206,9 +206,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                              }
                                                          }
                                                      }
-                                                     else if (advanceExpression.Kind == OperationKind.CompoundAssignmentExpression || advanceExpression.Kind == OperationKind.IncrementExpression)
+                                                     else if (advanceExpression.Kind == OperationKind.CompoundAssignmentExpression)
                                                      {
-                                                         IBaseCompoundAssignmentExpression advanceAssignment = (IBaseCompoundAssignmentExpression)advanceExpression;
+                                                         ICompoundAssignmentExpression advanceAssignment = (ICompoundAssignmentExpression)advanceExpression;
 
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                                              ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
@@ -218,6 +218,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                              // Advance binary operation is known to involve a reference to the local used in the test and a constant.
                                                              advanceIncrement = advanceAssignment.Value;
                                                              advanceOperationCode = advanceAssignment.BinaryOperationKind;
+                                                         }
+                                                     }
+                                                     else if (advanceExpression.Kind == OperationKind.IncrementExpression)
+                                                     {
+                                                         IIncrementExpression advanceAssignment = (IIncrementExpression)advanceExpression;
+
+                                                         if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
+                                                             ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable)
+                                                         {
+                                                             // Advance binary operation is known to involve a reference to the local used in the test and a constant.
+                                                             advanceIncrement = CreateIncrementOneLiteralExpression(advanceAssignment);
+                                                             advanceOperationCode = CSharpOperationFactory.Helper.DeriveBinaryOperationKind(advanceAssignment.IncrementOperationKind);
                                                          }
                                                      }
 
@@ -255,6 +267,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      }
                  },
                  OperationKind.LoopStatement);
+        }
+
+        private static ILiteralExpression CreateIncrementOneLiteralExpression(IIncrementExpression increment)
+        {
+            string text = increment.Syntax.ToString();
+            bool isInvalid = false;
+            SyntaxNode syntax = increment.Syntax;
+            ITypeSymbol type = increment.Type;
+            Optional<object> constantValue = new Optional<object>(1);
+
+            return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
         }
 
         private static int Abs(int value)
@@ -831,7 +854,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          {
                              foreach (var symbol in decl.Variables)
                              {
-                                Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
+                                 Report(operationContext, symbol.DeclaringSyntaxReferences.Single().GetSyntax(), LocalVarInitializedDeclarationDescriptor);
                              }
                          }
                      }
@@ -1832,7 +1855,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                      else if (operation.Kind == OperationKind.IncrementExpression)
                      {
                          var inc = (IIncrementExpression)operation;
-                         if (inc.IsInvalid && inc.BinaryOperationKind == BinaryOperationKind.Invalid)
+                         var binaryOperationKind = CSharpOperationFactory.Helper.DeriveBinaryOperationKind(inc.IncrementOperationKind);
+                         if (inc.IsInvalid && binaryOperationKind == BinaryOperationKind.Invalid)
                          {
                              operationContext.ReportDiagnostic(Diagnostic.Create(InvalidIncrementDescriptor, inc.Syntax.GetLocation()));
                          }

@@ -477,7 +477,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
             var operatorMethod = operation.OperatorMethod;
-            var binaryOperationKind = operation.BinaryOperationKind;
             var incrementOperationKind = operation.IncrementOperationKind;
 
             base.VisitIncrementExpression(operation);

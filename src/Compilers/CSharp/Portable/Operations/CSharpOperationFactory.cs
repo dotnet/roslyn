@@ -564,16 +564,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         private IIncrementExpression CreateBoundIncrementOperatorOperation(BoundIncrementOperator boundIncrementOperator)
         {
             UnaryOperationKind incrementOperationKind = Helper.DeriveUnaryOperationKind(boundIncrementOperator.OperatorKind);
-            BinaryOperationKind binaryOperationKind = Helper.DeriveBinaryOperationKind(incrementOperationKind);
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundIncrementOperator.Operand));
-            Lazy<IOperation> value = new Lazy<IOperation>(() => CreateIncrementOneLiteralExpression(boundIncrementOperator));
             bool usesOperatorMethod = (boundIncrementOperator.OperatorKind & UnaryOperatorKind.TypeMask) == UnaryOperatorKind.UserDefined;
             IMethodSymbol operatorMethod = boundIncrementOperator.MethodOpt;
             bool isInvalid = boundIncrementOperator.HasErrors;
             SyntaxNode syntax = boundIncrementOperator.Syntax;
             ITypeSymbol type = boundIncrementOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundIncrementOperator.ConstantValue);
-            return new LazyIncrementExpression(incrementOperationKind, binaryOperationKind, target, value, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue);
+            return new LazyIncrementExpression(incrementOperationKind, target, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue);
         }
 
         private IInvalidExpression CreateBoundBadExpressionOperation(BoundBadExpression boundBadExpression)

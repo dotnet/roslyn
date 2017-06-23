@@ -394,7 +394,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitIncrementExpression(IIncrementExpression operation)
         {
             Visit(operation.Target);
-            Visit(operation.Value);
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)

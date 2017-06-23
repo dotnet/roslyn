@@ -982,13 +982,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(nameof(IIncrementExpression));
 
             var unaryKindStr = $"{nameof(UnaryOperandKind)}.{operation.IncrementOperationKind}";
-            var binaryKindStr = $"{nameof(BinaryOperationKind)}.{operation.BinaryOperationKind}";
-            LogString($" ({unaryKindStr}) ({binaryKindStr})");
+            LogString($" ({unaryKindStr})");
             LogHasOperatorMethodExpressionCommon(operation);
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");
-            Visit(operation.Value, "Right");
         }
 
         public override void VisitParenthesizedExpression(IParenthesizedExpression operation)
