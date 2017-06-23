@@ -320,19 +320,21 @@ class C
 {
     static void M(int x, params int[] y)
     {
+        System.Console.Write($""x={x} y[0]={y[0]} y.Length={y.Length}"");
     }
     static void Main()
     {
         M(y: 1, x: 2);
     }
 }";
-            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest);
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.RegularLatest, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "x=2 y[0]=1 y.Length=1");
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var invocation = nodes.OfType<InvocationExpressionSyntax>().Single();
+            var invocation = nodes.OfType<InvocationExpressionSyntax>().ElementAt(1);
             Assert.Equal("M(y: 1, x: 2)", invocation.ToString());
             Assert.Equal("void C.M(System.Int32 x, params System.Int32[] y)", model.GetSymbolInfo(invocation).Symbol.ToTestDisplayString());
         }

@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // _any_ parameter (not just the parameters past the point of positional arguments)
                     if (memberParameters[p].Name == name.Identifier.ValueText)
                     {
-                        if (isValidParams && memberParameters[p].IsParams)
+                        if (isValidParams && p == memberParameters.Length - 1)
                         {
                             seenNamedParams = true;
                         }
