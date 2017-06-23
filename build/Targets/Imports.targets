@@ -320,14 +320,16 @@
           by the NuGet build task. -->
 
   <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
-    <ItemGroup>
-      <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
-        <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
-      </_ReferenceCopyLocalPathsWithPotentialInclusions>
+    <FindNuGetAssetsForVsix
+      NuGetPackageRoot="$(NuGetPackageRoot)"
+      ReferenceCopyLocalPaths="@(ReferenceCopyLocalPaths)"
+      NuGetPackageToIncludeInVsix="@(NuGetPackageToIncludeInVsix)">
 
-      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
-                                        Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' AND
-                                                   '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
+      <Output TaskParameter="NuGetAssetsToIncludeInVsix" ItemName="NuGetAssetsToIncludeInVsix" />
+    </FindNuGetAssetsForVsix>
+
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="@(NuGetAssetsToIncludeInVsix)">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
