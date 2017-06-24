@@ -524,4 +524,7 @@
   <data name="Suggested_name" xml:space="preserve">
     <value>(Suggested name)</value>
   </data>
+  <data name="Remove_unused_function" xml:space="preserve">
+    <value>Remove unused function</value>
+  </data>
 </root>
