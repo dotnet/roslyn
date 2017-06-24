@@ -80,11 +80,11 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
         private void AnalyzeNode(SyntaxNodeAnalysisContext context, INamedTypeSymbol formatProviderType)
         {
             var optionSet = context.Options.GetDocumentOptionSetAsync(
-                context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
+                    context.Node.SyntaxTree, context.CancellationToken).GetAwaiter().GetResult();
 
             if (optionSet.GetOption(
-                ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
-                context.SemanticModel.Language) == false)
+                    ValidateFormatStringOption.ReportInvalidPlaceholdersInStringDotFormatCalls,
+                    context.SemanticModel.Language) == false)
             {
                 return;
             }
@@ -98,10 +98,9 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
             }
 
             var arguments = syntaxFacts.GetArgumentsOfInvocationExpression(context.Node);
-            var numberOfArguments = arguments.Count;
             var symbolInfo = context.SemanticModel.GetSymbolInfo(expression, context.CancellationToken);
 
-            var method = TryGetValidFormatMethodSymbol(context, numberOfArguments, symbolInfo);
+            var method = TryGetValidFormatMethodSymbol(context, symbolInfo);
             if (method == null)
             {
                 return;
@@ -135,6 +134,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return;
             }
 
+            var numberOfArguments = arguments.Count;
             var hasIFormatProvider = parameters[0].Type.Equals(formatProviderType);
 
             // We know the format string parameter exists so numberOfArguments is at least one,
@@ -280,7 +280,6 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
 
         protected static IMethodSymbol TryGetValidFormatMethodSymbol(
             SyntaxNodeAnalysisContext context,
-            int numberOfArguments,
             SymbolInfo symbolInfo)
         {
             if (symbolInfo.Symbol == null)
@@ -300,14 +299,7 @@ namespace Microsoft.CodeAnalysis.ValidateFormatString
                 return null;
             }
 
-            var method = (IMethodSymbol)symbolInfo.Symbol;
-
-            if (method.Arity > 0)
-            {
-                return null;
-            }
-
-            return method;
+            return (IMethodSymbol)symbolInfo.Symbol;
         }
 
         private bool FormatCallWorksAtRuntime(string formatString, int numberOfPlaceholderArguments)

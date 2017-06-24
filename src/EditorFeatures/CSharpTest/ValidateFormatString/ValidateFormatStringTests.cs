@@ -498,7 +498,7 @@ using System.Text;
 
 namespace Generics_CSharp
 {
-    public class MyList<T> 
+    public class String<T> 
     {
         public void Format<T>(string teststr)
         {
@@ -510,9 +510,32 @@ namespace Generics_CSharp
     {
         static void Main(string[] args)
         {
-            MyList<int> testList = new MyList<int>();
+            String<int> testList = new String<int>();
             testList.Format<int>(""Test[||]String"");
         }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ValidateFormatString)]
+        public async Task ClassNamedString()
+        {
+            await TestDiagnosticMissingAsync(@"using System;
+
+namespace System
+{
+    public class String
+    {
+        public static String Format(string format, object arg0) { return new String(); }
+    }
+}
+
+class C
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine(String.Format(""test {[||]5} "", 1));
     }
 }
 ");
