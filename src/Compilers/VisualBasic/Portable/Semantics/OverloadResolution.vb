@@ -2685,99 +2685,134 @@ Done:
                 argsToParams = ArrayBuilder(Of Integer).GetInstance(arguments.Length, -1)
             End If
 
+            paramArrayItems = Nothing
 
             If candidate.IsExpandedParamArrayForm Then
                 paramArrayItems = ArrayBuilder(Of Integer).GetInstance()
-            Else
-                paramArrayItems = Nothing
             End If
 
             '§11.8.2 Applicable Methods
-            'PROTOTYPE(non-trailing)
+            '1.	First, match each positional argument in order to the list of method parameters. 
+            'If there are more positional arguments than parameters and the last parameter is not a paramarray, the method is not applicable. 
+            'Otherwise, the paramarray parameter is expanded with parameters of the paramarray element type to match the number of positional arguments. 
+            'If a positional argument is omitted, the method is not applicable.
+            ' !!! Not sure about the last sentence: "If a positional argument is omitted, the method is not applicable."
+            ' !!! Dev10 allows omitting positional argument as long as the corresponding parameter is optional.
 
-            Dim seenOutOfPositionNamedArgument = False
+            Dim positionalArguments As Integer = 0
+            Dim paramIndex = 0
 
-            For argIndex As Integer = 0 To arguments.Length - 1 Step 1
-
-                Dim paramIndex As Integer
-
-                If Not argumentNames.IsDefault AndAlso argumentNames(argIndex) IsNot Nothing Then
+            For i As Integer = 0 To arguments.Length - 1 Step 1
+                If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
                     ' A named argument
 
-                    If Not candidate.Candidate.TryGetNamedParamIndex(argumentNames(argIndex), paramIndex) Then
+                    If Not candidate.Candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
                         ' ERRID_NamedParamNotFound1
                         ' ERRID_NamedParamNotFound2
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                         GoTo Bailout
                     End If
 
+                    If paramIndex <> i Then
+                        ' all remaining arguments must be named
+                        Exit For
+                    End If
+
                     If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
-                        candidate.Candidate.Parameters(paramIndex).IsParamArray Then
+                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then
                         ' ERRID_NamedParamArrayArgument
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                         GoTo Bailout
                     End If
 
-                    If parameterToArgumentMap(paramIndex) <> -1 Then
-                        ' ERRID_NamedArgUsedTwice1
-                        ' ERRID_NamedArgUsedTwice2
-                        ' ERRID_NamedArgUsedTwice3
+                    Debug.Assert(parameterToArgumentMap(paramIndex) = -1)
+                End If
+
+                positionalArguments += 1
+
+                If argsToParams IsNot Nothing Then
+                    argsToParams(i) = paramIndex
+                End If
+
+                If arguments(i).Kind = BoundKind.OmittedArgument Then
+
+                    If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
+                       candidate.Candidate.Parameters(paramIndex).IsParamArray Then
+                        ' Omitted ParamArray argument at the call site
+                        ' ERRID_OmittedParamArrayArgument
                         candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                         GoTo Bailout
-                    End If
-
-                    ' It is an error for a named argument to specify
-                    ' a value for an explicitly omitted positional argument.
-                    If paramIndex < argIndex AndAlso Not seenOutOfPositionNamedArgument Then
-                        ' ERRID_NamedArgAlsoOmitted1
-                        ' ERRID_NamedArgAlsoOmitted2
-                        ' ERRID_NamedArgAlsoOmitted3
-                        candidate.State = CandidateAnalysisResultState.ArgumentMismatch
-                        GoTo Bailout
-                    End If
-
-
-                    If paramIndex <> argIndex Then
-                        seenOutOfPositionNamedArgument = True
-                    End If
-
-                    parameterToArgumentMap(paramIndex) = argIndex
-
-                Else
-                    ' A positional argument
-                    paramIndex = argIndex
-
-                    If seenOutOfPositionNamedArgument Then
-                        ' Unnamed arguments after an out-of-position named argument cannot correspond to any parameters
-                        ' ERR_BadNonTrailingNamedArgument
-                        candidate.State = CandidateAnalysisResultState.ArgumentMismatch
-                        GoTo Bailout
-                    End If
-
-                    If arguments(argIndex).Kind = BoundKind.OmittedArgument Then
-
-                        If argIndex >= candidate.Candidate.ParameterCount - 1 AndAlso
-                           candidate.Candidate.Parameters(candidate.Candidate.ParameterCount - 1).IsParamArray Then
-                            ' Omitted ParamArray argument at the call site
-                            ' ERRID_OmittedParamArrayArgument
-                            candidate.State = CandidateAnalysisResultState.ArgumentMismatch
-                            GoTo Bailout
-                        End If
-
-                    ElseIf (candidate.IsExpandedParamArrayForm AndAlso
-                        argIndex >= candidate.Candidate.ParameterCount - 1) Then
-
-                        paramArrayItems.Add(argIndex)
                     Else
-                        parameterToArgumentMap(paramIndex) = argIndex
+                        paramIndex += 1
                     End If
+
+                ElseIf (candidate.IsExpandedParamArrayForm AndAlso
+                    paramIndex = candidate.Candidate.ParameterCount - 1) Then
+
+                    paramArrayItems.Add(i)
+                Else
+                    parameterToArgumentMap(paramIndex) = i
+                    paramIndex += 1
+                End If
+            Next
+
+            '§11.8.2 Applicable Methods
+            '2.	Next, match each named argument to a parameter with the given name. 
+            'If one of the named arguments fails to match, matches a paramarray parameter, 
+            'or matches an argument already matched with another positional or named argument, 
+            'the method is not applicable.
+            For i As Integer = positionalArguments To arguments.Length - 1 Step 1
+
+                Debug.Assert(argumentNames(i) Is Nothing OrElse argumentNames(i).Length > 0)
+
+                If argumentNames(i) Is Nothing Then
+                    ' Unnamed argument follows named arguments, parser should have detected an error.
+                    candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                    GoTo Bailout
+                    'Continue For
+                End If
+
+                If Not candidate.Candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
+                    ' ERRID_NamedParamNotFound1
+                    ' ERRID_NamedParamNotFound2
+                    candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                    GoTo Bailout
+                    'Continue For
                 End If
 
                 If argsToParams IsNot Nothing Then
-                    Dim lastParamIndex = candidate.Candidate.ParameterCount - 1
-                    argsToParams(argIndex) = Math.Min(paramIndex, lastParamIndex)
+                    argsToParams(i) = paramIndex
                 End If
 
+                If paramIndex = candidate.Candidate.ParameterCount - 1 AndAlso
+                    candidate.Candidate.Parameters(paramIndex).IsParamArray Then
+                    ' ERRID_NamedParamArrayArgument
+                    candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                    GoTo Bailout
+                    'Continue For
+                End If
+
+                If parameterToArgumentMap(paramIndex) <> -1 Then
+                    ' ERRID_NamedArgUsedTwice1
+                    ' ERRID_NamedArgUsedTwice2
+                    ' ERRID_NamedArgUsedTwice3
+                    candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                    GoTo Bailout
+                    'Continue For
+                End If
+
+                ' It is an error for a named argument to specify
+                ' a value for an explicitly omitted positional argument.
+                If paramIndex < positionalArguments Then
+                    'ERRID_NamedArgAlsoOmitted1
+                    'ERRID_NamedArgAlsoOmitted2
+                    'ERRID_NamedArgAlsoOmitted3
+                    candidate.State = CandidateAnalysisResultState.ArgumentMismatch
+                    GoTo Bailout
+                    'Continue For
+                End If
+
+                parameterToArgumentMap(paramIndex) = i
             Next
 
             If argsToParams IsNot Nothing Then

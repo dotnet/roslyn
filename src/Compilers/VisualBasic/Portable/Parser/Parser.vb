@@ -5583,7 +5583,7 @@ checkNullable:
                         typeName = ResyncAt(typeName, SyntaxKind.GreaterThanToken)
 
                     ElseIf CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-                        arguments = ParseParenthesizedArguments()
+                        arguments = ParseParenthesizedArguments(attributeListParent:=True)
                     End If
 
                     Dim attribute As AttributeSyntax = SyntaxFactory.Attribute(optionalTarget, typeName, arguments)

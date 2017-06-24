@@ -1735,6 +1735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NoNetModuleOutputWhenRefOutOrRefOnly = 37301
 
         ERR_BadNonTrailingNamedArgument = 37302
+        ERR_ExpectedNamedArgumentInAttributeList = 37303
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

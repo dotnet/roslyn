@@ -22169,7 +22169,7 @@ Module Module1
 
 End Module
     </file>
-    </compilation>)
+    </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
 BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.

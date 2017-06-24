@@ -4269,6 +4269,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Named argument expected..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedNamedArgumentInAttributeList() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedNamedArgumentInAttributeList", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;For&apos; must end with a matching &apos;Next&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedNext() As String

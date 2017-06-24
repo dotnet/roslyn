@@ -2009,32 +2009,26 @@ ProduceBoundNode:
 
             Try
                 '§11.8.2 Applicable Methods
-                'PROTOTYPE(non-trailing)
+                '1.	First, match each positional argument in order to the list of method parameters. 
+                'If there are more positional arguments than parameters and the last parameter is not a paramarray, the method is not applicable. 
+                'Otherwise, the paramarray parameter is expanded with parameters of the paramarray element type to match the number of positional arguments. 
+                'If a positional argument is omitted, the method is not applicable.
+                ' !!! Not sure about the last sentence: "If a positional argument is omitted, the method is not applicable."
+                ' !!! Dev10 allows omitting positional argument as long as the corresponding parameter is optional.
 
+                Dim positionalArguments As Integer = 0
+                Dim paramIndex = 0
                 Dim someArgumentsBad As Boolean = False
                 Dim someParamArrayArgumentsBad As Boolean = False
-                Dim seenOutOfPositionNamedArgumentIndex As Integer = -1
+                Dim seenOutOfPositionNamedArgIndex As Integer = -1
 
                 Dim candidateSymbol As Symbol = candidate.UnderlyingSymbol
                 Dim candidateIsExtension As Boolean = candidate.IsExtensionMethod
 
                 For i As Integer = 0 To arguments.Length - 1 Step 1
 
-                    Dim paramIndex As Integer
-
+                    ' A named argument which is used in-position counts as positional
                     If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                        ' A named argument
-
-                        Debug.Assert(argumentNames(i).Length > 0)
-
-                        'If argumentNames(i) Is Nothing AndAlso
-                        'Not Me.Compilation.LanguageVersion.AllowNonTrailingNamedArguments() Then
-
-                        '    ' Unnamed argument follows named arguments, parser should have detected an error.
-                        '    Debug.Assert(arguments(i).Syntax.Parent.ContainsDiagnostics)
-                        '    Return
-                        'End If
-
                         If Not candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
                             ' ERRID_NamedParamNotFound1
                             ' ERRID_NamedParamNotFound2
@@ -2053,119 +2047,159 @@ ProduceBoundNode:
                             Continue For
                         End If
 
+                        If paramIndex <> i Then
+                            ' all remaining arguments must be named
+                            seenOutOfPositionNamedArgIndex = i
+                            Exit For
+                        End If
+
                         If paramIndex = candidate.ParameterCount - 1 AndAlso
                         candidate.Parameters(paramIndex).IsParamArray Then
                             ' ERRID_NamedParamArrayArgument
                             ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedParamArrayArgument)
                             someArgumentsBad = True
-                            Continue For
-                        End If
-
-                        If parameterToArgumentMap(paramIndex) <> -1 Then
-                            someArgumentsBad = True
-
-                            If arguments(parameterToArgumentMap(paramIndex)).Kind <> BoundKind.OmittedArgument Then
-                                ' ERRID_NamedArgUsedTwice1
-                                ' ERRID_NamedArgUsedTwice2
-                                ' ERRID_NamedArgUsedTwice3
-                                If Not includeMethodNameInErrorMessages Then
-                                    ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedArgUsedTwice1, argumentNames(i))
-                                ElseIf candidateIsExtension Then
-                                    ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
-                                             ERRID.ERR_NamedArgUsedTwice3, argumentNames(i),
-                                             candidateSymbol, candidateSymbol.ContainingType)
-                                Else
-                                    ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
-                                             ERRID.ERR_NamedArgUsedTwice2, argumentNames(i), If(representCandidateInDiagnosticsOpt, candidateSymbol))
-                                End If
-
-                                Continue For
-                            Else
-                                ' It is an error for a named argument to specify
-                                ' a value for an explicitly omitted positional argument.
-
-                                'ERRID_NamedArgAlsoOmitted1
-                                'ERRID_NamedArgAlsoOmitted2
-                                'ERRID_NamedArgAlsoOmitted3
-                                If Not includeMethodNameInErrorMessages Then
-                                    ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedArgAlsoOmitted1, argumentNames(i))
-                                ElseIf candidateIsExtension Then
-                                    ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
-                                                 ERRID.ERR_NamedArgAlsoOmitted3, argumentNames(i),
-                                                 candidateSymbol, candidateSymbol.ContainingType)
-                                Else
-                                    ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
-                                                 ERRID.ERR_NamedArgAlsoOmitted2, argumentNames(i), If(representCandidateInDiagnosticsOpt, candidateSymbol))
-                                End If
-                            End If
-                        End If
-                        If paramIndex <> i Then
-                            seenOutOfPositionNamedArgumentIndex = i
-                        End If
-
-                        parameterToArgumentMap(paramIndex) = i
-
-                    Else
-                        ' A positional argument
-                        paramIndex = i
-
-                        If seenOutOfPositionNamedArgumentIndex <> -1 Then
-                            ' Unnamed arguments after an out-of-position named argument cannot correspond to any parameters
-                            ReportDiagnostic(diagnostics, arguments(seenOutOfPositionNamedArgumentIndex).Syntax, ERRID.ERR_BadNonTrailingNamedArgument, argumentNames(seenOutOfPositionNamedArgumentIndex))
+                            positionalArguments += 1
                             Exit For
                         End If
 
-                        If paramIndex = candidate.ParameterCount Then
-                            If Not someArgumentsBad Then
-                                If Not includeMethodNameInErrorMessages Then
-                                    ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_TooManyArgs)
-                                ElseIf candidateIsExtension Then
-                                    ReportDiagnostic(diagnostics, arguments(i).Syntax,
+                        Debug.Assert(parameterToArgumentMap(paramIndex) = -1)
+                    End If
+
+                    If paramIndex = candidate.ParameterCount Then
+                        If Not someArgumentsBad Then
+                            If Not includeMethodNameInErrorMessages Then
+                                ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_TooManyArgs)
+                            ElseIf candidateIsExtension Then
+                                ReportDiagnostic(diagnostics, arguments(i).Syntax,
                                                  ERRID.ERR_TooManyArgs2,
                                                  candidateSymbol, candidateSymbol.ContainingType)
-                                Else
-                                    ReportDiagnostic(diagnostics, arguments(i).Syntax,
+                            Else
+                                ReportDiagnostic(diagnostics, arguments(i).Syntax,
                                                  ERRID.ERR_TooManyArgs1, If(representCandidateInDiagnosticsOpt, candidateSymbol))
-                                End If
-
-                                someArgumentsBad = True
-                                Exit For
                             End If
 
-                        ElseIf paramIndex = candidate.ParameterCount - 1 AndAlso
+                            someArgumentsBad = True
+                        End If
+
+                    ElseIf paramIndex = candidate.ParameterCount - 1 AndAlso
                            candidate.Parameters(paramIndex).IsParamArray Then
 
-                            ' Collect ParamArray arguments
-                            While i < arguments.Length
+                        ' Collect ParamArray arguments
+                        While i < arguments.Length
 
-                                If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
-                                    ' First named argument
-                                    Exit While
-                                End If
+                            If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
+                                ' First named argument
+                                Continue For
+                            End If
 
-                                If arguments(i).Kind = BoundKind.OmittedArgument Then
-                                    ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_OmittedParamArrayArgument)
-                                    someParamArrayArgumentsBad = True
-                                Else
-                                    paramArrayItems.Add(i)
-                                End If
+                            If arguments(i).Kind = BoundKind.OmittedArgument Then
+                                ReportDiagnostic(diagnostics, arguments(i).Syntax, ERRID.ERR_OmittedParamArrayArgument)
+                                someParamArrayArgumentsBad = True
+                            Else
+                                paramArrayItems.Add(i)
+                            End If
 
-                                i += 1
-                            End While
+                            positionalArguments += 1
+                            i += 1
+                        End While
 
-                            Exit For
+                        Exit For
 
-                        Else
-                            parameterToArgumentMap(paramIndex) = i
-                        End If
+                    Else
+                        parameterToArgumentMap(paramIndex) = i
+                        paramIndex += 1
                     End If
+
+                    positionalArguments += 1
                 Next
 
+                Dim skippedSomeArguments As Boolean = False
 
-                ' ------------------------------------------------------------------------------------------------------------------------------------------------
+                '§11.8.2 Applicable Methods
+                '2.	Next, match each named argument to a parameter with the given name. 
+                'If one of the named arguments fails to match, matches a paramarray parameter, 
+                'or matches an argument already matched with another positional or named argument, 
+                'the method is not applicable.
+                For i As Integer = positionalArguments To arguments.Length - 1 Step 1
 
+                    Debug.Assert(argumentNames(i) Is Nothing OrElse argumentNames(i).Length > 0)
 
+                    If argumentNames(i) Is Nothing Then
+                        ' Unnamed argument follows out-of-position named arguments
+                        If Not someArgumentsBad Then
+                            ReportDiagnostic(diagnostics, arguments(seenOutOfPositionNamedArgIndex).Syntax,
+                                         ERRID.ERR_BadNonTrailingNamedArgument, argumentNames(seenOutOfPositionNamedArgIndex))
+                        End If
+                        Return
+                    End If
 
+                    If Not candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
+                        ' ERRID_NamedParamNotFound1
+                        ' ERRID_NamedParamNotFound2
+                        If Not includeMethodNameInErrorMessages Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedParamNotFound1, argumentNames(i))
+                        ElseIf candidateIsExtension Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
+                                             ERRID.ERR_NamedParamNotFound3, argumentNames(i),
+                                             candidateSymbol, candidateSymbol.ContainingType)
+                        Else
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
+                                             ERRID.ERR_NamedParamNotFound2, argumentNames(i), If(representCandidateInDiagnosticsOpt, candidateSymbol))
+                        End If
+
+                        someArgumentsBad = True
+                        Continue For
+                    End If
+
+                    If paramIndex = candidate.ParameterCount - 1 AndAlso
+                        candidate.Parameters(paramIndex).IsParamArray Then
+                        ' ERRID_NamedParamArrayArgument
+                        ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedParamArrayArgument)
+                        someArgumentsBad = True
+                        Continue For
+                    End If
+
+                    If parameterToArgumentMap(paramIndex) <> -1 AndAlso arguments(parameterToArgumentMap(paramIndex)).Kind <> BoundKind.OmittedArgument Then
+                        ' ERRID_NamedArgUsedTwice1
+                        ' ERRID_NamedArgUsedTwice2
+                        ' ERRID_NamedArgUsedTwice3
+                        If Not includeMethodNameInErrorMessages Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedArgUsedTwice1, argumentNames(i))
+                        ElseIf candidateIsExtension Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
+                                             ERRID.ERR_NamedArgUsedTwice3, argumentNames(i),
+                                             candidateSymbol, candidateSymbol.ContainingType)
+                        Else
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
+                                             ERRID.ERR_NamedArgUsedTwice2, argumentNames(i), If(representCandidateInDiagnosticsOpt, candidateSymbol))
+                        End If
+
+                        someArgumentsBad = True
+                        Continue For
+                    End If
+
+                    ' It is an error for a named argument to specify
+                    ' a value for an explicitly omitted positional argument.
+                    If paramIndex < positionalArguments Then
+                        'ERRID_NamedArgAlsoOmitted1
+                        'ERRID_NamedArgAlsoOmitted2
+                        'ERRID_NamedArgAlsoOmitted3
+                        If Not includeMethodNameInErrorMessages Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedArgAlsoOmitted1, argumentNames(i))
+                        ElseIf candidateIsExtension Then
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
+                                             ERRID.ERR_NamedArgAlsoOmitted3, argumentNames(i),
+                                             candidateSymbol, candidateSymbol.ContainingType)
+                        Else
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
+                                             ERRID.ERR_NamedArgAlsoOmitted2, argumentNames(i), If(representCandidateInDiagnosticsOpt, candidateSymbol))
+                        End If
+
+                        someArgumentsBad = True
+                    End If
+
+                    parameterToArgumentMap(paramIndex) = i
+                Next
 
                 ' Check whether type inference failed
                 If candidateAnalysisResult.TypeArgumentInferenceDiagnosticsOpt IsNot Nothing Then
@@ -2382,6 +2416,11 @@ ProduceBoundNode:
                     ' Argument nothing when the argument syntax is missing or BoundKind.OmittedArgument when the argument list contains commas
                     ' for the missing syntax so we have to test for both.
                     If argument Is Nothing OrElse argument.Kind = BoundKind.OmittedArgument Then
+
+                        If argument Is Nothing AndAlso skippedSomeArguments Then
+                            someArgumentsBad = True
+                            Continue For
+                        End If
 
                         'See Section 3 of §11.8.2 Applicable Methods
 
@@ -3007,6 +3046,7 @@ ProduceBoundNode:
                                 argumentNamesLocationsBuilder.Add(id.GetLocation())
                             ElseIf argumentNamesBuilder IsNot Nothing Then
                                 argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
                             End If
 
                         Case SyntaxKind.OmittedArgument

@@ -1313,7 +1313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 16304 - 16304
         ' ParenthesizedArgumentList .Parser::ParseParenthesizedArguments( [ _Inout_ bool& ErrorInConstruct ] )
-        Friend Function ParseParenthesizedArguments(Optional RedimOrNewParent As Boolean = False) As ArgumentListSyntax
+        Friend Function ParseParenthesizedArguments(Optional RedimOrNewParent As Boolean = False, Optional attributeListParent As Boolean = False) As ArgumentListSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.OpenParenToken, "should be at tkLParen.")
 
             Dim arguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ArgumentSyntax) = Nothing
@@ -1324,7 +1324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
             Dim unexpected As GreenNode = Nothing
-            arguments = ParseArguments(unexpected, RedimOrNewParent)
+            arguments = ParseArguments(unexpected, RedimOrNewParent, attributeListParent)
 
             If Not TryEatNewLineAndGetToken(SyntaxKind.CloseParenToken, closeParen, createIfMissing:=False) Then
                 ' On error, peek for ")" with "(". If ")" seen before
@@ -1477,8 +1477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     'argumentName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
                     'colonEquals = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.ColonEqualsToken)
 
-                    ' PROTOTYPE(non-trailing) give an error without recommended language version
-                    argument = ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgument, "PROTOTYPE(non-trailing)")
+                    argument = ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgumentInAttributeList)
 
                 ElseIf Not allowNonTrailingNamedArguments Then
                     argument = ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgument,
