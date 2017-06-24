@@ -10,10 +10,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
-    public class IsConstModifierTests : CSharpTestBase
+    public class InAttributeModifierTests : CSharpTestBase
     {
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Methods_Parameters()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Methods_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -40,7 +40,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Methods_ReturnTypes()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Methods_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -67,7 +67,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Properties()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Properties()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -91,7 +91,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Indexers_Parameters()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Indexers_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -118,7 +118,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Indexers_ReturnTypes()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Indexers_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public class TestRef
@@ -142,7 +142,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Delegates_Parameters()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Delegates_Parameters()
         {
             var reference = CreateStandardCompilation(@"
 public delegate void D(ref readonly int p);
@@ -168,7 +168,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_Delegates_ReturnTypes()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_Delegates_ReturnTypes()
         {
             var reference = CreateStandardCompilation(@"
 public delegate ref readonly int D();
@@ -195,14 +195,14 @@ public class Test
         }
         
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_Parameters()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
        extends [mscorlib]System.Object
 {
   .method public hidebysig newslot virtual 
-          instance void  M(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) x) cil managed
+          instance void  M(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 ) 
@@ -244,7 +244,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_ReturnTypes()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Methods_ReturnTypes()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -252,7 +252,7 @@ public class Test
 {
   .field private int32 'value'
   .method public hidebysig newslot virtual 
-          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) 
+          instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) 
           M() cil managed
   {
     .param [0]
@@ -297,7 +297,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Properties()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Properties()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -305,7 +305,7 @@ public class Test
 {
   .field private int32 'value'
   .method public hidebysig newslot specialname virtual
-          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
           get_P() cil managed
   {
     .param [0]
@@ -329,11 +329,11 @@ public class Test
     IL_000e:  ret
   }
 
-  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+  .property instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
           P()
   {
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
-    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) TestRef::get_P()
+    .get instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) TestRef::get_P()
   }
 }";
 
@@ -353,7 +353,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Indexers_Parameters()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Indexers_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -361,7 +361,7 @@ public class Test
 {
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
   .method public hidebysig newslot specialname virtual
-          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, int32 'value') cil managed
+          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p, int32 'value') cil managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -383,9 +383,9 @@ public class Test
     IL_0007:  ret
   }
 
-  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute))
   {
-    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst), int32)
+    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute), int32)
   }
 }";
 
@@ -406,7 +406,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Indexers_ReturnTypes()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Indexers_ReturnTypes()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -415,7 +415,7 @@ public class Test
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
   .field private int32 'value'
   .method public hidebysig newslot specialname virtual
-          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
           get_Item(int32 p) cil managed
   {
     .param [0]
@@ -443,10 +443,10 @@ public class Test
     IL_000e:  ret
   }
 
-  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) Item(int32)
+  .property instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) Item(int32)
   {
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
-    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) TestRef::get_Item(int32)
+    .get instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) TestRef::get_Item(int32)
   }
 }";
 
@@ -466,7 +466,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Delegates_Parameters()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Delegates_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi sealed D
@@ -477,7 +477,7 @@ public class Test
   {
   }
 
-  .method public hidebysig newslot virtual instance void Invoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p) runtime managed
+  .method public hidebysig newslot virtual instance void Invoke(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p) runtime managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -485,14 +485,14 @@ public class Test
 
   .method public hidebysig newslot virtual
           instance class [mscorlib]System.IAsyncResult
-          BeginInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+          BeginInvoke(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
   }
 
   .method public hidebysig newslot virtual
-          instance void  EndInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.IAsyncResult result) runtime managed
+          instance void  EndInvoke(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p, class [mscorlib]System.IAsyncResult result) runtime managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -520,7 +520,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsConsumedInRefCustomModifiersPosition_IL_Delegates_ReturnTypes()
+        public void InAttributeModReqIsConsumedInRefCustomModifiersPosition_IL_Delegates_ReturnTypes()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi sealed D
@@ -531,7 +531,7 @@ public class Test
   {
   }
 
-  .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) Invoke() runtime managed
+  .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) Invoke() runtime managed
   {
     .param [0]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -544,7 +544,7 @@ public class Test
   }
 
   .method public hidebysig newslot virtual
-          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+          instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
   {
     .param [0]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -573,14 +573,14 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Methods_Parameters()
+        public void InAttributeModReqIsNotAllowedInCustomModifiersPosition_Methods_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
        extends [mscorlib]System.Object
 {
   .method public hidebysig newslot virtual 
-          instance void  M(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst)& x) cil managed
+          instance void  M(int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute)& x) cil managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 ) 
@@ -625,7 +625,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Methods_ReturnTypes()
+        public void InAttributeModReqIsNotAllowedInCustomModifiersPosition_Methods_ReturnTypes()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -633,7 +633,7 @@ public class Test
 {
   .field private int32 'value'
   .method public hidebysig newslot virtual 
-          instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &
+          instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) &
           M() cil managed
   {
     .param [0]
@@ -681,7 +681,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Properties()
+        public void InAttributeModReqIsNotAllowedInCustomModifiersPosition_Properties()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -689,7 +689,7 @@ public class Test
 {
   .field private int32 'value'
   .method public hidebysig newslot specialname virtual
-          instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &
+          instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) &
           get_P() cil managed
   {
     .param [0]
@@ -713,11 +713,11 @@ public class Test
     IL_000e:  ret
   }
 
-  .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &
+  .property instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) &
           P()
   {
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
-    .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & TestRef::get_P()
+    .get instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & TestRef::get_P()
   }
 }";
 
@@ -755,7 +755,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Indexers_Parameters()
+        public void InAttributeModReqIsNotAllowedInCustomModifiersPosition_Indexers_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -763,7 +763,7 @@ public class Test
 {
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
   .method public hidebysig newslot specialname virtual
-          instance void  set_Item(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p, int32 'value') cil managed
+          instance void  set_Item(int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & p, int32 'value') cil managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -785,9 +785,9 @@ public class Test
     IL_0007:  ret
   }
 
-  .property instance int32 Item(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &)
+  .property instance int32 Item(int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) &)
   {
-    .set instance void TestRef::set_Item(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &, int32)
+    .set instance void TestRef::set_Item(int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) &, int32)
   }
 }";
 
@@ -827,7 +827,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Indexers_ReturnTypes()
+        public void InAttributeModReqIsNotAllowedInCustomModifiersPosition_Indexers_ReturnTypes()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi beforefieldinit TestRef
@@ -836,7 +836,7 @@ public class Test
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
   .field private int32 'value'
   .method public hidebysig newslot specialname virtual
-          instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) &
+          instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) &
           get_Item(int32 p) cil managed
   {
     .param [0]
@@ -864,10 +864,10 @@ public class Test
     IL_000e:  ret
   }
 
-  .property instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & Item(int32)
+  .property instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & Item(int32)
   {
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
-    .get instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & TestRef::get_Item(int32)
+    .get instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & TestRef::get_Item(int32)
   }
 }";
 
@@ -905,7 +905,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Delegates_Parameters()
+        public void InAttributeModReqIsNotAllowedInCustomModifiersPosition_Delegates_Parameters()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi sealed D
@@ -916,7 +916,7 @@ public class Test
   {
   }
 
-  .method public hidebysig newslot virtual instance void Invoke(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p) runtime managed
+  .method public hidebysig newslot virtual instance void Invoke(int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & p) runtime managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -924,14 +924,14 @@ public class Test
 
   .method public hidebysig newslot virtual
           instance class [mscorlib]System.IAsyncResult
-          BeginInvoke(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+          BeginInvoke(int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
   }
 
   .method public hidebysig newslot virtual
-          instance void  EndInvoke(int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & p, class [mscorlib]System.IAsyncResult result) runtime managed
+          instance void  EndInvoke(int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & p, class [mscorlib]System.IAsyncResult result) runtime managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -965,7 +965,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsNotAllowedInCustomModifiersPosition_Delegates_ReturnTypes()
+        public void InAttributeModReqIsNotAllowedInCustomModifiersPosition_Delegates_ReturnTypes()
         {
             var ilSource = IsReadOnlyAttributeIL + @"
 .class public auto ansi sealed D
@@ -976,7 +976,7 @@ public class Test
   {
   }
 
-  .method public hidebysig newslot virtual instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & Invoke() runtime managed
+  .method public hidebysig newslot virtual instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & Invoke() runtime managed
   {
     .param [0]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -989,7 +989,7 @@ public class Test
   }
 
   .method public hidebysig newslot virtual
-          instance int32 modreq([mscorlib]System.Runtime.CompilerServices.IsConst) & EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+          instance int32 modreq([mscorlib]System.Runtime.InteropServices.InAttribute) & EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
   {
     .param [0]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -1475,7 +1475,7 @@ public class Test
         }
 
         [Fact]
-        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Methods_Parameters()
+        public void ProperErrorsArePropagatedIfMscorlibInAttributeIsNotAvailable_Methods_Parameters()
         {
             var code = @"
 namespace System
@@ -1489,13 +1489,13 @@ class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (9,27): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (9,27): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual void M(ref readonly object x) { }
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object x").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(9, 27));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object x").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 27));
         }
 
         [Fact]
-        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Methods_ReturnTypes()
+        public void ProperErrorsArePropagatedIfMscorlibInAttributeIsNotAvailable_Methods_ReturnTypes()
         {
             var code = @"
 namespace System
@@ -1510,13 +1510,13 @@ class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (10,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object M() => ref value;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
         }
 
         [Fact]
-        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Properties()
+        public void ProperErrorsArePropagatedIfMscorlibInAttributeIsNotAvailable_Properties()
         {
             var code = @"
 namespace System
@@ -1531,13 +1531,13 @@ class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (10,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object M => ref value;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
         }
 
         [Fact]
-        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Indexers_Parameters()
+        public void ProperErrorsArePropagatedIfMscorlibInAttributeIsNotAvailable_Indexers_Parameters()
         {
             var code = @"
 namespace System
@@ -1551,13 +1551,13 @@ class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (9,32): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (9,32): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual object this[ref readonly object p] => null;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object p").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(9, 32));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(9, 32));
         }
 
         [Fact]
-        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Indexers_ReturnTypes()
+        public void ProperErrorsArePropagatedIfMscorlibInAttributeIsNotAvailable_Indexers_ReturnTypes()
         {
             var code = @"
 namespace System
@@ -1572,13 +1572,13 @@ class Test
 }";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (10,20): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (10,20): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public virtual ref readonly object this[object p] => ref value;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly object").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(10, 20));
         }
 
         [Fact]
-        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Delegates_Parameters()
+        public void ProperErrorsArePropagatedIfMscorlibInAttributeIsNotAvailable_Delegates_Parameters()
         {
             var code = @"
 namespace System
@@ -1593,13 +1593,13 @@ namespace System
 public delegate void D(ref readonly int p);";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (11,24): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (11,24): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 // public delegate void D(ref readonly int p);
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int p").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(11, 24));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int p").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 24));
         }
 
         [Fact]
-        public void ProperErrorsArePropagatedIfMscorlibIsConstIsNotAvailable_Delegates_ReturnTypes()
+        public void ProperErrorsArePropagatedIfMscorlibInAttributeIsNotAvailable_Delegates_ReturnTypes()
         {
             var code = @"
 namespace System
@@ -1614,13 +1614,13 @@ namespace System
 public delegate ref readonly int D();";
 
             CreateCompilation(code).VerifyDiagnostics(
-                // (11,17): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (11,17): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 // public delegate ref readonly int D();
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(11, 17));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(11, 17));
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Virtual()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Virtual()
         {
             var code = @"
 class Test
@@ -1633,14 +1633,14 @@ class Test
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Abstract()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_Parameters_Abstract()
         {
             var code = @"
 abstract class Test
@@ -1653,14 +1653,14 @@ abstract class Test
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Virtual()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Virtual()
         {
             var code = @"
 class Test
@@ -1674,14 +1674,14 @@ class Test
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Abstract()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Abstract()
         {
             var code = @"
 abstract class Test
@@ -1694,14 +1694,14 @@ abstract class Test
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_NoModifiers()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_NoModifiers()
         {
             var code = @"
 class Test
@@ -1715,14 +1715,14 @@ class Test
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Static()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Methods_ReturnTypes_Static()
         {
             var code = @"
 class Test
@@ -1736,14 +1736,14 @@ class Test
                 var method = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("Method");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Properties_Virtual()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Properties_Virtual()
         {
             var code = @"
 class Test
@@ -1757,14 +1757,14 @@ class Test
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Properties_Abstract()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Properties_Abstract()
         {
             var code = @"
 abstract class Test
@@ -1777,14 +1777,14 @@ abstract class Test
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Properties_NoModifiers()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Properties_NoModifiers()
         {
             var code = @"
 class Test
@@ -1798,14 +1798,14 @@ class Test
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Properties_Static()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Properties_Static()
         {
             var code = @"
 class Test
@@ -1819,14 +1819,14 @@ class Test
                 var property = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("Property");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Virtual()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Virtual()
         {
             var code = @"
 class Test
@@ -1839,14 +1839,14 @@ class Test
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Abstract()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_Parameters_Abstract()
         {
             var code = @"
 abstract class Test
@@ -1859,14 +1859,14 @@ abstract class Test
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_Virtual()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_Virtual()
         {
             var code = @"
 class Test
@@ -1880,14 +1880,14 @@ class Test
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_Abstract()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_Abstract()
         {
             var code = @"
 abstract class Test
@@ -1900,15 +1900,15 @@ abstract class Test
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_NoModifiers()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Indexers_ReturnTypes_NoModifiers()
         {
             var code = @"
 class Test
@@ -1922,14 +1922,14 @@ class Test
                 var indexer = module.ContainingAssembly.GetTypeByMetadataName("Test").GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Delegates_Parameters()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Delegates_Parameters()
         {
             var code = "public delegate void D(ref readonly int p);";
 
@@ -1939,22 +1939,22 @@ class Test
 
                 var invokeParameter = type.DelegateInvokeMethod.Parameters.Single();
                 Assert.Empty(invokeParameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(invokeParameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(invokeParameter.RefCustomModifiers);
 
                 var beginInvokeParameter = type.GetMethod("BeginInvoke").Parameters.First();
                 Assert.Empty(beginInvokeParameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(beginInvokeParameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(beginInvokeParameter.RefCustomModifiers);
 
                 var endInvokeParameter = type.GetMethod("EndInvoke").Parameters.First();
                 Assert.Empty(endInvokeParameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(endInvokeParameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(endInvokeParameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsWrittenOnRefReadOnlyMembers_Delegates_ReturnTypes()
+        public void InAttributeIsWrittenOnRefReadOnlyMembers_Delegates_ReturnTypes()
         {
             var code = "public delegate ref readonly int D();";
 
@@ -1964,18 +1964,18 @@ class Test
 
                 var invokeMethod = type.DelegateInvokeMethod;
                 Assert.Empty(invokeMethod.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(invokeMethod.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(invokeMethod.RefCustomModifiers);
 
                 var endInvokeMethod = type.GetMethod("EndInvoke");
                 Assert.Empty(endInvokeMethod.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(endInvokeMethod.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(endInvokeMethod.RefCustomModifiers);
             };
 
             CompileAndVerify(code, verify: false, sourceSymbolValidator: validator, symbolValidator: validator);
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_NoModifiers()
+        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_NoModifiers()
         {
             var code = @"
 class Test
@@ -1995,7 +1995,7 @@ class Test
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_Static()
+        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Methods_Parameters_Static()
         {
             var code = @"
 class Test
@@ -2015,7 +2015,7 @@ class Test
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Indexers_Parameters_NoModifiers()
+        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Indexers_Parameters_NoModifiers()
         {
             var code = @"
 class Test
@@ -2035,7 +2035,7 @@ class Test
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Operators_Unary()
+        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Operators_Unary()
         {
             var code = @"
 public class Test
@@ -2055,7 +2055,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Operators_Binary()
+        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Operators_Binary()
         {
             var code = @"
 public class Test
@@ -2079,7 +2079,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstIsNotWrittenOnRefReadOnlyMembers_Constructors()
+        public void InAttributeIsNotWrittenOnRefReadOnlyMembers_Constructors()
         {
             var code = @"
 public class Test
@@ -2099,12 +2099,12 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Methods_Parameters()
+        public void InAttributeModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Methods_Parameters()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit TestRef extends [mscorlib]System.Object
 {
-    .method public hidebysig newslot virtual instance void M (int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) x) cil managed 
+    .method public hidebysig newslot virtual instance void M (int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
     {
         .maxstack 8
         IL_0000: nop                  // Do nothing (No operation)
@@ -2139,14 +2139,14 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Methods_ReturnTypes()
+        public void InAttributeModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Methods_ReturnTypes()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit TestRef extends [mscorlib]System.Object
 {
     .field private int32 'value'
 
-    .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) M () cil managed 
+    .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) M () cil managed 
     {
         .maxstack 1
         .locals init ([0] int32&)
@@ -2190,7 +2190,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Properties()
+        public void InAttributeModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Properties()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit TestRef extends [mscorlib]System.Object
@@ -2217,7 +2217,7 @@ public class Test
         IL_000e: ret                  // Return from method, possibly with a value
     }
 
-    .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) P()
+    .property instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) P()
     {
         .get instance int32& TestRef::get_P()
     }
@@ -2240,7 +2240,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Indexers_Parameters()
+        public void InAttributeModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Indexers_Parameters()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit TestRef
@@ -2248,7 +2248,7 @@ public class Test
 {
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )
   .method public hidebysig newslot specialname virtual
-          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, int32 'value') cil managed
+          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p, int32 'value') cil managed
   {
     .maxstack  8
     IL_0000:  nop
@@ -2268,9 +2268,9 @@ public class Test
     IL_0007:  ret
   }
 
-  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute))
   {
-    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst), int32)
+    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute), int32)
   }
 }";
 
@@ -2308,7 +2308,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Indexers_ReturnTypes()
+        public void InAttributeModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Indexers_ReturnTypes()
         {
             var ilSource = @"
 .class public auto ansi beforefieldinit TestRef extends [mscorlib]System.Object
@@ -2337,7 +2337,7 @@ public class Test
         IL_000e: ret                  // Return from method, possibly with a value
     }
 
-    .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) Item(int32 p)
+    .property instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) Item(int32 p)
     {
         .get instance int32& TestRef::get_Item(int32)
     }
@@ -2360,7 +2360,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Delegates_Parameters()
+        public void InAttributeModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Delegates_Parameters()
         {
             var ilSource = @"
 .class public auto ansi sealed D
@@ -2371,18 +2371,18 @@ public class Test
   {
   }
 
-  .method public hidebysig newslot virtual instance void Invoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p) runtime managed
+  .method public hidebysig newslot virtual instance void Invoke(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p) runtime managed
   {
   }
 
   .method public hidebysig newslot virtual
           instance class [mscorlib]System.IAsyncResult
-          BeginInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
+          BeginInvoke(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p, class [mscorlib]System.AsyncCallback callback, object 'object') runtime managed
   {
   }
 
   .method public hidebysig newslot virtual
-          instance void  EndInvoke(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p, class [mscorlib]System.IAsyncResult result) runtime managed
+          instance void  EndInvoke(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p, class [mscorlib]System.IAsyncResult result) runtime managed
   {
   }
 }";
@@ -2412,7 +2412,7 @@ public class Test
         }
 
         [Fact]
-        public void IsConstModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Delegates_ReturnTypes()
+        public void InAttributeModReqIsRejectedOnSignaturesWithoutIsReadOnlyAttribute_Delegates_ReturnTypes()
         {
             var ilSource = @"
 .class public auto ansi sealed D
@@ -2423,7 +2423,7 @@ public class Test
   {
   }
 
-  .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) Invoke() runtime managed
+  .method public hidebysig newslot virtual instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) Invoke() runtime managed
   {
   }
 
@@ -2434,7 +2434,7 @@ public class Test
   }
 
   .method public hidebysig newslot virtual
-          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
+          instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
   {
   }
 }";
@@ -2479,7 +2479,7 @@ public abstract class Parent
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -2505,7 +2505,7 @@ public class Program
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2527,7 +2527,7 @@ public class Parent
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -2552,7 +2552,7 @@ public class Program
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2574,7 +2574,7 @@ public interface Parent
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -2603,11 +2603,11 @@ public class Program
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.M");
-                Assert.Equal("void Parent.M(in modreq(System.Runtime.CompilerServices.IsConst) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+                Assert.Equal("void Parent.M(in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p)", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.Single();
                 Assert.Empty(explicitParameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2629,7 +2629,7 @@ public interface Parent
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -2655,7 +2655,7 @@ public class Program
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2677,7 +2677,7 @@ public interface Parent
                 var parameter = type.GetMethod("M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -2702,7 +2702,7 @@ public class Program
                 var parameter = type.GetMethod("Parent.M").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2724,7 +2724,7 @@ public abstract class Parent
                 var method = type.GetMethod("M");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
             var code = @"
@@ -2747,7 +2747,7 @@ public class Program
                 var method = type.GetMethod("M");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2769,7 +2769,7 @@ public class Parent
                 var method = type.GetMethod("M");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
             var code = @"
@@ -2792,7 +2792,7 @@ public class Program
                 var method = type.GetMethod("M");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2814,7 +2814,7 @@ public interface Parent
                 var method = type.GetMethod("M");
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
             var code = @"
@@ -2837,7 +2837,7 @@ public class Program
 
                 var implicitMethod = type.GetMethod("M");
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2859,7 +2859,7 @@ public interface Parent
                 var implicitMethod = type.GetMethod("M");
 
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             });
 
             var code = @"
@@ -2882,7 +2882,7 @@ public class Program
                 var implicitMethod = type.GetMethod("M");
 
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2904,7 +2904,7 @@ public interface Parent
                 var implicitMethod = type.GetMethod("M");
 
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             });
 
             var code = @"
@@ -2927,7 +2927,7 @@ public class Program
                 var implicitMethod = type.GetMethod("Parent.M");
 
                 Assert.Empty(implicitMethod.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(implicitMethod.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(implicitMethod.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2949,7 +2949,7 @@ public abstract class Parent
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
             var code = @"
@@ -2972,7 +2972,7 @@ public class Program
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -2994,7 +2994,7 @@ public class Parent
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
             var code = @"
@@ -3018,7 +3018,7 @@ public class Program
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3040,7 +3040,7 @@ public interface Parent
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
             var code = @"
@@ -3064,7 +3064,7 @@ public class Program
 
                 var implicitproperty = type.GetProperty("P");
                 Assert.Empty(implicitproperty.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(implicitproperty.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(implicitproperty.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3086,7 +3086,7 @@ public interface Parent
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
             var code = @"
@@ -3110,7 +3110,7 @@ public class Program
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3132,7 +3132,7 @@ public interface Parent
                 var property = type.GetProperty("P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             });
 
             var code = @"
@@ -3156,7 +3156,7 @@ public class Program
                 var property = type.GetProperty("Parent.P");
 
                 Assert.Empty(property.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(property.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(property.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3178,7 +3178,7 @@ public abstract class Parent
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -3204,7 +3204,7 @@ public class Program
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3226,7 +3226,7 @@ public class Parent
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -3252,7 +3252,7 @@ public class Program
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3274,7 +3274,7 @@ public interface Parent
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -3303,11 +3303,11 @@ public class Program
                 Assert.Empty(implicitParameter.RefCustomModifiers);
 
                 var explicitImplementation = type.GetMethod("Parent.set_Item");
-                Assert.Equal("void Parent.this[in modreq(System.Runtime.CompilerServices.IsConst) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
+                Assert.Equal("void Parent.this[in modreq(System.Runtime.InteropServices.InAttribute) System.Int32 p].set", explicitImplementation.ExplicitInterfaceImplementations.Single().ToTestDisplayString());
 
                 var explicitParameter = explicitImplementation.Parameters.First();
                 Assert.Empty(explicitParameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(explicitParameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(explicitParameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3329,7 +3329,7 @@ public interface Parent
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -3355,7 +3355,7 @@ public class Program
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3377,7 +3377,7 @@ public interface Parent
                 var parameter = type.GetProperty("this[]").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -3403,7 +3403,7 @@ public class Program
                 var parameter = type.GetProperty("Parent.Item").Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3425,7 +3425,7 @@ public abstract class Parent
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
             var code = @"
@@ -3449,7 +3449,7 @@ public class Program
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3471,7 +3471,7 @@ public class Parent
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
             var code = @"
@@ -3495,7 +3495,7 @@ public class Program
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3517,7 +3517,7 @@ public interface Parent
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
             var code = @"
@@ -3541,7 +3541,7 @@ public class Program
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3563,7 +3563,7 @@ public interface Parent
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
             var code = @"
@@ -3587,7 +3587,7 @@ public class Program
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3609,7 +3609,7 @@ public interface Parent
                 var indexer = type.GetProperty("this[]");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             });
 
             var code = @"
@@ -3633,7 +3633,7 @@ public class Program
                 var indexer = type.GetProperty("Parent.Item");
 
                 Assert.Empty(indexer.TypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(indexer.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(indexer.RefCustomModifiers);
             };
 
             CompileAndVerify(code, additionalRefs: new[] { reference.ToMetadataReference() }, expectedOutput: "5", symbolValidator: validator);
@@ -3650,7 +3650,7 @@ public class Program
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
@@ -3683,7 +3683,7 @@ public class Test
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
             var code = @"
@@ -3711,9 +3711,9 @@ public class Test
         {
             var reference = CreateStandardCompilation(@"
 
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public delegate void D(ref readonly int p);");
 
@@ -3722,13 +3722,13 @@ public delegate void D(ref readonly int p);");
                 var parameter = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod.Parameters.Single();
 
                 Assert.Empty(parameter.CustomModifiers);
-                AssertSingleIsConstRequiredModifier(parameter.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(parameter.RefCustomModifiers);
             });
 
             var code = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Test
 {
@@ -3753,9 +3753,9 @@ public class Test
         public void CreatingLambdasOfDelegatesWithModifiersCanBeExecuted_ReturnTypes_DuplicateModifierTypes()
         {
             var reference = CreateStandardCompilation(@"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public delegate ref readonly int D();");
 
@@ -3764,13 +3764,13 @@ public delegate ref readonly int D();");
                 var method = module.ContainingAssembly.GetTypeByMetadataName("D").DelegateInvokeMethod;
 
                 Assert.Empty(method.ReturnTypeCustomModifiers);
-                AssertSingleIsConstRequiredModifier(method.RefCustomModifiers);
+                AssertSingleInAttributeRequiredModifier(method.RefCustomModifiers);
             });
 
             var code = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Test
 {
@@ -3812,7 +3812,7 @@ public class Test : ITest
             var interfaceMethod = comp.GetTypeByMetadataName("ITest").GetMethod("M");
             Assert.Equal(RefKind.RefReadOnly, interfaceMethod.RefKind);
             Assert.Empty(interfaceMethod.ReturnTypeCustomModifiers);
-            AssertSingleIsConstRequiredModifier(interfaceMethod.RefCustomModifiers);
+            AssertSingleInAttributeRequiredModifier(interfaceMethod.RefCustomModifiers);
 
             var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
             Assert.Equal(RefKind.None, classMethod.RefKind);
@@ -3841,7 +3841,7 @@ public class Test : ParentTest
             var parentMethod = comp.GetTypeByMetadataName("ParentTest").GetMethod("M");
             Assert.Equal(RefKind.RefReadOnly, parentMethod.RefKind);
             Assert.Empty(parentMethod.ReturnTypeCustomModifiers);
-            AssertSingleIsConstRequiredModifier(parentMethod.RefCustomModifiers);
+            AssertSingleInAttributeRequiredModifier(parentMethod.RefCustomModifiers);
 
             var classMethod = comp.GetTypeByMetadataName("Test").GetMethod("M");
             Assert.Equal(RefKind.None, classMethod.RefKind);
@@ -3857,7 +3857,7 @@ public class Test : ParentTest
        extends [mscorlib]System.Object
 {
   .method public hidebysig newslot virtual
-          instance void  M(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p) cil managed
+          instance void  M(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p) cil managed
   {
     .param [1]
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
@@ -3920,7 +3920,7 @@ public class Test
 {
    .field private int32 'value'
   .method public hidebysig newslot virtual
-          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
           M(int32 p) cil managed
   {
     .param [0]
@@ -3981,7 +3981,7 @@ public class Test
 {
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )                      // ...Item..
   .method public hidebysig newslot specialname virtual
-          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) p,
+          instance void  set_Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) p,
                                   int32 'value') cil managed
   {
     .param [1]
@@ -4020,9 +4020,9 @@ public class Test
     IL_0007:  ret
   } // end of method TestRef::.ctor
 
-  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst))
+  .property instance int32 Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute))
   {
-    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst),
+    .set instance void TestRef::set_Item(int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute),
                                          int32)
   } // end of property TestRef::Item
   .property instance int32 Item(int64)
@@ -4058,7 +4058,7 @@ public class Test
   .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = ( 01 00 04 49 74 65 6D 00 00 )                      // ...Item..
   .field private int32 'value'
   .method public hidebysig newslot specialname virtual
-          instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+          instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
           get_Item(int32 p) cil managed
   {
     .param [0]
@@ -4106,11 +4106,11 @@ public class Test
     IL_000e:  ret
   } // end of method TestRef::.ctor
 
-  .property instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst)
+  .property instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute)
           Item(int32)
   {
     .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = ( 01 00 00 00 )
-    .get instance int32& modreq([mscorlib]System.Runtime.CompilerServices.IsConst) TestRef::get_Item(int32)
+    .get instance int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) TestRef::get_Item(int32)
   } // end of property TestRef::Item
   .property instance int32 Item(int64)
   {
@@ -4134,12 +4134,12 @@ public class Test
         }
 
         [Fact]
-        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_Class_Virtual()
+        public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_Class_Virtual()
         {
             var testRef = CreateStandardCompilation(@"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Parent
 {
@@ -4153,9 +4153,9 @@ public class Parent
             });
 
             var userCode = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Child : Parent
 {
@@ -4181,12 +4181,12 @@ public class Program
         }
 
         [Fact]
-        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_Class_Abstract()
+        public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_Class_Abstract()
         {
             var testRef = CreateStandardCompilation(@"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public abstract class Parent
 {
@@ -4200,9 +4200,9 @@ public abstract class Parent
             });
 
             var userCode = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Child : Parent
 {
@@ -4228,12 +4228,12 @@ public class Program
         }
 
         [Fact]
-        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_ExplicitInterface()
+        public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_ExplicitInterface()
         {
             var testRef = CreateStandardCompilation(@"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public interface Parent
 {
@@ -4247,9 +4247,9 @@ public interface Parent
             });
 
             var userCode = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Child : Parent
 {
@@ -4277,12 +4277,12 @@ public class Program
         }
 
         [Fact]
-        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_Virtual()
+        public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_Virtual()
         {
             var testRef = CreateStandardCompilation(@"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public interface Parent
 {
@@ -4296,9 +4296,9 @@ public interface Parent
             });
 
             var userCode = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Child : Parent
 {
@@ -4329,12 +4329,12 @@ public class Program
         }
 
         [Fact]
-        public void UsingIsConstFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_NonVirtual()
+        public void UsingInAttributeFromReferenceWhileHavingDuplicateInCompilation_ImplicitInterface_NonVirtual()
         {
             var testRef = CreateStandardCompilation(@"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public interface Parent
 {
@@ -4348,9 +4348,9 @@ public interface Parent
             });
 
             var userCode = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }
 public class Child : Parent
 {
@@ -4382,12 +4382,12 @@ public class Program
         }
 
         [Fact]
-        public void DuplicateIsConstTypeInReferences()
+        public void DuplicateInAttributeTypeInReferences()
         {
             var refCode = @"
-namespace System.Runtime.CompilerServices
+namespace System.Runtime.InteropServices
 {
-    public class IsConst {}
+    public class InAttribute {}
 }";
 
             var ref1 = CreateStandardCompilation(refCode).EmitToImageReference();
@@ -4400,15 +4400,15 @@ public class Test
 }";
 
             CreateStandardCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
-                // (4,12): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsConst' is not defined or imported
+                // (4,12): error CS0518: Predefined type 'System.Runtime.InteropServices.InAttribute' is not defined or imported
                 //     public ref readonly int M() => throw null;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.CompilerServices.IsConst").WithLocation(4, 12));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "ref readonly int").WithArguments("System.Runtime.InteropServices.InAttribute").WithLocation(4, 12));
         }
 
-        private void AssertSingleIsConstRequiredModifier(ImmutableArray<CustomModifier> modifiers)
+        private void AssertSingleInAttributeRequiredModifier(ImmutableArray<CustomModifier> modifiers)
         {
             var modifier = modifiers.Single();
-            var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_IsConst);
+            var typeName = WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_InteropServices_InAttribute);
 
             Assert.False(modifier.IsOptional);
             Assert.Equal(typeName, modifier.Modifier.ToDisplayString());

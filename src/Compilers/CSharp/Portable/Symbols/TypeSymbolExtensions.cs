@@ -1529,20 +1529,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new Cci.TypeReferenceWithAttributes(typeRef);
         }
 
-        internal static bool IsWellKnownTypeIsConst(this ITypeSymbol typeSymbol)
+        internal static bool IsWellKnownTypeInAttribute(this ITypeSymbol typeSymbol)
         {
-            if (typeSymbol.Name != "IsConst" || typeSymbol.ContainingType != null)
+            if (typeSymbol.Name != "InAttribute" || typeSymbol.ContainingType != null)
             {
                 return false;
             }
 
-            var compilerServicesNamespace = typeSymbol.ContainingNamespace;
-            if (compilerServicesNamespace?.Name != "CompilerServices")
+            var interopServicesNamespace = typeSymbol.ContainingNamespace;
+            if (interopServicesNamespace?.Name != "InteropServices")
             {
                 return false;
             }
 
-            var runtimeNamespace = compilerServicesNamespace.ContainingNamespace;
+            var runtimeNamespace = interopServicesNamespace.ContainingNamespace;
             if (runtimeNamespace?.Name != "Runtime")
             {
                 return false;

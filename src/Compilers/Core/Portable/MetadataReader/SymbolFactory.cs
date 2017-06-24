@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
         internal abstract TypeSymbol GetEnumUnderlyingType(ModuleSymbol moduleSymbol, TypeSymbol type);
 
         internal abstract bool IsAcceptedVolatileModifierType(ModuleSymbol moduleSymbol, TypeSymbol type);
-        internal abstract bool IsAcceptedIsConstModifierType(TypeSymbol type);
+        internal abstract bool IsAcceptedInAttributeModifierType(TypeSymbol type);
         internal abstract Cci.PrimitiveTypeCode GetPrimitiveTypeCode(ModuleSymbol moduleSymbol, TypeSymbol type);
     }
 }

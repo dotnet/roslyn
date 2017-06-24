@@ -281,11 +281,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (_refKind == RefKind.RefReadOnly)
             {
-                var isConstType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax.Type);
+                var modifierType = bodyBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.Type);
 
                 _customModifiers = CustomModifiersTuple.Create(
                     ImmutableArray<CustomModifier>.Empty,
-                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConstType)));
+                    ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)));
             }
 
             if (!hasAccessorList)
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         private static ImmutableArray<ParameterSymbol> MakeParameters(
-            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics, bool addIsConstModifier)
+            Binder binder, SourcePropertySymbol owner, BaseParameterListSyntax parameterSyntaxOpt, DiagnosticBag diagnostics, bool addRefReadOnlyModifier)
         {
             if (parameterSyntaxOpt == null)
             {
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 binder, owner, parameterSyntaxOpt, out arglistToken,
                 allowRefOrOut: false,
                 allowThis: false,
-                addIsConstModifier: addIsConstModifier,
+                addRefReadOnlyModifier: addRefReadOnlyModifier,
                 diagnostics: diagnostics);
 
             if (arglistToken.Kind() != SyntaxKind.None)
@@ -1408,7 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<ParameterSymbol> ComputeParameters(Binder binder, BasePropertyDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
             var parameterSyntaxOpt = GetParameterListSyntax(syntax);
-            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addIsConstModifier: IsVirtual || IsAbstract);
+            var parameters = MakeParameters(binder, this, parameterSyntaxOpt, diagnostics, addRefReadOnlyModifier: IsVirtual || IsAbstract);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             foreach (ParameterSymbol param in parameters)

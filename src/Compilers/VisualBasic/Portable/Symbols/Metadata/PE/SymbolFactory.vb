@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return False
         End Function
 
-        Friend Overrides Function IsAcceptedIsConstModifierType(type As TypeSymbol) As Boolean
+        Friend Overrides Function IsAcceptedInAttributeModifierType(type As TypeSymbol) As Boolean
             ' VB doesn't deal with ref-readonly parameters or return-types.
             Return False
         End Function

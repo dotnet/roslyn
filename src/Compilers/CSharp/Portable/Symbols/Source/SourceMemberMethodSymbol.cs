@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 signatureBinder, this, syntax.ParameterList, out arglistToken,
                 allowRefOrOut: true,
                 allowThis: true,
-                addIsConstModifier: IsVirtual || IsAbstract,
+                addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics);
 
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
@@ -338,11 +338,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (_refKind == RefKind.RefReadOnly)
                 {
-                    var isConstType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IsConst, diagnostics, syntax.ReturnType);
+                    var modifierType = withTypeParamsBinder.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, diagnostics, syntax.ReturnType);
 
                     _lazyCustomModifiers = CustomModifiersTuple.Create(
                         typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
-                        refCustomModifiers: ImmutableArray.Create(CSharpCustomModifier.CreateRequired(isConstType)));
+                        refCustomModifiers: ImmutableArray.Create(CSharpCustomModifier.CreateRequired(modifierType)));
                 }
             }
             else if ((object)_explicitInterfaceType != null)

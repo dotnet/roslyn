@@ -161,7 +161,7 @@
     <Compile Include="Emit\EntryPointTests.cs" />
     <Compile Include="Emit\NoPiaEmbedTypes.cs" />
     <Compile Include="Emit\OptionalArgumentsTests.cs" />
-    <Compile Include="Emit\IsConstModifierTests.cs" />
+    <Compile Include="Emit\InAttributeModifierTests.cs" />
     <Compile Include="Emit\ResourceTests.cs" />
     <Compile Include="CodeGen\CodeGenScriptTests.cs" />
     <Compile Include="PDB\CheckSumTest.cs" />

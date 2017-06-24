@@ -304,9 +304,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _customModifiers = CSharpCustomModifier.Convert(customModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(refCustomModifiers);
 
-                if (this.RefKind != RefKind.RefReadOnly && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeIsConst()))
+                if (this.RefKind != RefKind.RefReadOnly && _refCustomModifiers.Any(modifier => !modifier.IsOptional && modifier.Modifier.IsWellKnownTypeInAttribute()))
                 {
-                    // IsConst modreq is only accepted on RefReadOnly symbols
+                    // The modreq is only accepted on RefReadOnly symbols
                     isBad = true;
                 }
 
