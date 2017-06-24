@@ -39,13 +39,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, temps, effects.init);
 
             BoundExpression returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
-            if (!returnValue.HasErrors)
-            {
-                returnValue = VisitExpression(returnValue);
-            }
-            BoundExpression result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
-            Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
 
+            BoundExpression result;
+            if (!isUsed)
+            {
+                // When a deconstruction is not used, we use the last effect is used as return value
+                var last = effects.PopLast();
+                if (last is null)
+                {
+                    result = null;
+                }
+                else
+                {
+                    result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), last);
+                }
+            }
+            else
+            {
+                if (!returnValue.HasErrors && isUsed)
+                {
+                    returnValue = VisitExpression(returnValue);
+                }
+                result = _factory.Sequence(temps.ToImmutableAndFree(), effects.ToImmutableAndFree(), returnValue);
+            }
+
+            Binder.DeconstructionVariable.FreeDeconstructionVariables(lhsTargets);
             return result;
         }
 
@@ -68,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!underlyingConversions.IsDefault);
             Debug.Assert(leftTargets.Count == rightParts.Length && leftTargets.Count == conversion.UnderlyingConversions.Length);
 
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count);
+            var builder = isUsed ? ArrayBuilder<BoundExpression>.GetInstance(leftTargets.Count) : null;
             for (int i = 0; i < leftTargets.Count; i++)
             {
                 BoundExpression resultPart;
@@ -95,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             used: true, isChecked: false, isCompoundAssignment: false));
                     }
                 }
-                builder.Add(resultPart);
+                builder?.Add(resultPart);
             }
 
             if (isUsed)
@@ -109,8 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // When a deconstruction is not used, we use the last value of the LHS as the return value for the lowered form
-                return builder.ToImmutableAndFree().Last();
+                return null;
             }
         }
 
@@ -327,6 +344,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result.assignments = ArrayBuilder<BoundExpression>.GetInstance();
 
                 return result;
+            }
+
+            internal BoundExpression PopLast()
+            {
+                if (assignments.Count != 0)
+                {
+                    var last = assignments.Last();
+                    assignments.RemoveLast();
+                    return last;
+                }
+                if (conversions.Count != 0)
+                {
+                    var last = conversions.Last();
+                    conversions.RemoveLast();
+                    return last;
+                }
+                if (deconstructions.Count != 0)
+                {
+                    var last = deconstructions.Last();
+                    deconstructions.RemoveLast();
+                    return last;
+                }
+                if (init.Count != 0)
+                {
+                    var last = init.Last();
+                    init.RemoveLast();
+                    return last;
+                }
+                return null;
             }
 
             internal ImmutableArray<BoundExpression> ToImmutableAndFree()
