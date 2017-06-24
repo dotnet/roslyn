@@ -6,6 +6,8 @@
     <description>
         Contains the build task and targets used by MSBuild to run the C# and VB compilers.
         Supports using VBCSCompiler on Windows.
+
+        $commitPathMessage$
     </description>
     <dependencies>
       <group targetFramework="netstandard1.3">

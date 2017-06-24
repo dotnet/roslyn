@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     forcedAnalysis, analyzerDriver.AnalysisOptions.ReportSuppressedDiagnostics, analyzerDriver.AnalysisOptions.LogAnalyzerExecutionTime,
                     project.Id, optionAsset.Checksum, analyzerMap.Keys.ToArray());
 
-                using (var session = await client.TryCreateCodeAnalysisServiceSessionAsync(solution, cancellationToken).ConfigureAwait(false))
+                using (var session = await client.TryCreateCodeAnalysisSessionAsync(solution, cancellationToken).ConfigureAwait(false))
                 {
                     if (session == null)
                     {

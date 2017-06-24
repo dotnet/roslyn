@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.Runtime.Serialization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 

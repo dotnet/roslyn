@@ -131,8 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInferredTupleNames = MessageBase + 12719,
         IDS_FeatureGenericPatternMatching = MessageBase + 12720,
         IDS_FeatureAsyncMain = MessageBase + 12721,
+        IDS_LangVersions = MessageBase +  12722,
 
-        IDS_DefaultInterfaceImplementation = MessageBase + 12722,
+        IDS_DefaultInterfaceImplementation = MessageBase + 12723,
     }
 
     // Message IDs may refer to strings that need to be localized.

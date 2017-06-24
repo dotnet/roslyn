@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text;
-using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
 
@@ -232,31 +232,35 @@ namespace Microsoft.CodeAnalysis.Debugging
         /// <exception cref="InvalidOperationException">Bad data.</exception>
         public static ImmutableArray<DynamicLocalInfo> DecodeDynamicLocalsRecord(ImmutableArray<byte> bytes)
         {
+            const int FlagBytesCount = 64;
+
+            var flagsBuilder = ArrayBuilder<bool>.GetInstance(FlagBytesCount);
+            var pooledNameBuilder = PooledStringBuilder.GetInstance();
+            var nameBuilder = pooledNameBuilder.Builder;
+
             int offset = 0;
             int bucketCount = ReadInt32(bytes, ref offset);
-
             var builder = ArrayBuilder<DynamicLocalInfo>.GetInstance(bucketCount);
+
             for (int i = 0; i < bucketCount; i++)
             {
-                const int FlagBytesCount = 64;
+                Debug.Assert(flagsBuilder.Count == 0);
+                Debug.Assert(nameBuilder.Length == 0);
 
-                ulong flags = 0UL;
                 for (int j = 0; j < FlagBytesCount; j++)
                 {
-                    var flag = ReadByte(bytes, ref offset) != 0;
-                    if (flag)
-                    {
-                        flags |= 1UL << j;
-                    }
+                    flagsBuilder.Add(ReadByte(bytes, ref offset) != 0);
                 }
 
                 int flagCount = ReadInt32(bytes, ref offset);
+                if (flagCount < flagsBuilder.Count)
+                {
+                    flagsBuilder.Count = flagCount;
+                }
+
                 int slotId = ReadInt32(bytes, ref offset);
 
                 const int NameBytesCount = 128;
-                var pooled = PooledStringBuilder.GetInstance();
-                var nameBuilder = pooled.Builder;
-
                 int nameEnd = offset + NameBytesCount;
                 while (offset < nameEnd)
                 {
@@ -271,11 +275,14 @@ namespace Microsoft.CodeAnalysis.Debugging
                     nameBuilder.Append(ch);
                 }
 
-                var name = pooled.ToStringAndFree();
+                builder.Add(new DynamicLocalInfo(flagsBuilder.ToImmutable(), slotId, nameBuilder.ToString()));
 
-                builder.Add(new DynamicLocalInfo(flagCount, flags, slotId, name));
+                flagsBuilder.Clear();
+                nameBuilder.Clear();
             }
 
+            flagsBuilder.Free();
+            pooledNameBuilder.Free();
             return builder.ToImmutableAndFree();
         }
 

@@ -4,6 +4,7 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend Enum SymbolComparisonResults

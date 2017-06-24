@@ -327,13 +327,13 @@
     <Compile Include="Diagnostics\Async\ChangeToAsyncTests.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.cs" />
     <Compile Include="Diagnostics\FixAllProvider\BatchFixerTests.cs" />
-    <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.cs" />
+    <Compile Include="FullyQualify\FullyQualifyTests.cs" />
     <Compile Include="GenerateConstructor\GenerateConstructorTests.cs" />
     <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.cs" />
     <Compile Include="Diagnostics\GenerateMethod\GenerateMethodTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.cs" />
     <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.cs" />
-    <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.cs" />
+    <Compile Include="GenerateVariable\GenerateVariableTests.cs" />
     <Compile Include="Diagnostics\HideBase\HideBaseTests.cs" />
     <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
@@ -391,6 +391,7 @@
     <Compile Include="Formatting\Indentation\SmartTokenFormatterFormatTokenTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests_FixAllTests.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationTests.cs" />
+    <Compile Include="RemoveUnreachableCode\RemoveUnreachableCodeTests.cs" />
     <Compile Include="Structure\ArrowExpressionClauseStructureTests.cs" />
     <Compile Include="Structure\InitializerExpressionStructureTests.cs" />
     <Compile Include="SuggestionTags\SuggestionTagProducerTests.cs" />

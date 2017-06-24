@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The abstract method &apos;{0}&apos; cannot be marked virtual.
+        ///   Looks up a localized string similar to The abstract {0} &apos;{1}&apos; cannot be marked virtual.
         /// </summary>
         internal static string ERR_AbstractNotVirtual {
             get {
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion; must be ISO-1, ISO-2, Default, Latest or a valid version in range 1 to 7.2..
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /langversion. Use &apos;/langversion:?&apos; to list supported values..
         /// </summary>
         internal static string ERR_BadCompatMode {
             get {
@@ -7775,7 +7775,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is ambiguous (imported twice).
+        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported, or is declared in multiple referenced assemblies.
         /// </summary>
         internal static string ERR_PredefinedValueTupleTypeNotFound {
             get {
@@ -10481,6 +10481,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_Lambda {
             get {
                 return ResourceManager.GetString("IDS_Lambda", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Supported language versions:.
+        /// </summary>
+        internal static string IDS_LangVersions {
+            get {
+                return ResourceManager.GetString("IDS_LangVersions", resourceCulture);
             }
         }
         
@@ -14226,6 +14235,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_UnreferencedLabel_Title {
             get {
                 return ResourceManager.GetString("WRN_UnreferencedLabel_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The local function &apos;{0}&apos; is declared but never used.
+        /// </summary>
+        internal static string WRN_UnreferencedLocalFunction {
+            get {
+                return ResourceManager.GetString("WRN_UnreferencedLocalFunction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Local function is declared but never used.
+        /// </summary>
+        internal static string WRN_UnreferencedLocalFunction_Title {
+            get {
+                return ResourceManager.GetString("WRN_UnreferencedLocalFunction_Title", resourceCulture);
             }
         }
         

@@ -8,6 +8,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctions : FlowTestBase
     {
         [Fact]
+        public void ConstUnassigned()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        L();
+        int L()
+        {
+            int y = x + 1;
+            const int x = 0;
+            return y;
+        }
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (9,21): error CS0841: Cannot use local variable 'x' before it is declared
+                //             int y = x + 1;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(9, 21));
+        }
+
+        [Fact]
+        public void ConstUnassigned2()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        L();
+        int L() => x;
+        const int x = 0;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,20): error CS0841: Cannot use local variable 'x' before it is declared
+                //         int L() => x;
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x").WithArguments("x").WithLocation(7, 20));
+        }
+
+        [Fact]
+        public void ConstUnassigned3()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        L();
+        const int x;
+        int L() => x;
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (7,19): error CS0145: A const field requires a value to be provided
+                //         const int x;
+                Diagnostic(ErrorCode.ERR_ConstValueRequired, "x").WithLocation(7, 19));
+        }
+
+        [Fact]
         [WorkItem(14243, "https://github.com/dotnet/roslyn/issues/14243")]
         public void AssignInsideCallToLocalFunc()
         {
@@ -519,9 +580,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (7,14): warning CS0168: The variable 'Local' is declared but never used
+                // (7,14): warning CS8321: The local function 'Local' is declared but never used
                 //         bool Local() => x == 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "Local").WithArguments("Local").WithLocation(7, 14));
+                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
         }
 
         [Fact]
