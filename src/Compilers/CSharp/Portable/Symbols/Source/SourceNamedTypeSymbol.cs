@@ -1122,6 +1122,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (this.IsByRefLikeType)
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
+
+                var obsoleteData = ObsoleteAttributeData;
+                Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
+
+                // If user specified an Obsolete atribute, we cannot emit ours.
+                // NB: we do not check the kind of deprecation. 
+                //     we will not emit Obsolete even if Deprecated or Experimental was used.
+                //     we do not want to get into a scenario where different kinds of deprecation are combined together.
+                //
+                //PROTOTYPE(spans): do we want to produce some kind of warning in this case?
+                if (obsoleteData == null)
+                {
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_ObsoleteAttribute__ctor,
+                        ImmutableArray.Create(
+                                       new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, PEModule.ByRefLikeMarker),
+                                       new TypedConstant(compilation.GetSpecialType(SpecialType.System_Boolean), TypedConstantKind.Primitive, false)), 
+                        isOptionalUse: true));
+                }
             }
 
             if (this.IsReadOnly)

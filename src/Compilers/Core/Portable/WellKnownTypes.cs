@@ -268,6 +268,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_IsReadOnlyAttribute,
         System_Runtime_CompilerServices_IsByRefLikeAttribute,
         System_Runtime_CompilerServices_IsConst,
+        System_ObsoleteAttribute,
 
         NextAvailable,
     }
@@ -531,6 +532,7 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.IsReadOnlyAttribute",
             "System.Runtime.CompilerServices.IsByRefLikeAttribute",
             "System.Runtime.CompilerServices.IsConst",
+            "System.ObsoleteAttribute",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
