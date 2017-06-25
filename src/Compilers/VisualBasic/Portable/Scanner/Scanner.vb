@@ -1694,7 +1694,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Hexadecimal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
+                            ' TODO(leading-digit-separator): check feature flag
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsHexDigit(ch) AndAlso ch <> "_"c Then
@@ -1712,7 +1715,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Binary
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
+                            ' TODO(leading-digit-separator): check feature flag
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsBinaryDigit(ch) AndAlso ch <> "_"c Then
@@ -1730,7 +1736,10 @@ FullWidthRepeat:
                         IntegerLiteralStart = Here
                         Base = LiteralBase.Octal
 
-                        UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                        If (CanGet(Here) AndAlso Peek(Here) = "_"c) Then
+                            ' TODO(leading-digit-separator): check feature flag
+                        End If
+
                         While CanGet(Here)
                             ch = Peek(Here)
                             If Not IsOctalDigit(ch) AndAlso ch <> "_"c Then

@@ -2614,6 +2614,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Fact]
         [Trait("Feature", "Literals")]
+        public void TestNumericWithLeadingUnderscores()
+        {
+            var text = "0x_A";
+            var token = LexToken(text, _underscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(0xA, token.Value);
+            Assert.Equal(text, token.Text);
+
+            text = "0b_1";
+            token = LexToken(text, _binaryUnderscoreOptions);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
+            Assert.Equal(0, token.Errors().Length);
+            Assert.Equal(1, token.Value);
+            Assert.Equal(text, token.Text);
+
+            // TODO(leading-digit-separator): test feature flag
+        }
+
+        [Fact]
+        [Trait("Feature", "Literals")]
         public void TestNumericWithBadUnderscores()
         {
             var text = "_1000";
@@ -2693,30 +2718,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(text, token.Text);
 
-            text = "0x_A";
-            token = LexToken(text, _underscoreOptions);
-
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            errors = token.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
-            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
-            Assert.Equal(text, token.Text);
-
             text = "0xA_";
             token = LexToken(text, _underscoreOptions);
-
-            Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            errors = token.Errors();
-            Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
-            Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
-            Assert.Equal(text, token.Text);
-
-            text = "0b_1";
-            token = LexToken(text, _binaryUnderscoreOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());

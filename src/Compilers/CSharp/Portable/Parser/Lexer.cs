@@ -937,11 +937,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (TextWindow.PeekChar() == '_')
             {
-                underscoreInWrongPlace = true;
+                if (isHex || isBinary)
+                {
+                    // TODO(leading-digit-separator): check feature flag
+                }
+                else
+                {
+                    underscoreInWrongPlace = true;
+                }
             }
 
             char ch;
-            var lastCharWasUnderscore = false;
+            bool lastCharWasUnderscore = false;
             while (true)
             {
                 ch = TextWindow.PeekChar();
@@ -950,9 +957,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     usedUnderscore = true;
                     lastCharWasUnderscore = true;
                 }
-                else if ((isHex && !SyntaxFacts.IsHexDigit(ch))
-                        || (isBinary && !SyntaxFacts.IsBinaryDigit(ch))
-                        || (!isHex && !isBinary && !SyntaxFacts.IsDecDigit(ch)))
+                else if (!(isHex ? SyntaxFacts.IsHexDigit(ch) :
+                           isBinary ? SyntaxFacts.IsBinaryDigit(ch) :
+                           SyntaxFacts.IsDecDigit(ch)))
                 {
                     break;
                 }

@@ -1042,6 +1042,13 @@ End If]]>.Value,
         Assert.Equal(&H42L, tk.Value)
         Assert.Equal(" &H4_2L ", tk.ToFullString())
 
+        Str = " &H_1 "
+        tk = ScanOnce(Str)
+        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
+        Assert.Equal(LiteralBase.Hexadecimal, tk.GetBase())
+        Assert.Equal(&H1, tk.Value)
+        Assert.Equal(" &H_1 ", tk.ToFullString())
+
         Str = " &H42L &H42& "
         Dim tks = ScanAllCheckDw(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tks(0).Kind)
@@ -1222,12 +1229,6 @@ End If]]>.Value,
         Assert.Equal(0, tk.GetSyntaxErrorsNoTree().Count())
 
         Str = "1_"
-        tk = ScanOnce(Str)
-        Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
-        Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
-        Assert.Equal(0, CInt(tk.Value))
-
-        Str = "&H_1"
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Assert.Equal(30035, tk.GetSyntaxErrorsNoTree()(0).Code)
