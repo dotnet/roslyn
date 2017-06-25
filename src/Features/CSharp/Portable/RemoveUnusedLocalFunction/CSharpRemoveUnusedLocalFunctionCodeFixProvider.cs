@@ -36,7 +36,13 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
         protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
         {
             var root = editor.OriginalRoot;
-            var localFunctions = diagnostics.Select(d => root.FindToken(d.Location.SourceSpan.Start))
+
+            // Order diagnostics in reverse (from latest in file to earliest) so that we process
+            // all inner local functions before processing outer local functions.  If we don't
+            // do this, then SyntaxEditor will fail if it tries to remove an inner local function
+            // after already removing the outer one.
+            var localFunctions = diagnostics.OrderBy((d1, d2) => d2.Location.SourceSpan.Start - d1.Location.SourceSpan.Start)
+                                            .Select(d => root.FindToken(d.Location.SourceSpan.Start))
                                             .Select(t => t.GetAncestor<LocalFunctionStatementSyntax>())
                                             .WhereNotNull();
 
