@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.AddImport
                     document, node, placeSystemNamespaceFirst, hasExistingImport, cancellationToken).ConfigureAwait(false);
 
                 return GetFixData(
-                    document, textChanges.ToImmutableArray(), description,
+                    document, textChanges, description,
                     GetTags(document), GetPriority(document));
             }
 

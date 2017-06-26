@@ -180,7 +180,7 @@ class Class : IInterface
 }");
         }
 
-        private static readonly string s_tupleElementNamesAttribute =
+        private const string s_tupleElementNamesAttribute =
 @"namespace System.Runtime.CompilerServices
 {
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Parameter | AttributeTargets.Property | AttributeTargets.ReturnValue | AttributeTargets.Class | AttributeTargets.Struct | AttributeTargets.Event )]

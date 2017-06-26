@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 await SerializeAsync(serializer, project, result.ProjectId, _owner.NonLocalStateName, result.Others).ConfigureAwait(false);
 
-                AnalyzerABTestLogger.LogProjectDiagnostics(project, result);
+                AnalyzerABTestLogger.LogProjectDiagnostics(project, _owner.StateName, result);
             }
 
             public void ResetVersion()
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var syntax = state.GetAnalysisData(AnalysisKind.Syntax);
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
 
-                AnalyzerABTestLogger.LogDocumentDiagnostics(document, syntax.Items, semantic.Items);
+                AnalyzerABTestLogger.LogDocumentDiagnostics(document, _owner.StateName, syntax.Items, semantic.Items);
 
                 var project = document.Project;
 
