@@ -848,7 +848,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    resultType = unconstructedType.AsUnboundGenericType();
+                    resultType = EnclosingNameofArgument != null ? unconstructedType : unconstructedType.AsUnboundGenericType();
                 }
             }
             else

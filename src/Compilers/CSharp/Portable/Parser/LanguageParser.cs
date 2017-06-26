@@ -5270,7 +5270,7 @@ tryAgain:
                 return ScanTypeArgumentListKind.NotTypeArgumentList;
             }
 
-            if ((options & NameOptions.InExpression) == 0)
+            if ((options & NameOptions.InExpression) == 0 || this.PeekToken(1).Kind == SyntaxKind.CommaToken)
             {
                 return ScanTypeArgumentListKind.DefiniteTypeArgumentList;
             }

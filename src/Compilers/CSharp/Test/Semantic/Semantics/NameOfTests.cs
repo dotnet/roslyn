@@ -260,9 +260,6 @@ class Test<T>
                 // (17,66): error CS1031: Type expected
                 //         s = nameof(System.Collections.Generic.Dictionary<Program,>.KeyCollection);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(17, 66),
-                // (11,27): error CS0305: Using the generic type 'Action<T>' requires 1 type arguments
-                //         s = nameof(System.Action<>);
-                Diagnostic(ErrorCode.ERR_BadArity, "Action<>").WithArguments("System.Action<T>", "type", "1").WithLocation(11, 27),
                 // (13,13): error CS0103: The name 'nameof' does not exist in the current context
                 //         s = nameof(void);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "nameof").WithArguments("nameof").WithLocation(13, 13),
@@ -296,9 +293,6 @@ class Test<T>
                 // (31,20): error CS8149: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
-                // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
-                //         s = nameof(Test<>.s); // inaccessible
-                Diagnostic(ErrorCode.ERR_BadArity, "Test<>").WithArguments("Test<T>", "type", "1").WithLocation(32, 20),
                 // (32,27): error CS0122: 'Test<T>.s' is inaccessible due to its protection level
                 //         s = nameof(Test<>.s); // inaccessible
                 Diagnostic(ErrorCode.ERR_BadAccess, "s").WithArguments("Test<T>.s").WithLocation(32, 27),
@@ -321,6 +315,163 @@ class Test<T>
                 //         s = nameof(a[4].Equals);
                 Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "a[4]").WithLocation(49, 20)
             );
+        }
+
+        [Fact]
+        public void TestGoodNameofWithOpenTypes()
+        {
+            var source = @"
+using System;
+using static System.Console;
+class Program
+{
+    static void Main(string[] args)
+    {
+        WriteLine(nameof(Action<>));
+        WriteLine(nameof(Action<,>));
+        WriteLine(nameof(System.Action<>));
+        WriteLine(nameof(System.Action<,>));
+        WriteLine(nameof(X<>));
+        WriteLine(nameof(X<>.Y<>));
+        WriteLine(nameof(X<>.Y<,>));
+        WriteLine(nameof(X<>.Y<>.Z<,>));
+        WriteLine(nameof(global::X<>.Y<>));
+        WriteLine(nameof(global::X<>.Y<>.Z<,>));
+        WriteLine(nameof(X<>.Field));
+        WriteLine(nameof(X<>.Property));
+        WriteLine(nameof(X<>.Event));
+        WriteLine(nameof(X<>.Type));
+        WriteLine(nameof(X<>.Y<>.Field));
+        WriteLine(nameof(X<>.Y<>.Property));
+        WriteLine(nameof(X<>.Y<>.Event));
+        WriteLine(nameof(X<>.Y<>.Type));
+        WriteLine(nameof(X<>.Y<>.Z<,>.Field));
+        WriteLine(nameof(X<>.Y<>.Z<,>.Property));
+        WriteLine(nameof(X<>.Y<>.Z<,>.Event));
+        WriteLine(nameof(X<>.Y<>.Z<,>.Type));
+    }
+}
+class X<T>
+{
+    public static int Field = 0;
+    public static int Property { get; }
+    public static event Action Event;
+    public static class Type {}
+    public class Y<U>
+    {
+        public int Field = 0;
+        public int Property { get; }
+        public event Action Event;
+        public class Type {}
+        public class Z<V, K>
+        {
+            public int Field = 0;
+            public int Property { get; }
+            public event Action Event;
+            public class Type {}
+        }
+    }
+    public class Y<U, V>
+    {
+    }
+}";
+            var comp = CompileAndVerify(source, expectedOutput: @"
+Action
+Action
+Action
+Action
+X
+Y
+Y
+Z
+Y
+Z
+Field
+Property
+Event
+Type
+Field
+Property
+Event
+Type
+Field
+Property
+Event
+Type");
+        }
+
+        [Fact]
+        public void TestBadNameofWithOpenTypes()
+        {
+            var source = @"
+using System;
+class P
+{
+    static void Main(string[] args)
+    {
+        _ = nameof(X<P>.Y<>);
+        _ = nameof(X<>.Y<P>);
+        _ = nameof(X<>.Y<P,>);
+        _ = nameof(X<>.Y<,P>);
+        _ = nameof(X<X<>>);
+        _ = nameof(global::X<>);
+        _ = nameof(X<>.missing);
+        _ = nameof(X<>.@private);
+        _ = nameof(X<>.Y<>.@private);
+        _ = nameof(X<>.Y<>.Z<>);
+    }
+}
+class X<T>
+{
+    private int @private;
+    public class Y<U, V> {}
+    public class Y<U>
+    {
+        private int @private;
+        private class Z<V>
+        {
+        }
+    }
+}";
+            var option = TestOptions.ReleaseExe.WithWarningLevel(0);
+            CreateCompilationWithMscorlibAndSystemCore(source, options: option).VerifyDiagnostics(
+                // (9,28): error CS1031: Type expected
+                //         _ = nameof(X<>.Y<P,>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(9, 28),
+                // (10,26): error CS1031: Type expected
+                //         _ = nameof(X<>.Y<,P>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(10, 26),
+                // (7,25): error CS0305: Using the generic type 'X<P>.Y<U>' requires 1 type arguments
+                //         _ = nameof(X<P>.Y<>);
+                Diagnostic(ErrorCode.ERR_BadArity, "Y<>").WithArguments("X<P>.Y<U>", "type", "1").WithLocation(7, 25),
+                // (8,20): error CS0305: Using the generic type 'X<T>' requires 1 type arguments
+                //         _ = nameof(X<>.Y<P>);
+                Diagnostic(ErrorCode.ERR_BadArity, "X<>").WithArguments("X<T>", "type", "1").WithLocation(8, 20),
+                // (9,20): error CS0305: Using the generic type 'X<T>' requires 1 type arguments
+                //         _ = nameof(X<>.Y<P,>);
+                Diagnostic(ErrorCode.ERR_BadArity, "X<>").WithArguments("X<T>", "type", "1").WithLocation(9, 20),
+                // (10,20): error CS0305: Using the generic type 'X<T>' requires 1 type arguments
+                //         _ = nameof(X<>.Y<,P>);
+                Diagnostic(ErrorCode.ERR_BadArity, "X<>").WithArguments("X<T>", "type", "1").WithLocation(10, 20),
+                // (11,22): error CS7003: Unexpected use of an unbound generic name
+                //         _ = nameof(X<X<>>);
+                Diagnostic(ErrorCode.ERR_UnexpectedUnboundGenericName, "X<>").WithLocation(11, 22),
+                // (12,20): error CS8083: An alias-qualified name is not an expression.
+                //         _ = nameof(global::X<>);
+                Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::X<>").WithLocation(12, 20),
+                // (13,24): error CS0117: 'X<T>' does not contain a definition for 'missing'
+                //         _ = nameof(X<>.missing);
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "missing").WithArguments("X<T>", "missing").WithLocation(13, 24),
+                // (14,24): error CS0122: 'X<T>.@private' is inaccessible due to its protection level
+                //         _ = nameof(X<>.@private);
+                Diagnostic(ErrorCode.ERR_BadAccess, "@private").WithArguments("X<T>.@private").WithLocation(14, 24),
+                // (15,28): error CS0122: 'X<T>.Y<U>.@private' is inaccessible due to its protection level
+                //         _ = nameof(X<>.Y<>.@private);
+                Diagnostic(ErrorCode.ERR_BadAccess, "@private").WithArguments("X<T>.Y<U>.@private").WithLocation(15, 28),
+                // (16,28): error CS0122: 'X<T>.Y<U>.Z<V>' is inaccessible due to its protection level
+                //         _ = nameof(X<>.Y<>.Z<>);
+                Diagnostic(ErrorCode.ERR_BadAccess, "Z<>").WithArguments("X<T>.Y<U>.Z<V>").WithLocation(16, 28)
+                );
         }
 
         [Fact]
