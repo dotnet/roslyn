@@ -2,19 +2,23 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
-    public abstract class CSharpSquigglesCommon : AbstractEditorTest
+    [Collection(nameof(SharedIntegrationHostFixture))]
+    public class CSharpSquiggles : AbstractEditorTest
     {
-        public CSharpSquigglesCommon(VisualStudioInstanceFactory instanceFactory, string projectTemplate)
-            :base(instanceFactory, nameof(CSharpSquigglesCommon), projectTemplate)
+        public CSharpSquiggles(VisualStudioInstanceFactory instanceFactory)
+            :base(instanceFactory, nameof(CSharpSquiggles), WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected override string LanguageName => LanguageNames.CSharp;
 
-        public virtual void VerifySyntaxErrorSquiggles()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public void VerifySyntaxErrorSquiggles()
         {
             VisualStudio.Editor.SetText(@"using System;
 using System.Collections.Generic;
@@ -41,7 +45,8 @@ namespace ConsoleApplication1
               "Microsoft.VisualStudio.Text.Tagging.ErrorTag:'using System.Collections.Generic;\r\nusing System.Text;'[15-68]");
         }
 
-        public virtual void VerifySemanticErrorSquiggles()
+        [Fact, Trait(Traits.Feature, Traits.Features.ErrorSquiggles)]
+        public void VerifySemanticErrorSquiggles()
         {
             VisualStudio.Editor.SetText(@"using System;
 
