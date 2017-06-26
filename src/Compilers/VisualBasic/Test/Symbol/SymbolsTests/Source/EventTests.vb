@@ -24,6 +24,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventSymbolTests
         Inherits BasicTestBase
 
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub ProtectedHandler()
+            Dim source = <compilation name="F">
+                             <file name="F.vb">
+ Public Class Form1
+    Protected Event EnterOriginal As System.Action
+
+    Protected Property P1 As Integer
+
+End Class
+
+Public Class Form2
+    Inherits Form1
+
+    Public Sub New()
+        AddHandler MyBase.EnterOriginal, Nothing
+        RemoveHandler MyBase.EnterOriginal, Nothing
+    End Sub
+End Class
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(comp, <Expected></Expected>)
+        End Sub
+
         <WorkItem(542806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542806")>
         <Fact()>
         Public Sub EmptyCustomEvent()
