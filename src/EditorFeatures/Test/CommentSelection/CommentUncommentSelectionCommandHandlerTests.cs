@@ -24,28 +24,19 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
     {
         private class MockCommentSelectionService : AbstractCommentSelectionService
         {
-            private readonly bool _supportBlockComments;
-
-            public MockCommentSelectionService(bool supportBlockComments)
+            public MockCommentSelectionService(bool supportsBlockComment)
             {
-                _supportBlockComments = supportBlockComments;
+                SupportsBlockComment = supportBlockComment;
             }
 
-            public override string SingleLineCommentString
-            {
-                get { return "//"; }
-            }
-
-            public override bool SupportsBlockComment
-            {
-                get { return _supportBlockComments; }
-            }
+            public override string SingleLineCommentString => "//";
+            public override bool SupportsBlockComment { get; }
 
             public override string BlockCommentStartString
             {
                 get
                 {
-                    if (!_supportBlockComments)
+                    if (!this.SupportsBlockComment)
                     {
                         throw new NotSupportedException();
                     }
@@ -58,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
             {
                 get
                 {
-                    if (!_supportBlockComments)
+                    if (!this.SupportsBlockComment)
                     {
                         throw new NotSupportedException();
                     }
@@ -73,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         {
             Assert.NotNull(
                 new MockCommentSelectionService(
-                    supportBlockComments: true));
+                    supportsBlockComment: true));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.CommentSelection)]

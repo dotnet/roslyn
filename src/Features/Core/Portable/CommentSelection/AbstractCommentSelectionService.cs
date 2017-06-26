@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CommentSelection
         }
 
         public CommentSelectionInfo GetInfo(SourceText sourceText, TextSpan textSpan)
-            => new CommentSelectionInfo(true, SupportsBlockComment, SingleLineCommentString, BlockCommentStartString, BlockCommentEndString);
+            => SupportsBlockComment
+                ? new CommentSelectionInfo(true, SupportsBlockComment, SingleLineCommentString, BlockCommentStartString, BlockCommentEndString)
+                : new CommentSelectionInfo(true, SupportsBlockComment, SingleLineCommentString, "", "");
     }
 }
