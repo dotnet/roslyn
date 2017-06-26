@@ -69,8 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         internal static CompletionHelper GetCompletionHelper(Document document)
         {
-            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
-                .GetCompletionHelper(document);
+            return CompletionHelper.GetHelper(document);
         }
 
         internal Task<CompletionList> GetCompletionListAsync(

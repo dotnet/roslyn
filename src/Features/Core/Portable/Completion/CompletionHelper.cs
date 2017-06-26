@@ -24,8 +24,14 @@ namespace Microsoft.CodeAnalysis.Completion
             _isCaseSensitive = isCaseSensitive;
         }
 
+        public static CompletionHelper GetHelper(Document document)
+        {
+            return document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>()
+                .GetCompletionHelper(document);
+        }
+
         public ImmutableArray<TextSpan> GetHighlightedSpans(
-            string text, string pattern, CultureInfo culture)
+                string text, string pattern, CultureInfo culture)
         {
             var match = GetMatch(text, pattern, includeMatchSpans: true, culture: culture);
             return match == null ? ImmutableArray<TextSpan>.Empty : match.Value.MatchedSpans;
@@ -76,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 : value.WithMatchedSpans(value.MatchedSpans.SelectAsArray(s => new TextSpan(s.Start + offset, s.Length)));
 
         private PatternMatch? GetMatchWorker(
-            string completionItemText, string pattern, 
+            string completionItemText, string pattern,
             CultureInfo culture, bool includeMatchSpans)
         {
             var patternMatcher = this.GetPatternMatcher(pattern, culture, includeMatchSpans);

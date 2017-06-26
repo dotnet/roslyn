@@ -267,8 +267,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private CompletionHelper GetCompletionHelper()
         {
             var document = GetDocument();
-            var service = document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>();
-            return service.GetCompletionHelper(document);
+            return CompletionHelper.GetHelper(document);
         }
 
         private bool IsTextualTriggerCharacter(CompletionService completionService, char ch, OptionSet options)

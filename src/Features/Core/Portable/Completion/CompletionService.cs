@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CompletionItem> items,
             string filterText)
         {
-            var helper = document.Project.Solution.Workspace.Services.GetService<ICompletionHelperService>().GetCompletionHelper(document);
+            var helper = CompletionHelper.GetHelper(document);
 
             var bestItems = ArrayBuilder<CompletionItem>.GetInstance();
             foreach (var item in items)

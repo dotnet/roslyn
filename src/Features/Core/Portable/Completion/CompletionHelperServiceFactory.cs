@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             private object _gate = new object();
 
-            private CompletionHelper caseSensitiveInstance;
-            private CompletionHelper caseInsensitiveInstance;
+            private CompletionHelper _caseSensitiveInstance;
+            private CompletionHelper _caseInsensitiveInstance;
 
             public Service(Workspace workspace)
             {
@@ -37,22 +37,22 @@ namespace Microsoft.CodeAnalysis.Completion
                 lock (_gate)
                 {
                     // Don't bother creating instances unless we actually need them
-                    if (caseSensitiveInstance == null)
+                    if (_caseSensitiveInstance == null)
                     {
                         CreateInstances();
                     }
 
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
                     return syntaxFacts.IsCaseSensitive
-                        ? this.caseSensitiveInstance
-                        : this.caseInsensitiveInstance;
+                        ? this._caseSensitiveInstance
+                        : this._caseInsensitiveInstance;
                 }
             }
 
             private void CreateInstances()
             {
-                this.caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
-                this.caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
+                this._caseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
+                this._caseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
             }
 
             private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Completion
                     lock (_gate)
                     {
                         // Solution was unloaded, clear caches if we were caching anything
-                        if (caseSensitiveInstance != null)
+                        if (_caseSensitiveInstance != null)
                         {
                             CreateInstances();
                         }
