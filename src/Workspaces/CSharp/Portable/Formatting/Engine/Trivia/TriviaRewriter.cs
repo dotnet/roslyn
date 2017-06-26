@@ -195,12 +195,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // get token span
 
             // check whether we have trivia info belongs to this token
-
             if (_trailingTriviaMap.TryGetValue(token, out var trailingTrivia))
             {
                 // okay, we have this situation
                 // token|trivia
                 hasChanges = true;
+            }
+            else
+            {
+                trailingTrivia = token.TrailingTrivia;
             }
 
             if (_leadingTriviaMap.TryGetValue(token, out var leadingTrivia))
@@ -208,6 +211,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // okay, we have this situation
                 // trivia|token
                 hasChanges = true;
+            }
+            else
+            {
+                leadingTrivia = token.LeadingTrivia;
             }
 
             if (hasChanges)
