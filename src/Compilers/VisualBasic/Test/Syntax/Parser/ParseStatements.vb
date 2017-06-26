@@ -7605,36 +7605,30 @@ Module M
     Dim y, z = Nothing
 End Module
 ]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30241"/>
-                <error id="30198"/>
-            </errors>)
+    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 1),
+    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 1),
+    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "z = Nothing").WithArguments("15.6").WithLocation(4, 12),
+    Diagnostic(ERRID.ERR_ExpectedRparen, "").WithLocation(4, 23))
+
         ParseAndVerify(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y()
 End Module
 ]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-            </errors>)
+    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 1),
+    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 1))
+
         ParseAndVerify(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y
 End Module
 ]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30198"/>
-            </errors>)
+    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 1),
+    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 1),
+    Diagnostic(ERRID.ERR_ExpectedRparen, "").WithLocation(4, 5))
+
         ParseAndVerify(<![CDATA[
 Module M
     Dim x = F(a:=False,
@@ -7642,10 +7636,13 @@ Module M
         c:=Nothing)
 End Module
 ]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-            </errors>)
+    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "b").WithArguments("15.6").WithLocation(4, 9),
+    Diagnostic(ERRID.ERR_ArgumentSyntax, "True").WithLocation(4, 11),
+    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 16),
+    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 16),
+    Diagnostic(ERRID.ERR_ExpectedRparen, "").WithLocation(4, 16),
+    Diagnostic(ERRID.ERR_ExpectedDeclaration, "c").WithLocation(5, 9))
+
     End Sub
 
     <WorkItem(649162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649162")>

@@ -123,7 +123,7 @@ End Class
             comp.AssertTheseDiagnostics(<errors>
 BC37302: Named argument 'c' is used out-of-position but is followed by an unnamed argument
         M(c:=1, 2)
-             ~
+          ~
                                         </errors>)
 
             Dim tree = comp.SyntaxTrees.First()
@@ -153,15 +153,17 @@ End Class
 </compilation>
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
-                                            // PROTOTYPE(non-trailing) crash
+BC37302: Named argument 'c' is used out-of-position but is followed by an unnamed argument
+        M(c:=1, 2,)
+          ~
                                         </errors>)
 
             Dim tree = comp.SyntaxTrees.First()
             Dim model = comp.GetSemanticModel(tree)
             Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
             Dim invocation = nodes.OfType(Of InvocationExpressionSyntax)().ElementAt(1)
-            Assert.Equal("M(c:=1, 2)", invocation.ToString())
-            AssertEx.Equal({"Sub C.M(a As System.Int32, b As System.Int32, [c As System.Int32 = 1])"},
+            Assert.Equal("M(c:=1, 2,)", invocation.ToString())
+            AssertEx.Equal({"Sub C.M(a As System.Int32, b As System.Int32, [c As System.Int32 = 1], [d As System.Int32 = 2])"},
                 model.GetSymbolInfo(invocation).CandidateSymbols.Select(Function(c) c.ToTestDisplayString()))
         End Sub
 
@@ -260,7 +262,7 @@ BC30587: Named argument cannot match a ParamArray parameter.
         End Sub
 
         <Fact>
-        Public Sub TestTwiceNamedParamsWithOldLangVer()
+        Public Sub TestTwiceNamedParametersWithOldLangVer()
 
             Dim source =
 <compilation>
@@ -431,7 +433,7 @@ End Class
             comp.AssertTheseDiagnostics(<errors>
 BC37302: Named argument 'c' is used out-of-position but is followed by an unnamed argument
         M(c:=valueC, valueB)
-             ~~~~~~
+          ~
                                         </errors>)
 
             Dim tree = comp.SyntaxTrees.First()
@@ -525,7 +527,7 @@ End Class
             comp.AssertTheseDiagnostics(<errors>
 BC37302: Named argument 'b' is used out-of-position but is followed by an unnamed argument
         M(b:=2, 3, 4)
-             ~
+          ~
                                         </errors>)
         End Sub
 
@@ -576,18 +578,30 @@ End Class
 </compilation>
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30455: Argument not specified for parameter 'condition' of 'Public Sub New(condition As Boolean, other As Integer)'.
+<MyAttribute(condition:=true, 42)>
+ ~~~~~~~~~~~
 BC30455: Argument not specified for parameter 'other' of 'Public Sub New(condition As Boolean, other As Integer)'.
 <MyAttribute(condition:=true, 42)>
  ~~~~~~~~~~~
+BC30661: Field or property '' is not found.
+<MyAttribute(condition:=true, 42)>
+                              ~
 BC37303: Named argument expected.
 <MyAttribute(condition:=true, 42)>
-                              ~~
+                              ~
+BC30455: Argument not specified for parameter 'condition' of 'Public Sub New(condition As Boolean, other As Integer)'.
+<MyAttribute(condition:=true, P:=1, 42)>
+ ~~~~~~~~~~~
 BC30455: Argument not specified for parameter 'other' of 'Public Sub New(condition As Boolean, other As Integer)'.
 <MyAttribute(condition:=true, P:=1, 42)>
  ~~~~~~~~~~~
+BC30661: Field or property '' is not found.
+<MyAttribute(condition:=true, P:=1, 42)>
+                                    ~
 BC37303: Named argument expected.
 <MyAttribute(condition:=true, P:=1, 42)>
-                                    ~~
+                                    ~
 BC30455: Argument not specified for parameter 'other' of 'Public Sub New(condition As Boolean, other As Integer)'.
 <MyAttribute(42, condition:=True)>
  ~~~~~~~~~~~
@@ -627,19 +641,191 @@ End Class
 </compilation>
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
-BC30057: Too many arguments to 'Public Sub New()'.
+BC30661: Field or property '' is not found.
 <MyAttribute(c:=3, 2)>
                    ~
 BC37303: Named argument expected.
 <MyAttribute(c:=3, 2)>
                    ~
-BC30057: Too many arguments to 'Public Sub New()'.
+BC30661: Field or property '' is not found.
 <MyAttribute(P:=1, c:=3, 2)>
                          ~
 BC37303: Named argument expected.
 <MyAttribute(P:=1, c:=3, 2)>
                          ~
                                         ]]></errors>)
+        End Sub
+
+        <Fact>
+        Public Sub OmittedArgumentAfterNamedArgument()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub M(y As Integer, Optional z As Integer = 1)
+        M(y:=Nothing,)
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+        M(y:=Nothing,)
+                     ~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestInIf()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Module1
+    Sub M(b As Boolean)
+        Dim x = If(b:=b, Nothing, Nothing)
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC33105: 'If' operands cannot be named arguments.
+        Dim x = If(b:=b, Nothing, Nothing)
+                   ~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestInIndexer()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class C
+    Public ReadOnly Property P(ByVal index1 As Integer, Optional ByVal index2 As Integer = -1) As String
+        Get
+            Return System.String.Format($"{index1} {index2}")
+        End Get
+    End Property
+    Sub M()
+        System.Console.Write(P(index1:=1, 2))
+        System.Console.Write(P(index1:=1, ))
+        System.Console.Write(P(index1:=1, 0 to 5))
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected>
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+        System.Console.Write(P(index1:=1, 2))
+                                          ~
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+        System.Console.Write(P(index1:=1, ))
+                                          ~
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+        System.Console.Write(P(index1:=1, 0 to 5))
+                                          ~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        System.Console.Write(P(index1:=1, 0 to 5))
+                                            ~~~~
+</expected>)
+        End Sub
+
+        <Fact>
+        Public Sub TestInIndexer2()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class C
+    Public ReadOnly Property P(ByVal index1 As Integer, Optional ByVal index2 As Integer = -1) As String
+        Get
+            Return System.String.Format($"{index1} {index2}. ")
+        End Get
+    End Property
+    Sub M()
+        System.Console.Write(P(index1:=1, 2))
+        System.Console.Write(P(index1:=3, ))
+        System.Console.Write(P(index1:=4, index2:=5))
+        System.Console.Write(P(index2:=7, index1:=6))
+    End Sub
+    Shared Sub Main()
+        Dim c = New C()
+        c.M()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
+
+            CompilationUtils.AssertNoDiagnostics(compilation)
+            CompileAndVerify(compilation, expectedOutput:="1 2. 3 -1. 4 5. 6 7.")
+        End Sub
+
+        <Fact>
+        Public Sub TestInConstructor()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class C
+    Public Sub New(input1 As Integer, Optional input2 As Integer = 2, Optional input3 As Integer = 3)
+    End Sub
+    Shared Sub Main()
+        Dim c = New C(input1:=1, , bad:=3)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
+BC30272: 'bad' is not a parameter of 'Public Sub New(input1 As Integer, [input2 As Integer = 2], [input3 As Integer = 3])'.
+        Dim c = New C(input1:=1, , bad:=3)
+                                   ~~~
+                                                                 </errors>)
+        End Sub
+
+        <Fact>
+        Public Sub TestInConstructor2()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Class C
+    Public Sub New(input1 As Integer, Optional input2 As Integer = 2, Optional input3 As Integer = 3)
+        System.Console.Write($"{input1} {input2} {input3}. ")
+    End Sub
+    Shared Sub Main()
+        Dim c = New C(input1:=1, , 3)
+        c = New C(input1:=1, , 0 to 4)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+                parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
+
+            CompilationUtils.AssertNoDiagnostics(compilation)
+            CompileAndVerify(compilation, expectedOutput:="1 2 3. 1 2 4.")
         End Sub
 
     End Class

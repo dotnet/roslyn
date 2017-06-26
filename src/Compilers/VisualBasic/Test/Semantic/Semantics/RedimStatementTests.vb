@@ -58,9 +58,6 @@ BC30241: Named argument expected. Please use language version 15.6 or greater to
         ReDim b(a:=1, 2)
                       ~
 BC30075: Named arguments are not valid as array subscripts.
-        ReDim b(a:=1, 2)
-                      ~
-BC30075: Named arguments are not valid as array subscripts.
         ReDim Preserve b(a:=1, b:=2)
                          ~~~~
 BC30075: Named arguments are not valid as array subscripts.
@@ -87,7 +84,6 @@ BC30512: Option Strict On disallows implicit conversions from 'Decimal' to 'Inte
 BC30512: Option Strict On disallows implicit conversions from 'String' to 'Integer'.
         ReDim b(1D, "")
                     ~~
-    
 </errors>)
         End Sub
 

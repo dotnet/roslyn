@@ -2030,21 +2030,7 @@ ProduceBoundNode:
                     ' A named argument which is used in-position counts as positional
                     If Not argumentNames.IsDefault AndAlso argumentNames(i) IsNot Nothing Then
                         If Not candidate.TryGetNamedParamIndex(argumentNames(i), paramIndex) Then
-                            ' ERRID_NamedParamNotFound1
-                            ' ERRID_NamedParamNotFound2
-                            If Not includeMethodNameInErrorMessages Then
-                                ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedParamNotFound1, argumentNames(i))
-                            ElseIf candidateIsExtension Then
-                                ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
-                                             ERRID.ERR_NamedParamNotFound3, argumentNames(i),
-                                             candidateSymbol, candidateSymbol.ContainingType)
-                            Else
-                                ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax),
-                                             ERRID.ERR_NamedParamNotFound2, argumentNames(i), If(representCandidateInDiagnosticsOpt, candidateSymbol))
-                            End If
-
-                            someArgumentsBad = True
-                            Continue For
+                            Exit For
                         End If
 
                         If paramIndex <> i Then
@@ -2053,8 +2039,7 @@ ProduceBoundNode:
                             Exit For
                         End If
 
-                        If paramIndex = candidate.ParameterCount - 1 AndAlso
-                        candidate.Parameters(paramIndex).IsParamArray Then
+                        If paramIndex = candidate.ParameterCount - 1 AndAlso candidate.Parameters(paramIndex).IsParamArray Then
                             ' ERRID_NamedParamArrayArgument
                             ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedParamArrayArgument)
                             someArgumentsBad = True
@@ -2127,7 +2112,8 @@ ProduceBoundNode:
                     If argumentNames(i) Is Nothing Then
                         ' Unnamed argument follows out-of-position named arguments
                         If Not someArgumentsBad Then
-                            ReportDiagnostic(diagnostics, arguments(seenOutOfPositionNamedArgIndex).Syntax,
+                            Dim blameLocation = DirectCast(arguments(seenOutOfPositionNamedArgIndex).Syntax.Parent, SimpleArgumentSyntax).NameColonEquals.Name
+                            ReportDiagnostic(diagnostics, blameLocation,
                                          ERRID.ERR_BadNonTrailingNamedArgument, argumentNames(seenOutOfPositionNamedArgIndex))
                         End If
                         Return
@@ -3051,6 +3037,10 @@ ProduceBoundNode:
 
                         Case SyntaxKind.OmittedArgument
                             boundArgumentsBuilder.Add(New BoundOmittedArgument(argumentSyntax, Nothing))
+                            If argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
+                            End If
 
                         Case SyntaxKind.RangeArgument
                             ' NOTE: Redim statement supports range argument, like: Redim x(0 To 3)(0 To 6)
@@ -3060,6 +3050,10 @@ ProduceBoundNode:
                             Dim rangeArgument = DirectCast(argumentSyntax, RangeArgumentSyntax)
                             CheckRangeArgumentLowerBound(rangeArgument, diagnostics)
                             boundArgumentsBuilder.Add(BindValue(rangeArgument.UpperBound, diagnostics))
+                            If argumentNamesBuilder IsNot Nothing Then
+                                argumentNamesBuilder.Add(Nothing)
+                                argumentNamesLocationsBuilder.Add(Nothing)
+                            End If
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(argumentSyntax.Kind)

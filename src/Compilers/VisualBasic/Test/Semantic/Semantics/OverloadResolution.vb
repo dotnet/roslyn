@@ -3889,9 +3889,6 @@ BC30519: Overload resolution failed because no accessible 'F2' can be called wit
 </expected>)
         End Sub
 
-
-
-
         <Fact(), WorkItem(527622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527622")>
         Public Sub NoisyDiagnostics()
 
@@ -3929,13 +3926,13 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30201: Expression expected.
+BC37302: Named argument 'y' is used out-of-position but is followed by an unnamed argument
         F4(y:=Nothing,)
-                      ~
+           ~
 BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
         F4(y:=Nothing,)
                       ~

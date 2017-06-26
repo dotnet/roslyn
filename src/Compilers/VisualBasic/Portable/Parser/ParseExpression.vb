@@ -1419,19 +1419,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ElseIf CurrentToken.Kind = SyntaxKind.CommaToken Then
                     TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
-                    arguments.Add(InternalSyntaxFactory.OmittedArgument())
+                    Dim argument = ReportNonTrailingNamedArgumentIfNeeded(InternalSyntaxFactory.OmittedArgument(), seenNames, allowNonTrailingNamedArguments)
+                    arguments.Add(argument)
                     arguments.AddSeparator(comma)
                     Continue Do
 
                 ElseIf CurrentToken.Kind = SyntaxKind.CloseParenToken Then
                     If arguments.Count > 0 Then
-                        arguments.Add(InternalSyntaxFactory.OmittedArgument())
+                        Dim argument = ReportNonTrailingNamedArgumentIfNeeded(InternalSyntaxFactory.OmittedArgument(), seenNames, allowNonTrailingNamedArguments)
+                        arguments.Add(argument)
                     End If
                     Exit Do
 
                 Else
-                    Dim argument = ParseArgument(RedimOrNewParent)
-                    argument = ReportNonTrailingNamedArgumentIfNeeded(argument, seenNames, attributeListParent, allowNonTrailingNamedArguments)
+                    Dim argument = ParseUnnamedArgumentAfterNamedArgument(seenNames, attributeListParent, allowNonTrailingNamedArguments, RedimOrNewParent)
                     arguments.Add(argument)
                 End If
 
@@ -1469,84 +1470,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        ' After VB15.6 it is possible to use named arguments in non-trailing position, except in attribute lists (where it remains disallowed)
-        Private Shared Function ReportNonTrailingNamedArgumentIfNeeded(argument As ArgumentSyntax, seenNames As Boolean, attributeListParent As Boolean, allowNonTrailingNamedArguments As Boolean) As ArgumentSyntax
-            If seenNames Then
-                If attributeListParent Then
-                    ' PROTOTYPE(non-trailing) should we produce missing tokens (here and in the next case too)?
-                    'argumentName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
-                    'colonEquals = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.ColonEqualsToken)
+        ''' <summary>After VB15.6 it is possible to use named arguments in non-trailing position, except in attribute lists (where it remains disallowed)</summary>
+        Private Function ParseUnnamedArgumentAfterNamedArgument(seenNames As Boolean, attributeListParent As Boolean, allowNonTrailingNamedArguments As Boolean, RedimOrNewParent As Boolean) As ArgumentSyntax
+            If attributeListParent AndAlso seenNames Then
+                Dim argumentName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
+                Dim colonEquals = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.ColonEqualsToken)
+                argumentName = ReportSyntaxError(argumentName, ERRID.ERR_ExpectedNamedArgumentInAttributeList)
 
-                    argument = ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgumentInAttributeList)
-
-                ElseIf Not allowNonTrailingNamedArguments Then
-                    argument = ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgument,
-                        New VisualBasicRequiredLanguageVersion(Feature.NonTrailingNamedArguments.GetLanguageVersion()))
-                End If
+                Return SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpressionCore())
             End If
 
+            Dim argument = ParseArgument(RedimOrNewParent)
+            argument = ReportNonTrailingNamedArgumentIfNeeded(argument, seenNames, allowNonTrailingNamedArguments)
             Return argument
         End Function
 
-        ' Parse a list of comma-separated keyword arguments.
+        Private Shared Function ReportNonTrailingNamedArgumentIfNeeded(argument As ArgumentSyntax, seenNames As Boolean, allowNonTrailingNamedArguments As Boolean) As ArgumentSyntax
+            If Not seenNames OrElse allowNonTrailingNamedArguments Then
+                Return argument
+            End If
 
-        ' Where to insert the next list element
-
-        ' File: Parser.cpp
-        ' Lines: 16515 - 16515
-        ' .Parser::ParseNamedArguments( [ ParseTree::ArgumentList** Target ] [ _Inout_ bool& ErrorInConstruct ] )
-
-        Private Sub ParseNamedArguments(arguments As SeparatedSyntaxListBuilder(Of ArgumentSyntax))
-
-            Do
-                Dim argumentName As IdentifierNameSyntax
-                Dim colonEquals As PunctuationSyntax = Nothing
-                Dim hasError As Boolean = False
-
-                If (CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
-                    PeekToken(1).Kind = SyntaxKind.ColonEqualsToken Then
-
-                    argumentName = ParseIdentifierNameAllowingKeyword()
-                    TryGetTokenAndEatNewLine(SyntaxKind.ColonEqualsToken, colonEquals)
-                Else
-                    argumentName = SyntaxFactory.IdentifierName(InternalSyntaxFactory.MissingIdentifier())
-                    colonEquals = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.ColonEqualsToken)
-                    hasError = True
-                End If
-
-                If hasError Then
-                    argumentName = ReportSyntaxError(argumentName, ERRID.ERR_ExpectedNamedArgument,
-                       New VisualBasicRequiredLanguageVersion(Feature.NonTrailingNamedArguments.GetLanguageVersion()))
-                End If
-
-                Dim namedArgument = SyntaxFactory.SimpleArgument(SyntaxFactory.NameColonEquals(argumentName, colonEquals), ParseExpressionCore())
-
-                If CurrentToken.Kind <> SyntaxKind.CommaToken Then
-                    If CurrentToken.Kind = SyntaxKind.CloseParenToken OrElse MustEndStatement(CurrentToken) Then
-                        arguments.Add(namedArgument)
-                        Exit Do
-                    End If
-
-                    ' There is a syntax error of some kind.
-
-                    namedArgument = ReportSyntaxError(namedArgument, ERRID.ERR_ArgumentSyntax)
-                    namedArgument = ResyncAt(namedArgument, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
-
-                    If CurrentToken.Kind <> SyntaxKind.CommaToken Then
-                        arguments.Add(namedArgument)
-                        Exit Do
-                    End If
-
-                End If
-
-                Dim comma As PunctuationSyntax = Nothing
-                TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma)
-                Debug.Assert(comma.Kind = SyntaxKind.CommaToken)
-
-                arguments.Add(namedArgument)
-                arguments.AddSeparator(comma)
-            Loop
-        End Sub
+            Return ReportSyntaxError(argument, ERRID.ERR_ExpectedNamedArgument,
+                    New VisualBasicRequiredLanguageVersion(Feature.NonTrailingNamedArguments.GetLanguageVersion()))
+        End Function
 
         ' File: Parser.cpp
         ' Lines: 16564 - 16564
