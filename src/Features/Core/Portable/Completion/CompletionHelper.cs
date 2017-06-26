@@ -24,24 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion
             _isCaseSensitive = isCaseSensitive;
         }
 
-        //public CompletionHelper GetHelper(Workspace workspace, string language)
-        //{
-        //    var isCaseSensitive = true;
-        //    var ls = workspace.Services.GetLanguageServices(language);
-        //    if (ls != null)
-        //    {
-        //        var syntaxFacts = ls.GetService<ISyntaxFactsService>();
-        //        isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
-        //    }
-
-        //    return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
-        //}
-
-        //public static CompletionHelper GetHelper(Document document)
-        //{
-        //    return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
-        //}
-
         public ImmutableArray<TextSpan> GetHighlightedSpans(
             string text, string pattern, CultureInfo culture)
         {
