@@ -7599,49 +7599,87 @@ End Class
     <WorkItem(648998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
     <Fact()>
     Public Sub Bug648998()
-        ParseAndVerify(<![CDATA[
+        Dim tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y, z = Nothing
 End Module
-]]>,
-    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 1),
-    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 1),
-    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "z = Nothing").WithArguments("15.6").WithLocation(4, 12),
-    Diagnostic(ERRID.ERR_ExpectedRparen, "").WithLocation(4, 23))
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+           ~~~~~~~~~~~
+BC30198: ')' expected.
+    Dim y, z = Nothing
+                      ~
+                                    ]]></errors>)
 
-        ParseAndVerify(<![CDATA[
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y()
 End Module
-]]>,
-    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 1),
-    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 1))
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y()
+~
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+    Dim y()
+~
+                                    ]]></errors>)
 
-        ParseAndVerify(<![CDATA[
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y
 End Module
-]]>,
-    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 1),
-    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 1),
-    Diagnostic(ERRID.ERR_ExpectedRparen, "").WithLocation(4, 5))
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y
+~
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+    Dim y
+~
+BC30198: ')' expected.
+    Dim y
+    ~
+                                    ]]></errors>)
 
-        ParseAndVerify(<![CDATA[
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
         b True,
         c:=Nothing)
 End Module
-]]>,
-    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "b").WithArguments("15.6").WithLocation(4, 9),
-    Diagnostic(ERRID.ERR_ArgumentSyntax, "True").WithLocation(4, 11),
-    Diagnostic(ERRID.ERR_ExpectedNamedArgument, "").WithArguments("15.6").WithLocation(4, 16),
-    Diagnostic(ERRID.ERR_ExpectedExpression, "").WithLocation(4, 16),
-    Diagnostic(ERRID.ERR_ExpectedRparen, "").WithLocation(4, 16),
-    Diagnostic(ERRID.ERR_ExpectedDeclaration, "c").WithLocation(5, 9))
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+        b True,
+        ~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        b True,
+          ~~~~
+BC30198: ')' expected.
+        b True,
+               ~
+BC30201: Expression expected.
+        b True,
+               ~
+BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+        b True,
+               ~
+BC30188: Declaration expected.
+        c:=Nothing)
+        ~
+                                    ]]></errors>)
 
     End Sub
 

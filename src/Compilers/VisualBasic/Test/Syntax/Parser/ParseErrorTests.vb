@@ -1728,28 +1728,34 @@ BC30306: Array subscript expression missing.
 
     <Fact()>
     Public Sub BC30241ERR_ExpectedNamedArgument()
-        Dim code = <![CDATA[
-                	<Attr1(1, b:=2, 3, e:="Scen1")> Class Class1
-
-	                End Class
-            ]]>.Value
-
-        ParseAndVerify(code, <errors>
-                                 <error id="37303"/>
-                             </errors>)
-    End Sub
-
-    <Fact()>
-    Public Sub BC30241ERR_ExpectedNamedArgument_VBLatest()
-        Dim code = <![CDATA[
+        Dim tree = Parse(<![CDATA[
 <Attr1(1, b:=2, 3, e:="Scen1")>
 Class Class1
 
 End Class
-            ]]>.Value
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
-        ParseAndVerify(code, TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest),
-            Diagnostic(ERRID.ERR_ExpectedNamedArgumentInAttributeList, "").WithLocation(2, 17))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC37303: Named argument expected.
+<Attr1(1, b:=2, 3, e:="Scen1")>
+                ~
+                                    ]]></errors>)
+    End Sub
+
+    <Fact()>
+    Public Sub BC30241ERR_ExpectedNamedArgument_VBLatest()
+        Dim tree = Parse(<![CDATA[
+<Attr1(1, b:=2, 3, e:="Scen1")>
+Class Class1
+
+End Class
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest))
+
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC37303: Named argument expected.
+<Attr1(1, b:=2, 3, e:="Scen1")>
+                ~
+                                    ]]></errors>)
     End Sub
 
     ' old name - ParseInvalidDirective_ERR_ExpectedConditionalDirective
