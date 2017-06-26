@@ -76,7 +76,7 @@
     DocumentationFile needs to be set before importing common targets. 
     C# common targets (unlike VB) prefix DocumentationFile path with IntermediateOutputPath.
   -->
-  <PropertyGroup Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(AssemblyName)' != ''">
+  <PropertyGroup Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(AssemblyName)' != ''">
     <DocumentationFile Condition="'$(ProjectLanguage)' == 'VB'">$(AssemblyName).xml</DocumentationFile>
     <DocumentationFile Condition="'$(ProjectLanguage)' == 'CSharp'">$(IntermediateOutputPath)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>

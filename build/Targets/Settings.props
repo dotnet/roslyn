@@ -213,12 +213,15 @@
         <ErrorReport>prompt</ErrorReport>
 
         <!-- Suppress the following warnings by default for C# projects
+                1573: Suppressed in order to allow documentation for some but not all parameters.
+                      A warning will still be reported if the documentation defines/references a
+                      parameter which does not exist.
                 1591: So far we've chosen to implicitly implement interfaces and as a consequence
                       the methods are public.  We don't want to duplicate documentation for them
                       and hence suppress this warning until we get closer to release and a more
                       thorough documentation story
         -->
-        <NoWarn>$(NoWarn);1591;1701</NoWarn>
+        <NoWarn>$(NoWarn);1573;1591;1701</NoWarn>
         <CheckForOverflowUnderflow>false</CheckForOverflowUnderflow>
         <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
       </PropertyGroup>
