@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                 return;
             }
 
-            var textSpans = changes.Select(s => s.GetSpan(snapshot)).Select(s => s.Span.ToTextSpan()).ToImmutableArray();
+            var textSpans = changes.Select(s => s.GetSpan(snapshot).Span.ToTextSpan()).ToImmutableArray();
             var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
         }
