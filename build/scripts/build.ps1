@@ -3,6 +3,7 @@ param (
     # Configuration
     [switch]$restore = $false,
     [switch]$release = $false,
+    [switch]$official = $false,
     [switch]$cibuild = $false,
     [switch]$build = $false,
     [switch]$bootstrap = $false,
@@ -29,6 +30,7 @@ function Print-Usage() {
     Write-Host "  -release                  Perform release build (default is debug)"
     Write-Host "  -restore                  Restore packages"
     Write-Host "  -build                    Build the Roslyn source"
+    Write-Host "  -official                 Perform an official build"
     Write-Host "  -bootstrap                Build using a bootstrap Roslyn"
     Write-Host "  -msbuildDir               MSBuild to use for operations"
     Write-Host "" 
@@ -85,6 +87,10 @@ function Run-MSBuild([string]$buildArgs = "", [string]$logFile = "") {
 
     if ($cibuild) { 
         $args += " /p:PathMap=`"$($repoDir)=q:\roslyn`" /p:Feature=pdb-path-determinism" 
+    }
+
+    if ($official) {
+        $args += " /p:OfficialBuild=true"
     }
 
     $args += " $buildArgs"
