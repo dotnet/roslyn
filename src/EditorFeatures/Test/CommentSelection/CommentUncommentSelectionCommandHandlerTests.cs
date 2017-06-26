@@ -3,8 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
-using Moq;
 using Roslyn.Test.EditorUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -23,11 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
 {
     public class CommentUncommentSelectionCommandHandlerTests
     {
-        private class MockCommentUncommentService : AbstractCommentUncommentService
+        private class MockCommentSelectionService : AbstractCommentSelectionService
         {
             private readonly bool _supportBlockComments;
 
-            public MockCommentUncommentService(bool supportBlockComments)
+            public MockCommentSelectionService(bool supportBlockComments)
             {
                 _supportBlockComments = supportBlockComments;
             }
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         public void Create()
         {
             Assert.NotNull(
-                new MockCommentUncommentService(
+                new MockCommentSelectionService(
                     supportBlockComments: true));
         }
 
@@ -554,7 +553,7 @@ class Foo
             var textUndoHistoryRegistry = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<ITextUndoHistoryRegistry>();
             var editorOperationsFactory = TestExportProvider.ExportProviderWithCSharpAndVisualBasic.GetExportedValue<IEditorOperationsFactoryService>();
             var commandHandler = new CommentUncommentSelectionCommandHandler(TestWaitIndicator.Default, textUndoHistoryRegistry, editorOperationsFactory);
-            var service = new MockCommentUncommentService(supportBlockComments);
+            var service = new MockCommentSelectionService(supportBlockComments);
 
             var trackingSpans = new List<ITrackingSpan>();
             var textChanges = new List<TextChange>();
