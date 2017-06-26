@@ -1415,7 +1415,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuples must have at least one elements..
+        ///   Looks up a localized string similar to Tuples must have at least one element..
         /// </summary>
         internal static string TuplesNeedAtLeastOneElement {
             get {
