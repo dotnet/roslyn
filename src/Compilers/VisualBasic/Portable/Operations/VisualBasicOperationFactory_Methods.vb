@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 End Select
             End If
 
-            Return OperationKind.AssignmentExpression
+            Return OperationKind.SimpleAssignmentExpression
         End Function
 
         Private Function GetUserDefinedBinaryOperatorChild([operator] As BoundUserDefinedBinaryOperator, index As Integer) As IOperation
@@ -242,14 +242,14 @@ Namespace Microsoft.CodeAnalysis.Semantics
             ' ControlVariable = InitialValue
             Dim controlReference As IOperation = Create(boundFor.ControlVariable)
             If controlReference IsNot Nothing Then
-                statements.Add(OperationFactory.CreateAssignmentExpressionStatement(controlReference, Create(boundFor.InitialValue), boundFor.InitialValue.Syntax))
+                statements.Add(OperationFactory.CreateSimpleAssignmentExpressionStatement(controlReference, Create(boundFor.InitialValue), boundFor.InitialValue.Syntax))
             End If
 
             ' T0 = LimitValue
             If Not boundFor.LimitValue.IsConstant Then
                 Dim value = Create(boundFor.LimitValue)
                 statements.Add(
-                                OperationFactory.CreateAssignmentExpressionStatement(
+                                OperationFactory.CreateSimpleAssignmentExpressionStatement(
                                     New SyntheticLocalReferenceExpression(
                                             SyntheticLocalKind.ForLoopLimitValue,
                                             Create(boundFor),
@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
             If boundFor.StepValue IsNot Nothing AndAlso Not boundFor.StepValue.IsConstant Then
                 Dim value = Create(boundFor.StepValue)
                 statements.Add(
-                                OperationFactory.CreateAssignmentExpressionStatement(
+                                OperationFactory.CreateSimpleAssignmentExpressionStatement(
                                     New SyntheticLocalReferenceExpression(
                                         SyntheticLocalKind.ForLoopStepValue,
                                         Create(boundFor),

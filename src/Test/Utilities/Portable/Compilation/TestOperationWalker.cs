@@ -459,9 +459,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitArrayInitializer(operation);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
-            base.VisitAssignmentExpression(operation);
+            base.VisitSimpleAssignmentExpression(operation);
         }
 
         public override void VisitCompoundAssignmentExpression(ICompoundAssignmentExpression operation)

@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                  operationBlockContext.RegisterOperationAction(
                                     (operationContext) =>
                                     {
-                                        IBaseAssignmentExpression assignment = (IBaseAssignmentExpression)operationContext.Operation;
+                                        IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
                                         AssignTo(assignment.Target, inConstructor, staticConstructorType, assignedToFields, mightBecomeReadOnlyFields);
                                     },
-                                    OperationKind.AssignmentExpression,
+                                    OperationKind.SimpleAssignmentExpression,
                                     OperationKind.CompoundAssignmentExpression,
                                     OperationKind.IncrementExpression);
 

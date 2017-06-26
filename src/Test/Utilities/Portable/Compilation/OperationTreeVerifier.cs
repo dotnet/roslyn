@@ -955,9 +955,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArray(operation.ElementValues, "Element Values", logElementCount: true);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
-            LogString(nameof(IAssignmentExpression));
+            LogString(nameof(ISimpleAssignmentExpression));
             LogCommonPropertiesAndNewLine(operation);
 
             Visit(operation.Target, "Left");

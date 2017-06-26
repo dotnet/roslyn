@@ -364,11 +364,11 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents an assignment expression.
+    /// Represents an base type of assignment expression.
     /// </summary>
-    internal abstract partial class BaseAssignmentExpression : Operation, IBaseAssignmentExpression
+    internal abstract partial class AssignmentExpression : Operation, IAssignmentExpression
     {
-        protected BaseAssignmentExpression(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        protected AssignmentExpression(OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
         }
@@ -385,10 +385,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
-    internal sealed partial class AssignmentExpression : BaseAssignmentExpression, IAssignmentExpression
+    internal abstract partial class BaseSimpleAssignmentExpression : AssignmentExpression, ISimpleAssignmentExpression
     {
-        public AssignmentExpression(IOperation target, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
+        public BaseSimpleAssignmentExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.SimpleAssignmentExpression, isInvalid, syntax, type, constantValue)
+        {
+        }
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitSimpleAssignmentExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitAssignmentExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents an assignment expression.
+    /// </summary>
+    internal sealed partial class SimpleAssignmentExpression : BaseSimpleAssignmentExpression, ISimpleAssignmentExpression
+    {
+        public SimpleAssignmentExpression(IOperation target, IOperation value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
         {
             Target = target;
             Value = value;
@@ -401,25 +420,18 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         public override IOperation Value { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitAssignmentExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitAssignmentExpression(this, argument);
-        }
     }
 
     /// <summary>
     /// Represents an assignment expression.
     /// </summary>
-    internal sealed partial class LazyAssignmentExpression : BaseAssignmentExpression, IAssignmentExpression
+    internal sealed partial class LazySimpleAssignmentExpression : BaseSimpleAssignmentExpression, ISimpleAssignmentExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(OperationKind.AssignmentExpression, isInvalid, syntax, type, constantValue)
+        public LazySimpleAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isInvalid, syntax, type, constantValue)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException("target");
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
@@ -433,15 +445,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitAssignmentExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitAssignmentExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -778,10 +781,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
-    internal abstract partial class BaseCompoundAssignmentExpression : BaseAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    internal abstract partial class BaseCompoundAssignmentExpression : AssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
-        protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(kind, isInvalid, syntax, type, constantValue)
+        protected BaseCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
         {
             BinaryOperationKind = binaryOperationKind;
             UsesOperatorMethod = usesOperatorMethod;
@@ -799,27 +802,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public IMethodSymbol OperatorMethod { get; }
-    }
 
-    /// <summary>
-    /// Represents an assignment expression that includes a binary operation.
-    /// </summary>
-    internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
-    {
-        public CompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
-        {
-            Target = target;
-            Value = value;
-        }
-        /// <summary>
-        /// Target of the assignment.
-        /// </summary>
-        public override IOperation Target { get; }
-        /// <summary>
-        /// Value to be assigned to the target of the assignment.
-        /// </summary>
-        public override IOperation Value { get; }
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitCompoundAssignmentExpression(this);
@@ -833,12 +816,34 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an assignment expression that includes a binary operation.
     /// </summary>
+    internal sealed partial class CompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
+    {
+        public CompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, IOperation target, IOperation value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
+        {
+            Target = target;
+            Value = value;
+        }
+        /// <summary>
+        /// Target of the assignment.
+        /// </summary>
+        public override IOperation Target { get; }
+        /// <summary>
+        /// Value to be assigned to the target of the assignment.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an assignment expression that includes a binary operation.
+    /// </summary>
     internal sealed partial class LazyCompoundAssignmentExpression : BaseCompoundAssignmentExpression, IHasOperatorMethodExpression, ICompoundAssignmentExpression
     {
         private readonly Lazy<IOperation> _lazyTarget;
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(binaryOperationKind, usesOperatorMethod, operatorMethod, OperationKind.CompoundAssignmentExpression, isInvalid, syntax, type, constantValue)
+        public LazyCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
             _lazyTarget = target ?? throw new System.ArgumentNullException("target");
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
@@ -852,15 +857,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Value to be assigned to the target of the assignment.
         /// </summary>
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitCompoundAssignmentExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitCompoundAssignmentExpression(this, argument);
-        }
     }
 
     /// <summary>

@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazyAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
+                Return New LazySimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
             End If
         End Function
 

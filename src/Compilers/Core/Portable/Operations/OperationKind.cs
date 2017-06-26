@@ -114,8 +114,8 @@ namespace Microsoft.CodeAnalysis
         IsTypeExpression = 0x116,
         /// <summary>Indicates an <see cref="IAwaitExpression"/>.</summary>
         AwaitExpression = 0x117,
-        /// <summary>Indicates an <see cref="IAssignmentExpression"/>.</summary>
-        AssignmentExpression = 0x118,
+        /// <summary>Indicates an <see cref="ISimpleAssignmentExpression"/>.</summary>
+        SimpleAssignmentExpression = 0x118,
         /// <summary>Indicates an <see cref="ICompoundAssignmentExpression"/>.</summary>
         CompoundAssignmentExpression = 0x119,
         /// <summary>Indicates an <see cref="IParenthesizedExpression"/>.</summary>

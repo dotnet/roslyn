@@ -161,9 +161,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                  if (forLoop.Before.Length == 1)
                                  {
                                      IOperation setup = forLoop.Before[0];
-                                     if (setup.Kind == OperationKind.ExpressionStatement && ((IExpressionStatement)setup).Expression.Kind == OperationKind.AssignmentExpression)
+                                     if (setup.Kind == OperationKind.ExpressionStatement && ((IExpressionStatement)setup).Expression.Kind == OperationKind.SimpleAssignmentExpression)
                                      {
-                                         IAssignmentExpression setupAssignment = (IAssignmentExpression)((IExpressionStatement)setup).Expression;
+                                         ISimpleAssignmentExpression setupAssignment = (ISimpleAssignmentExpression)((IExpressionStatement)setup).Expression;
                                          if (setupAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                              ((ILocalReferenceExpression)setupAssignment.Target).Local == testVariable &&
                                              setupAssignment.Value.ConstantValue.HasValue &&
@@ -182,9 +182,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                                                      IOperation advanceIncrement = null;
                                                      BinaryOperationKind advanceOperationCode = BinaryOperationKind.None;
 
-                                                     if (advanceExpression.Kind == OperationKind.AssignmentExpression)
+                                                     if (advanceExpression.Kind == OperationKind.SimpleAssignmentExpression)
                                                      {
-                                                         IAssignmentExpression advanceAssignment = (IAssignmentExpression)advanceExpression;
+                                                         ISimpleAssignmentExpression advanceAssignment = (ISimpleAssignmentExpression)advanceExpression;
 
                                                          if (advanceAssignment.Target.Kind == OperationKind.LocalReferenceExpression &&
                                                              ((ILocalReferenceExpression)advanceAssignment.Target).Local == testVariable &&
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             context.RegisterOperationAction(
                  (operationContext) =>
                  {
-                     var assignment = (IAssignmentExpression)operationContext.Operation;
+                     var assignment = (ISimpleAssignmentExpression)operationContext.Operation;
                      var kind = assignment.Target.Kind;
                      if (kind == OperationKind.FieldReferenceExpression ||
                          kind == OperationKind.PropertyReferenceExpression)
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                          Report(operationContext, assignment.Syntax, DoNotUseMemberAssignmentDescriptor);
                      }
                  },
-                 OperationKind.AssignmentExpression);
+                 OperationKind.SimpleAssignmentExpression);
         }
 
         private static void Report(OperationAnalysisContext context, SyntaxNode syntax, DiagnosticDescriptor descriptor)
@@ -2068,7 +2068,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                  {
                      operationContext.ReportDiagnostic(Diagnostic.Create(AssignmentOperationDescriptor, operationContext.Operation.Syntax.GetLocation()));
                  },
-                 OperationKind.AssignmentExpression);
+                 OperationKind.SimpleAssignmentExpression);
 
             context.RegisterSyntaxNodeAction(
                  (syntaxContext) =>

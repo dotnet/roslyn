@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitAssignmentExpression(IAssignmentExpression operation)
+        public virtual void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
             DefaultVisit(operation);
         }
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitAssignmentExpression(IAssignmentExpression operation, TArgument argument)
+        public virtual TResult VisitAssignmentExpression(ISimpleAssignmentExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

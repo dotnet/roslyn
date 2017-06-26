@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             VisitArray(operation.ElementValues);
         }
 
-        public override void VisitAssignmentExpression(IAssignmentExpression operation)
+        public override void VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation)
         {
             Visit(operation.Target);
             Visit(operation.Value);

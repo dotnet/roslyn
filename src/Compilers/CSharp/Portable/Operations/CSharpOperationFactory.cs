@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return new InstanceReferenceExpression(instanceReferenceKind, isInvalid, syntax, type, constantValue);
         }
 
-        private IAssignmentExpression CreateBoundAssignmentOperatorOperation(BoundAssignmentOperator boundAssignmentOperator)
+        private ISimpleAssignmentExpression CreateBoundAssignmentOperatorOperation(BoundAssignmentOperator boundAssignmentOperator)
         {
             Lazy<IOperation> target = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Left));
             Lazy<IOperation> value = new Lazy<IOperation>(() => Create(boundAssignmentOperator.Right));
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundAssignmentOperator.Syntax;
             ITypeSymbol type = boundAssignmentOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundAssignmentOperator.ConstantValue);
-            return new LazyAssignmentExpression(target, value, isInvalid, syntax, type, constantValue);
+            return new LazySimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue);
         }
 
         private ICompoundAssignmentExpression CreateBoundCompoundAssignmentOperatorOperation(BoundCompoundAssignmentOperator boundCompoundAssignmentOperator)
