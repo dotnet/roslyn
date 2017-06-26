@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         }
 
         protected override IndexerDeclarationSyntax WithGenerateBody(
-            IndexerDeclarationSyntax declaration, OptionSet options)
+            IndexerDeclarationSyntax declaration, OptionSet options, ParseOptions parseOptions)
         {
-            return WithAccessorList(declaration, options);
+            return WithAccessorList(declaration, options, parseOptions);
         }
 
         protected override bool CreateReturnStatementForExpression(IndexerDeclarationSyntax declaration) => true;
