@@ -43,8 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedLocalFunction
             // after already removing the outer one.
             var localFunctions = diagnostics.OrderBy((d1, d2) => d2.Location.SourceSpan.Start - d1.Location.SourceSpan.Start)
                                             .Select(d => root.FindToken(d.Location.SourceSpan.Start))
-                                            .Select(t => t.GetAncestor<LocalFunctionStatementSyntax>())
-                                            .WhereNotNull();
+                                            .Select(t => t.GetAncestor<LocalFunctionStatementSyntax>());
 
             foreach (var localFunction in localFunctions)
             {
