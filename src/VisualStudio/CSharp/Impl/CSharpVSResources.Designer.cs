@@ -313,6 +313,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Indent case contents (when block).
+        /// </summary>
+        internal static string Indent_case_contents_when_block {
+            get {
+                return ResourceManager.GetString("Indent_case_contents_when_block", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indent case labels.
         /// </summary>
         internal static string Indent_case_labels {
