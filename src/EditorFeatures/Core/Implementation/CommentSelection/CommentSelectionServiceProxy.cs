@@ -7,6 +7,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
 {
+    /// <summary>
+    /// Bridge between the new <see cref="ICommentSelectionService"/> and an existing
+    /// language which only supplies the old <see cref="ICommentUncommentService"/> service.
+    /// </summary>
     internal class CommentSelectionServiceProxy : ICommentSelectionService
     {
 #pragma warning disable CS0618 // Type or member is obsolete
