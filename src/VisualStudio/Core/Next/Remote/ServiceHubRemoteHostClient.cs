@@ -107,6 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Stream stream) :
             base(workspace)
         {
+            Contract.ThrowIfNull(remotableDataRpc);
+
             _hubClient = hubClient;
             _hostGroup = hostGroup;
             _timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));

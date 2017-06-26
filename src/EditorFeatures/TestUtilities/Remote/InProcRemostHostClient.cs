@@ -51,6 +51,8 @@ namespace Roslyn.Test.Utilities.Remote
             Stream stream) :
             base(workspace)
         {
+            Contract.ThrowIfNull(remotableDataRpc);
+
             _inprocServices = inprocServices;
             _remotableDataRpc = remotableDataRpc;
 

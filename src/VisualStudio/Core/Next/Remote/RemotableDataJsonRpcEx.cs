@@ -121,6 +121,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void Dispose(bool disposing)
         {
+            Contract.ThrowIfFalse(disposing);
             Disconnect();
         }
 
