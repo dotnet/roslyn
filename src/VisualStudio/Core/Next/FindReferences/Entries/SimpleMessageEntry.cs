@@ -18,6 +18,11 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages
                 string message)
                 : base(definitionBucket)
             {
+                // We only create 'message entries' when we found no references to this definition.
+                // In that case, suppress showing the count next to the definition as it will just
+                // be strange.  i.e. the count will show '(1)' (i.e. us) even though we're indicating
+                // that there really were zero references.
+                DefinitionBucket.ShowCount = false;
                 _message = message;
             }
 
