@@ -67,7 +67,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <summary>
-        /// Loads given array of bytes as an assembly image using <see cref="System.Reflection.Assembly.Load"/> or <see cref="System.Reflection.Assembly.ReflectionOnlyLoad"/>.
+        /// Loads given array of bytes as an assembly image using <see cref="Assembly.Load(byte[])"/> or <see cref="Assembly.ReflectionOnlyLoad(byte[])"/>.
         /// </summary>
         internal static Assembly LoadAsAssembly(string moduleName, ImmutableArray<byte> rawAssembly, bool reflectionOnly = false)
         {
