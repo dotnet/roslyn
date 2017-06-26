@@ -4,27 +4,29 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 using ProjectUtils = Microsoft.VisualStudio.IntegrationTest.Utilities.Common.ProjectUtils;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     public abstract class AbstractEditorTest : AbstractIntegrationTest
     {
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory)
-            : base(instanceFactory)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
+            : base(instanceFactory, testOutputHelper)
         {
         }
 
-        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, string solutionName)
-            : this(instanceFactory, solutionName, WellKnownProjectTemplates.ClassLibrary)
+        protected AbstractEditorTest(VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper, string solutionName)
+            : this(instanceFactory, testOutputHelper, solutionName, WellKnownProjectTemplates.ClassLibrary)
         {
         }
 
         protected AbstractEditorTest(
             VisualStudioInstanceFactory instanceFactory,
+            ITestOutputHelper testOutputHelper,
             string solutionName,
             string projectTemplate)
-           : base(instanceFactory)
+           : base(instanceFactory, testOutputHelper)
         {
             VisualStudio.SolutionExplorer.CreateSolution(solutionName);
             VisualStudio.SolutionExplorer.AddProject(new ProjectUtils.Project(ProjectName), projectTemplate, LanguageName);

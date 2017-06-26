@@ -5,6 +5,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess;
 using System;
 using System.Threading;
+using Xunit.Abstractions;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -19,9 +20,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private VisualStudioInstanceContext _visualStudioContext;
 
         protected AbstractIntegrationTest(
-            VisualStudioInstanceFactory instanceFactory)
+            VisualStudioInstanceFactory instanceFactory, ITestOutputHelper testOutputHelper)
         {
-            _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
+            _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds, testOutputHelper.WriteLine);
             VisualStudio = _visualStudioContext.Instance;
         }
 

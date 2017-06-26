@@ -60,6 +60,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         internal Process HostProcess { get; }
 
         /// <summary>
+        /// The action to invoke to write to extra logging for the text. This will always be non-null but might be a no-op.
+        /// </summary>
+        private readonly Action<string> _logAction;
+
+        /// <summary>
         /// The set of Visual Studio packages that are installed into this instance.
         /// </summary>
         public ImmutableHashSet<string> SupportedPackageIds { get; }
@@ -70,7 +75,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         /// </summary>
         public string InstallationPath { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath)
+        public VisualStudioInstance(Process hostProcess, DTE dte, ImmutableHashSet<string> supportedPackageIds, string installationPath, Action<string> logAction)
         {
             HostProcess = hostProcess;
             Dte = dte;
@@ -116,6 +121,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
             CleanUp();
+
+            if (logAction != null)
+            {
+                _logAction = logAction;
+            }
+            else
+            {
+                _logAction = (_) => { };
+            }
         }
 
         public void ExecuteInHostProcess(Type type, string methodName)
@@ -219,6 +233,11 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             {
                 _inProc.ExecuteCommand(WellKnownCommandNames.Test_IntegrationTestService_Stop);
             }
+        }
+
+        internal void WriteLineToLog(string message)
+        {
+            _logAction?.Invoke(message);
         }
 
         private static void RetryRpcCall(Action action)
