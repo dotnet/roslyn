@@ -23,7 +23,7 @@ namespace BuildBoss
             foreach (var filePath in Directory.GetFiles(_targetDir))
             {
                 var fileName = Path.GetFileName(filePath);
-                if (fileName == "README.md")
+                if (fileName == "README.md" || fileName == "stylecop.json")
                 {
                     continue;
                 }

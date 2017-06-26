@@ -210,6 +210,10 @@
              Condition="'$(OS)' == 'Windows_NT'" />
 
   <Import Project="$(RoslynDiagnosticsPropsFilePath)" Condition="'$(UseRoslynAnalyzers)' == 'true' AND Exists('$(RoslynDiagnosticsPropsFilePath)')" />
+  <ItemGroup Condition="'$(UseRoslynAnalyzers)' == 'true' AND '$(ProjectLanguage)' == 'CSharp'">
+    <PackageReference Include="StyleCop.Analyzers" Version="$(StyleCopAnalyzersNugetPackageVersion)" PrivateAssets="all" />
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" />
+  </ItemGroup>
 
   <ImportGroup Label="WindowsImports" Condition="'$(OS)' == 'Windows_NT'">
     <Import 
