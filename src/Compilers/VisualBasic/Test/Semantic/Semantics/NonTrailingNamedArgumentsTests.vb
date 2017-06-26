@@ -816,6 +816,8 @@ Class C
     Shared Sub Main()
         Dim c = New C(input1:=1, , 3)
         c = New C(input1:=1, , 0 to 4)
+        c = New C(input1:=1, , input3:=5)
+        c = New C(input1:=1, 0 to 6, input3:=7)
     End Sub
 End Class
     </file>
@@ -825,7 +827,7 @@ End Class
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
 
             CompilationUtils.AssertNoDiagnostics(compilation)
-            CompileAndVerify(compilation, expectedOutput:="1 2 3. 1 2 4.")
+            CompileAndVerify(compilation, expectedOutput:="1 2 3. 1 2 4. 1 2 5. 1 6 7.")
         End Sub
 
     End Class

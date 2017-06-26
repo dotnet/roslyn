@@ -2112,8 +2112,7 @@ ProduceBoundNode:
                     If argumentNames(i) Is Nothing Then
                         ' Unnamed argument follows out-of-position named arguments
                         If Not someArgumentsBad Then
-                            Dim blameLocation = DirectCast(arguments(seenOutOfPositionNamedArgIndex).Syntax.Parent, SimpleArgumentSyntax).NameColonEquals.Name
-                            ReportDiagnostic(diagnostics, blameLocation,
+                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(seenOutOfPositionNamedArgIndex).Syntax),
                                          ERRID.ERR_BadNonTrailingNamedArgument, argumentNames(seenOutOfPositionNamedArgIndex))
                         End If
                         Return
