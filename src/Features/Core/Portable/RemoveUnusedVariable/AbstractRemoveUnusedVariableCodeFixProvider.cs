@@ -6,11 +6,12 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.RemoveUnusedVariable
+namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 {
     internal abstract class AbstractRemoveUnusedVariableCodeFixProvider<TLocalDeclarationStatement, TVariableDeclarator, TVariableDeclaration> : SyntaxEditorBasedCodeFixProvider
         where TLocalDeclarationStatement: SyntaxNode
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.RemoveUnusedVariable
                     editor.RemoveNode(variableDeclarator);
                 }
             }
+
             return SpecializedTasks.EmptyTask;
         }
 

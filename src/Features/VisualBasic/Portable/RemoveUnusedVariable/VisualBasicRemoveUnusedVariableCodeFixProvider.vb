@@ -3,10 +3,10 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeFixes.RemoveUnusedVariable
+Imports Microsoft.CodeAnalysis.RemoveUnusedVariable
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnusedVariable
+Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnusedVariable
 
     <ExportCodeFixProviderAttribute(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.RemoveUnusedVariable), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.AddImport)>
@@ -15,12 +15,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnusedVariable
             LocalDeclarationStatementSyntax, ModifiedIdentifierSyntax, VariableDeclaratorSyntax)
 
         Private Const BC42024 As String = "BC42024"
-        Private ReadOnly Ids As ImmutableArray(Of String) = ImmutableArray.Create(BC42024)
 
-        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
-            Get
-                Return Ids
-            End Get
-        End Property
+        Public Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String) =
+            ImmutableArray.Create(BC42024)
     End Class
 End Namespace
