@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,10 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
-        public CommentSelectionInfo GetInfo(SourceText sourceText, TextSpan textSpan)
-            => new CommentSelectionInfo(true, _commentUncommentService.SupportsBlockComment, _commentUncommentService.SingleLineCommentString, _commentUncommentService.BlockCommentStartString, _commentUncommentService.BlockCommentEndString);
+        public Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
+            => Task.FromResult(new CommentSelectionInfo(
+                    true, _commentUncommentService.SupportsBlockComment, _commentUncommentService.SingleLineCommentString, 
+                    _commentUncommentService.BlockCommentStartString, _commentUncommentService.BlockCommentEndString));
 
-        public Document Format(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)
-            => _commentUncommentService.Format(document, changes, cancellationToken);
+        public Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken)
+            => Task.FromResult(_commentUncommentService.Format(document, changes, cancellationToken));
     }
 }

@@ -110,7 +110,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
                     var trackingSpans = new List<ITrackingSpan>();
                     var textChanges = new List<TextChange>();
 
-                    CollectEdits(service, textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer), textChanges, trackingSpans, operation);
+                    CollectEdits(
+                        document, service, textView.Selection.GetSnapshotSpansOnBuffer(subjectBuffer),
+                        textChanges, trackingSpans, operation, waitContext.CancellationToken);
 
                     using (var transaction = new CaretPreservingEditTransaction(title, textView, _undoHistoryRegistry, _editorOperationsFactoryService))
                     {
@@ -165,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
 
             var textSpans = changes.Select(s => s.GetSpan(snapshot)).Select(s => s.Span.ToTextSpan()).ToImmutableArray();
-            var newDocument = service.Format(document, textSpans, cancellationToken);
+            var newDocument = service.FormatAsync(document, textSpans, cancellationToken).WaitAndGetResult(cancellationToken);
             newDocument.Project.Solution.Workspace.ApplyDocumentChanges(newDocument, cancellationToken);
         }
 
@@ -176,17 +178,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         ///
         /// Internal so that it can be called by unit tests.
         /// </summary>
-        internal void CollectEdits(ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans, List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, Operation operation)
+        internal void CollectEdits(
+            Document document, ICommentSelectionService service, NormalizedSnapshotSpanCollection selectedSpans, 
+            List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, Operation operation, CancellationToken cancellationToken)
         {
             foreach (var span in selectedSpans)
             {
                 if (operation == Operation.Comment)
                 {
-                    CommentSpan(service, span, textChanges, trackingSpans);
+                    CommentSpan(document, service, span, textChanges, trackingSpans, cancellationToken);
                 }
                 else
                 {
-                    UncommentSpan(service, span, textChanges, trackingSpans);
+                    UncommentSpan(document, service, span, textChanges, trackingSpans, cancellationToken);
                 }
             }
         }
@@ -194,7 +198,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// <summary>
         /// Add the necessary edits to comment out a single span.
         /// </summary>
-        private void CommentSpan(ICommentSelectionService service, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> trackingSpans)
+        private void CommentSpan(
+            Document document, ICommentSelectionService service, SnapshotSpan span, 
+            List<TextChange> textChanges, List<ITrackingSpan> trackingSpans, CancellationToken cancellationToken)
         {
             var (firstLine, lastLine) = DetermineFirstAndLastLine(span);
 
@@ -211,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
             }
 
             // Get the information from the language as to how they'd like to comment this region.
-            var commentInfo = service.GetInfo(span.Snapshot.AsText(), span.Span.ToTextSpan());
+            var commentInfo = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
             if (!commentInfo.SupportsBlockComment && !commentInfo.SupportsSingleLineComment)
             {
                 // Neither type of comment supported.
@@ -291,9 +297,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection
         /// <summary>
         /// Add the necessary edits to uncomment out a single span.
         /// </summary>
-        private void UncommentSpan(ICommentSelectionService service, SnapshotSpan span, List<TextChange> textChanges, List<ITrackingSpan> spansToSelect)
+        private void UncommentSpan(
+            Document document, ICommentSelectionService service, SnapshotSpan span, 
+            List<TextChange> textChanges, List<ITrackingSpan> spansToSelect, CancellationToken cancellationToken)
         {
-            var info = service.GetInfo(span.Snapshot.AsText(), span.Span.ToTextSpan());
+            var info = service.GetInfoAsync(document, span.Span.ToTextSpan(), cancellationToken).WaitAndGetResult(cancellationToken);
 
             if (info.SupportsSingleLineComment &&
                 TryUncommentSingleLineComments(info, span, textChanges, spansToSelect))

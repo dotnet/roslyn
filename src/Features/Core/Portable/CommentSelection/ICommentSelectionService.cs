@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -9,8 +10,8 @@ namespace Microsoft.CodeAnalysis.CommentSelection
 {
     internal interface ICommentSelectionService : ILanguageService
     {
-        CommentSelectionInfo GetInfo(SourceText sourceText, TextSpan textSpan);
+        Task<CommentSelectionInfo> GetInfoAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-        Document Format(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken);
+        Task<Document> FormatAsync(Document document, ImmutableArray<TextSpan> changes, CancellationToken cancellationToken);
     }
 }

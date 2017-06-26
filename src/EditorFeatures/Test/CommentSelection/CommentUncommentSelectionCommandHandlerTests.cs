@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CommentSelection;
 using Microsoft.CodeAnalysis.Editor.Implementation.CommentSelection;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CommentSelection
         {
             public MockCommentSelectionService(bool supportsBlockComment)
             {
-                SupportsBlockComment = supportBlockComment;
+                SupportsBlockComment = supportsBlockComment;
             }
 
             public override string SingleLineCommentString => "//";
@@ -549,8 +550,9 @@ class Foo
             var trackingSpans = new List<ITrackingSpan>();
             var textChanges = new List<TextChange>();
 
-            commandHandler.CollectEdits(service,
-                textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer), textChanges, trackingSpans, operation);
+            commandHandler.CollectEdits(
+                null, service, textView.Selection.GetSnapshotSpansOnBuffer(textView.TextBuffer),
+                textChanges, trackingSpans, operation, CancellationToken.None);
 
             AssertEx.SetEqual(expectedChanges, textChanges);
 
