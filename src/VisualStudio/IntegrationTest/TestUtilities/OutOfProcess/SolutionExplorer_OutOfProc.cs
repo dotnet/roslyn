@@ -69,6 +69,20 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
             _instance.Workspace.WaitForAsyncOperations(FeatureAttribute.Workspace);
         }
 
+        /// <summary>
+        /// Add a PackageReference to the specified project. Generally this should be followed up by
+        /// a call to <see cref="RestoreNuGetPackages"/>.
+        /// </summary>
+        public void AddPackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
+            => _inProc.AddPackageReference(project.Name, package.Name, package.Version);
+
+        /// <summary>
+        /// Remove a PackageReference from the specified project. Generally this should be followed up by
+        /// a call to <see cref="RestoreNuGetPackages"/>.
+        /// </summary>
+        public void RemovePackageReference(ProjectUtils.Project project, ProjectUtils.PackageReference package)
+            => _inProc.RemovePackageReference(project.Name, package.Name);
+
         public void CleanUpOpenSolution()
             => _inProc.CleanUpOpenSolution();
 
