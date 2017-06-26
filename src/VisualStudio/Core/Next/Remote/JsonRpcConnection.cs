@@ -80,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// 
         /// this is the channel consumer of remote host client will playing with
         /// </summary>
-        private class ServiceJsonRpcEx : JsonRpcEx
+        private sealed class ServiceJsonRpcEx : JsonRpcEx
         {
             private readonly object _callbackTarget;
 

@@ -22,7 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// 
     /// all connection will share one remotable data channel
     /// </summary>
-    internal class RemotableDataJsonRpc : JsonRpcEx
+    internal sealed class RemotableDataJsonRpc : JsonRpcEx
     {
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _source;
