@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Remote;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote
 {
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly ServiceJsonRpcEx _serviceRpc;
 
         // communication channel related to snapshot information
-        private readonly RemotableDataJsonRpcEx _remoteDataRpc;
+        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remoteDataRpc;
 
         // close connection when cancellation has raised
         private readonly CancellationTokenRegistration _cancellationRegistration;
@@ -24,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         public JsonRpcConnection(
             object callbackTarget,
             Stream serviceStream,
-            RemotableDataJsonRpcEx dataRpc,
+            ReferenceCountedDisposable<RemotableDataJsonRpc> dataRpc,
             CancellationToken cancellationToken) :
             base(cancellationToken)
         {
@@ -90,7 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 StartListening();
             }
 
-            public override void Dispose()
+            protected override void Dispose(bool disposing)
             {
                 Disconnect();
             }

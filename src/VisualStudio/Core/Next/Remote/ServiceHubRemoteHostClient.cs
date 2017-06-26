@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly TimeSpan _timeout;
 
         private readonly JsonRpc _rpc;
-        private readonly RemotableDataJsonRpcEx _remotableDataRpc;
+        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
 
         public static async Task<RemoteHostClient> CreateAsync(
             Workspace workspace, CancellationToken cancellationToken)
@@ -46,8 +46,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 var timeout = TimeSpan.FromMilliseconds(workspace.Options.GetOption(RemoteHostOptions.RequestServiceTimeoutInMS));
                 var remoteHostStream = await RequestServiceAsync(primary, WellKnownRemoteHostServices.RemoteHostService, hostGroup, timeout, cancellationToken).ConfigureAwait(false);
 
-                var remotableDataRpc = new RemotableDataJsonRpcEx(workspace, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
-                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, remotableDataRpc, remoteHostStream);
+                var remotableDataRpc = new RemotableDataJsonRpc(workspace, await RequestServiceAsync(primary, WellKnownServiceHubServices.SnapshotService, hostGroup, timeout, cancellationToken).ConfigureAwait(false));
+                var instance = new ServiceHubRemoteHostClient(workspace, primary, hostGroup, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
                 // make sure connection is done right
                 var host = await instance._rpc.InvokeAsync<string>(nameof(IRemoteHostService.Connect), current, TelemetryService.DefaultSession.SerializeSettings()).ConfigureAwait(false);
@@ -103,7 +103,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             Workspace workspace,
             HubClient hubClient,
             HostGroup hostGroup,
-            RemotableDataJsonRpcEx remotableDataRpc,
+            ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
             Stream stream) :
             base(workspace)
         {
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await RequestServiceAsync(_hubClient, serviceName, _hostGroup, _timeout, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.Share(), cancellationToken);
+            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference(), cancellationToken);
         }
 
         protected override void OnStarted()

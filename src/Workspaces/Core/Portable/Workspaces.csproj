@@ -209,6 +209,7 @@
     <Compile Include="ExtensionManager\IInfoBarService.cs" />
     <Compile Include="Remote\RemoteHostSessionHelpers.cs" />
     <Compile Include="Remote\RemoteFeatureOptions.cs" />
+    <Compile Include="Utilities\ReferenceCountedDisposable.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="csi" />

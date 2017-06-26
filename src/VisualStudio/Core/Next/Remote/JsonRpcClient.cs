@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnDisconnected;
         }
 
-        public abstract void Dispose();
+        protected abstract void Dispose(bool disposing);
 
         public async Task InvokeAsync(string targetName, params object[] arguments)
         {
@@ -99,6 +99,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

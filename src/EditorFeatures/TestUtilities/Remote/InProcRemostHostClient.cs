@@ -18,7 +18,7 @@ namespace Roslyn.Test.Utilities.Remote
     internal sealed class InProcRemoteHostClient : RemoteHostClient
     {
         private readonly InProcRemoteServices _inprocServices;
-        private readonly RemotableDataJsonRpcEx _remotableDataRpc;
+        private readonly ReferenceCountedDisposable<RemotableDataJsonRpc> _remotableDataRpc;
         private readonly JsonRpc _rpc;
 
         public static async Task<RemoteHostClient> CreateAsync(Workspace workspace, bool runCacheCleanup, CancellationToken cancellationToken)
@@ -26,9 +26,9 @@ namespace Roslyn.Test.Utilities.Remote
             var inprocServices = new InProcRemoteServices(runCacheCleanup);
 
             var remoteHostStream = await inprocServices.RequestServiceAsync(WellKnownRemoteHostServices.RemoteHostService, cancellationToken).ConfigureAwait(false);
-            var remotableDataRpc = new RemotableDataJsonRpcEx(workspace, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
+            var remotableDataRpc = new RemotableDataJsonRpc(workspace, await inprocServices.RequestServiceAsync(WellKnownServiceHubServices.SnapshotService, cancellationToken).ConfigureAwait(false));
 
-            var instance = new InProcRemoteHostClient(workspace, inprocServices, remotableDataRpc, remoteHostStream);
+            var instance = new InProcRemoteHostClient(workspace, inprocServices, new ReferenceCountedDisposable<RemotableDataJsonRpc>(remotableDataRpc), remoteHostStream);
 
             // make sure connection is done right
             var current = $"VS ({Process.GetCurrentProcess().Id})";
@@ -47,7 +47,7 @@ namespace Roslyn.Test.Utilities.Remote
         private InProcRemoteHostClient(
             Workspace workspace,
             InProcRemoteServices inprocServices,
-            RemotableDataJsonRpcEx remotableDataRpc,
+            ReferenceCountedDisposable<RemotableDataJsonRpc> remotableDataRpc,
             Stream stream) :
             base(workspace)
         {
@@ -72,7 +72,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.Share(), cancellationToken);
+            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference(), cancellationToken);
         }
 
         protected override void OnStarted()

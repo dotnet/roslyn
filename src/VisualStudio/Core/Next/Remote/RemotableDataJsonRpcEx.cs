@@ -22,26 +22,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// 
     /// all connection will share one remotable data channel
     /// </summary>
-    internal class RemotableDataJsonRpcEx : JsonRpcEx
+    internal class RemotableDataJsonRpc : JsonRpcEx
     {
         private readonly IRemotableDataService _remotableDataService;
         private readonly CancellationTokenSource _source;
 
-        /// <summary>
-        /// number of shared count
-        /// </summary>
-        private readonly object _gate;
-        private int _count;
-
-        public RemotableDataJsonRpcEx(Microsoft.CodeAnalysis.Workspace workspace, Stream stream)
+        public RemotableDataJsonRpc(Microsoft.CodeAnalysis.Workspace workspace, Stream stream)
             : base(stream, callbackTarget: null, useThisAsCallback: true, cancellationToken: CancellationToken.None)
         {
-            _gate = new object();
-            _count = 1;
-
             _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
 
-            // cancellation will be removed once I get to cancellation refactoring
+            // cancellation will be removed once cancellation refactoring is done
             _source = new CancellationTokenSource();
 
             StartListening();
@@ -119,11 +110,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             var remotableDataMap = _remotableDataService.GetRemotableData(scopeId, checksums, _source.Token);
             writer.WriteInt32(remotableDataMap.Count);
 
-            foreach (var kv in remotableDataMap)
+            foreach (var (checksum, remotableData) in remotableDataMap)
             {
-                var checksum = kv.Key;
-                var remotableData = kv.Value;
-
                 checksum.WriteTo(writer);
                 writer.WriteInt32((int)remotableData.Kind);
 
@@ -131,31 +119,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             }
         }
 
-        public RemotableDataJsonRpcEx Share()
+        protected override void Dispose(bool disposing)
         {
-            lock (_gate)
-            {
-                Contract.ThrowIfFalse(_count > 0);
-
-                _count++;
-
-                return this;
-            }
-        }
-
-        public override void Dispose()
-        {
-            lock (_gate)
-            {
-                Contract.ThrowIfFalse(_count > 0);
-
-                _count--;
-
-                if (_count == 0)
-                {
-                    Disconnect();
-                }
-            }
+            Disconnect();
         }
 
         protected override void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
