@@ -1,5 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/DotNetAnalyzers/StyleCopAnalyzers/master/StyleCop.Analyzers/StyleCop.Analyzers/Settings/stylecop.schema.json",
   "settings": {
+    "documentationRules": {
+      "xmlHeader": false,
+      "companyName": "Microsoft",
+      "copyrightText": "Copyright (c) {companyName}.  All Rights Reserved.  Licensed under the {licenseName}.  See License.txt in the project root for license information.",
+      "variables": {
+        "licenseName": "Apache License, Version 2.0"
+      }
+    }
   }
 }
