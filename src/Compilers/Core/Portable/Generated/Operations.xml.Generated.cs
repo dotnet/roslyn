@@ -1378,19 +1378,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
-    internal sealed partial class FieldInitializer : SymbolInitializer, IFieldInitializer
+    internal abstract partial class BaseFieldInitializer : SymbolInitializer, IFieldInitializer
     {
-        public FieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
             InitializedFields = initializedFields;
-            Value = value;
         }
         /// <summary>
         /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
         /// </summary>
         public ImmutableArray<IFieldSymbol> InitializedFields { get; }
-        public override IOperation Value { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFieldInitializer(this);
@@ -1404,29 +1403,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a field.
     /// </summary>
-    internal sealed partial class LazyFieldInitializer : SymbolInitializer, IFieldInitializer
+    internal sealed partial class FieldInitializer : BaseFieldInitializer, IFieldInitializer
+    {
+        public FieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedFields, kind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a field.
+    /// </summary>
+    internal sealed partial class LazyFieldInitializer : BaseFieldInitializer, IFieldInitializer
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
+        public LazyFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedFields, kind, isInvalid, syntax, type, constantValue)
         {
-            InitializedFields = initializedFields;
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
         }
-        /// <summary>
-        /// Initialized fields. There can be multiple fields for Visual Basic fields declared with As New.
-        /// </summary>
-        public ImmutableArray<IFieldSymbol> InitializedFields { get; }
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFieldInitializer(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFieldInitializer(this, argument);
-        }
     }
 
     /// <summary>
@@ -1563,14 +1562,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# foreach statement or a VB For Each statement.
     /// </summary>
-    internal sealed partial class ForEachLoopStatement : LoopStatement, IForEachLoopStatement
+    internal abstract partial class BaseForEachLoopStatement : LoopStatement, IForEachLoopStatement
     {
-        public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseForEachLoopStatement(ILocalSymbol iterationVariable, LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
             IterationVariable = iterationVariable;
-            Collection = collection;
-            Body = body;
         }
         /// <summary>
         /// Iteration variable of the loop.
@@ -1579,11 +1576,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Collection value over which the loop iterates.
         /// </summary>
-        public IOperation Collection { get; }
-        /// <summary>
-        /// Body of the loop.
-        /// </summary>
-        public override IOperation Body { get; }
+        public abstract IOperation Collection { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitForEachLoopStatement(this);
@@ -1597,48 +1591,87 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# foreach statement or a VB For Each statement.
     /// </summary>
-    internal sealed partial class LazyForEachLoopStatement : LoopStatement, IForEachLoopStatement
+    internal sealed partial class ForEachLoopStatement : BaseForEachLoopStatement, IForEachLoopStatement
+    {
+        public ForEachLoopStatement(ILocalSymbol iterationVariable, IOperation collection, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(iterationVariable, loopKind, isInvalid, syntax, type, constantValue)
+        {
+            Collection = collection;
+            Body = body;
+        }
+        /// <summary>
+        /// Collection value over which the loop iterates.
+        /// </summary>
+        public override IOperation Collection { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# foreach statement or a VB For Each statement.
+    /// </summary>
+    internal sealed partial class LazyForEachLoopStatement : BaseForEachLoopStatement, IForEachLoopStatement
     {
         private readonly Lazy<IOperation> _lazyCollection;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+        public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(iterationVariable, loopKind, isInvalid, syntax, type, constantValue)
         {
-            IterationVariable = iterationVariable;
             _lazyCollection = collection ?? throw new System.ArgumentNullException("collection");
             _lazyBody = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
-        /// Iteration variable of the loop.
-        /// </summary>
-        public ILocalSymbol IterationVariable { get; }
-        /// <summary>
         /// Collection value over which the loop iterates.
         /// </summary>
-        public IOperation Collection => _lazyCollection.Value;
-
+        public override IOperation Collection => _lazyCollection.Value;
         /// <summary>
         /// Body of the loop.
         /// </summary>
         public override IOperation Body => _lazyBody.Value;
+    }
+
+    /// <summary>
+    /// Represents a C# for statement or a VB For statement.
+    /// </summary>
+    internal abstract partial class BaseForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
+    {
+        public BaseForLoopStatement(LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+        {
+        }
+        /// <summary>
+        /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> Before { get; }
+        /// <summary>
+        /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
+        /// </summary>
+        public abstract ImmutableArray<IOperation> AtLoopBottom { get; }
+        /// <summary>
+        /// Declarations local to the loop.
+        /// </summary>
+        public abstract ImmutableArray<ILocalSymbol> Locals { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitForEachLoopStatement(this);
+            visitor.VisitForLoopStatement(this);
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitForEachLoopStatement(this, argument);
+            return visitor.VisitForLoopStatement(this, argument);
         }
     }
 
     /// <summary>
     /// Represents a C# for statement or a VB For statement.
     /// </summary>
-    internal sealed partial class ForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
+    internal sealed partial class ForLoopStatement : BaseForLoopStatement, IForLoopStatement
     {
         public ForLoopStatement(ImmutableArray<IOperation> before, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+            base(loopKind, isInvalid, syntax, type, constantValue)
         {
             Before = before;
             AtLoopBottom = atLoopBottom;
@@ -1649,15 +1682,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> Before { get; }
+        public override ImmutableArray<IOperation> Before { get; }
         /// <summary>
         /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> AtLoopBottom { get; }
+        public override ImmutableArray<IOperation> AtLoopBottom { get; }
         /// <summary>
         /// Declarations local to the loop.
         /// </summary>
-        public ImmutableArray<ILocalSymbol> Locals { get; }
+        public override ImmutableArray<ILocalSymbol> Locals { get; }
         /// <summary>
         /// Condition of the loop.
         /// </summary>
@@ -1666,27 +1699,20 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the loop.
         /// </summary>
         public override IOperation Body { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitForLoopStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitForLoopStatement(this, argument);
-        }
     }
 
     /// <summary>
     /// Represents a C# for statement or a VB For statement.
     /// </summary>
-    internal sealed partial class LazyForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
+    internal sealed partial class LazyForLoopStatement : BaseForLoopStatement, IForLoopStatement
     {
         private readonly Lazy<ImmutableArray<IOperation>> _lazyBefore;
         private readonly Lazy<ImmutableArray<IOperation>> _lazyAtLoopBottom;
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+        public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(loopKind, isInvalid, syntax, type, constantValue)
         {
             _lazyBefore = before;
             _lazyAtLoopBottom = atLoopBottom;
@@ -1697,17 +1723,17 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> Before => _lazyBefore.Value;
+        public override ImmutableArray<IOperation> Before => _lazyBefore.Value;
 
         /// <summary>
         /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
         /// </summary>
-        public ImmutableArray<IOperation> AtLoopBottom => _lazyAtLoopBottom.Value;
+        public override ImmutableArray<IOperation> AtLoopBottom => _lazyAtLoopBottom.Value;
 
         /// <summary>
         /// Declarations local to the loop.
         /// </summary>
-        public ImmutableArray<ILocalSymbol> Locals { get; }
+        public override ImmutableArray<ILocalSymbol> Locals { get; }
         /// <summary>
         /// Condition of the loop.
         /// </summary>
@@ -1717,15 +1743,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Body of the loop.
         /// </summary>
         public override IOperation Body => _lazyBody.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitForLoopStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitForLoopStatement(this, argument);
-        }
     }
 
     /// <summary>
@@ -3018,19 +3035,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a parameter at the point of declaration.
     /// </summary>
-    internal sealed partial class ParameterInitializer : SymbolInitializer, IParameterInitializer
+    internal abstract partial class BaseParameterInitializer : SymbolInitializer, IParameterInitializer
     {
-        public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseParameterInitializer(IParameterSymbol parameter, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
-            Parameter = parameter;
-            Value = value;
         }
         /// <summary>
         /// Initialized parameter.
         /// </summary>
         public IParameterSymbol Parameter { get; }
-        public override IOperation Value { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitParameterInitializer(this);
@@ -3044,29 +3059,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a parameter at the point of declaration.
     /// </summary>
-    internal sealed partial class LazyParameterInitializer : SymbolInitializer, IParameterInitializer
+    internal sealed partial class ParameterInitializer : BaseParameterInitializer, IParameterInitializer
+    {
+        public ParameterInitializer(IParameterSymbol parameter, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(parameter, kind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a parameter at the point of declaration.
+    /// </summary>
+    internal sealed partial class LazyParameterInitializer : BaseParameterInitializer, IParameterInitializer
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyParameterInitializer(IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
+        public LazyParameterInitializer(IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(parameter, kind, isInvalid, syntax, type, constantValue)
         {
-            Parameter = parameter;
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
         }
-        /// <summary>
-        /// Initialized parameter.
-        /// </summary>
-        public IParameterSymbol Parameter { get; }
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitParameterInitializer(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitParameterInitializer(this, argument);
-        }
     }
 
     /// <summary>
@@ -3228,19 +3243,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a property.
     /// </summary>
-    internal sealed partial class PropertyInitializer : SymbolInitializer, IPropertyInitializer
+    internal abstract partial class BasePropertyInitializer : SymbolInitializer, IPropertyInitializer
     {
-        public PropertyInitializer(IPropertySymbol initializedProperty, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BasePropertyInitializer(IPropertySymbol initializedProperty, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
             InitializedProperty = initializedProperty;
-            Value = value;
         }
         /// <summary>
         /// Set method used to initialize the property.
         /// </summary>
         public IPropertySymbol InitializedProperty { get; }
-        public override IOperation Value { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyInitializer(this);
@@ -3254,29 +3268,29 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents an initialization of a property.
     /// </summary>
-    internal sealed partial class LazyPropertyInitializer : SymbolInitializer, IPropertyInitializer
+    internal sealed partial class PropertyInitializer : BasePropertyInitializer, IPropertyInitializer
+    {
+        public PropertyInitializer(IPropertySymbol initializedProperty, IOperation value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedProperty, kind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents an initialization of a property.
+    /// </summary>
+    internal sealed partial class LazyPropertyInitializer : BasePropertyInitializer, IPropertyInitializer
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyPropertyInitializer(IPropertySymbol initializedProperty, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
+        public LazyPropertyInitializer(IPropertySymbol initializedProperty, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(initializedProperty, kind, isInvalid, syntax, type, constantValue)
         {
-            InitializedProperty = initializedProperty;
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
         }
-        /// <summary>
-        /// Set method used to initialize the property.
-        /// </summary>
-        public IPropertySymbol InitializedProperty { get; }
         public override IOperation Value => _lazyValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitPropertyInitializer(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitPropertyInitializer(this, argument);
-        }
     }
 
     /// <summary>
@@ -4397,15 +4411,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# while or do statement, or a VB While or Do statement.
     /// </summary>
-    internal sealed partial class WhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
+    internal abstract partial class BaseWhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
     {
-        public WhileUntilLoopStatement(bool isTopTest, bool isWhile, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseWhileUntilLoopStatement(bool isTopTest, bool isWhile, LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
             IsTopTest = isTopTest;
             IsWhile = isWhile;
-            Condition = condition;
-            Body = body;
         }
         /// <summary>
         /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
@@ -4415,14 +4427,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the loop is a while loop; false if the loop is an until loop.
         /// </summary>
         public bool IsWhile { get; }
-        /// <summary>
-        /// Condition of the loop.
-        /// </summary>
-        public override IOperation Condition { get; }
-        /// <summary>
-        /// Body of the loop.
-        /// </summary>
-        public override IOperation Body { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitWhileUntilLoopStatement(this);
@@ -4436,44 +4441,46 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a C# while or do statement, or a VB While or Do statement.
     /// </summary>
-    internal sealed partial class LazyWhileUntilLoopStatement : ForWhileUntilLoopStatement, IWhileUntilLoopStatement
+    internal sealed partial class WhileUntilLoopStatement : BaseWhileUntilLoopStatement, IWhileUntilLoopStatement
+    {
+        public WhileUntilLoopStatement(bool isTopTest, bool isWhile, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isTopTest, isWhile, loopKind, isInvalid, syntax, type, constantValue)
+        {
+            Condition = condition;
+            Body = body;
+        }
+        /// <summary>
+        /// Condition of the loop.
+        /// </summary>
+        public override IOperation Condition { get; }
+        /// <summary>
+        /// Body of the loop.
+        /// </summary>
+        public override IOperation Body { get; }
+    }
+
+    /// <summary>
+    /// Represents a C# while or do statement, or a VB While or Do statement.
+    /// </summary>
+    internal sealed partial class LazyWhileUntilLoopStatement : BaseWhileUntilLoopStatement, IWhileUntilLoopStatement
     {
         private readonly Lazy<IOperation> _lazyCondition;
         private readonly Lazy<IOperation> _lazyBody;
 
-        public LazyWhileUntilLoopStatement(bool isTopTest, bool isWhile, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
+        public LazyWhileUntilLoopStatement(bool isTopTest, bool isWhile, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(isTopTest, isWhile, loopKind, isInvalid, syntax, type, constantValue)
         {
-            IsTopTest = isTopTest;
-            IsWhile = isWhile;
             _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
             _lazyBody = body ?? throw new System.ArgumentNullException("body");
         }
         /// <summary>
-        /// True if the loop test executes at the top of the loop; false if the loop test executes at the bottom of the loop.
-        /// </summary>
-        public bool IsTopTest { get; }
-        /// <summary>
-        /// True if the loop is a while loop; false if the loop is an until loop.
-        /// </summary>
-        public bool IsWhile { get; }
-        /// <summary>
         /// Condition of the loop.
         /// </summary>
         public override IOperation Condition => _lazyCondition.Value;
-
         /// <summary>
         /// Body of the loop.
         /// </summary>
         public override IOperation Body => _lazyBody.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitWhileUntilLoopStatement(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitWhileUntilLoopStatement(this, argument);
-        }
     }
 
     /// <summary>
