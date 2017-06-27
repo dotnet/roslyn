@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitAssignmentExpression(this, argument);
+            return visitor.VisitSimpleAssignmentExpression(this, argument);
         }
     }
 

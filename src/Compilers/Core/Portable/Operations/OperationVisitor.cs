@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitAssignmentExpression(ISimpleAssignmentExpression operation, TArgument argument)
+        public virtual TResult VisitSimpleAssignmentExpression(ISimpleAssignmentExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }
