@@ -43,12 +43,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression result;
             if (!isUsed)
             {
-                // When a deconstruction is not used, we use the last effect is used as return value
+                // When a deconstruction is not used, the last effect is used as return value
+                Debug.Assert(returnValue is null);
                 var last = effects.PopLast();
                 if (last is null)
                 {
                     // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
                     result = null;
+                    temps.Free();
+                    effects.Free();
                 }
                 else
                 {
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (!returnValue.HasErrors && isUsed)
+                if (!returnValue.HasErrors)
                 {
                     returnValue = VisitExpression(returnValue);
                 }
@@ -374,6 +377,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return last;
                 }
                 return null;
+            }
+
+            internal void Free()
+            {
+                init.Free();
+                deconstructions.Free();
+                conversions.Free();
+                assignments.Free();
             }
 
             internal ImmutableArray<BoundExpression> ToImmutableAndFree()
