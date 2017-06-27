@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 callingConvention: candidateMethodIsVararg ? Microsoft.Cci.CallingConvention.ExtraArguments : Microsoft.Cci.CallingConvention.HasThis,
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
-                                name: null,
+                                name: string.Empty,
                                 refKind: RefKind.None,
                                 returnType: null,
                                 returnTypeCustomModifiers: ImmutableArray<CustomModifier>.Empty,
@@ -753,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 parameters: parameterSymbols,
                                 // These are ignored by this specific MemberSignatureComparer.
                                 containingType: null,
-                                name: null,
+                                name: string.Empty,
                                 refKind: RefKind.None,
                                 type: null,
                                 typeCustomModifiers: ImmutableArray<CustomModifier>.Empty,

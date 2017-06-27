@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Name As String
             Get
-                Return Nothing
+                Return String.Empty
             End Get
         End Property
 
