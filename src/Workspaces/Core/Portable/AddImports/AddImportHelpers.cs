@@ -47,10 +47,13 @@ namespace Microsoft.CodeAnalysis.AddImports
                     // And move it to the new using.
                     var originalFirstUsingCurrentIndex = newImports.IndexOf(originalFirstUsing);
 
-                    var newFirstUsing = newImports[0].WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia())
-                                                     .WithAppendedTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed);
+                    newImports[0] = newImports[0].WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia());
 
-                    newImports[0] = newFirstUsing;
+                    if (!syntaxFacts.IsEndOfLineTrivia(newImports[0].GetTrailingTrivia().LastOrDefault()))
+                    {
+                        newImports[0] = newImports[0].WithAppendedTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed);
+                    }
+
                     newImports[originalFirstUsingCurrentIndex] = originalFirstUsing.WithoutLeadingTrivia();
                 }
             }
