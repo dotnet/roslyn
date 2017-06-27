@@ -5,7 +5,6 @@ Imports System.Composition
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageServices
@@ -43,6 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property StringComparer As StringComparer Implements ISyntaxFactsService.StringComparer
             Get
                 Return CaseInsensitiveComparison.Comparer
+            End Get
+        End Property
+
+        Public ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia Implements ISyntaxFactsService.ElasticCarriageReturnLineFeed
+            Get
+                Return SyntaxFactory.ElasticCarriageReturnLineFeed
             End Get
         End Property
 
@@ -1500,6 +1505,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function IsDocumentationComment(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsDocumentationComment
             Return trivia.Kind = SyntaxKind.DocumentationCommentTrivia
+        End Function
+
+        Public Function IsElastic(trivia As SyntaxTrivia) As Boolean Implements ISyntaxFactsService.IsElastic
+            Return trivia.IsElastic()
         End Function
 
         Public Function IsOnTypeHeader(root As SyntaxNode, position As Integer) As Boolean Implements ISyntaxFactsService.IsOnTypeHeader

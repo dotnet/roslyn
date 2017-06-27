@@ -219,7 +219,7 @@ End structure",
 Imports System
 Imports System.Collections.Generic
 
-Structure Program
+structure Program
     Implements IEquatable(Of Program)
 
     Public s As String
@@ -231,7 +231,7 @@ Structure Program
     Public Function Equals(other As Program) As Boolean Implements IEquatable(Of Program).Equals
         Return s = other.s
     End Function
-End Structure",
+End structure",
 chosenSymbols:=Nothing,
 optionsCallback:=Sub(Options) EnableOption(Options, ImplementIEquatableId),
 ignoreTrivia:=False)

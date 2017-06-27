@@ -117,11 +117,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 }
             }
 
+#pragma warning disable CA1821 // Remove empty Finalizers
+#if DEBUG
             ~WorkspaceUndoTransaction()
             {
                 // make sure we closed it correctly
                 Contract.Requires(!_transactionAlive);
             }
+#endif
+#pragma warning restore CA1821 // Remove empty Finalizers
         }
     }
 }

@@ -32,6 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public StringComparer StringComparer { get; } = StringComparer.Ordinal;
 
+        public SyntaxTrivia ElasticCarriageReturnLineFeed
+            => SyntaxFactory.ElasticCarriageReturnLineFeed;
+
         protected override IDocumentationCommentService DocumentationCommentService
             => CSharpDocumentationCommentService.Instance;
 
@@ -1349,6 +1352,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsDocumentationComment(SyntaxTrivia trivia)
             => trivia.IsDocComment();
+
+        public bool IsElastic(SyntaxTrivia trivia)
+            => trivia.IsElastic();
 
         public bool IsDocumentationCommentExteriorTrivia(SyntaxTrivia trivia)
             => trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia;

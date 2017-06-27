@@ -24,10 +24,10 @@ namespace BuildBoss
     internal sealed class StructuredLoggerCheckerUtil : ICheckerUtil
     {
         internal static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
-        private static readonly string s_copyingFileFrom = "Copying file from \"";
-        private static readonly string s_creatingHardLink = "Creating hard link to copy \"";
-        private static readonly string s_didNotCopy = "Did not copy from file \"";
-        private static readonly string s_to = "\" to \"";
+        private const string s_copyingFileFrom = "Copying file from \"";
+        private const string s_creatingHardLink = "Creating hard link to copy \"";
+        private const string s_didNotCopy = "Did not copy from file \"";
+        private const string s_to = "\" to \"";
 
         private readonly XDocument _document;
         private readonly Dictionary<string, List<string>> _copyMap = new Dictionary<string, List<string>>(FilePathComparer);
