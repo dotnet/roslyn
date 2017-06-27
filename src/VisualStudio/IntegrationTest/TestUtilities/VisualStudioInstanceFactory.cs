@@ -53,11 +53,15 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 var assemblyPath = typeof(VisualStudioInstanceFactory).Assembly.Location;
                 var assemblyDirectory = Path.GetDirectoryName(assemblyPath);
                 var testName = CaptureTestNameAttribute.CurrentName ?? "Unknown";
-                var fileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}.png";
+                var logDir = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots");
+                var baseFileName = $"{testName}-{eventArgs.Exception.GetType().Name}-{DateTime.Now:HH.mm.ss}";
+                ScreenshotService.TakeScreenshot(Path.Combine(logDir, $"{baseFileName}.png"));
 
-                var fullPath = Path.Combine(assemblyDirectory, "xUnitResults", "Screenshots", fileName);
+                var exception = eventArgs.Exception;
+                File.WriteAllText(
+                    Path.Combine(logDir, $"{baseFileName}.log"),
+                    $"{exception}.GetType().Name{Environment.NewLine}{exception.StackTrace}");
 
-                ScreenshotService.TakeScreenshot(fullPath);
             }
             catch (Exception e)
             {
