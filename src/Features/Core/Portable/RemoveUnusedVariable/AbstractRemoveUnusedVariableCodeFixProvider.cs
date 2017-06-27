@@ -8,27 +8,33 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
 {
     internal abstract class AbstractRemoveUnusedVariableCodeFixProvider<TLocalDeclarationStatement, TVariableDeclarator, TVariableDeclaration> : SyntaxEditorBasedCodeFixProvider
-        where TLocalDeclarationStatement: SyntaxNode
-        where TVariableDeclarator: SyntaxNode
-        where TVariableDeclaration: SyntaxNode
+        where TLocalDeclarationStatement : SyntaxNode
+        where TVariableDeclarator : SyntaxNode
+        where TVariableDeclaration : SyntaxNode
     {
+        protected abstract bool IsCatchDeclarationIdentifier(SyntaxToken token);
+
         public async override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             foreach (var diagnostic in context.Diagnostics)
             {
                 var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
                 var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
-                var ancestor = token.GetAncestor<TLocalDeclarationStatement>();
-
-                if (ancestor == null)
+                if (!IsCatchDeclarationIdentifier(token))
                 {
-                    return;
+                    var ancestor = token.GetAncestor<TLocalDeclarationStatement>();
+
+                    if (ancestor == null)
+                    {
+                        return;
+                    }
                 }
             }
 
@@ -42,18 +48,27 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedVariable
             var root = editor.OriginalRoot;
             foreach (var diagnostic in diagnostics)
             {
-                var token = root.FindToken(diagnostic.Location.SourceSpan.Start);
-                var variableDeclarator = token.GetAncestor<TVariableDeclarator>();
-
-                var variableDeclarators = token.GetAncestor<TVariableDeclaration>().ChildNodes().Where(x => x is TVariableDeclarator);
-
-                if (variableDeclarators.Count() == 1)
+                var token = diagnostic.Location.FindToken(cancellationToken);
+                if (IsCatchDeclarationIdentifier(token))
                 {
-                    editor.RemoveNode(token.GetAncestor<TLocalDeclarationStatement>());
+                    editor.ReplaceNode(
+                        token.Parent,
+                        token.Parent.ReplaceToken(token, default(SyntaxToken)).WithAdditionalAnnotations(Formatter.Annotation));
                 }
-                else if (variableDeclarators.Count() > 1)
+                else
                 {
-                    editor.RemoveNode(variableDeclarator);
+                    var variableDeclarator = token.GetAncestor<TVariableDeclarator>();
+
+                    var variableDeclarators = token.GetAncestor<TVariableDeclaration>().ChildNodes().Where(x => x is TVariableDeclarator);
+
+                    if (variableDeclarators.Count() == 1)
+                    {
+                        editor.RemoveNode(token.GetAncestor<TLocalDeclarationStatement>());
+                    }
+                    else if (variableDeclarators.Count() > 1)
+                    {
+                        editor.RemoveNode(variableDeclarator);
+                    }
                 }
             }
 

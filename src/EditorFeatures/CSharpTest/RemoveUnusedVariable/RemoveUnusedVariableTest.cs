@@ -174,5 +174,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedVariable
     }
 }");
         }
+
+        [WorkItem(20466, "https://github.com/dotnet/roslyn/issues/20466")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnusedVariable)]
+        public async Task RemoveUnusedCatchVariable()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    void Method()
+    {
+        try
+        {
+        }
+        catch (System.Exception [|e|])
+        {
+        }
+    }
+}",
+@"class Class
+{
+    void Method()
+    {
+        try
+        {
+        }
+        catch (System.Exception)
+        {
+        }
+    }
+}");
+        }
     }
 }
