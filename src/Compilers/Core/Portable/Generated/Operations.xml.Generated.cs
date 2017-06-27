@@ -1638,9 +1638,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseForLoopStatement : ForWhileUntilLoopStatement, IForLoopStatement
     {
-        public BaseForLoopStatement(LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseForLoopStatement(ImmutableArray<ILocalSymbol> locals, LoopKind loopKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(loopKind, OperationKind.LoopStatement, isInvalid, syntax, type, constantValue)
         {
+            Locals = locals;
         }
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
@@ -1653,7 +1654,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Declarations local to the loop.
         /// </summary>
-        public abstract ImmutableArray<ILocalSymbol> Locals { get; }
+        public ImmutableArray<ILocalSymbol> Locals { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1671,11 +1672,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class ForLoopStatement : BaseForLoopStatement, IForLoopStatement
     {
         public ForLoopStatement(ImmutableArray<IOperation> before, ImmutableArray<IOperation> atLoopBottom, ImmutableArray<ILocalSymbol> locals, IOperation condition, LoopKind loopKind, IOperation body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(loopKind, isInvalid, syntax, type, constantValue)
+            base(locals, loopKind, isInvalid, syntax, type, constantValue)
         {
             Before = before;
             AtLoopBottom = atLoopBottom;
-            Locals = locals;
             Condition = condition;
             Body = body;
         }
@@ -1687,10 +1687,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Statements to execute at the bottom of the loop. For C# these come from the third clause of the for statement. For VB these increment the index variable of the For statement.
         /// </summary>
         public override ImmutableArray<IOperation> AtLoopBottom { get; }
-        /// <summary>
-        /// Declarations local to the loop.
-        /// </summary>
-        public override ImmutableArray<ILocalSymbol> Locals { get; }
         /// <summary>
         /// Condition of the loop.
         /// </summary>
@@ -1712,11 +1708,10 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyBody;
 
         public LazyForLoopStatement(Lazy<ImmutableArray<IOperation>> before, Lazy<ImmutableArray<IOperation>> atLoopBottom, ImmutableArray<ILocalSymbol> locals, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(loopKind, isInvalid, syntax, type, constantValue)
+            base(locals, loopKind, isInvalid, syntax, type, constantValue)
         {
             _lazyBefore = before;
             _lazyAtLoopBottom = atLoopBottom;
-            Locals = locals;
             _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
             _lazyBody = body ?? throw new System.ArgumentNullException("body");
         }
@@ -1730,10 +1725,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         public override ImmutableArray<IOperation> AtLoopBottom => _lazyAtLoopBottom.Value;
 
-        /// <summary>
-        /// Declarations local to the loop.
-        /// </summary>
-        public override ImmutableArray<ILocalSymbol> Locals { get; }
         /// <summary>
         /// Condition of the loop.
         /// </summary>
@@ -1853,14 +1844,17 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// </summary>
     internal abstract partial class BaseIncrementExpression : Operation, IIncrementExpression
     {
-        public BaseIncrementExpression(bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseIncrementExpression(UnaryOperationKind incrementOperationKind, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(OperationKind.IncrementExpression, isInvalid, syntax, type, constantValue)
         {
+            IncrementOperationKind = incrementOperationKind;
+            UsesOperatorMethod = usesOperatorMethod;
+            OperatorMethod = operatorMethod;
         }
         /// <summary>
         /// Kind of increment.
         /// </summary>
-        public abstract UnaryOperationKind IncrementOperationKind { get; }
+        public UnaryOperationKind IncrementOperationKind { get; }
         /// <summary>
         /// Target of the assignment.
         /// </summary>
@@ -1868,11 +1862,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// True if and only if the operation is performed by an operator method.
         /// </summary>
-        public abstract bool UsesOperatorMethod { get; }
+        public bool UsesOperatorMethod { get; }
         /// <summary>
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
-        public abstract IMethodSymbol OperatorMethod { get; }
+        public IMethodSymbol OperatorMethod { get; }
 
         public override void Accept(OperationVisitor visitor)
         {
@@ -1890,30 +1884,14 @@ namespace Microsoft.CodeAnalysis.Semantics
     internal sealed partial class IncrementExpression : BaseIncrementExpression, IIncrementExpression
     {
         public IncrementExpression(UnaryOperationKind incrementOperationKind, IOperation target, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isInvalid, syntax, type, constantValue)
+            base(incrementOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            IncrementOperationKind = incrementOperationKind;
             Target = target;
-            UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod;
         }
-
-        /// <summary>
-        /// Kind of increment.
-        /// </summary>
-        public override UnaryOperationKind IncrementOperationKind { get; }
         /// <summary>
         /// Target of the assignment.
         /// </summary>
         public override IOperation Target { get; }
-        /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public override bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
-        /// </summary>
-        public override IMethodSymbol OperatorMethod { get; }
     }
 
     /// <summary>
@@ -1924,29 +1902,14 @@ namespace Microsoft.CodeAnalysis.Semantics
         private readonly Lazy<IOperation> _lazyTarget;
 
         public LazyIncrementExpression(UnaryOperationKind incrementOperationKind, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(isInvalid, syntax, type, constantValue)
+            base(incrementOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            IncrementOperationKind = incrementOperationKind;
             _lazyTarget = target ?? throw new System.ArgumentNullException("target");
-            UsesOperatorMethod = usesOperatorMethod;
-            OperatorMethod = operatorMethod;
         }
-        /// <summary>
-        /// Kind of increment.
-        /// </summary>
-        public override UnaryOperationKind IncrementOperationKind { get; }
         /// <summary>
         /// Target of the assignment.
         /// </summary>
         public override IOperation Target => _lazyTarget.Value;
-        /// <summary>
-        /// True if and only if the operation is performed by an operator method.
-        /// </summary>
-        public override bool UsesOperatorMethod { get; }
-        /// <summary>
-        /// Operation method used by the operation, null if the operation does not use an operator method.
-        /// </summary>
-        public override IMethodSymbol OperatorMethod { get; }
     }
 
     /// <summary>
