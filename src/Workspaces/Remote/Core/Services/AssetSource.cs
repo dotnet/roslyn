@@ -21,6 +21,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage.SetAssetSource(this);
         }
 
-        public abstract Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken);
+        public abstract Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken);
     }
 }

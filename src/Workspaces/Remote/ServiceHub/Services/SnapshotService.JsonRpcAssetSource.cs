@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 _owner = owner;
             }
 
-            public override async Task<IList<ValueTuple<Checksum, object>>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
+            public override async Task<IList<(Checksum, object)>> RequestAssetsAsync(int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
                 using (RoslynLogger.LogBlock(FunctionId.SnapshotService_RequestAssetAsync, GetRequestLogInfo, scopeId, checksums, cancellationToken))
                 {
@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            private IList<ValueTuple<Checksum, object>> ReadAssets(
+            private IList<(Checksum, object)> ReadAssets(
                 Stream stream, int scopeId, ISet<Checksum> checksums, CancellationToken cancellationToken)
             {
-                var results = new List<ValueTuple<Checksum, object>>();
+                var results = new List<(Checksum, object)>();
 
-                using (var reader = ObjectReader.TryGetReader(stream))
+                using (var reader = ObjectReader.TryGetReader(stream, cancellationToken))
                 {
                     Debug.Assert(reader != null,
 @"We only ge a reader for data transmitted between live processes.
@@ -67,7 +67,7 @@ This data should always be correct as we're never persisting the data between se
                         // in service hub, cancellation means simply closed stream
                         var @object = AssetService.Deserialize<object>(kind, reader, cancellationToken);
 
-                        results.Add(ValueTuple.Create(responseChecksum, @object));
+                        results.Add((responseChecksum, @object));
                     }
 
                     return results;

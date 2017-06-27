@@ -25,15 +25,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal sealed class RemotableDataJsonRpc : JsonRpcEx
     {
         private readonly IRemotableDataService _remotableDataService;
-        private readonly CancellationTokenSource _source;
+        private readonly CancellationTokenSource _shutdownCancellationSource;
 
         public RemotableDataJsonRpc(Microsoft.CodeAnalysis.Workspace workspace, Stream stream)
             : base(stream, callbackTarget: null, useThisAsCallback: true)
         {
             _remotableDataService = workspace.Services.GetService<IRemotableDataService>();
 
-            // cancellation will be removed once cancellation refactoring is done
-            _source = new CancellationTokenSource();
+            _shutdownCancellationSource = new CancellationTokenSource();
 
             StartListening();
         }
@@ -41,36 +40,36 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         /// <summary>
         /// this is callback from remote host side to get asset associated with checksum from VS.
         /// </summary>
-        public async Task RequestAssetAsync(int scopeId, Checksum[] checksums, string streamName)
+        public async Task RequestAssetAsync(int scopeId, Checksum[] checksums, string streamName, CancellationToken cancellationToken)
         {
             try
             {
-                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, _source.Token))
-                using (var stream = await DirectStream.GetAsync(streamName, _source.Token).ConfigureAwait(false))
+                using (var source = CancellationTokenSource.CreateLinkedTokenSource(_shutdownCancellationSource.Token, cancellationToken))
+                using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, source.Token))
+                using (var stream = await DirectStream.GetAsync(streamName, source.Token).ConfigureAwait(false))
                 {
-                    using (var writer = new ObjectWriter(stream))
+                    using (var writer = new ObjectWriter(stream, source.Token))
                     {
                         writer.WriteInt32(scopeId);
 
-                        await WriteAssetAsync(writer, scopeId, checksums).ConfigureAwait(false);
+                        await WriteAssetAsync(writer, scopeId, checksums, source.Token).ConfigureAwait(false);
                     }
 
-                    await stream.FlushAsync(_source.Token).ConfigureAwait(false);
+                    await stream.FlushAsync(source.Token).ConfigureAwait(false);
                 }
             }
             catch (IOException)
             {
-                // remote host side is cancelled (client stream connection is closed)
-                // can happen if pinned solution scope is disposed
+                // direct stream can throw if cancellation happens since direct stream still uses
+                // disconnection for cancellation
             }
             catch (OperationCanceledException)
             {
-                // rpc connection is closed. 
-                // can happen if pinned solution scope is disposed
+                // this can happen if connection got shutdown
             }
         }
 
-        private async Task WriteAssetAsync(ObjectWriter writer, int scopeId, Checksum[] checksums)
+        private async Task WriteAssetAsync(ObjectWriter writer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
             // special case
             if (checksums.Length == 0)
@@ -81,11 +80,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             if (checksums.Length == 1)
             {
-                await WriteOneAssetAsync(writer, scopeId, checksums[0]).ConfigureAwait(false);
+                await WriteOneAssetAsync(writer, scopeId, checksums[0], cancellationToken).ConfigureAwait(false);
                 return;
             }
 
-            await WriteMultipleAssetsAsync(writer, scopeId, checksums).ConfigureAwait(false);
+            await WriteMultipleAssetsAsync(writer, scopeId, checksums, cancellationToken).ConfigureAwait(false);
         }
 
         private Task WriteNoAssetAsync(ObjectWriter writer)
@@ -94,20 +93,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum)
+        private async Task WriteOneAssetAsync(ObjectWriter writer, int scopeId, Checksum checksum, CancellationToken cancellationToken)
         {
-            var remotableData = _remotableDataService.GetRemotableData(scopeId, checksum, _source.Token) ?? RemotableData.Null;
+            var remotableData = _remotableDataService.GetRemotableData(scopeId, checksum, cancellationToken) ?? RemotableData.Null;
             writer.WriteInt32(1);
 
             checksum.WriteTo(writer);
             writer.WriteInt32((int)remotableData.Kind);
 
-            await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
+            await remotableData.WriteObjectToAsync(writer, cancellationToken).ConfigureAwait(false);
         }
 
-        private async Task WriteMultipleAssetsAsync(ObjectWriter writer, int scopeId, Checksum[] checksums)
+        private async Task WriteMultipleAssetsAsync(ObjectWriter writer, int scopeId, Checksum[] checksums, CancellationToken cancellationToken)
         {
-            var remotableDataMap = _remotableDataService.GetRemotableData(scopeId, checksums, _source.Token);
+            var remotableDataMap = _remotableDataService.GetRemotableData(scopeId, checksums, cancellationToken);
             writer.WriteInt32(remotableDataMap.Count);
 
             foreach (var (checksum, remotableData) in remotableDataMap)
@@ -115,7 +114,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 checksum.WriteTo(writer);
                 writer.WriteInt32((int)remotableData.Kind);
 
-                await remotableData.WriteObjectToAsync(writer, _source.Token).ConfigureAwait(false);
+                await remotableData.WriteObjectToAsync(writer, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -127,7 +126,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
         protected override void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
-            _source.Cancel();
+            _shutdownCancellationSource.Cancel();
         }
     }
 }
