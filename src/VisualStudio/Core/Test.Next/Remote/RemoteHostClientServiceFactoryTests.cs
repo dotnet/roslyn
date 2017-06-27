@@ -63,7 +63,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             // make sure client is ready
             var client = await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
-            var checksumService = workspace.Services.GetService<ISolutionSynchronizationService>();
+            var checksumService = workspace.Services.GetService<IRemotableDataService>();
             var asset = checksumService.GetGlobalAsset(analyzerReference, CancellationToken.None);
             Assert.NotNull(asset);
 

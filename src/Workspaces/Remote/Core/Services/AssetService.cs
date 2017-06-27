@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
             _assetStorage = assetStorage;
         }
 
-        public T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
+        public static T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
         {
             return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return SpecializedCollections.EmptyList<ValueTuple<Checksum, object>>();
             }
 
-            var source = _assetStorage.TryGetAssetSource(_scopeId);
+            var source = _assetStorage.AssetSource;
             cancellationToken.ThrowIfCancellationRequested();
 
             Contract.ThrowIfNull(source);

@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksum, cancellationToken);
+                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksum, cancellationToken);
             }
         }
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             using (Logger.LogBlock(FunctionId.PinnedRemotableDataScope_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
             {
-                return _storages.GetRemotableData(this, checksums, cancellationToken);
+                return _storages.GetRemotableData(SolutionInfo.ScopeId, checksums, cancellationToken);
             }
         }
 
