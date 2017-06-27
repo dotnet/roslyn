@@ -1,12 +1,17 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Notification
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -53,7 +58,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
 
             _formatter = New FormatterMock(workspace)
             _inlineRenameService = New InlineRenameServiceMock()
-            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter, _inlineRenameService)
+            Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter,
+                                                                       _inlineRenameService)
 
             ' Make sure the manager exists for the buffer
             Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)
@@ -124,12 +130,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             End Sub
 
             Public Async Function CommitRegionAsync(spanToFormat As SnapshotSpan,
-                                    isExplicitFormat As Boolean,
-                                    useSemantics As Boolean,
-                                    dirtyRegion As SnapshotSpan,
-                                    baseSnapshot As ITextSnapshot,
-                                    baseTree As SyntaxTree,
-                                    cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
+                                isExplicitFormat As Boolean,
+                                useSemantics As Boolean,
+                                dirtyRegion As SnapshotSpan,
+                                baseSnapshot As ITextSnapshot,
+                                baseTree As SyntaxTree,
+                                cancellationToken As CancellationToken) As Task Implements ICommitFormatter.CommitRegionAsync
                 GotCommit = True
                 UsedSemantics = useSemantics
 
