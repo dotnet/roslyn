@@ -100,8 +100,7 @@ namespace RunTests
                     captureOutput: true,
                     cancellationToken: cancellationToken,
                     environmentVariables: environmentVariables,
-                    onProcessStartHandler: (process) => ProcDumpRunner.StartProcDump(_options.ProcDumpPath, process.Id, process.ProcessName, outputDirectory, Logger.Log)
-                    );
+                    onProcessStartHandler: (process) => ProcDumpRunner.StartProcDump(_options.ProcDumpPath, process.Id, process.ProcessName, outputDirectory, Logger.Log));
                 var span = DateTime.UtcNow - start;
 
                 if (processOutput.ExitCode != 0)
