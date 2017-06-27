@@ -266,15 +266,16 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             IPropertySymbol property = boundPropertyAccess.PropertySymbol;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundPropertyAccess.PropertySymbol.IsStatic ? null : boundPropertyAccess.ReceiverOpt));
+            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => ImmutableArray<IArgument>.Empty);
             ISymbol member = boundPropertyAccess.PropertySymbol;
             bool isInvalid = boundPropertyAccess.HasErrors;
             SyntaxNode syntax = boundPropertyAccess.Syntax;
             ITypeSymbol type = boundPropertyAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundPropertyAccess.ConstantValue);
-            return new LazyPropertyReferenceExpression(property, instance, member, isInvalid, syntax, type, constantValue);
+            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue);
         }
 
-        private IIndexedPropertyReferenceExpression CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
+        private IPropertyReferenceExpression CreateBoundIndexerAccessOperation(BoundIndexerAccess boundIndexerAccess)
         {
             IPropertySymbol property = boundIndexerAccess.Indexer;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => Create(boundIndexerAccess.Indexer.IsStatic ? null : boundIndexerAccess.ReceiverOpt));
@@ -303,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Semantics
             SyntaxNode syntax = boundIndexerAccess.Syntax;
             ITypeSymbol type = boundIndexerAccess.Type;
             Optional<object> constantValue = ConvertToOptional(boundIndexerAccess.ConstantValue);
-            return new LazyIndexedPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue);
+            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue);
         }
 
         private IEventReferenceExpression CreateBoundEventAccessOperation(BoundEventAccess boundEventAccess)

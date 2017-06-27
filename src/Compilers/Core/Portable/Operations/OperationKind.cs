@@ -88,8 +88,6 @@ namespace Microsoft.CodeAnalysis
         MethodBindingExpression = 0x109,
         /// <summary>Indicates an <see cref="IPropertyReferenceExpression"/>.</summary>
         PropertyReferenceExpression = 0x10a,
-        /// <summary>Indicates an <see cref="IIndexedPropertyReferenceExpression"/>.</summary>
-        IndexedPropertyReferenceExpression = 0x10b,
         /// <summary>Indicates an <see cref="IEventReferenceExpression"/>.</summary>
         EventReferenceExpression = 0x10c,
         /// <summary>Indicates an <see cref="IUnaryOperatorExpression"/>.</summary>

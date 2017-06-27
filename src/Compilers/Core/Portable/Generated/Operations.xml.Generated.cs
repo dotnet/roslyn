@@ -1263,22 +1263,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an event.
     /// </summary>
-    internal sealed partial class EventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
+    internal abstract partial class BaseEventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
     {
-        public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseEventReferenceExpression(IEventSymbol @event, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             Event = @event;
-            Instance = instance;
         }
         /// <summary>
         /// Referenced event.
         /// </summary>
         public IEventSymbol Event { get; }
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitEventReferenceExpression(this);
@@ -1292,32 +1288,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to an event.
     /// </summary>
-    internal sealed partial class LazyEventReferenceExpression : MemberReferenceExpression, IEventReferenceExpression
+    internal sealed partial class EventReferenceExpression : BaseEventReferenceExpression, IEventReferenceExpression
+    {
+        public EventReferenceExpression(IEventSymbol @event, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(@event, member, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance;
+        }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to an event.
+    /// </summary>
+    internal sealed partial class LazyEventReferenceExpression : BaseEventReferenceExpression, IEventReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.EventReferenceExpression, isInvalid, syntax, type, constantValue)
+        public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(@event, member, isInvalid, syntax, type, constantValue)
         {
-            Event = @event;
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
         }
-        /// <summary>
-        /// Referenced event.
-        /// </summary>
-        public IEventSymbol Event { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitEventReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitEventReferenceExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -1433,22 +1432,18 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a field.
     /// </summary>
-    internal sealed partial class FieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
+    internal abstract partial class BaseFieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
     {
-        public FieldReferenceExpression(IFieldSymbol field, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseFieldReferenceExpression(IFieldSymbol field, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             Field = field;
-            Instance = instance;
         }
         /// <summary>
         /// Referenced field.
         /// </summary>
         public IFieldSymbol Field { get; }
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitFieldReferenceExpression(this);
@@ -1462,32 +1457,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a field.
     /// </summary>
-    internal sealed partial class LazyFieldReferenceExpression : MemberReferenceExpression, IFieldReferenceExpression
+    internal sealed partial class FieldReferenceExpression : BaseFieldReferenceExpression, IFieldReferenceExpression
+    {
+        public FieldReferenceExpression(IFieldSymbol field, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(field, member, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance;
+        }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to a field.
+    /// </summary>
+    internal sealed partial class LazyFieldReferenceExpression : BaseFieldReferenceExpression, IFieldReferenceExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.FieldReferenceExpression, isInvalid, syntax, type, constantValue)
+        public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(field, member, isInvalid, syntax, type, constantValue)
         {
-            Field = field;
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
         }
-        /// <summary>
-        /// Referenced field.
-        /// </summary>
-        public IFieldSymbol Field { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitFieldReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitFieldReferenceExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -1932,76 +1930,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Operation method used by the operation, null if the operation does not use an operator method.
         /// </summary>
         public override IMethodSymbol OperatorMethod { get; }
-    }
-
-    /// <summary>
-    /// Represents a reference to an indexed property.
-    /// </summary>
-    internal sealed partial class IndexedPropertyReferenceExpression : BasePropertyReferenceExpression, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
-    {
-        public IndexedPropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
-        {
-            ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
-            Instance = instance;
-        }
-        /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
-        /// </summary>
-        /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
-        /// Default values are supplied for optional arguments missing in source.
-        /// </remarks>
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitIndexedPropertyReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitIndexedPropertyReferenceExpression(this, argument);
-        }
-    }
-
-    /// <summary>
-    /// Represents a reference to an indexed property.
-    /// </summary>
-    internal sealed partial class LazyIndexedPropertyReferenceExpression : BasePropertyReferenceExpression, IHasArgumentsExpression, IIndexedPropertyReferenceExpression
-    {
-        private readonly Lazy<IOperation> _lazyInstance;
-        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
-
-        public LazyIndexedPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(property, member, OperationKind.IndexedPropertyReferenceExpression, isInvalid, syntax, type, constantValue)
-        {
-            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
-        }
-        /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
-        /// </summary>
-        /// <remarks>
-        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
-        /// Default values are supplied for optional arguments missing in source.
-        /// </remarks>
-        public ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
-
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitIndexedPropertyReferenceExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitIndexedPropertyReferenceExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -2845,14 +2773,13 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
-    internal sealed partial class MethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
+    internal abstract partial class BaseMethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
     {
-        public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseMethodBindingExpression(IMethodSymbol method, bool isVirtual, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
         {
             Method = method;
             IsVirtual = isVirtual;
-            Instance = instance;
         }
         /// <summary>
         /// Referenced method.
@@ -2863,10 +2790,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Indicates whether the reference uses virtual semantics.
         /// </summary>
         public bool IsVirtual { get; }
-        /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
-        /// </summary>
-        public override IOperation Instance { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitMethodBindingExpression(this);
@@ -2880,38 +2804,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a method other than as the target of an invocation.
     /// </summary>
-    internal sealed partial class LazyMethodBindingExpression : MemberReferenceExpression, IMethodBindingExpression
+    internal sealed partial class MethodBindingExpression : BaseMethodBindingExpression, IMethodBindingExpression
+    {
+        public MethodBindingExpression(IMethodSymbol method, bool isVirtual, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(method, isVirtual, member, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance;
+        }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
+    }
+
+    /// <summary>
+    /// Represents a reference to a method other than as the target of an invocation.
+    /// </summary>
+    internal sealed partial class LazyMethodBindingExpression : BaseMethodBindingExpression, IMethodBindingExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
 
-        public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(member, OperationKind.MethodBindingExpression, isInvalid, syntax, type, constantValue)
+        public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(method, isVirtual, member, isInvalid, syntax, type, constantValue)
         {
-            Method = method;
-            IsVirtual = isVirtual;
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
         }
-        /// <summary>
-        /// Referenced method.
-        /// </summary>
-        public IMethodSymbol Method { get; }
-
-        /// <summary>
-        /// Indicates whether the reference uses virtual semantics.
-        /// </summary>
-        public bool IsVirtual { get; }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitMethodBindingExpression(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitMethodBindingExpression(this, argument);
-        }
     }
 
     /// <summary>
@@ -3361,10 +3282,10 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IBasePropertyReferenceExpression
+    internal abstract partial class BasePropertyReferenceExpression : MemberReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
     {
-        protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(member, kind, isInvalid, syntax, type, constantValue)
+        protected BasePropertyReferenceExpression(IPropertySymbol property, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
         {
             Property = property;
         }
@@ -3372,22 +3293,15 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// Referenced property.
         /// </summary>
         public IPropertySymbol Property { get; }
-    }
-
-    /// <summary>
-    /// Represents a reference to a property.
-    /// </summary>
-    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
-    {
-        public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
-            base(property, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
-        {
-            Instance = instance;
-        }
         /// <summary>
-        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
         /// </summary>
-        public override IOperation Instance { get; }
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        public abstract ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitPropertyReferenceExpression(this);
@@ -3401,18 +3315,63 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents a reference to a property.
     /// </summary>
-    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression
+    internal sealed partial class PropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
+    {
+        public PropertyReferenceExpression(IPropertySymbol property, IOperation instance, ISymbol member, ImmutableArray<IArgument> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(property, member, isInvalid, syntax, type, constantValue)
+        {
+            Instance = instance;
+            ArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
+        }
+        /// <summary>
+        /// Instance of the type. Null if the reference is to a static/shared member.
+        /// </summary>
+        public override IOperation Instance { get; }
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPropertyReferenceExpression(this);
+        }
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPropertyReferenceExpression(this, argument);
+        }
+    }
+
+    /// <summary>
+    /// Represents a reference to a property.
+    /// </summary>
+    internal sealed partial class LazyPropertyReferenceExpression : BasePropertyReferenceExpression, IPropertyReferenceExpression, IHasArgumentsExpression
     {
         private readonly Lazy<IOperation> _lazyInstance;
+        private readonly Lazy<ImmutableArray<IArgument>> _lazyArgumentsInEvaluationOrder;
 
-        public LazyPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(property, member, OperationKind.PropertyReferenceExpression, isInvalid, syntax, type, constantValue)
+        public LazyPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(property, member, isInvalid, syntax, type, constantValue)
         {
             _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder ?? throw new System.ArgumentNullException("argumentsInEvaluationOrder");
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
         /// </summary>
         public override IOperation Instance => _lazyInstance.Value;
+        /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in evaluation order.
+        /// </summary>
+        /// <remarks>
+        /// If the invocation is in its expanded form, then params/ParamArray arguments would be collected into arrays. 
+        /// Default values are supplied for optional arguments missing in source.
+        /// </remarks>
+        public override ImmutableArray<IArgument> ArgumentsInEvaluationOrder => _lazyArgumentsInEvaluationOrder.Value;
 
         public override void Accept(OperationVisitor visitor)
         {

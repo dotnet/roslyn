@@ -251,6 +251,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
         {
             Visit(operation.Instance);
+            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitEventReferenceExpression(IEventReferenceExpression operation)
@@ -276,12 +277,6 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public override void VisitPlaceholderExpression(IPlaceholderExpression operation)
         {
-        }
-
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            Visit(operation.Instance);
-            VisitArray(operation.ArgumentsInEvaluationOrder);
         }
 
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)

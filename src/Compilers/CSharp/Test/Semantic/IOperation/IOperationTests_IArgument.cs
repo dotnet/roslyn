@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-                                                                
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1260,7 +1260,7 @@ IIndexedPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x =
 
             string expectedOutput = @"1";
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);                                      
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
             CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
@@ -1324,7 +1324,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
-        } 
+        }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void AssigningToIndexer_UsingDefaultArgumentFromSetter()
@@ -1408,7 +1408,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
                                    int32)
   } // end of property P::Item
 } // end of class P
-"; 
+";
 
             var csharp = @"
 class C
@@ -1724,9 +1724,9 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
                 Instance.Visit(operation);
             }
 
-            public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+            public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.IsInvalid)
+                if (operation.IsInvalid || operation.ArgumentsInEvaluationOrder.Length == 0)
                 {
                     return;
                 }
@@ -1742,5 +1742,5 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
                 }
             }
         }
-    }             
+    }
 }

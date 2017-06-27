@@ -245,11 +245,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
         {
             DefaultVisit(operation);
@@ -671,11 +666,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitPlaceholderExpression(IPlaceholderExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
-        public virtual TResult VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

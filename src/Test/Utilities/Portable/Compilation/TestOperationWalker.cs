@@ -319,14 +319,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitPlaceholderExpression(operation);
         }
 
-        public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
-        {
-            var member = operation.Member;
-            var property = operation.Property;
-
-            base.VisitIndexedPropertyReferenceExpression(operation);
-        }
-
         public override void VisitUnaryOperatorExpression(IUnaryOperatorExpression operation)
         {
             var usesOperatorMethod = operation.UsesOperatorMethod;
