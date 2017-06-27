@@ -5,6 +5,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     internal static class SyntaxTriviaListExtensions
     {
         public static SyntaxTrivia LastOrDefault(this SyntaxTriviaList triviaList)
-             => triviaList.Any() ? triviaList.Last() : default;
+            => triviaList.Any() ? triviaList.Last() : default;
     }
 }
