@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var project = GetProject(projectName);
 
-            if (project.Object is IVsBrowseObjectContext browseObjectContext)
+            if (project is IVsBrowseObjectContext browseObjectContext)
             {
                 var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
 
@@ -235,7 +235,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var project = GetProject(projectName);
 
-            if (project.Object is IVsBrowseObjectContext browseObjectContext)
+            if (project is IVsBrowseObjectContext browseObjectContext)
             {
                 var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
 
