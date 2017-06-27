@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<Binder.DeconstructionVariable> lhsTargets = GetAssignmentTargetsAndSideEffects(left, temps, effects.init);
 
             BoundExpression returnValue = ApplyDeconstructionConversion(lhsTargets, right, conversion, temps, effects, isUsed, inInit: true);
+            effects.Consolidate();
 
             BoundExpression result;
             if (!isUsed)
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
                     result = null;
                     temps.Free();
-                    effects.Free();
+                    _ = effects.ToImmutableAndFree();
                 }
                 else
                 {
@@ -350,44 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            internal BoundExpression PopLast()
-            {
-                if (assignments.Count != 0)
-                {
-                    var last = assignments.Last();
-                    assignments.RemoveLast();
-                    return last;
-                }
-                if (conversions.Count != 0)
-                {
-                    var last = conversions.Last();
-                    conversions.RemoveLast();
-                    return last;
-                }
-                if (deconstructions.Count != 0)
-                {
-                    var last = deconstructions.Last();
-                    deconstructions.RemoveLast();
-                    return last;
-                }
-                if (init.Count != 0)
-                {
-                    var last = init.Last();
-                    init.RemoveLast();
-                    return last;
-                }
-                return null;
-            }
-
-            internal void Free()
-            {
-                init.Free();
-                deconstructions.Free();
-                conversions.Free();
-                assignments.Free();
-            }
-
-            internal ImmutableArray<BoundExpression> ToImmutableAndFree()
+            internal void Consolidate()
             {
                 init.AddRange(deconstructions);
                 init.AddRange(conversions);
@@ -396,7 +360,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 deconstructions.Free();
                 conversions.Free();
                 assignments.Free();
+            }
 
+            internal BoundExpression PopLast()
+            {
+                if (init.Count == 0)
+                {
+                    return null;
+                }
+
+                var last = init.Last();
+                init.RemoveLast();
+                return last;
+            }
+
+            // This can only be called after Consolidate
+            internal ImmutableArray<BoundExpression> ToImmutableAndFree()
+            {
                 return init.ToImmutableAndFree();
             }
         }
