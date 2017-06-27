@@ -373,9 +373,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
                     var firstDocumentReplacements = documentReplacements.FirstOrDefault(d => !d.Item2.IsEmpty);
                     var bufferContainsLinkedDocuments = documentReplacements.Length > 1 && firstDocumentReplacements.document != null;
-                    if (bufferContainsLinkedDocuments)
+                    var linkedDocumentsMightConflict = bufferContainsLinkedDocuments;
+                    if (linkedDocumentsMightConflict)
                     {
-                        // Avoid a slow merge process for the case where the changes for all linked documents
+                        // When changes are made and linked documents are involved, some of the linked documents may
+                        // have changes that differ from others. When these changes conflict (both differ and overlap),
+                        // the inline rename UI reveals the conflicts. However, the merge process for finding these
+                        // conflicts is slow, so we want to avoid it when possible. This code block attempts to set
+                        // linkedDocumentsMightConflict back to false, eliminating the need to merge the changes as part
+                        // of the conflict detection process. Currently we only special case one scenario: ignoring
+                        // documents that have no changes at all, we check if all linked documents have exactly the same
+                        // set of changes.
+
                         // 1. Check if all documents have the same replacement spans (or no replacements)
                         var spansMatch = true;
                         foreach (var (document, replacements) in documentReplacements)
@@ -409,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                         // 2. If spans match, check content
                         if (spansMatch)
                         {
-                            bufferContainsLinkedDocuments = false;
+                            linkedDocumentsMightConflict = false;
 
                             // Only need to check the new span's content
                             var firstDocumentNewText = conflictResolution.NewSolution.GetDocument(firstDocumentReplacements.document.Id).GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken);
@@ -427,12 +436,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                                     if (documentNewText.ToString(replacements[i].NewSpan) != firstDocumentNewSpanText[i])
                                     {
                                         // Have to use the slower merge process
-                                        bufferContainsLinkedDocuments = true;
+                                        linkedDocumentsMightConflict = true;
                                         break;
                                     }
                                 }
 
-                                if (bufferContainsLinkedDocuments)
+                                if (linkedDocumentsMightConflict)
                                 {
                                     break;
                                 }
@@ -448,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             continue;
                         }
 
-                        var mergedReplacements = bufferContainsLinkedDocuments
+                        var mergedReplacements = linkedDocumentsMightConflict
                             ? GetMergedReplacementInfos(
                                 relevantReplacements,
                                 conflictResolution.NewSolution.GetDocument(document.Id),
@@ -515,7 +524,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                             }
                         }
 
-                        if (!bufferContainsLinkedDocuments)
+                        if (!linkedDocumentsMightConflict)
                         {
                             break;
                         }

@@ -531,6 +531,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (oldNodeCount == 1 && newNodeCount == 1)
             {
+                // Avoid creating a Queue<T> which we immediately discard in the most common case for old/new counts
                 var removedNode = _oldNodes.Pop();
                 var oldSpan = removedNode.FullSpan;
 
@@ -637,10 +638,10 @@ namespace Microsoft.CodeAnalysis
             return TextSpan.FromBounds(start, end);
         }
 
-        private static TextSpan GetSpan(Queue<SyntaxNodeOrToken> stack, int first, int length)
+        private static TextSpan GetSpan(Queue<SyntaxNodeOrToken> queue, int first, int length)
         {
             int start = -1, end = -1, i = 0;
-            foreach (var n in stack)
+            foreach (var n in queue)
             {
                 if (i == first)
                 {
@@ -824,30 +825,30 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static string GetText(Queue<SyntaxNodeOrToken> stack)
+        private static string GetText(Queue<SyntaxNodeOrToken> queue)
         {
-            if (stack == null || stack.Count == 0)
+            if (queue == null || queue.Count == 0)
             {
                 return string.Empty;
             }
 
-            var span = GetSpan(stack, 0, stack.Count);
+            var span = GetSpan(queue, 0, queue.Count);
             var builder = new StringBuilder(span.Length);
 
-            CopyText(stack, builder);
+            CopyText(queue, builder);
 
             return builder.ToString();
         }
 
-        private static void CopyText(Queue<SyntaxNodeOrToken> stack, StringBuilder builder)
+        private static void CopyText(Queue<SyntaxNodeOrToken> queue, StringBuilder builder)
         {
             builder.Length = 0;
 
-            if (stack != null && stack.Count > 0)
+            if (queue != null && queue.Count > 0)
             {
                 var writer = new System.IO.StringWriter(builder);
 
-                foreach (var n in stack)
+                foreach (var n in queue)
                 {
                     n.WriteTo(writer);
                 }
