@@ -119,17 +119,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return root;
             }
 
-            var comparer = placeSystemNamespaceFirst
-                ? UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance
-                : UsingsAndExternAliasesDirectiveComparer.NormalInstance;
-
             var usings = AddUsingDirectives(root, usingDirectives);
 
             // Keep usings sorted if they were originally sorted.
-            if (root.Usings.IsSorted(comparer))
-            {
-                usings.Sort(comparer);
-            }
+            usings.SortUsingDirectives(root.Usings, placeSystemNamespaceFirst);
 
             if (root.Externs.Count == 0)
             {
@@ -215,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 usings.InsertRange(startOfLastDirective, usingDirectives);
             }
+
             return usings;
         }
     }
