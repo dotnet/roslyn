@@ -18,11 +18,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
         internal readonly TaskScheduler TaskScheduler;
         internal readonly ForegroundThreadDataKind Kind;
 
+        // For debugging
+        private readonly StackTrace _stackTrace;
+
         internal ForegroundThreadData(Thread thread, TaskScheduler taskScheduler, ForegroundThreadDataKind kind)
         {
             Thread = thread;
             TaskScheduler = taskScheduler;
             Kind = kind;
+            _stackTrace = new StackTrace();
         }
 
         /// <summary>
@@ -103,7 +107,25 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public bool IsForeground()
         {
-            return Thread.CurrentThread == ForegroundThread;
+            // If we're calling back from the thread that we believed to be the foreground thread
+            // at the time of object creation, then we report that we're on the foreground thread.
+
+            // If we're calling back from the thread that we currently believe to be the foreground
+            // thread, then we report that we're on the foreground thread.
+
+            // There's at least one known bug in which we create a 
+            // ForegroundThreadAffinitizedObject using the thread on which this type was statically
+            // constructed, and that thread is not actually a foreground thread. So, if our
+            // understanding of what the "foreground thread" is changes over time, then we allow
+            // for incoming calls from the thread currently believed to be the "foreground thread".
+
+            // There is a race here. Our understanding of the "foreground thread" needs to be fixed
+            // before an incorrectly initialized ForegroundThreadAffinitizedObject asks if it's on
+            // the foreground thread. But, this is still less broken than only using the thread 
+            // from the time of object creation.
+
+            return Thread.CurrentThread == _foregroundThreadDataWhenCreated.Thread ||
+                Thread.CurrentThread == s_currentForegroundThreadData.Thread;
         }
 
         public void AssertIsForeground()
@@ -121,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
                 "Current thread name     : " + currentThread?.Name);
 
             // But, in retail, do the check as well, so that we can catch problems that happen in the wild.
-            Contract.ThrowIfFalse(currentThread == whenCreatedThread);
+            Contract.ThrowIfFalse(IsForeground());
         }
 
         public void AssertIsBackground()
