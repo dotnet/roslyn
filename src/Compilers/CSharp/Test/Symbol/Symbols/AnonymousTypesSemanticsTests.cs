@@ -1049,22 +1049,27 @@ class ClassA
 {
     public static void Test1(int x)
     {
-        using (var v1 = /*<bind>*/new { }/*</bind>*/)
+        using (/*<bind>*/var v1 = new { }/*</bind>*/)
         {
         }
     }
 }
 ";
             string expectedOperationTree = @"
-IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
+IUsingStatement (OperationKind.UsingStatement, IsInvalid) (Syntax: 'using (/*<b ... }')
+  Declaration: IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement) (Syntax: 'var v1 = new { }')
+      IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration) (Syntax: 'v1 = new { }')
+        Variables: Local_1: <empty anonymous type> v1
+        Initializer: IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpression, Type: <empty anonymous type>) (Syntax: 'new { }')
+  Body: IBlockStatement (0 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
-                //         using (var v1 = /*<bind>*/new { }/*</bind>*/)
-                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = /*<bind>*/new { }").WithArguments("<empty anonymous type>").WithLocation(6, 16)
+                //         using (/*<bind>*/var v1 = new { }/*</bind>*/)
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v1 = new { }").WithArguments("<empty anonymous type>").WithLocation(6, 26)
             };
 
-            VerifyOperationTreeAndDiagnosticsForTest<AnonymousObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<VariableDeclarationSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
 
         [Fact()]
@@ -1129,10 +1134,10 @@ IAnonymousObjectCreationExpression (OperationKind.AnonymousObjectCreationExpress
   Initializers(3): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32, Constant: 1) (Syntax: 'aa = 1')
       Left: IPropertyReferenceExpression: System.Int32 <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.aa { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'aa')
       Right: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IFieldReferenceExpression: System.String ClassA.aa (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'ClassA.aa')
     IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Double) (Syntax: 'ClassA.aa')
       Left: IPropertyReferenceExpression: System.Double <anonymous type: System.Int32 aa, System.String $1, System.Double bb>.bb { get; } (Static) (OperationKind.PropertyReferenceExpression, Type: System.Double) (Syntax: 'bb')
-      Right: IFieldReferenceExpression: System.String ClassA.aa (Static) (OperationKind.FieldReferenceExpression, Type: System.String) (Syntax: 'ClassA.aa')
-    ILiteralExpression (Text: 1.2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 1.2) (Syntax: '1.2')
+      Right: ILiteralExpression (Text: 1.2) (OperationKind.LiteralExpression, Type: System.Double, Constant: 1.2) (Syntax: '1.2')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0833: An anonymous type cannot have multiple properties with the same name

@@ -790,7 +790,7 @@ Public MustInherit Class BasicTestBaseBase
 
 #Region "IOperation tree validation"
 
-    Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, Optional which As Integer = 0) As String
+    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, Optional which As Integer = 0) As String
         Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of TSyntaxNode)(compilation, fileName, which, prefixMatch:=True)
         If node Is Nothing Then
             Return Nothing
@@ -802,34 +802,34 @@ Public MustInherit Class BasicTestBaseBase
         Return If(operation IsNot Nothing, OperationTreeVerifier.GetOperationTree(operation), Nothing)
     End Function
 
-    Friend Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0) As String
+    Friend Shared Function GetOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0) As String
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
         Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree}, references:=DefaultVbReferences.Append({ValueTupleRef, SystemRuntimeFacadeRef}), options:=If(compilationOptions, TestOptions.ReleaseDll))
         Return GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
     End Function
 
-    Friend Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, Optional which As Integer = 0)
+    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, Optional which As Integer = 0)
         Dim actualOperationTree = GetOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, which)
         OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree)
     End Sub
 
-    Friend Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
+    Friend Shared Sub VerifyOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
         Dim actualOperationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
         OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree)
     End Sub
 
-    Friend Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
+    Friend Shared Sub VerifyNoOperationTreeForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0)
         Dim actualOperationTree = GetOperationTreeForTest(Of TSyntaxNode)(testSrc, compilationOptions, parseOptions, which)
         Assert.Null(actualOperationTree)
     End Sub
 
-    Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0)
+    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(compilation As VisualBasicCompilation, fileName As String, expectedOperationTree As String, expectedDiagnostics As String, Optional which As Integer = 0)
         compilation.AssertTheseDiagnostics(FilterString(expectedDiagnostics))
         VerifyOperationTreeForTest(Of TSyntaxNode)(compilation, fileName, expectedOperationTree, which)
     End Sub
 
-    Friend Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, expectedDiagnostics As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0, Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing)
+    Friend Shared Sub VerifyOperationTreeAndDiagnosticsForTest(Of TSyntaxNode As SyntaxNode)(testSrc As String, expectedOperationTree As String, expectedDiagnostics As String, Optional compilationOptions As VisualBasicCompilationOptions = Nothing, Optional parseOptions As VisualBasicParseOptions = Nothing, Optional which As Integer = 0, Optional additionalReferences As IEnumerable(Of MetadataReference) = Nothing)
         Dim fileName = "a.vb"
         Dim syntaxTree = Parse(testSrc, fileName, parseOptions)
         Dim references = DefaultVbReferences.Concat({ValueTupleRef, SystemRuntimeFacadeRef})

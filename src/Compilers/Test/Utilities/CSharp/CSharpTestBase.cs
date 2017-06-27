@@ -705,12 +705,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CompileAndVerify(comp);
         }
 
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
+        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxTree syntaxTree)
         {
             return GetSyntaxNodeList(syntaxTree.GetRoot(), null);
         }
 
-        protected List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
+        protected static List<SyntaxNode> GetSyntaxNodeList(SyntaxNode node, List<SyntaxNode> synList)
         {
             if (synList == null)
                 synList = new List<SyntaxNode>();
@@ -726,15 +726,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return synList;
         }
 
-        protected SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
+        protected static SyntaxNode GetSyntaxNodeForBinding(List<SyntaxNode> synList)
         {
             return GetSyntaxNodeOfTypeForBinding<SyntaxNode>(synList);
         }
 
-        protected readonly string startString = "/*<bind>*/";
-        protected readonly string endString = "/*</bind>*/";
+        protected const string startString = "/*<bind>*/";
+        protected const string endString = "/*</bind>*/";
 
-        protected TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
+        protected static TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
         {
             foreach (var node in synList.OfType<TNode>())
             {
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         #region IOperation tree validation
 
-        protected (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
+        protected static (IOperation operation, SyntaxNode node) GetOperationAndSyntaxForTest<TSyntaxNode>(CSharpCompilation compilation)
     where TSyntaxNode : SyntaxNode
         {
             var tree = compilation.SyntaxTrees[0];
@@ -1124,26 +1124,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return (model.GetOperationInternal(syntaxNode), syntaxNode);
         }
 
-        protected string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
+        protected static string GetOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation)
             where TSyntaxNode : SyntaxNode
         {
             var (operation, syntax) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
             return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
         }
 
-        protected string GetOperationTreeForTest(IOperation operation)
+        protected static string GetOperationTreeForTest(IOperation operation)
         {
             return operation != null ? OperationTreeVerifier.GetOperationTree(operation) : null;
         }
 
-        protected string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
+        protected static string GetOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
             var compilation = CreateStandardCompilation(testSrc, new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, options: compilationOptions ?? TestOptions.ReleaseDll, parseOptions: parseOptions);
             return GetOperationTreeForTest<TSyntaxNode>(compilation);
         }
 
-        protected void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+        protected static void VerifyOperationTreeForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var (actualOperation, syntaxNode) = GetOperationAndSyntaxForTest<TSyntaxNode>(compilation);
@@ -1152,14 +1152,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             AdditionalOperationTreeVerifier?.Invoke(actualOperation, compilation, syntaxNode);
         }
 
-        protected void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
+        protected static void VerifyOperationTreeForTest<TSyntaxNode>(string testSrc, string expectedOperationTree, CSharpCompilationOptions compilationOptions = null, CSharpParseOptions parseOptions = null)
             where TSyntaxNode : SyntaxNode
         {
             var actualOperationTree = GetOperationTreeForTest<TSyntaxNode>(testSrc, expectedOperationTree, compilationOptions, parseOptions);
             OperationTreeVerifier.Verify(expectedOperationTree, actualOperationTree);
         }
 
-        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(CSharpCompilation compilation, string expectedOperationTree, DiagnosticDescription[] expectedDiagnostics, Action<IOperation, Compilation, SyntaxNode> AdditionalOperationTreeVerifier = null)
             where TSyntaxNode : SyntaxNode
         {
             var actualDiagnostics = compilation.GetDiagnostics().Where(d => d.Severity != DiagnosticSeverity.Hidden);
@@ -1169,7 +1169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         private static readonly MetadataReference[] s_defaultOperationReferences = new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef };
 
-        protected void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc,
+        protected static void VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(string testSrc,
             string expectedOperationTree,
             DiagnosticDescription[] expectedDiagnostics,
             CSharpCompilationOptions compilationOptions = null,
@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             VerifyOperationTreeAndDiagnosticsForTest<TSyntaxNode>(compilation, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier);
         }
 
-        protected MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,
+        protected static MetadataReference VerifyOperationTreeAndDiagnosticsForTestWithIL<TSyntaxNode>(string testSrc,
             string ilSource,
             string expectedOperationTree,
             DiagnosticDescription[] expectedDiagnostics,
