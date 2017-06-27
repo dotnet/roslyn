@@ -1000,6 +1000,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var interfaceType in implementingType.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
+                if (!interfaceType.IsInterface)
+                {
+                    // this code is reachable in error situations
+                    continue;
+                }
+
                 Symbol candidate = FindImplementationInInterface(interfaceMember, interfaceType);
 
                 if ((object)candidate != null)

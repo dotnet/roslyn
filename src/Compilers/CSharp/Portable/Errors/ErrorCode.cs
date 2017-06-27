@@ -1507,5 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // PROTOTYPE(DefaultInterfaceImplementation): Should add this error code to the list monitored by the UpgradeProject code fixer.
         // This PR can be used to find the relevant code and test files: https://github.com/dotnet/roslyn/pull/18045.
         ERR_LanguageVersionDoesNotSupportDefaultInterfaceImplementationForMember = 8506,
+
+        ERR_PrivateVirtualAccessor = 8507,
     }
 }

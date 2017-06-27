@@ -412,6 +412,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     foreach (NamedTypeSymbol @interface in interfaces)
                     {
+                        if (!@interface.IsInterface)
+                        {
+                            // this code could be reachable in error situations
+                            continue;
+                        }
+
                         if (shadowedInterfaces.Contains(@interface))
                         {
                             // this interface is "shadowed" by a derived interface

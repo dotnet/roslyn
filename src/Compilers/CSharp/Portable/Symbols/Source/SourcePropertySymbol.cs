@@ -310,6 +310,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         CheckAbstractPropertyAccessorNotPrivate(_getMethod, diagnostics);
                         CheckAbstractPropertyAccessorNotPrivate(_setMethod, diagnostics);
                     }
+                    else if (this.IsVirtual && containingType.IsInterface)
+                    {
+                        // Check virtual property accessors are not private.
+                        // See https://github.com/dotnet/csharplang/blob/master/meetings/2017/LDM-2017-06-14.md
+                        CheckVirtualPropertyAccessorNotPrivate(_getMethod, diagnostics);
+                        CheckVirtualPropertyAccessorNotPrivate(_setMethod, diagnostics);
+                    }
                 }
                 else
                 {
@@ -945,6 +952,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (accessor.LocalAccessibility == Accessibility.Private)
             {
                 diagnostics.Add(ErrorCode.ERR_PrivateAbstractAccessor, accessor.Locations[0], accessor);
+            }
+        }
+
+        private static void CheckVirtualPropertyAccessorNotPrivate(SourcePropertyAccessorSymbol accessor, DiagnosticBag diagnostics)
+        {
+            if (accessor.LocalAccessibility == Accessibility.Private)
+            {
+                diagnostics.Add(ErrorCode.ERR_PrivateVirtualAccessor, accessor.Locations[0], accessor);
             }
         }
 
