@@ -3386,22 +3386,21 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents Case x To y in VB.
     /// </summary>
-    internal sealed partial class RangeCaseClause : CaseClause, IRangeCaseClause
+    internal abstract partial class BaseRangeCaseClause : CaseClause, IRangeCaseClause
     {
-        public RangeCaseClause(IOperation minimumValue, IOperation maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseRangeCaseClause(CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.RangeCaseClause, isInvalid, syntax, type, constantValue)
         {
-            MinimumValue = minimumValue;
-            MaximumValue = maximumValue;
         }
         /// <summary>
         /// Minimum value of the case range.
         /// </summary>
-        public IOperation MinimumValue { get; }
+        public abstract IOperation MinimumValue { get; }
         /// <summary>
         /// Maximum value of the case range.
         /// </summary>
-        public IOperation MaximumValue { get; }
+        public abstract IOperation MaximumValue { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitRangeCaseClause(this);
@@ -3415,12 +3414,34 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents Case x To y in VB.
     /// </summary>
-    internal sealed partial class LazyRangeCaseClause : CaseClause, IRangeCaseClause
+    internal sealed partial class RangeCaseClause : BaseRangeCaseClause, IRangeCaseClause
+    {
+        public RangeCaseClause(IOperation minimumValue, IOperation maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(caseKind, isInvalid, syntax, type, constantValue)
+        {
+            MinimumValue = minimumValue;
+            MaximumValue = maximumValue;
+        }
+        /// <summary>
+        /// Minimum value of the case range.
+        /// </summary>
+        public override IOperation MinimumValue { get; }
+        /// <summary>
+        /// Maximum value of the case range.
+        /// </summary>
+        public override IOperation MaximumValue { get; }
+    }
+
+    /// <summary>
+    /// Represents Case x To y in VB.
+    /// </summary>
+    internal sealed partial class LazyRangeCaseClause : BaseRangeCaseClause, IRangeCaseClause
     {
         private readonly Lazy<IOperation> _lazyMinimumValue;
         private readonly Lazy<IOperation> _lazyMaximumValue;
 
-        public LazyRangeCaseClause(Lazy<IOperation> minimumValue, Lazy<IOperation> maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caseKind, OperationKind.RangeCaseClause, isInvalid, syntax, type, constantValue)
+        public LazyRangeCaseClause(Lazy<IOperation> minimumValue, Lazy<IOperation> maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(caseKind, isInvalid, syntax, type, constantValue)
         {
             _lazyMinimumValue = minimumValue ?? throw new System.ArgumentNullException("minimumValue");
             _lazyMaximumValue = maximumValue ?? throw new System.ArgumentNullException("maximumValue");
@@ -3428,42 +3449,33 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// <summary>
         /// Minimum value of the case range.
         /// </summary>
-        public IOperation MinimumValue => _lazyMinimumValue.Value;
+        public override IOperation MinimumValue => _lazyMinimumValue.Value;
 
         /// <summary>
         /// Maximum value of the case range.
         /// </summary>
-        public IOperation MaximumValue => _lazyMaximumValue.Value;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitRangeCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitRangeCaseClause(this, argument);
-        }
+        public override IOperation MaximumValue => _lazyMaximumValue.Value;
     }
 
     /// <summary>
     /// Represents Case Is op x in VB.
     /// </summary>
-    internal sealed partial class RelationalCaseClause : CaseClause, IRelationalCaseClause
+    internal abstract partial class BaseRelationalCaseClause : CaseClause, IRelationalCaseClause
     {
-        public RelationalCaseClause(IOperation value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseRelationalCaseClause(BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.RelationalCaseClause, isInvalid, syntax, type, constantValue)
         {
-            Value = value;
             Relation = relation;
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
         public BinaryOperationKind Relation { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitRelationalCaseClause(this);
@@ -3477,32 +3489,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents Case Is op x in VB.
     /// </summary>
-    internal sealed partial class LazyRelationalCaseClause : CaseClause, IRelationalCaseClause
+    internal sealed partial class RelationalCaseClause : BaseRelationalCaseClause, IRelationalCaseClause
+    {
+        public RelationalCaseClause(IOperation value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(relation, caseKind, isInvalid, syntax, type, constantValue)
+        {
+            Value = value;
+        }
+        /// <summary>
+        /// Case value.
+        /// </summary>
+        public override IOperation Value { get; }
+    }
+
+    /// <summary>
+    /// Represents Case Is op x in VB.
+    /// </summary>
+    internal sealed partial class LazyRelationalCaseClause : BaseRelationalCaseClause, IRelationalCaseClause
     {
         private readonly Lazy<IOperation> _lazyValue;
 
-        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caseKind, OperationKind.RelationalCaseClause, isInvalid, syntax, type, constantValue)
+        public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(relation, caseKind, isInvalid, syntax, type, constantValue)
         {
             _lazyValue = value ?? throw new System.ArgumentNullException("value");
-            Relation = relation;
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value => _lazyValue.Value;
-
-        /// <summary>
-        /// Relational operator used to compare the switch value with the case value.
-        /// </summary>
-        public BinaryOperationKind Relation { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitRelationalCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitRelationalCaseClause(this, argument);
-        }
+        public override IOperation Value => _lazyValue.Value;
     }
 
     /// <summary>
@@ -3581,22 +3596,22 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents case x in C# or Case x in VB.
     /// </summary>
-    internal sealed partial class SingleValueCaseClause : CaseClause, ISingleValueCaseClause
+    internal abstract partial class BaseSingleValueCaseClause : CaseClause, ISingleValueCaseClause
     {
-        public SingleValueCaseClause(IOperation value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+        public BaseSingleValueCaseClause(BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, OperationKind.SingleValueCaseClause, isInvalid, syntax, type, constantValue)
         {
-            Value = value;
             Equality = equality;
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value { get; }
+        public abstract IOperation Value { get; }
         /// <summary>
         /// Relational operator used to compare the switch value with the case value.
         /// </summary>
         public BinaryOperationKind Equality { get; }
+
         public override void Accept(OperationVisitor visitor)
         {
             visitor.VisitSingleValueCaseClause(this);
@@ -3610,32 +3625,35 @@ namespace Microsoft.CodeAnalysis.Semantics
     /// <summary>
     /// Represents case x in C# or Case x in VB.
     /// </summary>
-    internal sealed partial class LazySingleValueCaseClause : CaseClause, ISingleValueCaseClause
+    internal sealed partial class SingleValueCaseClause : BaseSingleValueCaseClause, ISingleValueCaseClause
     {
-        private readonly Lazy<IOperation> _lazyValue;
-
-        public LazySingleValueCaseClause(Lazy<IOperation> value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caseKind, OperationKind.SingleValueCaseClause, isInvalid, syntax, type, constantValue)
+        public SingleValueCaseClause(IOperation value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(equality, caseKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
-            Equality = equality;
+            Value = value;
         }
         /// <summary>
         /// Case value.
         /// </summary>
-        public IOperation Value => _lazyValue.Value;
+        public override IOperation Value { get; }
+    }
 
+    /// <summary>
+    /// Represents case x in C# or Case x in VB.
+    /// </summary>
+    internal sealed partial class LazySingleValueCaseClause : BaseSingleValueCaseClause, ISingleValueCaseClause
+    {
+        private readonly Lazy<IOperation> _lazyValue;
+
+        public LazySingleValueCaseClause(Lazy<IOperation> value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
+            base(equality, caseKind, isInvalid, syntax, type, constantValue)
+        {
+            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+        }
         /// <summary>
-        /// Relational operator used to compare the switch value with the case value.
+        /// Case value.
         /// </summary>
-        public BinaryOperationKind Equality { get; }
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitSingleValueCaseClause(this);
-        }
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitSingleValueCaseClause(this, argument);
-        }
+        public override IOperation Value => _lazyValue.Value;
     }
 
     /// <summary>
