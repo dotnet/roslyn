@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         public ImmutableArray<HighlightSpan> HighlightSpans;
 
         public DocumentHighlights Rehydrate(Solution solution)
-            => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans.ToImmutableArray());
+            => new DocumentHighlights(solution.GetDocument(DocumentId), HighlightSpans);
 
         public static SerializableDocumentHighlights Dehydrate(DocumentHighlights highlights)
             => new SerializableDocumentHighlights

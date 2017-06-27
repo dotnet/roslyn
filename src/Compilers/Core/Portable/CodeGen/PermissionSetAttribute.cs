@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
     {
         private readonly Cci.ICustomAttribute _sourceAttribute;
         private readonly string _resolvedPermissionSetFilePath;
-        internal static readonly string FilePropertyName = "File";
-        internal static readonly string HexPropertyName = "Hex";
+        internal const string FilePropertyName = "File";
+        internal const string HexPropertyName = "Hex";
 
         public PermissionSetAttributeWithFileReference(Cci.ICustomAttribute sourceAttribute, string resolvedPermissionSetFilePath)
         {

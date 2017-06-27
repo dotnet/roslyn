@@ -165,8 +165,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 TypeOf node.Parent Is FieldDeclarationSyntax
         End Function
 
-        Private Shared ReadOnly s_BC50000_UnusedImportsClause As String = "BC50000"
-        Private Shared ReadOnly s_BC50001_UnusedImportsStatement As String = "BC50001"
+        Private Const s_BC50000_UnusedImportsClause As String = "BC50000"
+        Private Const s_BC50001_UnusedImportsStatement As String = "BC50001"
 
         Protected Overrides Sub GetUnusedNamespaceImports(model As SemanticModel, namespaceImports As HashSet(Of SyntaxNode), cancellationToken As CancellationToken)
             Dim root = model.SyntaxTree.GetRoot()

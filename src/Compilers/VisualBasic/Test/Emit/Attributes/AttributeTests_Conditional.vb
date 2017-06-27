@@ -546,7 +546,7 @@ End Class
     End Module
     ]]>.Value
 
-        Private Shared ReadOnly s_commonExpectedOutput_ConditionalMethodsTest As String =
+        Private Const s_commonExpectedOutput_ConditionalMethodsTest As String =
             "Z.PreservedCalls_AppliedConditional_Method" & vbCrLf &
             "Z.PreservedCalls_InheritedConditional_Method" & vbCrLf &
             "Z.PreservedCalls_MultipleConditional_Method" & vbCrLf &

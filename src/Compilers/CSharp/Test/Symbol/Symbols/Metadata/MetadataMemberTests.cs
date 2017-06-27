@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class MetadataMemberTests : CSharpTestBase
     {
-        private static readonly string VTableGapClassIL = @"
+        private const string VTableGapClassIL = @"
 .class public auto ansi beforefieldinit Class
        extends [mscorlib]System.Object
 {
