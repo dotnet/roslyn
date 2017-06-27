@@ -89,13 +89,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool shouldCheckConstraints,
             ImmutableArray<bool> errorPositions,
             CSharpSyntaxNode syntax = null,
-            DiagnosticBag diagnostics = null)
+            DiagnosticBag diagnostics = null,
+            bool allowOneElementTuple = false)
         {
             Debug.Assert(!shouldCheckConstraints || (object)syntax != null);
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
 
             int numElements = elementTypes.Length;
-            if (numElements == 0)
+            if (numElements == 0 || (numElements == 1 && !allowOneElementTuple))
             {
                 throw ExceptionUtilities.Unreachable;
             }

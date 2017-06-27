@@ -2609,7 +2609,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           elementTypes:=typesBuilder.ToImmutableAndFree(),
                                           elementLocations:=elementLocations,
                                           elementNames:=elementNames, compilation:=Me,
-                                          shouldCheckConstraints:=False, errorPositions:=Nothing)
+                                          shouldCheckConstraints:=False, errorPositions:=Nothing,
+                                          allowOneElementTuple:=True)
         End Function
 
         Protected Overrides Function CommonCreateTupleTypeSymbol(

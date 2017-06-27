@@ -357,12 +357,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                      shouldCheckConstraints As Boolean,
                                      errorPositions As ImmutableArray(Of Boolean),
                                      Optional syntax As SyntaxNode = Nothing,
-                                     Optional diagnostics As DiagnosticBag = Nothing) As TupleTypeSymbol
+                                     Optional diagnostics As DiagnosticBag = Nothing,
+                                     Optional allowOneElementTuple As Boolean = False) As TupleTypeSymbol
             Debug.Assert(Not shouldCheckConstraints OrElse syntax IsNot Nothing)
             Debug.Assert(elementNames.IsDefault OrElse elementTypes.Length = elementNames.Length)
             Dim length As Integer = elementTypes.Length
 
-            If length = 0 Then
+            If length = 0 OrElse (length = 1 AndAlso Not allowOneElementTuple) Then
                 Throw ExceptionUtilities.Unreachable
             End If
 

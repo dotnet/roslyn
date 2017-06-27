@@ -2896,7 +2896,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 elementNames: elementNames,
                 compilation: this,
                 shouldCheckConstraints: false,
-                errorPositions: default(ImmutableArray<bool>));
+                errorPositions: default(ImmutableArray<bool>),
+                allowOneElementTuple: true);
         }
 
         protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(
