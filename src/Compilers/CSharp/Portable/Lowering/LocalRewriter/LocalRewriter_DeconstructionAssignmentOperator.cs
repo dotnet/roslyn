@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var last = effects.PopLast();
                 if (last is null)
                 {
+                    // Deconstructions with no effects lower to nothing. For example, `(_, _) = (1, 2);`
                     result = null;
                 }
                 else
