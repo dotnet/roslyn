@@ -3,6 +3,7 @@
 Imports System.Runtime.CompilerServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.AddImports
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
@@ -66,39 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 [imports].Sort(comparers.Item2)
             End If
 
-            If root.Imports.Count = 0 Then
-                ' We don't have any existing imports. Move any trivia on the first token 
-                ' of the file to the first import.
-                ' 
-                ' Don't do this for doc comments, as they belong to the first element
-                ' already in the file (Like a class) And we don't want it to move to
-                ' the using.
-                Dim firstToken = root.GetFirstToken()
-
-                ' Remove the leading directives from the first token.
-                Dim newFirstToken = firstToken.WithLeadingTrivia(
-                    firstToken.LeadingTrivia.Where(Function(t) IsDocCommentOrElastic(t)))
-
-                root = root.ReplaceToken(firstToken, newFirstToken)
-
-                ' Move the leading trivia from the first token to the first import.
-                Dim newFirstUsing = [imports](0).WithLeadingTrivia(
-                    firstToken.LeadingTrivia.Where(Function(t) Not IsDocCommentOrElastic(t)))
-                [imports](0) = newFirstUsing
-            Else
-                Dim originalFirstUsing = root.Imports(0)
-                If [imports](0) IsNot originalFirstUsing Then
-                    ' We added a New first-import.  Take the trivia on the existing first import
-                    ' And move it to the new import.
-                    Dim originalFirstUsingCurrentIndex = [imports].IndexOf(originalFirstUsing)
-
-                    Dim newFirstUsing = [imports](0).WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia()).
-                                                     WithAppendedTrailingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed)
-
-                    [imports](0) = newFirstUsing
-                    [imports](originalFirstUsingCurrentIndex) = originalFirstUsing.WithoutLeadingTrivia()
-                End If
-            End If
+            root = AddImportHelpers.MoveTrivia(
+                VisualBasicSyntaxFactsService.Instance, root, root.Imports, [imports])
 
             Return root.WithImports(
                 [imports].Select(Function(u) u.WithAdditionalAnnotations(annotations)).ToSyntaxList())
