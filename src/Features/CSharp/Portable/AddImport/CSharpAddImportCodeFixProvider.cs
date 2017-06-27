@@ -92,6 +92,11 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
         public const string CS1929 = nameof(CS1929);
 
         /// <summary>
+        /// Property cannot be used like a method
+        /// </summary>
+        public const string CS1955 = nameof(CS1955);
+
+        /// <summary>
         /// Cannot convert method group 'X' to non-delegate type 'Y'. Did you intend to invoke the method?
         /// </summary>
         public const string CS0428 = nameof(CS0428);
@@ -128,6 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddImport
                     CS1574,
                     CS1584,
                     CS1929,
+                    CS1955,
                     CS0428,
                     CS7036));
     }
