@@ -35,14 +35,15 @@ namespace Roslyn.MSBuild.Util
             var nugetDirs = new List<string>();
             foreach (var item in NuGetPackageToIncludeInVsix)
             {
-                var nugetDir = Path.Combine(NuGetPackageRoot, item.ItemSpec);
+                var nugetDir = NormalizePath(Path.Combine(NuGetPackageRoot, item.ItemSpec));
                 nugetDirs.Add(nugetDir);
             }
 
             var assets = new List<ITaskItem>();
             foreach (var path in ReferenceCopyLocalPaths)
             {
-                if (nugetDirs.Any(x => path.ItemSpec.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
+                var itemPath = NormalizePath(path.ItemSpec);
+                if (nugetDirs.Any(x => itemPath.StartsWith(x, StringComparison.OrdinalIgnoreCase)))
                 {
                     assets.Add(path);
                 }
@@ -51,5 +52,7 @@ namespace Roslyn.MSBuild.Util
             NuGetAssetsToIncludeInVsix = assets.ToArray();
             return true;
         }
+
+        private static string NormalizePath(string path) => path.Replace('/', '\\').TrimEnd('\\');
     }
 }
