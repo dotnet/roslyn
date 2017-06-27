@@ -14,7 +14,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Private ReadOnly _buffer As ITextBuffer
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
-        Private ReadOnly _notificationService As IGlobalOperationNotificationService
         Private _referencingViews As Integer
 
         ''' <summary>
@@ -32,18 +31,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
         Public Sub New(
             buffer As ITextBuffer,
             commitFormatter As ICommitFormatter,
-            inlineRenameService As IInlineRenameService,
-            notificationService As IGlobalOperationNotificationService)
+            inlineRenameService As IInlineRenameService)
 
             Contract.ThrowIfNull(buffer)
             Contract.ThrowIfNull(commitFormatter)
             Contract.ThrowIfNull(inlineRenameService)
-            Contract.ThrowIfNull(notificationService)
 
             _buffer = buffer
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
-            _notificationService = notificationService
         End Sub
 
         Private Sub Connect()
@@ -113,7 +109,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                         Return
                     End If
 
-                    Using _notificationService.Start("LineCommit")
+                    Dim notificationService = _dirtyState.BaseDocument.Project.Solution.Workspace.Services _
+                        .GetService(Of IGlobalOperationNotificationService)()
+                    Using notificationService.Start("LineCommit")
                         Dim dirtyRegion = _dirtyState.DirtyRegion.GetSpan(_buffer.CurrentSnapshot)
                         Dim info As FormattingInfo
                         If Not TryComputeExpandedSpanToFormat(dirtyRegion, info, cancellationToken) Then

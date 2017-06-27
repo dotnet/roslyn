@@ -10,17 +10,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
     Friend Class CommitBufferManagerFactory
         Private ReadOnly _commitFormatter As ICommitFormatter
         Private ReadOnly _inlineRenameService As IInlineRenameService
-        Private ReadOnly _notificationService As IGlobalOperationNotificationService
 
         <ImportingConstructor()>
-        Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService, notificationService As IGlobalOperationNotificationService)
+        Public Sub New(commitFormatter As ICommitFormatter, inlineRenameService As IInlineRenameService)
             _commitFormatter = commitFormatter
             _inlineRenameService = inlineRenameService
-            _notificationService = notificationService
         End Sub
 
         Public Function CreateForBuffer(buffer As ITextBuffer) As CommitBufferManager
-            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService, _notificationService))
+            Return buffer.Properties.GetOrCreateSingletonProperty(Function() New CommitBufferManager(buffer, _commitFormatter, _inlineRenameService))
         End Function
     End Class
 End Namespace

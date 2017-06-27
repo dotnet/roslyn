@@ -32,9 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
         Private ReadOnly _inlineRenameService As InlineRenameServiceMock
 
         Public Shared Async Function CreateAsync(test As XElement) As Task(Of CommitTestData)
-            Dim catalog = TestExportProvider.EntireAssemblyCatalogWithCSharpAndVisualBasic.WithParts(GetType(MockGlobalOperationNotificationServiceFactory))
-            Dim exportProvider = MinimalTestExportProvider.CreateExportProvider(catalog)
-            Dim workspace = Await TestWorkspace.CreateAsync(test, exportProvider:=exportProvider)
+            Dim workspace = Await TestWorkspace.CreateAsync(test)
             Return New CommitTestData(workspace)
         End Function
 
@@ -61,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             _formatter = New FormatterMock(workspace)
             _inlineRenameService = New InlineRenameServiceMock()
             Dim commitManagerFactory As New CommitBufferManagerFactory(_formatter,
-                                                                       _inlineRenameService,
-                                                                       New MockGlobalOperationNotificationServiceFactory())
+                                                                       _inlineRenameService)
 
             ' Make sure the manager exists for the buffer
             Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)
@@ -118,24 +115,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                     Throw New NotImplementedException()
                 End Sub
             End Class
-        End Class
-
-        <Export(GetType(IGlobalOperationNotificationService))>
-        <ExportWorkspaceServiceFactory(GetType(IGlobalOperationNotificationService)), [Shared]>
-        Friend Class MockGlobalOperationNotificationServiceFactory
-            Implements IWorkspaceServiceFactory, IGlobalOperationNotificationService
-
-
-            Public Function CreateService(workspaceServices As HostWorkspaceServices) As IWorkspaceService Implements IWorkspaceServiceFactory.CreateService
-                Return Me
-            End Function
-
-            Public Event Started As EventHandler Implements IGlobalOperationNotificationService.Started
-            Public Event Stopped As EventHandler(Of GlobalOperationEventArgs) Implements IGlobalOperationNotificationService.Stopped
-
-            Public Function Start(operation As String) As GlobalOperationRegistration Implements IGlobalOperationNotificationService.Start
-                Return Nothing
-            End Function
         End Class
 
         Private Class FormatterMock
