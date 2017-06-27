@@ -73,7 +73,7 @@ End Module
 
             comp.VerifyOperationTree(nodes(0), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = x + 10')
-  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
+  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = x + 10')
     Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
     Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperationKind.BinaryOperatorExpression, Type: B2, IsInvalid) (Syntax: 'x + 10')
         Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
@@ -103,7 +103,7 @@ IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x 
 
             comp.VerifyOperationTree(nodes(1), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
-  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2) (Syntax: 'x = x + y')
+  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2) (Syntax: 'x = x + y')
     Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
     Right: IBinaryOperatorExpression (BinaryOperationKind.OperatorMethodAdd) (OperatorMethod: Function B2.op_Addition(x As B2, y As B2) As B2) (OperationKind.BinaryOperatorExpression, Type: B2) (Syntax: 'x + y')
         Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
@@ -129,7 +129,7 @@ IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'x = x + y')
 
             comp.VerifyOperationTree(nodes(2), expectedOperationTree:="
 IExpressionStatement (OperationKind.ExpressionStatement, IsInvalid) (Syntax: 'x = -x')
-  IAssignmentExpression (OperationKind.AssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
+  ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: B2, IsInvalid) (Syntax: 'x = -x')
     Left: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
     Right: IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodMinus) (OperationKind.UnaryOperatorExpression, Type: B2, IsInvalid) (Syntax: '-x')
         ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: B2) (Syntax: 'x')
@@ -264,7 +264,7 @@ IForLoopStatement (LoopKind.For) (OperationKind.LoopStatement) (Syntax: 'For i =
       Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
       Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
   Before: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: '0')
-      IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Int32) (Syntax: '0')
+      ISimpleAssignmentExpression (OperationKind.SimpleAssignmentExpression, Type: System.Int32) (Syntax: '0')
         Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
         Right: ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
   AtLoopBottom: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'For i = 0 T ... Next')

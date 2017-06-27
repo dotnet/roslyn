@@ -3003,6 +3003,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public BaseParameterInitializer(IParameterSymbol parameter, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(kind, isInvalid, syntax, type, constantValue)
         {
+            Parameter = parameter;
         }
         /// <summary>
         /// Initialized parameter.

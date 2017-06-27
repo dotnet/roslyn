@@ -662,21 +662,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
         {
+            LogString(nameof(IPropertyReferenceExpression));
+            LogString($": {operation.Property.ToTestDisplayString()}");
+
+            VisitMemberReferenceExpressionCommon(operation);
+
             if (operation.ArgumentsInEvaluationOrder.Length > 0)
             {
-                // keep existing logging behavior
-                LogString("IIndexedPropertyReferenceExpression");
-                LogString($": {operation.Property.ToTestDisplayString()}");
-
-                VisitMemberReferenceExpressionCommon(operation);
                 VisitArguments(operation);
-            }
-            else
-            {
-                LogString(nameof(IPropertyReferenceExpression));
-                LogString($": {operation.Property.ToTestDisplayString()}");
-
-                VisitMemberReferenceExpressionCommon(operation);
             }
         }
 

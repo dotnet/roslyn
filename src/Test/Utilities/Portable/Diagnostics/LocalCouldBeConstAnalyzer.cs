@@ -42,8 +42,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         operationBlockContext.RegisterOperationAction(
                            (operationContext) =>
                            {
-                               IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                               AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
+                               if (operationContext.Operation is IAssignmentExpression assignment)
+                               {
+                                   AssignTo(assignment.Target, assignedToLocals, mightBecomeConstLocals);
+                               }
+                               else if (operationContext.Operation is IIncrementExpression increment)
+                               {
+                                   AssignTo(increment.Target, assignedToLocals, mightBecomeConstLocals);
+                               }
+                               else
+                               {
+                                   throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                               }
                            },
                            OperationKind.SimpleAssignmentExpression,
                            OperationKind.CompoundAssignmentExpression,
