@@ -49,7 +49,8 @@ namespace Microsoft.CodeAnalysis.AddImports
 
                     newImports[0] = newImports[0].WithLeadingTrivia(originalFirstUsing.GetLeadingTrivia());
 
-                    if (!syntaxFacts.IsEndOfLineTrivia(newImports[0].GetTrailingTrivia().LastOrDefault()))
+                    var trailingTrivia = newImports[0].GetTrailingTrivia();
+                    if (!syntaxFacts.IsEndOfLineTrivia(trailingTrivia.Count == 0 ? default(SyntaxTrivia) : trailingTrivia[trailingTrivia.Count - 1]))
                     {
                         newImports[0] = newImports[0].WithAppendedTrailingTrivia(syntaxFacts.ElasticCarriageReturnLineFeed);
                     }
