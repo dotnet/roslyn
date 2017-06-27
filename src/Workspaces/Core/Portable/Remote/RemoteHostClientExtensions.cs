@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             Contract.ThrowIfNull(solution);
 
-            var service = solution.Workspace.Services.GetService<ISolutionSynchronizationService>();
+            var service = solution.Workspace.Services.GetService<IRemotableDataService>();
             return await service.CreatePinnedRemotableDataScopeAsync(solution, cancellationToken).ConfigureAwait(false);
         }
 

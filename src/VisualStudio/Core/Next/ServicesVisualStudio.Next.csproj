@@ -172,6 +172,7 @@
     <Compile Include="Remote\JsonRpcClient.cs" />
     <Compile Include="Remote\JsonRpcMessageHandler.cs" />
     <Compile Include="Remote\JsonRpcConnection.cs" />
+    <Compile Include="Remote\RemotableDataJsonRpcEx.cs" />
     <Compile Include="Remote\RemoteHostClientFactory.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.WorkspaceHost.cs" />
     <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />

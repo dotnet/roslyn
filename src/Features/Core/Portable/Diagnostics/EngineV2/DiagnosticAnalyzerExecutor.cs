@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 RemoteHostClient client, CompilationWithAnalyzers analyzerDriver, Project project, bool forcedAnalysis, CancellationToken cancellationToken)
             {
                 var solution = project.Solution;
-                var snapshotService = solution.Workspace.Services.GetService<ISolutionSynchronizationService>();
+                var snapshotService = solution.Workspace.Services.GetService<IRemotableDataService>();
 
                 // TODO: this should be moved out
                 var analyzerMap = CreateAnalyzerMap(analyzerDriver.Analyzers.Where(a => !a.IsOpenFileOnly(project.Solution.Workspace)));

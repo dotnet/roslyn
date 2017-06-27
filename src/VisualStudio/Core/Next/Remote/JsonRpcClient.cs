@@ -15,12 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     /// Helper type that abstract out JsonRpc communication with extra capability of
     /// using raw stream to move over big chunk of data
     /// </summary>
-    internal class JsonRpcClient : IDisposable
+    internal abstract class JsonRpcEx : IDisposable
     {
         private readonly JsonRpc _rpc;
         private readonly CancellationToken _cancellationToken;
 
-        public JsonRpcClient(
+        public JsonRpcEx(
             Stream stream, object callbackTarget, bool useThisAsCallback, CancellationToken cancellationToken)
         {
             Contract.Requires(stream != null);
@@ -34,6 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.Disconnected += OnDisconnected;
         }
 
+        protected abstract void Dispose(bool disposing);
+
         public async Task InvokeAsync(string targetName, params object[] arguments)
         {
             _cancellationToken.ThrowIfCancellationRequested();
@@ -42,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 await _rpc.InvokeAsync(targetName, arguments).ConfigureAwait(false);
             }
-            catch 
+            catch
             {
                 // any exception can be thrown from StreamJsonRpc if JsonRpc is disposed in the middle of read/write.
                 // until we move to newly added cancellation support in JsonRpc, we will catch exception and translate to
@@ -82,10 +84,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return Extensions.InvokeAsync(_rpc, targetName, arguments, funcWithDirectStreamAsync, _cancellationToken);
         }
 
-        public void Dispose()
+        protected void Disconnect()
         {
-            OnDisposed();
-
             _rpc.Dispose();
         }
 
@@ -96,14 +96,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             _rpc.StartListening();
         }
 
-        protected virtual void OnDisposed()
+        protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
         {
             // do nothing
         }
 
-        protected virtual void OnDisconnected(object sender, JsonRpcDisconnectedEventArgs e)
+        public void Dispose()
         {
-            // do nothing
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }
