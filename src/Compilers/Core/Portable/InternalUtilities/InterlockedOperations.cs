@@ -58,5 +58,22 @@ namespace Roslyn.Utilities
             var oldValue = ImmutableInterlocked.InterlockedCompareExchange(ref target, initializedValue, default(ImmutableArray<T>));
             return oldValue.IsDefault ? initializedValue : oldValue;
         }
+
+        /// <summary>
+        /// Initialize the immutable array referenced by <paramref name="target"/> in a thread-safe manner.
+        /// </summary>
+        /// <typeparam name="T">Elemental type of the array.</typeparam>
+        /// <param name="target">Reference to the target location.</param>
+        /// <param name="initializedValue">The value to use if the target is currently uninitialized (default).</param>
+        /// <param name="uninitializedValue">The uninitialized value.</param>
+        /// <returns>The new value referenced by <paramref name="target"/>. Note that this is
+        /// nearly always more useful than the usual return from <see cref="Interlocked.CompareExchange{T}(ref T, T, T)"/>
+        /// because it saves another read to <paramref name="target"/>.</returns>
+        public static ImmutableArray<T> Initialize<T>(ref ImmutableArray<T> target, ImmutableArray<T> initializedValue, ImmutableArray<T> uninitializedValue)
+        {
+            Debug.Assert(initializedValue != uninitializedValue);
+            var oldValue = ImmutableInterlocked.InterlockedCompareExchange(ref target, initializedValue, uninitializedValue);
+            return oldValue == uninitializedValue ? initializedValue : oldValue;
+        }
     }
 }
