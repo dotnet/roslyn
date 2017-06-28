@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.Completion
                     }
 
                     var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-                    return syntaxFacts.IsCaseSensitive
+                    var caseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
+
+                    return caseSensitive
                         ? this._caseSensitiveInstance
                         : this._caseInsensitiveInstance;
                 }
