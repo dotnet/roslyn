@@ -372,7 +372,18 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
             {
                 if (CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out ElementBindingExpressionSyntax elementBindingExpression))
                 {
-                    identifier = ((ConditionalAccessExpressionSyntax)elementBindingExpression.Parent).Expression;
+                    // Find the first conditional access expression that starts left of our open bracket
+                    var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax>(
+                        c => c.SpanStart < elementBindingExpression.SpanStart);
+
+                    if (conditionalAccess == null)
+                    {
+                        identifier = null;
+                        openBrace = default(SyntaxToken);
+                        return false;
+                    }
+
+                    identifier = conditionalAccess.Expression;
                     openBrace = elementBindingExpression.ArgumentList.OpenBracketToken;
 
                     return true;
