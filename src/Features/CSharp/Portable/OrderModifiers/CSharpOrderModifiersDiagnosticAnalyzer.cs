@@ -71,6 +71,13 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
                         // bodies.
                         Recurse(context, preferredOrder, descriptor, node);
                     }
+                    else if (node is AccessorListSyntax accessorList)
+                    {
+                        foreach (var accessor in accessorList.Accessors)
+                        {
+                            CheckModifiers(context, preferredOrder, descriptor, accessor);
+                        }
+                    }
                 }
             }
         }
@@ -79,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
             SyntaxTreeAnalysisContext context, 
             Dictionary<int, int> preferredOrder,
             DiagnosticDescriptor descriptor,
-            MemberDeclarationSyntax memberDeclaration)
+            SyntaxNode memberDeclaration)
         {
             var modifiers = memberDeclaration.GetModifiers();
             if (!IsOrdered(preferredOrder, modifiers))

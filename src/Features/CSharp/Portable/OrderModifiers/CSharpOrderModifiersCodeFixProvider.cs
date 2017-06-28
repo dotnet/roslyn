@@ -52,13 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 
                 editor.ReplaceNode(memberDeclaration, (currentNode, _) =>
                 {
-                    var currentMemberDeclaration = (MemberDeclarationSyntax)currentNode;
-                    var modifiers = currentMemberDeclaration.GetModifiers();
+                    var modifiers = currentNode.GetModifiers();
                     var orderedModifiers = SyntaxFactory.TokenList(
                         modifiers.OrderBy(CompareModifiers)
                                  .Select((t, i) => t.WithTriviaFrom(modifiers[i])));
 
-                    var updatedMemberDeclaration = currentMemberDeclaration.WithModifiers(orderedModifiers);
+                    var updatedMemberDeclaration = currentNode.WithModifiers(orderedModifiers);
                     return updatedMemberDeclaration;
                 });
             }
