@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly List<ProjectReference> _projectReferences = new List<ProjectReference>();
         private readonly List<VisualStudioMetadataReference> _metadataReferences = new List<VisualStudioMetadataReference>();
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _documents = new Dictionary<DocumentId, IVisualStudioHostDocument>();
-        private readonly Dictionary<string, IVisualStudioHostDocument> _documentMonikers = new Dictionary<string, IVisualStudioHostDocument>(StringComparer.OrdinalIgnoreCase);
+        private readonly Dictionary<string, (IVisualStudioHostDocument document, int refCount)> _documentMonikers = new Dictionary<string, (IVisualStudioHostDocument, int)>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, VisualStudioAnalyzer> _analyzers = new Dictionary<string, VisualStudioAnalyzer>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<DocumentId, IVisualStudioHostDocument> _additionalDocuments = new Dictionary<DocumentId, IVisualStudioHostDocument>();
 
@@ -410,8 +410,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             lock (_gate)
             {
-                _documentMonikers.TryGetValue(filePath, out var document);
-                return document;
+                return _documentMonikers.TryGetValue(filePath, out var value)
+                    ? value.document
+                    : null;
             }
         }
 
@@ -1014,7 +1015,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 lock (_gate)
                 {
                     _documents.Add(document.Id, document);
-                    _documentMonikers.Add(document.Key.Moniker, document);
+                    AddMoniker(document);
                 }
 
                 if (_pushingChangesToWorkspaceHosts)
@@ -1053,7 +1054,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 lock (_gate)
                 {
                     _documents.Remove(document.Id);
-                    _documentMonikers.Remove(document.Key.Moniker);
+                    RemoveMoniker(document);
                 }
 
                 UninitializeDocument(document);
@@ -1068,7 +1069,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _additionalDocuments.Add(document.Id, document);
-                _documentMonikers.Add(document.Key.Moniker, document);
+                AddMoniker(document);
             }
 
             if (_pushingChangesToWorkspaceHosts)
@@ -1096,10 +1097,39 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             lock (_gate)
             {
                 _additionalDocuments.Remove(document.Id);
-                _documentMonikers.Remove(document.Key.Moniker);
+                RemoveMoniker(document);
             }
 
             UninitializeAdditionalDocument(document);
+        }
+
+        private void AddMoniker(IVisualStudioHostDocument document)
+        {
+            var moniker = document.Key.Moniker;
+            if (_documentMonikers.TryGetValue(moniker, out var value))
+            {
+                _documentMonikers[moniker] = (value.document, value.refCount++);
+            }
+            else
+            {
+                _documentMonikers.Add(moniker, (document, 1));
+            }
+        }
+
+        private void RemoveMoniker(IVisualStudioHostDocument document)
+        {
+            var moniker = document.Key.Moniker;
+            var value = _documentMonikers[moniker];
+            Debug.Assert(value.document.Equals(document));
+            value.refCount--;
+            if (value.refCount == 0)
+            {
+                _documentMonikers.Remove(moniker);
+            }
+            else
+            {
+                _documentMonikers[moniker] = (value.document, value.refCount);
+            }
         }
 
         public virtual void Disconnect()
