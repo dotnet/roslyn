@@ -145,11 +145,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
         private static SyntaxKind[] s_preferredModifierOrderDefault =
             {
                 SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
-                SyntaxKind.StaticKeyword, SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
-                SyntaxKind.NewKeyword,
-                SyntaxKind.UnsafeKeyword,
+                SyntaxKind.StaticKeyword,
                 SyntaxKind.ExternKeyword,
+                SyntaxKind.NewKeyword,
+                SyntaxKind.VirtualKeyword, SyntaxKind.AbstractKeyword, SyntaxKind.SealedKeyword, SyntaxKind.OverrideKeyword,
                 SyntaxKind.ReadOnlyKeyword,
+                SyntaxKind.UnsafeKeyword,
                 SyntaxKind.VolatileKeyword,
                 SyntaxKind.AsyncKeyword
             };
