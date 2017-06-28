@@ -9,6 +9,7 @@ using System.Threading;
 using System.Xml.Linq;
 using EnvDTE80;
 using Microsoft.CodeAnalysis;
+using Microsoft.VisualStudio.ProjectSystem.Properties;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -212,6 +213,38 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         {
             var project = GetProject(projectName);
             ((VSProject)project.Object).References.Add(fullyQualifiedAssemblyName);
+        }
+
+        public void AddPackageReference(string projectName, string packageName, string version)
+        {
+            var project = GetProject(projectName);
+
+            if (project.Object is IVsBrowseObjectContext browseObjectContext)
+            {
+                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+
+                var result = packageService.AddAsync(packageName, version).GetAwaiter().GetResult();
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(AddPackageReference)}' is not supported in project '{projectName}'.");
+            }
+        }
+
+        public void RemovePackageReference(string projectName, string packageName)
+        {
+            var project = GetProject(projectName);
+
+            if (project.Object is IVsBrowseObjectContext browseObjectContext)
+            {
+                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+
+                packageService.RemoveAsync(packageName).GetAwaiter().GetResult();
+            }
+            else
+            {
+                throw new InvalidOperationException($"'{nameof(RemovePackageReference)}' is not supported in project '{projectName}'.");
+            }
         }
 
         public void RemoveProjectReference(string projectName, string projectReferenceName)
@@ -800,6 +833,62 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
             var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
             item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
             solutionExplorer.Parent.Activate();
+        }
+
+        public void SelectItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+            item.Select(EnvDTE.vsUISelectionType.vsUISelectionTypeSelect);
+            solutionExplorer.Parent.Activate();
+        }
+
+        public string[] GetChildrenOfItem(string itemName)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindFirstItemRecursively(solutionExplorer.UIHierarchyItems, itemName);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        public string[] GetChildrenOfItemAtPath(params string[] path)
+        {
+            var dte = (DTE2)GetDTE();
+            var solutionExplorer = dte.ToolWindows.SolutionExplorer;
+
+            var item = FindItemAtPath(solutionExplorer.UIHierarchyItems, path);
+
+            return item.UIHierarchyItems
+                .Cast<EnvDTE.UIHierarchyItem>()
+                .Select(i => i.Name)
+                .ToArray();
+        }
+
+        private static EnvDTE.UIHierarchyItem FindItemAtPath(
+            EnvDTE.UIHierarchyItems currentItems,
+            string[] path)
+        {
+            EnvDTE.UIHierarchyItem item = null;
+            foreach (var name in path)
+            {
+                item = currentItems.Cast<EnvDTE.UIHierarchyItem>().FirstOrDefault(i => i.Name == name);
+
+                if (item == null)
+                {
+                    return null;
+                }
+
+                currentItems = item.UIHierarchyItems;
+            }
+
+            return item;
         }
 
         private static EnvDTE.UIHierarchyItem FindFirstItemRecursively(
