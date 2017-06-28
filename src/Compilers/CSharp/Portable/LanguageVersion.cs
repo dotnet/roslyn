@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            switch (version.ToLowerInvariant())
+            switch (CaseInsensitiveComparison.ToLower(version))
             {
                 case "default":
                     result = LanguageVersion.Default;
