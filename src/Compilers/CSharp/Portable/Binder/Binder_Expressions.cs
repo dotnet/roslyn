@@ -1312,6 +1312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (node.IsKind(SyntaxKind.IdentifierName) && FallBackOnDiscard((IdentifierNameSyntax)node, diagnostics))
                 {
+                    lookupResult.Free();
                     return new BoundDiscardExpression(node, type: null);
                 }
 
