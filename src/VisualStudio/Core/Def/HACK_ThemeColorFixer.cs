@@ -29,6 +29,8 @@ namespace Microsoft.VisualStudio.LanguageServices
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
 
+        private bool _done;
+
         [ImportingConstructor]
         private HACK_ThemeColorFixer(
             IClassificationTypeRegistryService classificationTypeRegistryService,
@@ -36,6 +38,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             _classificationTypeRegistryService = classificationTypeRegistryService;
             _classificationFormatMapService = classificationFormatMapService;
+
+            // Note: We never unsubscribe from this event. This service lives for the lifetime of VS.
+            _classificationFormatMapService.GetClassificationFormatMap("text").ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
         }
 
         private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -130,11 +135,14 @@ namespace Microsoft.VisualStudio.LanguageServices
             // To avoid this, we now wait until a text editor has been opened to schedule the
             // color synchronization.
 
-            // Note: We never unsubscribe from this event. This service lives for the lifetime of VS.
-            _classificationFormatMapService.GetClassificationFormatMap("text").ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
+            if (!_done)
+            {
+                _done = true;
+                // Run on the UI thread when VS is idle 
+                VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
+            }
 
-            // Run on the UI thread when VS is idle
-            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
+           
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
