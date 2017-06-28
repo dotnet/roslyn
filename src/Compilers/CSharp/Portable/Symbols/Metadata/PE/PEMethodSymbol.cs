@@ -193,10 +193,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
             }
 
-            if (!_packedFlags.IsUseSiteDiagnosticPopulated)
-            {
-                retVal._lazyUseSiteDiagnostic = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
-            }
+            //
+            // Do not set _lazyUseSiteDiagnostic !!!!
+            //
+            // "null" Indicates "no errors" or "unknown state".
+            // and we know which one of the states we have from IsUseSiteDiagnosticPopulated
+            //
+            // setting _lazyUseSiteDiagnostic to a sentinel value here would introduce
+            // a number of states with various permutations between IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+            // some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+            //
 
             if (_packedFlags.IsCustomAttributesPopulated)
             {
@@ -1001,18 +1007,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 return InitializeUseSiteDiagnostic(result);
             }
 
-            var uncommonFields = _uncommonFields;
-            if (uncommonFields == null)
-            {
-                return null;
-            }
-            else
-            {
-                var result = uncommonFields._lazyUseSiteDiagnostic;
-                return CSDiagnosticInfo.IsEmpty(result)
-                       ? InterlockedOperations.Initialize(ref uncommonFields._lazyUseSiteDiagnostic, null, CSDiagnosticInfo.EmptyErrorInfo)
-                       : result;
-            }
+            return _uncommonFields?._lazyUseSiteDiagnostic;
         }
 
         private DiagnosticInfo InitializeUseSiteDiagnostic(DiagnosticInfo diagnostic)
@@ -1025,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (diagnostic != null)
             {
                 Debug.Assert(!CSDiagnosticInfo.IsEmpty(diagnostic));
-                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic, CSDiagnosticInfo.EmptyErrorInfo);
+                diagnostic = InterlockedOperations.Initialize(ref AccessUncommonFields()._lazyUseSiteDiagnostic, diagnostic);
             }
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated();
