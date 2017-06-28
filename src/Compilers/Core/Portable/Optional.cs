@@ -56,5 +56,15 @@ namespace Microsoft.CodeAnalysis
         {
             return new Optional<T>(value);
         }
+
+        /// <summary>
+        /// Returns a string representation of the optional value.
+        /// </summary>
+        public override string ToString()
+        {
+            return _hasValue
+                ? _value.ToString()
+                : "null";
+        }
     }
 }
