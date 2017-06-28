@@ -59,11 +59,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                     }
 
                     await connection.InvokeAsync(
-                        nameof(IRemoteHostService.RegisterPrimarySolutionId), solutionId).ConfigureAwait(false);
+                        nameof(IRemoteHostService.RegisterPrimarySolutionId), new object[] { solutionId }, CancellationToken.None).ConfigureAwait(false);
 
                     await connection.InvokeAsync(
-                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation), solutionId,
-                        _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution)).ConfigureAwait(false);
+                        nameof(IRemoteHostService.UpdateSolutionIdStorageLocation),
+                        new object[] { solutionId, _workspace.DeferredState?.ProjectTracker.GetWorkingFolderPath(_workspace.CurrentSolution) },
+                        CancellationToken.None).ConfigureAwait(false);
                 }
             }
 

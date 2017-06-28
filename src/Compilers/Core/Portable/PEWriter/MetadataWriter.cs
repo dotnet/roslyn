@@ -455,8 +455,8 @@ namespace Microsoft.Cci
 
         // Well known dummy cor library types whose refs are used for attaching assembly attributes off within net modules
         // There is no guarantee the types actually exist in a cor library
-        internal static readonly string dummyAssemblyAttributeParentNamespace = "System.Runtime.CompilerServices";
-        internal static readonly string dummyAssemblyAttributeParentName = "AssemblyAttributesGoHere";
+        internal const string dummyAssemblyAttributeParentNamespace = "System.Runtime.CompilerServices";
+        internal const string dummyAssemblyAttributeParentName = "AssemblyAttributesGoHere";
         internal static readonly string[,] dummyAssemblyAttributeParentQualifier = { { "", "M" }, { "S", "SM" } };
         private readonly TypeReferenceHandle[,] _dummyAssemblyAttributeParent = { { default(TypeReferenceHandle), default(TypeReferenceHandle) }, { default(TypeReferenceHandle), default(TypeReferenceHandle) } };
 

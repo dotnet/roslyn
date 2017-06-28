@@ -18,11 +18,10 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly RemoteHostClient.Connection _connection;
         private readonly PinnedRemotableDataScope _scope;
-        private readonly CancellationToken _cancellationToken;
 
         public static async Task<SessionWithSolution> CreateAsync(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
         {
-            var sessionWithSolution = new SessionWithSolution(connection, scope, cancellationToken);
+            var sessionWithSolution = new SessionWithSolution(connection, scope);
 
             try
             {
@@ -39,16 +38,15 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope, CancellationToken cancellationToken)
+        private SessionWithSolution(RemoteHostClient.Connection connection, PinnedRemotableDataScope scope)
         {
             _connection = connection;
             _scope = scope;
-            _cancellationToken = cancellationToken;
         }
 
         public void AddAdditionalAssets(CustomAsset asset)
         {
-            _scope.AddAdditionalAsset(asset, _cancellationToken);
+            _scope.AddAdditionalAsset(asset);
         }
 
         public void Dispose()
@@ -57,14 +55,14 @@ namespace Microsoft.CodeAnalysis.Remote
             _connection.Dispose();
         }
 
-        public Task InvokeAsync(string targetName, params object[] arguments)
-            => _connection.InvokeAsync(targetName, arguments);
-        public Task<T> InvokeAsync<T>(string targetName, params object[] arguments)
-            => _connection.InvokeAsync<T>(targetName, arguments);
-        public Task InvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
-            => _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync);
-        public Task<T> InvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
-            => _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
+        public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            => _connection.InvokeAsync(targetName, arguments, cancellationToken);
+        public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+            => _connection.InvokeAsync<T>(targetName, arguments, cancellationToken);
+        public Task InvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+            => _connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
+        public Task<T> InvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
+            => _connection.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync, cancellationToken);
     }
 
     /// <summary>
@@ -79,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         private readonly SemaphoreSlim _gate;
         private readonly IRemoteHostClientService _remoteHostClientService;
-        private readonly CancellationToken _cancellationToken;
 
         private readonly string _serviceName;
         private readonly object _callbackTarget;
@@ -87,21 +84,20 @@ namespace Microsoft.CodeAnalysis.Remote
         private RemoteHostClient _client;
         private RemoteHostClient.Connection _connection;
 
-        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection connection, string serviceName, object callbackTarget, CancellationToken cancellationToken)
+        public KeepAliveSession(RemoteHostClient client, RemoteHostClient.Connection connection, string serviceName, object callbackTarget)
         {
             Initialize_NoLock(client, connection);
 
             _gate = new SemaphoreSlim(initialCount: 1);
             _remoteHostClientService = client.Workspace.Services.GetService<IRemoteHostClientService>();
-            _cancellationToken = cancellationToken;
 
             _serviceName = serviceName;
             _callbackTarget = callbackTarget;
         }
 
-        public void Shutdown()
+        public void Shutdown(CancellationToken cancellationToken)
         {
-            using (_gate.DisposableWait(_cancellationToken))
+            using (_gate.DisposableWait(cancellationToken))
             {
                 if (_client != null)
                 {
@@ -115,145 +111,146 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
-        public async Task<bool> TryInvokeAsync(string targetName, params object[] arguments)
+        public async Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return false;
                 }
 
-                await connection.InvokeAsync(targetName, arguments).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
                 return true;
             }
         }
 
-        public async Task<T> TryInvokeAsync<T>(string targetName, params object[] arguments)
+        public async Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return default;
                 }
 
-                return await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
+                return await connection.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task<bool> TryInvokeAsync(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+        public async Task<bool> TryInvokeAsync(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return false;
                 }
 
-                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
                 return true;
             }
         }
 
-        public async Task<T> TryInvokeAsync<T>(string targetName, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public async Task<T> TryInvokeAsync<T>(string targetName, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return default;
                 }
 
-                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
+                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task<bool> TryInvokeAsync(string targetName, Solution solution, params object[] arguments)
+        public async Task<bool> TryInvokeAsync(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return false;
                 }
 
                 await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                await connection.InvokeAsync(targetName, arguments).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
                 return true;
             }
         }
 
-        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, params object[] arguments)
+        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return default;
                 }
 
                 await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return await connection.InvokeAsync<T>(targetName, arguments).ConfigureAwait(false);
+                return await connection.InvokeAsync<T>(targetName, arguments, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async Task<bool> TryInvokeAsync(
-            string targetName, Solution solution, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync)
+            string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return false;
                 }
 
                 await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
+                await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
                 return true;
             }
         }
 
-        public async Task<T> TryInvokeAsync<T>(string targetName, Solution solution, IEnumerable<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync)
+        public async Task<T> TryInvokeAsync<T>(
+            string targetName, Solution solution, IReadOnlyList<object> arguments, Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(_cancellationToken).ConfigureAwait(false))
-            using (var scope = await solution.GetPinnedScopeAsync(_cancellationToken).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+            using (var scope = await solution.GetPinnedScopeAsync(cancellationToken).ConfigureAwait(false))
             {
-                var connection = await TryGetConnection_NoLockAsync().ConfigureAwait(false);
+                var connection = await TryGetConnection_NoLockAsync(cancellationToken).ConfigureAwait(false);
                 if (connection == null)
                 {
                     return default;
                 }
 
                 await connection.RegisterPinnedRemotableDataScopeAsync(scope).ConfigureAwait(false);
-                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync).ConfigureAwait(false);
+                return await connection.InvokeAsync(targetName, arguments, funcWithDirectStreamAsync, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async Task<RemoteHostClient.Connection> TryGetConnection_NoLockAsync()
+        private async Task<RemoteHostClient.Connection> TryGetConnection_NoLockAsync(CancellationToken cancellationToken)
         {
             if (_connection != null)
             {
                 return _connection;
             }
 
-            var client = await _remoteHostClientService.TryGetRemoteHostClientAsync(_cancellationToken).ConfigureAwait(false);
+            var client = await _remoteHostClientService.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
                 return null;
             }
 
-            var session = await client.TryCreateConnectionAsync(_serviceName, _callbackTarget, _cancellationToken).ConfigureAwait(false);
+            var session = await client.TryCreateConnectionAsync(_serviceName, _callbackTarget, cancellationToken).ConfigureAwait(false);
             if (session == null)
             {
                 return null;
@@ -271,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 return;
             }
 
-            Shutdown();
+            Shutdown(CancellationToken.None);
         }
 
         private void Initialize_NoLock(RemoteHostClient client, RemoteHostClient.Connection connection)
