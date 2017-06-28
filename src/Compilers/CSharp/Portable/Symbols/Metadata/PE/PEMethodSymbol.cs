@@ -196,12 +196,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             //
             // Do not set _lazyUseSiteDiagnostic !!!!
             //
-            // "null" Indicates "no errors" or "unknown state".
+            // "null" Indicates "no errors" or "unknown state",
             // and we know which one of the states we have from IsUseSiteDiagnosticPopulated
             //
-            // setting _lazyUseSiteDiagnostic to a sentinel value here would introduce
-            // a number of states with various permutations between IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
-            // some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+            // Setting _lazyUseSiteDiagnostic to a sentinel value here would introduce
+            // a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+            // Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
             //
 
             if (_packedFlags.IsCustomAttributesPopulated)
