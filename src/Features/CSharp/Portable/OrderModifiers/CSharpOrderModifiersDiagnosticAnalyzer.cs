@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 {
@@ -83,8 +84,21 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
             var modifiers = memberDeclaration.GetModifiers();
             if (!IsOrdered(preferredOrder, modifiers))
             {
-                context.ReportDiagnostic(
-                    Diagnostic.Create(descriptor, modifiers.First().GetLocation()));
+                if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
+                {
+                    // If the severity is hidden, put the marker on all the modifiers so that the
+                    // user can bring up the fix anywhere in the modifier list.
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(descriptor, context.Tree.GetLocation(
+                            TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End))));
+                }
+                else
+                {
+                    // If the Severity is not hidden, then just put the user visible portion on the
+                    // first token.  That way we don't 
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(descriptor, modifiers.First().GetLocation()));
+                }
             }
         }
 

@@ -69,6 +69,10 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private string GetTypeNameForSerialization()
         {
+            if (typeof(T) == typeof(string))
+            {
+                return nameof(String);
+            }
             if (typeof(T) == typeof(bool) || IsZeroOrOneValueOfEnum())
             {
                 return nameof(Boolean);
@@ -140,6 +144,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     return v => Convert(bool.Parse(v));
                 case nameof(Int32):
                     return v => Convert(int.Parse(v));
+                case nameof(String):
+                    return v => (T)(object)v;
                 default:
                     throw new ArgumentException(nameof(type));
             }
