@@ -74,7 +74,7 @@ namespace Roslyn.Test.Utilities.Remote
             // this is what consumer actually use to communicate information
             var serviceStream = await _inprocServices.RequestServiceAsync(serviceName, cancellationToken).ConfigureAwait(false);
 
-            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference(), cancellationToken);
+            return new JsonRpcConnection(callbackTarget, serviceStream, _remotableDataRpc.TryAddReference());
         }
 
         protected override void OnStarted()
