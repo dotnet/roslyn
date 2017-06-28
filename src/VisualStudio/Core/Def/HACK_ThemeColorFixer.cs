@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// </summary>
     [Export(typeof(IWpfTextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [TextViewRole(PredefinedTextViewRoles.Interactive)]
+    [TextViewRole(PredefinedTextViewRoles.Analyzable)]
     internal sealed class HACK_ThemeColorFixer : IWpfTextViewConnectionListener
     {
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
