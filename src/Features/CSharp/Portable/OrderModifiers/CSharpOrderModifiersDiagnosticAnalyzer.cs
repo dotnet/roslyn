@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
             }
 
             var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder);
-            if (!CSharpOrderModifiersHelper.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
+            if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
             }

@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
         {
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             var option = options.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder);
-            if (!CSharpOrderModifiersHelper.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
+            if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
             {
                 return;
             }
