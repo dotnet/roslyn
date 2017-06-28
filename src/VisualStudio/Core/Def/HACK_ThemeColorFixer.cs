@@ -1,10 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
+using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
 {
@@ -16,8 +21,10 @@ namespace Microsoft.VisualStudio.LanguageServices
     /// from its default blue. As a work around, we listen to <see cref="IClassificationFormatMap.ClassificationFormatMappingChanged"/>
     /// and update the classification format maps that we care about.
     /// </summary>
-    [Export]
-    internal sealed class HACK_ThemeColorFixer
+    [Export(typeof(IWpfTextViewConnectionListener))]
+    [ContentType(ContentTypeNames.RoslynContentType)]
+    [TextViewRole(PredefinedTextViewRoles.Interactive)]
+    internal sealed class HACK_ThemeColorFixer : IWpfTextViewConnectionListener
     {
         private readonly IClassificationTypeRegistryService _classificationTypeRegistryService;
         private readonly IClassificationFormatMapService _classificationFormatMapService;
@@ -29,12 +36,6 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             _classificationTypeRegistryService = classificationTypeRegistryService;
             _classificationFormatMapService = classificationFormatMapService;
-
-            // Note: We never unsubscribe from this event. This service lives for the lifetime of VS.
-            _classificationFormatMapService.GetClassificationFormatMap("text").ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
-
-            // make this to run on UI thread when there is no work for the application
-            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
         }
 
         private void TextFormatMap_ClassificationFormatMappingChanged(object sender, EventArgs e)
@@ -115,6 +116,29 @@ namespace Microsoft.VisualStudio.LanguageServices
             targetProps = targetProps.SetForegroundBrush(sourceProps.ForegroundBrush);
 
             targetFormatMap.SetTextProperties(classificationType, targetProps);
+        }
+
+        public void SubjectBuffersConnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        {
+            // DevDiv https://devdiv.visualstudio.com/DevDiv/_workitems/edit/130129:
+            //
+            // We used to schedule the RefreshThemeColors task when the Roslyn Package loaded
+            // during async solution load. Even though we scheduled the task for UI thread idle,
+            // it was possible for it to run before any files had been opened.This meant
+            // that our requests for colors and editor services would cause the composition of
+            // the editor, thus leading to a UI delay during ASL.
+            // To avoid this, we now wait until a text editor has been opened to schedule the
+            // color synchronization.
+
+            // Note: We never unsubscribe from this event. This service lives for the lifetime of VS.
+            _classificationFormatMapService.GetClassificationFormatMap("text").ClassificationFormatMappingChanged += TextFormatMap_ClassificationFormatMappingChanged;
+
+            // Run on the UI thread when VS is idle
+            VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
+        }
+
+        public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
+        {
         }
     }
 }
