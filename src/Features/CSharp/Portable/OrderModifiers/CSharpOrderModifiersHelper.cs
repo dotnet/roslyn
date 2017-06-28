@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 {
-    internal static class OrderModifiersHelper
+    internal static class CSharpOrderModifiersHelper
     {
         private static readonly char[] s_comma = { ',' };
 
