@@ -111,16 +111,19 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 
         private bool IsOrdered(Dictionary<int, int> preferredOrder, SyntaxTokenList modifiers)
         {
-            var lastOrder = int.MinValue;
-            foreach (var modifier in modifiers)
+            if (modifiers.Count >= 2)
             {
-                var currentOrder = preferredOrder.TryGetValue(modifier.RawKind, out var value) ? value : int.MaxValue;
-                if (currentOrder < lastOrder)
+                var lastOrder = int.MinValue;
+                foreach (var modifier in modifiers)
                 {
-                    return false;
-                }
+                    var currentOrder = preferredOrder.TryGetValue(modifier.RawKind, out var value) ? value : int.MaxValue;
+                    if (currentOrder < lastOrder)
+                    {
+                        return false;
+                    }
 
-                lastOrder = currentOrder;
+                    lastOrder = currentOrder;
+                }
             }
 
             return true;
