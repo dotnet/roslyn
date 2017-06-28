@@ -37,14 +37,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                     numberFluentCalls = 225;
                     break;
                 case 64 when !isDebug:
-                    numberFluentCalls = 640;
+                    numberFluentCalls = 630;
                     break;
                 default:
                     throw new Exception($"unexpected pointer size {IntPtr.Size}");
             }
 
-            // xunit.runner.console\2.2.0-beta4-build3444\tools\xunit.console.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests" 
-            // xunit.runner.console\2.2.0-beta4-build3444\tools\xunit.console.x86.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests" 
+            // <path>\xunit.console.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests"
+            // <path>\xunit.console.x86.exe "<path>\CSharpCompilerEmitTest\Roslyn.Compilers.CSharp.Emit.UnitTests.dll"  -noshadow -verbose -class "Microsoft.CodeAnalysis.CSharp.UnitTests.Emit.EndToEndTests"
             // Un-comment loop below and use above commands to figure out the new limits
             //for (int i = 0; i < numberFluentCalls; i = i + 10)
             //{
