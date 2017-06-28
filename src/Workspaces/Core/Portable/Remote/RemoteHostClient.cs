@@ -147,23 +147,25 @@ namespace Microsoft.CodeAnalysis.Remote
                 PinnedScopeOpt.AddAdditionalAsset(asset, CancellationToken);
             }
 
-            protected virtual void OnDisposed()
+            protected virtual void Dispose(bool disposing)
             {
-                // do nothing
+                if (disposing)
+                {
+                    if (_disposed)
+                    {
+                        return;
+                    }
+
+                    _disposed = true;
+
+                    PinnedScopeOpt?.Dispose();
+                }
             }
 
             public void Dispose()
             {
-                if (_disposed)
-                {
-                    return;
-                }
-
-                _disposed = true;
-
-                OnDisposed();
-
-                PinnedScopeOpt?.Dispose();
+                Dispose(true);
+                GC.SuppressFinalize(this);
             }
         }
 

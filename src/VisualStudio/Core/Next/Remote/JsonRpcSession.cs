@@ -119,14 +119,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             return _serviceClient.InvokeAsync<T>(targetName, arguments, funcWithDirectStreamAsync);
         }
 
-        protected override void OnDisposed()
+        protected override void Dispose(bool disposing)
         {
-            // dispose cancellation registration
-            _cancellationRegistration.Dispose();
+            if (disposing)
+            {
+                // dispose cancellation registration
+                _cancellationRegistration.Dispose();
 
-            // dispose service and snapshot channels
-            _serviceClient.Dispose();
-            _snapshotClientOpt?.Dispose();
+                // dispose service and snapshot channels
+                _serviceClient.Dispose();
+                _snapshotClientOpt?.Dispose();
+            }
+
+            base.Dispose(disposing);
         }
 
         /// <summary>
