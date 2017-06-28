@@ -6,51 +6,23 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.OrderModifiers;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpOrderModifiersDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
+    internal class CSharpOrderModifiersDiagnosticAnalyzer : AbstractOrderModifiersDiagnosticAnalyzer
     {
         public CSharpOrderModifiersDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.OrderModifiers,
-                   new LocalizableResourceString(nameof(FeaturesResources.Order_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
-                   new LocalizableResourceString(nameof(FeaturesResources.Modifiers_are_not_ordered), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
+            : base(CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
         {
         }
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SyntaxAnalysis;
-        public override bool OpenFileOnly(Workspace workspace) => false;
+        protected override SyntaxTokenList GetModifiers(SyntaxNode node)
+            => node.GetModifiers();
 
-        protected override void InitializeWorker(AnalysisContext context)
-        {
-            context.RegisterSyntaxTreeAction(AnalyzeSyntaxTree);
-        }
-
-        private void AnalyzeSyntaxTree(SyntaxTreeAnalysisContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            var syntaxTree = context.Tree;  
-            var root = syntaxTree.GetRoot(cancellationToken);
-
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
-            if (optionSet == null)
-            {
-                return;
-            }
-
-            var option = optionSet.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder);
-            if (!CSharpOrderModifiersHelper.Instance.TryGetOrComputePreferredOrder(option.Value, out var preferredOrder))
-            {
-                return;
-            }
-
-            var descriptor = GetDescriptorWithSeverity(option.Notification.Value);
-            Recurse(context, preferredOrder, descriptor, root);
-        }
-
-        private void Recurse(
+        protected override void Recurse(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
             DiagnosticDescriptor descriptor,
@@ -80,53 +52,6 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
                     }
                 }
             }
-        }
-
-        private void CheckModifiers(
-            SyntaxTreeAnalysisContext context, 
-            Dictionary<int, int> preferredOrder,
-            DiagnosticDescriptor descriptor,
-            SyntaxNode memberDeclaration)
-        {
-            var modifiers = memberDeclaration.GetModifiers();
-            if (!IsOrdered(preferredOrder, modifiers))
-            {
-                if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)
-                {
-                    // If the severity is hidden, put the marker on all the modifiers so that the
-                    // user can bring up the fix anywhere in the modifier list.
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(descriptor, context.Tree.GetLocation(
-                            TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End))));
-                }
-                else
-                {
-                    // If the Severity is not hidden, then just put the user visible portion on the
-                    // first token.  That way we don't 
-                    context.ReportDiagnostic(
-                        Diagnostic.Create(descriptor, modifiers.First().GetLocation()));
-                }
-            }
-        }
-
-        private bool IsOrdered(Dictionary<int, int> preferredOrder, SyntaxTokenList modifiers)
-        {
-            if (modifiers.Count >= 2)
-            {
-                var lastOrder = int.MinValue;
-                foreach (var modifier in modifiers)
-                {
-                    var currentOrder = preferredOrder.TryGetValue(modifier.RawKind, out var value) ? value : int.MaxValue;
-                    if (currentOrder < lastOrder)
-                    {
-                        return false;
-                    }
-
-                    lastOrder = currentOrder;
-                }
-            }
-
-            return true;
         }
     }
 }
