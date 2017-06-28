@@ -3,16 +3,18 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
 {
     internal static class OrderModifiersHelper
     {
         private static readonly char[] s_comma = { ',' };
-        private static readonly object s_gate = new object();
 
-        private static string s_lastValue;
-        private static Dictionary<int, int> s_lastPreferredOrder;
+        /// <remarks>
+        /// Reference type so we can read/write atomically.
+        /// </remarks>
+        private static Tuple<string, Dictionary<int, int>> s_lastParsed;
 
         public static bool TryGetOrComputePreferredOrder(string value, out Dictionary<int, int> preferredOrder)
         {
@@ -22,23 +24,21 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
                 return false;
             }
 
-            lock (s_gate)
+            var lastParsed = Volatile.Read(ref s_lastParsed);
+            if (lastParsed?.Item1 != value)
             {
-                if (value != s_lastValue)
+                if (!TryParse(value, out var parsed))
                 {
-                    if (!TryParse(value, out var parsed))
-                    {
-                        preferredOrder = null;
-                        return false;
-                    }
-
-                    s_lastValue = value;
-                    s_lastPreferredOrder = parsed;
+                    preferredOrder = null;
+                    return false;
                 }
 
-                preferredOrder = s_lastPreferredOrder;
-                return true;
+                lastParsed = Tuple.Create(value, parsed);
+                Volatile.Write(ref s_lastParsed, lastParsed);
             }
+
+            preferredOrder = lastParsed.Item2;
+            return true;
         }
 
         private static bool TryParse(string value, out Dictionary<int, int> parsed)
