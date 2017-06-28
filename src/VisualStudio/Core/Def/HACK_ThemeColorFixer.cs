@@ -141,8 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServices
                 // Run on the UI thread when VS is idle 
                 VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
             }
-
-           
         }
 
         public void SubjectBuffersDisconnected(IWpfTextView textView, ConnectionReason reason, Collection<ITextBuffer> subjectBuffers)
