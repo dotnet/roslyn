@@ -2188,6 +2188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private void LexSyntaxTrivia(bool afterFirstToken, bool isTrailing, ref SyntaxListBuilder triviaList)
         {
             bool onlyWhitespaceOnLine = !isTrailing;
+            // PERF: This pools all the comments that are at the top of the file, i.e. file copyright headers.
+            // Most of them repeat themselves and it can lead to a noticeable amount of string duplicates for huge projects.
+            bool poolTrivia = !afterFirstToken;
 
             while (true)
             {
@@ -2237,7 +2240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             // normal single line comment
                             this.ScanToEndOfLine();
-                            var text = TextWindow.GetText(false);
+                            var text = TextWindow.GetText(poolTrivia);
                             this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
                             onlyWhitespaceOnLine = false;
                             break;
@@ -2266,7 +2269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 this.AddError(ErrorCode.ERR_OpenEndedComment);
                             }
 
-                            var text = TextWindow.GetText(false);
+                            var text = TextWindow.GetText(poolTrivia);
                             this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
                             onlyWhitespaceOnLine = false;
                             break;
