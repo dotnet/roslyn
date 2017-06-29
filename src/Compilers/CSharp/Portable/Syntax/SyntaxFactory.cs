@@ -1244,20 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodes">A sequence of element nodes.</param>
         public static SyntaxList<TNode> List<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
         {
-            if (nodes != null)
-            {
-                var collection = nodes as ICollection<TNode>;
-                var builder = (collection != null) ? new SyntaxListBuilder<TNode>(collection.Count) : SyntaxListBuilder<TNode>.Create();
-
-                foreach (TNode node in nodes)
-                {
-                    builder.Add(node);
-                }
-
-                return builder.ToList();
-            }
-
-            return default(SyntaxList<TNode>);
+            return new SyntaxList<TNode>(nodes);
         }
 
         /// <summary>

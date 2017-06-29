@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -23,10 +24,41 @@ namespace Microsoft.CodeAnalysis
             _node = node;
         }
 
-        //public SyntaxList(TNode node)
-        //    : this((SyntaxNode)node)
-        //{
-        //}
+        /// <summary>
+        /// Creates a singleton list of syntax nodes.
+        /// </summary>
+        /// <param name="node">The single element node.</param>
+        public SyntaxList(TNode node)
+            : this((SyntaxNode)node)
+        {
+        }
+
+        /// <summary>
+        /// Creates a list of syntax nodes.
+        /// </summary>
+        /// <param name="nodes">A sequence of element nodes.</param>
+        public SyntaxList(IEnumerable<TNode> nodes)
+            : this(CreateNode(nodes))
+        {
+        }
+
+        private static SyntaxNode CreateNode(IEnumerable<TNode> nodes)
+        {
+            if (nodes == null)
+            {
+                return null;
+            }
+
+            var collection = nodes as ICollection<TNode>;
+            var builder = (collection != null) ? new SyntaxListBuilder<TNode>(collection.Count) : SyntaxListBuilder<TNode>.Create();
+
+            foreach (TNode node in nodes)
+            {
+                builder.Add(node);
+            }
+
+            return builder.ToList().Node;
+        }
 
         internal SyntaxNode Node
         {

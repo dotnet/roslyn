@@ -737,14 +737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <typeparam name="TNode">The specific type of the element nodes.</typeparam>
         ''' <param name="nodes">A sequence of element nodes.</param>
         Public Shared Function List(Of TNode As SyntaxNode)(nodes As IEnumerable(Of TNode)) As SyntaxList(Of TNode)
-            If nodes IsNot Nothing Then
-                Dim builder = SyntaxListBuilder(Of TNode).Create()
-                For Each node In nodes
-                    builder.Add(node)
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxList(Of TNode)
+            Return New SyntaxList(Of TNode)(nodes)
         End Function
 
         ''' <summary>
