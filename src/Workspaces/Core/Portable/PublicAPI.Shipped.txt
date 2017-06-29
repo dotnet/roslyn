@@ -1075,7 +1075,6 @@ Microsoft.CodeAnalysis.Workspace.DocumentOpened -> System.EventHandler<Microsoft
 Microsoft.CodeAnalysis.Workspace.Kind.get -> string
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo documentInfo) -> void
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentClosed(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader reloader) -> void
-Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentOpened(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer, bool isCurrentContext = true) -> void
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentRemoved(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentTextChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceText newText, Microsoft.CodeAnalysis.PreservationMode mode) -> void
 Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentTextLoaderChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.TextLoader loader) -> void
@@ -1165,7 +1164,6 @@ override Microsoft.CodeAnalysis.AdhocWorkspace.CanApplyChange(Microsoft.CodeAnal
 override Microsoft.CodeAnalysis.AdhocWorkspace.CanOpenDocuments.get -> bool
 override Microsoft.CodeAnalysis.AdhocWorkspace.CloseAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 override Microsoft.CodeAnalysis.AdhocWorkspace.CloseDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
-override Microsoft.CodeAnalysis.AdhocWorkspace.OpenAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
 override Microsoft.CodeAnalysis.AdhocWorkspace.OpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
 override Microsoft.CodeAnalysis.Classification.ClassifiedSpan.Equals(object obj) -> bool
 override Microsoft.CodeAnalysis.Classification.ClassifiedSpan.GetHashCode() -> int
@@ -1463,7 +1461,6 @@ virtual Microsoft.CodeAnalysis.Workspace.OnDocumentTextChanged(Microsoft.CodeAna
 virtual Microsoft.CodeAnalysis.Workspace.OnProjectReloaded(Microsoft.CodeAnalysis.ProjectInfo reloadedProjectInfo) -> void
 virtual Microsoft.CodeAnalysis.Workspace.OnProjectRemoved(Microsoft.CodeAnalysis.ProjectId projectId) -> void
 virtual Microsoft.CodeAnalysis.Workspace.OnWorkspaceFailed(Microsoft.CodeAnalysis.WorkspaceDiagnostic diagnostic) -> void
-virtual Microsoft.CodeAnalysis.Workspace.OpenAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
 virtual Microsoft.CodeAnalysis.Workspace.OpenDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
 virtual Microsoft.CodeAnalysis.Workspace.PartialSemanticsEnabled.get -> bool
 virtual Microsoft.CodeAnalysis.Workspace.TryApplyChanges(Microsoft.CodeAnalysis.Solution newSolution) -> bool

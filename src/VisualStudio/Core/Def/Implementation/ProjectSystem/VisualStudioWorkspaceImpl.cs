@@ -753,9 +753,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OpenDocumentCore(documentId, activate);
         }
 
-        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
+        public override void OpenAdditionalDocument(DocumentId documentId)
         {
-            OpenDocumentCore(documentId, activate);
+            OpenDocumentCore(documentId);
         }
 
         public override void CloseDocument(DocumentId documentId)
@@ -1441,9 +1441,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _workspace.OnAdditionalDocumentRemoved(documentInfo);
             }
 
-            void IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer, bool isCurrentContext)
+            void IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened(DocumentId documentId, ITextBuffer textBuffer)
             {
-                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext);
+                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer());
             }
 
             void IVisualStudioWorkspaceHost.OnAdditionalDocumentClosed(DocumentId documentId, ITextBuffer textBuffer, TextLoader loader)

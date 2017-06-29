@@ -147,7 +147,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return;
             }
 
-            AddAdditionalDocument(document, isCurrentContext: getIsInCurrentContext(document));
+            AddAdditionalDocument(document);
         }
 
         public void RemoveAdditionalFile(string additionalFilePath)

@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Puts the specified additional document into the open state.
         /// </summary>
-        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
+        public override void OpenAdditionalDocument(DocumentId documentId)
         {
             lock (_gate)
             {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 if (doc != null)
                 {
                     var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None);
-                    this.OnAdditionalDocumentOpened(documentId, text.Container, activate);
+                    this.OnAdditionalDocumentOpened(documentId, text.Container);
                 }
             }
         }

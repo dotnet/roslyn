@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Open the specified additional document in the host environment.
         /// </summary>
-        public virtual void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
+        public virtual void OpenAdditionalDocument(DocumentId documentId)
         {
             this.CheckCanOpenDocuments();
         }
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
+        protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer)
         {
             CheckAdditionalDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
@@ -553,7 +553,6 @@ namespace Microsoft.CodeAnalysis
 
                 var newSolution = this.SetCurrentSolution(currentSolution);
 
-                // NOTE: We ignore the parameter for `isCurrentContext` here, because we don't track AdditionalFiles as having contexts.
                 SignupForTextChanges(documentId, textContainer, isCurrentContext: null, onChangedHandler: (w, id, text, mode) => w.OnAdditionalDocumentTextChanged(id, text, mode));
 
                 // Fire and forget.

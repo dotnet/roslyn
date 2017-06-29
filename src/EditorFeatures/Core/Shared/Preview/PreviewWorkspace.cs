@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         {
             if (this.CurrentSolution.ContainsAdditionalDocument(documentId))
             {
-                OpenAdditionalDocument(documentId, activate);
+                OpenAdditionalDocument(documentId);
                 return;
             }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.OnDocumentOpened(documentId, text.Container);
         }
 
-        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
+        public override void OpenAdditionalDocument(DocumentId documentId)
         {
             var document = this.CurrentSolution.GetAdditionalDocument(documentId);
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);

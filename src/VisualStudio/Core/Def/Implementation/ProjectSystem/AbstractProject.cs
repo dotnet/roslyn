@@ -893,7 +893,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        private static void OnAdditionalDocumentOpened(object sender, bool isCurrentContext)
+        private static void OnAdditionalDocumentOpened(object sender, bool isCurrentContextIgnored)
         {
             IVisualStudioHostDocument document = (IVisualStudioHostDocument)sender;
             AbstractProject project = (AbstractProject)document.Project;
@@ -902,7 +902,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             if (project._pushingChangesToWorkspaceHosts)
             {
-                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                project.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer()));
             }
             else
             {
@@ -1063,7 +1063,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
         }
 
-        internal void AddAdditionalDocument(IVisualStudioHostDocument document, bool isCurrentContext)
+        internal void AddAdditionalDocument(IVisualStudioHostDocument document)
         {
             AssertIsForeground();
 
@@ -1079,7 +1079,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 if (document.IsOpen)
                 {
-                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                    this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnAdditionalDocumentOpened(document.Id, document.GetOpenTextBuffer()));
                 }
             }
 

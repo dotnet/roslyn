@@ -1,6 +1,3 @@
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddEventHandler(Microsoft.CodeAnalysis.SyntaxNode event, Microsoft.CodeAnalysis.SyntaxNode handler) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LockStatement(Microsoft.CodeAnalysis.SyntaxNode expression, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveEventHandler(Microsoft.CodeAnalysis.SyntaxNode event, Microsoft.CodeAnalysis.SyntaxNode handler) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.ApplyChangesKind.ChangeDocumentInfo = 16 -> Microsoft.CodeAnalysis.ApplyChangesKind
 Microsoft.CodeAnalysis.Document.WithFilePath(string filePath) -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.Document.WithFolders(System.Collections.Generic.IEnumerable<string> folders) -> Microsoft.CodeAnalysis.Document
@@ -8,7 +5,16 @@ Microsoft.CodeAnalysis.Document.WithName(string name) -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TypeExpression(Microsoft.CodeAnalysis.ITypeSymbol typeSymbol, bool addImport) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Solution.WithDocumentFilePath(Microsoft.CodeAnalysis.DocumentId documentId, string filePath) -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.Solution.WithDocumentName(Microsoft.CodeAnalysis.DocumentId documentId, string name) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentOpened(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer) -> void
 Microsoft.CodeAnalysis.Workspace.OnDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.DocumentInfo newInfo) -> void
 Microsoft.CodeAnalysis.WorkspaceChangeKind.DocumentInfoChanged = 17 -> Microsoft.CodeAnalysis.WorkspaceChangeKind
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddEventHandler(Microsoft.CodeAnalysis.SyntaxNode event, Microsoft.CodeAnalysis.SyntaxNode handler) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.LockStatement(Microsoft.CodeAnalysis.SyntaxNode expression, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveEventHandler(Microsoft.CodeAnalysis.SyntaxNode event, Microsoft.CodeAnalysis.SyntaxNode handler) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.AdhocWorkspace.OpenAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
 virtual Microsoft.CodeAnalysis.Workspace.ApplyDocumentInfoChanged(Microsoft.CodeAnalysis.DocumentId id, Microsoft.CodeAnalysis.DocumentInfo info) -> void
 virtual Microsoft.CodeAnalysis.Workspace.CanApplyParseOptionChange(Microsoft.CodeAnalysis.ParseOptions oldOptions, Microsoft.CodeAnalysis.ParseOptions newOptions, Microsoft.CodeAnalysis.Project project) -> bool
+virtual Microsoft.CodeAnalysis.Workspace.OpenAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId) -> void
+*REMOVED*Microsoft.CodeAnalysis.Workspace.OnAdditionalDocumentOpened(Microsoft.CodeAnalysis.DocumentId documentId, Microsoft.CodeAnalysis.Text.SourceTextContainer textContainer, bool isCurrentContext = true) -> void
+*REMOVED*override Microsoft.CodeAnalysis.AdhocWorkspace.OpenAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
+*REMOVED*virtual Microsoft.CodeAnalysis.Workspace.OpenAdditionalDocument(Microsoft.CodeAnalysis.DocumentId documentId, bool activate = true) -> void
