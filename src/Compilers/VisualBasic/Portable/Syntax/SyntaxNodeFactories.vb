@@ -965,13 +965,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="nodesAndTokens">A sequence of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(nodesAndTokens As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxNodeOrTokenList
-            If nodesAndTokens Is Nothing Then
-                Throw New ArgumentNullException(NameOf(nodesAndTokens))
-            End If
-
-            Dim builder = New SyntaxNodeOrTokenListBuilder(8)
-            builder.Add(nodesAndTokens)
-            Return builder.ToList()
+            Return New SyntaxNodeOrTokenList(nodesAndTokens)
         End Function
 
         ''' <summary>
@@ -979,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="nodesAndTokens">An array of nodes and tokens.</param>
         Public Shared Function NodeOrTokenList(ParamArray nodesAndTokens As SyntaxNodeOrToken()) As SyntaxNodeOrTokenList
-            Return NodeOrTokenList(DirectCast(nodesAndTokens, IEnumerable(Of SyntaxNodeOrToken)))
+            Return New SyntaxNodeOrTokenList(nodesAndTokens)
         End Function
 
 #End Region

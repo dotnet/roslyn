@@ -1514,14 +1514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The sequence of nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(IEnumerable<SyntaxNodeOrToken> nodesAndTokens)
         {
-            if (nodesAndTokens == null)
-            {
-                throw new ArgumentNullException(nameof(nodesAndTokens));
-            }
-
-            var builder = new SyntaxNodeOrTokenListBuilder(8);
-            builder.Add(nodesAndTokens);
-            return builder.ToList();
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>
@@ -1530,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="nodesAndTokens">The nodes and tokens</param>
         public static SyntaxNodeOrTokenList NodeOrTokenList(params SyntaxNodeOrToken[] nodesAndTokens)
         {
-            return NodeOrTokenList((IEnumerable<SyntaxNodeOrToken>)nodesAndTokens);
+            return new SyntaxNodeOrTokenList(nodesAndTokens);
         }
 
         /// <summary>
