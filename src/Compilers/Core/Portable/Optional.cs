@@ -5,16 +5,17 @@ using System;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a value type that can be assigned null.
+    /// Combines a value, <see cref="Value"/>, and a flag, <see cref="HasValue"/>, 
+    /// indicating whether or not that value is meaningful.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of the value.</typeparam>
     public struct Optional<T>
     {
         private readonly bool _hasValue;
         private readonly T _value;
 
         /// <summary>
-        /// Initializes a new instance to the specified value.
+        /// Constructs an <see cref="Optional{T}"/> with a meaningful value.
         /// </summary>
         /// <param name="value"></param>
         public Optional(T value)
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets a value indicating whether the current object has a value.
+        /// Returns <see langword="true"/> if the <see cref="Value"/> will return a meaningful value.
         /// </summary>
         /// <returns></returns>
         public bool HasValue
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Gets the value of the current object.
+        /// Gets the value of the current object.  Not meaningful unless <see cref="HasValue"/> returns <see langword="true"/>.
         /// </summary>
         /// <remarks>
         /// <para>Unlike <see cref="Nullable{T}.Value"/>, this property does not throw an exception when
@@ -49,12 +50,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new object initialized to a specified value. 
+        /// Creates a new object initialized to a meaningful value. 
         /// </summary>
         /// <param name="value"></param>
         public static implicit operator Optional<T>(T value)
         {
             return new Optional<T>(value);
+        }
+
+        /// <summary>
+        /// Returns a string representation of this object.
+        /// </summary>
+        public override string ToString()
+        {
+            // Note: For nullable types, it's possible to have _hasValue true and _value null.
+            return _hasValue
+                ? _value?.ToString() ?? "null"
+                : "unspecified";
         }
     }
 }

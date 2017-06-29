@@ -152,17 +152,17 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
         internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace, ImmutableArray<IIncrementalAnalyzer> workers)
         {
-            if (_documentWorkCoordinatorMap.ContainsKey(workspace))
+            if (_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
             {
-                _documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly(workers);
+                coordinator.WaitUntilCompletion_ForTestingPurposesOnly(workers);
             }
         }
 
         internal void WaitUntilCompletion_ForTestingPurposesOnly(Workspace workspace)
         {
-            if (_documentWorkCoordinatorMap.ContainsKey(workspace))
+            if (_documentWorkCoordinatorMap.TryGetValue(workspace, out var coordinator))
             {
-                _documentWorkCoordinatorMap[workspace].WaitUntilCompletion_ForTestingPurposesOnly();
+                coordinator.WaitUntilCompletion_ForTestingPurposesOnly();
             }
         }
 

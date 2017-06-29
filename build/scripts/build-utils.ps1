@@ -99,7 +99,11 @@ function Ensure-NuGet() {
 
 # Ensure a basic tool used for building our Repo is installed and 
 # return the path to it.
-function Ensure-BasicTool([string]$name, [string]$version) {
+function Ensure-BasicTool([string]$name, [string]$version = "") {
+    if ($version -eq "") { 
+        $version = Get-PackageVersion $name
+    }
+
     $p = Join-Path (Get-PackagesDir) "$($name).$($version)"
     if (-not (Test-Path $p)) {
         $nuget = Ensure-NuGet
@@ -137,12 +141,15 @@ function Get-PackageVersion([string]$name) {
     $deps = Join-Path $repoDir "build\Targets\Packages.props"
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $deps)
-    $node = $x.Project.PropertyGroup[$nodeName]
-    if ($node -eq $null) { 
-        throw "Cannot find package $name in Packages.props"
+    $node = $x.Project.PropertyGroup.FirstChild
+    while ($node -ne $null) {
+        if ($node.Name -eq $nodeName) {
+            return $node.InnerText
+        }
+        $node = $node.NextSibling
     }
 
-    return $node.InnerText
+    throw "Cannot find package $name in Packages.props"
 }
 
 # Locate the directory where our NuGet packages will be deployed.  Needs to be kept in sync
@@ -224,9 +231,7 @@ function Get-MSBuildKindAndDir([switch]$xcopy = $false) {
 
 # Locate the xcopy version of MSBuild
 function Get-MSBuildDirXCopy() {
-    $version = "0.2.0-alpha"
-    $name = "RoslynTools.MSBuild"
-    $p = Ensure-BasicTool $name $version
+    $p = Ensure-BasicTool "RoslynTools.MSBuild"
     $p = Join-Path $p "tools\msbuild"
     return $p
 }
@@ -236,18 +241,25 @@ function Get-MSBuildDir([switch]$xcopy = $false) {
     return $both[1]
 }
 
-# Get the directory of the first Visual Studio which meets our minimal 
-# requirements for the Roslyn repo
-function Get-VisualStudioDir() {
-    $vswhere = Join-Path (Ensure-BasicTool "vswhere" "1.0.50") "tools\vswhere.exe"
+# Get the directory and instance ID of the first Visual Studio version which 
+# meets our minimal requirements for the Roslyn repo.
+function Get-VisualStudioDirAndId() {
+    $vswhere = Join-Path (Ensure-BasicTool "vswhere") "tools\vswhere.exe"
     $output = & $vswhere -requires Microsoft.Component.MSBuild -format json | Out-String
     if (-not $?) {
         throw "Could not locate a valid Visual Studio"
     }
 
     $j = ConvertFrom-Json $output
-    $p = $j[0].installationPath
-    return $p
+    Write-Output $j[0].installationPath
+    Write-Output $j[0].instanceId
+}
+
+# Get the directory of the first Visual Studio which meets our minimal 
+# requirements for the Roslyn repo
+function Get-VisualStudioDir() {
+    $both = Get-VisualStudioDirAndId
+    return $both[0]
 }
 
 # Clear out the NuGet package cache

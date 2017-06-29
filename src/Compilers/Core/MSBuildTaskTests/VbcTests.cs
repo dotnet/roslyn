@@ -88,6 +88,15 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void LangVersionFlag()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.LangVersion = "15.3";
+            Assert.Equal("/optionstrict:custom /out:test.exe /langversion:15.3 test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void ChecksumAlgorithmOption()
         {
             var vbc = new Vbc();

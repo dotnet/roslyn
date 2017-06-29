@@ -15,25 +15,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     internal static class FixAllLogger
     {
         // Fix all context logging.
-        private static readonly string s_codeFixProvider = "CodeFixProvider";
-        private static readonly string s_codeActionEquivalenceKey = "CodeActionEquivalenceKey";
-        private static readonly string s_fixAllScope = "FixAllScope";
-        private static readonly string s_languageName = "LanguageName";
-        private static readonly string s_documentCount = "DocumentCount";
+        private const string s_codeFixProvider = "CodeFixProvider";
+        private const string s_codeActionEquivalenceKey = "CodeActionEquivalenceKey";
+        private const string s_fixAllScope = "FixAllScope";
+        private const string s_languageName = "LanguageName";
+        private const string s_documentCount = "DocumentCount";
 
         // Fix all computation result logging.
-        private static readonly string s_result = "Result";
-        private static readonly string s_completed = "Completed";
-        private static readonly string s_timedOut = "TimedOut";
-        private static readonly string s_cancelled = "Cancelled";
-        private static readonly string s_allChangesApplied = "AllChangesApplied";
-        private static readonly string s_subsetOfChangesApplied = "SubsetOfChangesApplied";
+        private const string s_result = "Result";
+        private const string s_completed = "Completed";
+        private const string s_timedOut = "TimedOut";
+        private const string s_cancelled = "Cancelled";
+        private const string s_allChangesApplied = "AllChangesApplied";
+        private const string s_subsetOfChangesApplied = "SubsetOfChangesApplied";
 
         // Diagnostics and fixes logging.
-        private static readonly string s_documentsWithDiagnosticsToFix = "DocumentsWithDiagnosticsToFix";
-        private static readonly string s_projectsWithDiagnosticsToFix = "ProjectsWithDiagnosticsToFix";
-        private static readonly string s_totalDiagnosticsToFix = "TotalDiagnosticsToFix";
-        private static readonly string s_totalFixesToMerge = "TotalFixesToMerge";
+        private const string s_documentsWithDiagnosticsToFix = "DocumentsWithDiagnosticsToFix";
+        private const string s_projectsWithDiagnosticsToFix = "ProjectsWithDiagnosticsToFix";
+        private const string s_totalDiagnosticsToFix = "TotalDiagnosticsToFix";
+        private const string s_totalFixesToMerge = "TotalFixesToMerge";
 
         public static void LogState(FixAllState fixAllState, bool isInternalCodeFixProvider)
         {

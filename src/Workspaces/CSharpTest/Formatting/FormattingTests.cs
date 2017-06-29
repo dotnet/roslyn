@@ -1023,13 +1023,16 @@ class D
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentUserSettingNonDefaultTest_OpenBracesOfLambdaWithNoNewLine()
         {
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.IndentBraces, true);
-            changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
-            changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, false);
-            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, false);
-            changingOptions.Add(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody, false);
-            changingOptions.Add(CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost);
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentBraces, true },
+                { IndentBlock, false },
+                { IndentSwitchSection, false },
+                { IndentSwitchCaseSection, false },
+                { NewLinesForBracesInLambdaExpressionBody, false },
+                { LabelPositioning, LabelPositionOptions.LeftMost }
+            };
+
             await AssertFormatAsync(@"class Class2
     {
     public void nothing()
@@ -1047,18 +1050,22 @@ class D
                 Console.WriteLine(""Nothing"");
             });
     }
-}", false, changingOptions);
+}", changedOptionSet: changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task IndentUserSettingNonDefaultTest()
         {
-            var changingOptions = new Dictionary<OptionKey, object>();
-            changingOptions.Add(CSharpFormattingOptions.IndentBraces, true);
-            changingOptions.Add(CSharpFormattingOptions.IndentBlock, false);
-            changingOptions.Add(CSharpFormattingOptions.IndentSwitchSection, false);
-            changingOptions.Add(CSharpFormattingOptions.IndentSwitchCaseSection, false);
-            changingOptions.Add(CSharpFormattingOptions.LabelPositioning, LabelPositionOptions.LeftMost);
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentBraces, true },
+                { IndentBlock, false },
+                { IndentSwitchSection, false },
+                { IndentSwitchCaseSection, false },
+                { IndentSwitchCaseSectionWhenBlock, false },
+                { LabelPositioning, LabelPositionOptions.LeftMost }
+            };
+
             await AssertFormatAsync(@"class Class2
     {
     public void nothing()
@@ -1133,7 +1140,327 @@ l:
     l:
         goto l;
     }
-}", false, changingOptions);
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentSwitch_IndentCase_IndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, true },
+                { IndentSwitchCaseSection, true },
+                { IndentSwitchCaseSectionWhenBlock, true },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+            case 0:
+                {
+                }
+            case 1:
+                break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentSwitch_IndentCase_NoIndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, true },
+                { IndentSwitchCaseSection, true },
+                { IndentSwitchCaseSectionWhenBlock, false },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+            case 0:
+            {
+            }
+            case 1:
+                break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentSwitch_NoIndentCase_IndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, true },
+                { IndentSwitchCaseSection, false },
+                { IndentSwitchCaseSectionWhenBlock, true },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+            case 0:
+                {
+                }
+            case 1:
+            break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task IndentSwitch_NoIndentCase_NoIndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, true },
+                { IndentSwitchCaseSection, false },
+                { IndentSwitchCaseSectionWhenBlock, false },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+            case 0:
+            {
+            }
+            case 1:
+            break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentSwitch_IndentCase_IndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, false },
+                { IndentSwitchCaseSection, true },
+                { IndentSwitchCaseSectionWhenBlock, true },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+        case 0:
+            {
+            }
+        case 1:
+            break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentSwitch_IndentCase_NoIndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, false },
+                { IndentSwitchCaseSection, true },
+                { IndentSwitchCaseSectionWhenBlock, false },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+        case 0:
+        {
+        }
+        case 1:
+            break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentSwitch_NoIndentCase_IndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, false },
+                { IndentSwitchCaseSection, false },
+                { IndentSwitchCaseSectionWhenBlock, true },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+        case 0:
+            {
+            }
+        case 1:
+        break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
+        }
+
+        [WorkItem(20009, "https://github.com/dotnet/roslyn/issues/20009")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task NoIndentSwitch_NoIndentCase_NoIndentWhenBlock()
+        {
+            var changingOptions = new Dictionary<OptionKey, object>
+            {
+                { IndentSwitchSection, false },
+                { IndentSwitchCaseSection, false },
+                { IndentSwitchCaseSectionWhenBlock, false },
+            };
+
+            await AssertFormatAsync(
+@"class Class2
+{
+    void M()
+    {
+        switch (i)
+        {
+        case 0:
+        {
+        }
+        case 1:
+        break;
+        }
+    }
+}",
+@"class Class2
+{
+    void M()
+    {
+            switch (i) {
+        case 0: {
+    }
+        case 1:
+    break;
+            }
+    }
+}", changedOptionSet: changingOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

@@ -165,6 +165,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection, value); }
         }
 
+        public int Indent_CaseContentsWhenBlock
+        {
+            get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock); }
+            set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, value); }
+        }
+
         public int Indent_CaseLabels
         {
             get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchSection); }
