@@ -51,6 +51,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="TestRunner.cs" />
     <Compile Include="ConsoleUtil.cs" />
+    <Compile Include="..\..\..\Test\Utilities\Portable\FX\DumpProcRunner.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Program.Json.cs" />

@@ -88,6 +88,9 @@
     <Compile Include="InitializeParameter\CSharpAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\CSharpInitializeMemberFromParameterCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.cs" />
+    <Compile Include="OrderModifiers\CSharpOrderModifiersCodeFixProvider.cs" />
+    <Compile Include="OrderModifiers\CSharpOrderModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="OrderModifiers\CSharpOrderModifiersHelper.cs" />
     <Compile Include="RemoveUnreachableCode\CSharpRemoveUnreachableCodeCodeFixProvider.cs" />
     <Compile Include="RemoveUnreachableCode\CSharpRemoveUnreachableCodeDiagnosticAnalyzer.cs" />
     <Compile Include="RemoveUnreachableCode\RemoveUnreachableCodeHelpers.cs" />

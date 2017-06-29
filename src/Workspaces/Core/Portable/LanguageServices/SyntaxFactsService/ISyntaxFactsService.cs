@@ -295,6 +295,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool ContainsInterleavedDirective(ImmutableArray<SyntaxNode> nodes, CancellationToken cancellationToken);
 
         string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, CancellationToken cancellationToken);
+
+        SyntaxTokenList GetModifiers(SyntaxNode node);
+        SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);
     }
 
     [Flags]

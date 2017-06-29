@@ -111,6 +111,9 @@
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="InitializeParameter\VisualBasicInitializeMemberFromParameterCodeRefactoringProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersHelper.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersCodeFixProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />

@@ -1259,4 +1259,10 @@ This version used in: {2}</value>
   <data name="Remove_unreachable_code" xml:space="preserve">
     <value>Remove unreachable code</value>
   </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
+  </data>
 </root>
