@@ -53,7 +53,11 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 
         private object GetValueForSerialization()
         {
-            if (typeof(T) == typeof(bool))
+            if (typeof(T) == typeof(string))
+            {
+                return Value;
+            }
+            else if (typeof(T) == typeof(bool))
             {
                 return Value;
             }
