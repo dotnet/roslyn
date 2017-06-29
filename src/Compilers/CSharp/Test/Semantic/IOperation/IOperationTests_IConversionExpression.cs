@@ -3707,7 +3707,7 @@ sealed class C1
 {
     static void M1()
     {
-        I2 /*<bind>*/i2 = /*</bind>*/;
+        I2 /*<bind>*/i2 = (I2)()/*</bind>*/;
     }
 }
 ";
@@ -3715,13 +3715,13 @@ sealed class C1
 IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclarationStatement, IsInvalid) (Syntax: 'I2 /*<bind> ... *</bind>*/;')
   IVariableDeclaration (1 variables) (OperationKind.VariableDeclaration, IsInvalid) (Syntax: 'I2 /*<bind> ... *</bind>*/;')
     Variables: Local_1: I2 i2
-    Initializer: IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: I2, IsInvalid) (Syntax: '')
+    Initializer: IConversionExpression (ConversionKind.Invalid, Explicit) (OperationKind.ConversionExpression, Type: I2, IsInvalid) (Syntax: '(I2)()')
         IInvalidExpression (OperationKind.InvalidExpression, Type: ?, IsInvalid) (Syntax: '')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1525: Invalid expression term ';'
-                //         I2 /*<bind>*/i2 = /*</bind>*/;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(8, 38),
+                // CS1525: Invalid expression term ')'
+                //         I2 /*<bind>*/i2 = (I2)()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 32)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -4306,7 +4306,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [Fact]
-        public void ConversionExpression_Explicit_TypeParameterSubclassConversion()
+        public void ConversionExpression_Explicit_TypeParameterConstraintConversion()
         {
             string source = @"
 using System;
@@ -4332,7 +4332,7 @@ IVariableDeclarationStatement (1 declarations) (OperationKind.VariableDeclaratio
         }
 
         [Fact]
-        public void ConversionExpression_Explicit_TypeParameterSubclassConversion_InvalidNoConversion()
+        public void ConversionExpression_Explicit_TypeParameterConversion_InvalidNoConversion()
         {
             string source = @"
 using System;
@@ -4895,7 +4895,7 @@ IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'return (int)1.0;')
         }
 
         [Fact]
-        public void XConversionExpression_Explicit_ReturnConversion_InvalidConversion()
+        public void ConversionExpression_Explicit_ReturnConversion_InvalidConversion()
         {
             string source = @"
 using System;
