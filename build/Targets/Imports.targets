@@ -200,6 +200,10 @@
     </When>
   </Choose>
 
+  <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
+    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
+  </ItemGroup>
+
   <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
     <Reference>
       <Private>False</Private>
@@ -329,7 +333,7 @@
   <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
        assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
        strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
-  <Target Name="LinkVSSDKEmbeddableAssemblies" DependsOnTargets="ResolveReferences" AfterTargets="ResolveReferences">
+  <Target Name="LinkVSSDKEmbeddableAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences" >
     <ItemGroup>
       <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable' OR
                                 '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0' OR
@@ -379,7 +383,7 @@
     <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
@@ -445,7 +449,7 @@
       <Error Text="IBCMerge not found at $(IbcMergePath). Local developer builds should pass /p:SkipApplyOptimizations=true to avoid this"
              Condition="!Exists('$(IbcMergePath)')" />
 
-      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
+      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -excludeGenmethUnboxingStubs -incremental &quot;$(OptimizationDataFile)&quot;"
             ConsoleToMSBuild="true"
             Condition="Exists('$(IbcMergePath)')">
         <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
@@ -518,4 +522,28 @@
       <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
     </ItemGroup>
   </Target>
+
+  <!-- We need to run publish on our CoreCLR executables (CscCore and VbcCore) without rebuilding
+       since a rebuild may overwrite signed binaries in the output directory with unsigned binaries
+       from the intermediate output directory. -->
+  <Target Name="PublishWithoutBuilding"
+        DependsOnTargets="PreventProjectReferencesFromBuilding;
+                          ResolveReferences;
+                          ComputeAndCopyFilesToPublishDirectory;
+                          GeneratePublishDependencyFile;
+                          GeneratePublishRuntimeConfigurationFile" />                                                           
+
+  <Target Name="PreventProjectReferencesFromBuilding">
+    <PropertyGroup>
+      <BuildProjectReferences>false</BuildProjectReferences>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
+       https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
+       isn't fully supported yet in the new project system. Removal of this hack is tracked
+       by https://github.com/dotnet/roslyn/issues/19545. -->
+  <ItemGroup>
+    <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
 </Project>

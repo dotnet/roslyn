@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -102,12 +103,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsOverridable(this ISymbol symbol)
         {
-            return
-                symbol != null &&
-                symbol.ContainingType != null &&
-                symbol.ContainingType.TypeKind == TypeKind.Class &&
-                (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
-                !symbol.IsSealed;
+            // Members can only have overrides if they are virtual, abstract or override and is not
+            // sealed.
+            return symbol?.ContainingType?.TypeKind == TypeKind.Class &&
+                   (symbol.IsVirtual || symbol.IsAbstract || symbol.IsOverride) &&
+                   !symbol.IsSealed;
         }
 
         public static bool IsImplementableMember(this ISymbol symbol)
@@ -566,7 +566,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return true;
             }
 
-            return namespaceOrType.GetMembers().Any(nt => nt.IsOrContainsAccessibleAttribute(withinType, withinAssembly));
+            // PERF: Avoid allocating a lambda capture as this method is recursive
+            foreach (var namedType in namespaceOrType.GetTypeMembers())
+            {
+                if (namedType.IsOrContainsAccessibleAttribute(withinType, withinAssembly))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static IEnumerable<IPropertySymbol> GetValidAnonymousTypeProperties(this ISymbol symbol)

@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => InitializeParameterHelpers.GetBody(containingMember);
 
-        protected override SyntaxNode GetLastStatement(IBlockStatement blockStatement)
-            => InitializeParameterHelpers.GetLastStatement(blockStatement);
+        protected override SyntaxNode TryGetLastStatement(IBlockStatement blockStatementOpt)
+            => InitializeParameterHelpers.TryGetLastStatement(blockStatementOpt);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode body, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, body, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, BaseMethodDeclarationSyntax methodDeclaration, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, methodDeclaration, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);

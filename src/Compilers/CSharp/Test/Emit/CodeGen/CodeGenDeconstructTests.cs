@@ -1632,7 +1632,7 @@ class Program
 this.set(2)
 ";
 
-            var comp = CreateCompilationWithCustomILSource(source, ilSource,  references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithCustomILSource(source, ilSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -4644,12 +4644,12 @@ var (x, y) = (1, 2);
             var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6), options: TestOptions.DebugExe, references: s_valueTupleRefs);
 
             comp.VerifyDiagnostics(
-                // (2,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (2,5): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 // var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x, y)").WithArguments("tuples", "7").WithLocation(2, 5),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(x, y)").WithArguments("tuples", "7.0").WithLocation(2, 5),
                 // (2,14): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
                 // var (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(2, 14)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(2, 14)
                 );
         }
 
@@ -5684,9 +5684,9 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         _ = M();
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(6, 9)
                 );
         }
 
@@ -5721,39 +5721,39 @@ class C
 ";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular6, references: s_valueTupleRefs);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7").WithLocation(6, 9),
-                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, var _, int _)").WithArguments("tuples", "7.0").WithLocation(6, 9),
+                // (6,29): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7").WithLocation(6, 29),
-                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2, 3)").WithArguments("tuples", "7.0").WithLocation(6, 29),
+                // (7,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7").WithLocation(7, 13),
-                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(_, _)").WithArguments("tuples", "7.0").WithLocation(7, 13),
+                // (7,22): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (_, _) = (1, 2);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7").WithLocation(7, 22),
-                // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 2)").WithArguments("tuples", "7.0").WithLocation(7, 22),
+                // (8,18): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //         bool b = 3 is int _;
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7").WithLocation(8, 18),
-                // (16,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "3 is int _").WithArguments("pattern matching", "7.0").WithLocation(8, 18),
+                // (16,13): error CS8059: Feature 'pattern matching' is not available in C# 6. Please use language version 7.0 or greater.
                 //             case int _:
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7").WithLocation(16, 13),
-                // (19,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "case int _:").WithArguments("pattern matching", "7.0").WithLocation(16, 13),
+                // (19,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         M(out var _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7").WithLocation(19, 19),
-                // (20,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(19, 19),
+                // (20,19): error CS8059: Feature 'out variable declaration' is not available in C# 6. Please use language version 7.0 or greater.
                 //         M(out int _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7").WithLocation(20, 19),
-                // (6,10): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("out variable declaration", "7.0").WithLocation(20, 19),
+                // (6,10): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         (_, var _, int _) = (1, 2, 3);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(6, 10),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(6, 10),
                 // (11,18): error CS0103: The name '_' does not exist in the current context
                 //             case _: // not a discard
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(11, 18),
-                // (21,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7 or greater.
+                // (21,15): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         M(out _);
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7").WithLocation(21, 15),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "_").WithArguments("tuples", "7.0").WithLocation(21, 15),
                 // (12,17): warning CS0162: Unreachable code detected
                 //                 break;
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(12, 17)
@@ -7270,6 +7270,101 @@ class Program
 ";
             string expectedOutput = @"1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var t = (1, 2);
+        var (a, b) = ((byte, byte))t;
+        System.Console.Write($""{a} {b}"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"1 2", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var t = (new C(), new D());
+        var (a, _) = ((byte, byte))t;
+        System.Console.Write($""{a}"");
+    }
+    public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
+}
+class D
+{
+    public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
+}";
+            CompileAndVerify(source, expectedOutput: @"Convert Convert2 1", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction3()
+        {
+            var source = @"
+class C
+{
+    static int A { set { System.Console.Write(""A ""); } }
+    static int B { set { System.Console.Write(""B""); } }
+    static void Main()
+    {
+        (A, B) = ((byte, byte))(new C(), new D());
+    }
+    public static explicit operator byte(C c) { System.Console.Write(""Convert ""); return 1; }
+    public C() { System.Console.Write(""C ""); }
+}
+class D
+{
+    public static explicit operator byte(D c) { System.Console.Write(""Convert2 ""); return 2; }
+    public D() { System.Console.Write(""D ""); }
+}";
+            CompileAndVerify(source, expectedOutput: @"C Convert D Convert2 A B", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void TupleCastInDeconstruction4()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var (a, _) = ((short, short))((int, int))(1L, 2L);
+        System.Console.Write($""{a}"");
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"1", additionalRefs: s_valueTupleRefs);
+        }
+
+        [Fact, WorkItem(19398, "https://github.com/dotnet/roslyn/issues/19398")]
+        public void UserDefinedCastInDeconstruction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var c = new C();
+        var (a, b) = ((byte, byte))c;
+        System.Console.Write($""{a} {b}"");
+    }
+    public static explicit operator (byte, byte)(C c)
+    {
+        return (3, 4);
+    }
+}";
+            CompileAndVerify(source, expectedOutput: @"3 4", additionalRefs: s_valueTupleRefs);
         }
     }
 }

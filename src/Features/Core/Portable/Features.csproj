@@ -10,7 +10,6 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Features</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -100,6 +99,16 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddImport\AbstractAddImportFeatureService.cs" />
+    <Compile Include="AddImport\Remote\AbstractAddImportFeatureService_Remote.cs" />
+    <Compile Include="AddImport\AddImportFixData.cs" />
+    <Compile Include="AddImport\AddImportFixKind.cs" />
+    <Compile Include="AddImport\CodeActions\AddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\AssemblyReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\MetadataSymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\ProjectSymbolReferenceCodeAction.cs" />
+    <Compile Include="AddImport\IAddImportFeatureService.cs" />
+    <Compile Include="AddImport\Remote\IRemoteAddImportFeatureService.cs" />
     <Compile Include="AddImport\SearchScopes\AllSymbolsProjectSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\MetadataSymbolsSearchScope.cs" />
     <Compile Include="AddImport\SearchScopes\ProjectSearchScope.cs" />
@@ -113,14 +122,17 @@
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
     <Compile Include="CodeFixes\RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="CommentSelection\AbstractCommentSelectionService.cs" />
+    <Compile Include="CommentSelection\CommentSelectionInfo.cs" />
+    <Compile Include="CommentSelection\ICommentSelectionService.cs" />
     <Compile Include="Completion\FileSystemCompletionHelper.cs" />
     <Compile Include="Completion\Providers\AbstractInternalsVisibleToCompletionProvider.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
     <Compile Include="CodeStyle\AbstractCodeStyleDiagnosticAnalyzer.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallPackageAndAddImportCodeAction.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.InstallWithPackageManagerCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\InstallPackageAndAddImportCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\InstallWithPackageManagerCodeAction.cs" />
     <Compile Include="ConflictMarkerResolution\AbstractConflictMarkerCodeFixProvider.cs" />
     <Compile Include="Completion\Providers\AbstractCrefCompletionProvider.cs" />
     <Compile Include="ConvertToInterpolatedString\AbstractConvertConcatenationToInterpolatedStringRefactoringProvider.cs" />
@@ -133,7 +145,6 @@
     <Compile Include="Diagnostics\DiagnosticArguments.cs" />
     <Compile Include="Diagnostics\DiagnosticResultSerializer.cs" />
     <Compile Include="Diagnostics\SymbolAnalysisContextExtensions.cs" />
-    <Compile Include="DocumentHighlighting\DocumentHighlightingOptions.cs" />
     <Compile Include="EncapsulateField\EncapsulateFieldRefactoringProvider.cs" />
     <Compile Include="Experimentation\AnalyzerABTestLogger.cs" />
     <Compile Include="Experimentation\AnalyzerABTestOptions.cs" />
@@ -142,11 +153,13 @@
     <Compile Include="CodeFixes\FixAllOccurrences\FixSomeCodeAction.cs" />
     <Compile Include="AddPackage\InstallPackageDirectlyCodeAction.cs" />
     <Compile Include="AddConstructorParametersFromMembers\State.cs" />
+    <Compile Include="Fading\FadingOptions.cs" />
     <Compile Include="FeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>FeaturesResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="FindUsages\ClassifiedSpansAndHighlightSpan.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorFromMembersOptions.cs" />
     <Compile Include="GenerateConstructorFromMembers\GenerateConstructorWithDialogCodeAction.cs" />
     <Compile Include="GenerateEqualsAndGetHashCodeFromMembers\FormatLargeBinaryExpressionRule.cs" />
@@ -163,7 +176,6 @@
     <Compile Include="ImplementType\ImplementTypeOptions.cs" />
     <Compile Include="ImplementType\ImplementTypeOptionsProvider.cs" />
     <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService.cs" />
-    <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService_Remote.cs" />
     <Compile Include="DocumentHighlighting\IDocumentHighlightsService.cs" />
     <Compile Include="DocumentHighlighting\IRemoteDocumentHighlights.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
@@ -179,12 +191,11 @@
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.cs" />
     <Compile Include="NavigateTo\INavigateToSearchResult.cs" />
     <Compile Include="NavigateTo\INavigateToSearchService.cs" />
-    <Compile Include="NavigateTo\NavigateToOptions.cs" />
     <Compile Include="Navigation\INavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.cs" />
     <Compile Include="Navigation\NavigableItemFactory.DeclaredSymbolNavigableItem.cs" />
     <Compile Include="Navigation\NavigableItemFactory.SymbolLocationNavigableItem.cs" />
-    <Compile Include="AddImport\CodeActions\PackageReference.ParentCodeAction.cs" />
+    <Compile Include="AddImport\CodeActions\ParentInstallPackageCodeAction.cs" />
     <Compile Include="Remote\RemoteArguments.cs" />
     <Compile Include="RQName\Nodes\ResolvedRQNode.cs" />
     <Compile Include="RQName\Nodes\RQArrayOrPointerType.cs" />
@@ -230,6 +241,9 @@
     <Compile Include="RQName\SimpleTree\SimpleTreeNode.cs" />
     <Compile Include="Structure\BlockStructureOptions.cs" />
     <Compile Include="AddImport\CodeActions\SymbolReference.SymbolReferenceCodeAction.cs" />
+    <Compile Include="SymbolMapping\ISymbolMappingService.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingResult.cs" />
+    <Compile Include="SymbolMapping\SymbolMappingServiceFactory.cs" />
     <Compile Include="TodoComments\AbstractTodoCommentService.cs" />
     <Compile Include="TodoComments\IRemoteTodoCommentService.cs" />
     <Compile Include="TodoComments\ITodoCommentService.cs" />

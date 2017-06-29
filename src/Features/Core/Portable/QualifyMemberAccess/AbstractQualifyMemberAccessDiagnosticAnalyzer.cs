@@ -37,6 +37,14 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
         protected abstract string GetLanguageName();
 
+        /// <summary>
+        /// Reports on whether the specified member is suitable for qualification. Some member
+        /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,
+        /// <c>MyBase.</c>, or <c>MyClass.</c>.
+        /// </summary>
+        /// <returns>True if the member access can be qualified; otherwise, False.</returns>
+        protected abstract bool CanMemberAccessBeQualified(SyntaxNode node);
+
         protected abstract bool IsAlreadyQualifiedMemberAccess(SyntaxNode node);
 
         private static MethodInfo s_registerMethod = typeof(AnalysisContext).GetTypeInfo().GetDeclaredMethod("RegisterOperationActionImmutableArrayInternal");
@@ -62,6 +70,12 @@ namespace Microsoft.CodeAnalysis.QualifyMemberAccess
 
             // if we're not referencing `this.` or `Me.` (e.g., a parameter, local, etc.)
             if (memberReference.Instance.Kind != OperationKind.InstanceReferenceExpression)
+            {
+                return;
+            }
+
+            // If we can't be qualified (e.g., because we're already qualified with `base.`), we're done.
+            if (!CanMemberAccessBeQualified(memberReference.Instance.Syntax))
             {
                 return;
             }

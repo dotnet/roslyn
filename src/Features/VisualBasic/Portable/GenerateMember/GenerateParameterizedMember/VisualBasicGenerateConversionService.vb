@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 modifiers:=Nothing,
                 returnType:=typeToGenerateIn,
                 returnsByRef:=False,
-                explicitInterfaceSymbol:=Nothing,
+                explicitInterfaceImplementations:=Nothing,
                 name:=Nothing,
                 typeParameters:=ImmutableArray(Of ITypeParameterSymbol).Empty,
                 parameters:=ImmutableArray.Create(CodeGenerationSymbolFactory.CreateParameterSymbol(parameterSymbol, "v")),

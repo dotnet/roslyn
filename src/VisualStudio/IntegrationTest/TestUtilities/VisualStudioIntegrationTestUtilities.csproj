@@ -129,6 +129,9 @@
     <PackageReference Include="Microsoft.VisualStudio.OLE.Interop">
       <Version>$(MicrosoftVisualStudioOLEInteropVersion)</Version>
     </PackageReference>
+    <PackageReference Include="Microsoft.VisualStudio.ProjectSystem">
+      <Version>$(MicrosoftVisualStudioProjectSystemVersion)</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Setup.Configuration.Interop">
       <Version>$(MicrosoftVisualStudioSetupConfigurationInteropVersion)</Version>
     </PackageReference>
