@@ -269,6 +269,16 @@ function Deploy-VsixViaTool() {
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
+    Write-Host "Uninstalling old Roslyn VSIX"
+    foreach ($e in [array]::Reverse($all))
+    {
+        $name = Split-Path -leaf $e
+        $filePath = Join-Path $configDir $e
+        $fullArg = "-u $baseArgs $filePath"
+        Write-Host "`tUninstalling $name"
+        Exec-Command $vsixExe $fullArg | Out-Host
+    }
+
     Write-Host "Installing all Roslyn VSIX"
     foreach ($e in $all) {
         $name = Split-Path -leaf $e
