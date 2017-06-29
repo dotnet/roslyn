@@ -127,18 +127,12 @@ namespace Microsoft.VisualStudio.LanguageServices
         {
             // DevDiv https://devdiv.visualstudio.com/DevDiv/_workitems/edit/130129:
             //
-            // We used to schedule the RefreshThemeColors task when the Roslyn Package loaded
-            // during async solution load. Even though we scheduled the task for UI thread idle,
-            // it was possible for it to run before any files had been opened.This meant
-            // that our requests for colors and editor services would cause the composition of
-            // the editor, thus leading to a UI delay during ASL.
-            // To avoid this, we now wait until a text editor has been opened to schedule the
-            // color synchronization.
-
+            // This needs to be scheduled after editor has been composed. Otherwise
+            // it may cause UI delays by composing the editor before it is needed
+            // by the rest of VS.
             if (!_done)
             {
                 _done = true;
-                // Run on the UI thread when VS is idle 
                 VsTaskLibraryHelper.CreateAndStartTask(VsTaskLibraryHelper.ServiceInstance, VsTaskRunContext.UIThreadIdlePriority, RefreshThemeColors);
             }
         }
