@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
                 EditorConfigStorageLocation.ForBoolCodeStyleOption("csharp_prefer_simple_default_expression"),
                 new RoamingProfileStorageLocation($"TextEditor.CSharp.Specific.{nameof(PreferSimpleDefaultExpression)}")});
 
-        private static SyntaxKind[] s_preferredModifierOrderDefault =
+        private static readonly SyntaxKind[] s_preferredModifierOrderDefault =
             {
                 SyntaxKind.PublicKeyword, SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword,
                 SyntaxKind.StaticKeyword,
