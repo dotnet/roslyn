@@ -270,7 +270,11 @@ function Deploy-VsixViaTool() {
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
     Write-Host "Uninstalling old Roslyn VSIX"
-    foreach ($e in [array]::Reverse($all))
+
+    # Reverse the extension list so we uninstall in the proper order so that dependencies line up
+    [array]::Reverse($all)
+
+    foreach ($e in $all)
     {
         $name = Split-Path -leaf $e
         $filePath = Join-Path $configDir $e
@@ -280,6 +284,11 @@ function Deploy-VsixViaTool() {
     }
 
     Write-Host "Installing all Roslyn VSIX"
+
+    # Reverse the extension list so we install in the proper order so that dependencies line up
+    # Note: Only required as long as we reverse the list for uninstall above
+    [array]::Reverse($all)
+
     foreach ($e in $all) {
         $name = Split-Path -leaf $e
         $filePath = Join-Path $configDir $e
