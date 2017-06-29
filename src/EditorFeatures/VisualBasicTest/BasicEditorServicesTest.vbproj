@@ -223,6 +223,7 @@
     <Compile Include="CodeActions\UseNamedArguments\UseNamedArgumentsTests.vb" />
     <Compile Include="Diagnostics\RemoveUnusedVariable\RemoveUnusedVariableTest.vb" />
     <Compile Include="InitializeParameter\AddParameterCheckTests.vb" />
+    <Compile Include="OrderModifiers\OrderModifiersTests.vb" />
     <Compile Include="Structure\CollectionInitializerStructureProviderTests.vb" />
     <Compile Include="ConvertToInterpolatedString\ConvertPlaceholderToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />

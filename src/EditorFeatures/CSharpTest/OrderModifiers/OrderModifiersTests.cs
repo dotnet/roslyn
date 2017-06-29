@@ -33,11 +33,11 @@ internal static class C
         public async Task TestStruct()
         {
             await TestInRegularAndScript1Async(
-@"[|unsafe|] public class C
+@"[|unsafe|] public struct C
 {
 }",
 @"
-public unsafe class C
+public unsafe struct C
 {
 }");
         }
@@ -59,11 +59,11 @@ public unsafe interface C
         public async Task TestEnum()
         {
             await TestInRegularAndScript1Async(
-@"[|internal|] protected interface C
+@"[|internal|] protected enum C
 {
 }",
 @"
-protected internal interface C
+protected internal enum C
 {
 }");
         }
