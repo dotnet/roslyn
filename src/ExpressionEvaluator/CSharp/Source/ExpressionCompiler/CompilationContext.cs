@@ -582,10 +582,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // type names which are bound to a representation of the type
             // (but not System.Type) that the user can expand to see the
             // base type. Instead, we only allow valid C# expressions.
-            var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
+            var expression = IsDeconstruction(syntax)
+                ? binder.BindDeconstruction((AssignmentExpressionSyntax)syntax, diagnostics, resultIsUsedOverride: true)
+                : binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
-                resultProperties = default(ResultProperties);
+                resultProperties = default;
                 return null;
             }
 
@@ -637,6 +639,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
             return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+        }
+
+        private static bool IsDeconstruction(ExpressionSyntax syntax)
+        {
+            if (syntax.Kind() != SyntaxKind.SimpleAssignmentExpression)
+            {
+                return false;
+            }
+
+            var node = (AssignmentExpressionSyntax)syntax;
+            return node.Left.Kind() == SyntaxKind.TupleExpression || node.Left.Kind() == SyntaxKind.DeclarationExpression;
         }
 
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
