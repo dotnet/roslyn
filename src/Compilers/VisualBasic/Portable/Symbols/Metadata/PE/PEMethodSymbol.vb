@@ -175,10 +175,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized
             End If
 
-            If Not _packedFlags.IsUseSiteDiagnosticPopulated Then
-                retVal._lazyUseSiteErrorInfo = ErrorFactory.EmptyErrorInfo ' Indicates unknown state. 
-            End If
-
+            '
+            ' Do not set _lazyUseSiteErrorInfo !!!!
+            '
+            ' "null" Indicates "no errors" or "unknown state",
+            ' and we know which one of the states we have from IsUseSiteDiagnosticPopulated
+            '
+            ' Setting _lazyUseSiteErrorInfo to a sentinel value here would introduce
+            ' a number of extra states for various permutations of IsUseSiteDiagnosticPopulated, UncommonFields and _lazyUseSiteDiagnostic
+            ' Some of them, in tight races, may lead to returning the sentinel as the diagnostics.
+            '
             If _packedFlags.IsCustomAttributesPopulated Then
                 retVal._lazyCustomAttributes = ImmutableArray(Of VisualBasicAttributeData).Empty
             End If
@@ -1090,15 +1096,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return InitializeUseSiteErrorInfo(errorInfo)
             End If
 
-            Dim uncommonFields = _uncommonFields
-            If uncommonFields Is Nothing Then
-                Return Nothing
-            Else
-                Dim result = uncommonFields._lazyUseSiteErrorInfo
-                Return If(result Is ErrorFactory.EmptyErrorInfo,
-                    InterlockedOperations.Initialize(uncommonFields._lazyUseSiteErrorInfo, Nothing, ErrorFactory.EmptyErrorInfo),
-                    result)
-            End If
+            Return _uncommonFields?._lazyUseSiteErrorInfo
         End Function
 
         Private Function InitializeUseSiteErrorInfo(errorInfo As DiagnosticInfo) As DiagnosticInfo
@@ -1108,7 +1106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             If errorInfo IsNot Nothing Then
                 Debug.Assert(errorInfo IsNot ErrorFactory.EmptyErrorInfo)
-                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo, ErrorFactory.EmptyErrorInfo)
+                errorInfo = InterlockedOperations.Initialize(AccessUncommonFields()._lazyUseSiteErrorInfo, errorInfo)
             End If
 
             _packedFlags.SetIsUseSiteDiagnosticPopulated()
