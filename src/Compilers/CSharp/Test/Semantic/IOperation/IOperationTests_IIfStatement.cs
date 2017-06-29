@@ -333,8 +333,7 @@ class P
         /*<bind>*/if (int.TryParse(s, out var i))
             System.Console.WriteLine($""i ={i}, s ={s}"");
         else
-            System.Console.WriteLine($""i ={ i}, s ={s}"");/*</bind>*/
-
+            System.Console.WriteLine($""i ={i}, s ={s}"");/*</bind>*/
     }
 }
 ";
@@ -348,23 +347,27 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (int.Try ... , s ={s}"");'
   IfTrue: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
       IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... }, s ={s}"")')
         Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={i}, s ={s}""')
-            IOperation:  (OperationKind.None) (Syntax: '$""i ={i}, s ={s}""')
-              Children(4): ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
-                IOperation:  (OperationKind.None) (Syntax: '{i}')
-                  Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
-                IOperation:  (OperationKind.None) (Syntax: '{s}')
-                  Children(1): ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+            IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
+              Parts(4): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i =')
+                  Text: ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
+                  Expression: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s =')
+                  Text: ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
+                  Expression: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
   IfFalse: IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'System.Cons ... , s ={s}"");')
       IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'System.Cons ... }, s ={s}"")')
-        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={ i}, s ={s}""')
-            IOperation:  (OperationKind.None) (Syntax: '$""i ={ i}, s ={s}""')
-              Children(4): ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
-                IOperation:  (OperationKind.None) (Syntax: '{ i}')
-                  Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-                ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
-                IOperation:  (OperationKind.None) (Syntax: '{s}')
-                  Children(1): ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
+        Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: '$""i ={i}, s ={s}""')
+            IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""i ={i}, s ={s}""')
+              Parts(4): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'i =')
+                  Text: ILiteralExpression (Text: i =) (OperationKind.LiteralExpression, Type: System.String, Constant: ""i ="") (Syntax: 'i =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{i}')
+                  Expression: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
+                IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ', s =')
+                  Text: ILiteralExpression (Text: , s =) (OperationKind.LiteralExpression, Type: System.String, Constant: "", s ="") (Syntax: ', s =')
+                IInterpolation (OperationKind.Interpolation) (Syntax: '{s}')
+                  Expression: ILocalReferenceExpression: s (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 's')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -484,10 +487,9 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ...  int i, 1);')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(o is int i, 1);')
         IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'A(o is int i, 1)')
           Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument) (Syntax: 'o is int i')
-              IOperation:  (OperationKind.None) (Syntax: 'o is int i')
-                Children(2): ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-                  IOperation:  (OperationKind.None) (Syntax: 'int i')
-                    Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'int i')
+              IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int i')
+                Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+                Pattern: IDeclarationPattern (Declared Symbol: System.Int32 i) (OperationKind.DeclarationPattern) (Syntax: 'int i')
             IArgument (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument) (Syntax: '1')
               ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -517,10 +519,9 @@ class P
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement) (Syntax: 'if (obj is  ... }')
-  Condition: IOperation:  (OperationKind.None) (Syntax: 'obj is string str')
-      Children(2): ILocalReferenceExpression: obj (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'obj')
-        IOperation:  (OperationKind.None) (Syntax: 'string str')
-          Children(1): ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'string str')
+  Condition: IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'obj is string str')
+      Expression: ILocalReferenceExpression: obj (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'obj')
+      Pattern: IDeclarationPattern (Declared Symbol: System.String str) (OperationKind.DeclarationPattern) (Syntax: 'string str')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(str);')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(str)')
@@ -598,10 +599,9 @@ IIfStatement (OperationKind.IfStatement) (Syntax: 'if (true) ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'A(o is int i, 1);')
         IInvocationExpression (static void Program.A(System.Boolean flag, System.Int32 number)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'A(o is int i, 1)')
           Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: flag) (OperationKind.Argument) (Syntax: 'o is int i')
-              IOperation:  (OperationKind.None) (Syntax: 'o is int i')
-                Children(2): ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
-                  IOperation:  (OperationKind.None) (Syntax: 'int i')
-                    Children(1): ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'int i')
+              IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'o is int i')
+                Expression: ILocalReferenceExpression: o (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'o')
+                Pattern: IDeclarationPattern (Declared Symbol: System.Int32 i) (OperationKind.DeclarationPattern) (Syntax: 'int i')
             IArgument (ArgumentKind.Explicit, Matching Parameter: number) (OperationKind.Argument) (Syntax: '1')
               ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -632,10 +632,9 @@ class P
 ";
             string expectedOperationTree = @"
 IIfStatement (OperationKind.IfStatement, IsInvalid) (Syntax: 'if (obj is  ... else')
-  Condition: IOperation:  (OperationKind.None) (Syntax: 'obj is string str')
-      Children(2): ILocalReferenceExpression: obj (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'obj')
-        IOperation:  (OperationKind.None) (Syntax: 'string str')
-          Children(1): ILocalReferenceExpression: str (OperationKind.LocalReferenceExpression, Type: System.String) (Syntax: 'string str')
+  Condition: IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'obj is string str')
+      Expression: ILocalReferenceExpression: obj (OperationKind.LocalReferenceExpression, Type: System.Object) (Syntax: 'obj')
+      Pattern: IDeclarationPattern (Declared Symbol: System.String str) (OperationKind.DeclarationPattern) (Syntax: 'string str')
   IfTrue: IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
       IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'Console.WriteLine(str);')
         IInvocationExpression (static void System.Console.WriteLine(System.String value)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'Console.WriteLine(str)')

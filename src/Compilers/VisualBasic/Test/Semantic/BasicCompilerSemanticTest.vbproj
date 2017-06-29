@@ -110,11 +110,13 @@
     <Compile Include="IOperation\IOperationTests_IArgument.vb" />
     <Compile Include="IOperation\IOperationTests_IFieldReferenceExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IObjectCreationExpression.vb" />
+    <Compile Include="IOperation\IOperationTests_IInterpolatedStringExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IParameterReferenceExpression.vb" />
     <Compile Include="IOperation\IOperationTests_InvalidStatement.vb" />
     <Compile Include="IOperation\IOperationTests_InvalidExpression.vb" />
     <Compile Include="IOperation\IOperationTests_IBlockStatement_MethodBlocks.vb" />
     <Compile Include="IOperation\IOperationTests_IIfStatement.vb" />
+    <Compile Include="IOperation\IOperationTests_IResturnStatement.vb" />
     <Compile Include="IOperation\IOperationTests_ISymbolInitializer.vb" />
     <Compile Include="IOperation\IOperationTests.vb" />
     <Compile Include="Diagnostics\OperationAnalyzerTests.vb" />

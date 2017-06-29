@@ -365,11 +365,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             DefaultVisit(operation);
         }
 
-        public virtual void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            DefaultVisit(operation);
-        }
-
         public virtual void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             DefaultVisit(operation);
@@ -386,6 +381,46 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual void VisitInvalidExpression(IInvalidExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitInterpolation(IInterpolation operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitConstantPattern(IConstantPattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            DefaultVisit(operation);
+        }
+
+        public virtual void VisitPatternCaseClause(IPatternCaseClause operation)
         {
             DefaultVisit(operation);
         }
@@ -760,11 +795,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return DefaultVisit(operation, argument);
         }
 
-        public virtual TResult VisitUnboundLambdaExpression(IUnboundLambdaExpression operation, TArgument argument)
-        {
-            return DefaultVisit(operation, argument);
-        }
-
         public virtual TResult VisitDefaultValueExpression(IDefaultValueExpression operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
@@ -781,6 +811,46 @@ namespace Microsoft.CodeAnalysis.Semantics
         }
 
         public virtual TResult VisitInvalidExpression(IInvalidExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }        
+
+        public virtual TResult VisitLocalFunctionStatement(ILocalFunctionStatement operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitInterpolatedStringExpression(IInterpolatedStringExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitInterpolatedStringText(IInterpolatedStringText operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitInterpolation(IInterpolation operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitIsPatternExpression(IIsPatternExpression operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitConstantPattern(IConstantPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitDeclarationPattern(IDeclarationPattern operation, TArgument argument)
+        {
+            return DefaultVisit(operation, argument);
+        }
+
+        public virtual TResult VisitPatternCaseClause(IPatternCaseClause operation, TArgument argument)
         {
             return DefaultVisit(operation, argument);
         }

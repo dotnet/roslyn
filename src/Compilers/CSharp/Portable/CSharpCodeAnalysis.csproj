@@ -181,14 +181,14 @@
     <Compile Include="BoundTree\Constructors.cs" />
     <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\DecisionTreeBuilder.cs" />
-    <Compile Include="BoundTree\Expression.cs" />
     <Compile Include="BoundTree\BoundDiscardExpression.cs" />
+    <Compile Include="BoundTree\Expression.cs" />
+    <Compile Include="BoundTree\Statement.cs" />
     <Compile Include="BoundTree\VariablePendingInference.cs" />
     <Compile Include="BoundTree\OutDeconstructVarPendingInference.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
-    <Compile Include="BoundTree\Statement.cs" />
     <Compile Include="Binder\SubsumptionDiagnosticBuilder.cs" />
     <Compile Include="BoundTree\UnboundLambda.cs" />
     <Compile Include="CodeGen\CodeGenerator.cs" />
@@ -291,9 +291,7 @@
     <Compile Include="Emitter\Model\NamedTypeReference.cs" />
     <Compile Include="Emitter\Model\NamedTypeSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\NamespaceSymbolAdapter.cs" />
-    <Compile Include="Emitter\Model\ParameterSymbolAdapter.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="Emitter\Model\ParameterSymbolAdapter.cs" />
     <Compile Include="Emitter\Model\ParameterTypeInformation.cs" />
     <Compile Include="Emitter\Model\PEAssemblyBuilder.cs" />
     <Compile Include="Emitter\Model\PEModuleBuilder.cs" />
@@ -460,6 +458,9 @@
     <Compile Include="Lowering\SynthesizedSubmissionFields.cs" />
     <Compile Include="Lowering\SyntheticBoundNodeFactory.cs" />
     <Compile Include="Lowering\UnmatchedGotoFinder.cs" />
+    <Compile Include="Operations\CSharpOperationFactory.cs" />
+    <Compile Include="Operations\CSharpOperationFactory_Methods.cs" />
+    <Compile Include="Operations\IBoundNodeWithIOperationChildren.cs" />
     <Compile Include="Parser\AbstractLexer.cs" />
     <Compile Include="Parser\BlendedNode.cs" />
     <Compile Include="Parser\Blender.cs" />

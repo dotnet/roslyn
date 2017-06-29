@@ -133,7 +133,7 @@ IOperation:  (OperationKind.None) (Syntax: 'from cust i ... t cust.Name')
                   Children(1): IParameterReferenceExpression: customers (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.List<Customer>) (Syntax: 'customers')
             IArgument (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument) (Syntax: 'cust.Name')
               IConversionExpression (ConversionKind.CSharp, Implicit) (OperationKind.ConversionExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
-                ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: System.Func<Customer, System.String>) (Syntax: 'cust.Name')
+                ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: 'cust.Name')
                   IBlockStatement (1 statements) (OperationKind.BlockStatement) (Syntax: 'cust.Name')
                     IReturnStatement (OperationKind.ReturnStatement) (Syntax: 'cust.Name')
                       IPropertyReferenceExpression: System.String Customer.Name { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
@@ -215,7 +215,7 @@ class Class
 ";
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None) (Syntax: 'new Action( ... })')
-  Children(1): ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: System.Action) (Syntax: '() => ... }')
+  Children(1): ILambdaExpression (Signature: lambda expression) (OperationKind.LambdaExpression, Type: null) (Syntax: '() => ... }')
       IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
         IExpressionStatement (OperationKind.ExpressionStatement) (Syntax: 'a();')
           IInvocationExpression (virtual void System.Action.Invoke()) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'a()')
@@ -588,23 +588,26 @@ internal class Class
 {
     public void M(string x, int y)
     {
-        Console.WriteLine(/*<bind>*/$""String {x, 20} and {y:D3} and constant {1}""/*</bind>*/);
+        Console.WriteLine(/*<bind>*/$""String {x,20} and {y:D3} and constant {1}""/*</bind>*/);
     }
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: '$""String {x ... nstant {1}""')
-  Children(6): ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
-    IOperation:  (OperationKind.None) (Syntax: '{x, 20}')
-      Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-        ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-    ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
-    IOperation:  (OperationKind.None) (Syntax: '{y:D3}')
-      Children(2): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
-    ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
-    IOperation:  (OperationKind.None) (Syntax: '{1}')
-      Children(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$""String {x ... nstant {1}""')
+  Parts(6): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+      Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: ""String "") (Syntax: 'String ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
+      Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
+      Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+    IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
+      Text: ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and "") (Syntax: ' and ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
+      Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+      FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: ""D3"") (Syntax: ':D3')
+    IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
+      Text: ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: "" and constant "") (Syntax: ' and constant ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+      Expression: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -654,16 +657,15 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'switch (x) ... }')
-  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IOperation:  (OperationKind.None) (Syntax: 'case var y  ... break;')
-      Children(2): IOperation:  (OperationKind.None) (Syntax: 'case var y  ...  (x >= 10):')
-          Children(2): IOperation:  (OperationKind.None) (Syntax: 'var y')
-              Children(1): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var y')
-            IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
-              Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-              Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-        IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+ISwitchStatement (1 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
+  Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case var y  ... break;')
+        Clauses: IPatternCaseClause (Label Symbol: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case var y  ...  (x >= 10):')
+            Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
+            Guard Expression: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
+                Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -690,20 +692,18 @@ internal class Class
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'switch (x) ... }')
-  Children(3): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-    IOperation:  (OperationKind.None) (Syntax: 'case var y  ... break;')
-      Children(2): IOperation:  (OperationKind.None) (Syntax: 'case var y  ...  (x >= 10):')
-          Children(2): IOperation:  (OperationKind.None) (Syntax: 'var y')
-              Children(1): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'var y')
-            IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
-              Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
-              Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
-        IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
-    IOperation:  (OperationKind.None) (Syntax: 'default:/*< ... break;')
-      Children(2): IOperation:  (OperationKind.None) (Syntax: 'default:')
-          Children(1): IOperation:  (OperationKind.None) (Syntax: 'default:')
-        IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+ISwitchStatement (2 cases) (OperationKind.SwitchStatement) (Syntax: 'switch (x) ... }')
+  Switch expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+  Sections: ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'case var y  ... break;')
+        Clauses: IPatternCaseClause (Label Symbol: case var y when (x >= 10):) (CaseKind.Pattern) (OperationKind.PatternCaseClause) (Syntax: 'case var y  ...  (x >= 10):')
+            Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'var y')
+            Guard Expression: IBinaryOperatorExpression (BinaryOperationKind.IntegerGreaterThanOrEqual) (OperationKind.BinaryOperatorExpression, Type: System.Boolean) (Syntax: 'x >= 10')
+                Left: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
+                Right: ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
+        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
+    ISwitchCase (1 case clauses, 1 statements) (OperationKind.SwitchCase) (Syntax: 'default:/*< ... break;')
+        Clauses: ISingleValueCaseClause (Equality operator kind: BinaryOperationKind.None) (CaseKind.Default) (OperationKind.SingleValueCaseClause) (Syntax: 'default:')
+        Body: IBranchStatement (BranchKind.Break) (OperationKind.BranchStatement) (Syntax: 'break;')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -841,10 +841,9 @@ class Class1
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'x is int y')
-  Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
-    IOperation:  (OperationKind.None) (Syntax: 'int y')
-      Children(1): ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'int y')
+IIsPatternExpression (OperationKind.IsPatternExpression, Type: System.Boolean) (Syntax: 'x is int y')
+  Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Object) (Syntax: 'x')
+  Pattern: IDeclarationPattern (Declared Symbol: System.Int32 y) (OperationKind.DeclarationPattern) (Syntax: 'int y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -875,19 +874,19 @@ class Class
 
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None) (Syntax: 'IEnumerable ... }')
-  Children(1): IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
-      IForEachLoopStatement (Iteration variable: T element) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... rn element;')
-        Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
-            IParameterReferenceExpression: source (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
-        Body: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (predica ... rn element;')
-            Condition: IInvocationExpression (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'predicate(element)')
-                Instance Receiver: IParameterReferenceExpression: predicate (OperationKind.ParameterReferenceExpression, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
-                Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'element')
-                    ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
-            IfTrue: IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return element;')
-                ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
-      YieldBreakStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
+ILocalFunctionStatement (Local Function: System.Collections.Generic.IEnumerable<T> Iterator()) (OperationKind.LocalFunctionStatement) (Syntax: 'IEnumerable ... }')
+  IBlockStatement (2 statements) (OperationKind.BlockStatement) (Syntax: '{ ... }')
+    IForEachLoopStatement (Iteration variable: T element) (LoopKind.ForEach) (OperationKind.LoopStatement) (Syntax: 'foreach (va ... rn element;')
+      Collection: IConversionExpression (ConversionKind.Cast, Implicit) (OperationKind.ConversionExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+          IParameterReferenceExpression: source (OperationKind.ParameterReferenceExpression, Type: System.Collections.Generic.IEnumerable<T>) (Syntax: 'source')
+      Body: IIfStatement (OperationKind.IfStatement) (Syntax: 'if (predica ... rn element;')
+          Condition: IInvocationExpression (virtual System.Boolean System.Func<T, System.Boolean>.Invoke(T arg)) (OperationKind.InvocationExpression, Type: System.Boolean) (Syntax: 'predicate(element)')
+              Instance Receiver: IParameterReferenceExpression: predicate (OperationKind.ParameterReferenceExpression, Type: System.Func<T, System.Boolean>) (Syntax: 'predicate')
+              Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: arg) (OperationKind.Argument) (Syntax: 'element')
+                  ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+          IfTrue: IReturnStatement (OperationKind.YieldReturnStatement) (Syntax: 'yield return element;')
+              ILocalReferenceExpression: element (OperationKind.LocalReferenceExpression, Type: T) (Syntax: 'element')
+    IReturnStatement (OperationKind.YieldBreakStatement) (Syntax: '{ ... }')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 

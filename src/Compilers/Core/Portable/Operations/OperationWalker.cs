@@ -329,6 +329,11 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Body);
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            Visit(operation.Body);
+        }
+
         public override void VisitLiteralExpression(ILiteralExpression operation)
         { }
 
@@ -402,9 +407,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             Visit(operation.Instance);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        { }
-
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         { }
 
@@ -419,6 +421,44 @@ namespace Microsoft.CodeAnalysis.Semantics
         public override void VisitInvalidExpression(IInvalidExpression operation)
         {
             VisitArray(operation.Children);
+        }
+
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            VisitArray(operation.Parts);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            Visit(operation.Text);
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            Visit(operation.Expression);
+            Visit(operation.Alignment);
+            Visit(operation.FormatString);
+        }
+
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            Visit(operation.Value);
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            Visit(operation.Expression);
+            Visit(operation.Pattern);
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            Visit(operation.Pattern);
+            Visit(operation.GuardExpression);
         }
     }
 }

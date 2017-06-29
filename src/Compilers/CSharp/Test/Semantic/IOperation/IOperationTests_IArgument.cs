@@ -1877,9 +1877,9 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
             {
             }
 
-            public static void Verify(IOperation operation)
-            {                                                   
-                Instance.Visit(operation);             
+            public static void Verify(IOperation operation, Compilation compilationIgnored, SyntaxNode syntaxNode)
+            {
+                Instance.Visit(operation);
             }
 
             public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)

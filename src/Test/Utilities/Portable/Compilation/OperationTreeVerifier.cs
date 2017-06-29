@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitYieldBreakStatement(IReturnStatement operation)
         {
-            LogString("YieldBreakStatement");
+            LogString(nameof(IReturnStatement));
             LogCommonPropertiesAndNewLine(operation);
 
             base.VisitYieldBreakStatement(operation);
@@ -1008,14 +1008,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitInstanceExpression(operation.Instance);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            LogString(nameof(IUnboundLambdaExpression));
-            LogCommonPropertiesAndNewLine(operation);
-
-            base.VisitUnboundLambdaExpression(operation);
-        }
-
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             LogString(nameof(IDefaultValueExpression));
@@ -1058,6 +1050,17 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.IfFalseStatement, "IfFalse");
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            LogString(nameof(ILocalFunctionStatement));
+
+            LogSymbol(operation.LocalFunctionSymbol, header: " (Local Function");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Body);
+        }
+
         private void LogCaseClauseCommon(ICaseClause operation)
         {
             var kindStr = $"{nameof(CaseKind)}.{operation.CaseKind}";
@@ -1092,6 +1095,68 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.MinimumValue, "Min");
             Visit(operation.MaximumValue, "Max");
+        }
+
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            LogString(nameof(IInterpolatedStringExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            VisitArray(operation.Parts, "Parts", logElementCount: true);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            LogString(nameof(IInterpolatedStringText));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Text, "Text");
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            LogString(nameof(IInterpolation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            Visit(operation.Alignment, "Alignment");
+            Visit(operation.FormatString, "FormatString");
+        }
+
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            LogString(nameof(IConstantPattern));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Value, "Value");
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            LogString(nameof(IDeclarationPattern));
+            LogSymbol(operation.DeclaredSymbol, " (Declared Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            LogString(nameof(IIsPatternExpression));
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.Expression, "Expression");
+            Visit(operation.Pattern, "Pattern");
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            LogString(nameof(IPatternCaseClause));
+            LogSymbol(operation.Label, " (Label Symbol");
+            LogString(")");
+            LogCaseClauseCommon(operation);
+
+            Visit(operation.Pattern, "Pattern");
+            Visit(operation.GuardExpression, "Guard Expression");
         }
 
         #endregion

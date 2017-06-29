@@ -91,7 +91,7 @@ IOperation:  (OperationKind.None) (Syntax: 'From cust I ... t cust.Name')
               IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of Customer, System.String)) (Syntax: 'cust.Name')
                 IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
                   Children(1): IOperation:  (OperationKind.None) (Syntax: 'cust.Name')
-                      Children(1): IIndexedPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
+                      Children(1): IPropertyReferenceExpression: Property Customer.Name As System.String (OperationKind.PropertyReferenceExpression, Type: System.String) (Syntax: 'cust.Name')
                           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'cust')
 ]]>.Value
 
@@ -167,7 +167,7 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
                 Arguments(1): IArgument (ArgumentKind.DefaultValue, Matching Parameter: keySelector) (OperationKind.Argument) (Syntax: 'y.Length')
                     IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: System.Func(Of System.String, System.Int32)) (Syntax: 'y.Length')
                       IOperation:  (OperationKind.None) (Syntax: 'y.Length')
-                        Children(1): IIndexedPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
+                        Children(1): IPropertyReferenceExpression: ReadOnly Property System.String.Length As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'y.Length')
                             Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'y')
 ]]>.Value
 
@@ -250,11 +250,11 @@ End Class]]>.Value
             Dim expectedOperationTree = <![CDATA[
 IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... }')
   Initializers(4): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.X = x')
-      Left: IIndexedPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
+      Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
       Right: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'x')
     IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.Y = {x, y, 3}')
-      Left: IIndexedPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32()) (Syntax: 'Y')
+      Left: IPropertyReferenceExpression: Property [Class].Y As System.Int32() (OperationKind.PropertyReferenceExpression, Type: System.Int32()) (Syntax: 'Y')
           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
       Right: IArrayCreationExpression (Element Type: System.Int32) (OperationKind.ArrayCreationExpression, Type: System.Int32()) (Syntax: '{x, y, 3}')
           Dimension Sizes(1): ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '{x, y, 3}')
@@ -263,7 +263,7 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                 IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
                 ILiteralExpression (Text: 3) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 3) (Syntax: '3')
     IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.Z = New Di ... om {{x, y}}')
-      Left: IIndexedPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
+      Left: IPropertyReferenceExpression: Property [Class].Z As System.Collections.Generic.Dictionary(Of System.Int32, System.Int32) (OperationKind.PropertyReferenceExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'Z')
           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
       Right: IObjectCreationExpression (Constructor: Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)..ctor()) (OperationKind.ObjectCreationExpression, Type: System.Collections.Generic.Dictionary(Of System.Int32, System.Int32)) (Syntax: 'New Diction ... om {{x, y}}')
           Initializers(1): IInvocationExpression ( Sub System.Collections.Generic.Dictionary(Of System.Int32, System.Int32).Add(key As System.Int32, value As System.Int32)) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: '{x, y}')
@@ -273,11 +273,11 @@ IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.Obje
                 IArgument (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument) (Syntax: 'y')
                   IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
     IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.C = New [C ... th {.X = z}')
-      Left: IIndexedPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class]) (Syntax: 'C')
+      Left: IPropertyReferenceExpression: Property [Class].C As [Class] (OperationKind.PropertyReferenceExpression, Type: [Class]) (Syntax: 'C')
           Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... }')
       Right: IObjectCreationExpression (Constructor: Sub [Class]..ctor()) (OperationKind.ObjectCreationExpression, Type: [Class]) (Syntax: 'New [Class] ... th {.X = z}')
           Initializers(1): IAssignmentExpression (OperationKind.AssignmentExpression, Type: System.Void) (Syntax: '.X = z')
-              Left: IIndexedPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
+              Left: IPropertyReferenceExpression: Property [Class].X As System.Int32 (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'X')
                   Instance Receiver: IOperation:  (OperationKind.None) (Syntax: 'New [Class] ... th {.X = z}')
               Right: IParameterReferenceExpression: z (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'z')
 ]]>.Value
@@ -469,18 +469,21 @@ Friend Class [Class]
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IOperation:  (OperationKind.None) (Syntax: '$"String {x ... nstant {1}"')
-  Children(6): ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
-    IOperation:  (OperationKind.None) (Syntax: '{x,20}')
-      Children(2): IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
-        ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
-    ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
-    IOperation:  (OperationKind.None) (Syntax: '{y:D3}')
-      Children(2): IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
-        ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
-    ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
-    IOperation:  (OperationKind.None) (Syntax: '{1}')
-      Children(1): ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+IInterpolatedStringExpression (OperationKind.InterpolatedStringExpression, Type: System.String) (Syntax: '$"String {x ... nstant {1}"')
+  Parts(6): IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: 'String ')
+      Text: ILiteralExpression (Text: String ) (OperationKind.LiteralExpression, Type: System.String, Constant: "String ") (Syntax: 'String ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{x,20}')
+      Expression: IParameterReferenceExpression: x (OperationKind.ParameterReferenceExpression, Type: System.String) (Syntax: 'x')
+      Alignment: ILiteralExpression (Text: 20) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 20) (Syntax: '20')
+    IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and ')
+      Text: ILiteralExpression (Text:  and ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and ") (Syntax: ' and ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{y:D3}')
+      Expression: IParameterReferenceExpression: y (OperationKind.ParameterReferenceExpression, Type: System.Int32) (Syntax: 'y')
+      FormatString: ILiteralExpression (OperationKind.LiteralExpression, Type: System.String, Constant: "D3") (Syntax: ':D3')
+    IInterpolatedStringText (OperationKind.InterpolatedStringText) (Syntax: ' and constant ')
+      Text: ILiteralExpression (Text:  and constant ) (OperationKind.LiteralExpression, Type: System.String, Constant: " and constant ") (Syntax: ' and constant ')
+    IInterpolation (OperationKind.Interpolation) (Syntax: '{1}')
+      Expression: ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty

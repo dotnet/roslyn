@@ -393,6 +393,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLambdaExpression(operation);
         }
 
+        public override void VisitLocalFunctionStatement(ILocalFunctionStatement operation)
+        {
+            var localFunction = operation.LocalFunctionSymbol;
+
+            base.VisitLocalFunctionStatement(operation);
+        }
+
         public override void VisitLiteralExpression(ILiteralExpression operation)
         {
             var text = operation.Text;
@@ -488,11 +495,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             base.VisitLateBoundMemberReferenceExpression(operation);
         }
 
-        public override void VisitUnboundLambdaExpression(IUnboundLambdaExpression operation)
-        {
-            base.VisitUnboundLambdaExpression(operation);
-        }
-
         public override void VisitDefaultValueExpression(IDefaultValueExpression operation)
         {
             base.VisitDefaultValueExpression(operation);
@@ -511,6 +513,45 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override void VisitInvalidExpression(IInvalidExpression operation)
         {
             base.VisitInvalidExpression(operation);
+        }
+
+        public override void VisitInterpolatedStringExpression(IInterpolatedStringExpression operation)
+        {
+            base.VisitInterpolatedStringExpression(operation);
+        }
+
+        public override void VisitInterpolatedStringText(IInterpolatedStringText operation)
+        {
+            base.VisitInterpolatedStringText(operation);
+        }
+
+        public override void VisitInterpolation(IInterpolation operation)
+        {
+            base.VisitInterpolation(operation);
+        }
+
+        public override void VisitConstantPattern(IConstantPattern operation)
+        {
+            base.VisitConstantPattern(operation);
+        }
+
+        public override void VisitDeclarationPattern(IDeclarationPattern operation)
+        {
+            var declaredSymbol = operation.DeclaredSymbol;
+
+            base.VisitDeclarationPattern(operation);
+        }
+
+        public override void VisitIsPatternExpression(IIsPatternExpression operation)
+        {
+            base.VisitIsPatternExpression(operation);
+        }
+
+        public override void VisitPatternCaseClause(IPatternCaseClause operation)
+        {
+            var label = operation.Label;
+
+            base.VisitPatternCaseClause(operation);
         }
     }
 }

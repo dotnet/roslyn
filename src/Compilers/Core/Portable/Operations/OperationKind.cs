@@ -126,7 +126,9 @@ namespace Microsoft.CodeAnalysis
         ConditionalAccessExpression = 0x11c,
         /// <summary>Indicates an <see cref="IConditionalAccessInstanceExpression"/>.</summary>
         ConditionalAccessInstanceExpression = 0x11d,
-
+        /// <summary>Indicates an <see cref="IInterpolatedStringExpression"/>.</summary>
+        InterpolatedStringExpression = 0x11e,
+        
         // Expressions that occur only in C#.
 
         /// <summary>Indicates an <see cref="IDefaultValueExpression"/>.</summary>
@@ -139,11 +141,11 @@ namespace Microsoft.CodeAnalysis
         AddressOfExpression = 0x203,
         /// <summary>Indicates an <see cref="IPointerIndirectionReferenceExpression"/>.</summary>
         PointerIndirectionReferenceExpression = 0x204,
-        /// <summary>Indicates an <see cref="IUnboundLambdaExpression"/>.</summary>
-        UnboundLambdaExpression = 0x205,
+        /// <summary>Indicates an <see cref="IIsPatternExpression"/>.</summary>
+        IsPatternExpression = 0x205,
         /// <summary>Indicates an <see cref="IIncrementExpression"/>.</summary>
         IncrementExpression = 0x206,
-
+        
         // Expressions that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IOmittedArgumentExpression"/>.</summary>
@@ -185,5 +187,17 @@ namespace Microsoft.CodeAnalysis
         RelationalCaseClause = 0x40b,
         /// <summary>Indicates an <see cref="IRangeCaseClause"/>.</summary>
         RangeCaseClause = 0x40c,
+
+        /// <summary>Indicates an <see cref="IInterpolatedStringText"/>.</summary>
+        InterpolatedStringText = 0x40d,
+        /// <summary>Indicates an <see cref="IInterpolation"/>.</summary>
+        Interpolation = 0x40e,
+
+        /// <summary>Indicates an <see cref="IConstantPattern"/>.</summary>
+        ConstantPattern = 0x40f,
+        /// <summary>Indicates an <see cref="IDeclarationPattern"/>.</summary>
+        DeclarationPattern = 0x410,
+        /// <summary>Indicates an <see cref="IPatternCaseClause"/>.</summary>
+        PatternCaseClause = 0x411,
     }
 }
