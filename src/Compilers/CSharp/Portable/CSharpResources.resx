@@ -5169,6 +5169,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Field-like events are not allowed in readonly structs.</value>
   </data>
   <data name="IDS_FeatureRefExtensionMethods" xml:space="preserve">
-    <value>reference extension methods</value>
+    <value>ref or in extension methods</value>
   </data>
 </root>
