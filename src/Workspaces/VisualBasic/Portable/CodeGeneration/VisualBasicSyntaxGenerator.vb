@@ -1892,12 +1892,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return IsChildOf(node, SyntaxKind.FieldDeclaration) OrElse IsChildOf(node, SyntaxKind.LocalDeclarationStatement)
         End Function
 
-        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode)) As SyntaxNode
-            Dim isolated = AsIsolatedDeclaration(declaration)
-
-            Return PreserveTrivia(isolated, editor)
-        End Function
-
         Private Function GetFullDeclaration(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.ModifiedIdentifier
@@ -1921,7 +1915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return declaration
         End Function
 
-        Private Function AsIsolatedDeclaration(declaration As SyntaxNode) As SyntaxNode
+        Friend Overrides Function AsIsolatedDeclaration(declaration As SyntaxNode) As SyntaxNode
             Select Case declaration.Kind
                 Case SyntaxKind.ModifiedIdentifier
                     Dim full = GetFullDeclaration(declaration)
@@ -3913,15 +3907,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Next
         End Sub
 
-        Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
-            Return RemoveNode(root, declaration, DefaultRemoveOptions)
-        End Function
-
-        Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
-            If root.Span.Contains(declaration.Span) Then
-                Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveNodeInternal(r, r.GetCurrentNode(declaration), options))
+        Public Overrides Function RemoveNode(root As SyntaxNode, node As SyntaxNode, options As SyntaxRemoveOptions) As SyntaxNode
+            If root.Span.Contains(node.Span) Then
+                Dim isolated = AsIsolatedDeclaration(root.TrackNodes(node))
+                Return RemoveNodeInternal(isolated, isolated.GetCurrentNode(node), options)
             Else
-                Return MyBase.RemoveNode(root, declaration, options)
+                Return MyBase.RemoveNode(root, node, options)
             End If
         End Function
 
@@ -3946,6 +3937,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
                         ' remove entire attribute statement if this is the only attribute list
                         Return RemoveNodeInternal(root, attrStmt, options)
+                    Else
+                        ' Isolate so that the comments on the attribute list move to the declaration
+                        ' the attribute is on.
+                        Dim declaration = attrList.Parent
+                        Dim finalDeclaration = Isolate(
+                            root.TrackNodes(declaration, attrList).GetCurrentNode(declaration),
+                            Function(d) d.RemoveNode(d.GetCurrentNode(attrList), options))
+
+                        Return root.ReplaceNode(declaration, finalDeclaration)
                     End If
                 Case SyntaxKind.Attribute
                     Dim attrList = TryCast(node.Parent, AttributeListSyntax)

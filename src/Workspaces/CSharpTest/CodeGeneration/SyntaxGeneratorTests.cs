@@ -1525,17 +1525,31 @@ public interface IFace
         [Fact]
         public void TestAddRemoveAttributesPerservesTrivia()
         {
-            var cls = SyntaxFactory.ParseCompilationUnit(@"// comment
+            var cls = SyntaxFactory.ParseCompilationUnit(
+@"// comment
 public class C { } // end").Members[0];
 
             var added = _g.AddAttributes(cls, _g.Attribute("a"));
-            VerifySyntax<ClassDeclarationSyntax>(added, "// comment\r\n[a]\r\npublic class C\r\n{\r\n} // end\r\n");
+            VerifySyntax<ClassDeclarationSyntax>(added,
+@"// comment
+[a]
+public class C
+{
+} // end
+");
 
             var removed = _g.RemoveAllAttributes(added);
-            VerifySyntax<ClassDeclarationSyntax>(removed, "// comment\r\npublic class C\r\n{\r\n} // end\r\n");
+            VerifySyntax<ClassDeclarationSyntax>(removed,
+@"// comment
+public class C
+{
+} // end
+");
 
             var attrWithComment = _g.GetAttributes(added).First();
-            VerifySyntax<AttributeListSyntax>(attrWithComment, "// comment\r\n[a]");
+            VerifySyntax<AttributeListSyntax>(attrWithComment,
+@"// comment
+[a]");
         }
 
         [Fact]

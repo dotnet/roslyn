@@ -830,7 +830,19 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Removes all attributes from the declaration, including return attributes.
         /// </summary>
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
-            => this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
+        {
+            return RemoveNodes(declaration,
+                this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
+        }
+
+        internal SyntaxNode Isolate(SyntaxNode declaration, Func<SyntaxNode, SyntaxNode> editor)
+        {
+            var isolated = AsIsolatedDeclaration(declaration);
+
+            return PreserveTrivia(isolated, editor);
+        }
+
+        internal abstract SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration);
 
         internal SyntaxNode RemoveAllComments(SyntaxNode declaration)
         {

@@ -1054,5 +1054,45 @@ namespace N
             await TestMoveTypeToNewFileAsync(
                 code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
         }
+
+        [WorkItem(17879, "https://github.com/dotnet/roslyn/issues/17879")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+        public async Task DoNotMoveLeadingFileTrivia()
+        {
+            var code =
+@"
+/// <summary>
+/// </summary>
+delegate void Foo();
+
+class C
+{
+}
+
+[||]class D
+{
+}
+";
+            var codeAfterMove =
+@"
+/// <summary>
+/// </summary>
+delegate void Foo();
+
+class C
+{
+}
+";
+
+            var expectedDocumentName = "D.cs";
+            var destinationDocumentText =
+@"class D
+{
+}
+";
+
+            await TestMoveTypeToNewFileAsync(
+                code, codeAfterMove, expectedDocumentName, destinationDocumentText, ignoreTrivia: false);
+        }
     }
 }

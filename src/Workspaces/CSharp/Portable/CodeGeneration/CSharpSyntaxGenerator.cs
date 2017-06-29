@@ -2370,14 +2370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        private SyntaxNode Isolate(SyntaxNode declaration, Func<SyntaxNode, SyntaxNode> editor)
-        {
-            var isolated = AsIsolatedDeclaration(declaration);
-
-            return PreserveTrivia(isolated, editor);
-        }
-
-        private SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
+        internal override SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
         {
             if (declaration != null)
             {
@@ -3381,17 +3374,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
-        {
-            return RemoveNode(root, node, DefaultRemoveOptions);
-        }
-
         public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
         {
             if (root.Span.Contains(node.Span))
             {
                 // node exists within normal span of the root (not in trivia)
-                return this.Isolate(root.TrackNodes(node), r => RemoveNodeInternal(r, r.GetCurrentNode(node), options));
+                var isolated = AsIsolatedDeclaration(root.TrackNodes(node));
+                return RemoveNodeInternal(isolated, isolated.GetCurrentNode(node), options);
             }
             else
             {
@@ -3399,31 +3388,33 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        private SyntaxNode RemoveNodeInternal(SyntaxNode root, SyntaxNode declaration, SyntaxRemoveOptions options)
+        private SyntaxNode RemoveNodeInternal(SyntaxNode root, SyntaxNode node, SyntaxRemoveOptions options)
         {
-            switch (declaration.Kind())
+            switch (node.Kind())
             {
                 case SyntaxKind.Attribute:
-                    var attr = (AttributeSyntax)declaration;
-                    var attrList = attr.Parent as AttributeListSyntax;
-                    if (attrList != null && attrList.Attributes.Count == 1)
                     {
-                        // remove entire list if only one attribute
-                        return this.RemoveNodeInternal(root, attrList, options);
+                        var attr = (AttributeSyntax)node;
+                        var attrList = attr.Parent as AttributeListSyntax;
+                        if (attrList != null && attrList.Attributes.Count == 1)
+                        {
+                            // remove entire list if only one attribute
+                            return this.RemoveNodeInternal(root, attrList, options);
+                        }
                     }
                     break;
 
                 case SyntaxKind.AttributeArgument:
-                    if (declaration.Parent != null && ((AttributeArgumentListSyntax)declaration.Parent).Arguments.Count == 1)
+                    if (node.Parent != null && ((AttributeArgumentListSyntax)node.Parent).Arguments.Count == 1)
                     {
                         // remove entire argument list if only one argument
-                        return this.RemoveNodeInternal(root, declaration.Parent, options);
+                        return this.RemoveNodeInternal(root, node.Parent, options);
                     }
                     break;
 
                 case SyntaxKind.VariableDeclarator:
-                    var full = this.GetFullDeclaration(declaration);
-                    if (full != declaration && GetDeclarationCount(full) == 1)
+                    var full = this.GetFullDeclaration(node);
+                    if (full != node && GetDeclarationCount(full) == 1)
                     {
                         // remove full declaration if only one declarator
                         return this.RemoveNodeInternal(root, full, options);
@@ -3431,7 +3422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     break;
 
                 case SyntaxKind.SimpleBaseType:
-                    var baseList = declaration.Parent as BaseListSyntax;
+                    var baseList = node.Parent as BaseListSyntax;
                     if (baseList != null && baseList.Types.Count == 1)
                     {
                         // remove entire base list if this is the only base type.
@@ -3439,20 +3430,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     }
                     break;
 
-                default:
-                    var parent = declaration.Parent;
-                    if (parent != null)
+                case SyntaxKind.AttributeList:
                     {
-                        switch (parent.Kind())
+                        // Isolate so that the comments on the attribute list move to the declaration
+                        // the attribute is on.
+                        var attrList = (AttributeListSyntax)node;
+                        var declaration = attrList.Parent;
+                        var finalDeclaration = Isolate(
+                            root.TrackNodes(declaration, attrList).GetCurrentNode(declaration),
+                            d => d.RemoveNode(d.GetCurrentNode(attrList), options));
+
+                        return root.ReplaceNode(declaration, finalDeclaration);
+                    }
+
+                default:
+                    {
+                        var parent = node.Parent;
+                        if (parent != null)
                         {
-                            case SyntaxKind.SimpleBaseType:
-                                return RemoveNodeInternal(root, parent, options);
+                            switch (parent.Kind())
+                            {
+                                case SyntaxKind.SimpleBaseType:
+                                    return RemoveNodeInternal(root, parent, options);
+                            }
                         }
                     }
+
                     break;
             }
 
-            return base.RemoveNode(root, declaration, options);
+            return base.RemoveNode(root, node, options);
         }
 
         /// <summary>

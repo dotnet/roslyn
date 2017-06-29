@@ -3589,8 +3589,7 @@ Imports X
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
                 _g.RemoveNodes(declCU, {declX, declY, declZ}),
-<x>' Comment
-</x>.Value)
+<x></x>.Value)
 
         End Sub
 #End Region
