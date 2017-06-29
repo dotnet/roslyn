@@ -56,12 +56,13 @@ End Class
 
         <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
         <Fact()>
-        Public Sub ProtectedHandler()
+        Public Sub EventVisibility()
             Dim source = <compilation name="F">
                              <file name="F.vb">
  Public Class Form1
     Protected Event EventA As System.Action
-    private Event EventB As System.Action
+    Private Event EventB As System.Action
+    Friend Event EventC As System.Action
 End Class
 
 Public Class Form2
@@ -70,9 +71,18 @@ Public Class Form2
     Public Sub New()
         AddHandler MyBase.EventA, Nothing
         RemoveHandler MyBase.EventA, Nothing
+        AddHandler EventA, Nothing
+        RemoveHandler EventA, Nothing
 
         AddHandler MyBase.EventB, Nothing
         RemoveHandler MyBase.EventB, Nothing
+        AddHandler EventB, Nothing
+        RemoveHandler EventB, Nothing
+
+        AddHandler MyBase.EventC, Nothing
+        RemoveHandler MyBase.EventC, Nothing
+        AddHandler EventC, Nothing
+        RemoveHandler EventC, Nothing
     End Sub
 End Class
                              </file>
@@ -86,6 +96,12 @@ BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private
 BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
         RemoveHandler MyBase.EventB, Nothing
                       ~~~~~~~~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        AddHandler EventB, Nothing
+                   ~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        RemoveHandler EventB, Nothing
+                      ~~~~~~
 </Expected>)
         End Sub
 
