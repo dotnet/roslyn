@@ -52,7 +52,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
             VisualStudio.Editor.SetText(
 @"class SomeClass
 {
-}");
+}
+");
             VisualStudio.SolutionExplorer.CloseFile(project, "FileDef.cs", saveFile: true);
             VisualStudio.SolutionExplorer.AddFile(project, "FileConsumer.cs");
             VisualStudio.SolutionExplorer.OpenFile(project, "FileConsumer.cs");

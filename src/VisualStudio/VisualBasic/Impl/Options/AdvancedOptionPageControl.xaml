@@ -62,6 +62,13 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Collapse_regions_when_collapsing_to_definitions}" />
                 </StackPanel>
             </GroupBox>
+            <GroupBox x:Uid="FadingGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Fading}">
+                <StackPanel>
+                    <CheckBox x:Name="Fade_out_unused_imports"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Fade_out_unused_imports}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="BlockStructureGuidesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Block_Structure_Guides}">
                 <StackPanel>

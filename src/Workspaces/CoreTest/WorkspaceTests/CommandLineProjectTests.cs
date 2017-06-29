@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -109,6 +110,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var secondDoc = info.AdditionalDocuments.Single();
             Assert.Equal("foo.cs", firstDoc.Name);
             Assert.Equal("bar.cs", secondDoc.Name);
+        }
+
+        [Fact]
+        public void TestAnalyzerReferences()
+        {
+            var pathToAssembly = typeof(object).Assembly.Location;
+            var assemblyBaseDir = Path.GetDirectoryName(pathToAssembly);
+            var relativePath = Path.Combine(".", Path.GetFileName(pathToAssembly));
+            string commandLine = @"foo.cs /a:" + relativePath;
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, assemblyBaseDir);
+
+            var firstDoc = info.Documents.Single();
+            var analyzerRef = info.AnalyzerReferences.First();
+            Assert.Equal("foo.cs", firstDoc.Name);
+            Assert.Equal(pathToAssembly, analyzerRef.FullPath);
         }
     }
 }

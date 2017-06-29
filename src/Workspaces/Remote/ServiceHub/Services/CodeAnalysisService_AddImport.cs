@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public async Task<ImmutableArray<AddImportFixData>> GetFixesAsync(
             DocumentId documentId, TextSpan span, string diagnosticId, bool placeSystemNamespaceFirst,
-            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources)
+            bool searchReferenceAssemblies, ImmutableArray<PackageSource> packageSources, CancellationToken cancellationToken)
         {
             using (UserOperationBooster.Boost())
             {
-                var solution = await GetSolutionAsync().ConfigureAwait(false);
+                var solution = await GetSolutionAsync(cancellationToken).ConfigureAwait(false);
                 var document = solution.GetDocument(documentId);
 
                 var service = document.GetLanguageService<IAddImportFeatureService>();
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var result = await service.GetFixesAsync(
                     document, span, diagnosticId, placeSystemNamespaceFirst,
                     symbolSearchService, searchReferenceAssemblies,
-                    packageSources, CancellationToken).ConfigureAwait(false);
+                    packageSources, cancellationToken).ConfigureAwait(false);
 
                 return result;
             }

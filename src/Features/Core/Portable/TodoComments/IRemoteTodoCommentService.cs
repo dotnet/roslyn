@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.TodoComments
@@ -11,6 +12,6 @@ namespace Microsoft.CodeAnalysis.TodoComments
     /// </summary>
     internal interface IRemoteTodoCommentService
     {
-        Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, ImmutableArray<TodoCommentDescriptor> commentDescriptors);
+        Task<IList<TodoComment>> GetTodoCommentsAsync(DocumentId documentId, ImmutableArray<TodoCommentDescriptor> commentDescriptors, CancellationToken cancellationToken);
     }
 }

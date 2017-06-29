@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.DiaSymReader;
 using Roslyn.Utilities;
 
@@ -409,7 +410,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             foreach (var dynamicLocal in dynamicLocals)
             {
                 int slot = dynamicLocal.SlotId;
-                var flags = GetFlags(dynamicLocal);
+                var flags = dynamicLocal.Flags;
                 if (slot == 0)
                 {
                     LocalKind kind;
@@ -442,18 +443,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
 
             localKindsByName.Free();
-        }
-
-        private static ImmutableArray<bool> GetFlags(DynamicLocalInfo bucket)
-        {
-            int flagCount = bucket.FlagCount;
-            ulong flags = bucket.Flags;
-            var builder = ArrayBuilder<bool>.GetInstance(flagCount);
-            for (int i = 0; i < flagCount; i++)
-            {
-                builder.Add((flags & (1u << i)) != 0);
-            }
-            return builder.ToImmutableAndFree();
         }
 
         private enum LocalKind { DuplicateName, VariableName, ConstantName }

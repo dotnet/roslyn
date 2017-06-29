@@ -170,6 +170,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_guides_for_code_level_constructs As String =
             ServicesVSResources.Show_guides_for_code_level_constructs
 
+        Public ReadOnly Property Option_Fading As String = ServicesVSResources.Fading
+        Public ReadOnly Property Option_Fade_out_unused_imports As String = BasicVSResources.Fade_out_unused_imports
+
         Public ReadOnly Property Option_Performance As String
             Get
                 Return BasicVSResources.Performance
