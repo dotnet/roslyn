@@ -23,6 +23,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EventSymbolTests
         Inherits BasicTestBase
+
+
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub CustomEventVisibility()
+            Dim source = <compilation name="F">
+                             <file name="F.vb">
+Imports System
+
+Public Class C
+    Protected Custom Event Click As EventHandler
+        AddHandler(ByVal value As EventHandler)
+    		Console.Write("add")
+        End AddHandler
+
+        RemoveHandler(ByVal value As EventHandler)
+			Console.Write("remove")
+        End RemoveHandler
+
+        RaiseEvent(ByVal sender As Object, ByVal e As EventArgs)
+			Console.Write("raise")
+        End RaiseEvent
+    End Event
+End Class
+
+Public Class D
+	Inherits C
+
+	Public Sub F()
+		AddHandler Click, Nothing 
+		RemoveHandler Click, Nothing
+		AddHandler MyBase.Click, Nothing 
+		RemoveHandler MyBase.Click, Nothing
+	End Sub
+End Class
+                             </file>
+                         </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(comp, <Expected></Expected>)
+        End Sub
+
         <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
         <Fact()>
         Public Sub ProtectedHandlerDefinedInCSharp()
