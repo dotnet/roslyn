@@ -23,6 +23,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EventSymbolTests
         Inherits BasicTestBase
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub ProtectedHandlerDefinedInCSharp()
+            Dim csharpCompilation = Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase.CreateStandardCompilation("
+public class C {
+	protected delegate void Handle();
+    protected event Handle MyEvent;
+}
+
+public class D: C {
+  public D() {
+    MyEvent += () => {};
+  }
+}
+")
+            Dim source = Parse("
+Public Class E
+    Inherits C
+    Public Sub S()
+        AddHandler MyBase.MyEvent, Nothing
+    End Sub
+End Class
+")
+            Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+                sourceTrees:={source},
+                references:={csharpCompilation.EmitToImageReference()},
+                options:=TestOptions.DebugDll.WithOptionStrict(OptionStrict.On))
+            CompilationUtils.AssertTheseCompileDiagnostics(vbCompilation, <Expected></Expected>)
+
+        End Sub
 
         <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
         <Fact()>
@@ -30,24 +60,33 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim source = <compilation name="F">
                              <file name="F.vb">
  Public Class Form1
-    Protected Event EnterOriginal As System.Action
-
-    Protected Property P1 As Integer
-
+    Protected Event EventA As System.Action
+    private Event EventB As System.Action
 End Class
 
 Public Class Form2
     Inherits Form1
 
     Public Sub New()
-        AddHandler MyBase.EnterOriginal, Nothing
-        RemoveHandler MyBase.EnterOriginal, Nothing
+        AddHandler MyBase.EventA, Nothing
+        RemoveHandler MyBase.EventA, Nothing
+
+        AddHandler MyBase.EventB, Nothing
+        RemoveHandler MyBase.EventB, Nothing
     End Sub
 End Class
                              </file>
                          </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseDll.WithOptionStrict(OptionStrict.On))
-            CompilationUtils.AssertTheseCompileDiagnostics(comp, <Expected></Expected>)
+            CompilationUtils.AssertTheseCompileDiagnostics(comp,
+<Expected>
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        AddHandler MyBase.EventB, Nothing
+                   ~~~~~~~~~~~~~
+BC30389: 'Form1.EventB' is not accessible in this context because it is 'Private'.
+        RemoveHandler MyBase.EventB, Nothing
+                      ~~~~~~~~~~~~~
+</Expected>)
         End Sub
 
         <WorkItem(542806, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542806")>
