@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis
             _node = node;
         }
 
+        //public SyntaxList(TNode node)
+        //    : this((SyntaxNode)node)
+        //{
+        //}
+
         internal SyntaxNode Node
         {
             get

@@ -1284,18 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="tokens">An array of tokens.</param>
         public static SyntaxTokenList TokenList(params SyntaxToken[] tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = new SyntaxTokenListBuilder(tokens.Length);
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)tokens[i].Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>
@@ -1305,18 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens)
         {
-            if (tokens == null)
-            {
-                return default(SyntaxTokenList);
-            }
-
-            SyntaxTokenListBuilder builder = SyntaxTokenListBuilder.Create();
-            foreach (SyntaxToken token in tokens)
-            {
-                builder.Add((InternalSyntax.SyntaxToken)token.Node);
-            }
-
-            return builder.ToList();
+            return new SyntaxTokenList(tokens);
         }
 
         /// <summary>

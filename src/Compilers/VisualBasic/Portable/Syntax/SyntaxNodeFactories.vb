@@ -767,14 +767,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tokens">An array of tokens.</param>
         Public Shared Function TokenList(ParamArray tokens As SyntaxToken()) As SyntaxTokenList
-            If tokens IsNot Nothing Then
-                Dim builder As New SyntaxTokenListBuilder(tokens.Length)
-                For i = 0 To tokens.Length - 1
-                    builder.Add(DirectCast(tokens(i).Node, InternalSyntax.SyntaxToken))
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxTokenList()
+            Return New SyntaxTokenList(tokens)
         End Function
 
         ''' <summary>
@@ -782,14 +775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="tokens"></param>
         Public Shared Function TokenList(tokens As IEnumerable(Of SyntaxToken)) As SyntaxTokenList
-            If tokens IsNot Nothing Then
-                Dim builder = SyntaxTokenListBuilder.Create()
-                For Each t In tokens
-                    builder.Add(DirectCast(t.Node, InternalSyntax.SyntaxToken))
-                Next
-                Return builder.ToList
-            End If
-            Return New SyntaxTokenList()
+            Return New SyntaxTokenList(tokens)
         End Function
 
         ''' <summary>
