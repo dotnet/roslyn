@@ -7,7 +7,20 @@ namespace Microsoft.CodeAnalysis.CodeStyle
 {
     internal static class CodeStyleHelpers
     {
-        public static bool TryParseEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
+        public static bool TryParseStringEditorConfigCodeStyleOption(string arg, out CodeStyleOption<string> option)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(
+                    arg, out string value, out NotificationOption notificationOpt))
+            {
+                option = new CodeStyleOption<string>(value, notificationOpt ?? NotificationOption.None);
+                return true;
+            }
+
+            option = null;
+            return false;
+        }
+
+        public static bool TryParseBoolEditorConfigCodeStyleOption(string arg, out CodeStyleOption<bool> option)
         {
             if (TryGetCodeStyleValueAndOptionalNotification(
                     arg, out string value, out NotificationOption notificationOpt))

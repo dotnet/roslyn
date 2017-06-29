@@ -1732,5 +1732,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool ContainsInterleavedDirective(TextSpan span, SyntaxToken token, CancellationToken cancellationToken)
             => token.ContainsInterleavedDirective(span, cancellationToken);
+
+        public SyntaxTokenList GetModifiers(SyntaxNode node)
+            => node.GetModifiers();
+
+        public SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers)
+            => node.WithModifiers(modifiers);
     }
 }

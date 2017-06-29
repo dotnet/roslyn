@@ -171,6 +171,9 @@
     <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
     <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersCodeFixProvider.cs" />
+    <Compile Include="OrderModifiers\OrderModifiersHelpers.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />

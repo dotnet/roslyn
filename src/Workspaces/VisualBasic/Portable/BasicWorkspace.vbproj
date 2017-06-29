@@ -95,6 +95,7 @@
     <Compile Include="CodeGeneration\VisualBasicCodeGenerationServiceFactory.vb" />
     <Compile Include="CodeGeneration\VisualBasicDeclarationComparer.vb" />
     <Compile Include="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
+    <Compile Include="CodeStyle\VisualBasicCodeStyleOptions.vb" />
     <Compile Include="Composition\VisualBasicWorkspaceFeatures.vb" />
     <Compile Include="Editing\VisualBasicImportAdder.vb" />
     <Compile Include="Execution\VisualBasicOptionsSerializationService.vb" />

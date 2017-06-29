@@ -1593,5 +1593,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function ISyntaxFactsService_GetBannerText(documentationCommentTriviaSyntax As SyntaxNode, cancellationToken As CancellationToken) As String Implements ISyntaxFactsService.GetBannerText
             Return GetBannerText(documentationCommentTriviaSyntax, cancellationToken)
         End Function
+
+        Public Function GetModifiers(node As SyntaxNode) As SyntaxTokenList Implements ISyntaxFactsService.GetModifiers
+            Return node.GetModifiers()
+        End Function
+
+        Public Function WithModifiers(node As SyntaxNode, modifiers As SyntaxTokenList) As SyntaxNode Implements ISyntaxFactsService.WithModifiers
+            Return node.WithModifiers(modifiers)
+        End Function
     End Class
 End Namespace
