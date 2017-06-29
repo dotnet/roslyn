@@ -122,7 +122,12 @@
     <Compile Include="AddParameter\AbstractAddParameterCodeFixProvider.cs" />
     <Compile Include="RemoveUnusedVariable\AbstractRemoveUnusedVariableCodeFixProvider.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\ISymbolRenamedCodeActionOperationFactoryWorkspaceService.cs" />
+    <Compile Include="CommentSelection\AbstractCommentSelectionService.cs" />
+    <Compile Include="CommentSelection\CommentSelectionInfo.cs" />
+    <Compile Include="CommentSelection\ICommentSelectionService.cs" />
+    <Compile Include="Completion\CompletionHelperServiceFactory.cs" />
     <Compile Include="Completion\FileSystemCompletionHelper.cs" />
+    <Compile Include="Completion\ICompletionHelperService.cs" />
     <Compile Include="ConvertIfToSwitch\AbstractConvertIfToSwitchCodeRefactoringProvider.cs" />
     <Compile Include="ConvertNumericLiteral\AbstractConvertNumericLiteralCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\UseNamedArguments\AbstractUseNamedArgumentsCodeRefactoringProvider.cs" />
@@ -166,6 +171,9 @@
     <Compile Include="InitializeParameter\AbstractInitializeMemberFromParameterCodeRefactoringProviderMemberCreation.cs" />
     <Compile Include="InitializeParameter\AbstractAddParameterCheckCodeRefactoringProvider.cs" />
     <Compile Include="InitializeParameter\AbstractInitializeParameterCodeRefactoringProvider.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersDiagnosticAnalyzer.cs" />
+    <Compile Include="OrderModifiers\AbstractOrderModifiersCodeFixProvider.cs" />
+    <Compile Include="OrderModifiers\OrderModifiersHelpers.cs" />
     <Compile Include="PickMembers\IPickMembersService.cs" />
     <Compile Include="PickMembers\PickMembersResult.cs" />
     <Compile Include="GenerateFromMembers\SelectedMemberInfo.cs" />

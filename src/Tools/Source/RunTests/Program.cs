@@ -23,6 +23,8 @@ namespace RunTests
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
 
+        private const long MaxTotalDumpSizeInMegabytes = 4096; 
+
         internal static int Main(string[] args)
         {
             Logger.Log("RunTest command line");
@@ -42,7 +44,9 @@ namespace RunTests
                 cts.Cancel();
             };
 
-            return Run(options, cts.Token).GetAwaiter().GetResult();
+            var result = Run(options, cts.Token).GetAwaiter().GetResult();
+            CheckTotalDumpFilesSize();
+            return result;
         }
 
         private static async Task<int> Run(Options options, CancellationToken cancellationToken)
@@ -186,12 +190,12 @@ namespace RunTests
             }
 
             Console.WriteLine("Roslyn Error: test timeout exceeded, dumping remaining processes");
-
             if (!string.IsNullOrEmpty(options.ProcDumpPath))
             {
                 var dumpDir = options.LogFilePath != null
                     ? Path.GetDirectoryName(options.LogFilePath)
                     : Directory.GetCurrentDirectory();
+                Console.WriteLine($"Dump file location is {dumpDir}");
 
                 var counter = 0;
                 foreach (var proc in ProcessUtil.GetProcessTree(Process.GetCurrentProcess()).OrderBy(x => x.ProcessName))
@@ -310,6 +314,8 @@ namespace RunTests
         {
             var testExecutionOptions = new TestExecutionOptions(
                 xunitPath: options.XunitPath,
+                procDumpPath: options.ProcDumpPath,
+                logFilePath: options.LogFilePath,
                 trait: options.Trait,
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,
@@ -375,6 +381,26 @@ namespace RunTests
             catch
             {
                 Logger.Log("Unable to send results");
+            }
+        }
+
+        /// <summary>
+        /// Checks the total size of dump file and removes files exceeding a limit.
+        /// </summary>
+        private static void CheckTotalDumpFilesSize()
+        {
+            var directory = Directory.GetCurrentDirectory();
+            var dumpFiles = Directory.EnumerateFiles(directory, "*.dmp", SearchOption.AllDirectories).ToArray();
+            long currentTotalSize = 0;
+
+            foreach(var dumpFile in dumpFiles)
+            {
+                long fileSizeInMegabytes = (new FileInfo(dumpFile).Length / 1024) / 1024;
+                currentTotalSize += fileSizeInMegabytes;
+                if (currentTotalSize > MaxTotalDumpSizeInMegabytes)
+                {
+                    File.Delete(dumpFile);
+                }
             }
         }
     }

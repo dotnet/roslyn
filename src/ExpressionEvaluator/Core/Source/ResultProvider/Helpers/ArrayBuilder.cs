@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#pragma warning disable RS0007 // Avoid zero-length array allocations.
+#pragma warning disable CA1825 // Avoid zero-length array allocations.
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;

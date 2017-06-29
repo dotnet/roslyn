@@ -13,7 +13,7 @@
     <TargetFramework>netstandard1.3</TargetFramework>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <OptionStrict>Off</OptionStrict>
-    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036;40057</NoWarn>
+    <NoWarn>$(NoWarn);41999,42016,42017,42018,42019,42020,42021,42022,42032,42036</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />

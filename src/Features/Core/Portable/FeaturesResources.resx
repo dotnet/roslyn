@@ -886,7 +886,7 @@ Do you want to continue?</value>
     <value>Unable to load Analyzer assembly {0}: {1}</value>
   </data>
   <data name="Make_method_synchronous" xml:space="preserve">
-    <value>Make method synchronous.</value>
+    <value>Make method synchronous</value>
   </data>
   <data name="Add_this_or_Me_qualification" xml:space="preserve">
     <value>Add 'this' or 'Me' qualification.</value>
@@ -1258,5 +1258,11 @@ This version used in: {2}</value>
   </data>
   <data name="Remove_unreachable_code" xml:space="preserve">
     <value>Remove unreachable code</value>
+  </data>
+  <data name="Modifiers_are_not_ordered" xml:space="preserve">
+    <value>Modifiers are not ordered</value>
+  </data>
+  <data name="Order_modifiers" xml:space="preserve">
+    <value>Order modifiers</value>
   </data>
 </root>

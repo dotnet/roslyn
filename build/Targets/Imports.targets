@@ -138,6 +138,10 @@
     <DisableImplicitFrameworkReferences Condition="'$(DisableImplicitFrameworkReferences)' == ''" >true</DisableImplicitFrameworkReferences>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+      
+    <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
+         but gets included in lots of output items like VSIX. -->
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
 
     <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
   </PropertyGroup>
@@ -245,6 +249,16 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
+  <!-- 
+       Work around some UI delays in the new project system
+
+       https://github.com/dotnet/project-system/issues/2297
+
+  --> 
+  <ItemGroup>
+    <ProjectCapability Remove="DependenciesTree"/>
+  </ItemGroup>
+
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
   <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
 
@@ -309,15 +323,17 @@
        2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
           by the NuGet build task. -->
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
-    <ItemGroup>
-      <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
-        <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
-      </_ReferenceCopyLocalPathsWithPotentialInclusions>
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+    <FindNuGetAssetsForVsix
+      NuGetPackageRoot="$(NuGetPackageRoot)"
+      ReferenceCopyLocalPaths="@(ReferenceCopyLocalPaths)"
+      NuGetPackageToIncludeInVsix="@(NuGetPackageToIncludeInVsix)">
 
-      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
-                                        Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' AND
-                                                   '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
+      <Output TaskParameter="NuGetAssetsToIncludeInVsix" ItemName="NuGetAssetsToIncludeInVsix" />
+    </FindNuGetAssetsForVsix>
+
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="@(NuGetAssetsToIncludeInVsix)">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
@@ -353,6 +369,7 @@
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
+  <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>
@@ -379,7 +396,6 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <PrepareResourcesDependsOn>DeployPortableOnDeveloperBuild;$(PrepareResourcesDependsOn)</PrepareResourcesDependsOn>
     <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
@@ -458,49 +474,6 @@
       <Message Text="$(IbcMergeOutput)" />
   </Target>
 
-  <!-- This is part of our developer convenience work to allow easy testing of our portable
-       unit test projects.  It is special cased to our build setup.
-
-       This bug tracks getting an official solution out of MSBuild.
-
-       https://github.com/Microsoft/msbuild/issues/1499 -->
-  <Target Name="DeployPortableOnDeveloperBuild"
-          Condition="'$(_IsAnyPortableUnitTest)' == 'true' AND '$(DeveloperBuild)' == 'true' AND '$(OS)' == 'Windows_NT'">
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\DeployDesktopTestRuntime.csproj"
-             Properties="ExcludeProjectReferences=true"
-             Targets="GetReferenceCopyLocalPaths">
-      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
-    </MSBuild>
-
-    <!-- Desktop tests need to load the Desktop version of the TestUtilities via reflection at runtime without
-         referencing the assembly at compile time. However, it looks like adding a project-to-project reference 
-         with ReferenceOutputputAssembly=false and Private=true does not copy the assembly to the output
-         (https://github.com/Microsoft/msbuild/issues/1916). Therefore, we reference the assembly but do the
-         copying ourselves, by adding the output path of the project (GetTargetPath) manually to the set of copied
-         assemblies (ReferenceCopyLocalPaths) -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj"
-             Targets="GetTargetPath"
-             BuildInParallel="true">
-
-      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
-    </MSBuild>
-  </Target>
-
-  <!-- When getting the dependencies to copy local for developer builds to portable project outputs,
-       (see above), we need to filter out the project references as they create cycles back to the
-       calling test projects and we are only interested in getting the nuget copy local items raised
-       from the deployment project's project.assets.json. -->
-  <Target Name="RemoveExcludedProjectReferences"
-          Condition="'$(ExcludeProjectReferences)' == 'true'">
-    <ItemGroup>
-      <ProjectReference Remove="@(ProjectReference)" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="GetReferenceCopyLocalPaths" 
-          DependsOnTargets="RemoveExcludedProjectReferences;ResolveAssemblyReferences"
-          Returns="@(ReferenceCopyLocalPaths)" />
-
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
   <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
 
@@ -518,8 +491,8 @@
     https://github.com/dotnet/roslyn/issues/18753
   -->
   <Target Name="RemoveDuplicateXUnitContent">
-    <ItemGroup>
-      <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
+      <ItemGroup>
+        <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
     </ItemGroup>
   </Target>
 
@@ -532,6 +505,30 @@
                           ComputeAndCopyFilesToPublishDirectory;
                           GeneratePublishDependencyFile;
                           GeneratePublishRuntimeConfigurationFile" />                                                           
+
+  <!-- 
+    Work around bug in Microsoft.NET.Sdk < v2.0 where satellites were deployed on top of each other in root. 
+    https://github.com/dotnet/sdk/issues/1360
+  -->
+  <Target Name="WorkaroundIncorrectSatelliteDeployment" AfterTargets="ResolveLockFileCopyLocalProjectDeps">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ResourceCopyLocalItems)" />
+      <ReferenceCopyLocalPaths Include="@(ResourceCopyLocalItems)"  Condition="'@(ResourceCopyLocalItems)' != ''">
+        <DestinationSubDirectory>$([System.IO.Directory]::GetParent(%(ResourceCopyLocalItems.FullPath)).get_Name())\</DestinationSubDirectory>
+      </ReferenceCopyLocalPaths>
+    </ItemGroup>
+  </Target>
+
+  <!--
+     Work around to fix Intellisense file generation for XAML projects
+
+     https://github.com/dotnet/project-system/issues/2488
+  -->
+  <Target Name="WorkaroundForXAMLIntellisenseBuildIssue" AfterTargets="_CheckCompileDesignTimePrerequisite">
+    <PropertyGroup>
+       <BuildingProject>false</BuildingProject>
+    </PropertyGroup>
+  </Target>
 
   <Target Name="PreventProjectReferencesFromBuilding">
     <PropertyGroup>
@@ -546,4 +543,5 @@
   <ItemGroup>
     <AdditionalFiles Include="@(PublicAPI)" />
   </ItemGroup>
+
 </Project>

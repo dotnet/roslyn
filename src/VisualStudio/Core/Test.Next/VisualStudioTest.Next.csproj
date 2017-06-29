@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Next.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Next.UnitTests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <TargetFrameworkProfile />
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
@@ -166,84 +166,32 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <PackageReference Include="Microsoft.Tpl.Dataflow">
-      <Version>$(MicrosoftTplDataflowVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json">
-      <Version>$(NewtonsoftJsonVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Moq">
-      <Version>$(MoqVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Composition">
-      <Version>$(MicrosoftVisualStudioCompositionVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Imaging">
-      <Version>$(MicrosoftVisualStudioImagingVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Utilities">
-      <Version>$(MicrosoftVisualStudioUtilitiesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog">
-      <Version>$(MicrosoftVisualStudioImageCatalogVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI">
-      <Version>$(MicrosoftVisualStudioTextUIVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.CoreUtility">
-      <Version>$(MicrosoftVisualStudioCoreUtilityVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense">
-      <Version>$(MicrosoftVisualStudioLanguageIntellisenseVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Data">
-      <Version>$(MicrosoftVisualStudioTextDataVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Logic">
-      <Version>$(MicrosoftVisualStudioTextLogicVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf">
-      <Version>$(MicrosoftVisualStudioTextUIWpfVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Editor">
-      <Version>$(MicrosoftVisualStudioEditorVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework">
-      <Version>$(MicrosoftVisualStudioShellFrameworkVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0">
-      <Version>$(MicrosoftVisualStudioShell150Version)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces">
-      <Version>$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="BasicUndo">
-      <Version>$(BasicUndoVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification">
-      <Version>$(MicrosoftVisualStudioLanguageStandardClassificationVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Text.Internal">
-      <Version>$(MicrosoftVisualStudioTextInternalVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor">
-      <Version>$(MicrosoftVisualStudioPlatformVSEditorVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop">
-      <Version>$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow">
-      <Version>$(MicrosoftVisualStudioInteractiveWindowVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider">
-      <Version>$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Validation">
-      <Version>$(MicrosoftVisualStudioValidationVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.VisualStudio.Threading">
-      <Version>$(MicrosoftVisualStudioThreadingVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="Microsoft.Tpl.Dataflow" Version="$(MicrosoftTplDataflowVersion)" />
+    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
+    <PackageReference Include="Moq" Version="$(MoqVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.CoreUtility" Version="$(MicrosoftVisualStudioCoreUtilityVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Data" Version="$(MicrosoftVisualStudioTextDataVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Logic" Version="$(MicrosoftVisualStudioTextLogicVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
+    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" Version="$(MicrosoftVisualStudioTextInternalVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor.Interop" Version="$(MicrosoftVisualStudioPlatformVSEditorInteropVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.InteractiveWindow" Version="$(MicrosoftVisualStudioInteractiveWindowVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="$(MicrosoftVisualStudioDiagnosticsPerformanceProviderVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

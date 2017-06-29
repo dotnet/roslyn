@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.AddImport
         private class RemoteSymbolSearchService : IRemoteSymbolSearchUpdateEngine
         {
             private readonly ISymbolSearchService _symbolSearchService;
-            private readonly CancellationToken _cancellationToken;
+            private readonly CancellationToken _shutdownCancellation;
 
             public RemoteSymbolSearchService(
                 ISymbolSearchService symbolSearchService,
-                CancellationToken cancellationToken)
+                CancellationToken shutdownCancellationToken)
             {
                 _symbolSearchService = symbolSearchService;
-                _cancellationToken = cancellationToken;
+                _shutdownCancellation = shutdownCancellationToken;
             }
 
             public Task UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory)
@@ -40,24 +40,24 @@ namespace Microsoft.CodeAnalysis.AddImport
             }
 
             public Task<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
-                string source, string name, int arity)
+                string source, string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithTypeAsync(
-                    source, name, arity, _cancellationToken);
+                    source, name, arity, cancellationToken);
             }
 
             public Task<ImmutableArray<PackageWithAssemblyResult>> FindPackagesWithAssemblyAsync(
-                string source, string name)
+                string source, string name, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindPackagesWithAssemblyAsync(
-                    source, name, _cancellationToken);
+                    source, name, cancellationToken);
             }
 
             public Task<ImmutableArray<ReferenceAssemblyWithTypeResult>> FindReferenceAssembliesWithTypeAsync(
-                string name, int arity)
+                string name, int arity, CancellationToken cancellationToken)
             {
                 return _symbolSearchService.FindReferenceAssembliesWithTypeAsync(
-                    name, arity, _cancellationToken);
+                    name, arity, cancellationToken);
             }
         }
     }

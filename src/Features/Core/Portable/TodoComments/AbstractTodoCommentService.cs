@@ -66,20 +66,18 @@ namespace Microsoft.CodeAnalysis.TodoComments
             var result = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
                 nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
                 document.Project.Solution,
-                new object[] { document.Id, commentDescriptors }).ConfigureAwait(false);
+                new object[] { document.Id, commentDescriptors }, cancellationToken).ConfigureAwait(false);
 
             return result ?? SpecializedCollections.EmptyList<TodoComment>();
         }
 
-        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellation)
+        private async Task<KeepAliveSession> TryGetKeepAliveSessionAsync(RemoteHostClient client, CancellationToken cancellationToken)
         {
-            using (await _gate.DisposableWaitAsync(cancellation).ConfigureAwait(false))
+            using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 if (_sessionDoNotAccessDirectly == null)
                 {
-                    // we give cancellation none here since the cancellation will cause KeepAlive session to be shutdown
-                    // when raised
-                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None).ConfigureAwait(false);
+                    _sessionDoNotAccessDirectly = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return _sessionDoNotAccessDirectly;

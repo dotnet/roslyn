@@ -1891,7 +1891,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make method synchronous..
+        ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
             get {
@@ -1923,6 +1923,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Methods {
             get {
                 return ResourceManager.GetString("Methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifiers are not ordered.
+        /// </summary>
+        internal static string Modifiers_are_not_ordered {
+            get {
+                return ResourceManager.GetString("Modifiers_are_not_ordered", resourceCulture);
             }
         }
         
@@ -2198,6 +2207,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string operator_ {
             get {
                 return ResourceManager.GetString("operator_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Order modifiers.
+        /// </summary>
+        internal static string Order_modifiers {
+            get {
+                return ResourceManager.GetString("Order_modifiers", resourceCulture);
             }
         }
         

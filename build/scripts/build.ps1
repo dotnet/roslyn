@@ -207,10 +207,12 @@ function Test-XUnit() {
         Deploy-VsixViaTool
     }
 
+    $logFilePath = Join-Path $configDir "runtests.log"
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools"
     $args = "$xunitDir"
+    $args += " -log:$logFilePath"
 
     if ($testDesktop) {
         if ($test32) {
@@ -255,10 +257,12 @@ function Test-XUnit() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to 
 # deploying at build time.
 function Deploy-VsixViaTool() { 
-
     $vsixDir = Get-PackageDir "roslyntools.microsoft.vsixexpinstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
-    $vsDir = [IO.Path]::GetFullPath("$msbuildDir\..\..\..\").Trim("\")
+    $both = Get-VisualStudioDirAndId
+    $vsDir = $both[0].Trim("\")
+    $vsId = $both[1]
+    Write-Host "Using VS Instance $vsId at `"$vsDir`""
     $baseArgs = "/rootSuffix:RoslynDev /vsInstallDir:`"$vsDir`""
     $all = @(
         "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
@@ -269,7 +273,26 @@ function Deploy-VsixViaTool() {
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
+    Write-Host "Uninstalling old Roslyn VSIX"
+
+    # Reverse the extension list so we uninstall in the proper order so that dependencies line up
+    [array]::Reverse($all)
+
+    foreach ($e in $all)
+    {
+        $name = Split-Path -leaf $e
+        $filePath = Join-Path $configDir $e
+        $fullArg = "-u $baseArgs $filePath"
+        Write-Host "`tUninstalling $name"
+        Exec-Command $vsixExe $fullArg | Out-Host
+    }
+
     Write-Host "Installing all Roslyn VSIX"
+
+    # Reverse the extension list so we install in the proper order so that dependencies line up
+    # Note: Only required as long as we reverse the list for uninstall above
+    [array]::Reverse($all)
+
     foreach ($e in $all) {
         $name = Split-Path -leaf $e
         $filePath = Join-Path $configDir $e
