@@ -9,13 +9,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 {
-    internal abstract class AbstractController<TSession, TModel, TPresenterSession, TEditorSession> : ForegroundThreadAffinitizedObject, IController<TModel>
+    internal abstract class AbstractController<TSession, TModel, TIntelliSensePresenter> : ForegroundThreadAffinitizedObject, IController<TModel>
         where TSession : class, ISession<TModel>
-        where TPresenterSession : IIntelliSensePresenterSession
     {
         protected readonly ITextView TextView;
         protected readonly ITextBuffer SubjectBuffer;
-        protected readonly IIntelliSensePresenter<TPresenterSession, TEditorSession> Presenter;
+        protected readonly TIntelliSensePresenter Presenter;
         protected readonly IDocumentProvider DocumentProvider;
 
         private readonly IAsynchronousOperationListener _asyncListener;
@@ -28,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 
         protected bool IsSessionActive => sessionOpt != null;
 
-        public AbstractController(ITextView textView, ITextBuffer subjectBuffer, IIntelliSensePresenter<TPresenterSession, TEditorSession> presenter, IAsynchronousOperationListener asyncListener, IDocumentProvider documentProvider, string asyncOperationId)
+        public AbstractController(ITextView textView, ITextBuffer subjectBuffer, TIntelliSensePresenter presenter, IAsynchronousOperationListener asyncListener, IDocumentProvider documentProvider, string asyncOperationId)
         {
             this.TextView = textView;
             this.SubjectBuffer = subjectBuffer;

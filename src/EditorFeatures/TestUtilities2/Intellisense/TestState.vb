@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
+                {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)

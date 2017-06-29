@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public QuickInfoCommandHandlerAndSourceProvider(
             [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>, OrderableMetadata>> presenters)
-            : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).FirstOrDefault(),
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<IQuickInfoPresenterSession>, OrderableMetadata>> presenters)
+            : this(ExtensionOrderer.Order(presenters).Select(lazy => lazy.Value).OfType<IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>>().FirstOrDefault(),
                    providers, asyncListeners)
         {
         }
@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         // For testing purposes.
         public QuickInfoCommandHandlerAndSourceProvider(
             IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession> presenter,
-            [ImportMany] IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
-            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IEnumerable<Lazy<IQuickInfoProvider, OrderableLanguageMetadata>> providers,
+            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _providers = ExtensionOrderer.Order(providers);
             _asyncListeners = asyncListeners;

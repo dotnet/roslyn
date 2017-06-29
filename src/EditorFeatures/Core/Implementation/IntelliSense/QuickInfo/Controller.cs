@@ -19,7 +19,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal partial class Controller :
-        AbstractController<Session<Controller, Model, IQuickInfoPresenterSession>, Model, IQuickInfoPresenterSession, IQuickInfoSession>,
+        AbstractController<Session<Controller, Model, IQuickInfoPresenterSession>, Model, IIntelliSensePresenter<IQuickInfoPresenterSession, IQuickInfoSession>>,
         ICommandHandler<InvokeQuickInfoCommandArgs>
     {
         private static readonly object s_quickInfoPropertyKey = new object();

@@ -10,10 +10,10 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation
 {
     [Export(typeof(ISignatureHelpSourceProvider))]
-    [Export(typeof(IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>))]
+    [Export(typeof(IIntelliSensePresenter<ISignatureHelpPresenterSession>))]
     [Name(PredefinedSignatureHelpPresenterNames.RoslynSignatureHelpPresenter)]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    internal partial class SignatureHelpPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, ISignatureHelpSourceProvider
+    internal partial class SignatureHelpPresenter : ForegroundThreadAffinitizedObject, IIntelliSensePresenter<ISignatureHelpPresenterSession>, ISignatureHelpSourceProvider
     {
         private static readonly object s_augmentSessionKey = new object();
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             _sigHelpBroker = sigHelpBroker;
         }
 
-        ISignatureHelpPresenterSession IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ISignatureHelpSession sessionOpt)
+        ISignatureHelpPresenterSession IIntelliSensePresenter<ISignatureHelpPresenterSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer)
         {
             AssertIsForeground();
             return new SignatureHelpPresenterSession(_sigHelpBroker, textView, subjectBuffer);

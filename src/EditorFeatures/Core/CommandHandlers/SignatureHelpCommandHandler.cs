@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         ICommandHandler<TypeCharCommandArgs>,
         ICommandHandler<InvokeSignatureHelpCommandArgs>
     {
-        private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> _signatureHelpPresenter;
+        private readonly IIntelliSensePresenter<ISignatureHelpPresenterSession> _signatureHelpPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IList<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> _signatureHelpProviders;
 
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public SignatureHelpCommandHandler(
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession>, OrderableMetadata>> signatureHelpPresenters)
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ISignatureHelpPresenterSession>, OrderableMetadata>> signatureHelpPresenters)
             : this(ExtensionOrderer.Order(signatureHelpPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
                    signatureHelpProviders, asyncListeners)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
         // For testing purposes.
         public SignatureHelpCommandHandler(
-            IIntelliSensePresenter<ISignatureHelpPresenterSession, ISignatureHelpSession> signatureHelpPresenter,
+            IIntelliSensePresenter<ISignatureHelpPresenterSession> signatureHelpPresenter,
             [ImportMany] IEnumerable<Lazy<ISignatureHelpProvider, OrderableLanguageMetadata>> signatureHelpProviders,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {

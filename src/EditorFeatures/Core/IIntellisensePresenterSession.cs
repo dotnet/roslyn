@@ -12,8 +12,15 @@ namespace Microsoft.CodeAnalysis.Editor
         event EventHandler<EventArgs> Dismissed;
     }
 
-    internal interface IIntelliSensePresenter<TPresenter, TEditorSessionOpt> where TPresenter : IIntelliSensePresenterSession
+    internal interface IIntelliSensePresenter<TPresenter>
+        where TPresenter : IIntelliSensePresenterSession
     {
-        TPresenter CreateSession(ITextView textView, ITextBuffer subjectBuffer, TEditorSessionOpt sessionOpt);
+        TPresenter CreateSession(ITextView textView, ITextBuffer subjectBuffer);
+    }
+
+    internal interface IIntelliSensePresenter<TPresenter, TEditorSession> : IIntelliSensePresenter<TPresenter>
+        where TPresenter : IIntelliSensePresenterSession
+    {
+        TPresenter CreateSession(ITextView textView, ITextBuffer subjectBuffer, TEditorSession session);
     }
 }

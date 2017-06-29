@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
         private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
         private readonly IInlineRenameService _inlineRenameService;
-        private readonly IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> _completionPresenter;
+        private readonly IIntelliSensePresenter<ICompletionPresenterSession> _completionPresenter;
         private readonly IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> _asyncListeners;
         private readonly IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> _autoBraceCompletionChars;
         private readonly Dictionary<IContentType, ImmutableHashSet<char>> _autoBraceCompletionCharSet;
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
-            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>, OrderableMetadata>> completionPresenters,
+            [ImportMany] IEnumerable<Lazy<IIntelliSensePresenter<ICompletionPresenterSession>, OrderableMetadata>> completionPresenters,
             [ImportMany] IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
             : this(editorOperationsFactoryService, undoHistoryRegistry, inlineRenameService,
                   ExtensionOrderer.Order(completionPresenters).Select(lazy => lazy.Value).FirstOrDefault(),
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             IEditorOperationsFactoryService editorOperationsFactoryService,
             ITextUndoHistoryRegistry undoHistoryRegistry,
             IInlineRenameService inlineRenameService,
-            IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession> completionPresenter,
+            IIntelliSensePresenter<ICompletionPresenterSession> completionPresenter,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners,
             IEnumerable<Lazy<IBraceCompletionSessionProvider, BraceCompletionMetadata>> autoBraceCompletionChars)
         {
