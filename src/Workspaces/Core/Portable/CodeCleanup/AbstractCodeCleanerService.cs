@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -647,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup
 
             public SyntaxAnnotation Annotation { get; }
 
-            public static readonly string AnnotationId = "SpanMarker";
+            public const string AnnotationId = "SpanMarker";
 
             private SpanMarker(SpanMarkerType type, SpanMarkerType oppositeMarkerType, SyntaxAnnotation annotation)
             {

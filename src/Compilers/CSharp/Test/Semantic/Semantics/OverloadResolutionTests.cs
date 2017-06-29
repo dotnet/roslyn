@@ -8237,6 +8237,35 @@ public class C : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
 
+        [WorkItem(18875, "https://github.com/dotnet/roslyn/issues/18875")]
+        [Fact]
+        public void InvalidParamsPositionCSharp()
+        {
+            const string source = @"
+public class A
+{
+    public static void Foo(params int[] vals, bool truth)
+    {
+    
+    }
+    
+    public static void Bar()
+    {
+        // 1 shouldn't show CS1503 Argument 1: cannot convert from 'int' to 'int'
+        Foo(1, true);
+    }
+}
+";
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,28): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     public static void Foo(params int[] vals, bool truth)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] vals"),
+                // (12,13): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'
+                //         Foo(1, true);
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params int[]").WithLocation(12, 13));
+        }
+
         [WorkItem(2249, "https://github.com/dotnet/roslyn/issues/2249")]
         [Fact]
         public void TestRefMethodGroup()
@@ -9227,6 +9256,62 @@ static class E
                 // (9,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B, Action<object>, A)' requires a receiver of type 'B'
                 //         a.F(o => {}, a);
                 Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a").WithArguments("A", "F", "E.F(B, System.Action<object>, A)", "B").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void CircularImplicitConversions()
+        {
+            string source =
+@"
+class A 
+{ 
+    public static implicit operator B(A a) => null;
+}
+class B 
+{ 
+    public static implicit operator C(B b) => null;
+}
+class C 
+{ 
+    public static implicit operator A(C c) => null;
+}
+class D 
+{
+    public static implicit operator A(D d) => null;
+    public static implicit operator B(D d) => null;
+    public static implicit operator C(D d) => null;
+}
+class E
+{
+    public static void F(A a) {}
+    public static void F(B b) {}
+    public static void F(C c) {}
+}
+public class Program
+{
+    public static void Main() => E.F(new D());
+}
+";
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics(
+                // (28,36): error CS0121: The call is ambiguous between the following methods or properties: 'E.F(A)' and 'E.F(B)'
+                //     public static void Main() => E.F(new D());
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("E.F(A)", "E.F(B)").WithLocation(28, 36)
+            );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(callSyntax);
+
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
+            var candidates = symbolInfo.CandidateSymbols;
+            Assert.Equal(3, candidates.Length);
+            Assert.Equal("void E.F(A a)", candidates[0].ToTestDisplayString());
+            Assert.Equal("void E.F(B b)", candidates[1].ToTestDisplayString());
+            Assert.Equal("void E.F(C c)", candidates[2].ToTestDisplayString());
         }
     }
 }

@@ -1891,7 +1891,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make method synchronous..
+        ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
             get {
@@ -2469,6 +2469,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_Unnecessary_Cast {
             get {
                 return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unreachable code.
+        /// </summary>
+        internal static string Remove_unreachable_code {
+            get {
+                return ResourceManager.GetString("Remove_unreachable_code", resourceCulture);
             }
         }
         
@@ -3053,6 +3062,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unknown_symbol_kind {
             get {
                 return ResourceManager.GetString("Unknown_symbol_kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unreachable code detected.
+        /// </summary>
+        internal static string Unreachable_code_detected {
+            get {
+                return ResourceManager.GetString("Unreachable_code_detected", resourceCulture);
             }
         }
         

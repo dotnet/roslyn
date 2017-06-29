@@ -6877,6 +6877,154 @@ class C
             }
         }
 
+        [Fact]
+        public void BrokenOutputStreams()
+        {
+            var source0 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+}";
+            var source1 =
+@"class C
+{
+    static string F()
+    {
+        var o = new { X = 1 };
+        return o.ToString();
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var bytes0 = compilation0.EmitToArray();
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+
+                using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
+                {
+                    var updatedMethods = new List<MethodDefinitionHandle>();
+                    var isAddedSymbol = new Func<ISymbol, bool>(s => false);
+
+                    var badStream = new BrokenStream();
+                    badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+                    var result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        badStream,
+                        ilStream,
+                        pdbStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
+                        Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(badStream.ThrownException.ToString()).WithLocation(1, 1)
+                        );
+
+                    result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        badStream,
+                        pdbStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS8104: An error occurred while writing the output file: System.IO.IOException: I/O error occurred.
+                        Diagnostic(ErrorCode.ERR_PeWritingFailure).WithArguments(badStream.ThrownException.ToString()).WithLocation(1, 1)
+                        );
+
+                    result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        ilStream,
+                        badStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        );
+                }
+            }
+        }
+
+        [Fact]
+        public void BrokenPortablePdbStream()
+        {
+            var source0 =
+@"class C
+{
+    static string F()
+    {
+        return null;
+    }
+}";
+            var source1 =
+@"class C
+{
+    static string F()
+    {
+        var o = new { X = 1 };
+        return o.ToString();
+    }
+}";
+            var compilation0 = CreateStandardCompilation(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
+            var bytes0 = compilation0.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
+            using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
+            {
+                var method0F = compilation0.GetMember<MethodSymbol>("C.F");
+                var generation0 = EmitBaseline.CreateInitialBaseline(
+                    md0,
+                    EmptyLocalsProvider);
+                var method1F = compilation1.GetMember<MethodSymbol>("C.F");
+
+                using (MemoryStream mdStream = new MemoryStream(), ilStream = new MemoryStream(), pdbStream = new MemoryStream())
+                {
+                    var updatedMethods = new List<MethodDefinitionHandle>();
+                    var isAddedSymbol = new Func<ISymbol, bool>(s => false);
+
+                    var badStream = new BrokenStream();
+                    badStream.BreakHow = BrokenStream.BreakHowType.ThrowOnWrite;
+
+                    var result = compilation1.EmitDifference(
+                        generation0,
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0F, method1F, syntaxMap: s => null, preserveLocalVariables: true)),
+                        isAddedSymbol,
+                        mdStream,
+                        ilStream,
+                        badStream,
+                        updatedMethods,
+                        new CompilationTestData(),
+                        default);
+                    Assert.False(result.Success);
+                    result.Diagnostics.Verify(
+                        // error CS0041: Unexpected error writing debug information -- 'I/O error occurred.'
+                        Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("I/O error occurred.").WithLocation(1, 1)
+                        );
+                }
+            }
+        }
+
         [Fact, WorkItem(923492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/923492")]
         public void SymWriterErrors()
         {

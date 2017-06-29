@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.Completion
 
             AddDocumentationPart(textContentBuilder, symbol, semanticModel, position, formatter, cancellationToken);
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText))
+            ImmutableArray<TaggedText> parts;
+            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out parts))
             {
-                textContentBuilder.AddRange(sections[SymbolDescriptionGroups.AwaitableUsageText]);
+                textContentBuilder.AddRange(parts);
             }
 
-            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes))
+            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
             {
-                var parts = sections[SymbolDescriptionGroups.AnonymousTypes];
                 if (!parts.IsDefaultOrEmpty)
                 {
                     textContentBuilder.AddLineBreak();
