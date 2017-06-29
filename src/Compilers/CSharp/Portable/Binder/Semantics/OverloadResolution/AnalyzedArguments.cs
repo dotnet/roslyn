@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly ArrayBuilder<IdentifierNameSyntax> Names;
         public readonly ArrayBuilder<RefKind> RefKinds;
         public bool IsExtensionMethodInvocation;
-        public bool HadAnalysisError;
         private ThreeState _lazyHasDynamicArgument;
 
         internal AnalyzedArguments()
@@ -31,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Names.Clear();
             this.RefKinds.Clear();
             this.IsExtensionMethodInvocation = false;
-            this.HadAnalysisError = false;
             _lazyHasDynamicArgument = ThreeState.Unknown;
         }
 
@@ -51,11 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return syntax == null ? null : syntax.Identifier.ValueText;
         }
         
-        public DiagnosticBag AvoidCascading(DiagnosticBag bag)
-        {
-            return HadAnalysisError ? new DiagnosticBag() : bag;
-        }
-
         public ImmutableArray<string> GetNames()
         {
             int count = this.Names.Count;

@@ -15750,7 +15750,10 @@ public class C
             compilation.VerifyDiagnostics(
                 // (6,29): error CS1740: Named argument 'Name' cannot be specified multiple times
                 //             Test(Name: "5", Name: "");
-                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_DuplicateNamedArgument, "Name").WithArguments("Name").WithLocation(6, 29),
+                // (6,13): error CS7036: There is no argument given that corresponds to the required formal parameter 'age' of 'C.Test(int, string)'
+                //             Test(Name: "5", Name: "");
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Test").WithArguments("age", "C.Test(int, string)").WithLocation(6, 13)
                 );
         }
 
@@ -21954,12 +21957,18 @@ public class Program
                 // (11,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(11, 42),
+                // (11,46): error CS0149: Method name expected
+                //         var d = new Func<string, string>(ref BarP, BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, BarP.Invoke").WithLocation(11, 46),
                 // (12,42): error CS0149: Method name expected
                 //         var e = new Func<string, string>(BarP, ref BarP.Invoke);
                 Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(12, 42),
                 // (13,42): error CS0206: A property or indexer may not be passed as an out or ref parameter
                 //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
-                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(13, 42)
+                Diagnostic(ErrorCode.ERR_RefProperty, "ref BarP").WithArguments("Program.BarP").WithLocation(13, 42),
+                // (13,46): error CS0149: Method name expected
+                //         var f = new Func<string, string>(ref BarP, ref BarP.Invoke);
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "BarP, ref BarP.Invoke").WithLocation(13, 46)
                 );
         }
 
