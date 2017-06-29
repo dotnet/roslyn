@@ -4036,10 +4036,39 @@ tryAgain:
                     case SyntaxKind.ThisKeyword:
                         modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureExtensionMethod);
                         break;
+
                     case SyntaxKind.InKeyword:
-                    case SyntaxKind.ReadOnlyKeyword:
-                        modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadonlyReferences);
-                        break;
+                        {
+                            var nextKind = this.CurrentToken.Kind;
+
+                            // "in this"
+                            if (nextKind == SyntaxKind.ThisKeyword)
+                            {
+                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
+                            }
+
+                            modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadonlyReferences);
+                            break;
+                        }
+                    case SyntaxKind.RefKeyword:
+                        {
+                            var nextKind = this.CurrentToken.Kind;
+
+                            // "ref readonly"
+                            if (nextKind == SyntaxKind.ReadOnlyKeyword)
+                            {
+                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureReadonlyReferences);
+                                nextKind = PeekToken(1).Kind;
+                            }
+
+                            // "ref this"
+                            // "ref readonly this"
+                            if (nextKind == SyntaxKind.ThisKeyword)
+                            {
+                                modifier = CheckFeatureAvailability(modifier, MessageID.IDS_FeatureRefExtensionMethods);
+                            }
+                            break;
+                        }
                 }
 
                 modifiers.Add(modifier);

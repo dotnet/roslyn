@@ -923,6 +923,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If this was a ref extension method, receiverArgument must be checked for L-value constraints.
                     // This helper method will also replace it with a BoundBadExpression if it was invalid.
                     receiverArgument = CheckValue(receiverArgument, BindValueKind.RefOrOut, diagnostics);
+
+                    CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
+                }
+                else if (receiverParameter.RefKind == RefKind.RefReadOnly)
+                {
+                    CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
                 }
 
                 ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance(analyzedArguments.Arguments.Count);
