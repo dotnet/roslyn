@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis
 
             public static string GetUriForPath(string path)
             {
-                return new Uri(path, UriKind.RelativeOrAbsolute).ToString();
+                return new Uri(path, UriKind.RelativeOrAbsolute).ToString().Replace(" ", "%20");
             }
         }
 

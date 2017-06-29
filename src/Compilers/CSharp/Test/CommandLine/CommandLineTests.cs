@@ -4611,30 +4611,30 @@ class Test { static void Main() {} }").Path;
         [ConditionalFact(typeof(WindowsOnly))]
         public void CscUtf8Output_WithRedirecting_Off()
         {
-            var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
+            var srcFile = Temp.CreateFile().WriteAllText("\u265A");
 
             var tempOut = Temp.CreateFile();
 
-            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /t:library " + srcFile + " > " + tempOut.Path, expectedRetCode: 1);
+            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"\"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /t:library " + srcFile.ToQuotedPath() + " > " + tempOut.ToQuotedPath() + "\"", expectedRetCode: 1);
             Assert.Equal("", output.Trim());
-            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'", tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '?'", tempOut.ReadAllText().Trim().Replace(srcFile.Path, "SRC.CS"));
 
-            CleanupAllGeneratedFiles(srcFile);
+            CleanupAllGeneratedFiles(srcFile.Path);
             CleanupAllGeneratedFiles(tempOut.Path);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
         public void CscUtf8Output_WithRedirecting_On()
         {
-            var srcFile = Temp.CreateFile().WriteAllText("\u265A").Path;
+            var srcFile = Temp.CreateFile().WriteAllText("\u265A");
 
             var tempOut = Temp.CreateFile();
 
-            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /utf8output /nologo /preferreduilang:en /t:library " + srcFile + " > " + tempOut.Path, expectedRetCode: 1);
+            var output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"\"" + s_CSharpCompilerExecutable + "\" /utf8output /nologo /preferreduilang:en /t:library " + srcFile.ToQuotedPath() + " > " + tempOut.ToQuotedPath() + "\"", expectedRetCode: 1);
             Assert.Equal("", output.Trim());
-            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♚'", tempOut.ReadAllText().Trim().Replace(srcFile, "SRC.CS"));
+            Assert.Equal("SRC.CS(1,1): error CS1056: Unexpected character '♚'", tempOut.ReadAllText().Trim().Replace(srcFile.Path, "SRC.CS"));
 
-            CleanupAllGeneratedFiles(srcFile);
+            CleanupAllGeneratedFiles(srcFile.Path);
             CleanupAllGeneratedFiles(tempOut.Path);
         }
 
@@ -4646,7 +4646,7 @@ class Test { static void Main() {} }").Path;
             var aCs = folder.CreateFile("a.cs");
             aCs.WriteAllText("public class C {}");
 
-            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, "/nologo /t:module /out:a.netmodule " + aCs, startFolder: folder.ToString());
+            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/nologo /t:module /out:a.netmodule {aCs.ToQuotedPath()}", startFolder: folder.ToString());
             Assert.Equal("", output.Trim());
 
             output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, "/nologo /t:library /out:b.dll /addmodule:a.netmodule ", startFolder: folder.ToString());
@@ -4839,27 +4839,27 @@ public class CS1698_a {}
             }
 
             var folder = Temp.CreateDirectory();
-            var source = folder.CreateFile("src.vb").WriteAllText("").Path;
-            var _ref = folder.CreateFile("ref.dll").WriteAllText("").Path;
+            var source = folder.CreateFile("src.vb").WriteAllText("");
+            var _ref = folder.CreateFile("ref.dll").WriteAllText("");
             try
             {
-                var output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " + _ref + " /inheritance:r /Q");
+                var output = ProcessUtilities.RunAndGetOutput("cmd", $"/C icacls {_ref.ToQuotedPath()} /inheritance:r /Q");
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim());
 
-                output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " + _ref + @" /deny %USERDOMAIN%\%USERNAME%:(r,WDAC) /Q");
+                output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " + _ref.ToQuotedPath() + @" /deny ""%USERDOMAIN%\%USERNAME%:(r,WDAC)"" /Q");
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim());
 
-                output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /r:" + _ref + " /t:library " + source, expectedRetCode: 1);
+                output = ProcessUtilities.RunAndGetOutput("cmd", "/C \"\"" + s_CSharpCompilerExecutable + "\" /nologo /preferreduilang:en /r:" + _ref.ToQuotedPath() + " /t:library " + source.ToQuotedPath() + "\"", expectedRetCode: 1);
                 Assert.Equal("error CS0009: Metadata file '" + _ref + "' could not be opened -- Access to the path '" + _ref + "' is denied.", output.Trim());
             }
             finally
             {
-                var output = ProcessUtilities.RunAndGetOutput("cmd", "/C icacls " + _ref + " /reset /Q");
+                var output = ProcessUtilities.RunAndGetOutput("cmd", $"/C icacls {_ref.ToQuotedPath()} /reset /Q");
                 Assert.Equal("Successfully processed 1 files; Failed processing 0 files", output.Trim());
-                File.Delete(_ref);
+                File.Delete(_ref.Path);
             }
 
-            CleanupAllGeneratedFiles(source);
+                CleanupAllGeneratedFiles(source.Path);
         }
 
         [WorkItem(545832, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545832")]
@@ -5839,10 +5839,10 @@ public class C
             var file = dir.CreateFile(fileName);
             file.WriteAllBytes(source);
 
-            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, "/nologo /t:library " + file, startFolder: dir.Path);
+            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/nologo /t:library {file.ToQuotedPath()}", startFolder: dir.Path);
             Assert.Equal("", output); // Autodetected UTF8, NO ERROR
 
-            output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, "/nologo /preferreduilang:en /t:library /codepage:20127 " + file, expectedRetCode: 1, startFolder: dir.Path); // 20127: US-ASCII
+            output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/nologo /preferreduilang:en /t:library /codepage:20127 {file.ToQuotedPath()}", expectedRetCode: 1, startFolder: dir.Path); // 20127: US-ASCII
             // 0xd0, 0x96 ==> ERROR
             Assert.Equal(@"
 a.cs(1,7): error CS1001: Identifier expected
@@ -6573,7 +6573,7 @@ class C {} ");
 
             using (var xmlFileHandle = File.Open(xml.ToString(), FileMode.Open, FileAccess.Read, FileShare.Delete | FileShare.ReadWrite))
             {
-                var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /t:library /doc:\"{1}\" {0}", src.ToString(), xml.ToString()), startFolder: dir.ToString());
+                var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /t:library /doc:{1} {0}", src.ToQuotedPath(), xml.ToQuotedPath()), startFolder: dir.ToString());
                 Assert.Equal("", output.Trim());
 
                 Assert.True(File.Exists(Path.Combine(dir.ToString(), "a.xml")));
@@ -6618,7 +6618,7 @@ class E {}
             var xml = dir.CreateFile("a.xml");
             xml.WriteAllText("EMPTY");
 
-            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /t:library /doc:\"{1}\" {0}", src.ToString(), xml.ToString()), startFolder: dir.ToString());
+            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /t:library /doc:{1} {0}", src.ToQuotedPath(), xml.ToQuotedPath()), startFolder: dir.ToString());
             Assert.Equal("", output.Trim());
 
             using (var reader = new StreamReader(xml.ToString()))
@@ -6647,7 +6647,7 @@ class E {}
 class C {} 
 ");
 
-            output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /t:library /doc:\"{1}\" {0}", src.ToString(), xml.ToString()), startFolder: dir.ToString());
+            output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /t:library /doc:{1} {0}", src.ToQuotedPath(), xml.ToQuotedPath()), startFolder: dir.ToString());
             Assert.Equal("", output.Trim());
 
             using (var reader = new StreamReader(xml.ToString()))
@@ -7167,7 +7167,7 @@ class Program3
             var imageDll = peDll.GetEntireImage();
             var imagePdb = pePdb.GetEntireImage();
 
-            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.Path}", startFolder: dir.ToString());
+            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, $"/target:library /debug:portable {libSrc.ToQuotedPath()}", startFolder: dir.ToString());
             AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
 Microsoft (R) Visual C# Compiler version {s_compilerVersion} ({s_compilerShortCommitHash })
 Copyright (C) Microsoft Corporation. All rights reserved.", output);
@@ -8898,7 +8898,7 @@ class C {
     }
 } ");
 
-            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /doc:doc.xml /out:out.exe /resource:doc.xml {0}", src.ToString()), startFolder: dir.ToString());
+            var output = ProcessUtilities.RunAndGetOutput(s_CSharpCompilerExecutable, String.Format("/nologo /doc:doc.xml /out:out.exe /resource:doc.xml {0}", src.ToQuotedPath()), startFolder: dir.ToString());
             Assert.Equal("", output.Trim());
 
             Assert.True(File.Exists(Path.Combine(dir.ToString(), "doc.xml")));

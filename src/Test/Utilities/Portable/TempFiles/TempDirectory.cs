@@ -84,5 +84,10 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             return _path;
         }
+
+        public string ToQuotedPath()
+        {
+            return $"\"{this.ToString()}\"";
+        }
     }
 }

@@ -894,19 +894,20 @@ public class A
         End Sub
 
         Private Function BuildLibrary(directory As DisposableDirectory, fileContents As String, libraryName As String, ParamArray referenceNames As String()) As String
-            Dim sourceFile = directory.CreateFile(libraryName + ".cs").WriteAllText(fileContents).Path
+            Dim sourceFile = directory.CreateFile(libraryName + ".cs").WriteAllText(fileContents)
             Dim tempOut = Path.Combine(directory.Path, libraryName + ".out")
             Dim libraryOut = Path.Combine(directory.Path, libraryName + ".dll")
 
             Dim sb = New StringBuilder
             For Each name In referenceNames
-                sb.Append(" /r:")
+                sb.Append(" /r:""")
                 sb.Append(Path.Combine(directory.Path, name + ".dll"))
+                sb.Append("""")
             Next
 
             Dim references = sb.ToString()
 
-            Dim arguments = $"/C ""{s_CSharpCompilerExecutable}"" /nologo /t:library /out:{libraryOut} {references} {sourceFile} > {tempOut}"
+            Dim arguments = $"/C """"{s_CSharpCompilerExecutable}"" /nologo /t:library /out:""{libraryOut}"" {references} {sourceFile.ToQuotedPath()} > ""{tempOut}"""""
 
             Dim output = ProcessUtilities.RunAndGetOutput("cmd", arguments, expectedRetCode:=0)
 

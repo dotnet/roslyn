@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             return File.ReadAllText(_path);
         }
-
+        
         public TempFile CopyContentFrom(string path)
         {
             return WriteAllBytes(File.ReadAllBytes(path));
@@ -115,6 +115,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public override string ToString()
         {
             return _path;
+        }
+
+        public string ToQuotedPath()
+        {
+            return $"\"{this.ToString()}\"";
         }
     }
 }

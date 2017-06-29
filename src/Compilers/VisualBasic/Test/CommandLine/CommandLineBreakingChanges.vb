@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         <Fact, WorkItem(530256, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530256")>
         Public Sub WarnAsErrorPrecedence1()
-            Dim src As String = Temp.CreateFile().WriteAllText("
+            Dim src = Temp.CreateFile().WriteAllText("
 Imports System
 
 Module Module1
@@ -20,10 +20,10 @@ Module Module1
         Console.WriteLine(x.ToString)
     End Sub
 End Module
-").Path
+")
             Dim tempBinary = Temp.CreateFile()
             Dim tempLog = Temp.CreateFile()
-            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /warnaserror+ /warnaserror- /out:" & tempBinary.Path & " " & src & " > " & tempLog.Path, expectedRetCode:=0)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """"" & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /warnaserror+ /warnaserror- /out:" & tempBinary.ToQuotedPath() & " " & src.ToQuotedPath() & " > " & tempLog.ToQuotedPath() & """", expectedRetCode:=0)
             Assert.Equal("", output.Trim())
 
             'See bug 15593. This is not strictly a 'breaking' change.
@@ -34,16 +34,16 @@ SRC.VB(7) : warning BC42104: Variable 'x' is used before it has been assigned a 
 
         Console.WriteLine(x.ToString)
                           ~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempLog.ReadAllText().Trim().Replace(src, "SRC.VB"))
+</text>.Value.Trim().Replace(vbLf, vbCrLf), tempLog.ReadAllText().Trim().Replace(src.Path, "SRC.VB"))
 
-            CleanupAllGeneratedFiles(src)
+            CleanupAllGeneratedFiles(src.Path)
             CleanupAllGeneratedFiles(tempBinary.Path)
             CleanupAllGeneratedFiles(tempLog.Path)
         End Sub
 
         <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence2()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
+            Dim src = Temp.CreateFile().WriteAllText(<text>
 Module M1
     Sub Main
     End Sub
@@ -52,9 +52,9 @@ Module M1
         end if
     End Sub
 End Module
-</text>.Value).Path
+</text>.Value)
             Dim tempOut = Temp.CreateFile()
-            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /nowarn:41008 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """"" & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /nowarn:41008 /warnaserror+ " & src.ToQuotedPath() & " > " & tempOut.ToQuotedPath() & """", expectedRetCode:=1)
             Assert.Equal("", output.Trim())
 
             'See bug 16673.
@@ -74,12 +74,12 @@ SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
 
         if (a.Something &lt;&gt; 2)
            ~~~~~~~~~~~~~~~~~~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src.Path, "SRC.VB"))
         End Sub
 
         <Fact, WorkItem(530668, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530668")>
         Public Sub WarnAsErrorPrecedence3()
-            Dim src As String = Temp.CreateFile().WriteAllText(<text>
+            Dim src = Temp.CreateFile().WriteAllText(<text>
 Module M1
     Sub Main
     End Sub
@@ -88,9 +88,9 @@ Module M1
         end if
     End Sub
 End Module
-</text>.Value).Path
+</text>.Value)
             Dim tempOut = Temp.CreateFile()
-            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """ & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /warnaserror-:42025 /warnaserror+ " & src & " > " & tempOut.Path, expectedRetCode:=1)
+            Dim output = ProcessUtilities.RunAndGetOutput("cmd", "/C """"" & s_basicCompilerExecutable & """ /nologo /preferreduilang:en /optionstrict:custom /warnaserror-:42025 /warnaserror+ " & src.ToQuotedPath() & " > """ & tempOut.Path & """""", expectedRetCode:=1)
             Assert.Equal("", output.Trim())
 
             'See bug 16673.
@@ -110,9 +110,9 @@ SRC.VB(6) : error BC42016: Implicit conversion from 'Object' to 'Boolean'.
 
         if (a.Something &lt;&gt; 2)
            ~~~~~~~~~~~~~~~~~~
-</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src, "SRC.VB"))
+</text>.Value.Trim().Replace(vbLf, vbCrLf), tempOut.ReadAllText().Trim().Replace(src.Path, "SRC.VB"))
 
-            CleanupAllGeneratedFiles(src)
+            CleanupAllGeneratedFiles(src.Path)
             CleanupAllGeneratedFiles(tempOut.Path)
         End Sub
     End Class
