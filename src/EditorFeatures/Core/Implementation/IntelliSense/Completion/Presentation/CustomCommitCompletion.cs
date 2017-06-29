@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // extra allocation is avoided.
             _completionPresenterSession = completionPresenterSession;
             this.CompletionItem = completionItem;
-            _imageMoniker = ImageMonikers.GetImageMoniker(CompletionItem.Tags);
+            _imageMoniker = ImageMonikers.GetFirstImageMoniker(CompletionItem.Tags);
         }
 
         public void Commit()

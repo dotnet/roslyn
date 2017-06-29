@@ -1,39 +1,30 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.ComponentModel.Composition;
+using System;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.QuickInfo;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
+using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
+namespace Microsoft.CodeAnalysis.CSharp.QuickInfo
 {
-    [ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Syntactic, LanguageNames.CSharp)]
-    internal class SyntacticQuickInfoProvider : AbstractQuickInfoProvider
+    [ExportQuickInfoProvider(QuickInfoProviderNames.Syntactic, LanguageNames.CSharp), Shared]
+    [ExtensionOrder(After = QuickInfoProviderNames.Semantic)]
+    internal class CSharpSyntacticQuickInfoProvider : CommonQuickInfoProvider
     {
         [ImportingConstructor]
-        public SyntacticQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(projectionBufferFactoryService, editorOptionsFactoryService,
-                   textEditorFactoryService, glyphService, typeMap)
+        public CSharpSyntacticQuickInfoProvider()
         {
         }
 
-        protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
+        protected override async Task<QuickInfoItem> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -74,17 +65,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
                 spanStart = parent.Parent.SpanStart;
             }
 
-            // Now that we know what we want to display, create a small elision buffer with that
-            // span, jam it in a view and show that to the user.
+            // encode document spans that correspond to the text to show
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var textSnapshot = text.FindCorrespondingEditorTextSnapshot();
-            if (textSnapshot == null)
-            {
-                return null;
-            }
-
-            var span = new SnapshotSpan(textSnapshot, Span.FromBounds(spanStart, spanEnd));
-            return this.CreateElisionBufferDeferredContent(span);
+            var spans = ImmutableArray.Create(TextSpan.FromBounds(spanStart, spanEnd));
+            return QuickInfoItem.Create(token.Span, relatedSpans: spans);
         }
 
         private static bool IsScopeBlock(SyntaxNode node)

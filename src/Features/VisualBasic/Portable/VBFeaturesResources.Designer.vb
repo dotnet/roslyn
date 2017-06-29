@@ -1584,6 +1584,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &lt;Multiple Types&gt;.
+        '''</summary>
+        Friend ReadOnly Property Multiple_Types() As String
+            Get
+                Return ResourceManager.GetString("Multiple_Types", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Multiplies two numbers and returns the product..
         '''</summary>
         Friend ReadOnly Property Multiplies_two_numbers_and_returns_the_product() As String

@@ -1,12 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Imaging;
+using Microsoft.VisualStudio.PlatformUI;
+using Microsoft.VisualStudio.Text.Projection;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Presentation
 {
@@ -17,6 +26,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             private readonly IQuickInfoBroker _quickInfoBroker;
             private readonly ITextView _textView;
             private readonly ITextBuffer _subjectBuffer;
+            private readonly ClassificationTypeMap _classificationTypeMap;
+            private readonly IProjectionBufferFactoryService _projectionBufferFactoryService;
+            private readonly IEditorOptionsFactoryService _editorOptionsFactoryService;
+            private readonly ITextEditorFactoryService _textEditorFactoryService;
 
             private IQuickInfoSession _editorSessionOpt;
 
@@ -25,17 +38,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
 
             public event EventHandler<EventArgs> Dismissed;
 
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer)
-                : this(quickInfoBroker, textView, subjectBuffer, null)
-            {
-            }
-
-            public QuickInfoPresenterSession(IQuickInfoBroker quickInfoBroker, ITextView textView, ITextBuffer subjectBuffer, IQuickInfoSession sessionOpt)
+            public QuickInfoPresenterSession(
+                IQuickInfoBroker quickInfoBroker, 
+                ITextView textView, 
+                ITextBuffer subjectBuffer, 
+                IQuickInfoSession sessionOpt, 
+                ClassificationTypeMap classificationTypeMap,
+                IProjectionBufferFactoryService projectionBufferFactoryService,
+                IEditorOptionsFactoryService editorOptionsFactoryService,
+                ITextEditorFactoryService textEditorFactoryService)
             {
                 _quickInfoBroker = quickInfoBroker;
                 _textView = textView;
                 _subjectBuffer = subjectBuffer;
                 _editorSessionOpt = sessionOpt;
+                _classificationTypeMap = classificationTypeMap;
+                _projectionBufferFactoryService = projectionBufferFactoryService;
+                _editorOptionsFactoryService = editorOptionsFactoryService;
+                _textEditorFactoryService = textEditorFactoryService;
             }
 
             public void PresentItem(ITrackingSpan triggerSpan, QuickInfoItem item, bool trackMouse)
@@ -101,7 +121,94 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo.Pr
             internal void AugmentQuickInfoSession(IList<object> quickInfoContent, out ITrackingSpan applicableToSpan)
             {
                 applicableToSpan = _triggerSpan;
-                quickInfoContent.Add(_item.Content.Create());
+
+                var content = CreateContent(_item, _subjectBuffer.CurrentSnapshot);
+                if (content != null)
+                {
+                    quickInfoContent.Add(content);
+                }
+            }
+
+            private FrameworkElement CreateContent(QuickInfoItem quickInfo, ITextSnapshot snapshot)
+            {
+                var glyphs = quickInfo.Tags.GetGlyphs();
+                var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
+                var warningGlyph = glyphs.FirstOrDefault(g => g == Glyph.CompletionWarning);
+                var documentSpan = quickInfo.RelatedSpans.Length > 0 ? CreateDocumentSpanPresentation(quickInfo, snapshot) : null;
+
+                return new QuickInfoDisplayPanel(
+                    symbolGlyph: symbolGlyph != default(Glyph) ? CreateSymbolPresentation(symbolGlyph) : null,
+                    warningGlyph: warningGlyph != default(Glyph) ? CreateSymbolPresentation(warningGlyph) : null,
+                    textBlocks: quickInfo.TextBlocks.Select(tb => new TextBlockElement(tb.Kind, CreateTextPresentation(tb))).ToImmutableArray(),
+                    documentSpan: documentSpan);
+            }
+
+            private FrameworkElement CreateSymbolPresentation(Glyph glyph)
+            {
+                var image = new CrispImage
+                {
+                    Moniker = glyph.GetImageMoniker()
+                };
+
+                // Inform the ImageService of the background color so that images have the correct background.
+                var binding = new Binding("Background")
+                {
+                    Converter = new BrushToColorConverter(),
+                    RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(QuickInfoDisplayPanel), 1)
+                };
+
+                image.SetBinding(ImageThemingUtilities.ImageBackgroundColorProperty, binding);
+                return image;
+            }
+
+            private TextBlock CreateTextPresentation(QuickInfoTextBlock block)
+            {
+                if (block.Kind == QuickInfoTextKinds.DocumentationComments)
+                {
+                    return CreateDocumentationCommentPresentation(block.Text);
+                }
+                else
+                {
+                    return CreateTextPresentation(block.Text);
+                }
+            }
+
+            private TextBlock CreateTextPresentation(ImmutableArray<TaggedText> text)
+            {
+                var classifiedTextBlock = text.ToTextBlock(_classificationTypeMap);
+
+                if (classifiedTextBlock.Inlines.Count == 0)
+                {
+                    classifiedTextBlock.Visibility = Visibility.Collapsed;
+                }
+
+                return classifiedTextBlock;
+            }
+
+            private TextBlock CreateDocumentationCommentPresentation(ImmutableArray<TaggedText> text)
+            {
+                var documentationTextBlock = text.ToTextBlock(_classificationTypeMap);
+                documentationTextBlock.TextWrapping = TextWrapping.Wrap;
+
+                var formatMap = _classificationTypeMap.ClassificationFormatMapService.GetClassificationFormatMap("tooltip");
+                documentationTextBlock.SetDefaultTextProperties(formatMap);
+
+                // If we have already computed the symbol documentation by now, update
+                if (documentationTextBlock.Inlines.Count == 0)
+                {
+                    documentationTextBlock.Visibility = Visibility.Collapsed;
+                }
+
+                return documentationTextBlock;
+            }
+
+            private FrameworkElement CreateDocumentSpanPresentation(QuickInfoItem info, ITextSnapshot snapshot)
+            {
+                return ElisionBufferContent.Create(
+                    info.RelatedSpans.Select(s => new SnapshotSpan(snapshot, new Span(s.Start, s.Length))).ToImmutableArray(),
+                    _projectionBufferFactoryService,
+                    _editorOptionsFactoryService,
+                    _textEditorFactoryService);
             }
         }
     }

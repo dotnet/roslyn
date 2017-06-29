@@ -407,6 +407,9 @@
     <Compile Include="Organizing\Organizers\OperatorDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\PropertyDeclarationOrganizer.cs" />
     <Compile Include="Organizing\Organizers\StructDeclarationOrganizer.cs" />
+    <Compile Include="QuickInfo\CSharpQuickInfoSevice.cs" />
+    <Compile Include="QuickInfo\CSharpSemanticQuickInfoProvider.cs" />
+    <Compile Include="QuickInfo\CSharpSyntacticQuickInfoProvider.cs" />
     <Compile Include="Structure\Providers\SwitchStatementStructureProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationCodeFixProvider.cs" />
     <Compile Include="InlineDeclaration\CSharpInlineDeclarationDiagnosticAnalyzer.cs" />

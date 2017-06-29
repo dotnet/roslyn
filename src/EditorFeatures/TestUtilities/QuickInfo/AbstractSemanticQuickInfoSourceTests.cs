@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Controls;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.QuickInfo;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
@@ -160,142 +160,95 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return null;
         }
 
-        protected void WaitForDocumentationComment(object content)
+        internal Action<QuickInfoItem> SymbolGlyph(Glyph expectedGlyph)
         {
-            if (content is QuickInfoDisplayDeferredContent deferredContent)
+            return (qi) =>
             {
-                if (deferredContent.Documentation is DocumentationCommentDeferredContent docCommentDeferredContent)
-                {
-                    docCommentDeferredContent.WaitForDocumentationCommentTask_ForTestingPurposesOnly();
-                }
-            }
-        }
-
-        internal Action<object> SymbolGlyph(Glyph expectedGlyph)
-        {
-            return (content) =>
-            {
-                var actualIcon = ((QuickInfoDisplayDeferredContent)content).SymbolGlyph;
-                Assert.Equal(expectedGlyph, actualIcon.Glyph);
+                Assert.True(qi.Tags.GetGlyphs().Contains(expectedGlyph));
             };
         }
 
-        protected Action<object> MainDescription(
+        internal Action<QuickInfoItem> WarningGlyph(Glyph expectedGlyph)
+        {
+            return SymbolGlyph(expectedGlyph);
+        }
+
+        internal void AssertTextBlock(
+            string expectedText,
+            ImmutableArray<QuickInfoTextBlock> textBlocks,
+            string textBlockKind,
+            Tuple<string, string>[] expectedClassifications = null)
+        {
+            var textBlock = textBlocks.FirstOrDefault(tb => tb.Kind == textBlockKind);
+            var text = textBlock != null ? textBlock.Text : ImmutableArray<TaggedText>.Empty;
+            AssertTaggedText(expectedText, text, expectedClassifications);
+        }
+
+        internal void AssertTaggedText(
+            string expectedText,
+            ImmutableArray<TaggedText> taggedText,
+            Tuple<string, string>[] expectedClassifications = null)
+        {
+            var actualText = string.Concat(taggedText.Select(tt => tt.Text));
+            Assert.Equal(expectedText, actualText);
+        }
+
+        internal Action<QuickInfoItem> MainDescription(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return content =>
-            {
-                switch (content)
-                {
-                    case QuickInfoDisplayDeferredContent qiContent:
-                        {
-                            var actualContent = qiContent.MainDescription.ClassifiableContent;
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                        }
-                        break;
-
-                    case ClassifiableDeferredContent classifiable:
-                        {
-                            var actualContent = classifiable.ClassifiableContent;
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                        }
-                        break;
-                }
-            };
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Description, expectedClassifications);
         }
 
-        protected Action<object> Documentation(
+        internal Action<QuickInfoItem> Documentation(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return content =>
-            {
-                var documentationCommentContent = ((QuickInfoDisplayDeferredContent)content).Documentation;
-                switch (documentationCommentContent)
-                {
-                    case DocumentationCommentDeferredContent docComment:
-                        {
-                            var documentationCommentBlock = (TextBlock)docComment.Create();
-                            var actualText = documentationCommentBlock.Text;
-
-                            Assert.Equal(expectedText, actualText);
-                        }
-                        break;
-
-                    case ClassifiableDeferredContent classifiable:
-                        {
-                            var actualContent = classifiable.ClassifiableContent;
-                            Assert.Equal(expectedText, actualContent.GetFullText());
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-                        }
-                        break;
-                }
-            };
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.DocumentationComments, expectedClassifications);
         }
 
-        protected Action<object> TypeParameterMap(
+        internal Action<QuickInfoItem> TypeParameterMap(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
-            {
-                var actualContent = ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent;
-
-                // The type parameter map should have an additional line break at the beginning. We
-                // create a copy here because we've captured expectedText and this delegate might be
-                // executed more than once (e.g. with different parse options).
-
-                // var expectedTextCopy = "\r\n" + expectedText;
-                ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-            };
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.TypeParameters, expectedClassifications);
         }
 
-        protected Action<object> AnonymousTypes(
+        internal Action<QuickInfoItem> AnonymousTypes(
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
-            {
-                var actualContent = ((QuickInfoDisplayDeferredContent)content).AnonymousTypes.ClassifiableContent;
-
-                // The type parameter map should have an additional line break at the beginning. We
-                // create a copy here because we've captured expectedText and this delegate might be
-                // executed more than once (e.g. with different parse options).
-
-                // var expectedTextCopy = "\r\n" + expectedText;
-                ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
-            };
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.AnonymousTypes, expectedClassifications);
         }
 
-        protected Action<object> NoTypeParameterMap
+        internal Action<QuickInfoItem> NoTypeParameterMap
         {
             get
             {
-                return (content) =>
-                {
-                    Assert.Equal(string.Empty, ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent.GetFullText());
-                };
+                return item => AssertTextBlock(string.Empty, item.TextBlocks, QuickInfoTextKinds.TypeParameters);
             }
         }
 
-        protected Action<object> Usage(string expectedText, bool expectsWarningGlyph = false)
+        internal Action<QuickInfoItem> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-            return (content) =>
+            return item => 
             {
-                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, quickInfoContent.UsageText.ClassifiableContent.GetFullText());
-                Assert.Equal(expectsWarningGlyph, quickInfoContent.WarningGlyph != null && quickInfoContent.WarningGlyph.Glyph == Glyph.CompletionWarning);
+                AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Usage);
+
+                if (expectsWarningGlyph)
+                {
+                    WarningGlyph(Glyph.CompletionWarning)(item);
+                }
+                else
+                {
+                    Assert.False(item.Tags.GetGlyphs().Contains(Glyph.CompletionWarning));
+                }
             };
         }
 
-        protected Action<object> Exceptions(string expectedText)
+        internal Action<QuickInfoItem> Exceptions(string expectedText)
         {
-            return (content) =>
-            {
-                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, quickInfoContent.ExceptionText.ClassifiableContent.GetFullText());
-            };
+            return item => AssertTextBlock(expectedText, item.TextBlocks, QuickInfoTextKinds.Exception);
         }
 
         protected static async Task<bool> CanUseSpeculativeSemanticModelAsync(Document document, int position)
@@ -306,6 +259,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return !service.GetMemberBodySpanForSpeculativeBinding(node).IsEmpty;
         }
 
-        protected abstract Task TestAsync(string markup, params Action<object>[] expectedResults);
+        internal abstract Task TestAsync(string markup, params Action<QuickInfoItem>[] expectedResults);
     }
 }

@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 {
     internal static class ImageMonikers
     {
-        public static ImageMoniker GetImageMoniker(ImmutableArray<string> tags)
+        public static ImageMoniker GetFirstImageMoniker(ImmutableArray<string> tags)
         {
-            return tags.GetGlyph().GetImageMoniker();
+            return tags.GetFirstGlyph().GetImageMoniker();
         }
     }
 }

@@ -151,7 +151,6 @@
     <Compile Include="NavigationBar\GenerateFinalizerItem.vb" />
     <Compile Include="NavigationBar\GenerateMethodItem.vb" />
     <Compile Include="NavigationBar\VisualBasicNavigationBarItemService.vb" />
-    <Compile Include="QuickInfo\SemanticQuickInfoProvider.vb" />
     <Compile Include="RenameTracking\BasicRenameTrackingLanguageHeuristicsService.vb" />
     <Compile Include="RenameTracking\RenameTrackingCodeFixProvider.vb" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.vb" />

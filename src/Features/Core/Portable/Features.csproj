@@ -182,10 +182,13 @@
     <Compile Include="DocumentHighlighting\AbstractDocumentHighlightsService.cs" />
     <Compile Include="DocumentHighlighting\IDocumentHighlightsService.cs" />
     <Compile Include="DocumentHighlighting\IRemoteDocumentHighlights.cs" />
+    <Compile Include="QuickInfo\LinkedFileDiscrepancyException.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsCodeFixProvider.cs" />
     <Compile Include="RemoveUnnecessaryImports\IUnnecessaryImportsService.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.SearchResult.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
+    <Compile Include="QuickInfo\QuickInfoTextBlock.cs" />
+    <Compile Include="QuickInfo\QuickInfoTextKinds.cs" />
     <Compile Include="AddMissingReference\AddMissingReferenceCodeAction.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.Remote.cs" />
     <Compile Include="NavigateTo\AbstractNavigateToSearchService.InProcess.cs" />
@@ -370,6 +373,7 @@
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
     <Compile Include="Common\Glyph.cs" />
+    <Compile Include="Common\GlyphExtensions.cs" />
     <Compile Include="Common\TaggedText.cs" />
     <Compile Include="Common\TextTags.cs" />
     <Compile Include="Completion\CharacterSetModificationKind.cs" />
@@ -394,7 +398,7 @@
     <Compile Include="Completion\CompletionTrigger.cs" />
     <Compile Include="Completion\CompletionTriggerKind.cs" />
     <Compile Include="Completion\EnterKeyRule.cs" />
-    <Compile Include="Completion\GlyphTags.cs" />
+    <Compile Include="Common\GlyphTags.cs" />
     <Compile Include="Completion\Providers\AbstractDocCommentCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractMemberInsertingCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractOverrideCompletionProvider.cs" />
@@ -431,6 +435,18 @@
     <Compile Include="FindUsages\SourceReferenceItem.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticAnalyzerExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\ICodeAnalysisDiagnosticAnalyzerExecutor.cs" />
+    <Compile Include="QuickInfo\CommonQuickInfoProvider.cs" />
+    <Compile Include="QuickInfo\CommonSemanticQuickInfoProvider.cs" />
+    <Compile Include="QuickInfo\CommonSemanticQuickInfoProvider.ErrorVisitor.cs" />
+    <Compile Include="QuickInfo\CommonSemanticQuickInfoProvider.SymbolComparer.cs" />
+    <Compile Include="QuickInfo\ExportQuickInfoProviderAttribute.cs" />
+    <Compile Include="QuickInfo\IndentationHelper.cs" />
+    <Compile Include="QuickInfo\QuickInfoItem.cs" />
+    <Compile Include="QuickInfo\QuickInfoProvider.cs" />
+    <Compile Include="QuickInfo\QuickInfoProviderMetadata.cs" />
+    <Compile Include="QuickInfo\QuickInfoProviderNames.cs" />
+    <Compile Include="QuickInfo\QuickInfoService.cs" />
+    <Compile Include="QuickInfo\QuickInfoServiceWithProviders.cs" />
     <Compile Include="MakeMethodAsynchronous\AbstractMakeMethodAsynchronousCodeFixProvider.cs" />
     <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
     <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
@@ -517,7 +533,6 @@
     <Compile Include="PopulateSwitch\PopulateSwitchCodeFixProvider.cs" />
     <Compile Include="PopulateSwitch\PopulateSwitchDiagnosticAnalyzer.cs" />
     <Compile Include="PopulateSwitch\PopulateSwitchHelpers.cs" />
-    <Compile Include="QuickInfo\QuickInfoUtilities.cs" />
     <Compile Include="RemoveUnnecessaryImports\AbstractRemoveUnnecessaryImportsService.cs" />
     <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyCodeRefactoringProvider.cs" />
     <Compile Include="ReplaceMethodWithProperty\IReplaceMethodWithPropertyService.cs" />

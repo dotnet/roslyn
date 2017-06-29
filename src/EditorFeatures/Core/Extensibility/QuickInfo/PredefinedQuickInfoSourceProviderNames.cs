@@ -2,10 +2,8 @@
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal static class PredefinedQuickInfoProviderNames
+    internal static class PredefinedQuickInfoSourceProviderNames
     {
         public const string EventHookup = "Event Hookup QuickInfo Source";
-        public const string Semantic = "Semantic Quick Info Provider";
-        public const string Syntactic = "Syntactic Quick Info Provider";
     }
 }

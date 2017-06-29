@@ -7,34 +7,17 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.QuickInfo
 {
-    internal abstract partial class AbstractSemanticQuickInfoProvider : AbstractQuickInfoProvider
+    internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInfoProvider
     {
-        public AbstractSemanticQuickInfoProvider(
-            IProjectionBufferFactoryService projectionBufferFactoryService,
-            IEditorOptionsFactoryService editorOptionsFactoryService,
-            ITextEditorFactoryService textEditorFactoryService,
-            IGlyphService glyphService,
-            ClassificationTypeMap typeMap)
-            : base(projectionBufferFactoryService, editorOptionsFactoryService,
-                   textEditorFactoryService, glyphService, typeMap)
-        {
-        }
-
-        protected override async Task<IDeferredQuickInfoContent> BuildContentAsync(
+        protected override async Task<QuickInfoItem> BuildQuickInfoAsync(
             Document document,
             SyntaxToken token,
             CancellationToken cancellationToken)
@@ -151,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             return default(SyntaxToken);
         }
 
-        protected async Task<IDeferredQuickInfoContent> CreateContentAsync(
+        protected async Task<QuickInfoItem> CreateContentAsync(
             Workspace workspace,
             SyntaxToken token,
             SemanticModel semanticModel,
@@ -160,44 +143,52 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             CancellationToken cancellationToken)
         {
             var descriptionService = workspace.Services.GetLanguageServices(token.Language).GetService<ISymbolDisplayService>();
+            var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
+            var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
+            var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
+            var showSymbolGlyph = true;
 
             var sections = await descriptionService.ToDescriptionGroupsAsync(workspace, semanticModel, token.SpanStart, symbols.AsImmutable(), cancellationToken).ConfigureAwait(false);
+            var blocks = new List<QuickInfoTextBlock>(sections.Count);
 
-            ImmutableArray<TaggedText> parts;
-
-            var mainDescriptionBuilder = new List<TaggedText>();
-            if (sections.TryGetValue(SymbolDescriptionGroups.MainDescription, out parts))
+            if (sections.ContainsKey(SymbolDescriptionGroups.MainDescription) && !sections[SymbolDescriptionGroups.MainDescription].IsDefaultOrEmpty)
             {
-                mainDescriptionBuilder.AddRange(parts);
+                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.Description, sections[SymbolDescriptionGroups.MainDescription]));
             }
 
-            var typeParameterMapBuilder = new List<TaggedText>();
-            if (sections.TryGetValue(SymbolDescriptionGroups.TypeParameterMap, out parts))
+            var documentationContent = GetDocumentationContent(symbols, sections, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
+            if (workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>().IsAwaitKeyword(token) &&
+                (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
             {
-                if (!parts.IsDefaultOrEmpty)
-                {
-                    typeParameterMapBuilder.AddLineBreak();
-                    typeParameterMapBuilder.AddRange(parts);
-                }
+                documentationContent = default(ImmutableArray<TaggedText>);
+                showSymbolGlyph = false;
             }
 
-            var anonymousTypesBuilder = new List<TaggedText>();
-            if (sections.TryGetValue(SymbolDescriptionGroups.AnonymousTypes, out parts))
+            if (!documentationContent.IsDefaultOrEmpty)
             {
-                if (!parts.IsDefaultOrEmpty)
-                {
-                    anonymousTypesBuilder.AddLineBreak();
-                    anonymousTypesBuilder.AddRange(parts);
-                }
+                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.DocumentationComments, documentationContent));
+            }
+
+            if (sections.ContainsKey(SymbolDescriptionGroups.TypeParameterMap) && !sections[SymbolDescriptionGroups.TypeParameterMap].IsDefaultOrEmpty)
+            {
+                var builder = new List<TaggedText>();
+                builder.AddLineBreak();
+                builder.AddRange(sections[SymbolDescriptionGroups.TypeParameterMap]);
+                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.TypeParameters, builder.ToImmutableArray()));
+            }
+
+            if (sections.ContainsKey(SymbolDescriptionGroups.AnonymousTypes) && !sections[SymbolDescriptionGroups.AnonymousTypes].IsDefaultOrEmpty)
+            {
+                var builder = new List<TaggedText>();
+                builder.AddLineBreak();
+                builder.AddRange(sections[SymbolDescriptionGroups.AnonymousTypes]);
+                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.AnonymousTypes, builder.ToImmutableArray()));
             }
 
             var usageTextBuilder = new List<TaggedText>();
-            if (sections.TryGetValue(SymbolDescriptionGroups.AwaitableUsageText, out parts))
+            if (sections.ContainsKey(SymbolDescriptionGroups.AwaitableUsageText) && !sections[SymbolDescriptionGroups.AwaitableUsageText].IsDefaultOrEmpty)
             {
-                if (!parts.IsDefaultOrEmpty)
-                {
-                    usageTextBuilder.AddRange(parts);
-                }
+                usageTextBuilder.AddRange(sections[SymbolDescriptionGroups.AwaitableUsageText]);
             }
 
             if (supportedPlatforms != null)
@@ -205,41 +196,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 usageTextBuilder.AddRange(supportedPlatforms.ToDisplayParts().ToTaggedText());
             }
 
-            var exceptionsTextBuilder = new List<TaggedText>();
-            if (sections.TryGetValue(SymbolDescriptionGroups.Exceptions, out parts))
+            if (usageTextBuilder.Count > 0)
             {
-                if (!parts.IsDefaultOrEmpty)
-                {
-                    exceptionsTextBuilder.AddRange(parts);
-                }
+                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.Usage, usageTextBuilder.ToImmutableArray()));
             }
 
-            var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
-            var syntaxFactsService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>();
-            var documentationContent = GetDocumentationContent(symbols, sections, semanticModel, token, formatter, syntaxFactsService, cancellationToken);
-            var showWarningGlyph = supportedPlatforms != null && supportedPlatforms.HasValidAndInvalidProjects();
-            var showSymbolGlyph = true;
-
-            if (workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISyntaxFactsService>().IsAwaitKeyword(token) &&
-                (symbols.First() as INamedTypeSymbol)?.SpecialType == SpecialType.System_Void)
+            if (sections.ContainsKey(SymbolDescriptionGroups.Exceptions) && !sections[SymbolDescriptionGroups.Exceptions].IsDefaultOrEmpty)
             {
-                documentationContent = CreateDocumentationCommentDeferredContent(null);
-                showSymbolGlyph = false;
+                blocks.Add(QuickInfoTextBlock.Create(QuickInfoTextKinds.Exception, sections[SymbolDescriptionGroups.Exceptions]));
             }
 
-            return this.CreateQuickInfoDisplayDeferredContent(
-                symbol: symbols.First(),
-                showWarningGlyph: showWarningGlyph,
-                showSymbolGlyph: showSymbolGlyph,
-                mainDescription: mainDescriptionBuilder,
-                documentation: documentationContent,
-                typeParameterMap: typeParameterMapBuilder,
-                anonymousTypes: anonymousTypesBuilder,
-                usageText: usageTextBuilder,
-                exceptionText: exceptionsTextBuilder);
+            var tags = ImmutableArray<string>.Empty;
+            if (showSymbolGlyph)
+            {
+                tags = tags.AddRange(GlyphTags.GetTags(symbols.First().GetGlyph()));
+            }
+
+            if (showWarningGlyph)
+            {
+                tags = tags.Add(Completion.CompletionTags.Warning);
+            }
+
+            return QuickInfoItem.Create(token.Span, tags: tags, textBlocks: blocks.ToImmutableArray());
         }
 
-        private IDeferredQuickInfoContent GetDocumentationContent(
+        private ImmutableArray<TaggedText> GetDocumentationContent(
             IEnumerable<ISymbol> symbols,
             IDictionary<SymbolDescriptionGroups, ImmutableArray<TaggedText>> sections,
             SemanticModel semanticModel,
@@ -251,8 +232,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (sections.TryGetValue(SymbolDescriptionGroups.Documentation, out var parts))
             {
                 var documentationBuilder = new List<TaggedText>();
-                documentationBuilder.AddRange(parts);
-                return CreateClassifiableDeferredContent(documentationBuilder);
+                documentationBuilder.AddRange(sections[SymbolDescriptionGroups.Documentation]);
+                return documentationBuilder.ToImmutableArray();
             }
             else if (symbols.Any())
             {
@@ -269,11 +250,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
                 if (documentation != null)
                 {
-                    return CreateClassifiableDeferredContent(documentation.ToList());
+                    return documentation.ToImmutableArray();
                 }
             }
 
-            return CreateDocumentationCommentDeferredContent(null);
+            return default(ImmutableArray<TaggedText>);
         }
 
         private async Task<ValueTuple<SemanticModel, ImmutableArray<ISymbol>>> BindTokenAsync(

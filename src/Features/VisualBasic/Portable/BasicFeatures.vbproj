@@ -363,6 +363,8 @@
     <Compile Include="Organizing\Organizers\TypeBlockOrganizer.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.Rewriter.vb" />
     <Compile Include="Organizing\VisualBasicOrganizerService.vb" />
+    <Compile Include="QuickInfo\VisualBasicQuickInfoService.vb" />
+    <Compile Include="QuickInfo\VisualBasicSemanticQuickInfoProvider.vb" />
     <Compile Include="Structure\Providers\SelectBlockStructureProvider.vb" />
     <Compile Include="Structure\Providers\AccessorDeclarationStructureProvider.vb" />
     <Compile Include="Structure\Providers\CompilationUnitStructureProvider.vb" />
