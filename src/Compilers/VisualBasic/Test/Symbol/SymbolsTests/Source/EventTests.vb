@@ -24,6 +24,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EventSymbolTests
         Inherits BasicTestBase
 
+        <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
+        <Fact()>
+        Public Sub IlEventVisibility()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit A
+{
+  .method assembly hidebysig newslot specialname virtual instance void 
+          add_E(class [mscorlib]System.Action`1<int32> 'value') cil managed
+  {
+    ret
+  }
+  .method public hidebysig newslot specialname virtual instance void 
+          remove_E(class [mscorlib]System.Action`1<int32> 'value') cil managed
+  {
+    ret
+  }
+  .method public hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    ldarg.0
+    call       instance void [mscorlib]System.Object::.ctor()
+    ret
+  }
+  .event class [mscorlib]System.Action`1<int32> E
+  {
+    .addon instance void A::add_E(class [mscorlib]System.Action`1<int32>)
+    .removeon instance void A::remove_E(class [mscorlib]System.Action`1<int32>)
+  }
+}]]>
+            Dim vbSource = <compilation name="F">
+                               <file name="F.vb">
+Class B
+    Inherits A
+    Sub M()
+        AddHandler E, Nothing
+        RemoveHandler E, Nothing
+        AddHandler MyBase.E, Nothing
+        RemoveHandler MyBase.E, Nothing
+    End Sub 
+End Class
+                               </file>
+                           </compilation>
+
+            Dim comp1 = CreateCompilationWithCustomILSource(vbSource, ilSource.Value, TestOptions.DebugDll)
+            CompilationUtils.AssertTheseCompileDiagnostics(comp1,
+<Expected>
+BC30390: 'A.Friend Overridable Overloads AddHandler Event E(value As Action(Of Integer))' is not accessible in this context because it is 'Friend'.
+        AddHandler E, Nothing
+                   ~
+BC30390: 'A.Friend Overridable Overloads AddHandler Event E(value As Action(Of Integer))' is not accessible in this context because it is 'Friend'.
+        AddHandler MyBase.E, Nothing
+                   ~~~~~~~~
+</Expected>)
+
+        End Sub
 
         <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
         <Fact()>
