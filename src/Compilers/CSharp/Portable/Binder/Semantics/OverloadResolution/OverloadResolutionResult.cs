@@ -959,7 +959,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (refArg != refParm)
             {
-                if (refParm == RefKind.None)
+                if (refParm == RefKind.None || refParm == RefKind.RefReadOnly)
                 {
                     //  Argument {0} should not be passed with the {1} keyword
                     diagnostics.Add(
