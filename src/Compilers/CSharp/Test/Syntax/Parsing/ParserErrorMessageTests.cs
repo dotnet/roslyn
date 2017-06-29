@@ -2927,10 +2927,10 @@ public class Test
 }";
 
             ParseAndValidate(code, new CSharpParseOptions(LanguageVersion.CSharp7),
-                // (4,29): error CS8107: Feature 'ref or in extension methods' is not available in C# 7. Please use language version 7.2 or greater.
-                //     public void DoSomething(in int x) { }
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("ref or in extension methods", "7.2").WithLocation(4, 29)
-                );
+                // (4,29): error CS8107: Feature 'readonly references' is not available in C# 7. Please use language version 7.2 or greater.
+                // public void DoSomething(in int x) { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "in").WithArguments("readonly references", "7.2").WithLocation(4, 29)
+            );
         }
 
         [WorkItem(906072, "DevDiv/Personal")]
