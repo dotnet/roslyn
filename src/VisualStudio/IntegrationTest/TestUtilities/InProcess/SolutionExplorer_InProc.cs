@@ -221,9 +221,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (project is IVsBrowseObjectContext browseObjectContext)
             {
-                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
 
-                var result = packageService.AddAsync(packageName, version).GetAwaiter().GetResult();
+                var result = threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync();
+                    return await configuredProject.Services.PackageReferences.AddAsync(packageName, version);
+                });
             }
             else
             {
@@ -237,9 +241,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
             if (project is IVsBrowseObjectContext browseObjectContext)
             {
-                var packageService = browseObjectContext.ConfiguredProject.Services.PackageReferences;
+                var threadingService = browseObjectContext.UnconfiguredProject.ProjectService.Services.ThreadingPolicy;
 
-                packageService.RemoveAsync(packageName).GetAwaiter().GetResult();
+                threadingService.ExecuteSynchronously(async () =>
+                {
+                    var configuredProject = await browseObjectContext.UnconfiguredProject.GetSuggestedConfiguredProjectAsync();
+                    await configuredProject.Services.PackageReferences.RemoveAsync(packageName);
+                });
             }
             else
             {
