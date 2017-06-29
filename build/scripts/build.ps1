@@ -273,6 +273,8 @@ function Deploy-VsixViaTool() {
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
+    Get-Process -Name "devenv"
+
     Write-Host "Uninstalling old Roslyn VSIX"
 
     # Reverse the extension list so we uninstall in the proper order so that dependencies line up
