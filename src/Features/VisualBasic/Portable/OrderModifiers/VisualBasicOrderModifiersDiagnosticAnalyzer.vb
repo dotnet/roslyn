@@ -1,13 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.OrderModifiers
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -15,12 +11,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Inherits AbstractOrderModifiersDiagnosticAnalyzer
 
         Public Sub New()
-            MyBase.New(VisualBasicCodeStyleOptions.PreferredModifierOrder, VisualBasicOrderModifiersHelper.Instance)
+            MyBase.New(VisualBasicSyntaxFactsService.Instance,
+                       VisualBasicCodeStyleOptions.PreferredModifierOrder,
+                       VisualBasicOrderModifiersHelper.Instance)
         End Sub
-
-        Protected Overrides Function GetModifiers(node As SyntaxNode) As SyntaxTokenList
-            Return node.GetModifiers()
-        End Function
 
         Protected Overrides Sub Recurse(
             context As SyntaxTreeAnalysisContext,

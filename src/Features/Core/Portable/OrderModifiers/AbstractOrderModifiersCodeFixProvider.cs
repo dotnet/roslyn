@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -19,13 +20,16 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 {
     internal abstract class AbstractOrderModifiersCodeFixProvider : SyntaxEditorBasedCodeFixProvider
     {
+        private readonly ISyntaxFactsService _syntaxFacts;
         private readonly Option<CodeStyleOption<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersCodeFixProvider(
+            ISyntaxFactsService syntaxFacts,
             Option<CodeStyleOption<string>> option,
             AbstractOrderModifiersHelpers helpers)
         {
+            _syntaxFacts = syntaxFacts;
             _option = option;
             _helpers = helpers;
         }
@@ -57,12 +61,12 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
 
                 editor.ReplaceNode(memberDeclaration, (currentNode, _) =>
                 {
-                    var modifiers = GetModifiers(currentNode);
+                    var modifiers = _syntaxFacts.GetModifiers(currentNode);
                     var orderedModifiers = TokenList(
                         modifiers.OrderBy(CompareModifiers)
                                  .Select((t, i) => t.WithTriviaFrom(modifiers[i])));
 
-                    var updatedMemberDeclaration = WithModifiers(currentNode, orderedModifiers);
+                    var updatedMemberDeclaration = _syntaxFacts.WithModifiers(currentNode, orderedModifiers);
                     return updatedMemberDeclaration;
                 });
             }
@@ -79,8 +83,6 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
         }
 
         protected abstract SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens);
-        protected abstract SyntaxTokenList GetModifiers(SyntaxNode node);
-        protected abstract SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers);
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {

@@ -5,21 +5,25 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.OrderModifiers
 {
     internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractCodeStyleDiagnosticAnalyzer
     {
+        private readonly ISyntaxFactsService _syntaxFacts;
         private readonly Option<CodeStyleOption<string>> _option;
         private readonly AbstractOrderModifiersHelpers _helpers;
 
         protected AbstractOrderModifiersDiagnosticAnalyzer(
+            ISyntaxFactsService syntaxFacts,
             Option<CodeStyleOption<string>> option,
             AbstractOrderModifiersHelpers helpers)
             : base(IDEDiagnosticIds.OrderModifiers,
                    new LocalizableResourceString(nameof(FeaturesResources.Order_modifiers), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                    new LocalizableResourceString(nameof(FeaturesResources.Modifiers_are_not_ordered), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
         {
+            _syntaxFacts = syntaxFacts;
             _option = option;
             _helpers = helpers;
         }
@@ -60,15 +64,13 @@ namespace Microsoft.CodeAnalysis.OrderModifiers
             DiagnosticDescriptor descriptor,
             SyntaxNode root);
 
-        protected abstract SyntaxTokenList GetModifiers(SyntaxNode node);
-
         protected void CheckModifiers(
             SyntaxTreeAnalysisContext context,
             Dictionary<int, int> preferredOrder,
             DiagnosticDescriptor descriptor,
             SyntaxNode memberDeclaration)
         {
-            var modifiers = GetModifiers(memberDeclaration);
+            var modifiers = _syntaxFacts.GetModifiers(memberDeclaration);
             if (!IsOrdered(preferredOrder, modifiers))
             {
                 if (descriptor.DefaultSeverity == DiagnosticSeverity.Hidden)

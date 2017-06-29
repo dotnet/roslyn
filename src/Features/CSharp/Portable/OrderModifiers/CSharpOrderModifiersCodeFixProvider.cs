@@ -13,17 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.OrderModifiers
     internal class CSharpOrderModifiersCodeFixProvider : AbstractOrderModifiersCodeFixProvider
     {
         public CSharpOrderModifiersCodeFixProvider()
-            : base(CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
+            : base(CSharpSyntaxFactsService.Instance, CSharpCodeStyleOptions.PreferredModifierOrder, CSharpOrderModifiersHelper.Instance)
         {
         }
 
         protected override SyntaxTokenList TokenList(IEnumerable<SyntaxToken> tokens)
             => SyntaxFactory.TokenList(tokens);
-
-        protected override SyntaxTokenList GetModifiers(SyntaxNode node)
-            => node.GetModifiers();
-
-        protected override SyntaxNode WithModifiers(SyntaxNode node, SyntaxTokenList modifiers)
-            => node.WithModifiers(modifiers);
     }
 }
