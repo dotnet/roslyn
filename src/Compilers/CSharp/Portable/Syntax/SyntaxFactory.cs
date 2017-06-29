@@ -1237,7 +1237,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new SyntaxList<TNode>(node);
         }
 
-
         /// <summary>
         /// Creates a list of syntax nodes.
         /// </summary>
@@ -1327,23 +1326,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="trivias">An array of trivia.</param>
         public static SyntaxTriviaList TriviaList(params SyntaxTrivia[] trivias)
-        {
-            if (trivias != null)
-            {
-                SyntaxTriviaListBuilder builder = new SyntaxTriviaListBuilder(trivias.Length);
-                builder.Add(trivias);
-                return builder.ToList();
-            }
-
-            return default(SyntaxTriviaList);
-        }
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates a list of trivia.
         /// </summary>
         /// <param name="trivias">A sequence of trivia.</param>
         public static SyntaxTriviaList TriviaList(IEnumerable<SyntaxTrivia> trivias)
-            => SyntaxTriviaListBuilder.Create(trivias);
+            => new SyntaxTriviaList(trivias);
 
         /// <summary>
         /// Creates an empty separated list.

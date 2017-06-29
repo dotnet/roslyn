@@ -798,12 +798,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="trivias">An array of trivia.</param>
         Public Shared Function TriviaList(ParamArray trivias As SyntaxTrivia()) As SyntaxTriviaList
-            If trivias IsNot Nothing Then
-                Dim builder As New SyntaxTriviaListBuilder(trivias.Length)
-                builder.Add(trivias)
-                Return builder.ToList
-            End If
-            Return New SyntaxTriviaList()
+            Return New SyntaxTriviaList(trivias)
         End Function
 
         ''' <summary>
@@ -811,7 +806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="trivias">A sequence of trivia.</param>
         Public Shared Function TriviaList(trivias As IEnumerable(Of SyntaxTrivia)) As SyntaxTriviaList
-            Return SyntaxTriviaListBuilder.Create(trivias)
+            Return New SyntaxTriviaList(trivias)
         End Function
 
         ''' <summary>
