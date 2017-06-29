@@ -169,6 +169,7 @@
     <Compile Include="FindUsages\IFindUsagesContext.cs" />
     <Compile Include="FindUsages\IFindUsagesService.cs" />
     <Compile Include="FindUsages\SimpleFindUsagesContext.cs" />
+    <Compile Include="Implementation\CommentSelection\CommentSelectionServiceProxy.cs" />
     <Compile Include="Implementation\InlineRename\Dashboard\DashboardAutomationPeer.cs" />
     <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTag.cs" />
     <Compile Include="Implementation\InlineRename\HighlightTags\RenameConflictTagDefinition.cs" />
@@ -437,7 +438,6 @@
     <Compile Include="Implementation\CodeRefactorings\ICodeActionEditHandlerService.cs" />
     <Compile Include="Implementation\Commands\CommandHandlerService.cs" />
     <Compile Include="Implementation\Commands\CommandHandlerServiceFactory.cs" />
-    <Compile Include="Implementation\CommentSelection\AbstractCommentUncommentService.cs" />
     <Compile Include="Implementation\CommentSelection\CommentUncommentSelectionCommandHandler.cs" />
     <Compile Include="Implementation\CommentSelection\ICommentUncommentService.cs" />
     <Compile Include="Implementation\ContentTypes\ContentTypeDefinitions.cs" />

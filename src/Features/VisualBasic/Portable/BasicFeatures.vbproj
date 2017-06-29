@@ -66,6 +66,7 @@
     </Compile>
     <Compile Include="AddImport\VisualBasicAddImportFeatureService.vb" />
     <Compile Include="AddPackage\VisualBasicAddSpecificPackageCodeFixProvider.vb" />
+    <Compile Include="CommentSelection\VisualBasicCommentSelectionService.vb" />
     <Compile Include="DocumentHighlighting\VisualBasicDocumentHighlightsService.vb" />
     <Compile Include="InitializeParameter\InitializeParameterHelpers.vb" />
     <Compile Include="InitializeParameter\VisualBasicAddParameterCheckCodeRefactoringProvider.vb" />
