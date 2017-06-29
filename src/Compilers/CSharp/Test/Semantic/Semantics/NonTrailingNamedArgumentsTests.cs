@@ -302,9 +302,9 @@ class C
                 // (4,19): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     static void M(params int[] x, int y)
                 Diagnostic(ErrorCode.ERR_ParamsLast, "params int[] x").WithLocation(4, 19),
-                // (9,14): error CS1503: Argument 1: cannot convert from 'int' to 'int'
+                // (9,14): error CS1503: Argument 1: cannot convert from 'int' to 'params int[]'
                 //         M(x: 1, 2);
-                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "int").WithLocation(9, 14)
+                Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "params int[]").WithLocation(9, 14)
                 );
 
             var tree = comp.SyntaxTrees.First();
