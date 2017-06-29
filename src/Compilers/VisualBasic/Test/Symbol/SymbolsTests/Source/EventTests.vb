@@ -35,7 +35,7 @@ Imports System
 Public Class C
     Protected Custom Event Click As EventHandler
         AddHandler(ByVal value As EventHandler)
-    		Console.Write("add")
+            Console.Write("add")
         End AddHandler
 
         RemoveHandler(ByVal value As EventHandler)
@@ -52,9 +52,9 @@ Public Class D
 	Inherits C
 
 	Public Sub F()
-		AddHandler Click, Nothing 
+		AddHandler Click, Nothing
 		RemoveHandler Click, Nothing
-		AddHandler MyBase.Click, Nothing 
+		AddHandler MyBase.Click, Nothing
 		RemoveHandler MyBase.Click, Nothing
 	End Sub
 End Class
@@ -67,7 +67,7 @@ End Class
         <WorkItem(20335, "https://github.com/dotnet/roslyn/issues/20335")>
         <Fact()>
         Public Sub ProtectedHandlerDefinedInCSharp()
-            Dim csharpCompilation = Microsoft.CodeAnalysis.CSharp.Test.Utilities.CSharpTestBase.CreateStandardCompilation("
+            Dim csharpCompilation = CreateCSharpCompilation("
 public class C {
 	protected delegate void Handle();
     protected event Handle MyEvent;

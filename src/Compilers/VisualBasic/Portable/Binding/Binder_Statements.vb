@@ -2285,7 +2285,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ReportDiagnostic(diagnostics, node.EventExpression, GetInaccessibleErrorInfo(method))
                         End If
 
-
                         diagnostics.Add(node.EventExpression, useSiteDiagnostics)
 
                         Dim badShape As Boolean = False
