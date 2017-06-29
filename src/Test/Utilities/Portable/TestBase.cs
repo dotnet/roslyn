@@ -237,7 +237,10 @@ namespace Roslyn.Test.Utilities
             {
                 if (s_mscorlibRef == null)
                 {
-                    s_mscorlibRef = AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "mscorlib.v4_0_30319.dll");
+                    Interlocked.CompareExchange(
+                        ref s_mscorlibRef,
+                        AssemblyMetadata.CreateFromImage(TestResources.NetFX.v4_0_30319.mscorlib).GetReference(display: "mscorlib.v4_0_30319.dll"),
+                        null);
                 }
 
                 return s_mscorlibRef;
