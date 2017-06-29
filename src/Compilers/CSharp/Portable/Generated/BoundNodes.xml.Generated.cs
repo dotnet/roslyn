@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundAddressOfOperator : BoundExpression
     {
-        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, bool isFixedStatementAddressOf, TypeSymbol type, bool hasErrors = false)
+        public BoundAddressOfOperator(SyntaxNode syntax, BoundExpression operand, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.AddressOfOperator, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -773,24 +773,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Operand = operand;
-            this.IsFixedStatementAddressOf = isFixedStatementAddressOf;
         }
 
 
         public BoundExpression Operand { get; }
-
-        public bool IsFixedStatementAddressOf { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitAddressOfOperator(this);
         }
 
-        public BoundAddressOfOperator Update(BoundExpression operand, bool isFixedStatementAddressOf, TypeSymbol type)
+        public BoundAddressOfOperator Update(BoundExpression operand, TypeSymbol type)
         {
-            if (operand != this.Operand || isFixedStatementAddressOf != this.IsFixedStatementAddressOf || type != this.Type)
+            if (operand != this.Operand || type != this.Type)
             {
-                var result = new BoundAddressOfOperator(this.Syntax, operand, isFixedStatementAddressOf, type, this.HasErrors);
+                var result = new BoundAddressOfOperator(this.Syntax, operand, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8443,7 +8440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression operand = (BoundExpression)this.Visit(node.Operand);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(operand, node.IsFixedStatementAddressOf, type);
+            return node.Update(operand, type);
         }
         public override BoundNode VisitPointerIndirectionOperator(BoundPointerIndirectionOperator node)
         {
@@ -9390,7 +9387,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("addressOfOperator", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("operand", null, new TreeDumperNode[] { Visit(node.Operand, null) }),
-                new TreeDumperNode("isFixedStatementAddressOf", node.IsFixedStatementAddressOf, null),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

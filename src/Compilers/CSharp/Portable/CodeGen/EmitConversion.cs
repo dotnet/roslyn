@@ -111,6 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
                     break;
+                case ConversionKind.ObjectToPointer:
+                    // same representation, but stop GC tracking
+                    _builder.EmitOpCode(ILOpCode.Conv_u);
+                    break;
                 case ConversionKind.NullToPointer:
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind); // Should be handled by caller.
                 case ConversionKind.ImplicitNullable:

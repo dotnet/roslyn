@@ -48,5 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // It is used by lowering to ensure that trivially reduced expressions 
         // do not become exposed to mutations if used as receivers of struct methods.
         IdentityValue,  
+
+        ObjectToPointer,
     }
 }

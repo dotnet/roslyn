@@ -1948,6 +1948,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = tupleLiteralConversion.Type;
                     conversion = tupleLiteralConversion.Conversion;
                 }
+                else if(highestBoundExpr?.Kind == BoundKind.FixedLocalCollectionInitializer)
+                {
+                    var initializer = (BoundFixedLocalCollectionInitializer)highestBoundExpr;
+                    convertedType = initializer.Type;
+                    type = initializer.Expression.Type;
+
+                    // the most pertinent conversion is the pointer conversion 
+                    conversion = initializer.ElementPointerTypeConversion;
+                }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     convertedType = highestBoundExpr.Type;
