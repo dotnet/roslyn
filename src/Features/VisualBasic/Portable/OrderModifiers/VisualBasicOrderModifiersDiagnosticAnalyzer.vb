@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         Inherits AbstractOrderModifiersDiagnosticAnalyzer
 
         Public Sub New()
-            MyBase.new(VisualBasicCodeStyleOptions.PreferredModifierOrder, VisualBasicOrderModifiersHelper.Instance)
+            MyBase.New(VisualBasicCodeStyleOptions.PreferredModifierOrder, VisualBasicOrderModifiersHelper.Instance)
         End Sub
 
         Protected Overrides Function GetModifiers(node As SyntaxNode) As SyntaxTokenList
@@ -28,9 +28,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
             descriptor As DiagnosticDescriptor,
             root As SyntaxNode)
 
-            For Each child In root.childNodesandtokens()
-                If child.isnode Then
-                    Dim declarationStatement = TryCast(child.asnode(), DeclarationStatementSyntax)
+            For Each child In root.ChildNodesAndTokens()
+                If child.IsNode Then
+                    Dim declarationStatement = TryCast(child.AsNode(), DeclarationStatementSyntax)
                     If declarationStatement IsNot Nothing Then
                         If ShouldCheck(declarationStatement) Then
                             CheckModifiers(context, preferredOrder, descriptor, declarationStatement)
@@ -43,13 +43,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.OrderModifiers
         End Sub
 
         Private Function ShouldCheck(statement As DeclarationStatementSyntax) As Boolean
-            Dim modifiers = statement.getmodifiers()
+            Dim modifiers = statement.GetModifiers()
             If modifiers.Count >= 2 Then
                 ' We'll see modifiers twice in some circumstances.  First, on a VB block
                 ' construct, and then on the VB begin statement for that block.  In order
                 ' to not double report, only check the statement that teh modifier actually
                 ' belongs to.
-                Return modifiers.first().parent Is statement
+                Return modifiers.First().Parent Is statement
             End If
 
             Return False
