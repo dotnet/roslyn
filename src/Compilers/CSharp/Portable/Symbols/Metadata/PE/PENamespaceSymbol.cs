@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
@@ -41,6 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// All type members in a flat array
         /// </summary>
         private ImmutableArray<PENamedTypeSymbol> _lazyFlattenedTypes;
+
+        private Tuple<CultureInfo, string> _lazyDocComment;
 
         internal sealed override NamespaceExtent Extent
         {
@@ -305,6 +309,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return result;
+        }
+
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return PEDocumentationCommentUtils.GetDocumentationComment(this, ContainingPEModule, preferredCulture, cancellationToken, ref _lazyDocComment);
         }
     }
 }

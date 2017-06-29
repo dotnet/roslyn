@@ -3804,6 +3804,34 @@ class C { }
         }
 
         [Fact]
+        public void ForSingleNamespace()
+        {
+            var source = @"
+/// <summary>
+///  A
+///   B
+///  C
+/// </summary>
+namespace N { class C { } }
+";
+
+            var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
+
+            var type = compilation.GlobalNamespace.GetMember<NamespaceSymbol>("N");
+            var actualText = DocumentationCommentCompiler.GetDocumentationCommentXml(type, processIncludes: true, cancellationToken: default(CancellationToken));
+            var expectedText =
+@"<member name=""N:N"">
+    <summary>
+     A
+      B
+     C
+    </summary>
+</member>
+";
+            Assert.Equal(expectedText, actualText);
+        }
+
+        [Fact]
         public void ForSingleTypeWithInclude()
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("<stuff />");

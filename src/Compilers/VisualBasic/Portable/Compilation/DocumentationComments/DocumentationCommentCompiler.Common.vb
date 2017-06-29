@@ -726,6 +726,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case SymbolKind.Event
                         Return "event"
+                        
+                    Case SymbolKind.Namespace
+                        Return "namespace"
 
                     Case SymbolKind.NamedType
                         Select Case DirectCast(symbol, NamedTypeSymbol).TypeKind

@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.ImmutableArrayExtensions
 Imports Microsoft.CodeAnalysis.Text
@@ -17,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _nameToMembersMap As Dictionary(Of String, ImmutableArray(Of NamespaceOrTypeSymbol))
         Private _nameToTypeMembersMap As Dictionary(Of String, ImmutableArray(Of NamedTypeSymbol))
         Private _lazyEmbeddedKind As Integer = EmbeddedSymbolKind.Unset
+        Private _lazyDocComment As String
 
         ' lazily evaluated state of the symbol (StateFlags)
         Private _lazyState As Integer
@@ -666,5 +668,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _declaration
             End Get
         End Property
+
+        Public Overrides Function GetDocumentationCommentXml(Optional preferredCulture As CultureInfo = Nothing, Optional expandIncludes As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As String
+            If _lazyDocComment Is Nothing Then
+                ' NOTE: replace Nothing with empty comment
+                Interlocked.CompareExchange(
+                    _lazyDocComment, GetDocumentationCommentForSymbol(Me, preferredCulture, expandIncludes, cancellationToken), Nothing)
+            End If
+
+            Return _lazyDocComment
+        End Function
+
     End Class
 End Namespace

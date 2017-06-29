@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis;
+using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -26,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _nameToTypeMembersMap;
         private ImmutableArray<Symbol> _lazyAllMembers;
         private ImmutableArray<NamedTypeSymbol> _lazyTypeMembersUnordered;
+        private string _lazyDocComment;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
         private int _flags;
@@ -547,6 +549,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return result;
             }
+        }
+
+        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return SourceDocumentationCommentUtils.GetAndCacheDocumentationComment(this, expandIncludes, ref _lazyDocComment);
         }
     }
 }
