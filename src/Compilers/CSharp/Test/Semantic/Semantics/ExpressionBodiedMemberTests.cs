@@ -39,7 +39,7 @@ public partial class C
                 .OfType<MethodDeclarationSyntax>()
                 .ElementAt(1);
 
-            var fooDef = model.GetDeclaredSymbol(node) as SourceMemberMethodSymbol;
+            var fooDef = model.GetDeclaredSymbol(node) as SourceOrdinaryMethodSymbol;
             Assert.NotNull(fooDef);
             Assert.True(fooDef.IsPartial);
             Assert.True(fooDef.IsPartialDefinition);
@@ -47,7 +47,7 @@ public partial class C
             Assert.Null(fooDef.PartialDefinitionPart);
 
             var fooImpl = fooDef.PartialImplementationPart
-                as SourceMemberMethodSymbol;
+                as SourceOrdinaryMethodSymbol;
             Assert.NotNull(fooImpl);
             Assert.True(fooImpl.IsPartial);
             Assert.True(fooImpl.IsPartialImplementation);
@@ -226,7 +226,7 @@ class Program
             var semanticSymbol = semanticInfo.Symbol;
             var global = comp.GlobalNamespace;
             var program = global.GetTypeMember("Program");
-            var method = program.GetMember<SourceMemberMethodSymbol>("M");
+            var method = program.GetMember<SourceOrdinaryMethodSymbol>("M");
             var i = method.Parameters[0];
 
             Assert.Equal(i, semanticSymbol);
@@ -255,7 +255,7 @@ class C
             Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
             Assert.Equal("T", semanticInfo.Type.Name);
             Assert.Equal("t", semanticInfo.Symbol.Name);
-            var m = semanticInfo.Symbol.ContainingSymbol as SourceMemberMethodSymbol;
+            var m = semanticInfo.Symbol.ContainingSymbol as SourceOrdinaryMethodSymbol;
             Assert.Equal(1, m.TypeParameters.Length);
             Assert.Equal(m.TypeParameters[0], semanticInfo.Type);
             Assert.Equal(m.TypeParameters[0], m.ReturnType);
