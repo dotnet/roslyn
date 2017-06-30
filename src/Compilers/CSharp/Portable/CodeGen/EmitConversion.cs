@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                     _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
                     break;
-                case ConversionKind.ObjectToPointer:
+                case ConversionKind.PinnedObjectToPointer:
                     // same representation, but stop GC tracking
                     _builder.EmitOpCode(ILOpCode.Conv_u);
                     break;

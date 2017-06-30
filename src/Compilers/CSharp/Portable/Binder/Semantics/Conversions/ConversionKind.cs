@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         // do not become exposed to mutations if used as receivers of struct methods.
         IdentityValue,
 
-        // ObjectToPointer is not directly a part of the language
+        // PinnedObjectToPointer is not directly a part of the language
         // It is used by lowering of "fixed" statements to represent conversion of an object reference (O) to an unmanaged pointer (*)
         // The conversion is unsafe and makes sense only if (O) is pinned.
-        ObjectToPointer,
+        PinnedObjectToPointer,
     }
 }

@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var addr = factory.Convert(
                  fixedInitializer.ElementPointerType,
                  factory.Local(pinnedTemp),
-                 Conversion.ObjectToPointer);
+                 Conversion.PinnedObjectToPointer);
 
             var convertedStringTemp = factory.Convert(
                 localType,
