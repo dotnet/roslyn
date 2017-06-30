@@ -41,11 +41,6 @@
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
-
-      <!-- Add the UnitTestContainer project capability -->
-      <ItemGroup>
-        <ProjectCapability Include="UnitTestContainer" />
-      </ItemGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
       <PropertyGroup>
@@ -206,6 +201,11 @@
 
   <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
     <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
+  </ItemGroup>
+
+  <!-- Add the UnitTestContainer project capability -->
+  <ItemGroup Condition="'$(_IsAnyUnitTest)' == 'true'">
+    <ProjectCapability Include="UnitTestContainer" />
   </ItemGroup>
 
   <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
