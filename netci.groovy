@@ -219,8 +219,6 @@ commitPullList.each { isPr ->
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
         steps {
-          batchfile('tasklist /FI "IMAGENAME eq devenv.exe"')
-          batchfile('taskkill /FI "IMAGENAME eq devenv.exe"')
           batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
         }
       }

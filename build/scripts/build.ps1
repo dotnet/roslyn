@@ -273,8 +273,6 @@ function Deploy-VsixViaTool() {
         "Vsix\VisualStudioDiagnosticsWindow\Roslyn.VisualStudio.DiagnosticsWindow.vsix",
         "Vsix\VisualStudioIntegrationTestSetup\Microsoft.VisualStudio.IntegrationTest.Setup.vsix")
 
-    Get-Process -Name "devenv"
-
     Write-Host "Uninstalling old Roslyn VSIX"
 
     # Reverse the extension list so we uninstall in the proper order so that dependencies line up
@@ -340,13 +338,33 @@ function Redirect-Temp() {
     ${env:TMP} = $temp
 }
 
+function List-BuildProcesses() {
+    Write-Host "Listing running build processes..."
+    Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Out-Host
+    Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
+}
+
+function List-VSProcesses() {
+    Write-Host "Listing running vs processes..."
+    Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
+}
+
 # Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
 # This prevents future CI runs from failing while trying to delete those files.
 # Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
 # left some floating around).
 function Stop-BuildProcesses() {
-    Get-Process msbuild -ErrorAction SilentlyContinue | kill 
-    Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
+    Write-Host "Killing running build processes..."
+    Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Stop-Process
+    Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Stop-Process
+}
+
+# Kill any instances of devenv.exe to ensure VSIX install/uninstall works in future runs and to ensure
+# that any locked files don't prevent future CI runs from failing.
+# Also call Stop-BuildProcesses
+function Stop-VSProcesses() {
+    Write-Host "Killing running vs processes..."
+    Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Stop-Process
 }
 
 try {
@@ -375,6 +393,8 @@ try {
     Create-Directory $configDir 
 
     if ($cibuild) { 
+        List-VSProcesses
+        List-BuildProcesses
         Redirect-Temp
     }
 
@@ -427,7 +447,8 @@ catch {
 }
 finally {
     Pop-Location
-    if ($cibuild) { 
+    if ($cibuild) {
+        Stop-VSProcesses
         Stop-BuildProcesses
     }
 }
