@@ -2985,15 +2985,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to type {0}.
-        /// </summary>
-        internal static string type_0 {
-            get {
-                return ResourceManager.GetString("type_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to type constraint.
         /// </summary>
         internal static string type_constraint {
