@@ -2877,7 +2877,7 @@ IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperat
 
         [Fact]
         [WorkItem(18160, "https://github.com/dotnet/roslyn/issues/18160")]
-        public void Test_UnaryOperatorExpression_Type_And_TrueFalse_Condition()
+        public void Test_BinaryExpressionSyntax_Type_And_TrueFalse_Condition()
         {
             string source = @"
 public struct S
@@ -2920,7 +2920,7 @@ IOperation:  (OperationKind.None) (Syntax: 'x && y')
   Children(2): ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'x')
     ILocalReferenceExpression: y (OperationKind.LocalReferenceExpression, Type: S) (Syntax: 'y')
 ";
-            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
         }
 
         [Fact]
@@ -2937,9 +2937,8 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IIncrementExpression (UnaryOperandKind.IntegerPrefixIncrement) (BinaryOperationKind.IntegerAdd) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
+IIncrementExpression (UnaryOperandKind.IntegerPrefixIncrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '++i')
   Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '++i')
 ";
 
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
@@ -2959,9 +2958,8 @@ class A
 }
 ";
             string expectedOperationTree = @"
-IIncrementExpression (UnaryOperandKind.IntegerPrefixDecrement) (BinaryOperationKind.IntegerSubtract) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '--i')
+IIncrementExpression (UnaryOperandKind.IntegerPrefixDecrement) (OperationKind.IncrementExpression, Type: System.Int32) (Syntax: '--i')
   Left: ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: System.Int32) (Syntax: 'i')
-  Right: ILiteralExpression (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '--i')
 ";
             VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
         }
@@ -2982,7 +2980,7 @@ class A
 IConversionExpression (ConversionKind.CSharp, Explicit) (OperationKind.ConversionExpression, Type: System.Int32?) (Syntax: '(int?)1')
   ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
-            VerifyOperationTreeForTest<PrefixUnaryExpressionSyntax>(source, expectedOperationTree);
+            VerifyOperationTreeForTest<CastExpressionSyntax>(source, expectedOperationTree);
         }
 
         [Fact]
