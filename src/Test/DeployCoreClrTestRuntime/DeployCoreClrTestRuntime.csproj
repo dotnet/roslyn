@@ -18,7 +18,7 @@
     <PackageTargetFallback>portable-net452;dotnet;netstandard1.6</PackageTargetFallback>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RuntimeIdentifiers>
     <RuntimeIdentifier>$(RoslynRuntimeIdentifier)</RuntimeIdentifier>
-    <SelfContained Condition="'$(RoslynRuntimeIdentifier)' != ''" >true</SelfContained>
+    <SelfContained Condition="'$(RoslynRuntimeIdentifier)' != ''">true</SelfContained>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
@@ -69,14 +69,6 @@
     <ProjectReference Include="..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
       <Project>{b501a547-c911-4a05-ac6e-274a50dff30e}</Project>
       <Name>CSharpCodeAnalysis</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Test\Symbol\CSharpCompilerSymbolTest.csproj">
-      <Project>{28026d16-eb0c-40b0-bda7-11caa2b97ccc}</Project>
-      <Name>CSharpCompilerSymbolTest</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\Compilers\CSharp\Test\Syntax\CSharpCompilerSyntaxTest.csproj">
-      <Project>{50d26304-0961-4a51-abf6-6cad1a56d202}</Project>
-      <Name>CSharpCompilerSyntaxTest</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj">
       <Project>{7fe6b002-89d8-4298-9b1b-0b5c247dd1fd}</Project>
