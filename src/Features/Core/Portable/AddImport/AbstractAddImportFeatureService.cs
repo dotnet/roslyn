@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.AddImport
 
             using (session)
             {
+                // This service is only defined for C# and VB, but we'll be a bit paranoid.
                 if (session == null || !RemoteSupportedLanguages.IsSupported(document.Project.Language))
                 {
                     return await GetFixesInCurrentProcessAsync(
