@@ -262,8 +262,9 @@ function Deploy-VsixViaTool() {
     $both = Get-VisualStudioDirAndId
     $vsDir = $both[0].Trim("\")
     $vsId = $both[1]
+    $hive = "RoslynDev"
     Write-Host "Using VS Instance $vsId at `"$vsDir`""
-    $baseArgs = "/rootSuffix:RoslynDev /vsInstallDir:`"$vsDir`""
+    $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
     $all = @(
         "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
@@ -275,24 +276,18 @@ function Deploy-VsixViaTool() {
 
     Write-Host "Uninstalling old Roslyn VSIX"
 
-    # Reverse the extension list so we uninstall in the proper order so that dependencies line up
-    [array]::Reverse($all)
-
-    foreach ($e in $all)
-    {
-        $name = Split-Path -leaf $e
-        $filePath = Join-Path $configDir $e
-        $fullArg = "-u $baseArgs $filePath"
-        Write-Host "`tUninstalling $name"
-        Exec-Command $vsixExe $fullArg | Out-Host
+    # Actual uninstall is failing at the moment using the uninstall options. Temporarily using 
+    # wildfire to uninstall our VSIX extensions
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\15.0_$($vsid)$($hive)"
+    if (Test-Path $extDir) {
+        foreach ($dir in Get-ChildItem -Directory $extDir) {
+            $name = Split-Path -leaf $dir
+            Write-Host "`tUninstalling $name"
+        }
+        Remove-Item -re -fo $extDir
     }
 
     Write-Host "Installing all Roslyn VSIX"
-
-    # Reverse the extension list so we install in the proper order so that dependencies line up
-    # Note: Only required as long as we reverse the list for uninstall above
-    [array]::Reverse($all)
-
     foreach ($e in $all) {
         $name = Split-Path -leaf $e
         $filePath = Join-Path $configDir $e
