@@ -10,7 +10,6 @@
     <AssemblyName>BasicAnalyzers.Tests</AssemblyName>
     <MyType>Windows</MyType>
     <TargetFramework>net46</TargetFramework>
-    <TargetFrameworkProfile />
     <NoWarn>$(NoWarn);42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <OptionStrict>Off</OptionStrict>
   </PropertyGroup>
