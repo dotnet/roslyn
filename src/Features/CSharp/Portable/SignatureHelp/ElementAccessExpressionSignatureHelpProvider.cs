@@ -376,13 +376,6 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     var conditionalAccess = elementBindingExpression.FirstAncestorOrSelf<ConditionalAccessExpressionSyntax>(
                         c => c.SpanStart < elementBindingExpression.SpanStart);
 
-                    if (conditionalAccess == null)
-                    {
-                        identifier = null;
-                        openBrace = default(SyntaxToken);
-                        return false;
-                    }
-
                     identifier = conditionalAccess.Expression;
                     openBrace = elementBindingExpression.ArgumentList.OpenBracketToken;
 
