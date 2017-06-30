@@ -1359,7 +1359,7 @@ class C
             // the operators given to the comment that follows the use of the operator.
 
             var compilation = CreateStandardCompilation(source, options: TestOptions.ReleaseDll);
-            var method = (SourceMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
+            var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
             var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
             var tree = BoundTreeDumperNodeProducer.MakeTree(block);
