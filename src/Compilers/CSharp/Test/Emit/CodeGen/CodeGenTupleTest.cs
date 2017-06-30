@@ -23415,7 +23415,7 @@ class C
 
         [Fact]
         [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
-        public void MoreGenericTieBreaker()
+        public void MoreGenericTieBreaker_01()
         {
             var source =
 @"using System;
@@ -23436,8 +23436,34 @@ public class C
     public static void M2<T>(ValueTuple<ValueTuple<T, int>, int> a) { Console.Write(4); }
 }
 
-public class A<T> { }" + trivial2uple + tupleattributes_cs;
-            var comp = CompileAndVerify(source, expectedOutput: "24");
+public class A<T> {}";
+            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "24");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/20583")]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        [WorkItem(20583, "https://github.com/dotnet/roslyn/issues/20583")]
+        public void MoreGenericTieBreaker_02()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        // var b = (1, 2, 3, 4, 5, 6, 7, 8);
+        var b = new ValueTuple<int, int, int, int, int, int, int, ValueTuple<int>>(1, 2, 3, 4, 5, 6, 7, new ValueTuple<int>(8));
+        M1(b);
+        M2(b); // ok, should select M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a)
+    }
+    public static void M1<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(1); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, T8>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> a) { Console.Write(2); }
+    public static void M2<T1, T2, T3, T4, T5, T6, T7, TRest>(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> a) where TRest : struct { Console.Write(3); }
+}
+";
+            var comp = CompileAndVerify(source,
+                additionalRefs: s_valueTupleRefs,
+                expectedOutput: @"12");
         }
     }
 }
