@@ -249,16 +249,6 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
-  <!-- 
-       Work around some UI delays in the new project system
-
-       https://github.com/dotnet/project-system/issues/2297
-
-  --> 
-  <ItemGroup>
-    <ProjectCapability Remove="DependenciesTree"/>
-  </ItemGroup>
-
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
   <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
 

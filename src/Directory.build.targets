@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <!-- 
+    Work around some UI delays in the new project system
+    https://github.com/dotnet/project-system/issues/2297
+  --> 
+  <ItemGroup>
+    <ProjectCapability Remove="DependenciesTree"/>
+  </ItemGroup>
+</Project>
