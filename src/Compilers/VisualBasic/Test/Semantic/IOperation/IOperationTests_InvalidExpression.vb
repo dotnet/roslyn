@@ -134,7 +134,7 @@ Class Program
 End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
-IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'x.i1')
+IConversionExpression (ConversionKind.Invalid, Implicit) (OperationKind.ConversionExpression, Type: Program, IsInvalid) (Syntax: 'x.i1')
   IFieldReferenceExpression: Program.i1 As System.Int32 (OperationKind.FieldReferenceExpression, Type: System.Int32) (Syntax: 'x.i1')
     Instance Receiver: ILocalReferenceExpression: x (OperationKind.LocalReferenceExpression, Type: Program) (Syntax: 'x')
 ]]>.Value
