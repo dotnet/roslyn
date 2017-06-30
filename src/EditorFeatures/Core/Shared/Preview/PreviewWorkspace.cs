@@ -60,7 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             this.OnDocumentOpened(documentId, text.Container);
         }
 
-        public override void OpenAdditionalDocument(DocumentId documentId)
+        /// <summary>
+        /// Puts the specified additional document into the open state.
+        /// </summary>
+        /// <param name="documentId">The <see cref="DocumentId"/> to open.</param>
+        /// <param name="activate">Ignored - not necessary for additional documents.</param>
+        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             var document = this.CurrentSolution.GetAdditionalDocument(documentId);
             var text = document.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);

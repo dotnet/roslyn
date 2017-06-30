@@ -753,7 +753,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             OpenDocumentCore(documentId, activate);
         }
 
-        public override void OpenAdditionalDocument(DocumentId documentId)
+        /// <summary>
+        /// Puts the specified additional document into the open state.
+        /// </summary>
+        /// <param name="documentId">The <see cref="DocumentId"/> to open.</param>
+        /// <param name="activate">Ignored - not necessary for additional documents.</param>
+        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             OpenDocumentCore(documentId);
         }

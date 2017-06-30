@@ -138,7 +138,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Puts the specified additional document into the open state.
         /// </summary>
-        public override void OpenAdditionalDocument(DocumentId documentId)
+        /// <param name="documentId">The <see cref="DocumentId"/> to open.</param>
+        /// <param name="activate">Ignored - not necessary for additional documents.</param>
+        public override void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             lock (_gate)
             {

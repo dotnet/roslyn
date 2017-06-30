@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Open the specified additional document in the host environment.
         /// </summary>
-        public virtual void OpenAdditionalDocument(DocumentId documentId)
+        /// <param name="documentId">The <see cref="DocumentId"/> to open.</param>
+        /// <param name="activate">Ignored - not necessary for additional documents.</param>
+        public virtual void OpenAdditionalDocument(DocumentId documentId, bool activate = true)
         {
             this.CheckCanOpenDocuments();
         }
@@ -524,7 +526,13 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer)
+        /// <summary>
+        /// To be called by the host when an ="AdditionalDocument" is opened in the editor.
+        /// </summary>
+        /// <param name="documentId">The <see cref="DocumentId"/>.</param>
+        /// <param name="textContainer">The <see cref="SourceTextContainer"/> for the open file additional document.</param>
+        /// <param name="isCurrentContext">Ignored - not necessary for Additional Files.</param>
+        protected internal void OnAdditionalDocumentOpened(DocumentId documentId, SourceTextContainer textContainer, bool isCurrentContext = true)
         {
             CheckAdditionalDocumentIsInCurrentSolution(documentId);
             CheckDocumentIsClosed(documentId);
