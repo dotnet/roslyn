@@ -23412,5 +23412,32 @@ class C
             Assert.Equal("(System.Int32, System.String, System.Int32)", model.GetTypeInfo(tuple).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.NoConversion, model.GetConversion(tuple).Kind);
         }
+
+        [Fact]
+        [WorkItem(20494, "https://github.com/dotnet/roslyn/issues/20494")]
+        public void MoreGenericTieBreaker()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        A<A<int>> a = null;
+        M1(a); // ok, selects M1<T>(A<A<T>> a)
+
+        var b = default(ValueTuple<ValueTuple<int, int>, int>);
+        M2(b); // ok, should select M2<T>(ValueTuple<ValueTuple<T, int>, int> a)
+    }
+    public static void M1<T>(A<T> a) { Console.Write(1); }
+    public static void M1<T>(A<A<T>> a) { Console.Write(2); }
+
+    public static void M2<T>(ValueTuple<T, int> a) { Console.Write(3); }
+    public static void M2<T>(ValueTuple<ValueTuple<T, int>, int> a) { Console.Write(4); }
+}
+
+public class A<T> { }" + trivial2uple + tupleattributes_cs;
+            var comp = CompileAndVerify(source, expectedOutput: "24");
+        }
     }
 }
