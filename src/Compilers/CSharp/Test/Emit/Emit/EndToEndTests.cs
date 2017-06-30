@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                     numberFluentCalls = 225;
                     break;
                 case 64 when !isDebug:
-                    numberFluentCalls = 630;
+                    numberFluentCalls = 620;
                     break;
                 default:
                     throw new Exception($"unexpected pointer size {IntPtr.Size}");
