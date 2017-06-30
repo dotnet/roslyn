@@ -264,11 +264,9 @@ namespace Roslyn.Test.Utilities
             IEnumerable<T> expected,
             IEnumerable<T> actual,
             IEqualityComparer<T> comparer = null,
-            string message = null,
+            string message = "",
             string itemSeparator = "\r\n")
         {
-            message = message ?? "";
-
             var expectedSet = new HashSet<T>(expected, comparer);
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);
             if (!result)
