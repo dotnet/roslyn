@@ -158,6 +158,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 Capitalization = capitalization;
                 Name = name;
             }
+
+            // For screen readers
+            public override string ToString()
+            {
+                return Name;
+            }
         }
     }
 }

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class ConversionsTests
         Inherits BasicTestBase
 
-        Private Shared ReadOnly s_noConversion As ConversionKind = Nothing
+        Private Const s_noConversion As ConversionKind = Nothing
 
         <Fact()>
         Public Sub TryCastDirectCastConversions()

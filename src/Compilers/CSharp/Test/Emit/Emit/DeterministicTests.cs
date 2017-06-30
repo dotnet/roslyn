@@ -15,6 +15,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 {
+    [CompilerTrait(CompilerFeature.Determinism)]
     public class DeterministicTests : EmitMetadataTestBase
     {
         private Guid CompiledGuid(string source, string assemblyName, bool debug)

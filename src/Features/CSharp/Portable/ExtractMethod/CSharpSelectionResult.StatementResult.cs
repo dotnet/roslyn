@@ -71,13 +71,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 switch (node)
                 {
                     case AccessorDeclarationSyntax access:
-                        // property case
+                        // property or event case
                         if (access.Parent == null || access.Parent.Parent == null)
                         {
                             return null;
                         }
 
-                        return ((IPropertySymbol)semanticModel.GetDeclaredSymbol(access.Parent.Parent)).Type;
+                        switch (semanticModel.GetDeclaredSymbol(access.Parent.Parent))
+                        {
+                            case IPropertySymbol propertySymbol:
+                                return propertySymbol.Type;
+
+                            case IEventSymbol eventSymbol:
+                                return eventSymbol.Type;
+
+                            default:
+                                return null;
+                        }
 
                     case MethodDeclarationSyntax method:
                         return semanticModel.GetDeclaredSymbol(method).ReturnType;

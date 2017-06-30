@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" InitialTargets="ValidateMSBuildToolsVersion" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="15.0" DefaultTargets="Build" InitialTargets="ValidateMSBuildToolsVersion" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- The UsingTask, UseSharedCompilation, and ToolPath/Exe variables all interact to
        choose which compiler path to use and whether or not to use the compiler server.
        If UsingTask and UseSharedCompilation are set then the compiler server next to the
@@ -10,11 +10,12 @@
        the executable in the MSBuild install path will be executed. -->
 
   <Target Name="ValidateMSBuildToolsVersion" Condition="'$(BuildingProject)' == 'true'">
-    <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v14.0 and above"
+    <Error Text="Microsoft.Net.Compilers is only supported on MSBuild v15.0 and above"
            Condition="'$(MSBuildToolsVersion)' == '2.0' OR
                       '$(MSBuildToolsVersion)' == '3.5' OR
                       '$(MSBuildToolsVersion)' == '4.0' OR
-                      '$(MSBuildToolsVersion)' == '12.0'" />
+                      '$(MSBuildToolsVersion)' == '12.0' OR
+                      '$(MSBuildToolsVersion)' == '14.0'" />
   </Target>
 
   <!-- Always use the local build task, even if we just shell out to an exe in case there are

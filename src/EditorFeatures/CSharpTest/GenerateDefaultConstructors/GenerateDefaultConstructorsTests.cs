@@ -865,5 +865,15 @@ class Derived : Base
     }
 }");
         }
+
+        [WorkItem(19953, "https://github.com/dotnet/roslyn/issues/19953")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)]
+        public async Task TestNotOnEnum()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"enum [||]E
+{
+}");
+        }
     }
 }

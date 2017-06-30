@@ -52,8 +52,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <PackageReference Include="Microsoft.Composition">
-      <Version>$(MicrosoftCompositionVersion)</Version>
+    <PackageReference Include="System.Composition">
+      <Version>$(SystemCompositionVersion)</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

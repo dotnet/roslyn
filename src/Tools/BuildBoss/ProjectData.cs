@@ -10,21 +10,19 @@ namespace BuildBoss
 {
     internal sealed class ProjectData
     {
-        internal ProjectKey Key { get; }
         internal string FilePath { get; }
-        internal XDocument Document { get; }
         internal ProjectUtil ProjectUtil { get; }
 
+        internal XDocument Document => ProjectUtil.Document;
+        internal ProjectKey Key => ProjectUtil.Key;
         internal string FileName => Path.GetFileName(FilePath);
         internal string Directory => Path.GetDirectoryName(FilePath);
         internal ProjectFileType ProjectFileType => ProjectEntryUtil.GetProjectFileType(FilePath);
 
         internal ProjectData(string filePath)
         {
-            Key = new ProjectKey(filePath);
-            FilePath = Key.FilePath;
-            Document = XDocument.Load(FilePath);
-            ProjectUtil = new ProjectUtil(Key, Document);
+            FilePath = filePath;
+            ProjectUtil = new ProjectUtil(FilePath);
         }
     }
 }

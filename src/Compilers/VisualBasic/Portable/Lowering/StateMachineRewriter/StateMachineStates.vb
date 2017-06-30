@@ -8,9 +8,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Module StateMachineStates
-        Public ReadOnly FinishedStateMachine As Integer = -2
-        Public ReadOnly NotStartedStateMachine As Integer = -1
-        Public ReadOnly FirstUnusedState As Integer = 0
+        Public FinishedStateMachine As Integer = -2
+        Public NotStartedStateMachine As Integer = -1
+        Public FirstUnusedState As Integer = 0
     End Module
 
 End Namespace

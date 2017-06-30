@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 var parameterString = string.Join(", ", parameters);
 
                 return string.Format(FeaturesResources.Generate_constructor_0_1,
-                    state.ClassOrStructType.Name, parameterString);
+                    state.ClassType.Name, parameterString);
             }
         }
     }

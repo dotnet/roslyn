@@ -1226,5 +1226,49 @@ chosenSymbols: null,
 optionsCallback: options => Assert.Null(options.FirstOrDefault(i => i.Id == ImplementIEquatableId)),
 ignoreTrivia: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TestMissingReferences()
+        {
+            await TestWithPickMembersDialogAsync(
+@"
+<Workspace>
+    <Project Language='C#' AssemblyName='CSharpAssembly1' CommonReferences='false'>
+        <Document FilePath='Test1.cs'>
+public class Class1
+{
+    int i;
+    [||]
+
+    public void Foo()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>",
+@"
+public class Class1
+{
+    int i;
+
+    public override global::System.Boolean Equals(global::System.Object obj)
+    {
+        var @class = obj as Class1;
+        return @class != null;
+    }
+
+    public void Foo()
+    {
+    }
+
+    public override global::System.Int32 GetHashCode()
+    {
+        return 0;
+    }
+}",
+chosenSymbols: new string[] { },
+index: 1);
+        }
     }
 }

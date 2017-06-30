@@ -11,6 +11,7 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
@@ -98,10 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         // or the "this" parameter when at the top level.  Keys in this map are never constructed types.
         private readonly Dictionary<NamedTypeSymbol, Symbol> _framePointers = new Dictionary<NamedTypeSymbol, Symbol>();
 
-        // True if the rewritten tree should include assignments of the
-        // original locals to the lifted proxies. This is only useful for the
-        // expression evaluator where the original locals are left as is.
-        private readonly bool _assignLocals;
+        // The set of original locals that should be assigned to proxies
+        // if lifted. This is useful for the expression evaluator where
+        // the original locals are left as is.
+        private readonly HashSet<LocalSymbol> _assignLocals;
 
         // The current method or lambda being processed.
         private MethodSymbol _currentMethod;
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool assignLocals)
+            HashSet<LocalSymbol> assignLocals)
             : base(slotAllocatorOpt, compilationState, diagnostics)
         {
             Debug.Assert(analysis != null);
@@ -207,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="slotAllocatorOpt">Slot allocator.</param>
         /// <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
         /// <param name="diagnostics">Diagnostic bag for diagnostics</param>
-        /// <param name="assignLocals">The rewritten tree should include assignments of the original locals to the lifted proxies</param>
+        /// <param name="assignLocals">The set of original locals that should be assigned to proxies if lifted</param>
         public static BoundStatement Rewrite(
             BoundStatement loweredBody,
             NamedTypeSymbol thisType,
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            bool assignLocals)
+            HashSet<LocalSymbol> assignLocals)
         {
             Debug.Assert((object)thisType != null);
             Debug.Assert(((object)thisParameter == null) || (thisParameter.Type == thisType));
@@ -642,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 prologue.Add(new BoundAssignmentOperator(syntax,
                     new BoundLocal(syntax, framePointer, null, frameType),
-                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor),
+                    new BoundObjectCreationExpression(syntax: syntax, constructor: constructor, binderOpt: null),
                     frameType));
             }
 
@@ -748,12 +749,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     case SymbolKind.Local:
-                        if (!_assignLocals)
+                        var local = (LocalSymbol)symbol;
+                        if (_assignLocals == null || !_assignLocals.Contains(local))
                         {
                             return;
                         }
 
-                        var local = (LocalSymbol)symbol;
                         LocalSymbol localToUse;
                         if (!localMap.TryGetValue(local, out localToUse))
                         {
@@ -892,6 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node.InvokedAsExtensionMethod,
                     node.ArgsToParamsOpt,
                     node.ResultKind,
+                    node.BinderOpt,
                     this.VisitType(node.Type));
 
                 return PartiallyLowerLocalFunctionReference(withArguments);

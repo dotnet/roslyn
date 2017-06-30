@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
-        private static readonly string s_CS8019_UnusedUsingDirective = "CS8019";
+        private const string s_CS8019_UnusedUsingDirective = "CS8019";
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {

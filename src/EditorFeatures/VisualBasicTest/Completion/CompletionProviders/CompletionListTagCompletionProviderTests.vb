@@ -399,6 +399,26 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
+        <WorkItem(18787, "https://github.com/dotnet/roslyn/issues/18787")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NotAfterDot() As Task
+            Dim markup = <Text><![CDATA[
+Public Class Program
+     Private Shared field1 As Integer
+ 
+    ''' <summary>
+    ''' </summary>
+    ''' <completionList cref="Program"></completionList>
+    Public Class Program2
+Public Async Function TestM() As Task
+            Dim obj As Program2 = Program.$$
+        End Sub
+    End Class
+End Class
+]]></Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
         Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New CompletionListTagCompletionProvider()
         End Function

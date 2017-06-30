@@ -518,5 +518,25 @@ public static class C
     }
 }");
         }
+
+        [WorkItem(429612, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/429612")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        public async Task TestMissingWithNullableType()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    public object Convert(object value)
+    {
+        if (value is bool?)
+        {
+            [|bool?|] tmp = (bool?)value;
+        }
+
+        return null;
+    }
+}");
+        }
     }
 }

@@ -4,6 +4,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -27,11 +28,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     return SpecializedTasks.EmptyTask;
                 }
 
-                if (document.Project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
-                    document.Project.Solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed))
+                if (!RemoteFeatureOptions.ShouldComputeIndex(document.Project.Solution.Workspace))
                 {
-                    // if FAR feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
                     return SpecializedTasks.EmptyTask;
                 }
 
