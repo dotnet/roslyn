@@ -29,16 +29,6 @@ namespace Microsoft.CodeAnalysis.Semantics
             return ImmutableArray.Create(Create(statement));
         }
 
-        private ILiteralExpression CreateIncrementOneLiteralExpression(BoundIncrementOperator increment)
-        {
-            string text = increment.Syntax.ToString();
-            bool isInvalid = false;
-            SyntaxNode syntax = increment.Syntax;
-            ITypeSymbol type = increment.Type;
-            Optional<object> constantValue = ConvertToOptional(Semantics.Expression.SynthesizeNumeric(increment.Type, 1));
-            return new LiteralExpression(text, isInvalid, syntax, type, constantValue);
-        }
-
         internal static IArgument CreateArgumentOperation(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
         {
             return new Argument(kind,

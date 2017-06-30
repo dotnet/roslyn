@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = boundAssignmentOperator.Syntax
                 Dim type As ITypeSymbol = boundAssignmentOperator.Type
                 Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAssignmentOperator.ConstantValueOpt)
-                Return New LazyAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
+                Return New LazySimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
             End If
         End Function
 
@@ -532,14 +532,17 @@ Namespace Microsoft.CodeAnalysis.Semantics
 
             Dim [property] As IPropertySymbol = boundPropertyAccess.PropertySymbol
             Dim member As ISymbol = boundPropertyAccess.PropertySymbol
-            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(
+                Function()
+                    Return If(boundPropertyAccess.Arguments.Length = 0,
+                        ImmutableArray(Of IArgument).Empty,
+                        DeriveArguments(boundPropertyAccess.Arguments, boundPropertyAccess.PropertySymbol.Parameters))
+                End Function)
             Dim isInvalid As Boolean = boundPropertyAccess.HasErrors
             Dim syntax As SyntaxNode = boundPropertyAccess.Syntax
             Dim type As ITypeSymbol = boundPropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundPropertyAccess.ConstantValueOpt)
-            Return If(boundPropertyAccess.Arguments.Length > 0,
-                DirectCast(New LazyIndexedPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue), IPropertyReferenceExpression),
-                New LazyPropertyReferenceExpression([property], instance, member, isInvalid, syntax, type, constantValue))
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
         End Function
 
         Private Function CreateBoundEventAccessOperation(boundEventAccess As BoundEventAccess) As IEventReferenceExpression

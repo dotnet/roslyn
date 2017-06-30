@@ -55,10 +55,27 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 operationBlockContext.RegisterOperationAction(
                                    (operationContext) =>
                                    {
-                                       IAssignmentExpression assignment = (IAssignmentExpression)operationContext.Operation;
-                                       AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       if (operationContext.Operation is IAssignmentExpression assignment)
+                                       {
+                                           AssignTo(assignment.Target, localsSourceTypes, fieldsSourceTypes, assignment.Value);
+                                       }
+                                       else if (operationContext.Operation is IIncrementExpression increment)
+                                       {
+                                           string text = increment.Syntax.ToString();
+                                           bool isInvalid = false;
+                                           SyntaxNode syntax = increment.Syntax;
+                                           ITypeSymbol type = increment.Type;
+                                           Optional<object> constantValue = new Optional<object>(1);
+                                           var value = new LiteralExpression(text, isInvalid, syntax, type, constantValue);
+
+                                           AssignTo(increment.Target, localsSourceTypes, fieldsSourceTypes, value);
+                                       }
+                                       else
+                                       {
+                                           throw TestExceptionUtilities.UnexpectedValue(operationContext.Operation);
+                                       }
                                    },
-                                   OperationKind.AssignmentExpression,
+                                   OperationKind.SimpleAssignmentExpression,
                                    OperationKind.CompoundAssignmentExpression,
                                    OperationKind.IncrementExpression);
 

@@ -19,4 +19,3 @@ namespace Microsoft.CodeAnalysis.Semantics
         BinaryOperationKind BinaryOperationKind { get; }
     }
 }
-

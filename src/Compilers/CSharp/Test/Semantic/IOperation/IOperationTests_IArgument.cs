@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-                                                                
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1079,7 +1079,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1109,7 +1109,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1139,7 +1139,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[j:10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[j:10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1171,7 +1171,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')";
@@ -1203,7 +1203,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1249,7 +1249,7 @@ internal class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
+IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1260,7 +1260,7 @@ IIndexedPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x =
 
             string expectedOutput = @"1";
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);                                      
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
             CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
@@ -1284,7 +1284,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1316,7 +1316,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+IPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1324,7 +1324,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
-        } 
+        }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void AssigningToIndexer_UsingDefaultArgumentFromSetter()
@@ -1408,7 +1408,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
                                    int32)
   } // end of property P::Item
 } // end of class P
-"; 
+";
 
             var csharp = @"
 class C
@@ -1421,7 +1421,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1531,7 +1531,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1643,7 +1643,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1882,9 +1882,9 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
                 Instance.Visit(operation);
             }
 
-            public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+            public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.IsInvalid)
+                if (operation.IsInvalid || operation.ArgumentsInEvaluationOrder.Length == 0)
                 {
                     return;
                 }
@@ -1900,5 +1900,5 @@ IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (Oper
                 }
             }
         }
-    }             
+    }
 }
