@@ -6159,13 +6159,13 @@ class NotPointer
                 // (13,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* p = n) //CS0213 (confusing, but matches dev10)
                 Diagnostic(ErrorCode.ERR_FixedNotNeeded, "n").WithLocation(13, 25),
-                // (13,25): error CS0266: Cannot implicitly convert type 'NotPointer*' to 'int*'. An explicit conversion exists (are you missing a cast?)
-                //         fixed (int* p = n) //CS0213 (confusing, but matches dev10)
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "n").WithArguments("NotPointer*", "int*").WithLocation(13, 25),
                 // (17,25): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
                 //         fixed (int* p = (int*)n)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)n").WithLocation(17, 25)
-                );
+                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)n").WithLocation(17, 25),
+                // (5,23): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
+                //     public NotPointer n;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null").WithLocation(5, 23)
+            );
         }
 
         [Fact]

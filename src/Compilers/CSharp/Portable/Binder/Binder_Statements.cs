@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!fa.FieldSymbol.IsFixed)
                             {
                                 Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                                hasErrors = true;
+                                return true;
                             }
                             else
                             {
@@ -1098,11 +1098,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // NOTE: Dev10 specifically doesn't report this error for the array or string cases.
                             Error(diagnostics, ErrorCode.ERR_BadCastInFixed, initializerSyntax);
-                            return true; ;
+                            return true;
                         default:
                             // CONSIDER: this is a very confusing error message, but it's what Dev10 reports.
                             Error(diagnostics, ErrorCode.ERR_FixedNotNeeded, initializerSyntax);
-                            return true; ;
+                            return true;
                     }
                 }
                 else

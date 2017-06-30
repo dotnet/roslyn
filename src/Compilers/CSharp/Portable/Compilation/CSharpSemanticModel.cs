@@ -1948,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = tupleLiteralConversion.Type;
                     conversion = tupleLiteralConversion.Conversion;
                 }
-                else if(highestBoundExpr?.Kind == BoundKind.FixedLocalCollectionInitializer)
+                else if (highestBoundExpr?.Kind == BoundKind.FixedLocalCollectionInitializer)
                 {
                     var initializer = (BoundFixedLocalCollectionInitializer)highestBoundExpr;
                     convertedType = initializer.Type;
@@ -4096,7 +4096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // argument could be an argument of a tuple expression
             // var x = (Identifier: 1, AnotherIdentifier: 2);
-            var parent3 = identifierNameSyntax.Parent.Parent.Parent;        
+            var parent3 = identifierNameSyntax.Parent.Parent.Parent;
             if (parent3.IsKind(SyntaxKind.TupleExpression))
             {
                 var tupleArgument = (ArgumentSyntax)identifierNameSyntax.Parent.Parent;
