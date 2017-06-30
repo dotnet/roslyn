@@ -60,7 +60,6 @@
     <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassifier.cs" />
     <Compile Include="Classification\SyntaxClassification\NameSyntaxClassifier.cs" />
     <Compile Include="Classification\SyntaxClassification\SyntaxTokenClassifier.cs" />
-    <Compile Include="Classification\SyntaxClassification\DiscardDesignationSyntaxClassifier.cs" />
     <Compile Include="Classification\SyntaxClassification\UsingDirectiveSyntaxClassifier.cs" />
     <Compile Include="Classification\SyntaxClassification\CSharpSyntaxClassificationService.cs" />
     <Compile Include="Classification\Worker.cs" />

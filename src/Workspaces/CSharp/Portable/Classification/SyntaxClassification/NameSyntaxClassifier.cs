@@ -166,12 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         return true;
                     }
                 }
-                else if (symbol is IDiscardSymbol discardSymbol)
-                {
-                    var token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.Identifier);
-                    return true;
-                }
             }
 
             classifiedSpan = default(ClassifiedSpan);
