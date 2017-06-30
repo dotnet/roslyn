@@ -218,16 +218,6 @@
     </SuggestedBindingRedirects>
   </ItemGroup>
 
-  <!-- 
-       Work around some UI delays in the new project system
-
-       https://github.com/dotnet/project-system/issues/2297
-
-  --> 
-  <ItemGroup>
-    <ProjectCapability Remove="DependenciesTree"/>
-  </ItemGroup>
-
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
   <Import Project="$(RoslynNetSdkRootPath)Sdk.targets" Condition="'$(RoslynSdkProject)' == 'true'" />
 
@@ -339,6 +329,16 @@
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
   <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
+
+  <!-- 
+       Work around some UI delays in the new project system
+
+       https://github.com/dotnet/project-system/issues/2297
+
+  --> 
+  <ItemGroup>
+    <ProjectCapability Remove="DependenciesTree"/>
+  </ItemGroup>
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>
