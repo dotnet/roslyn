@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -3786,7 +3786,7 @@ class C
 
             diff1.VerifyIL("C.G", @"
 {
-  // Code size       80 (0x50)
+  // Code size       78 (0x4e)
   .maxstack  2
   .locals init ([unchanged] V_0,
                 [int] V_1,
@@ -3803,38 +3803,36 @@ class C
   IL_0007:  stloc.s    V_6
   IL_0009:  ldc.i4.0
   IL_000a:  stloc.s    V_7
- ~IL_000c:  br.s       IL_0047
+ ~IL_000c:  br.s       IL_0045
  -IL_000e:  ldloc.s    V_6
   IL_0010:  ldloc.s    V_7
   IL_0012:  ldelem     ""System.ValueTuple<int, (bool, double)>""
   IL_0017:  dup
   IL_0018:  ldfld      ""(bool, double) System.ValueTuple<int, (bool, double)>.Item2""
   IL_001d:  stloc.s    V_8
-  IL_001f:  dup
-  IL_0020:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
-  IL_0025:  stloc.2
-  IL_0026:  ldloc.s    V_8
-  IL_0028:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
-  IL_002d:  stloc.3
-  IL_002e:  ldloc.s    V_8
-  IL_0030:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
-  IL_0035:  stloc.s    V_4
-  IL_0037:  pop
- -IL_0038:  nop
- -IL_0039:  ldloc.2
-  IL_003a:  call       ""void System.Console.WriteLine(int)""
-  IL_003f:  nop
- -IL_0040:  nop
- ~IL_0041:  ldloc.s    V_7
-  IL_0043:  ldc.i4.1
-  IL_0044:  add
-  IL_0045:  stloc.s    V_7
- -IL_0047:  ldloc.s    V_7
-  IL_0049:  ldloc.s    V_6
-  IL_004b:  ldlen
-  IL_004c:  conv.i4
-  IL_004d:  blt.s      IL_000e
- -IL_004f:  ret
+  IL_001f:  ldfld      ""int System.ValueTuple<int, (bool, double)>.Item1""
+  IL_0024:  stloc.2
+  IL_0025:  ldloc.s    V_8
+  IL_0027:  ldfld      ""bool System.ValueTuple<bool, double>.Item1""
+  IL_002c:  stloc.3
+  IL_002d:  ldloc.s    V_8
+  IL_002f:  ldfld      ""double System.ValueTuple<bool, double>.Item2""
+  IL_0034:  stloc.s    V_4
+ -IL_0036:  nop
+ -IL_0037:  ldloc.2
+  IL_0038:  call       ""void System.Console.WriteLine(int)""
+  IL_003d:  nop
+ -IL_003e:  nop
+ ~IL_003f:  ldloc.s    V_7
+  IL_0041:  ldc.i4.1
+  IL_0042:  add
+  IL_0043:  stloc.s    V_7
+ -IL_0045:  ldloc.s    V_7
+  IL_0047:  ldloc.s    V_6
+  IL_0049:  ldlen
+  IL_004a:  conv.i4
+  IL_004b:  blt.s      IL_000e
+ -IL_004d:  ret
 }
 ", methodToken: diff1.UpdatedMethods.Single());
         }

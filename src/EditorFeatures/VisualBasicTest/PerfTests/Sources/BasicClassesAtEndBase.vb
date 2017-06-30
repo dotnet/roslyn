@@ -1,4 +1,4 @@
-Namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
+﻿Namespace Microsoft.VisualStudio.Modeling.DesignerDefinition
 	''' <summary>
 	''' 
 	''' </summary>

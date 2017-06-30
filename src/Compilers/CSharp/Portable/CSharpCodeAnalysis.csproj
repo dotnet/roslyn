@@ -511,6 +511,7 @@
     <Compile Include="Symbols\DiscardSymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\TupleTypeDecoder.cs" />
     <Compile Include="Symbols\Source\GlobalExpressionVariable.cs" />
+    <Compile Include="Symbols\Source\SourceMethodSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
     <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />
@@ -650,8 +651,8 @@
     <Compile Include="Symbols\Source\SourceMemberContainerSymbol.cs" />
     <Compile Include="Symbols\Source\SourceMemberContainerSymbol_ImplementationChecks.cs" />
     <Compile Include="Symbols\Source\SourceMemberFieldSymbol.cs" />
+    <Compile Include="Symbols\Source\SourceOrdinaryMethodSymbol.cs" />
     <Compile Include="Symbols\Source\SourceMemberMethodSymbol.cs" />
-    <Compile Include="Symbols\Source\SourceMethodSymbol.cs" />
     <Compile Include="Symbols\Source\SourceModuleSymbol.cs" />
     <Compile Include="Symbols\Source\SourceNamedTypeSymbol.cs" />
     <Compile Include="Symbols\Source\SourceNamedTypeSymbol_Bases.cs" />
