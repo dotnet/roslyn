@@ -72,19 +72,6 @@
     </When>
   </Choose>
 
-  <Choose>
-    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </When>
-    <Otherwise>
-      <PropertyGroup>
-        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
-
   <!-- 
     DocumentationFile needs to be set before importing common targets. 
     C# common targets (unlike VB) prefix DocumentationFile path with IntermediateOutputPath.
