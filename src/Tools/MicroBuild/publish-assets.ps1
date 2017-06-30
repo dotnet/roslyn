@@ -39,6 +39,7 @@ try
     {
         "dev15.3.x" { }
         "master" { }
+        "dev16" { }
         default
         {
             if (-not $test)
@@ -117,37 +118,44 @@ try
     }
     popd
 
-    Write-Host "Uploading VSIX extensions..."
-
-    $vsixPath = $binariesPath
-
-    [xml]$extensions = Get-Content "$vsixPath\myget_org-extensions.config"
-
-    pushd $vsixPath
-    foreach ($extension in $extensions.extensions.extension)
+    if ($branchName -ne "dev16")
     {
-        $vsix = join-path $extension.path ($extension.id + ".vsix")
-        if (-not (test-path $vsix)) 
+        Write-Host "Uploading VSIX extensions..."
+
+        $vsixPath = $binariesPath
+
+        [xml]$extensions = Get-Content "$vsixPath\myget_org-extensions.config"
+
+        pushd $vsixPath
+        foreach ($extension in $extensions.extensions.extension)
         {
-            Write-Error "VSIX $vsix does not exist"
-            $exitCode = 6
-        }
-
-        $requestUrl = "https://dotnet.myget.org/F/roslyn/vsix/upload"
-        
-        Write-Host "  Uploading '$vsix' to '$requestUrl'"
-
-        if (-not $test)
-        { 
-            $response = Invoke-WebRequest -Uri $requestUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
-            if ($response.StatusCode -ne 201)
+            $vsix = join-path $extension.path ($extension.id + ".vsix")
+            if (-not (test-path $vsix)) 
             {
-                Write-Error "Failed to upload VSIX extension: $vsix. Upload failed with Status code: $response.StatusCode"
-                $exitCode = 4
+                Write-Error "VSIX $vsix does not exist"
+                $exitCode = 6
+            }
+
+            $requestUrl = "https://dotnet.myget.org/F/roslyn/vsix/upload"
+            
+            Write-Host "  Uploading '$vsix' to '$requestUrl'"
+
+            if (-not $test)
+            { 
+                $response = Invoke-WebRequest -Uri $requestUrl -Headers @{"X-NuGet-ApiKey"=$apiKey} -ContentType 'multipart/form-data' -InFile $vsix -Method Post -UseBasicParsing
+                if ($response.StatusCode -ne 201)
+                {
+                    Write-Error "Failed to upload VSIX extension: $vsix. Upload failed with Status code: $response.StatusCode"
+                    $exitCode = 4
+                }
             }
         }
+        popd
     }
-    popd
+    else
+    {
+        Write-Host "Skipping VSIX upload, since branch '$branchName' is excluded from uploading"
+    }
 
     Write-Host "Completed PostTest script with an exit code of '$exitCode'"
 
