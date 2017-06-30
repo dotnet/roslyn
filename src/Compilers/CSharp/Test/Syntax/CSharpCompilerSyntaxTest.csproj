@@ -10,7 +10,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Syntax.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <PackageTargetFallback>portable-net45</PackageTargetFallback>
+    <TargetFrameworks>net46;netcoreapp2.0</TargetFrameworks>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RoslynProjectType>UnitTestPortable</RoslynProjectType>

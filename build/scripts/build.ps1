@@ -297,7 +297,7 @@ function Test-XUnitCoreClr() {
 
     $corerun = Join-Path $unitDir "CoreRun.exe"
     $args = Join-Path $unitDir "xunit.console.netcore.exe"
-    foreach ($dll in Get-ChildItem -re -in "*.UnitTests.dll" $unitDir) {
+    foreach ($dll in Get-ChildItem -re -in "*.UnitTests.dll" $unitDir -ex "*net46*") {
         $args += " $dll";
     }
 
@@ -342,6 +342,9 @@ function Test-XUnit() {
         $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
         $args += " -trait:Feature=NetCore"
     }
+
+    # Exclude out the multi-targetted netcore app projects
+    $dlls = $dlls | ? { -not ($_ -match ".*\wnetcoreapp2.0\w.*" }
 
     if ($cibuild) {
         # Use a 50 minute timeout on CI
