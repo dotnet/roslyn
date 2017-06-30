@@ -61,6 +61,10 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             {
                 typeSyntax = forEach.Type;
             }
+            else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
+            {
+                typeSyntax = declarationExpression.Type;
+            }
             else
             {
                 Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
