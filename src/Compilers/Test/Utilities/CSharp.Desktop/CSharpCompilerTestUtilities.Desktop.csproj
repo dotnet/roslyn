@@ -12,7 +12,6 @@
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net46</TargetFramework>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
