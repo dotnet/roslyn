@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyAddressOfExpression(Lazy<IOperation> reference, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyReference = reference ?? throw new System.ArgumentNullException("reference");
+            _lazyReference = reference ?? throw new System.ArgumentNullException(nameof(reference));
         }
         /// <summary>
         /// Addressed reference.
@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyArgument(ArgumentKind argumentKind, IParameterSymbol parameter, Lazy<IOperation> value, Lazy<IOperation> inConversion, Lazy<IOperation> outConversion, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(argumentKind, parameter, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
-            _lazyInConversion = inConversion ?? throw new System.ArgumentNullException("inConversion");
-            _lazyOutConversion = outConversion ?? throw new System.ArgumentNullException("outConversion");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
+            _lazyInConversion = inConversion ?? throw new System.ArgumentNullException(nameof(inConversion));
+            _lazyOutConversion = outConversion ?? throw new System.ArgumentNullException(nameof(outConversion));
         }
         /// <summary>
         /// Value supplied for the argument.
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyArrayCreationExpression(ITypeSymbol elementType, Lazy<ImmutableArray<IOperation>> dimensionSizes, Lazy<IArrayInitializer> initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(elementType, isInvalid, syntax, type, constantValue)
         {
             _lazyDimensionSizes = dimensionSizes;
-            _lazyInitializer = initializer ?? throw new System.ArgumentNullException("initializer");
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
         /// <summary>
         /// Sizes of the dimensions of the created array instance.
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyArrayElementReferenceExpression(Lazy<IOperation> arrayReference, Lazy<ImmutableArray<IOperation>> indices, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyArrayReference = arrayReference ?? throw new System.ArgumentNullException("arrayReference");
+            _lazyArrayReference = arrayReference ?? throw new System.ArgumentNullException(nameof(arrayReference));
             _lazyIndices = indices;
         }
         /// <summary>
@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents an assignment expression.
+    /// Represents a simple assignment expression.
     /// </summary>
     internal abstract partial class BaseSimpleAssignmentExpression : AssignmentExpression, ISimpleAssignmentExpression
     {
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.Semantics
     }
 
     /// <summary>
-    /// Represents an assignment expression.
+    /// Represents a simple assignment expression.
     /// </summary>
     internal sealed partial class SimpleAssignmentExpression : BaseSimpleAssignmentExpression, ISimpleAssignmentExpression
     {
@@ -433,8 +433,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazySimpleAssignmentExpression(Lazy<IOperation> target, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isInvalid, syntax, type, constantValue)
         {
-            _lazyTarget = target ?? throw new System.ArgumentNullException("target");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Target of the assignment.
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyAwaitExpression(Lazy<IOperation> awaitedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyAwaitedValue = awaitedValue ?? throw new System.ArgumentNullException("awaitedValue");
+            _lazyAwaitedValue = awaitedValue ?? throw new System.ArgumentNullException(nameof(awaitedValue));
         }
         /// <summary>
         /// Value to be awaited.
@@ -576,8 +576,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyBinaryOperatorExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> leftOperand, Lazy<IOperation> rightOperand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException("leftOperand");
-            _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException("rightOperand");
+            _lazyLeftOperand = leftOperand ?? throw new System.ArgumentNullException(nameof(leftOperand));
+            _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
         }
         /// <summary>
         /// Left operand.
@@ -764,8 +764,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyCatchClause(Lazy<IBlockStatement> handler, ITypeSymbol caughtType, Lazy<IOperation> filter, ILocalSymbol exceptionLocal, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(caughtType, exceptionLocal, isInvalid, syntax, type, constantValue)
         {
-            _lazyHandler = handler ?? throw new System.ArgumentNullException("handler");
-            _lazyFilter = filter ?? throw new System.ArgumentNullException("filter");
+            _lazyHandler = handler ?? throw new System.ArgumentNullException(nameof(handler));
+            _lazyFilter = filter ?? throw new System.ArgumentNullException(nameof(filter));
         }
         /// <summary>
         /// Body of the exception handler.
@@ -845,8 +845,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyCompoundAssignmentExpression(BinaryOperationKind binaryOperationKind, Lazy<IOperation> target, Lazy<IOperation> value, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(binaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyTarget = target ?? throw new System.ArgumentNullException("target");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Target of the assignment.
@@ -917,8 +917,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyConditionalAccessExpression(Lazy<IOperation> conditionalValue, Lazy<IOperation> conditionalInstance, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyConditionalValue = conditionalValue ?? throw new System.ArgumentNullException("conditionalValue");
-            _lazyConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException("conditionalInstance");
+            _lazyConditionalValue = conditionalValue ?? throw new System.ArgumentNullException(nameof(conditionalValue));
+            _lazyConditionalInstance = conditionalInstance ?? throw new System.ArgumentNullException(nameof(conditionalInstance));
         }
         /// <summary>
         /// Expression to be evaluated if the conditional instance is non null.
@@ -1018,9 +1018,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyConditionalChoiceExpression(Lazy<IOperation> condition, Lazy<IOperation> ifTrueValue, Lazy<IOperation> ifFalseValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyIfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException("ifTrueValue");
-            _lazyIfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException("ifFalseValue");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyIfTrueValue = ifTrueValue ?? throw new System.ArgumentNullException(nameof(ifTrueValue));
+            _lazyIfFalseValue = ifFalseValue ?? throw new System.ArgumentNullException(nameof(ifFalseValue));
         }
         /// <summary>
         /// Condition to be tested.
@@ -1106,7 +1106,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyConversionExpression(Lazy<IOperation> operand, ConversionKind conversionKind, bool isExplicit, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(conversionKind, isExplicit, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Value to be converted.
@@ -1245,8 +1245,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyEventAssignmentExpression(IEventSymbol @event, Lazy<IOperation> eventInstance, Lazy<IOperation> handlerValue, bool adds, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(@event, adds, isInvalid, syntax, type, constantValue)
         {
-            _lazyEventInstance = eventInstance ?? throw new System.ArgumentNullException("eventInstance");
-            _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException("handlerValue");
+            _lazyEventInstance = eventInstance ?? throw new System.ArgumentNullException(nameof(eventInstance));
+            _lazyHandlerValue = handlerValue ?? throw new System.ArgumentNullException(nameof(handlerValue));
         }
 
         /// <summary>
@@ -1311,7 +1311,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyEventReferenceExpression(IEventSymbol @event, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(@event, member, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -1367,7 +1367,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyExpressionStatement(Lazy<IOperation> expression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyExpression = expression ?? throw new System.ArgumentNullException("expression");
+            _lazyExpression = expression ?? throw new System.ArgumentNullException(nameof(expression));
         }
         /// <summary>
         /// Expression of the statement.
@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyFieldInitializer(ImmutableArray<IFieldSymbol> initializedFields, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(initializedFields, kind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         public override IOperation Value => _lazyValue.Value;
     }
@@ -1479,7 +1479,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyFieldReferenceExpression(IFieldSymbol field, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(field, member, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -1545,8 +1545,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyFixedStatement(Lazy<IVariableDeclarationStatement> variables, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyVariables = variables ?? throw new System.ArgumentNullException("variables");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyVariables = variables ?? throw new System.ArgumentNullException(nameof(variables));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Variables to be fixed.
@@ -1620,8 +1620,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyForEachLoopStatement(ILocalSymbol iterationVariable, Lazy<IOperation> collection, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(iterationVariable, loopKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyCollection = collection ?? throw new System.ArgumentNullException("collection");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyCollection = collection ?? throw new System.ArgumentNullException(nameof(collection));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Collection value over which the loop iterates.
@@ -1712,8 +1712,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         {
             _lazyBefore = before;
             _lazyAtLoopBottom = atLoopBottom;
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Statements to execute before entry to the loop. For C# these come from the first clause of the for statement. For VB these initialize the index variable of the For statement.
@@ -1819,9 +1819,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyIfStatement(Lazy<IOperation> condition, Lazy<IOperation> ifTrueStatement, Lazy<IOperation> ifFalseStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyIfTrueStatement = ifTrueStatement ?? throw new System.ArgumentNullException("ifTrueStatement");
-            _lazyIfFalseStatement = ifFalseStatement ?? throw new System.ArgumentNullException("ifFalseStatement");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyIfTrueStatement = ifTrueStatement ?? throw new System.ArgumentNullException(nameof(ifTrueStatement));
+            _lazyIfFalseStatement = ifFalseStatement ?? throw new System.ArgumentNullException(nameof(ifFalseStatement));
         }
         /// <summary>
         /// Condition of the if statement. For C# there is naturally one clause per if, but for VB If statements with multiple clauses are rewritten to have only one.
@@ -1904,7 +1904,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyIncrementExpression(UnaryOperationKind incrementOperationKind, Lazy<IOperation> target, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(incrementOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyTarget = target ?? throw new System.ArgumentNullException("target");
+            _lazyTarget = target ?? throw new System.ArgumentNullException(nameof(target));
         }
         /// <summary>
         /// Target of the assignment.
@@ -2327,7 +2327,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyInvocationExpression(IMethodSymbol targetMethod, Lazy<IOperation> instance, bool isVirtual, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(targetMethod, isVirtual, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
             _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder;
         }
         /// <summary>
@@ -2398,7 +2398,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyIsTypeExpression(Lazy<IOperation> operand, ITypeSymbol isType, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isType, isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Value to test.
@@ -2459,7 +2459,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLabelStatement(ILabelSymbol label, Lazy<IOperation> labeledStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(label, isInvalid, syntax, type, constantValue)
         {
-            _lazyLabeledStatement = labeledStatement ?? throw new System.ArgumentNullException("labeledStatement");
+            _lazyLabeledStatement = labeledStatement ?? throw new System.ArgumentNullException(nameof(labeledStatement));
         }
         /// <summary>
         /// Statement that has been labeled.
@@ -2520,7 +2520,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLambdaExpression(IMethodSymbol signature, Lazy<IBlockStatement> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(signature, isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Body of the lambda.
@@ -2581,7 +2581,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLateBoundMemberReferenceExpression(Lazy<IOperation> instance, string memberName, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(memberName, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
         /// <summary>
         /// Instance used to bind the member reference.
@@ -2695,8 +2695,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyLockStatement(Lazy<IOperation> lockedObject, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException("lockedObject");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyLockedObject = lockedObject ?? throw new System.ArgumentNullException(nameof(lockedObject));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Value to be locked.
@@ -2807,7 +2807,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyMethodBindingExpression(IMethodSymbol method, bool isVirtual, Lazy<IOperation> instance, ISymbol member, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(method, isVirtual, member, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -2873,8 +2873,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyNullCoalescingExpression(Lazy<IOperation> primaryOperand, Lazy<IOperation> secondaryOperand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyPrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException("primaryOperand");
-            _lazySecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException("secondaryOperand");
+            _lazyPrimaryOperand = primaryOperand ?? throw new System.ArgumentNullException(nameof(primaryOperand));
+            _lazySecondaryOperand = secondaryOperand ?? throw new System.ArgumentNullException(nameof(secondaryOperand));
         }
         /// <summary>
         /// Value to be unconditionally evaluated.
@@ -3043,7 +3043,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyParameterInitializer(IParameterSymbol parameter, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(parameter, kind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         public override IOperation Value => _lazyValue.Value;
     }
@@ -3120,7 +3120,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyParenthesizedExpression(Lazy<IOperation> operand, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Operand enclosed in parentheses.
@@ -3196,7 +3196,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyPointerIndirectionReferenceExpression(Lazy<IOperation> pointer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyPointer = pointer ?? throw new System.ArgumentNullException("pointer");
+            _lazyPointer = pointer ?? throw new System.ArgumentNullException(nameof(pointer));
         }
         /// <summary>
         /// Pointer to be dereferenced.
@@ -3252,7 +3252,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyPropertyInitializer(IPropertySymbol initializedProperty, Lazy<IOperation> value, OperationKind kind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(initializedProperty, kind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         public override IOperation Value => _lazyValue.Value;
     }
@@ -3335,8 +3335,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyPropertyReferenceExpression(IPropertySymbol property, Lazy<IOperation> instance, ISymbol member, Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(property, member, isInvalid, syntax, type, constantValue)
         {
-            _lazyInstance = instance ?? throw new System.ArgumentNullException("instance");
-            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder ?? throw new System.ArgumentNullException("argumentsInEvaluationOrder");
+            _lazyInstance = instance ?? throw new System.ArgumentNullException(nameof(instance));
+            _lazyArgumentsInEvaluationOrder = argumentsInEvaluationOrder ?? throw new System.ArgumentNullException(nameof(argumentsInEvaluationOrder));
         }
         /// <summary>
         /// Instance of the type. Null if the reference is to a static/shared member.
@@ -3421,8 +3421,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyRangeCaseClause(Lazy<IOperation> minimumValue, Lazy<IOperation> maximumValue, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(caseKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyMinimumValue = minimumValue ?? throw new System.ArgumentNullException("minimumValue");
-            _lazyMaximumValue = maximumValue ?? throw new System.ArgumentNullException("maximumValue");
+            _lazyMinimumValue = minimumValue ?? throw new System.ArgumentNullException(nameof(minimumValue));
+            _lazyMaximumValue = maximumValue ?? throw new System.ArgumentNullException(nameof(maximumValue));
         }
         /// <summary>
         /// Minimum value of the case range.
@@ -3490,7 +3490,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyRelationalCaseClause(Lazy<IOperation> value, BinaryOperationKind relation, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(relation, caseKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Case value.
@@ -3563,7 +3563,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyReturnStatement(OperationKind kind, Lazy<IOperation> returnedValue, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(kind, isInvalid, syntax, type, constantValue)
         {
-            _lazyReturnedValue = returnedValue ?? throw new System.ArgumentNullException("returnedValue");
+            _lazyReturnedValue = returnedValue ?? throw new System.ArgumentNullException(nameof(returnedValue));
         }
         /// <summary>
         /// Value to be returned.
@@ -3626,7 +3626,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazySingleValueCaseClause(Lazy<IOperation> value, BinaryOperationKind equality, CaseKind caseKind, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(equality, caseKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Case value.
@@ -3802,7 +3802,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazySwitchStatement(Lazy<IOperation> value, Lazy<ImmutableArray<ISwitchCase>> cases, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
             _lazyCases = cases;
         }
         /// <summary>
@@ -3881,7 +3881,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazySyntheticLocalReferenceExpression(SyntheticLocalKind syntheticLocalKind, Lazy<IOperation> containingStatement, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(syntheticLocalKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyContainingStatement = containingStatement ?? throw new System.ArgumentNullException("containingStatement");
+            _lazyContainingStatement = containingStatement ?? throw new System.ArgumentNullException(nameof(containingStatement));
         }
         /// <summary>
         /// Statement defining the lifetime of the synthetic local.
@@ -3937,7 +3937,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyThrowStatement(Lazy<IOperation> thrownObject, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyThrownObject = thrownObject ?? throw new System.ArgumentNullException("thrownObject");
+            _lazyThrownObject = thrownObject ?? throw new System.ArgumentNullException(nameof(thrownObject));
         }
         /// <summary>
         /// Value to be thrown.
@@ -4013,9 +4013,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyTryStatement(Lazy<IBlockStatement> body, Lazy<ImmutableArray<ICatchClause>> catches, Lazy<IBlockStatement> finallyHandler, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
             _lazyCatches = catches;
-            _lazyFinallyHandler = finallyHandler ?? throw new System.ArgumentNullException("finallyHandler");
+            _lazyFinallyHandler = finallyHandler ?? throw new System.ArgumentNullException(nameof(finallyHandler));
         }
         /// <summary>
         /// Body of the try, over which the handlers are active.
@@ -4151,7 +4151,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyUnaryOperatorExpression(UnaryOperationKind unaryOperationKind, Lazy<IOperation> operand, bool usesOperatorMethod, IMethodSymbol operatorMethod, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(unaryOperationKind, usesOperatorMethod, operatorMethod, isInvalid, syntax, type, constantValue)
         {
-            _lazyOperand = operand ?? throw new System.ArgumentNullException("operand");
+            _lazyOperand = operand ?? throw new System.ArgumentNullException(nameof(operand));
         }
         /// <summary>
         /// Single operand.
@@ -4231,9 +4231,9 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyUsingStatement(Lazy<IOperation> body, Lazy<IVariableDeclarationStatement> declaration, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
-            _lazyDeclaration = declaration ?? throw new System.ArgumentNullException("declaration");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyDeclaration = declaration ?? throw new System.ArgumentNullException(nameof(declaration));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Body of the using, over which the resources of the using are maintained.
@@ -4307,7 +4307,7 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyVariableDeclaration(ImmutableArray<ILocalSymbol> variables, Lazy<IOperation> initializer, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(variables, isInvalid, syntax, type, constantValue)
         {
-            _lazyInitializer = initializer ?? throw new System.ArgumentNullException("initializer");
+            _lazyInitializer = initializer ?? throw new System.ArgumentNullException(nameof(initializer));
         }
 
         /// <summary>
@@ -4434,8 +4434,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyWhileUntilLoopStatement(bool isTopTest, bool isWhile, Lazy<IOperation> condition, LoopKind loopKind, Lazy<IOperation> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) :
             base(isTopTest, isWhile, loopKind, isInvalid, syntax, type, constantValue)
         {
-            _lazyCondition = condition ?? throw new System.ArgumentNullException("condition");
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyCondition = condition ?? throw new System.ArgumentNullException(nameof(condition));
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Condition of the loop.
@@ -4505,8 +4505,8 @@ namespace Microsoft.CodeAnalysis.Semantics
 
         public LazyWithStatement(Lazy<IOperation> body, Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue) : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Body of the with.
@@ -4573,7 +4573,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyLocalFunctionStatement(IMethodSymbol localFunctionSymbol, Lazy<IBlockStatement> body, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
             : base(localFunctionSymbol, isInvalid, syntax, type, constantValue)
         {
-            _lazyBody = body ?? throw new System.ArgumentNullException("body");
+            _lazyBody = body ?? throw new System.ArgumentNullException(nameof(body));
         }
         /// <summary>
         /// Body of the local function.
@@ -4630,7 +4630,7 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyConstantPattern(Lazy<IOperation> value, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
             : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyValue = value ?? throw new System.ArgumentNullException("value");
+            _lazyValue = value ?? throw new System.ArgumentNullException(nameof(value));
         }
         /// <summary>
         /// Constant value of the pattern.
@@ -4726,8 +4726,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyPatternCaseClause(ILabelSymbol label, Lazy<IPattern> lazyPattern, Lazy<IOperation> lazyGuardExpression, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
             : base(label, isInvalid, syntax, type, constantValue)
         {
-            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException("lazyPattern");
-            _lazyGuardExpression = lazyGuardExpression ?? throw new System.ArgumentNullException("lazyGuardExpression");
+            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException(nameof(lazyPattern));
+            _lazyGuardExpression = lazyGuardExpression ?? throw new System.ArgumentNullException(nameof(lazyGuardExpression));
         }
         /// <summary>
         /// Pattern associated with case clause.
@@ -4798,8 +4798,8 @@ namespace Microsoft.CodeAnalysis.Semantics
         public LazyIsPatternExpression(Lazy<IOperation> lazyExpression, Lazy<IPattern> lazyPattern, bool isInvalid, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue)
             : base(isInvalid, syntax, type, constantValue)
         {
-            _lazyExpression = lazyExpression ?? throw new System.ArgumentNullException("lazyExpression");
-            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException("lazyPattern");
+            _lazyExpression = lazyExpression ?? throw new System.ArgumentNullException(nameof(lazyExpression));
+            _lazyPattern = lazyPattern ?? throw new System.ArgumentNullException(nameof(lazyPattern));
         }
         /// <summary>
         /// Expression.
