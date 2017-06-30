@@ -3,17 +3,6 @@
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Choose>
-    <When Condition="'$(RoslynProjectType)' == 'ExeNonDeployment'">
-      <!-- Some Exes are not designed to be directly runnable.  Typically for size savings in
-           our build output.  They are made runnable by deployment projects that reference
-           them.  -->
-      <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <_CopyProjectReferences>false</_CopyProjectReferences>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)Exes\$(MSBuildProjectName)\</OutputPath>
-      </PropertyGroup>
-    </When>
     <When Condition="'$(RoslynProjectType)' == 'UnitTest'">
       <PropertyGroup>
         <_IsAnyUnitTest>true</_IsAnyUnitTest>
@@ -40,13 +29,6 @@
         <_IsAnyPortableUnitTest>true</_IsAnyPortableUnitTest>
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
-      </PropertyGroup>
-    </When>
-    <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
-      <PropertyGroup>
-        <_CopyReferences>false</_CopyReferences>
-        <CopyNuGetImplementations>false</CopyNuGetImplementations>
-        <OutputPath>$(OutputPath)Exes\</OutputPath>
       </PropertyGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'Vsix'">
