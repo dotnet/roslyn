@@ -24,13 +24,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IMethodSymbol CreateEqualsMethod(
             this SyntaxGenerator factory,
             Compilation compilation,
+            ParseOptions parseOptions,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> symbols,
             SyntaxAnnotation statementAnnotation,
             CancellationToken cancellationToken)
         {
             var statements = CreateEqualsMethodStatements(
-                factory, compilation, containingType, symbols, cancellationToken);
+                factory, compilation, parseOptions, containingType, symbols, cancellationToken);
             statements = statements.SelectAsArray(s => s.WithAdditionalAnnotations(statementAnnotation));
 
             return CreateEqualsMethod(compilation, statements);
@@ -89,6 +90,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         private static ImmutableArray<SyntaxNode> CreateEqualsMethodStatements(
             SyntaxGenerator factory,
             Compilation compilation,
+            ParseOptions parseOptions,
             INamedTypeSymbol containingType,
             ImmutableArray<ISymbol> members,
             CancellationToken cancellationToken)
@@ -101,16 +103,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             //      var order = obj as CustomerOrder;
 
             var localName = GetLocalName(containingType);
-
             var localNameExpression = factory.IdentifierName(localName);
-
             var objNameExpression = factory.IdentifierName(ObjName);
 
             // These will be all the expressions that we'll '&&' together inside the final
             // return statement of 'Equals'.
             var expressions = ArrayBuilder<SyntaxNode>.GetInstance();
 
-            if (containingType.IsValueType)
+            if (factory.SupportsPatterns(parseOptions))
+            {
+                // If we support patterns then we can do "return obj is MyType myType && ..."
+                expressions.Add(
+                    factory.IsPatternExpression(objNameExpression,
+                        factory.DeclarationPattern(containingType, localName)));
+            }
+            else if (containingType.IsValueType)
             {
                 // If we're a value type, then we need an is-check first to make sure
                 // the object is our type:
@@ -150,18 +157,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 //
                 //      myType != null
                 expressions.Add(factory.ReferenceNotEqualsExpression(localNameExpression, factory.NullLiteralExpression()));
-                if (HasExistingBaseEqualsMethod(containingType, cancellationToken))
-                {
-                    // If we're overriding something that also provided an overridden 'Equals',
-                    // then ensure the base type thinks it is equals as well.
-                    //
-                    //      base.Equals(obj)
-                    expressions.Add(factory.InvocationExpression(
-                        factory.MemberAccessExpression(
-                            factory.BaseExpression(),
-                            factory.IdentifierName(EqualsName)),
-                        objNameExpression));
-                }
+            }
+
+            if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType, cancellationToken))
+            {
+                // If we're overriding something that also provided an overridden 'Equals',
+                // then ensure the base type thinks it is equals as well.
+                //
+                //      base.Equals(obj)
+                expressions.Add(factory.InvocationExpression(
+                    factory.MemberAccessExpression(
+                        factory.BaseExpression(),
+                        factory.IdentifierName(EqualsName)),
+                    objNameExpression));
             }
 
             AddMemberChecks(factory, compilation, members, localNameExpression, expressions);
