@@ -9,7 +9,6 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Scripting</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net452</PackageTargetFallback>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">

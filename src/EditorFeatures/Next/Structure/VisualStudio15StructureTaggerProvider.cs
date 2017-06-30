@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text.Projection;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
+#pragma warning disable CS0618 // Type or member is obsolete
 namespace Microsoft.CodeAnalysis.Editor.Structure
 {
     [Export(typeof(ITaggerProvider))]
@@ -43,3 +44,5 @@ namespace Microsoft.CodeAnalysis.Editor.Structure
         }
     }
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

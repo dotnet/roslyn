@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter
         protected override SyntaxNode GetBody(BaseMethodDeclarationSyntax containingMember)
             => InitializeParameterHelpers.GetBody(containingMember);
 
-        protected override void InsertStatement(SyntaxEditor editor, SyntaxNode body, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
-            => InitializeParameterHelpers.InsertStatement(editor, body, statementToAddAfterOpt, statement);
+        protected override void InsertStatement(SyntaxEditor editor, BaseMethodDeclarationSyntax methodDeclarationSyntax, SyntaxNode statementToAddAfterOpt, StatementSyntax statement)
+            => InitializeParameterHelpers.InsertStatement(editor, methodDeclarationSyntax, statementToAddAfterOpt, statement);
 
         protected override bool IsImplicitConversion(Compilation compilation, ITypeSymbol source, ITypeSymbol destination)
             => InitializeParameterHelpers.IsImplicitConversion(compilation, source, destination);

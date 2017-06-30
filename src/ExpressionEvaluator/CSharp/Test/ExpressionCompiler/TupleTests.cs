@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Clr;
 using Microsoft.VisualStudio.Debugger.Evaluation;
@@ -133,9 +134,9 @@ namespace System
                 AssertEx.SetEqual(new[] { "corlib 2.0", appRef + " 0.0" }, reader.DumpAssemblyReferences());
 
                 AssertEx.SetEqual(new[] {
-                        "Object, System, AssemblyRef:corlib",
-                        "ValueTuple`2, System, AssemblyRef:" + appRef, // ValueTuple comes from app, not corlib
-                        ", System, AssemblyRef:" + appRef },
+                        "Object, System, AssemblyReference:corlib",
+                        "ValueTuple`2, System, AssemblyReference:" + appRef, // ValueTuple comes from app, not corlib
+                        ", System, AssemblyReference:" + appRef },
                     reader.DumpTypeReferences());
             }
         }

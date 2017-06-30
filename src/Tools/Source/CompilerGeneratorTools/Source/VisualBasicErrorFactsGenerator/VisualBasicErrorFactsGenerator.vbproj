@@ -6,6 +6,7 @@
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>x64</PlatformTarget>
+    <Platforms>x64</Platforms>
     <ProjectGuid>{909B656F-6095-4AC2-A5AB-C3F032315C45}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <StartupObject></StartupObject>

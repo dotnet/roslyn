@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class FeaturesResources {
@@ -860,6 +860,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Create_and_initialize_property_0 {
             get {
                 return ResourceManager.GetString("Create_and_initialize_property_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;default&apos; expression can be simplified.
+        /// </summary>
+        internal static string default_expression_can_be_simplified {
+            get {
+                return ResourceManager.GetString("default_expression_can_be_simplified", resourceCulture);
             }
         }
         
@@ -1882,7 +1891,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Make method synchronous..
+        ///   Looks up a localized string similar to Make method synchronous.
         /// </summary>
         internal static string Make_method_synchronous {
             get {
@@ -1914,6 +1923,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Methods {
             get {
                 return ResourceManager.GetString("Methods", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Modifiers are not ordered.
+        /// </summary>
+        internal static string Modifiers_are_not_ordered {
+            get {
+                return ResourceManager.GetString("Modifiers_are_not_ordered", resourceCulture);
             }
         }
         
@@ -2193,6 +2211,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Order modifiers.
+        /// </summary>
+        internal static string Order_modifiers {
+            get {
+                return ResourceManager.GetString("Order_modifiers", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to overload.
         /// </summary>
         internal static string overload {
@@ -2464,6 +2491,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unreachable code.
+        /// </summary>
+        internal static string Remove_unreachable_code {
+            get {
+                return ResourceManager.GetString("Remove_unreachable_code", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove unused variable.
         /// </summary>
         internal static string Remove_unused_variable {
@@ -2566,6 +2602,26 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location &apos;{1}&apos; in file &apos;{2}&apos;, which is outside of the given file..
+        /// </summary>
+        internal static string Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_given_file {
+            get {
+                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_1_in_file_2_which_is_outside_of_the_g" +
+                        "iven_file", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reported diagnostic &apos;{0}&apos; has a source location in file &apos;{1}&apos;, which is not part of the compilation being analyzed..
+        /// </summary>
+        internal static string Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_compilation_being_analyzed {
+            get {
+                return ResourceManager.GetString("Reported_diagnostic_0_has_a_source_location_in_file_1_which_is_not_part_of_the_co" +
+                        "mpilation_being_analyzed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Reported diagnostic with ID &apos;{0}&apos; is not supported by the analyzer..
         /// </summary>
         internal static string Reported_diagnostic_with_ID_0_is_not_supported_by_the_analyzer {
@@ -2661,6 +2717,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Simplify_collection_initialization {
             get {
                 return ResourceManager.GetString("Simplify_collection_initialization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Simplify &apos;default&apos; expression.
+        /// </summary>
+        internal static string Simplify_default_expression {
+            get {
+                return ResourceManager.GetString("Simplify_default_expression", resourceCulture);
             }
         }
         
@@ -3015,6 +3080,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Unknown_symbol_kind {
             get {
                 return ResourceManager.GetString("Unknown_symbol_kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unreachable code detected.
+        /// </summary>
+        internal static string Unreachable_code_detected {
+            get {
+                return ResourceManager.GetString("Unreachable_code_detected", resourceCulture);
             }
         }
         

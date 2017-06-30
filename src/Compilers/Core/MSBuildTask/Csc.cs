@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -80,12 +80,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(GenerateFullPaths)] = value; }
             get { return _store.GetOrDefault(nameof(GenerateFullPaths), false); }
-        }
-
-        public string LangVersion
-        {
-            set { _store[nameof(LangVersion)] = value; }
-            get { return (string)_store[nameof(LangVersion)]; }
         }
 
         public string ModuleAssemblyName
@@ -189,7 +183,6 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendPlusOrMinusSwitch("/checked", _store, nameof(CheckForOverflowUnderflow));
             commandLine.AppendSwitchWithSplitting("/nowarn:", DisabledWarnings, ",", ';', ',');
             commandLine.AppendWhenTrue("/fullpaths", _store, nameof(GenerateFullPaths));
-            commandLine.AppendSwitchIfNotNull("/langversion:", LangVersion);
             commandLine.AppendSwitchIfNotNull("/moduleassemblyname:", ModuleAssemblyName);
             commandLine.AppendSwitchIfNotNull("/pdb:", PdbFile);
             commandLine.AppendPlusOrMinusSwitch("/nostdlib", _store, nameof(NoStandardLib));

@@ -6,6 +6,7 @@ Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
@@ -41,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim specifiedName = sourceModule.MetadataName
 
-            _metadataName = If(specifiedName <> Microsoft.CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
+            _metadataName = If(specifiedName <> CodeAnalysis.Compilation.UnspecifiedModuleAssemblyName,
                                 specifiedName,
                                 If(emitOptions.OutputNameOverride, specifiedName))
 
@@ -176,8 +177,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return Me.Compilation.TrySynthesizeAttribute(attributeConstructor)
         End Function
 
-        Public NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)
-            Return SourceModule.ContainingSourceAssembly.GetCustomAttributesToEmit(Me.CompilationState, emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
+        Public NotOverridable Overrides Function GetSourceAssemblyAttributes(isRefAssembly As Boolean) As IEnumerable(Of Cci.ICustomAttribute)
+            Return SourceModule.ContainingSourceAssembly.GetAssemblyCustomAttributesToEmit(Me.CompilationState,
+                                                                                           isRefAssembly,
+                                                                                           emittingAssemblyAttributesInNetModule:=OutputKind.IsNetModule())
         End Function
 
         Public NotOverridable Overrides Function GetSourceAssemblySecurityAttributes() As IEnumerable(Of Cci.SecurityAttribute)
@@ -330,8 +333,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return False
         End Function
 
-        Friend NotOverridable Overrides Function GetAnonymousTypes() As ImmutableArray(Of Cci.INamespaceTypeDefinition)
-            If EmitOptions.EmitMetadataOnly Then
+        Friend NotOverridable Overrides Function GetAnonymousTypes(context As EmitContext) As ImmutableArray(Of Cci.INamespaceTypeDefinition)
+            If context.MetadataOnly Then
                 Return ImmutableArray(Of Cci.INamespaceTypeDefinition).Empty
             End If
 

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -71,13 +71,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                 switch (node)
                 {
                     case AccessorDeclarationSyntax access:
-                        // property case
+                        // property or event case
                         if (access.Parent == null || access.Parent.Parent == null)
                         {
                             return null;
                         }
 
-                        return ((IPropertySymbol)semanticModel.GetDeclaredSymbol(access.Parent.Parent)).Type;
+                        switch (semanticModel.GetDeclaredSymbol(access.Parent.Parent))
+                        {
+                            case IPropertySymbol propertySymbol:
+                                return propertySymbol.Type;
+
+                            case IEventSymbol eventSymbol:
+                                return eventSymbol.Type;
+
+                            default:
+                                return null;
+                        }
 
                     case MethodDeclarationSyntax method:
                         return semanticModel.GetDeclaredSymbol(method).ReturnType;

@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
 
@@ -55,12 +56,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private bool _compilationStartGenerated;
         private bool _compilationEndGenerated;
 
-        /// <summary>
-        /// Cached semantic model for the compilation trees.
-        /// PERF: This cache enables us to re-use semantic model's bound node cache across analyzer execution and diagnostic queries.
-        /// </summary>
-        private readonly ConditionalWeakTable<SyntaxTree, SemanticModel> _semanticModelsMap;
-
         private readonly ObjectPool<HashSet<CompilationEvent>> _compilationEventsPool;
         private readonly HashSet<CompilationEvent> _pooledEventsWithAnyActionsSet;
 
@@ -73,7 +68,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _pendingSourceEvents = new Dictionary<SyntaxTree, HashSet<CompilationEvent>>();
             _pendingNonSourceEvents = new HashSet<CompilationEvent>();
             _lazyAnalyzerActionCountsMap = null;
-            _semanticModelsMap = new ConditionalWeakTable<SyntaxTree, SemanticModel>();
             _treesWithGeneratedSourceEvents = new HashSet<SyntaxTree>();
             _partialSymbolsWithGeneratedSourceEvents = new HashSet<ISymbol>();
             _compilationStartGenerated = false;
@@ -402,7 +396,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             if (_lazyAnalyzerActionCountsMap == null)
             {
                 var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerActionCounts>();
-                foreach (var analyzer in _analyzerStateMap.Keys)
+                foreach (var (analyzer, _) in _analyzerStateMap)
                 {
                     var actionCounts = await driver.GetAnalyzerActionCountsAsync(analyzer, _compilationOptions, cancellationToken).ConfigureAwait(false);
                     builder.Add(analyzer, actionCounts);

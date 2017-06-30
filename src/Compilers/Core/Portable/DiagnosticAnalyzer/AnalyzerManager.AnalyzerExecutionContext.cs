@@ -14,13 +14,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             private readonly object _gate = new object();
 
-            // Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
-            // These are run only once per every analyzer.
+            /// <summary>
+            /// Task to compute HostSessionStartAnalysisScope for session wide analyzer actions, i.e. AnalyzerActions registered by analyzer's Initialize method.
+            /// These are run only once per every analyzer. 
+            /// </summary>
             private Task<HostSessionStartAnalysisScope> _lazySessionScopeTask;
 
-            // This map stores the tasks to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
-            // Compilation start actions will get executed once per-each AnalyzerAndOptions as user might want to return different set of custom actions for each compilation/analyzer options.
-            private Dictionary<AnalyzerOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>> _lazyCompilationScopeMap;
+            /// <summary>
+            /// Task to compute HostCompilationStartAnalysisScope for per-compilation analyzer actions, i.e. AnalyzerActions registered by analyzer's CompilationStartActions.
+            /// </summary>
+            private Task<HostCompilationStartAnalysisScope> _lazyCompilationScopeTask;
 
             /// <summary>
             /// Supported descriptors for diagnostic analyzer.
@@ -61,51 +64,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 HostSessionStartAnalysisScope sessionScope,
                 AnalyzerExecutor analyzerExecutor)
             {
-                Func<Compilation, Task<HostCompilationStartAnalysisScope>> getTask = comp =>
-                {
-                    return Task.Run(() =>
-                    {
-                        var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                        analyzerExecutor.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope);
-                        return compilationAnalysisScope;
-                    }, analyzerExecutor.CancellationToken);
-                };
-
-                var callback = new ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>.CreateValueCallback(getTask);
-                var compilationActionsCache = GetOrCreateCompilationActionsCache(analyzerExecutor.AnalyzerOptions);
-                return compilationActionsCache.GetValue(analyzerExecutor.Compilation, callback);
-            }
-
-            private ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> GetOrCreateCompilationActionsCache(AnalyzerOptions analyzerOptions)
-            {
                 lock (_gate)
                 {
-                    ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> compilationActionsCache;
-
-                    if (_lazyCompilationScopeMap == null)
+                    if (_lazyCompilationScopeTask == null)
                     {
-                        _lazyCompilationScopeMap = new Dictionary<AnalyzerOptions, ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>>();
-                    }
-                    else if (_lazyCompilationScopeMap.TryGetValue(analyzerOptions, out compilationActionsCache))
-                    {
-                        return compilationActionsCache;
+                        _lazyCompilationScopeTask = Task.Run(() =>
+                        {
+                            var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
+                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.CompilationStartActions, compilationAnalysisScope);
+                            return compilationAnalysisScope;
+                        }, analyzerExecutor.CancellationToken);
                     }
 
-                    compilationActionsCache = new ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>>();
-                    _lazyCompilationScopeMap.Add(analyzerOptions, compilationActionsCache);
-                    return compilationActionsCache;
+                    return _lazyCompilationScopeTask;
                 }
             }
 
-            public void ClearCompilationScopeMap(AnalyzerOptions analyzerOptions, Compilation compilation)
+            public void ClearCompilationScopeTask()
             {
                 lock (_gate)
                 {
-                    ConditionalWeakTable<Compilation, Task<HostCompilationStartAnalysisScope>> compilationActionsCache;
-                    if (_lazyCompilationScopeMap != null && _lazyCompilationScopeMap.TryGetValue(analyzerOptions, out compilationActionsCache))
-                    {
-                        compilationActionsCache.Remove(compilation);
-                    }
+                    _lazyCompilationScopeTask = null;
                 }
             }
 
@@ -151,14 +130,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
                 // Catch Exception from analyzer.SupportedDiagnostics
-                analyzerExecutor.ExecuteAndCatchIfThrows(analyzer, () =>
-                {
-                    var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
-                    if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
+                analyzerExecutor.ExecuteAndCatchIfThrows(
+                    analyzer,
+                    _ =>
                     {
-                        supportedDiagnostics = supportedDiagnosticsLocal;
-                    }
-                });
+                        var supportedDiagnosticsLocal = analyzer.SupportedDiagnostics;
+                        if (!supportedDiagnosticsLocal.IsDefaultOrEmpty)
+                        {
+                            supportedDiagnostics = supportedDiagnosticsLocal;
+                        }
+                    },
+                    argument: default(object));
 
                 // Force evaluate and report exception diagnostics from LocalizableString.ToString().
                 Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = analyzerExecutor.OnAnalyzerException;

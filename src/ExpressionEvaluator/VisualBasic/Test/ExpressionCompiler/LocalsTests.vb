@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator
 Imports Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -825,6 +826,50 @@ End Class
   IL_0000:  ldarg.0
   IL_0001:  ldfld      ""C._Closure$__2-1.$VB$Local_x As Object""
   IL_0006:  ret
+}")
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub CapturedLocalInNestedLambda()
+            Const source =
+"Imports System
+Class C
+    Shared Sub M()
+    End Sub
+    Shared Sub F(a As Action)
+    End Sub
+End Class"
+            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            WithRuntimeInstance(comp,
+                Sub(runtime)
+                    Dim context = CreateMethodContext(runtime, "C.M")
+                    Dim testData As New CompilationTestData()
+                    Dim errorMessage As String = Nothing
+                    context.CompileExpression(
+"F(Sub()
+        Dim x As Integer
+        Dim y As New Func(Of Integer)(Function() x)
+        y.Invoke()
+    End Sub)",
+                        errorMessage,
+                        testData)
+                    Assert.Null(errorMessage)
+                    testData.GetMethodData("<>x.<>m0").VerifyIL(
+"{
+  // Code size       42 (0x2a)
+  .maxstack  2
+  IL_0000:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Action""
+  IL_0005:  brfalse.s  IL_000e
+  IL_0007:  ldsfld     ""<>x._Closure$__.$I0-0 As System.Action""
+  IL_000c:  br.s       IL_0024
+  IL_000e:  ldsfld     ""<>x._Closure$__.$I As <>x._Closure$__""
+  IL_0013:  ldftn      ""Sub <>x._Closure$__._Lambda$__0-0()""
+  IL_0019:  newobj     ""Sub System.Action..ctor(Object, System.IntPtr)""
+  IL_001e:  dup
+  IL_001f:  stsfld     ""<>x._Closure$__.$I0-0 As System.Action""
+  IL_0024:  call       ""Sub C.F(System.Action)""
+  IL_0029:  ret
 }")
                 End Sub)
         End Sub
@@ -3187,7 +3232,7 @@ End Module"
                         1,
                         Function(bufferLength As Integer, ByRef count As Integer, name() As Byte)
                             count = 0
-                            Return DiaSymReader.SymUnmanagedReaderExtensions.E_NOTIMPL
+                            Return HResult.E_NOTIMPL
                         End Function)
 
                     Dim debugInfo = New MethodDebugInfoBytes.Builder(constants:={badConst}).Build()

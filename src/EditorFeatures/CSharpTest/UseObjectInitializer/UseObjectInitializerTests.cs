@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -534,6 +534,47 @@ public class Foo
     }
 
     public string Value { get; set; }
+}", ignoreTrivia: false);
+        }
+
+        [WorkItem(19253, "https://github.com/dotnet/roslyn/issues/19253")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)]
+        public async Task TestKeepBlankLinesAfter()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class Foo
+{
+    public int Bar { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        var foo = [||]new Foo();
+        foo.Bar = 1;
+
+        int horse = 1;
+    }
+}",
+@"
+class Foo
+{
+    public int Bar { get; set; }
+}
+
+class MyClass
+{
+    public void Main()
+    {
+        var foo = new Foo
+        {
+            Bar = 1
+        };
+
+        int horse = 1;
+    }
 }", ignoreTrivia: false);
         }
     }

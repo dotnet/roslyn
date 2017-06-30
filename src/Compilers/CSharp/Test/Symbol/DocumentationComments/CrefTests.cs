@@ -1803,7 +1803,7 @@ class C
             Assert.Equal(
                 compilation.GlobalNamespace
                            .GetMember<NamedTypeSymbol>("C")
-                           .GetMember<SourceMemberMethodSymbol>("M"),
+                           .GetMember<SourceOrdinaryMethodSymbol>("M"),
                 actualSymbol);
             Assert.Equal(SymbolKind.Method, actualSymbol.Kind);
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
@@ -1836,7 +1836,7 @@ class Outer
             var expectedSymbol = compilation.GlobalNamespace
                                             .GetMember<NamedTypeSymbol>("Outer")
                                             .GetMember<NamedTypeSymbol>("Inner")
-                                            .GetMember<SourceMemberMethodSymbol>("M");
+                                            .GetMember<SourceOrdinaryMethodSymbol>("M");
 
             // Consider inaccessible symbols, as in Dev11
             var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);

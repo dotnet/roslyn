@@ -11,6 +11,7 @@ using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Debugging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using System.IO;
 using System.IO.Compression;
@@ -261,13 +262,174 @@ namespace Roslyn.Test.Utilities
 
         public static string Dump(this MetadataReader reader, EntityHandle handle)
         {
+            string value = DumpRec(reader, handle);
+            string kind = handle.Kind.ToString();
+            if (value != null)
+            {
+                return $"{kind}:{value}";
+            }
+            else
+            {
+                return kind;
+            }
+        }
+
+        private static string DumpRec(this MetadataReader reader, EntityHandle handle)
+        {
             switch (handle.Kind)
             {
                 case HandleKind.AssemblyReference:
-                    return "AssemblyRef:" + reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
+                    return reader.GetString(reader.GetAssemblyReference((AssemblyReferenceHandle)handle).Name);
+                case HandleKind.TypeDefinition:
+                    return reader.GetString(reader.GetTypeDefinition((TypeDefinitionHandle)handle).Name);
+                case HandleKind.MethodDefinition:
+                    {
+                        var method = reader.GetMethodDefinition((MethodDefinitionHandle)handle);
+                        var blob = reader.GetBlobReader(method.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var signature = decoder.DecodeMethodSignature(ref blob);
+                        var parameters = signature.ParameterTypes.Join(", ");
+                        return $"{signature.ReturnType} {reader.GetString(method.Name)}({parameters})";
+                    }
+                case HandleKind.MemberReference:
+                    {
+                        var member = reader.GetMemberReference((MemberReferenceHandle)handle);
+                        var blob = reader.GetBlobReader(member.Signature);
+                        var decoder = new SignatureDecoder<string, object>(ConstantSignatureVisualizer.Instance, reader, genericContext: null);
+                        var signature = decoder.DecodeMethodSignature(ref blob);
+                        var parameters = signature.ParameterTypes.Join(", ");
+                        return $"{signature.ReturnType} {DumpRec(reader, member.Parent)}{reader.GetString(member.Name)}({parameters})";
+                    }
+                case HandleKind.TypeReference:
+                    {
+                        var type = reader.GetTypeReference((TypeReferenceHandle)handle);
+                        return $"{reader.GetString(type.Namespace)}.{reader.GetString(type.Name)}";
+                    }
                 default:
-                    return handle.Kind.ToString();
+                    return null;
             }
+        }
+
+        private sealed class ConstantSignatureVisualizer : ISignatureTypeProvider<string, object>
+        {
+            public static readonly ConstantSignatureVisualizer Instance = new ConstantSignatureVisualizer();
+
+            public string GetArrayType(string elementType, ArrayShape shape)
+                => elementType + "[" + new string(',', shape.Rank) + "]";
+
+            public string GetByReferenceType(string elementType)
+                => elementType + "&";
+
+            public string GetFunctionPointerType(MethodSignature<string> signature)
+                => "method-ptr";
+
+            public string GetGenericInstantiation(string genericType, ImmutableArray<string> typeArguments)
+                => genericType + "{" + string.Join(", ", typeArguments) + "}";
+
+            public string GetGenericMethodParameter(object genericContext, int index)
+                => "!!" + index;
+
+            public string GetGenericTypeParameter(object genericContext, int index)
+                => "!" + index;
+
+            public string GetModifiedType(string modifier, string unmodifiedType, bool isRequired)
+                => (isRequired ? "modreq" : "modopt") + "(" + modifier + ") " + unmodifiedType;
+
+            public string GetPinnedType(string elementType)
+                => "pinned " + elementType;
+
+            public string GetPointerType(string elementType)
+                => elementType + "*";
+
+            public string GetPrimitiveType(PrimitiveTypeCode typeCode)
+                => typeCode.ToString();
+
+            public string GetSZArrayType(string elementType)
+                => elementType + "[]";
+
+            public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
+            {
+                var typeDef = reader.GetTypeDefinition(handle);
+                var name = reader.GetString(typeDef.Name);
+                return typeDef.Namespace.IsNil ? name : reader.GetString(typeDef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
+            {
+                var typeRef = reader.GetTypeReference(handle);
+                var name = reader.GetString(typeRef.Name);
+                return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
+            }
+
+            public string GetTypeFromSpecification(MetadataReader reader, object genericContext, TypeSpecificationHandle handle, byte rawTypeKind)
+            {
+                var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
+                return new SignatureDecoder<string, object>(Instance, reader, genericContext).DecodeType(ref sigReader);
+            }
+        }
+
+        internal static void VerifyPEMetadata(string pePath, string[] types, string[] methods, string[] attributes)
+        {
+            using (var peStream = File.OpenRead(pePath))
+            using (var refPeReader = new PEReader(peStream))
+            {
+                var metadataReader = refPeReader.GetMetadataReader();
+
+                AssertEx.SetEqual(metadataReader.TypeDefinitions.Select(t => metadataReader.Dump(t)), types);
+                AssertEx.SetEqual(metadataReader.MethodDefinitions.Select(t => metadataReader.Dump(t)), methods);
+
+                AssertEx.SetEqual(
+                    metadataReader.CustomAttributes.Select(a => metadataReader.GetCustomAttribute(a).Constructor)
+                        .Select(c => metadataReader.GetMemberReference((MemberReferenceHandle)c).Parent)
+                        .Select(p => metadataReader.GetTypeReference((TypeReferenceHandle)p).Name)
+                        .Select(n => metadataReader.GetString(n)),
+                    attributes);
+            }
+        }
+
+        internal static void VerifyMethodBodies(ImmutableArray<byte> peImage, Action<byte[]> ilValidator)
+        {
+            using (var peReader = new PEReader(peImage))
+            {
+                var metadataReader = peReader.GetMetadataReader();
+                foreach (var method in metadataReader.MethodDefinitions)
+                {
+                    var rva = metadataReader.GetMethodDefinition(method).RelativeVirtualAddress;
+                    if (rva != 0)
+                    {
+                        var il = peReader.GetMethodBody(rva).GetILBytes();
+                        ilValidator(il);
+                    }
+                    else
+                    {
+                        ilValidator(null);
+                    }
+                }
+            }
+        }
+
+        static readonly byte[] ThrowNull = new[] { (byte)ILOpCode.Ldnull, (byte)ILOpCode.Throw };
+
+        internal static void AssertEmptyOrThrowNull(ImmutableArray<byte> peImage)
+        {
+            VerifyMethodBodies(peImage, (il) =>
+            {
+                if (il != null)
+                {
+                    AssertEx.Equal(ThrowNull, il);
+                }
+            });
+        }
+
+        internal static void AssertNotThrowNull(ImmutableArray<byte> peImage)
+        {
+            VerifyMethodBodies(peImage, (il) =>
+            {
+                if (il != null)
+                {
+                    AssertEx.NotEqual(ThrowNull, il);
+                }
+            });
         }
     }
 }

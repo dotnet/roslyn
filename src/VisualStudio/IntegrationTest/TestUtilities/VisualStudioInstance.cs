@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
@@ -25,6 +27,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         public CSharpInteractiveWindow_OutOfProc InteractiveWindow { get; }
 
+        public Debugger_OutOfProc Debugger { get; }
+
+        public Dialog_OutOfProc Dialog { get; }
+
         public Editor_OutOfProc Editor { get; }
 
         public EncapsulateField_OutOfProc EncapsulateField { get; }
@@ -38,6 +44,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
         public GenerateTypeDialog_OutOfProc GenerateTypeDialog { get; }
 
         public InlineRenameDialog_OutOfProc InlineRenameDialog { get; set; }
+
+        public LocalsWindow_OutOfProc LocalsWindow { get; set; }
 
         public PreviewChangesDialog_OutOfProc PreviewChangesDialog { get; }
 
@@ -91,6 +99,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             ChangeSignatureDialog = new ChangeSignatureDialog_OutOfProc(this);
             InteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
+            Debugger = new Debugger_OutOfProc(this);
+            Dialog = new Dialog_OutOfProc(this);
             Editor = new Editor_OutOfProc(this);
             EncapsulateField = new EncapsulateField_OutOfProc(this);
             ErrorList = new ErrorList_OutOfProc(this);
@@ -98,6 +108,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             FindReferencesWindow = new FindReferencesWindow_OutOfProc(this);
             GenerateTypeDialog = new GenerateTypeDialog_OutOfProc(this);
             InlineRenameDialog = new InlineRenameDialog_OutOfProc(this);
+            LocalsWindow = new LocalsWindow_OutOfProc(this);
             PreviewChangesDialog = new PreviewChangesDialog_OutOfProc(this);
             Shell = new Shell_OutOfProc(this);
             SolutionExplorer = new SolutionExplorer_OutOfProc(this);
@@ -125,8 +136,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void ActivateMainWindow()
-            => _inProc.ActivateMainWindow();
+        public void ActivateMainWindow(bool skipAttachingThreads = false)
+            => _inProc.ActivateMainWindow(skipAttachingThreads);
 
         public void WaitForApplicationIdle()
             => _inProc.WaitForApplicationIdle();

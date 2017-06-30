@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.Storage;
 using Roslyn.Utilities;
@@ -72,16 +74,50 @@ namespace Microsoft.CodeAnalysis.SQLite
             ArrayBuilder<Action<SqlConnection>> writesToProcess,
             CancellationToken cancellationToken)
         {
-            // Get the task that is responsible for doing the writes for this queue.
-            // This task will complete when all previously enqueued writes for this queue
-            // complete, and all the currently enqueued writes for this queue complete as well.
-            var writeTask = await GetWriteTaskAsync().ConfigureAwait(false);
-            await writeTask.ConfigureAwait(false);
+            // Get's the task representing the current writes being performed by another
+            // thread for this queue+key, and a TaskCompletionSource we can use to let
+            // other threads know about our own progress writing any new writes in this queue.
+            var (previousWritesTask, taskCompletionSource) = await GetWriteTaskAsync().ConfigureAwait(false);
+            try
+            {
+                // Wait for all previous writes to be flushed.
+                await previousWritesTask.ConfigureAwait(false);
+
+                if (writesToProcess.Count == 0)
+                {
+                    // No additional writes for us to flush.  We can immediately bail out.
+                    Debug.Assert(taskCompletionSource == null);
+                    return;
+                }
+
+                // Now, if we have writes of our own, do them on this thread.
+                // 
+                // Note: this flushing is not cancellable.  We've already removed the
+                // writes from the write queue.  If we were not to write them out we
+                // would be losing data.
+                Debug.Assert(taskCompletionSource != null);
+
+                ProcessWriteQueue(connection, writesToProcess);
+            }
+            catch (OperationCanceledException ex)
+            {
+                taskCompletionSource?.TrySetCanceled(ex.CancellationToken);
+            }
+            catch (Exception ex)
+            {
+                taskCompletionSource?.TrySetException(ex);
+            }
+            finally
+            {
+                // Mark our TCS as completed.  Any other threads waiting on us will now be able
+                // to proceed.
+                taskCompletionSource?.TrySetResult(0);
+            }
 
             return;
 
             // Local functions
-            async Task<Task> GetWriteTaskAsync()
+            async Task<(Task previousTask, TaskCompletionSource<int> taskCompletionSource)> GetWriteTaskAsync()
             {
                 // Have to acquire the semaphore.  We're going to mutate the shared 'keyToWriteActions'
                 // and 'keyToWriteTask' collections.
@@ -106,30 +142,17 @@ namespace Microsoft.CodeAnalysis.SQLite
                         // We have no writes of our own.  But there may be an existing task that
                         // is writing out this queue.   Return this so our caller can wait for
                         // all existing writes to complete.
-                        return existingWriteTask;
+                        return (previousTask: existingWriteTask, taskCompletionSource: null);
                     }
 
-                    // We have our own writes to process.  Enqueue the task to write 
-                    // these out after the existing write-task for this queue completes.
-                    // 
-                    // We're currently under a lock, so tell the continuation to run 
-                    // *asynchronously* so that the TPL does not try to execute it inline
-                    // with this thread.
-                    //
-                    // Note: this flushing is not cancellable.  We've already removed the
-                    // writes from the write queue.  If we were not to write them out we
-                    // would be losing data.
-                    var nextTask = existingWriteTask.ContinueWith(
-                        _ => ProcessWriteQueue(connection, writesToProcess),
-                        CancellationToken.None,
-                        TaskContinuationOptions.RunContinuationsAsynchronously,
-                        TaskScheduler.Default);
+                    // Create a TCS that represents our own work writing out "writesToProcess".
+                    // Store it in keyToWriteTask so that if other threads come along, they'll
+                    // wait for us to complete before doing their own reads/writes on this queue.
+                    var localCompletionSource = new TaskCompletionSource<int>();
 
-                    // Store this for the next flush call to see.
-                    keyToWriteTask[key] = nextTask;
+                    keyToWriteTask[key] = localCompletionSource.Task;
 
-                    // And return this to our caller so it can 'await' all these writes completing.
-                    return nextTask;
+                    return (previousTask: existingWriteTask, taskCompletionSource: localCompletionSource);
                 }
             }
         }

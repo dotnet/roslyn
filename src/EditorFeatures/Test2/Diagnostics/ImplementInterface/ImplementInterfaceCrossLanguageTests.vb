@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -10,13 +10,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.ImplementInterface
     Public Class ImplementInterfaceCrossLanguageTests
         Inherits AbstractCrossLanguageUserDiagnosticTest
 
-        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
             If language = LanguageNames.CSharp Then
                 Throw New NotSupportedException("Please add C# Implement interface tests to CSharpEditorTestTests.csproj. These tests require DiagnosticAnalyzer based test base and are NYI for AbstractCrossLanguageUserDiagnosticTest test base.")
             Else
-                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
-                    Nothing,
-                    New VisualBasicImplementInterfaceCodeFixProvider())
+                Return (Nothing, New VisualBasicImplementInterfaceCodeFixProvider())
             End If
         End Function
 

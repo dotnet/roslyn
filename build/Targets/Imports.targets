@@ -41,6 +41,11 @@
         <CopyNuGetImplementations>false</CopyNuGetImplementations>
         <OutputPath>$(OutputPath)Dlls\$(MSBuildProjectName)\</OutputPath>
       </PropertyGroup>
+
+      <!-- Add the UnitTestContainer project capability -->
+      <ItemGroup>
+        <ProjectCapability Include="UnitTestContainer" />
+      </ItemGroup>
     </When>
     <When Condition="'$(RoslynProjectType)' == 'CompilerGeneratorTool'">
       <PropertyGroup>
@@ -133,6 +138,12 @@
     <DisableImplicitFrameworkReferences Condition="'$(DisableImplicitFrameworkReferences)' == ''" >true</DisableImplicitFrameworkReferences>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+      
+    <!-- Only generate our runtimeconfig.json files for net core apps. It's unnecessary in desktop projects
+         but gets included in lots of output items like VSIX. -->
+    <GenerateRuntimeConfigurationFiles Condition="'$(TargetFramework)' != 'netcoreapp1.1' AND '$(TargetFramework)' != 'netcoreapp2.0'">false</GenerateRuntimeConfigurationFiles>
+
+    <IbcMergePath>$(NuGetPackageRoot)\Microsoft.DotNet.IBCMerge\$(MicrosoftDotNetIBCMerge)\lib\net45\ibcmerge.exe</IbcMergePath>
   </PropertyGroup>
 
   <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
@@ -193,6 +204,10 @@
     </When>
   </Choose>
 
+  <ItemGroup Condition="'$(ProjectLanguage)' == 'CSharp' AND '$(TargetNetFX20)' == 'true'">
+    <_ExplicitReference Include="$(FrameworkPathOverride)\mscorlib.dll" />
+  </ItemGroup>
+
   <ItemDefinitionGroup Condition="'$(_CopyReferences)' == 'false'">
     <Reference>
       <Private>False</Private>
@@ -232,6 +247,16 @@
     <SuggestedBindingRedirects Include="Microsoft.Build.Utilities.Core, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <MaxVersion>$(GenerateMSBuildBindingRedirects)</MaxVersion>
     </SuggestedBindingRedirects>
+  </ItemGroup>
+
+  <!-- 
+       Work around some UI delays in the new project system
+
+       https://github.com/dotnet/project-system/issues/2297
+
+  --> 
+  <ItemGroup>
+    <ProjectCapability Remove="DependenciesTree"/>
   </ItemGroup>
 
   <Import Project="$(MSBuildTargetsFilePath)" Condition="'$(RoslynSdkProject)' != 'true'" />
@@ -298,15 +323,17 @@
        2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
           by the NuGet build task. -->
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
-    <ItemGroup>
-      <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
-        <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
-      </_ReferenceCopyLocalPathsWithPotentialInclusions>
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolvePackageDependenciesForBuild" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+    <FindNuGetAssetsForVsix
+      NuGetPackageRoot="$(NuGetPackageRoot)"
+      ReferenceCopyLocalPaths="@(ReferenceCopyLocalPaths)"
+      NuGetPackageToIncludeInVsix="@(NuGetPackageToIncludeInVsix)">
 
-      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
-                                        Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' AND
-                                                   '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
+      <Output TaskParameter="NuGetAssetsToIncludeInVsix" ItemName="NuGetAssetsToIncludeInVsix" />
+    </FindNuGetAssetsForVsix>
+
+    <ItemGroup>
+      <VSIXCopyLocalReferenceSourceItem Include="@(NuGetAssetsToIncludeInVsix)">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
@@ -322,7 +349,7 @@
   <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
        assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
        strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
-  <Target Name="LinkVSSDKEmbeddableAssemblies" DependsOnTargets="ResolveReferences" AfterTargets="ResolveReferences">
+  <Target Name="LinkVSSDKEmbeddableAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences" >
     <ItemGroup>
       <ReferencePath Condition="'%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable' OR
                                 '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0' OR
@@ -342,6 +369,7 @@
 
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
+  <Import Project="DisableTransitiveReferences.targets" Condition="'$(RoslynProjectType)' == 'Vsix' AND '$(RoslynSdkProject)' == 'true'" />
 
   <ItemDefinitionGroup>
     <VSIXSourceItem>
@@ -368,11 +396,10 @@
        ==================================================================================== -->
 
   <PropertyGroup>
-    <PrepareResourcesDependsOn>DeployPortableOnDeveloperBuild;$(PrepareResourcesDependsOn)</PrepareResourcesDependsOn>
     <PrepareForBuildDependsOn>RemoveDuplicateXUnitContent;$(PrepareForBuildDependsOn)</PrepareForBuildDependsOn>
     <TargetFrameworkMonikerAssemblyAttributesPath>$(IntermediateOutputPath)$(TargetFrameworkMoniker).AssemblyAttributes$(DefaultLanguageSourceExtension)</TargetFrameworkMonikerAssemblyAttributesPath>
     <PostCompileBinaryModificationSentinelFile>$(IntermediateOutputPath)$(TargetFileName).pcbm</PostCompileBinaryModificationSentinelFile>
-    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\2.0.0-rc-61101-16\content\OptimizationData</OptimizationDataFolderPath>
+    <OptimizationDataFolderPath>$(NuGetPackageRoot)\RoslynDependencies.OptimizationData\$(RoslynDependenciesOptimizationDataVersion)\content\OptimizationData</OptimizationDataFolderPath>
     <OptimizationDataFile>$([System.IO.Path]::GetFullPath('$(OptimizationDataFolderPath)\$(TargetName).pgo'))</OptimizationDataFile>
   </PropertyGroup>
 
@@ -423,56 +450,32 @@
     </PropertyGroup>
   </Target>
 
-  <!-- The path to IBCMerge.exe must be specified at build time via $(IbcMergePath).  Typically this is passed as a
-       build definition variable -->
+  <!-- The IBCMerge tool is internal only and hence only available during official Microbuild runs.  This target is 
+       specifically not gated on the existance of this file.  During an official build it shoudl always be present and 
+       if it's not then an error needs to be raised.
+
+       A local build emulating an official build can pass /p:SkipApplyOptimizations=true to avoid this error.
+       -->
   <Target Name="ApplyOptimizations"
-          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)') AND '$(IbcMergePath)' != ''"
+          Condition="'$(OfficialBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(SkipApplyOptimizations)' != 'true' AND Exists('$(OptimizationDataFile)')"
           Inputs="@(IntermediateAssembly)"
           Outputs="@(IntermediateAssembly);$(PostCompileBinaryModificationSentinelFile)">
       <Message Text="Adding optimization data to @(IntermediateAssembly)" />
 
-      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;"
-            ConsoleToMSBuild="true">
+      <Error Text="IBCMerge not found at $(IbcMergePath). Local developer builds should pass /p:SkipApplyOptimizations=true to avoid this"
+             Condition="!Exists('$(IbcMergePath)')" />
+
+      <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -excludeGenmethUnboxingStubs -incremental &quot;$(OptimizationDataFile)&quot;"
+            ConsoleToMSBuild="true"
+            Condition="Exists('$(IbcMergePath)')">
         <Output TaskParameter="ConsoleOutput" PropertyName="IbcMergeOutput" />
       </Exec>
 
       <Message Text="$(IbcMergeOutput)" />
   </Target>
 
-  <!-- This is part of our developer convenience work to allow easy testing of our portable
-       unit test projects.  It's a similar mechanism to CopyNuGetImplementations but is
-       both unsupported and somewhat special cased to our build setup.
-
-       This bug tracks getting an official solution out of MSBuild.
-
-       https://github.com/Microsoft/msbuild/issues/1499 -->
-  <Target Name="DeployPortableOnDeveloperBuild"
-          Condition="'$(_IsAnyPortableUnitTest)' == 'true' AND '$(DeveloperBuild)' == 'true' AND '$(OS)' == 'Windows_NT' AND '$(RoslynSdkProject)' != 'true'">
-    <ResolveNuGetPackageAssets IncludeFrameworkReferences="true"
-                               NuGetPackagesDirectory="$(NuGetPackageRoot)"
-                               RuntimeIdentifier="win7"
-                               ProjectLanguage="$(ProjectLanguage)"
-                               ProjectLockFile="$(MSBuildThisFileDirectory)..\..\src\Test\DeployDesktopTestRuntime\project.lock.json"
-                               TargetMonikers=".NETFramework,Version=v4.6">
-      <Output TaskParameter="ResolvedCopyLocalItems" ItemName="ReferenceCopyLocalPaths" />
-    </ResolveNuGetPackageAssets>
-
-    <!-- Desktop tests need to load the Desktop version of the TestUtilities via reflection at runtime without
-         referencing the assembly at compile time. However, it looks like adding a project-to-project reference 
-         with ReferenceOutputputAssembly=false and Private=true does not copy the assembly to the output
-         (https://github.com/Microsoft/msbuild/issues/1916). Therefore, we reference the assembly but do the
-         copying ourselves, by adding the output path of the project (GetTargetPath) manually to the set of copied
-         assemblies (ReferenceCopyLocalPaths) -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\src\Test\Utilities\Desktop\TestUtilities.Desktop.csproj"
-             Targets="GetTargetPath"
-             BuildInParallel="true">
-
-      <Output TaskParameter="TargetOutputs" ItemName="ReferenceCopyLocalPaths" />
-    </MSBuild>
-  </Target>
-
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(VsixVersion)" />
+  <Target Name="GetBuildVersion" Returns="$(VsixVersion)" />
 
   <!-- 
     In order to leverage LUT testing we need to have both of the follownig packages in 
@@ -488,8 +491,57 @@
     https://github.com/dotnet/roslyn/issues/18753
   -->
   <Target Name="RemoveDuplicateXUnitContent">
-    <ItemGroup>
-      <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
+      <ItemGroup>
+        <Content Remove="@(Content)" Condition="'%(Filename)%(Extension)' == 'xunit.abstractions.dll'" />
     </ItemGroup>
   </Target>
+
+  <!-- We need to run publish on our CoreCLR executables (CscCore and VbcCore) without rebuilding
+       since a rebuild may overwrite signed binaries in the output directory with unsigned binaries
+       from the intermediate output directory. -->
+  <Target Name="PublishWithoutBuilding"
+        DependsOnTargets="PreventProjectReferencesFromBuilding;
+                          ResolveReferences;
+                          ComputeAndCopyFilesToPublishDirectory;
+                          GeneratePublishDependencyFile;
+                          GeneratePublishRuntimeConfigurationFile" />                                                           
+
+  <!-- 
+    Work around bug in Microsoft.NET.Sdk < v2.0 where satellites were deployed on top of each other in root. 
+    https://github.com/dotnet/sdk/issues/1360
+  -->
+  <Target Name="WorkaroundIncorrectSatelliteDeployment" AfterTargets="ResolveLockFileCopyLocalProjectDeps">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ResourceCopyLocalItems)" />
+      <ReferenceCopyLocalPaths Include="@(ResourceCopyLocalItems)"  Condition="'@(ResourceCopyLocalItems)' != ''">
+        <DestinationSubDirectory>$([System.IO.Directory]::GetParent(%(ResourceCopyLocalItems.FullPath)).get_Name())\</DestinationSubDirectory>
+      </ReferenceCopyLocalPaths>
+    </ItemGroup>
+  </Target>
+
+  <!--
+     Work around to fix Intellisense file generation for XAML projects
+
+     https://github.com/dotnet/project-system/issues/2488
+  -->
+  <Target Name="WorkaroundForXAMLIntellisenseBuildIssue" AfterTargets="_CheckCompileDesignTimePrerequisite">
+    <PropertyGroup>
+       <BuildingProject>false</BuildingProject>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="PreventProjectReferencesFromBuilding">
+    <PropertyGroup>
+      <BuildProjectReferences>false</BuildProjectReferences>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
+       https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
+       isn't fully supported yet in the new project system. Removal of this hack is tracked
+       by https://github.com/dotnet/roslyn/issues/19545. -->
+  <ItemGroup>
+    <AdditionalFiles Include="@(PublicAPI)" />
+  </ItemGroup>
+
 </Project>

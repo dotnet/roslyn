@@ -97,6 +97,7 @@
     <Compile Include="Operations\InvocationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\IObjectCreationExpression.cs" />
     <Compile Include="Operations\IOmittedArgumentExpression.cs" />
+    <Compile Include="Operations\IOperationWithChildren.cs" />
     <Compile Include="Operations\ObjectCreationExpression_IHasArgumentsExpression.cs" />
     <Compile Include="Operations\Operation.cs" />
     <Compile Include="Operations\IOperationKind.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="Emit\AsyncMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\IteratorMoveNextBodyDebugInfo.cs" />
     <Compile Include="Emit\StateMachineMoveNextDebugInfo.cs" />
+    <Compile Include="PEWriter\ExtendedPEBuilder.cs" />
     <Compile Include="Serialization\IObjectWritable.cs" />
     <Compile Include="Serialization\ObjectBinder.cs" />
     <Compile Include="Serialization\ObjectBinderSnapshot.cs" />
@@ -897,6 +899,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.FX45" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.PdbUtilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
@@ -919,7 +922,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
-  <Import Project="..\..\..\Dependencies\CodeAnalysis.Metadata\Microsoft.CodeAnalysis.Metadata.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.projitems" Label="Shared" />
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

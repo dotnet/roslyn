@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         public override bool CanOfferUseBlockBody(OptionSet optionSet, SyntaxNode declaration, bool forAnalyzer)
             => CanOfferUseBlockBody(optionSet, (TDeclaration)declaration, forAnalyzer);
 
-        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options, bool useExpressionBody)
-            => Update((TDeclaration)declaration, options, useExpressionBody);
+        public override SyntaxNode Update(SyntaxNode declaration, OptionSet options, ParseOptions parseOptions, bool useExpressionBody)
+            => Update((TDeclaration)declaration, options, parseOptions, useExpressionBody);
 
         public override Location GetDiagnosticLocation(SyntaxNode declaration)
             => GetDiagnosticLocation((TDeclaration)declaration);
@@ -128,14 +128,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             // If the user does not like block bodies then we offer block bodies from the refactoring provider.
             if (userPrefersBlockBodies == forAnalyzer)
             {
-                // If we have an expression body, we can always convert it to a block body.
-                return this.GetExpressionBody(declaration) != null;
+                return this.GetExpressionBody(declaration)?.TryConvertToBlock(
+                    SyntaxFactory.Token(SyntaxKind.SemicolonToken), false, out var block) == true;
             }
 
             return false;
         }
 
-        public TDeclaration Update(TDeclaration declaration, OptionSet options, bool useExpressionBody)
+        public TDeclaration Update(
+            TDeclaration declaration, OptionSet options, 
+            ParseOptions parseOptions, bool useExpressionBody)
         {
             if (useExpressionBody)
             {
@@ -149,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
 
                 return WithSemicolonToken(
                            WithExpressionBody(
-                               WithBody(declaration, null),
+                               WithBody(declaration, body: null),
                                expressionBody),
                            semicolonToken);
             }
@@ -157,8 +159,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             {
                 return WithSemicolonToken(
                            WithExpressionBody(
-                               WithGenerateBody(declaration, options),
-                               null),
+                               WithGenerateBody(declaration, options, parseOptions),
+                               expressionBody: null),
                            default(SyntaxToken));
             }
         }
@@ -176,27 +178,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
         protected abstract TDeclaration WithBody(TDeclaration declaration, BlockSyntax body);
 
         protected virtual TDeclaration WithGenerateBody(
-            TDeclaration declaration, OptionSet options)
+            TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
-            var block = expressionBody.ConvertToBlock(
-                GetSemicolonToken(declaration),
-                CreateReturnStatementForExpression(declaration));
 
-            return WithBody(declaration, block);
+            if (expressionBody.TryConvertToBlock(
+                    GetSemicolonToken(declaration),
+                    CreateReturnStatementForExpression(declaration),
+                    out var block))
+            {
+                return WithBody(declaration, block);
+            }
+
+            return declaration;
         }
 
         protected TDeclaration WithAccessorList(
-            TDeclaration declaration, OptionSet options)
+            TDeclaration declaration, OptionSet options, ParseOptions parseOptions)
         {
             var expressionBody = GetExpressionBody(declaration);
             var semicolonToken = GetSemicolonToken(declaration);
 
             var expressionBodyPreference = options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors).Value;
+            expressionBody.TryConvertToBlock(GetSemicolonToken(declaration), CreateReturnStatementForExpression(declaration), out var block);
+
+            var useExpressionBodyIfAvailable =
+                expressionBodyPreference != ExpressionBodyPreference.Never &&
+                ((CSharpParseOptions)parseOptions).LanguageVersion >= LanguageVersion.CSharp7;
 
             AccessorDeclarationSyntax accessor;
-            if (expressionBodyPreference != ExpressionBodyPreference.Never)
+            if (block == null ||
+                useExpressionBodyIfAvailable)
             {
                 accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
                                         .WithExpressionBody(expressionBody)
@@ -204,9 +217,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBody
             }
             else
             {
-                var block = expressionBody.ConvertToBlock(
-                    GetSemicolonToken(declaration),
-                    CreateReturnStatementForExpression(declaration));
                 accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration, block);
             }
 

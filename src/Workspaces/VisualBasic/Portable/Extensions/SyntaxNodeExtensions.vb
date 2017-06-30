@@ -189,6 +189,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Friend Function IsAsyncSupportedFunctionSyntax(node As SyntaxNode) As Boolean
+            Select Case node?.Kind()
+                Case _
+                SyntaxKind.FunctionBlock,
+                SyntaxKind.SubBlock,
+                SyntaxKind.MultiLineFunctionLambdaExpression,
+                SyntaxKind.MultiLineSubLambdaExpression,
+                SyntaxKind.SingleLineFunctionLambdaExpression,
+                SyntaxKind.SingleLineSubLambdaExpression
+                    Return True
+            End Select
+            Return False
+        End Function
+
+        <Extension()>
         Friend Function IsMultiLineLambda(node As SyntaxNode) As Boolean
             Return SyntaxFacts.IsMultiLineLambdaExpression(node.Kind())
         End Function

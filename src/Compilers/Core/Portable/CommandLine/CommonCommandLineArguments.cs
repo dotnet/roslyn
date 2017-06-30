@@ -9,6 +9,7 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Reflection;
@@ -84,6 +85,11 @@ namespace Microsoft.CodeAnalysis
         /// Name of the output file or null if not specified.
         /// </summary>
         public string OutputFileName { get; internal set; }
+
+        /// <summary>
+        /// Path of the output ref assembly or null if not specified.
+        /// </summary>
+        public string OutputRefFilePath { get; internal set; }
 
         /// <summary>
         /// Path of the PDB file or null if same as output binary path with .pdb extension.
@@ -176,6 +182,12 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="CommonCompiler.Run"/>
         /// </summary>
         public bool DisplayVersion { get; internal set; }
+
+        /// <summary>
+        /// If true, prepend the compiler-supported language versions during
+        /// <see cref="CommonCompiler.Run"/>
+        /// </summary>
+        public bool DisplayLangVersions { get; internal set; }
 
         /// <summary>
         /// The path to a Win32 resource.
@@ -463,5 +475,6 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
         #endregion
+
     }
 }

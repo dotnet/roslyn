@@ -9,7 +9,6 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Workspaces</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <PackageTargetFallback>portable-net45+win8;dotnet</PackageTargetFallback>
     <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -52,11 +51,11 @@
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionService.vb" />
     <Compile Include="CaseCorrection\VisualBasicCaseCorrectionServiceFactory.vb" />
     <Compile Include="Classification\ClassificationHelpers.vb" />
-    <Compile Include="Classification\Classifiers\AbstractSyntaxClassifier.vb" />
-    <Compile Include="Classification\Classifiers\IdentifierNameSyntaxClassifier.vb" />
-    <Compile Include="Classification\Classifiers\ImportAliasClauseSyntaxClassifier.vb" />
-    <Compile Include="Classification\Classifiers\NameSyntaxClassifier.vb" />
-    <Compile Include="Classification\SyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\AbstractSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\IdentifierNameSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\ImportAliasClauseSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\NameSyntaxClassifier.vb" />
+    <Compile Include="Classification\SyntaxClassification\VisualBasicSyntaxClassificationService.vb" />
     <Compile Include="Classification\VisualBasicClassificationService.vb" />
     <Compile Include="Classification\Worker.DocumentationCommentClassifier.vb" />
     <Compile Include="Classification\Worker.vb" />
@@ -96,6 +95,7 @@
     <Compile Include="CodeGeneration\VisualBasicCodeGenerationServiceFactory.vb" />
     <Compile Include="CodeGeneration\VisualBasicDeclarationComparer.vb" />
     <Compile Include="CodeGeneration\VisualBasicSyntaxGenerator.vb" />
+    <Compile Include="CodeStyle\VisualBasicCodeStyleOptions.vb" />
     <Compile Include="Composition\VisualBasicWorkspaceFeatures.vb" />
     <Compile Include="Editing\VisualBasicImportAdder.vb" />
     <Compile Include="Execution\VisualBasicOptionsSerializationService.vb" />
@@ -163,9 +163,11 @@
     <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.vb" />
     <Compile Include="Formatting\Rules\NodeBasedFormattingRule.vb" />
     <Compile Include="Formatting\Rules\StructuredTriviaFormattingRule.vb" />
+    <Compile Include="Formatting\VisualBasicFormattingService.vb" />
     <Compile Include="Formatting\VisualBasicSyntaxFormattingService.vb" />
     <Compile Include="LanguageServices\VisualBasicCompilationFactoryService.vb" />
     <Compile Include="LanguageServices\VisualBasicCommandLineParserService.vb" />
+    <Compile Include="FindSymbols\VisualBasicDeclaredSymbolInfoFactoryService.vb" />
     <Compile Include="LanguageServices\VisualBasicDocumentationCommentService.vb" />
     <Compile Include="LanguageServices\VisualBasicSemanticFactsService.vb" />
     <Compile Include="LanguageServices\VisualBasicSymbolDeclarationService.vb" />
@@ -183,29 +185,29 @@
     <Compile Include="Rename\LocalConflictVisitor.vb" />
     <Compile Include="Rename\VisualBasicRenameRewriterLanguageService.vb" />
     <Compile Include="Rename\VisualBasicRenameRewriterLanguageServiceFactory.vb" />
-    <Compile Include="Simplification\AbstractVisualBasicReducer.vb" />
-    <Compile Include="Simplification\AbstractVisualBasicSimplifier.AbstractExpressionRewriter.vb" />
-    <Compile Include="Simplification\VisualBasicCallReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicCallReducer.vb" />
-    <Compile Include="Simplification\VisualBasicCastReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicCastReducer.vb" />
-    <Compile Include="Simplification\VisualBasicInferredMemberNameReducer.vb" />
-    <Compile Include="Simplification\VisualBasicInferredMemberNameReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicEscapingReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicEscapingReducer.vb" />
-    <Compile Include="Simplification\VisualBasicExtensionMethodReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicExtensionMethodReducer.vb" />
-    <Compile Include="Simplification\VisualBasicMiscellaneousReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicMiscellaneousReducer.vb" />
-    <Compile Include="Simplification\VisualBasicNameReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicNameReducer.vb" />
-    <Compile Include="Simplification\VisualBasicParenthesesReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicParenthesesReducer.vb" />
+    <Compile Include="Simplification\Reducers\AbstractVisualBasicReducer.AbstractReductionRewriter.vb" />
+    <Compile Include="Simplification\Reducers\AbstractVisualBasicReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicCallReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicCallReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicCastReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicCastReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicInferredMemberNameReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicInferredMemberNameReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicEscapingReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicEscapingReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicExtensionMethodReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicExtensionMethodReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicMiscellaneousReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicMiscellaneousReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicNameReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicNameReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicParenthesesReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicParenthesesReducer.vb" />
     <Compile Include="Simplification\VisualBasicSimplificationService.Expander.vb" />
     <Compile Include="Simplification\VisualBasicSimplificationService.NodesAndTokensToReduceComputer.vb" />
     <Compile Include="Simplification\VisualBasicSimplificationService.vb" />
-    <Compile Include="Simplification\VisualBasicVariableDeclaratorReducer.Rewriter.vb" />
-    <Compile Include="Simplification\VisualBasicVariableDeclaratorReducer.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicVariableDeclaratorReducer.Rewriter.vb" />
+    <Compile Include="Simplification\Reducers\VisualBasicVariableDeclaratorReducer.vb" />
     <Compile Include="Utilities\DirectiveSyntaxEqualityComparer.vb" />
     <Compile Include="Utilities\DirectiveWalker.vb" />
     <Compile Include="Utilities\ImportsClauseComparer.vb" />

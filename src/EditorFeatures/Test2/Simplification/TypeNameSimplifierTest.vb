@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeStyle
@@ -764,7 +764,8 @@ namespace N1
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/19368")>
+        <Trait(Traits.Feature, Traits.Features.Simplification)>
         Public Async Function TestSimplifyNot_Delegate1() As Task
             Dim input =
         <Workspace>

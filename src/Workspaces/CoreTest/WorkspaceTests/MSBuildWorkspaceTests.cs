@@ -24,6 +24,7 @@ using CS = Microsoft.CodeAnalysis.CSharp;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 using static Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
+using Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -578,6 +579,27 @@ class C1
 
             var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
             Assert.NotEmpty(project.OutputFilePath);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_VisualBasic_WithLanguageVersion15_3()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "LangVersion", "15.3"));
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+            Assert.Equal(VB.LanguageVersion.VisualBasic15_3, ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestOpenProject_VisualBasic_WithLatestLanguageVersion()
+        {
+            CreateFiles(GetMultiProjectSolutionFiles()
+                .ReplaceFileElement(@"VisualBasicProject\VisualBasicProject.vbproj", "LangVersion", "Latest"));
+
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj")).Result;
+            Assert.Equal(VB.LanguageVersion.Latest.MapSpecifiedToEffectiveVersion(), ((VB.VisualBasicParseOptions)project.ParseOptions).LanguageVersion);
+            Assert.Equal(VB.LanguageVersion.Latest, ((VB.VisualBasicParseOptions)project.ParseOptions).SpecifiedLanguageVersion);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -243,6 +243,126 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
     public string OtherThing => ""Pickles"";
 }", ignoreTrivia: false, options: UseExpressionBody);
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectivesInBlockBody1()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int Foo
+    {
+        get
+        {
+#if true
+            [|return|] Bar();
+#else
+            return Baz();
+#endif
+        }
+    }
+}",
+
+@"class C
+{
+    int Foo =>
+#if true
+            Bar();
+#else
+            return Baz();
+#endif
+
+}", ignoreTrivia: false,
+    parameters: new TestParameters(options: UseExpressionBody));
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestDirectivesInBlockBody2()
+        {
+            await TestInRegularAndScript1Async(
+@"class C
+{
+    int Foo
+    {
+        get
+        {
+#if false
+            return Bar();
+#else
+            [|return|] Baz();
+#endif
+        }
+    }
+}",
+
+@"class C
+{
+    int Foo =>
+#if false
+            return Bar();
+#else
+            Baz();
+#endif
+
+}", ignoreTrivia: false,
+    parameters: new TestParameters(options: UseExpressionBody));
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestMissingWithDirectivesInExpressionBody1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int Foo [|=>|]
+#if true
+            Bar();
+#else
+            Baz();
+#endif
+}", parameters: new TestParameters(options: UseBlockBody));
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestMissingWithDirectivesInExpressionBody2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int Foo [|=>|]
+#if false
+            Bar();
+#else
+            Baz();
+#endif
+}", parameters: new TestParameters(options: UseBlockBody));
+        }
+
+        [WorkItem(19193, "https://github.com/dotnet/roslyn/issues/19193")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+        public async Task TestMoveTriviaFromExpressionToReturnStatement()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int Foo(int i) [|=>|]
+        //comment
+        i * i;
+}",
+@"class C
+{
+    int Foo(int i)
+    {
+        //comment
+        return i * i;
+    }
+}", ignoreTrivia: false,
+    options: UseBlockBody);
         }
     }
 }

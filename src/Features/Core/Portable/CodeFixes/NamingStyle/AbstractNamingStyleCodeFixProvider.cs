@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Rename;
@@ -52,9 +54,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 var solution = context.Document.Project.Solution;
                 context.RegisterCodeFix(
                     new FixNameCodeAction(
+                        solution,
+                        symbol,
+                        fixedName,
                         string.Format(FeaturesResources.Fix_Name_Violation_colon_0, fixedName),
                         c => FixAsync(document, symbol, fixedName, c),
-                        nameof(NamingStyleCodeFixProvider)),
+                        equivalenceKey: nameof(NamingStyleCodeFixProvider)),
                     diagnostic);
             }
         }
@@ -68,12 +73,51 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                 cancellationToken).ConfigureAwait(false);
         }
 
-        private class FixNameCodeAction : CodeAction.SolutionChangeAction
+        private class FixNameCodeAction : CodeAction
         {
-            public FixNameCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
+            private readonly Solution _startingSolution;
+            private readonly ISymbol _symbol;
+            private readonly string _newName;
+            private readonly string _title;
+            private readonly Func<CancellationToken, Task<Solution>> _createChangedSolutionAsync;
+            private readonly string _equivalenceKey;
+
+            public FixNameCodeAction(
+                Solution startingSolution, 
+                ISymbol symbol, 
+                string newName, 
+                string title, 
+                Func<CancellationToken, Task<Solution>> createChangedSolutionAsync, 
+                string equivalenceKey)
             {
+                _startingSolution = startingSolution;
+                _symbol = symbol;
+                _newName = newName;
+                _title = title;
+                _createChangedSolutionAsync = createChangedSolutionAsync;
+                _equivalenceKey = equivalenceKey;
             }
+
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
+            {
+                return SpecializedCollections.SingletonEnumerable(
+                    new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
+            }
+
+            protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+            {
+                var factory =_startingSolution.Workspace.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+                var newSolution = await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false);
+                return new CodeActionOperation[]
+                {
+                    new ApplyChangesOperation(newSolution),
+                    factory.CreateSymbolRenamedOperation(_symbol, _newName, _startingSolution, newSolution)
+                }.AsEnumerable();
+            }
+
+            public override string Title => _title;
+
+            public override string EquivalenceKey => _equivalenceKey;
         }
     }
 }

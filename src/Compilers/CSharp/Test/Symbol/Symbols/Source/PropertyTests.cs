@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -2468,7 +2468,7 @@ End Class";
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(2, explicitOverrides.Count());
             Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));
@@ -2506,7 +2506,7 @@ End Class";
             var module = new PEAssemblyBuilder((SourceAssemblySymbol)@class.ContainingAssembly, EmitOptions.Default, OutputKind.DynamicallyLinkedLibrary,
                 GetDefaultModulePropertiesForSerialization(), SpecializedCollections.EmptyEnumerable<ResourceDescription>());
 
-            var context = new EmitContext(module, null, new DiagnosticBag());
+            var context = new EmitContext(module, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
             var explicitOverrides = typeDef.GetExplicitImplementationOverrides(context);
             Assert.Equal(1, explicitOverrides.Count());
             Assert.True(explicitOverrides.All(@override => ReferenceEquals(@class, @override.ContainingType)));

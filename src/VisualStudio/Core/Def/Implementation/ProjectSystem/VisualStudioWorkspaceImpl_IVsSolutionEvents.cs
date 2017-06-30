@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -18,13 +18,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void AdviseSolutionEvents(IVsSolution solution)
         {
             _vsSolution = solution;
-            _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
-            _solutionEventsCookie = solutionEventsCookie;
+            if (_solutionEventsCookie == null)
+            {
+                _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
+                _solutionEventsCookie = solutionEventsCookie;
+            }
         }
 
         public void UnadviseSolutionEvents()
         {
-            if (_solutionEventsCookie.HasValue)
+            if (_solutionEventsCookie != null)
             {
                 _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
                 _solutionEventsCookie = null;

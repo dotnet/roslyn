@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
     Partial Public MustInherit Class AbstractCrossLanguageUserDiagnosticTest
         Protected Const DestinationDocument = "DestinationDocument"
 
-        Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+        Friend MustOverride Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As (DiagnosticAnalyzer, CodeFixProvider)
 
         Protected Async Function TestMissing(definition As XElement) As Task
             Using workspace = TestWorkspace.Create(definition)
