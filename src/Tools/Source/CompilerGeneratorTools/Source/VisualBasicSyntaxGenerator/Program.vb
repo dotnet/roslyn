@@ -5,6 +5,7 @@ Imports System.Collections.Generic
 Imports System.Console
 Imports System.Runtime.InteropServices
 Imports System.Security.Cryptography
+Imports System.Text
 
 ''' <summary>
 ''' Contains the startup code, command line argument processing, and driving the execution of the tool.
@@ -97,7 +98,7 @@ Friend Module Program
     Public Sub WriteOutput(inputFile As String, outputFile As String, definition As ParseTree, outputKind As String, checksum As String)
         Select Case outputKind
             Case "/test"
-                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
 
                     WriteHeader(output, checksum)
                     output.WriteLine()
@@ -113,7 +114,7 @@ Friend Module Program
                 End Using
 
             Case "/gettext"
-                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write))
+                Using output As New StreamWriter(New FileStream(outputFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
                     WriteHeader(output, checksum)
                     Dim syntaxFactsWriter As New SyntaxFactsWriter(definition)
                     syntaxFactsWriter.GenerateGetText(output)
@@ -132,7 +133,7 @@ Friend Module Program
         Dim internalFile = Path.Combine(outputPath, $"{prefix}.Internal.Generated.vb")
         Dim redNodeWriter As New RedNodeWriter(definition)
 
-        Using output As New StreamWriter(New FileStream(mainFile, FileMode.Create, FileAccess.Write))
+        Using output As New StreamWriter(New FileStream(mainFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
             WriteSyntaxHeader(output, checksum)
             redNodeWriter.WriteMainTreeAsCode(output)
 
@@ -143,13 +144,13 @@ Friend Module Program
             syntaxFactsWriter.GenerateFile(output)
         End Using
 
-        Using output As New StreamWriter(New FileStream(syntaxFile, FileMode.Create, FileAccess.Write))
+        Using output As New StreamWriter(New FileStream(syntaxFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
             WriteSyntaxHeader(output, checksum)
 
             redNodeWriter.WriteSyntaxTreeAsCode(output)
         End Using
 
-        Using output As New StreamWriter(New FileStream(internalFile, FileMode.Create, FileAccess.Write))
+        Using output As New StreamWriter(New FileStream(internalFile, FileMode.Create, FileAccess.Write), Encoding.UTF8)
             WriteSyntaxHeader(output, checksum)
 
             Dim greenNodeWriter As New GreenNodeWriter(definition)

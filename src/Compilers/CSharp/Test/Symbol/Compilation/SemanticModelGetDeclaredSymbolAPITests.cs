@@ -4074,7 +4074,7 @@ static class S
             SymbolInfo info = new SymbolInfo();
             info = model.GetSymbolInfo(call);
 
-            Assert.IsType<SourceMemberMethodSymbol>(info.Symbol);
+            Assert.IsType<SourceOrdinaryMethodSymbol>(info.Symbol);
 
             src = @"
 static class S

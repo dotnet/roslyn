@@ -231,14 +231,35 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
         private static ISetupInstance LocateVisualStudioInstance(ImmutableHashSet<string> requiredPackageIds)
         {
-            var instances = EnumerateVisualStudioInstances().Where((instance) => instance.GetInstallationVersion().StartsWith(VsProductVersion));
+            var vsInstallDir = Environment.GetEnvironmentVariable("VSInstallDir");
+            var haveVsInstallDir = !string.IsNullOrEmpty(vsInstallDir);
+
+            if (haveVsInstallDir)
+            {
+                vsInstallDir = Path.GetFullPath(vsInstallDir);
+                Debug.WriteLine($"An environment variable named 'VSInstallDir' was found, adding this to the specified requirements. (VSInstallDir: {vsInstallDir})");
+            }
+
+            var instances = EnumerateVisualStudioInstances().Where((instance) => {
+                var isMatch = true;
+                {
+                    isMatch &= instance.GetInstallationVersion().StartsWith(VsProductVersion);
+
+                    if (haveVsInstallDir)
+                    {
+                        var installationPath = instance.GetInstallationPath();
+                        isMatch &= installationPath.Equals(vsInstallDir, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                return isMatch;
+            });
 
             var instanceFoundWithInvalidState = false;
 
             foreach (ISetupInstance2 instance in instances)
             {
                 var packages = instance.GetPackages()
-                                        .Where((package) => requiredPackageIds.Contains(package.GetId()));
+                                       .Where((package) => requiredPackageIds.Contains(package.GetId()));
 
                 if (packages.Count() != requiredPackageIds.Count())
                 {
@@ -260,7 +281,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             throw new Exception(instanceFoundWithInvalidState ?
                                 "An instance matching the specified requirements was found but it was in an invalid state." :
-                                "There were no instances of Visual Studio 15.0 or later found that match the specified requirements.");
+                                "There were no instances of Visual Studio found that match the specified requirements.");
         }
 
         private static Process StartNewVisualStudioProcess(string installationPath)
