@@ -67,10 +67,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task RefVar()
         {
             await TestInMethodAsync(
-                className: "Class",
-                methodName: "M",
                 code: @"int i = 0; ref var x = ref i;",
                 expected: Keyword("var"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInOutDeclaration()
+        {
+            await TestInMethodAsync(
+                code: @"M2(out var _);",
+                expected: Classifications( Keyword("var"), Identifier("_")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInCasePattern()
+        {
+            await TestInMethodAsync(
+                code: @"switch (1) { case int _: }",
+                expected: Classifications( Identifier("_")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstruction()
+        {
+            await TestInMethodAsync(
+                code: @"var (x, _) = (1, 2);",
+                expected: Classifications(Keyword("var"), Identifier("_")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task DiscardInDeconstruction2()
+        {
+            await TestInMethodAsync(
+                code: @"(var _, var _) = (1, 2);",
+                expected: Classifications(Keyword("var"), Identifier("_"), Keyword("var"), Identifier("_")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ShortDiscardInDeconstruction()
+        {
+            await TestInMethodAsync(
+                code: @"int x; (_, x) = (1, 2);",
+                expected: Classifications(Identifier("_")));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ShortDiscardInOutDeclaration()
+        {
+            await TestInMethodAsync(
+                code: @"M2(out _);",
+                expected: Identifier("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task ShortDiscardInAssignment()
+        {
+            await TestInMethodAsync(
+                code: @"_ = 1;",
+                expected: Identifier("_"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task UnderscoreInAssignment()
+        {
+            await TestInMethodAsync(code: @"int _; _ = 1;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

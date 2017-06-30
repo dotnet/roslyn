@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             ImmutableArray.Create<ISyntaxClassifier>(
                 new NameSyntaxClassifier(),
                 new SyntaxTokenClassifier(),
-                new UsingDirectiveSyntaxClassifier());
+                new UsingDirectiveSyntaxClassifier(),
+                new DiscardDesignationSyntaxClassifier());
 
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
             => s_defaultSyntaxClassifiers;
