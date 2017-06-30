@@ -7,6 +7,7 @@
     <XUnitTestResultsDirectory>$(OutDir)\xUnitResults</XUnitTestResultsDirectory>
     <XUnitArguments>"$(OutDir)\$(AssemblyName).dll" -html "$(XUnitTestResultsDirectory)\$(AssemblyName).html" -noshadow</XUnitArguments>
 
+    <!-- These properties are ignored by CPS projects, which use launchSettings.json instead. -->
     <StartAction Condition="'$(StartActions)' == ''">Program</StartAction>
     <StartProgram Condition="'$(StartProgram)' == ''">$(XUnitPath)</StartProgram>
     <StartArguments Condition="'$(StartArguments)' == ''">$(XUnitArguments)</StartArguments>

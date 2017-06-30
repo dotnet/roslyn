@@ -262,8 +262,9 @@ function Deploy-VsixViaTool() {
     $both = Get-VisualStudioDirAndId
     $vsDir = $both[0].Trim("\")
     $vsId = $both[1]
+    $hive = "RoslynDev"
     Write-Host "Using VS Instance $vsId at `"$vsDir`""
-    $baseArgs = "/rootSuffix:RoslynDev /vsInstallDir:`"$vsDir`""
+    $baseArgs = "/rootSuffix:$hive /vsInstallDir:`"$vsDir`""
     $all = @(
         "Vsix\CompilerExtension\Roslyn.Compilers.Extension.vsix",
         "Vsix\VisualStudioSetup\Roslyn.VisualStudio.Setup.vsix",
@@ -275,24 +276,18 @@ function Deploy-VsixViaTool() {
 
     Write-Host "Uninstalling old Roslyn VSIX"
 
-    # Reverse the extension list so we uninstall in the proper order so that dependencies line up
-    [array]::Reverse($all)
-
-    foreach ($e in $all)
-    {
-        $name = Split-Path -leaf $e
-        $filePath = Join-Path $configDir $e
-        $fullArg = "-u $baseArgs $filePath"
-        Write-Host "`tUninstalling $name"
-        Exec-Command $vsixExe $fullArg | Out-Host
+    # Actual uninstall is failing at the moment using the uninstall options. Temporarily using 
+    # wildfire to uninstall our VSIX extensions
+    $extDir = Join-Path ${env:USERPROFILE} "AppData\Local\Microsoft\VisualStudio\15.0_$($vsid)$($hive)"
+    if (Test-Path $extDir) {
+        foreach ($dir in Get-ChildItem -Directory $extDir) {
+            $name = Split-Path -leaf $dir
+            Write-Host "`tUninstalling $name"
+        }
+        Remove-Item -re -fo $extDir
     }
 
     Write-Host "Installing all Roslyn VSIX"
-
-    # Reverse the extension list so we install in the proper order so that dependencies line up
-    # Note: Only required as long as we reverse the list for uninstall above
-    [array]::Reverse($all)
-
     foreach ($e in $all) {
         $name = Split-Path -leaf $e
         $filePath = Join-Path $configDir $e
@@ -338,13 +333,33 @@ function Redirect-Temp() {
     ${env:TMP} = $temp
 }
 
+function List-BuildProcesses() {
+    Write-Host "Listing running build processes..."
+    Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Out-Host
+    Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Out-Host
+}
+
+function List-VSProcesses() {
+    Write-Host "Listing running vs processes..."
+    Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Out-Host
+}
+
 # Kill any instances VBCSCompiler.exe to release locked files, ignoring stderr if process is not open
 # This prevents future CI runs from failing while trying to delete those files.
 # Kill any instances of msbuild.exe to ensure that we never reuse nodes (e.g. if a non-roslyn CI run
 # left some floating around).
 function Stop-BuildProcesses() {
-    Get-Process msbuild -ErrorAction SilentlyContinue | kill 
-    Get-Process vbcscompiler -ErrorAction SilentlyContinue | kill
+    Write-Host "Killing running build processes..."
+    Get-Process -Name "msbuild" -ErrorAction SilentlyContinue | Stop-Process
+    Get-Process -Name "vbcscompiler" -ErrorAction SilentlyContinue | Stop-Process
+}
+
+# Kill any instances of devenv.exe to ensure VSIX install/uninstall works in future runs and to ensure
+# that any locked files don't prevent future CI runs from failing.
+# Also call Stop-BuildProcesses
+function Stop-VSProcesses() {
+    Write-Host "Killing running vs processes..."
+    Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Stop-Process
 }
 
 try {
@@ -373,6 +388,8 @@ try {
     Create-Directory $configDir 
 
     if ($cibuild) { 
+        List-VSProcesses
+        List-BuildProcesses
         Redirect-Temp
     }
 
@@ -425,7 +442,8 @@ catch {
 }
 finally {
     Pop-Location
-    if ($cibuild) { 
+    if ($cibuild) {
+        Stop-VSProcesses
         Stop-BuildProcesses
     }
 }
