@@ -1266,6 +1266,6 @@ This version used in: {2}</value>
     <value>Order modifiers</value>
   </data>
   <data name="type_0_project_1" xml:space="preserve">
-    <value>type {0}. project {1}</value>
+    <value>type {0} (project {1})</value>
   </data>
 </root>

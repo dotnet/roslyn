@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 ((uint)accessibility << 4) |
                 ((uint)parameterCount << 8) |
                 ((uint)typeParameterCount << 12) |
-                ((isNestedType ? 1u : 0u) << 13);
+                ((isNestedType ? 1u : 0u) << 16);
         }
 
         public static string Intern(StringTable stringTable, string name)
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             => (byte)((flags >> 12) & Lower4BitMask);
 
         private static bool GetIsNestedType(uint flags)
-            => ((flags >> 13) & 1) == 1;
+            => ((flags >> 16) & 1) == 1;
 
         internal void WriteTo(ObjectWriter writer)
         {

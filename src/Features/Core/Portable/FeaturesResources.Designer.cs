@@ -2985,7 +2985,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to type {0}. project {1}.
+        ///   Looks up a localized string similar to type {0} (project {1}).
         /// </summary>
         internal static string type_0_project_1 {
             get {
