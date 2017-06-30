@@ -10,7 +10,7 @@ For instance, although we didn't do it, the `TupleElementNames` attribute would 
 
 New **types** are best added to corlib (CoreCLR, CoreRT, Mono, Desktop) first. Then a standalone package can be offered with a downlevel implementation (for older targets) and type-forwards for new targets.
 
-Trying to offer a package first, then migrating the types down to corlib as a second step creates headaches, windows of ambiguities and opportunities for mistakes. See the [log](https://github.com/dotnet/roslyn/issues/13177)of ValueTuple library work.
+Trying to offer a package first, then migrating the types down to corlib as a second step creates headaches, windows of ambiguities and opportunities for mistakes. See the [log](https://github.com/dotnet/roslyn/issues/13177) of ValueTuple library work. If we choose to do that, the package should be updated and marked as *release* (not pre-release) as soon as possible.
 
 ## Round-tripping with older compiler
 
