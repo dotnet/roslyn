@@ -54,10 +54,10 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                         case DeclaredSymbolInfoKind.Module:
                         case DeclaredSymbolInfoKind.Struct:
                             return declaredSymbolInfo.IsNestedType
-                                ? string.Format(FeaturesResources.type_0_project_1, declaredSymbolInfo.ContainerDisplayName, document.Project.Name)
+                                ? string.Format(FeaturesResources.in_0_project_1, declaredSymbolInfo.ContainerDisplayName, document.Project.Name)
                                 : string.Format(FeaturesResources.project_0, document.Project.Name);
                         default:
-                            return string.Format(FeaturesResources.type_0, declaredSymbolInfo.ContainerDisplayName);
+                            return string.Format(FeaturesResources.in_0_project_1, declaredSymbolInfo.ContainerDisplayName, document.Project.Name);
                     }
                 });
             }

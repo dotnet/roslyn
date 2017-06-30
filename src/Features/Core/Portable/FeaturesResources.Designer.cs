@@ -1585,6 +1585,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to in {0} (project {1}).
+        /// </summary>
+        internal static string in_0_project_1 {
+            get {
+                return ResourceManager.GetString("in_0_project_1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to in Source.
         /// </summary>
         internal static string in_Source {
@@ -2981,15 +2990,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string type_0 {
             get {
                 return ResourceManager.GetString("type_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to type {0} (project {1}).
-        /// </summary>
-        internal static string type_0_project_1 {
-            get {
-                return ResourceManager.GetString("type_0_project_1", resourceCulture);
             }
         }
         

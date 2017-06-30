@@ -349,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FindSymbols
                 }
 
                 builder.Append(parameter.Identifier.Text);
+                first = false;
             }
 
             builder.Append('>');
