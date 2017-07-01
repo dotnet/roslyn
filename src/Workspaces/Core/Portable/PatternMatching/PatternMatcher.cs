@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         // PERF: Cache the culture's compareInfo to avoid the overhead of asking for them repeatedly in inner loops
         private readonly CompareInfo _compareInfo;
+        private readonly TextInfo _textInfo;
 
         private bool _invalidPattern;
         /// <summary>
@@ -53,6 +54,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         {
             culture = culture ?? CultureInfo.CurrentCulture;
             _compareInfo = culture.CompareInfo;
+            _textInfo = culture.TextInfo;
+
             _includeMatchedSpans = includeMatchedSpans;
             _allowFuzzyMatching = allowFuzzyMatching;
         }
@@ -488,7 +491,8 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             TextChunk patternChunk,
             out ImmutableArray<TextSpan> matchedSpans)
         {
-            var matcher = new AllLowerCamelCaseMatcher(_includeMatchedSpans, candidate, candidateParts, patternChunk);
+            var matcher = new AllLowerCamelCaseMatcher(
+                _includeMatchedSpans, candidate, candidateParts, patternChunk, _textInfo);
             return matcher.TryMatch(out matchedSpans);
         }
 
