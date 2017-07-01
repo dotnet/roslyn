@@ -220,10 +220,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// fixed(int* ptr = &v){ ... }    == becomes ===>
+        /// fixed(int* ptr = &amp;v){ ... }    == becomes ===>
         /// 
         /// pinned ref int pinnedTemp = ref v;    // pinning managed ref
-        /// int* ptr = (int*)&pinnedTemp;         // unsafe cast to unmanaged ptr
+        /// int* ptr = (int*)&amp;pinnedTemp;         // unsafe cast to unmanaged ptr
         ///   . . . 
         /// </summary>
         private BoundStatement InitializeFixedStatementRegularLocal(
@@ -356,8 +356,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// fixed(int* ptr = arr){ ... }    == becomes ===>
         /// 
         /// pinned int[] pinnedTemp = arr;         // pinning managed ref
-        /// int* ptr = pinnedTemp != null && pinnedTemp.Length != 0
-        ///                (int*)&pinnedTemp[0]:   // unsafe cast to unmanaged ptr
+        /// int* ptr = pinnedTemp != null &amp;&amp; pinnedTemp.Length != 0
+        ///                (int*)&amp;pinnedTemp[0]:   // unsafe cast to unmanaged ptr
         ///                0;
         ///   . . . 
         /// </summary>
