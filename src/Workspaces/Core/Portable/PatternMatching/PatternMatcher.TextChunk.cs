@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             /// capitalized runs and lowercase runs.  i.e. if you have AAbb, then there will be two 
             /// character spans, one for AA and one for BB.
             /// </summary>
-            public readonly ArrayBuilder<TextSpan> CharacterSpans;
+            public readonly ArrayBuilder<TextSpan> PatternHumps;
 
             public readonly WordSimilarityChecker SimilarityChecker;
 
             public TextChunk(string text, bool allowFuzzingMatching)
             {
                 this.Text = text;
-                this.CharacterSpans = StringBreaker.BreakIntoCharacterPartsList(text);
+                this.PatternHumps = StringBreaker.BreakIntoCharacterPartsList(text);
                 this.SimilarityChecker = allowFuzzingMatching
                     ? WordSimilarityChecker.Allocate(text, substringsAreSimilar: false)
                     : null;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
             public void Dispose()
             {
-                this.CharacterSpans.Free();
+                this.PatternHumps.Free();
                 this.SimilarityChecker?.Free();
             }
         }

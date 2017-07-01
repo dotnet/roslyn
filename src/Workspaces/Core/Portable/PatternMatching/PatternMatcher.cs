@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private bool SkipMatch(string candidate)
             => _invalidPattern || string.IsNullOrWhiteSpace(candidate);
 
-        private StringBreaks GetWordSpans(string word)
+        private StringBreaks GetCandidateHumps(string word)
         {
             lock (_gate)
             {
@@ -223,15 +223,15 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                             matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
                     }
 
-                    var wordSpans = GetWordSpans(candidate);
-                    for (int i = 0, n = wordSpans.GetCount(); i < n; i++)
+                    var candidateHumps = GetCandidateHumps(candidate);
+                    for (int i = 0, n = candidateHumps.GetCount(); i < n; i++)
                     {
-                        var span = wordSpans[i];
-                        if (PartStartsWith(candidate, span, patternChunk.Text, CompareOptions.IgnoreCase))
+                        var hump = candidateHumps[i];
+                        if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
                         {
                             return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
-                                isCaseSensitive: PartStartsWith(candidate, span, patternChunk.Text, CompareOptions.None),
-                                matchedSpan: GetMatchedSpan(span.Start, patternChunk.Text.Length));
+                                isCaseSensitive: PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.None),
+                                matchedSpan: GetMatchedSpan(hump.Start, patternChunk.Text.Length));
                         }
                     }
                 }
@@ -458,9 +458,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 //   e) If the word was entirely lowercase, then attempt a special lower cased camel cased 
                 //      match.  i.e. cofipro would match CodeFixProvider.
-                var candidateParts = GetWordSpans(candidate);
+                var candidateHumps = GetCandidateHumps(candidate);
                 var camelCaseKind = TryAllLowerCamelCaseMatch(
-                    candidate, candidateParts, patternChunk, out var matchedSpans);
+                    candidate, candidateHumps, patternChunk, out var matchedSpans);
                 if (camelCaseKind.HasValue)
                 {
                     return new PatternMatch(
@@ -472,9 +472,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 //   f) If the word was not entirely lowercase, then attempt a normal camel cased match.
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
-                if (patternChunk.CharacterSpans.Count > 0)
+                if (patternChunk.PatternHumps.Count > 0)
                 {
-                    var candidateHumps = GetWordSpans(candidate);
+                    var candidateHumps = GetCandidateHumps(candidate);
                     var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
                     if (camelCaseKind.HasValue)
                     {
@@ -498,12 +498,12 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
         private PatternMatchKind? TryAllLowerCamelCaseMatch(
             string candidate,
-            StringBreaks candidateParts,
+            StringBreaks candidateHumps,
             TextChunk patternChunk,
             out ImmutableArray<TextSpan> matchedSpans)
         {
             var matcher = new AllLowerCamelCaseMatcher(
-                _includeMatchedSpans, candidate, candidateParts, patternChunk, _textInfo);
+                _includeMatchedSpans, candidate, candidateHumps, patternChunk, _textInfo);
             return matcher.TryMatch(out matchedSpans);
         }
 
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             CompareOptions compareOption,
             out ImmutableArray<TextSpan> matchedSpans)
         {
-            var patternHumps = patternChunk.CharacterSpans;
+            var patternHumps = patternChunk.PatternHumps;
 
             // Note: we may have more pattern parts than candidate parts.  This is because multiple
             // pattern parts may match a candidate part.  For example "SiUI" against "SimpleUI".
