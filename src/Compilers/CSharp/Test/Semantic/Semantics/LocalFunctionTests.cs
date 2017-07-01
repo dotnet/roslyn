@@ -31,6 +31,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
         [Fact]
+        public void ConstraintBinding()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        void Local<T, U>()
+            where T : U
+            where U : class
+        { }
+
+        Local<object, object>();
+    }
+}");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConstraintBinding2()
+        {
+            var comp = CreateStandardCompilation(@"
+class C
+{
+    void M()
+    {
+        void Local<T, U>(T t)
+            where T : U
+            where U : t
+        { }
+
+        Local<object, object>(null);
+    }
+}");
+            comp.VerifyDiagnostics(
+                // (8,23): error CS0246: The type or namespace name 't' could not be found (are you missing a using directive or an assembly reference?)
+                //             where U : t
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "t").WithArguments("t").WithLocation(8, 23),
+                // (11,9): error CS0311: The type 'object' cannot be used as type parameter 'U' in the generic type or method 'Local<T, U>(T)'. There is no implicit reference conversion from 'object' to 't'.
+                //         Local<object, object>(null);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "Local<object, object>").WithArguments("Local<T, U>(T)", "t", "U", "object").WithLocation(11, 9));
+        }
+
+        [Fact]
         [WorkItem(17014, "https://github.com/dotnet/roslyn/pull/17014")]
         public void RecursiveLocalFuncsAsParameterTypes()
         {

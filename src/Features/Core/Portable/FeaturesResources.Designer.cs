@@ -1927,6 +1927,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Modifiers are not ordered.
+        /// </summary>
+        internal static string Modifiers_are_not_ordered {
+            get {
+                return ResourceManager.GetString("Modifiers_are_not_ordered", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Modifying &apos;{0}&apos; which contains a static variable will prevent the debug session from continuing..
         /// </summary>
         internal static string Modifying_0_which_contains_a_static_variable_will_prevent_the_debug_session_from_continuing {
@@ -2198,6 +2207,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string operator_ {
             get {
                 return ResourceManager.GetString("operator_", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Order modifiers.
+        /// </summary>
+        internal static string Order_modifiers {
+            get {
+                return ResourceManager.GetString("Order_modifiers", resourceCulture);
             }
         }
         

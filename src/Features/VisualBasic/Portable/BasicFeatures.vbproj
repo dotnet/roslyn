@@ -9,7 +9,6 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.Features</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <NoWarn>$(NoWarn);40057</NoWarn>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -112,6 +111,9 @@
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
     <Compile Include="ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="InitializeParameter\VisualBasicInitializeMemberFromParameterCodeRefactoringProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersHelper.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersCodeFixProvider.vb" />
+    <Compile Include="OrderModifiers\VisualBasicOrderModifiersDiagnosticAnalyzer.vb" />
     <Compile Include="Structure\Providers\CollectionInitializerStructureProvider.vb" />
     <Compile Include="Structure\Providers\ObjectCreationInitializerStructureProvider.vb" />
     <Compile Include="QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />

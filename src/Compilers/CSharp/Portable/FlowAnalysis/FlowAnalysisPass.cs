@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // we don't analyze synthesized void methods.
                 if ((method.IsImplicitlyDeclared && !method.IsScriptInitializer) || Analyze(compilation, method, block, diagnostics))
                 {
-                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMethodSymbol)?.BodySyntax, originalBodyNested);
+                    block = AppendImplicitReturn(block, method, (CSharpSyntaxNode)(method as SourceMemberMethodSymbol)?.BodySyntax, originalBodyNested);
                 }
             }
             else if (Analyze(compilation, method, block, diagnostics))
