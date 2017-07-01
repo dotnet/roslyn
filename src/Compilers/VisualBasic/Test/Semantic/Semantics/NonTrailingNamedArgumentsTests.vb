@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class NonTrailingNamedArgumentsTests
         Inherits BasicTestBase
 
-        ReadOnly latestParseOptions As VisualBasicParseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)
+        Private Shared ReadOnly latestParseOptions As VisualBasicParseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest)
 
         <Fact>
         Public Sub TestSimpleWithOldLangVer()
@@ -258,6 +258,37 @@ BC30587: Named argument cannot match a ParamArray parameter.
             Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
             Dim invocation = nodes.OfType(Of InvocationExpressionSyntax)().Single()
             Assert.Equal("M(x:=1, x:=2)", invocation.ToString())
+            Assert.Null(model.GetSymbolInfo(invocation).Symbol)
+        End Sub
+
+        <Fact>
+        Public Sub TestTwiceNamedParameters()
+
+            Dim source =
+<compilation>
+    <file name="Program.vb">
+Class C
+    Shared Sub M(x As Integer, y As Integer, z As Integer)
+    End Sub
+    Shared Sub Main()
+        M(x:=1, x:=2, 3)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            comp.AssertTheseDiagnostics(<errors>
+BC30274: Parameter 'x' of 'Public Shared Sub M(x As Integer, y As Integer, z As Integer)' already has a matching argument.
+        M(x:=1, x:=2, 3)
+                ~
+                                        </errors>)
+
+            Dim tree = comp.SyntaxTrees.First()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetCompilationUnitRoot().DescendantNodes()
+            Dim invocation = nodes.OfType(Of InvocationExpressionSyntax)().Single()
+            Assert.Equal("M(x:=1, x:=2, 3)", invocation.ToString())
             Assert.Null(model.GetSymbolInfo(invocation).Symbol)
         End Sub
 

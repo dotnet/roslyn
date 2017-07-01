@@ -2040,10 +2040,6 @@ ProduceBoundNode:
                         End If
 
                         If paramIndex = candidate.ParameterCount - 1 AndAlso candidate.Parameters(paramIndex).IsParamArray Then
-                            ' ERRID_NamedParamArrayArgument
-                            ReportDiagnostic(diagnostics, GetNamedArgumentIdentifier(arguments(i).Syntax), ERRID.ERR_NamedParamArrayArgument)
-                            someArgumentsBad = True
-                            positionalArguments += 1
                             Exit For
                         End If
 
