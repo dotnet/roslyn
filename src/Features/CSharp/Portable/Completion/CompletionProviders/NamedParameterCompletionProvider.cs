@@ -79,11 +79,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            if (token.IsMandatoryNamedParameterPosition())
-            {
-                context.IsExclusive = true;
-            }
-
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var workspace = document.Project.Solution.Workspace;

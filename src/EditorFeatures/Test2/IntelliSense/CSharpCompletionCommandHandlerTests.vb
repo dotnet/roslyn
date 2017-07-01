@@ -574,6 +574,28 @@ class C
             End Using
         End Function
 
+        <WpfFact>
+        Public Async Function TestNonTrailingNamedArgument() As Task
+            Using state = TestState.CreateCSharpTestState(
+                  <Document><![CDATA[
+class C
+{
+    public void M(int a, int bar, int c)
+    {
+        int better = 2;
+        M(a: 1, $$)
+    }
+}]]></Document>)
+
+                state.SendTypeChars("b")
+                Await state.AssertSelectedCompletionItem(displayText:="bar", isHardSelected:=True)
+                state.SendTypeChars("e")
+                Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
+                state.SendTypeChars(", ")
+                Assert.Contains("M(a: 1, better,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+            End Using
+        End Function
+
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         <WorkItem(13527, "https://github.com/dotnet/roslyn/issues/13527")>
         Public Async Function TestSymbolInTupleLiteral() As Task
