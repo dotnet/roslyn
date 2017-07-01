@@ -219,12 +219,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             } 
         }
 
-
-        // fixed(int* ptr = &v){ ... }    == becomes ===>
-        // 
-        // pinned ref int pinnedTemp = ref v;    // pinning managed ref
-        // int* ptr = (int*)&pinnedTemp;         // unsafe cast to unmanaged ptr
-        //   . . . 
+        /// <summary>
+        /// fixed(int* ptr = &v){ ... }    == becomes ===>
+        /// 
+        /// pinned ref int pinnedTemp = ref v;    // pinning managed ref
+        /// int* ptr = (int*)&pinnedTemp;         // unsafe cast to unmanaged ptr
+        ///   . . . 
+        /// </summary>
         private BoundStatement InitializeFixedStatementRegularLocal(
             BoundLocalDeclaration localDecl,
             LocalSymbol localSymbol,
@@ -283,12 +284,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return factory.Block(pinnedTempInit, localInit);
         }
 
-        // fixed(char* ptr = stringVar){ ... }    == becomes ===>
-        // 
-        // pinned string pinnedTemp = stringVar;    // pinning managed ref
-        // char* ptr = (char*)pinnedTemp;           // unsafe cast to unmanaged ptr
-        // if (pinnedTemp != null) ptr += OffsetToStringData();
-        //   . . . 
+        /// <summary>
+        /// fixed(char* ptr = stringVar){ ... }    == becomes ===>
+        /// 
+        /// pinned string pinnedTemp = stringVar;    // pinning managed ref
+        /// char* ptr = (char*)pinnedTemp;           // unsafe cast to unmanaged ptr
+        /// if (pinnedTemp != null) ptr += OffsetToStringData();
+        ///   . . . 
+        /// </summary>
         private BoundStatement InitializeFixedStatementStringLocal(
             BoundLocalDeclaration localDecl,
             LocalSymbol localSymbol,
@@ -349,13 +352,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return factory.Block(stringTempInit, localInit, conditionalAdd);
         }
 
-        // fixed(int* ptr = arr){ ... }    == becomes ===>
-        // 
-        // pinned int[] pinnedTemp = arr;         // pinning managed ref
-        // int* ptr = pinnedTemp != null && pinnedTemp.Length != 0
-        //                (int*)&pinnedTemp[0]:   // unsafe cast to unmanaged ptr
-        //                0;
-        //   . . . 
+        /// <summary>
+        /// fixed(int* ptr = arr){ ... }    == becomes ===>
+        /// 
+        /// pinned int[] pinnedTemp = arr;         // pinning managed ref
+        /// int* ptr = pinnedTemp != null && pinnedTemp.Length != 0
+        ///                (int*)&pinnedTemp[0]:   // unsafe cast to unmanaged ptr
+        ///                0;
+        ///   . . . 
+        /// </summary>
         private BoundStatement InitializeFixedStatementArrayLocal(
             BoundLocalDeclaration localDecl,
             LocalSymbol localSymbol,

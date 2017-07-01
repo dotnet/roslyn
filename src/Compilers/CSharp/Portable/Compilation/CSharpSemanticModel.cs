@@ -1922,7 +1922,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (highestBoundExpr?.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
+                // we match highestBoundExpr.Kind to various kind frequently, so cache it here.
+                // use NoOp kind for the case when highestBoundExpr == null - NoOp will not match anything below.
+                var highestBoundExprKind = highestBoundExpr?.Kind ?? BoundKind.NoOpStatement;
+
+                if (highestBoundExprKind == BoundKind.Lambda) // the enclosing conversion is explicit
                 {
                     var lambda = (BoundLambda)highestBoundExpr;
                     convertedType = lambda.Type;
@@ -1948,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = tupleLiteralConversion.Type;
                     conversion = tupleLiteralConversion.Conversion;
                 }
-                else if (highestBoundExpr?.Kind == BoundKind.FixedLocalCollectionInitializer)
+                else if (highestBoundExprKind == BoundKind.FixedLocalCollectionInitializer)
                 {
                     var initializer = (BoundFixedLocalCollectionInitializer)highestBoundExpr;
                     convertedType = initializer.Type;
@@ -1960,7 +1964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     convertedType = highestBoundExpr.Type;
-                    if (highestBoundExpr.Kind != BoundKind.Conversion)
+                    if (highestBoundExprKind != BoundKind.Conversion)
                     {
                         conversion = Conversion.Identity;
                     }

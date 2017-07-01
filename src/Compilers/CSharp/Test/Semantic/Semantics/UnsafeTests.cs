@@ -6298,6 +6298,26 @@ class Program
         fixed (int* p = null)
         {
         }
+
+        fixed (int* p = &null)
+        {
+        }
+
+        fixed (int* p = _)
+        {
+        }
+
+        fixed (int* p = &_)
+        {
+        }
+
+        fixed (int* p = ()=>throw null)
+        {
+        }
+
+        fixed (int* p = &(()=>throw null))
+        {
+        }
     }
 }
 ";
@@ -6305,7 +6325,23 @@ class Program
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* p = null)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "null"));
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "null").WithLocation(6, 25),
+                // (10,26): error CS0211: Cannot take the address of the given expression
+                //         fixed (int* p = &null)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "null").WithLocation(10, 26),
+                // (14,25): error CS0103: The name '_' does not exist in the current context
+                //         fixed (int* p = _)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(14, 25),
+                // (18,26): error CS0103: The name '_' does not exist in the current context
+                //         fixed (int* p = &_)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(18, 26),
+                // (22,25): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+                //         fixed (int* p = ()=>throw null)
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>throw null").WithArguments("lambda expression", "int*").WithLocation(22, 25),
+                // (26,27): error CS0211: Cannot take the address of the given expression
+                //         fixed (int* p = &(()=>throw null))
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "()=>throw null").WithLocation(26, 27)
+                );
         }
 
         [Fact]
