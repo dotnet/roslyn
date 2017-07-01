@@ -7599,53 +7599,88 @@ End Class
     <WorkItem(648998, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648998")>
     <Fact()>
     Public Sub Bug648998()
-        ParseAndVerify(<![CDATA[
+        Dim tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y, z = Nothing
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30241"/>
-                <error id="30198"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y, z = Nothing
+           ~~~~~~~~~~~
+BC30198: ')' expected.
+    Dim y, z = Nothing
+                      ~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y()
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y()
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y()
+~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
     Dim y
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-                <error id="30201"/>
-                <error id="30198"/>
-            </errors>)
-        ParseAndVerify(<![CDATA[
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30201: Expression expected.
+    Dim y
+~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+    Dim y
+~
+BC30198: ')' expected.
+    Dim y
+    ~
+                                    ]]></errors>)
+
+        tree = Parse(<![CDATA[
 Module M
     Dim x = F(a:=False,
         b True,
         c:=Nothing)
 End Module
-]]>,
-            <errors>
-                <error id="32017"/>
-                <error id="30241"/>
-            </errors>)
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        b True,
+        ~
+BC32017: Comma, ')', or a valid expression continuation expected.
+        b True,
+          ~~~~
+BC30198: ')' expected.
+        b True,
+               ~
+BC30201: Expression expected.
+        b True,
+               ~
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        b True,
+               ~
+BC30188: Declaration expected.
+        c:=Nothing)
+        ~
+                                    ]]></errors>)
+
     End Sub
 
     <WorkItem(649162, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/649162")>

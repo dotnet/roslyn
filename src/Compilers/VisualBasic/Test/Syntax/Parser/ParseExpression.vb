@@ -1719,13 +1719,16 @@ Skip 2
     <WorkItem(887861, "DevDiv/Personal")>
     <Fact>
     Public Sub ParseMoreErrorExpectedExpression30241()
-        ParseAndVerify(<![CDATA[
-                      <myattr2(1, "abc", prop:=42,true)> Class Scen15
-                      End Class
-            ]]>,
-            <errors>
-                <error id="30241"/>
-            </errors>)
+        Dim tree = Parse(<![CDATA[
+<myattr2(1, "abc", prop:=42,true)> Class Scen15
+End Class
+]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+
+        tree.AssertTheseDiagnostics(<errors><![CDATA[
+BC37303: Named argument expected.
+<myattr2(1, "abc", prop:=42,true)> Class Scen15
+                            ~
+                                    ]]></errors>)
     End Sub
 
     <WorkItem(887741, "DevDiv/Personal")>

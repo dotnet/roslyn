@@ -34,6 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Tuples
         IOperation
         InferredTupleNames
+        NonTrailingNamedArguments
     End Enum
 
     Friend Module FeatureExtensions
@@ -89,6 +90,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.InferredTupleNames
                     Return LanguageVersion.VisualBasic15_3
+
+                Case Feature.NonTrailingNamedArguments
+                    Return LanguageVersion.VisualBasic15_5
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)

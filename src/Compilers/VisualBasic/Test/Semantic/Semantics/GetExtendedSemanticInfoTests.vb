@@ -7763,7 +7763,7 @@ End Module
         <WorkItem(542596, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542596")>
         <Fact()>
         Public Sub BindMethodInvocationWhenUnnamedArgFollowsNamed()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -7778,13 +7778,15 @@ Module Module1
 End Module
         </file>
     </compilation>)
-
+            compilation.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
+                 ~
+                                               </errors>)
             Dim semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of InvocationExpressionSyntax)(compilation, "a.vb")
+            Assert.Equal("Sub Module1.M1(x As System.Int32, y As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
 
-            Assert.Equal(Nothing, semanticInfo.Symbol)
-
-
-            compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
     <compilation>
         <file name="a.vb">
 Module Module1
@@ -7802,10 +7804,14 @@ Module Module1
 End Module
         </file>
     </compilation>)
-
+            compilation.AssertTheseDiagnostics(<errors>
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
+        M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
+                 ~
+                                               </errors>)
             semanticInfo = CompilationUtils.GetSemanticInfoSummary(Of InvocationExpressionSyntax)(compilation, "a.vb")
 
-            Assert.Equal(Nothing, semanticInfo.Symbol)
+            Assert.Equal("Sub Module1.M1(x As System.Int32, y As System.Int32)", semanticInfo.Symbol.ToTestDisplayString())
 
         End Sub
 
