@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private static ArrayBuilder<TextSpan> CreateFallbackList(string text, Func<string, int, TextSpan> spanGenerator)
+        public static ArrayBuilder<TextSpan> CreateFallbackList(string text, Func<string, int, TextSpan> spanGenerator)
         {
             var list = ArrayBuilder<TextSpan>.GetInstance();
             for (int start = 0; start < text.Length;)
@@ -184,6 +184,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// </summary>
         public static StringBreaks BreakIntoCharacterParts(string identifier) 
             => StringBreaks.Create(identifier, s_characterPartsGenerator);
+
+        public static ArrayBuilder<TextSpan> BreakIntoCharacterPartsList(string identifier)
+            => StringBreaks.CreateFallbackList(identifier, s_characterPartsGenerator);
 
         /// <summary>
         /// Breaks an identifier string into constituent parts.

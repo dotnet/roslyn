@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             bool allowFuzzyMatching = false)
         {
             culture = culture ?? CultureInfo.CurrentCulture;
+            if (culture.Name == "en-US")
+            {
+                culture = CultureInfo.InvariantCulture;
+            }
+
             _compareInfo = culture.CompareInfo;
             _textInfo = culture.TextInfo;
 
@@ -236,12 +241,18 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 // d) If the part was not entirely lowercase, then check if it is contained in the
                 //    candidate in a case *sensitive* manner. If so, return that there was a substring
                 //    match.
-                var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text);
-                if (caseSensitiveIndex > 0)
+
+                // We could only get a case sensitive match if there was a case insensitive match.
+                // don't bother searching if the first case insensitive match failed.
+                if (caseInsensitiveIndex > 0)
                 {
-                    return new PatternMatch(
-                        PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true,
-                        matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
+                    var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text);
+                    if (caseSensitiveIndex > 0)
+                    {
+                        return new PatternMatch(
+                            PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true,
+                            matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
+                    }
                 }
             }
 
@@ -461,7 +472,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             {
                 //   f) If the word was not entirely lowercase, then attempt a normal camel cased match.
                 //      i.e. CoFiPro would match CodeFixProvider, but CofiPro would not.  
-                if (patternChunk.CharacterSpans.GetCount() > 0)
+                if (patternChunk.CharacterSpans.Count > 0)
                 {
                     var candidateHumps = GetWordSpans(candidate);
                     var camelCaseKind = TryUpperCaseCamelCaseMatch(candidate, candidateHumps, patternChunk, CompareOptions.None, out var matchedSpans);
@@ -515,7 +526,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             int? firstMatch = null;
             bool? contiguous = null;
 
-            var patternHumpCount = patternHumps.GetCount();
+            var patternHumpCount = patternHumps.Count;
             var candidateHumpCount = candidateHumps.GetCount();
 
             var matchSpans = ArrayBuilder<TextSpan>.GetInstance();
