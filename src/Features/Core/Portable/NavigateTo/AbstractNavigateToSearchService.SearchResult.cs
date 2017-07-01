@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
         private class SearchResult : INavigateToSearchResult
         {
             public string AdditionalInformation => _lazyAdditionalInfo.Value;
-            public string Name => _declaredSymbolInfo.Name;
+            public string Name => DeclaredSymbolInfo.Name;
             public string Summary { get; }
 
             public string Kind { get; }
@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             public bool IsCaseSensitive { get; }
             public ImmutableArray<TextSpan> NameMatchSpans { get; }
 
-            private readonly Document _document;
-            private readonly DeclaredSymbolInfo _declaredSymbolInfo;
+            public readonly Document Document;
+            public readonly DeclaredSymbolInfo DeclaredSymbolInfo;
+
             private readonly Lazy<string> _lazyAdditionalInfo;
 
             public SearchResult(
@@ -35,8 +36,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem,
                 ImmutableArray<TextSpan> nameMatchSpans)
             {
-                _document = document;
-                _declaredSymbolInfo = declaredSymbolInfo;
+                Document = document;
+                DeclaredSymbolInfo = declaredSymbolInfo;
                 Kind = kind;
                 MatchKind = matchKind;
                 IsCaseSensitive = isCaseSensitive;

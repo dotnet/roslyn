@@ -67,8 +67,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         public async Task RefVar()
         {
             await TestInMethodAsync(
-                className: "Class",
-                methodName: "M",
                 code: @"int i = 0; ref var x = ref i;",
                 expected: Keyword("var"));
         }

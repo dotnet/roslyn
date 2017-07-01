@@ -1922,7 +1922,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (highestBoundExpr?.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
+                // we match highestBoundExpr.Kind to various kind frequently, so cache it here.
+                // use NoOp kind for the case when highestBoundExpr == null - NoOp will not match anything below.
+                var highestBoundExprKind = highestBoundExpr?.Kind ?? BoundKind.NoOpStatement;
+
+                if (highestBoundExprKind == BoundKind.Lambda) // the enclosing conversion is explicit
                 {
                     var lambda = (BoundLambda)highestBoundExpr;
                     convertedType = lambda.Type;
@@ -1948,10 +1952,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = tupleLiteralConversion.Type;
                     conversion = tupleLiteralConversion.Conversion;
                 }
+                else if (highestBoundExprKind == BoundKind.FixedLocalCollectionInitializer)
+                {
+                    var initializer = (BoundFixedLocalCollectionInitializer)highestBoundExpr;
+                    convertedType = initializer.Type;
+                    type = initializer.Expression.Type;
+
+                    // the most pertinent conversion is the pointer conversion 
+                    conversion = initializer.ElementPointerTypeConversion;
+                }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     convertedType = highestBoundExpr.Type;
-                    if (highestBoundExpr.Kind != BoundKind.Conversion)
+                    if (highestBoundExprKind != BoundKind.Conversion)
                     {
                         conversion = Conversion.Identity;
                     }
@@ -4087,7 +4100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // argument could be an argument of a tuple expression
             // var x = (Identifier: 1, AnotherIdentifier: 2);
-            var parent3 = identifierNameSyntax.Parent.Parent.Parent;        
+            var parent3 = identifierNameSyntax.Parent.Parent.Parent;
             if (parent3.IsKind(SyntaxKind.TupleExpression))
             {
                 var tupleArgument = (ArgumentSyntax)identifierNameSyntax.Parent.Parent;

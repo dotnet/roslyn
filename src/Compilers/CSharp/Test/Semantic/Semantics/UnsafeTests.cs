@@ -6155,16 +6155,17 @@ class NotPointer
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,26): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
                 //         fixed (byte* p = (byte*)&x)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(byte*)&x"),
+                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(byte*)&x").WithLocation(9, 26),
                 // (13,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* p = n) //CS0213 (confusing, but matches dev10)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "n"),
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "n").WithLocation(13, 25),
                 // (17,25): error CS0254: The right hand side of a fixed statement assignment may not be a cast expression
                 //         fixed (int* p = (int*)n)
-                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)n"),
-                // (5,16): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
-                //     NotPointer n;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null"));
+                Diagnostic(ErrorCode.ERR_BadCastInFixed, "(int*)n").WithLocation(17, 25),
+                // (5,23): warning CS0649: Field 'C.n' is never assigned to, and will always have its default value null
+                //     public NotPointer n;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "n").WithArguments("C.n", "null").WithLocation(5, 23)
+            );
         }
 
         [Fact]
@@ -6297,6 +6298,26 @@ class Program
         fixed (int* p = null)
         {
         }
+
+        fixed (int* p = &null)
+        {
+        }
+
+        fixed (int* p = _)
+        {
+        }
+
+        fixed (int* p = &_)
+        {
+        }
+
+        fixed (int* p = ()=>throw null)
+        {
+        }
+
+        fixed (int* p = &(()=>throw null))
+        {
+        }
     }
 }
 ";
@@ -6304,7 +6325,23 @@ class Program
             CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (6,25): error CS0213: You cannot use the fixed statement to take the address of an already fixed expression
                 //         fixed (int* p = null)
-                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "null"));
+                Diagnostic(ErrorCode.ERR_FixedNotNeeded, "null").WithLocation(6, 25),
+                // (10,26): error CS0211: Cannot take the address of the given expression
+                //         fixed (int* p = &null)
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "null").WithLocation(10, 26),
+                // (14,25): error CS0103: The name '_' does not exist in the current context
+                //         fixed (int* p = _)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(14, 25),
+                // (18,26): error CS0103: The name '_' does not exist in the current context
+                //         fixed (int* p = &_)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "_").WithArguments("_").WithLocation(18, 26),
+                // (22,25): error CS1660: Cannot convert lambda expression to type 'int*' because it is not a delegate type
+                //         fixed (int* p = ()=>throw null)
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "()=>throw null").WithArguments("lambda expression", "int*").WithLocation(22, 25),
+                // (26,27): error CS0211: Cannot take the address of the given expression
+                //         fixed (int* p = &(()=>throw null))
+                Diagnostic(ErrorCode.ERR_InvalidAddrOp, "()=>throw null").WithLocation(26, 27)
+                );
         }
 
         [Fact]
@@ -6567,7 +6604,7 @@ unsafe class C
                 var summary = initializerSummaries[i];
                 Assert.Equal(0, summary.CandidateSymbols.Length);
                 Assert.Equal(CandidateReason.None, summary.CandidateReason);
-                Assert.Equal(summary.Type, summary.ConvertedType);
+                Assert.Equal(charPointerSymbol, summary.ConvertedType);
                 Assert.Equal(Conversion.Identity, summary.ImplicitConversion);
                 Assert.Equal(0, summary.MethodGroup.Length);
                 Assert.Null(summary.Alias);
@@ -6650,14 +6687,14 @@ unsafe class C
             var arraySymbol = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
             Assert.Equal(arraySymbol, summary1.Symbol);
             Assert.Equal(arraySymbol.Type, summary1.Type);
-            Assert.Equal(summary1.Type, summary1.ConvertedType);
-            Assert.Equal(Conversion.Identity, summary1.ImplicitConversion);
+            Assert.Equal(voidPointerSymbol, summary1.ConvertedType);
+            Assert.Equal(Conversion.PointerToVoid, summary1.ImplicitConversion);
 
             var summary2 = initializerSummaries[2];
             Assert.Null(summary2.Symbol);
             Assert.Equal(stringSymbol, summary2.Type);
-            Assert.Equal(summary2.Type, summary2.ConvertedType);
-            Assert.Equal(Conversion.Identity, summary2.ImplicitConversion);
+            Assert.Equal(voidPointerSymbol, summary2.ConvertedType);
+            Assert.Equal(Conversion.PointerToVoid, summary2.ImplicitConversion);
         }
 
         #endregion Fixed statement semantic model tests
@@ -8155,65 +8192,62 @@ class Program
 ";
             var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
 
-            compilation.VerifyIL("Program.Store", @"{
-  // Code size       36 (0x24)
-  .maxstack  2
-  .locals init (pinned bool& V_0) //buffer
+            compilation.VerifyIL("Program.Store", @"
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (pinned bool*& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
-  IL_0011:  conv.i
-  IL_0012:  ldc.i4.1
-  IL_0013:  stind.i1
-  IL_0014:  ldloc.0
-  IL_0015:  conv.i
+  IL_0011:  conv.u
+  IL_0012:  dup
+  IL_0013:  ldc.i4.1
+  IL_0014:  stind.i1
+  IL_0015:  dup
   IL_0016:  ldc.i4.1
   IL_0017:  add
   IL_0018:  ldc.i4.0
   IL_0019:  stind.i1
-  IL_001a:  ldloc.0
-  IL_001b:  conv.i
-  IL_001c:  ldc.i4.2
-  IL_001d:  add
-  IL_001e:  ldc.i4.1
-  IL_001f:  stind.i1
-  IL_0020:  ldc.i4.0
-  IL_0021:  conv.u
-  IL_0022:  stloc.0
-  IL_0023:  ret
+  IL_001a:  ldc.i4.2
+  IL_001b:  add
+  IL_001c:  ldc.i4.1
+  IL_001d:  stind.i1
+  IL_001e:  ldc.i4.0
+  IL_001f:  conv.u
+  IL_0020:  stloc.0
+  IL_0021:  ret
 }
 ");
             compilation.VerifyIL("Program.Load", @"
 {
-  // Code size       48 (0x30)
-  .maxstack  2
-  .locals init (pinned bool& V_0) //buffer
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (pinned bool*& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
-  IL_0011:  conv.i
-  IL_0012:  ldind.u1
-  IL_0013:  call       ""void System.Console.Write(bool)""
-  IL_0018:  ldloc.0
-  IL_0019:  conv.i
+  IL_0011:  conv.u
+  IL_0012:  dup
+  IL_0013:  ldind.u1
+  IL_0014:  call       ""void System.Console.Write(bool)""
+  IL_0019:  dup
   IL_001a:  ldc.i4.1
   IL_001b:  add
   IL_001c:  ldind.u1
   IL_001d:  call       ""void System.Console.Write(bool)""
-  IL_0022:  ldloc.0
-  IL_0023:  conv.i
-  IL_0024:  ldc.i4.2
-  IL_0025:  add
-  IL_0026:  ldind.u1
-  IL_0027:  call       ""void System.Console.Write(bool)""
-  IL_002c:  ldc.i4.0
-  IL_002d:  conv.u
-  IL_002e:  stloc.0
-  IL_002f:  ret
+  IL_0022:  ldc.i4.2
+  IL_0023:  add
+  IL_0024:  ldind.u1
+  IL_0025:  call       ""void System.Console.Write(bool)""
+  IL_002a:  ldc.i4.0
+  IL_002b:  conv.u
+  IL_002c:  stloc.0
+  IL_002d:  ret
 }
 ");
         }
@@ -8276,63 +8310,60 @@ class Program
             var compilation = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyIL("Program.Load", @"
 {
-  // Code size       49 (0x31)
-  .maxstack  2
-  .locals init (pinned bool& V_0) //buffer
+  // Code size       47 (0x2f)
+  .maxstack  3
+  .locals init (pinned bool*& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
-  IL_0011:  conv.i
-  IL_0012:  ldind.u1
-  IL_0013:  call       ""void System.Console.Write(bool)""
-  IL_0018:  ldloc.0
-  IL_0019:  conv.i
+  IL_0011:  conv.u
+  IL_0012:  dup
+  IL_0013:  ldind.u1
+  IL_0014:  call       ""void System.Console.Write(bool)""
+  IL_0019:  dup
   IL_001a:  ldc.i4.8
   IL_001b:  add
   IL_001c:  ldind.u1
   IL_001d:  call       ""void System.Console.Write(bool)""
-  IL_0022:  ldloc.0
-  IL_0023:  conv.i
-  IL_0024:  ldc.i4.s   10
-  IL_0026:  add
-  IL_0027:  ldind.u1
-  IL_0028:  call       ""void System.Console.Write(bool)""
-  IL_002d:  ldc.i4.0
-  IL_002e:  conv.u
-  IL_002f:  stloc.0
-  IL_0030:  ret
+  IL_0022:  ldc.i4.s   10
+  IL_0024:  add
+  IL_0025:  ldind.u1
+  IL_0026:  call       ""void System.Console.Write(bool)""
+  IL_002b:  ldc.i4.0
+  IL_002c:  conv.u
+  IL_002d:  stloc.0
+  IL_002e:  ret
 }");
 
-            compilation.VerifyIL("Program.Store", @"{
-  // Code size       37 (0x25)
-  .maxstack  2
-  .locals init (pinned bool& V_0) //buffer
+            compilation.VerifyIL("Program.Store", @"
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  .locals init (pinned bool*& V_0)
   IL_0000:  ldsflda    ""s Program._fixedBufferExample""
   IL_0005:  ldflda     ""bool* s._buffer""
   IL_000a:  ldflda     ""bool s.<_buffer>e__FixedBuffer.FixedElementField""
   IL_000f:  stloc.0
   IL_0010:  ldloc.0
-  IL_0011:  conv.i
-  IL_0012:  ldc.i4.1
-  IL_0013:  stind.i1
-  IL_0014:  ldloc.0
-  IL_0015:  conv.i
+  IL_0011:  conv.u
+  IL_0012:  dup
+  IL_0013:  ldc.i4.1
+  IL_0014:  stind.i1
+  IL_0015:  dup
   IL_0016:  ldc.i4.8
   IL_0017:  add
   IL_0018:  ldc.i4.0
   IL_0019:  stind.i1
-  IL_001a:  ldloc.0
-  IL_001b:  conv.i
-  IL_001c:  ldc.i4.s   10
-  IL_001e:  add
-  IL_001f:  ldc.i4.1
-  IL_0020:  stind.i1
-  IL_0021:  ldc.i4.0
-  IL_0022:  conv.u
-  IL_0023:  stloc.0
-  IL_0024:  ret
+  IL_001a:  ldc.i4.s   10
+  IL_001c:  add
+  IL_001d:  ldc.i4.1
+  IL_001e:  stind.i1
+  IL_001f:  ldc.i4.0
+  IL_0020:  conv.u
+  IL_0021:  stloc.0
+  IL_0022:  ret
 }");
         }
 
