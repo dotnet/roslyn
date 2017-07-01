@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
@@ -15,6 +14,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
     {
         private class SearchResult : INavigateToSearchResult
         {
+            public string Name => DeclaredSymbolInfo.Name;
+            public string AdditionalInformation => _lazyAdditionalInfo.Value;
+
             public string Summary { get; }
             public string Kind { get; }
             public NavigateToMatchKind MatchKind { get; }
@@ -22,11 +24,9 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             public bool IsCaseSensitive { get; }
             public ImmutableArray<TextSpan> NameMatchSpans { get; }
 
-            public string Name => _declaredSymbolInfo.Name;
-            public string AdditionalInformation => _lazyAdditionalInfo.Value;
+            public readonly Document Document;
+            public readonly DeclaredSymbolInfo DeclaredSymbolInfo;
 
-            private readonly Document _document;
-            private readonly DeclaredSymbolInfo _declaredSymbolInfo;
             private readonly Lazy<string> _lazyAdditionalInfo;
 
             private string _secondarySort;
@@ -36,8 +36,8 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 NavigateToMatchKind matchKind, bool isCaseSensitive, INavigableItem navigableItem,
                 ImmutableArray<TextSpan> nameMatchSpans)
             {
-                _document = document;
-                _declaredSymbolInfo = declaredSymbolInfo;
+                Document = document;
+                DeclaredSymbolInfo = declaredSymbolInfo;
                 Kind = kind;
                 MatchKind = matchKind;
                 IsCaseSensitive = isCaseSensitive;
@@ -67,15 +67,15 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var parts = ArrayBuilder<string>.GetInstance();
                 try
                 {
-                    parts.Add(_declaredSymbolInfo.ParameterCount.ToString("X4"));
-                    parts.Add(_declaredSymbolInfo.TypeParameterCount.ToString("X4"));
-                    parts.Add(_declaredSymbolInfo.Name);
+                    parts.Add(DeclaredSymbolInfo.ParameterCount.ToString("X4"));
+                    parts.Add(DeclaredSymbolInfo.TypeParameterCount.ToString("X4"));
+                    parts.Add(DeclaredSymbolInfo.Name);
 
                     // For partial types, we break up the file name into pieces.  i.e. If we have
                     // Outer.cs and Outer.Inner.cs  then we add "Outer" and "Outer Inner" to 
                     // the secondary sort string.  That way "Outer.cs" will be weighted above
                     // "Outer.Inner.cs"
-                    var fileName = Path.GetFileNameWithoutExtension(_document.FilePath ?? "");
+                    var fileName = Path.GetFileNameWithoutExtension(Document.FilePath ?? "");
                     parts.AddRange(fileName.Split(s_dotArray));
 
                     return string.Join(" ", parts);
