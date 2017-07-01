@@ -54,7 +54,7 @@ End Class
 BC30075: Named arguments are not valid as array subscripts.
         ReDim b(a:=1, 2)
                 ~~~~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         ReDim b(a:=1, 2)
                       ~
 BC30075: Named arguments are not valid as array subscripts.

@@ -7779,7 +7779,7 @@ End Module
         </file>
     </compilation>)
             compilation.AssertTheseDiagnostics(<errors>
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
                  ~
                                                </errors>)
@@ -7805,7 +7805,7 @@ End Module
         </file>
     </compilation>)
             compilation.AssertTheseDiagnostics(<errors>
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
                  ~
                                                </errors>)

@@ -7609,10 +7609,10 @@ End Module
 BC30201: Expression expected.
     Dim y, z = Nothing
 ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
     Dim y, z = Nothing
 ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
     Dim y, z = Nothing
            ~~~~~~~~~~~
 BC30198: ')' expected.
@@ -7630,7 +7630,7 @@ End Module
 BC30201: Expression expected.
     Dim y()
 ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
     Dim y()
 ~
                                     ]]></errors>)
@@ -7645,7 +7645,7 @@ End Module
 BC30201: Expression expected.
     Dim y
 ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
     Dim y
 ~
 BC30198: ')' expected.
@@ -7661,7 +7661,7 @@ Module M
 End Module
 ]]>, options:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
         tree.AssertTheseDiagnostics(<errors><![CDATA[
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         b True,
         ~
 BC32017: Comma, ')', or a valid expression continuation expected.
@@ -7673,7 +7673,7 @@ BC30198: ')' expected.
 BC30201: Expression expected.
         b True,
                ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         b True,
                ~
 BC30188: Declaration expected.

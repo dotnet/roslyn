@@ -1477,7 +1477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         End Function
 
-        ''' <summary>After VB15.6 it is possible to use named arguments in non-trailing position, except in attribute lists (where it remains disallowed)</summary>
+        ''' <summary>After VB15.5 it is possible to use named arguments in non-trailing position, except in attribute lists (where it remains disallowed)</summary>
         Private Shared Function ReportNonTrailingNamedArgumentIfNeeded(argument As ArgumentSyntax, seenNames As Boolean, allowNonTrailingNamedArguments As Boolean) As ArgumentSyntax
             If Not seenNames OrElse allowNonTrailingNamedArguments Then
                 Return argument

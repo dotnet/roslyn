@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic15_3
 
                 Case Feature.NonTrailingNamedArguments
-                    Return LanguageVersion.VisualBasic15_6
+                    Return LanguageVersion.VisualBasic15_5
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)

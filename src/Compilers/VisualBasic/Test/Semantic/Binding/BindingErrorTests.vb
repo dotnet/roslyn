@@ -22172,10 +22172,10 @@ End Module
     </compilation>, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M1(x:=2, 3) 'BIND:"M1(x:=2, 3)"
                  ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M2(x:=2, 3)
                  ~
 </expected>)

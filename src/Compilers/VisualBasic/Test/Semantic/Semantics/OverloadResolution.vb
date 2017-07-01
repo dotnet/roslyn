@@ -3933,7 +3933,7 @@ End Class
 BC37302: Named argument 'y' is used out-of-position but is followed by an unnamed argument
         F4(y:=Nothing,)
            ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         F4(y:=Nothing,)
                       ~
 BC30198: ')' expected.

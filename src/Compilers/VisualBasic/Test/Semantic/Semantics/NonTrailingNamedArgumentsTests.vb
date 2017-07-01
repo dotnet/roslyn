@@ -28,7 +28,7 @@ End Class
 </compilation>
             Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
             comp.AssertTheseDiagnostics(<errors>
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M(a:=1, 2)
                 ~
                                         </errors>)
@@ -54,7 +54,7 @@ End Class
     </file>
 </compilation>
             Dim verifier = CompileAndVerify(source, expectedOutput:="First 1 2. Second 3 4.",
-                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_6))
+                                            parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             verifier.VerifyDiagnostics()
 
             Dim tree = verifier.Compilation.SyntaxTrees.First()
@@ -313,7 +313,7 @@ End Class
 BC30274: Parameter 'x' of 'Public Shared Sub M(x As Integer, y As Integer, z As Integer)' already has a matching argument.
         M(x:=1, x:=2, 3)
                 ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M(x:=1, x:=2, 3)
                       ~
                                         </errors>)
@@ -705,7 +705,7 @@ End Module
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M(y:=Nothing,)
                      ~
 </expected>)
@@ -760,13 +760,13 @@ End Class
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         System.Console.Write(P(index1:=1, 2))
                                           ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         System.Console.Write(P(index1:=1, ))
                                           ~
-BC30241: Named argument expected. Please use language version 15.6 or greater to use non-trailing named arguments.
+BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         System.Console.Write(P(index1:=1, 0 to 5))
                                           ~
 BC32017: Comma, ')', or a valid expression continuation expected.
