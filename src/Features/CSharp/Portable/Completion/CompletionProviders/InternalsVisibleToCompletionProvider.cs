@@ -8,7 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal sealed class InternalsVisibleToCompletionProvider : AbstractInternalsVisibleToCompletionProvider
     {
-        protected override bool IsPositionEntirelyWithinStringLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-            => syntaxTree.IsEntirelyWithinStringLiteral(position, cancellationToken);
+
     }
 }

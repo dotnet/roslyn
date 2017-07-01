@@ -183,6 +183,11 @@ Imports System.Reflection
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function AssertCompletionListHasNoItems_IfNumberIsEntered() As Task
+            Await AssertCompletionListHasItems("<Assembly: InternalsVisibleTo(1$$2)>", False)
+        End Function
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function AssertCompletionListHasNoItems_IfNotInternalsVisibleToAttribute() As Task
             Await AssertCompletionListHasItems("<Assembly: AssemblyVersion(""$$"")>", False)
         End Function

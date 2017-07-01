@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         private const string ProjectGuidKey = nameof(ProjectGuidKey);
 
-        protected abstract bool IsPositionEntirelyWithinStringLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken);
-
         internal override bool IsInsertionTrigger(SourceText text, int insertedCharacterPosition, OptionSet options)
         {
             var ch = text[insertedCharacterPosition];
@@ -28,9 +26,9 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             var cancellationToken = context.CancellationToken;
             var syntaxTree = await context.Document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            if (IsPositionEntirelyWithinStringLiteral(syntaxTree, context.Position, cancellationToken))
+            var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFactsService.IsEntirelyWithinStringOrCharOrNumericLiteral(syntaxTree, context.Position, cancellationToken))
             {
-                var syntaxFactsService = context.Document.GetLanguageService<ISyntaxFactsService>();
                 var token = syntaxTree.FindTokenOnLeftOfPosition(context.Position, cancellationToken);
                 var attributeSyntaxNode = GetAttributeSyntaxNodeOfToken(syntaxFactsService, token);
                 if (attributeSyntaxNode == null)
