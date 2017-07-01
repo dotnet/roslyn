@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
@@ -41,6 +42,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         private readonly TextInfo _textInfo;
 
         private bool _invalidPattern;
+
         /// <summary>
         /// Construct a new PatternMatcher using the specified culture.
         /// </summary>
