@@ -312,10 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var expressionTypeInfo = semanticModel.GetTypeInfo(cast.Expression, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
-            if (expressionType != null &&
-                expressionType.IsEnumType() 
-                && cast?.Parent is PrefixUnaryExpressionSyntax prefixUnaryExpression 
-                && prefixUnaryExpression.Kind() == SyntaxKind.UnaryMinusE xpression)
+            if (expressionType != null 
+                && expressionType.IsEnumType() 
+                && (cast.IsParentKind(SyntaxKind.UnaryMinusExpression) || cast.IsParentKind(SyntaxKind.UnaryPlusExpression)))
             {
                 return false;
             }
