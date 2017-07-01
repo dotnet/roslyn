@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\..\build\Targets\Settings.props" />
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -10,7 +10,7 @@
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Workspaces.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFramework>net46</TargetFramework>
     <DefineConstants>$(DefineConstants);WORKSPACE_DESKTOP</DefineConstants>
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -22,18 +22,10 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Xml" />
-    <PackageReference Include="ManagedEsent">
-      <Version>$(ManagedEsentVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="SQLitePCLRaw.bundle_green">
-      <Version>$(SQLitePCLRawbundle_greenVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build">
-      <Version>$(MicrosoftBuildVersion)</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Build.Tasks.Core">
-      <Version>$(MicrosoftBuildTasksCoreVersion)</Version>
-    </PackageReference>
+    <PackageReference Include="ManagedEsent" Version="$(ManagedEsentVersion)" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="Microsoft.Build" Version="$(MicrosoftBuildVersion)" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(MicrosoftBuildTasksCoreVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\EncodedStringText.cs">

@@ -2279,8 +2279,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         hasErrors = True
                     Else
                         Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-
-                        If Not Me.IsAccessible(method, useSiteDiagnostics, If(actualEventAccess.ReceiverOpt IsNot Nothing, actualEventAccess.ReceiverOpt.Type, eventSymbol.ContainingType)) Then
+                        Dim accessThroughType = GetAccessThroughType(actualEventAccess.ReceiverOpt)
+                        If Not Me.IsAccessible(method, useSiteDiagnostics, accessThroughType) Then
                             Debug.Assert(eventSymbol.DeclaringCompilation IsNot Me.Compilation)
                             ReportDiagnostic(diagnostics, node.EventExpression, GetInaccessibleErrorInfo(method))
                         End If

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// this is desktop implementation of IReferenceSerializationService
     /// </summary>
     [ExportWorkspaceServiceFactory(typeof(IReferenceSerializationService), layer: ServiceLayer.Desktop), Shared]
-    internal class ReferenceSerializationServiceFactory : IWorkspaceServiceFactory
+    internal class DesktopReferenceSerializationServiceFactory : IWorkspaceServiceFactory
     {
         private static readonly SerializationAnalyzerAssemblyLoader s_loader = new SerializationAnalyzerAssemblyLoader();
 

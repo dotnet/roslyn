@@ -1,4 +1,4 @@
-#r "System.Xml.XDocument.dll"
+﻿#r "System.Xml.XDocument.dll"
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,7 +34,7 @@ var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
-var CommitSha = Args[3].Replace("<", "").Replace(">", "");
+var CommitSha = Args[3];
 var CommitIsDeveloperBuild = CommitSha == "<developer build>";
 if (!CommitIsDeveloperBuild && !Regex.IsMatch(CommitSha, "[A-Fa-f0-9]+"))
 {
