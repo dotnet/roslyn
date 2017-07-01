@@ -3969,5 +3969,42 @@ class Program
     }
 }");
         }
+
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnNegatingEnumValue()
+        {
+            await TestInRegularAndScriptAsync(
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Foo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( |-(int) mySign| );
+        }
+    }",
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Foo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( -(int) mySign );
+        }
+    }");
+        }
     }
 }

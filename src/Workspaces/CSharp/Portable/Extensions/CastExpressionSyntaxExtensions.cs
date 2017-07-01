@@ -312,6 +312,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var expressionTypeInfo = semanticModel.GetTypeInfo(cast.Expression, cancellationToken);
             var expressionType = expressionTypeInfo.Type;
 
+            if (expressionType != null &&
+                expressionType.IsEnumType() 
+                && cast?.Parent is PrefixUnaryExpressionSyntax prefixUnaryExpression 
+                && prefixUnaryExpression.Kind() == SyntaxKind.UnaryMinusE xpression)
+            {
+                return false;
+            }
+
             // We do not remove any cast on 
             // 1. Dynamic Expressions
             // 2. If there is any other argument which is dynamic
