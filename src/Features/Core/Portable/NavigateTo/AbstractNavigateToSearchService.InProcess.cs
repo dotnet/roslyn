@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
                 var document = previousResult.Document;
                 var info = previousResult.DeclaredSymbolInfo;
 
-                ExamineInfo(
+                AddResultIfMatch(
                     document, info, nameMatcher, containerMatcherOpt, 
                     nameMatches, containerMatches, result, cancellationToken);
             }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
 
                 foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
                 {
-                    ExamineInfo(
+                    AddResultIfMatch(
                         document, declaredSymbolInfo,
                         nameMatcher, containerMatcherOpt, 
                         nameMatches, containerMatches, 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.NavigateTo
             return result.ToImmutableAndFree();
         }
 
-        private static void ExamineInfo(
+        private static void AddResultIfMatch(
             Document document, DeclaredSymbolInfo declaredSymbolInfo,
             PatternMatcher nameMatcher, PatternMatcher containerMatcherOpt,
             ArrayBuilder<PatternMatch> nameMatches, ArrayBuilder<PatternMatch> containerMatches, 
