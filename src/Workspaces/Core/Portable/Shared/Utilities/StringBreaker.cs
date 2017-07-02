@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
         {
-            var firstChar = identifier[0];
+            var firstChar = identifier[wordStart];
             var lastIsDigit = char.IsDigit(firstChar);
             var lastIsUpper = char.IsUpper(firstChar);
             var lastIsPunctuation = char.IsPunctuation(firstChar);
