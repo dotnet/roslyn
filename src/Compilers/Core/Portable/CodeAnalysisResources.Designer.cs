@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CodeAnalysisResources {
@@ -243,15 +243,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot call {0} when the queue is already completed..
-        /// </summary>
-        internal static string CannotCallWhenQueueIsCompleted {
-            get {
-                return ResourceManager.GetString("CannotCallWhenQueueIsCompleted", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Can&apos;t create a reference to a module..
         /// </summary>
         internal static string CannotCreateReferenceToModule {
@@ -275,15 +266,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string CannotEmbedInteropTypesFromModule {
             get {
                 return ResourceManager.GetString("CannotEmbedInteropTypesFromModule", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot enqueue data after PromiseNotToEnqueue..
-        /// </summary>
-        internal static string CannotEnqueueDataAfterPromiseNotToEnqueue {
-            get {
-                return ResourceManager.GetString("CannotEnqueueDataAfterPromiseNotToEnqueue", resourceCulture);
             }
         }
         
@@ -1042,15 +1024,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string NodeOrTokenOutOfSequence {
             get {
                 return ResourceManager.GetString("NodeOrTokenOutOfSequence", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Non-ReadOnly members are not supported in C# anonymous types..
-        /// </summary>
-        internal static string NonReadOnlyMembersAreNotSupportedInCSharp {
-            get {
-                return ResourceManager.GetString("NonReadOnlyMembersAreNotSupportedInCSharp", resourceCulture);
             }
         }
         

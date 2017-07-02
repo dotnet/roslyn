@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!EnqueueCore(value))
             {
-                throw new InvalidOperationException(string.Format(null, CodeAnalysisResources.CannotCallWhenQueueIsCompleted, nameof(Enqueue)));
+                throw new InvalidOperationException($"Cannot call {nameof(Enqueue)} when the queue is already completed.");
             }
         }
 
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (_disallowEnqueue)
             {
-                throw new InvalidOperationException(CodeAnalysisResources.CannotEnqueueDataAfterPromiseNotToEnqueue);
+                throw new InvalidOperationException($"Cannot enqueue data after PromiseNotToEnqueue.");
             }
 
             TaskCompletionSource<TElement> waiter;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (!CompleteCore())
             {
-                throw new InvalidOperationException(string.Format(null, CodeAnalysisResources.CannotCallWhenQueueIsCompleted, nameof(Complete)));
+                throw new InvalidOperationException($"Cannot call {nameof(Complete)} when the queue is already completed.");
             }
         }
 

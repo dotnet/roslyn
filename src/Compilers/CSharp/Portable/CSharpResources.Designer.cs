@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpResources {
@@ -76,15 +76,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ChainingSpeculativeModelIsNotSupported {
             get {
                 return ResourceManager.GetString("ChainingSpeculativeModelIsNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Changing the version of an assembly reference is not allowed during debugging: &apos;{0}&apos; changed version to {1}.
-        /// </summary>
-        internal static string ChangingReferencedAssemblyVersionNotAllowed {
-            get {
-                return ResourceManager.GetString("ChangingReferencedAssemblyVersionNotAllowed", resourceCulture);
             }
         }
         
@@ -10895,15 +10886,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string NotACSharpSymbol {
             get {
                 return ResourceManager.GetString("NotACSharpSymbol", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The parent of {0} must not be null unless this is a speculative semantic model..
-        /// </summary>
-        internal static string ParentMustNotBeNullUnlessSpeculativeSemanticModel {
-            get {
-                return ResourceManager.GetString("ParentMustNotBeNullUnlessSpeculativeSemanticModel", resourceCulture);
             }
         }
         

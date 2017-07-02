@@ -615,13 +615,4 @@
   <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
   </data>
-  <data name="CannotCallWhenQueueIsCompleted" xml:space="preserve">
-    <value>Cannot call {0} when the queue is already completed.</value>
-  </data>
-  <data name="CannotEnqueueDataAfterPromiseNotToEnqueue" xml:space="preserve">
-    <value>Cannot enqueue data after PromiseNotToEnqueue.</value>
-  </data>
-  <data name="NonReadOnlyMembersAreNotSupportedInCSharp" xml:space="preserve">
-    <value>Non-ReadOnly members are not supported in C# anonymous types.</value>
-  </data>
 </root>
