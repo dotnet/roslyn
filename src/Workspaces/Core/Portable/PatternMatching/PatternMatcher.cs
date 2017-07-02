@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                 }
             }
 
-            var isLowercase = !ContainsUpperCaseLetter(patternChunk.Text);
+            var isLowercase = patternChunk.IsLowercase;
             if (isLowercase)
             {
                 if (caseInsensitiveIndex > 0)
