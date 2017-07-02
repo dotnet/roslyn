@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             for (int i = wordStart + 1; i < identifier.Length; i++)
             {
                 var currentIsDigit = char.IsDigit(identifier[i]);
-                var currentIsUpper = char.IsUpper(firstChar);
+                var currentIsUpper = char.IsUpper(identifier[i]);
                 var currentIsPunctuation = char.IsPunctuation(identifier[i]);
 
                 if (lastIsPunctuation ||
