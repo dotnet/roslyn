@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -189,19 +190,22 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
         {
+            var firstChar = identifier[0];
+            var lastIsDigit = char.IsDigit(firstChar);
+            var lastIsUpper = char.IsUpper(firstChar);
+            var lastIsPunctuation = char.IsPunctuation(firstChar);
+
             for (int i = wordStart + 1; i < identifier.Length; i++)
             {
-                var lastIsDigit = char.IsDigit(identifier[i - 1]);
                 var currentIsDigit = char.IsDigit(identifier[i]);
+                var currentIsUpper = char.IsUpper(firstChar);
+                var currentIsPunctuation = char.IsPunctuation(identifier[i]);
 
-                var transitionFromLowerToUpper = TransitionFromLowerToUpper(identifier, word, i);
-                var transitionFromUpperToLower = TransitionFromUpperToLower(identifier, word, i, wordStart);
-
-                if (char.IsPunctuation(identifier[i - 1]) ||
-                    char.IsPunctuation(identifier[i]) ||
+                if (lastIsPunctuation ||
+                    currentIsPunctuation ||
                     lastIsDigit != currentIsDigit ||
-                    transitionFromLowerToUpper ||
-                    transitionFromUpperToLower)
+                    TransitionFromLowerToUpper(identifier, word, lastIsUpper, currentIsUpper) ||
+                    TransitionFromUpperToLower(identifier, word, i, wordStart, currentIsUpper))
                 {
                     if (!IsAllPunctuation(identifier, wordStart, i))
                     {
@@ -210,6 +214,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
                     wordStart = i;
                 }
+
+                lastIsDigit = currentIsDigit;
+                lastIsUpper = currentIsUpper;
+                lastIsPunctuation = currentIsPunctuation;
             }
 
             if (!IsAllPunctuation(identifier, wordStart, identifier.Length))
@@ -236,7 +244,8 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return true;
         }
 
-        private static bool TransitionFromUpperToLower(string identifier, bool word, int index, int wordStart)
+        private static bool TransitionFromUpperToLower(
+            string identifier, bool word, int index, int wordStart, bool currentIsUpper)
         {
             if (word)
             {
@@ -249,7 +258,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 if (index != wordStart &&
                     index + 1 < identifier.Length)
                 {
-                    var currentIsUpper = char.IsUpper(identifier[index]);
                     var nextIsLower = char.IsLower(identifier[index + 1]);
                     if (currentIsUpper && nextIsLower)
                     {
@@ -277,11 +285,10 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return false;
         }
 
-        private static bool TransitionFromLowerToUpper(string identifier, bool word, int index)
+        private static bool TransitionFromLowerToUpper(
+            string identifier, bool word, 
+            bool lastIsUpper, bool currentIsUpper)
         {
-            var lastIsUpper = char.IsUpper(identifier[index - 1]);
-            var currentIsUpper = char.IsUpper(identifier[index]);
-
             // See if the casing indicates we're starting a new word. Note: if we're breaking on
             // words, then just seeing an upper case character isn't enough.  Instead, it has to
             // be uppercase and the previous character can't be uppercase. 
