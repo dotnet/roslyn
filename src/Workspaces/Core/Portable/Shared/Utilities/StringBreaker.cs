@@ -190,6 +190,147 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         public static TextSpan GenerateSpan(string identifier, int wordStart, bool word)
         {
+            int length = identifier.Length;
+            wordStart = SkipPunctuation(identifier, length, wordStart);
+            if (wordStart < length)
+            {
+                var firstChar = identifier[wordStart];
+                if (firstChar == '_')
+                {
+                    return new TextSpan(wordStart, 1);
+                }
+                else if (char.IsDigit(firstChar))
+                {
+                    return ScanNumber(identifier, length, wordStart);
+                }
+                else if (char.IsLower(firstChar))
+                {
+                    return ScanLowerCaseRun(identifier, length, wordStart);
+                }
+                else if (char.IsUpper(firstChar))
+                {
+                    if (wordStart + 1 == length)
+                    {
+                        return new TextSpan(wordStart, 1);
+                    }
+
+                    if (word)
+                    {
+                        return ScanWordRun(identifier, length, wordStart);
+                    }
+                    else
+                    {
+                        return ScanCharacterRun(identifier, length, wordStart);
+                    }
+                }
+            }
+
+            return default;
+        }
+
+        private static TextSpan ScanCharacterRun(string identifier, int length, int wordStart)
+        {
+            // In a character run, if we have XMLDocument, then we will break that up into
+            // X, M, L, and Document.
+            var current = wordStart + 1;
+            Debug.Assert(current < length);
+
+            if (char.IsLower(identifier[current]))
+            {
+                // "Do"
+                // 
+                // scan the lowercase letters from here on to scna out 'Document'.
+                return ScanLowerCaseRun(identifier, length, wordStart);
+            }
+            else
+            {
+                return new TextSpan(wordStart, 1);
+            }
+        }
+
+        private static TextSpan ScanWordRun(string identifier, int length, int wordStart)
+        {
+            // In a word run, if we have XMLDocument, then we will break that up into
+            // XML and Document.
+
+            var current = wordStart + 1;
+            Debug.Assert(current < length);
+
+            if (char.IsUpper(identifier[current]))
+            {
+                // "XM"
+
+                // scan all the upper case letters until we hit one followed by a lower
+                // case letter.
+                while (current < length && char.IsUpper(identifier[current]))
+                {
+                    current++;
+                }
+
+                if (current < length && char.IsLower(identifier[current]))
+                {
+                    // hit the 'o' in XMLDo
+                    Debug.Assert(char.IsUpper(identifier[current - 1]));
+                    return TextSpan.FromBounds(wordStart, current - 1);
+                }
+                else
+                {
+                    return TextSpan.FromBounds(wordStart, current);
+                }
+            }
+            else if (char.IsLower(identifier[current]))
+            {
+                // "Do"
+                // 
+                // scan the lowercase letters from here on to scna out 'Document'.
+                return ScanLowerCaseRun(identifier, length, wordStart);
+            }
+            else
+            {
+                return new TextSpan(wordStart, 1);
+            }
+        }
+
+        private static TextSpan ScanLowerCaseRun(string identifier, int length, int wordStart)
+        {
+            var current = wordStart + 1;
+            while (current < length && char.IsLower(identifier[current]))
+            {
+                current++;
+            }
+
+            return TextSpan.FromBounds(wordStart, current);
+        }
+
+        private static TextSpan ScanNumber(string identifier, int length, int wordStart)
+        {
+            var current = wordStart + 1;
+            while (current < length && char.IsDigit(identifier[current]))
+            {
+                current++;
+            }
+
+            return TextSpan.FromBounds(wordStart, current);
+        }
+
+        private static int SkipPunctuation(string identifier, int length, int wordStart)
+        {
+            while (wordStart < length)
+            {
+                var ch = identifier[wordStart];
+                if (ch != '_' && char.IsPunctuation(ch))
+                {
+                    wordStart++;
+                    continue;
+                }
+
+                break;
+            }
+
+            return wordStart;
+        }
+
+        /*
             var firstChar = identifier[wordStart];
             var lastIsDigit = char.IsDigit(firstChar);
             var lastIsUpper = char.IsUpper(firstChar);
@@ -307,5 +448,6 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 : currentIsUpper;
             return transition;
         }
+        */
     }
 }
