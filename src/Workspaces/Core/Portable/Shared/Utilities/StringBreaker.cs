@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// Breaks an identifier string into constituent parts.
         /// </summary>
-        public static StringBreaks BreakIntoWordParts(string identifier) 
+        public static StringBreaks BreakIntoWordParts(string identifier)
             => StringBreaks.CreateSpans(identifier, word: true);
 
         public static StringBreaks BreakIntoCharacterParts(string identifier)
@@ -195,19 +195,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             if (wordStart < length)
             {
                 var firstChar = identifier[wordStart];
-                if (firstChar == '_')
-                {
-                    return new TextSpan(wordStart, 1);
-                }
-                else if (char.IsDigit(firstChar))
-                {
-                    return ScanNumber(identifier, length, wordStart);
-                }
-                else if (char.IsLower(firstChar))
-                {
-                    return ScanLowerCaseRun(identifier, length, wordStart);
-                }
-                else if (char.IsUpper(firstChar))
+                if (char.IsUpper(firstChar))
                 {
                     if (wordStart + 1 == length)
                     {
@@ -223,6 +211,18 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         return ScanCharacterRun(identifier, length, wordStart);
                     }
                 }
+                else if (IsLower(firstChar))
+                {
+                    return ScanLowerCaseRun(identifier, length, wordStart);
+                }
+                else if (firstChar == '_')
+                {
+                    return new TextSpan(wordStart, 1);
+                }
+                else if (char.IsDigit(firstChar))
+                {
+                    return ScanNumber(identifier, length, wordStart);
+                }
             }
 
             return default;
@@ -234,8 +234,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             // X, M, L, and Document.
             var current = wordStart + 1;
             Debug.Assert(current < length);
+            var c = identifier[current];
 
-            if (char.IsLower(identifier[current]))
+            if (IsLower(c))
             {
                 // "Do"
                 // 
@@ -255,10 +256,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var current = wordStart + 1;
             Debug.Assert(current < length);
+            var c = identifier[current];
 
-            if (char.IsUpper(identifier[current]))
+            if (char.IsUpper(c))
             {
                 // "XM"
+
+                current++;
 
                 // scan all the upper case letters until we hit one followed by a lower
                 // case letter.
@@ -267,22 +271,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                     current++;
                 }
 
-                if (current < length && char.IsLower(identifier[current]))
+                if (current < length && IsLower(identifier[current]))
                 {
-                    // hit the 'o' in XMLDo
+                    // hit the 'o' in XMLDo.  Return "XML"
                     Debug.Assert(char.IsUpper(identifier[current - 1]));
                     return TextSpan.FromBounds(wordStart, current - 1);
                 }
                 else
                 {
+                    // Hit something else (punctuation, end of string, etc.)
+                    // return the entire upper-case section.
                     return TextSpan.FromBounds(wordStart, current);
                 }
             }
-            else if (char.IsLower(identifier[current]))
+            else if (IsLower(c))
             {
                 // "Do"
                 // 
-                // scan the lowercase letters from here on to scna out 'Document'.
+                // scan the lowercase letters from here on to scan out 'Document'.
                 return ScanLowerCaseRun(identifier, length, wordStart);
             }
             else
@@ -294,7 +300,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private static TextSpan ScanLowerCaseRun(string identifier, int length, int wordStart)
         {
             var current = wordStart + 1;
-            while (current < length && char.IsLower(identifier[current]))
+            while (current < length && IsLower(identifier[current]))
             {
                 current++;
             }
@@ -330,124 +336,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             return wordStart;
         }
 
-        /*
-            var firstChar = identifier[wordStart];
-            var lastIsDigit = char.IsDigit(firstChar);
-            var lastIsUpper = char.IsUpper(firstChar);
-            var lastIsPunctuation = char.IsPunctuation(firstChar);
-
-            for (int i = wordStart + 1; i < identifier.Length; i++)
-            {
-                var currentIsDigit = char.IsDigit(identifier[i]);
-                var currentIsUpper = char.IsUpper(identifier[i]);
-                var currentIsPunctuation = char.IsPunctuation(identifier[i]);
-
-                if (lastIsPunctuation ||
-                    currentIsPunctuation ||
-                    lastIsDigit != currentIsDigit ||
-                    TransitionFromLowerToUpper(identifier, word, lastIsUpper, currentIsUpper) ||
-                    TransitionFromUpperToLower(identifier, word, i, wordStart, currentIsUpper))
-                {
-                    if (!IsAllPunctuation(identifier, wordStart, i))
-                    {
-                        return new TextSpan(wordStart, i - wordStart);
-                    }
-
-                    wordStart = i;
-                }
-
-                lastIsDigit = currentIsDigit;
-                lastIsUpper = currentIsUpper;
-                lastIsPunctuation = currentIsPunctuation;
-            }
-
-            if (!IsAllPunctuation(identifier, wordStart, identifier.Length))
-            {
-                return new TextSpan(wordStart, identifier.Length - wordStart);
-            }
-
-            return default(TextSpan);
-        }
-
-        private static bool IsAllPunctuation(string identifier, int start, int end)
+        private static bool IsLower(char c)
         {
-            for (int i = start; i < end; i++)
+            if (IsAscii(c))
             {
-                var ch = identifier[i];
-
-                // We don't consider _ as punctuation as there may be things with that name.
-                if (!char.IsPunctuation(ch) || ch == '_')
-                {
-                    return false;
-                }
+                return c >= 'a' && c <= 'z';
             }
 
-            return true;
+            return char.IsLower(c);
         }
 
-        private static bool TransitionFromUpperToLower(
-            string identifier, bool word, int index, int wordStart, bool currentIsUpper)
-        {
-            if (word)
-            {
-                // Cases this supports:
-                // 1) IDisposable -> I, Disposable
-                // 2) UIElement -> UI, Element
-                // 3) HTMLDocument -> HTML, Document
-                //
-                // etc.
-                if (index != wordStart &&
-                    index + 1 < identifier.Length)
-                {
-                    var nextIsLower = char.IsLower(identifier[index + 1]);
-                    if (currentIsUpper && nextIsLower)
-                    {
-                        // We have a transition from an upper to a lower letter here.  But we only
-                        // want to break if all the letters that preceded are uppercase.  i.e. if we
-                        // have "Foo" we don't want to break that into "F, oo".  But if we have
-                        // "IFoo" or "UIFoo", then we want to break that into "I, Foo" and "UI,
-                        // Foo".  i.e. the last uppercase letter belongs to the lowercase letters
-                        // that follows.  Note: this will make the following not split properly:
-                        // "HELLOthere".  However, these sorts of names do not show up in .Net
-                        // programs.
-                        for (int i = wordStart; i < index; i++)
-                        {
-                            if (!char.IsUpper(identifier[i]))
-                            {
-                                return false;
-                            }
-                        }
-
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
-
-        private static bool TransitionFromLowerToUpper(
-            string identifier, bool word, 
-            bool lastIsUpper, bool currentIsUpper)
-        {
-            // See if the casing indicates we're starting a new word. Note: if we're breaking on
-            // words, then just seeing an upper case character isn't enough.  Instead, it has to
-            // be uppercase and the previous character can't be uppercase. 
-            //
-            // For example, breaking "AddMetadata" on words would make: Add Metadata
-            //
-            // on characters would be: A dd M etadata
-            //
-            // Break "AM" on words would be: AM
-            //
-            // on characters would be: A M
-            //
-            // We break the search string on characters.  But we break the symbol name on words.
-            var transition = word
-                ? (currentIsUpper && !lastIsUpper)
-                : currentIsUpper;
-            return transition;
-        }
-        */
+        private static bool IsAscii(char v)
+            => v < 0x80;
     }
 }
