@@ -2545,7 +2545,7 @@ End Class
                 state.SendTypeChars("b")
                 Await state.AssertSelectedCompletionItem(displayText:="bar:=", isHardSelected:=True)
                 state.SendTypeChars("e")
-                Await state.AssertSelectedCompletionItem(displayText:="bar:=", isSoftSelected:=True)
+                Await state.AssertNoCompletionSession()
             End Using
         End Function
 
@@ -2560,21 +2560,21 @@ Class C
         Dim better As Integer = 2
         M(a:=1, $$)
     End Sub
-    Sub M(int a, int bar, int c)
+    Sub M(a As Integer, bar As Integer, c As Integer)
     End Sub
 End Class
                          </Document>
                      </Project>
                  </Workspace>)
 
-                state.SendTypeChars("b")
-                Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
-                state.SendTypeChars("a")
-                Await state.AssertSelectedCompletionItem(displayText:="bar:", isHardSelected:=True)
+                state.SendTypeChars("bar")
+                Await state.AssertSelectedCompletionItem(displayText:="bar:=", isHardSelected:=True)
                 state.SendBackspace()
+                state.SendBackspace()
+                state.SendTypeChars("et")
                 Await state.AssertSelectedCompletionItem(displayText:="better", isHardSelected:=True)
                 state.SendTypeChars(", ")
-                Assert.Contains("M(a: 1, better,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
+                Assert.Contains("M(a:=1, better,", state.GetLineTextFromCaretPosition(), StringComparison.Ordinal)
             End Using
         End Function
 
