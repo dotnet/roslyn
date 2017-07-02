@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -77,10 +78,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             _stringToWordSpans.Clear();
         }
 
-        //public bool IsDottedPattern => _dotSeparatedPatternSegments.Length > 1;
-
-        //private bool SkipMatch(string candidate)
-            
         public static PatternMatcher CreatePatternMatcher(
             string pattern,
             CultureInfo culture = null,
@@ -176,59 +173,71 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             TextChunk patternChunk,
             bool punctuationStripped)
         {
-            int caseInsensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.IgnoreCase);
+            var candidateLength = candidate.Length;
+
+            var caseInsensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text, CompareOptions.IgnoreCase);
             if (caseInsensitiveIndex == 0)
             {
-                if (patternChunk.Text.Length == candidate.Length)
+                // We found the pattern at the start of the candidate.  This is either an exact or
+                // prefix match. 
+
+                if (patternChunk.Text.Length == candidateLength)
                 {
-                    // a) Check if the part matches the candidate entirely, in an case insensitive or
-                    //    sensitive manner.  If it does, return that there was an exact match.
+                    // Lengths were the same, this is either a case insensitive or sensitive exact match.
                     return new PatternMatch(
                         PatternMatchKind.Exact, punctuationStripped, isCaseSensitive: candidate == patternChunk.Text,
-                        matchedSpan: GetMatchedSpan(0, candidate.Length));
+                        matchedSpan: GetMatchedSpan(0, candidateLength));
                 }
                 else
                 {
-                    // b) Check if the part is a prefix of the candidate, in a case insensitive or sensitive
-                    //    manner.  If it does, return that there was a prefix match.
+                    // Lengths were the same, this is either a case insensitive or sensitive prefix match.
                     return new PatternMatch(
                         PatternMatchKind.Prefix, punctuationStripped, isCaseSensitive: _compareInfo.IsPrefix(candidate, patternChunk.Text),
                         matchedSpan: GetMatchedSpan(0, patternChunk.Text.Length));
                 }
             }
 
-            var isLowercase = patternChunk.IsLowercase;
-            if (isLowercase)
+            var patternIsLowercase = patternChunk.IsLowercase;
+            if (caseInsensitiveIndex > 0)
             {
-                if (caseInsensitiveIndex > 0)
+                // We found the pattern somewhere in the candidate.  This could be a substring match.
+                // However, we don't want to be overaggressive in returning just any substring results.
+                // So do a few more checks to make sure this is a good result.
+
+                if (!patternIsLowercase)
                 {
-                    // c) If the part is entirely lowercase, then check if it is contained anywhere in the
-                    //    candidate in a case insensitive manner.  If so, return that there was a substring
-                    //    match. 
-                    //
-                    //    Note: We only have a substring match if the lowercase part is prefix match of some
-                    //    word part. That way we don't match something like 'Class' when the user types 'a'.
-                    //    But we would match 'FooAttribute' (since 'Attribute' starts with 'a').
-                    //
-                    //    Also, if we matched at location right after punctuation, then this is a good
-                    //    substring match.  i.e. if the user is testing mybutton against _myButton
-                    //    then this should hit. As we really are finding the match at the beginning of 
-                    //    a word.
-                    if (char.IsPunctuation(candidate[caseInsensitiveIndex - 1]) ||
-                        char.IsPunctuation(patternChunk.Text[0]))
+                    // Pattern contained uppercase letters.  This is a strong indication from the
+                    // user that they expect the same letters to be uppercase in the result.  As 
+                    // such, only return this if we can find this pattern exactly in the candidate.
+
+                    var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text);
+                    if (caseSensitiveIndex > 0)
                     {
                         return new PatternMatch(
-                            PatternMatchKind.Substring, punctuationStripped,
-                            isCaseSensitive: PartStartsWith(
-                                candidate, new TextSpan(caseInsensitiveIndex, patternChunk.Text.Length),
-                                patternChunk.Text, CompareOptions.None),
+                            PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true,
+                            matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
+                    }
+                }
+                else
+                {
+                    // Pattern was all lowercase.  This can lead to lots of false positives.  For
+                    // example, we don't want "bin" to match "CombineUnits".  Instead, we want it
+                    // to match "BinaryOperator".  As such, make sure our match looks like it's 
+                    // starting an actual word in the candidate.  
+
+                    // Do a quick check to avoid the expensive work of having to go get the candidate
+                    // humps.  
+                    if (char.IsUpper(candidate[caseInsensitiveIndex]))
+                    {
+                        return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
+                            isCaseSensitive: false,
                             matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
                     }
 
                     var candidateHumps = GetCandidateHumps(candidate);
                     for (int i = 0, n = candidateHumps.GetCount(); i < n; i++)
                     {
-                        var hump = candidateHumps[i];
+                        var hump = TextSpan.FromBounds(candidateHumps[i].Start, candidateLength);
                         if (PartStartsWith(candidate, hump, patternChunk.Text, CompareOptions.IgnoreCase))
                         {
                             return new PatternMatch(PatternMatchKind.Substring, punctuationStripped,
@@ -238,56 +247,11 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     }
                 }
             }
-            else
-            {
-                // d) If the part was not entirely lowercase, then check if it is contained in the
-                //    candidate in a case *sensitive* manner. If so, return that there was a substring
-                //    match.
 
-                // We could only get a case sensitive match if there was a case insensitive match.
-                // don't bother searching if the first case insensitive match failed.
-                if (caseInsensitiveIndex > 0)
-                {
-                    var caseSensitiveIndex = _compareInfo.IndexOf(candidate, patternChunk.Text);
-                    if (caseSensitiveIndex > 0)
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: true,
-                            matchedSpan: GetMatchedSpan(caseSensitiveIndex, patternChunk.Text.Length));
-                    }
-                }
-            }
-
-            var match = TryCamelCaseMatch(
-                candidate, patternChunk, punctuationStripped, isLowercase);
-            if (match.HasValue)
-            {
-                return match.Value;
-            }
-
-            if (isLowercase)
-            {
-                //   g) The word is all lower case. Is it a case insensitive substring of the candidate
-                //      starting on a part boundary of the candidate?
-
-                // We could check every character boundary start of the candidate for the pattern. 
-                // However, that's an m * n operation in the worst case. Instead, find the first 
-                // instance of the pattern  substring, and see if it starts on a capital letter. 
-                // It seems unlikely that the user will try to filter the list based on a substring
-                // that starts on a capital letter and also with a lowercase one. (Pattern: fogbar, 
-                // Candidate: quuxfogbarFogBar).
-                if (patternChunk.Text.Length < candidate.Length)
-                {
-                    if (caseInsensitiveIndex != -1 && char.IsUpper(candidate[caseInsensitiveIndex]))
-                    {
-                        return new PatternMatch(
-                            PatternMatchKind.Substring, punctuationStripped, isCaseSensitive: false,
-                            matchedSpan: GetMatchedSpan(caseInsensitiveIndex, patternChunk.Text.Length));
-                    }
-                }
-            }
-
-            return null;
+            // Didn't have an exact/prefix match, or a high enough quality substring match.
+            // See if we can find a camel case match.  
+            return TryCamelCaseMatch(
+                candidate, patternChunk, punctuationStripped, patternIsLowercase);
         }
 
         private TextSpan? GetMatchedSpan(int start, int length)
