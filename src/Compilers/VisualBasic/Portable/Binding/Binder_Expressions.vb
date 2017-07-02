@@ -792,6 +792,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New BoundTypeArray(node, results, New TypeArraySymbol(results))
         End Function
 
+        Private Function BindTypeOfManyExpression(node As TypeOfExpressionSyntax,
+                                                 diagnostics As DiagnosticBag,
+                                                 operand As BoundExpression,
+                                                 operandType As TypeSymbol,
+                                                 operatorIsIsNot As Boolean,
+                                                 ResultType As TypeSymbol) As BoundExpression
+            '
+            ' TypeOf expr Is    { T0, ... }
+            ' TypeOf expr IsNot { T0, ... }
+            '
+            Dim _Ta_ = BindTypeArray(DirectCast(node.Type, TypeArraySyntax), diagnostics, operandType)
+            Return New BoundTypeOf(node, operand, operatorIsIsNot, _Ta_.Type, ResultType)
+        End Function
+
+        Private Function BindTypeOfOneExpression(node As TypeOfExpressionSyntax,
+                                                 diagnostics As DiagnosticBag,
+                                                 operand As BoundExpression,
+                                                 operandType As TypeSymbol,
+                                                 operatorIsIsNot As Boolean,
+                                                 ResultType As TypeSymbol) As BoundExpression
+            '
+            ' TypeOf expr Is    T0
+            ' TypeOf expr IsNot T0
+            '
+            Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(node.Type, diagnostics)
+            Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
+
+
+            If targetType.IsErrorType() Then
+                ' If target types have errors, bail out preventing more cascading errors.
+                Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, ResultType)
+            End If
+
+            If Not operandType.IsReferenceType AndAlso Not operandType.IsTypeParameter() Then
+
+                ReportDiagnostic(diagnostics, node.Expression, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
+
+            Else
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteDiagnostics)
+
+                If diagnostics.Add(node, useSiteDiagnostics) Then
+                    ' Suppress any additional diagnostics
+                    diagnostics = New DiagnosticBag()
+                ElseIf Not Conversions.ConversionExists(convKind) Then
+                    ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
+                End If
+            End If
+
+            If operandType.IsTypeParameter() Then
+                operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node.Expression, diagnostics), operand, diagnostics)
+            End If
+
+            Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, ResultType)
+
+        End Function
 
         Private Function BindTypeOfExpression(node As TypeOfExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
 
@@ -807,41 +863,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Dealing with { ... } ?
 
             If TypeOf node.Type Is TypeArraySyntax Then
-                Dim _Ta_ = BindTypeArray(DirectCast(node.Type, TypeArraySyntax), diagnostics, operandType)
-                Return New BoundTypeOf(node, operand, operatorIsIsNot, _Ta_.Type, resultType)
-
+                Return BindTypeOfManyExpression(node, diagnostics, operand, operandType, operatorIsIsNot, resultType)
             Else
-
-                Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(node.Type, diagnostics)
-                Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
-
-
-                If targetType.IsErrorType() Then
-                    ' If target types have errors, bail out preventing more cascading errors.
-                    Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
-                End If
-
-                If Not operandType.IsReferenceType AndAlso Not operandType.IsTypeParameter() Then
-
-                    ReportDiagnostic(diagnostics, node.Expression, ERRID.ERR_TypeOfRequiresReferenceType1, operandType)
-
-                Else
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Dim convKind As ConversionKind = Conversions.ClassifyTryCastConversion(operandType, targetType, useSiteDiagnostics)
-
-                    If diagnostics.Add(node, useSiteDiagnostics) Then
-                        ' Suppress any additional diagnostics
-                        diagnostics = New DiagnosticBag()
-                    ElseIf Not Conversions.ConversionExists(convKind) Then
-                        ReportDiagnostic(diagnostics, node, ERRID.ERR_TypeOfExprAlwaysFalse2, operandType, targetType)
-                    End If
-                End If
-
-                If operandType.IsTypeParameter() Then
-                    operand = ApplyImplicitConversion(node, GetSpecialType(SpecialType.System_Object, node.Expression, diagnostics), operand, diagnostics)
-                End If
-
-                Return New BoundTypeOf(node, operand, operatorIsIsNot, targetType, resultType)
+                Return BindTypeOfOneExpression(node, diagnostics, operand, operandType, operatorIsIsNot, resultType)
             End If
 
         End Function

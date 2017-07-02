@@ -1183,9 +1183,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             Return containingType.IsIntrinsicType OrElse containingType.IsRestrictedType
         End Function
 
-        Private Sub EmitTypeOfExpression(expression As BoundTypeOf, used As Boolean, Optional optimize As Boolean = False)
-            Dim operand = expression.Operand
+        Private Sub EmitTypeOfManyExpression(expression As BoundTypeOf, used As Boolean, Optional optimize As Boolean = False)
+            Debugger.Break()
+        End Sub
 
+        Private Sub EmitTypeOfOneExpression(expression As BoundTypeOf, used As Boolean, Optional optimize As Boolean = False)
+            Dim operand = expression.Operand
             Debug.Assert(operand.Type.IsReferenceType AndAlso Not operand.Type.IsTypeParameter(), "operand.Type.IsReferenceType")
 
             EmitExpression(operand, True)
@@ -1212,7 +1215,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             EmitPopIfUnused(used)
+        End Sub
 
+
+        Private Sub EmitTypeOfExpression(expression As BoundTypeOf, used As Boolean, Optional optimize As Boolean = False)
+            Dim target = TryCast(expression.TargetType, TypeArraySymbol)
+            If target IsNot Nothing Then
+                EmitTypeOfManyExpression(expression, used, optimize)
+            Else
+                EmitTypeOfOneExpression(expression, used, optimize)
+            End If
         End Sub
 
         ''' <summary>
