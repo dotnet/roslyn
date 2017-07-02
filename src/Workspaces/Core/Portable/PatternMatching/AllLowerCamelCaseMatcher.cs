@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         {
             private readonly bool _includeMatchedSpans;
             private readonly string _candidate;
-            private readonly StringBreaks _candidateHumps;
+            private readonly ArrayBuilder<TextSpan> _candidateHumps;
             private readonly TextChunk _patternChunk;
             private readonly string _patternText;
             private readonly TextInfo _textInfo;
 
             public AllLowerCamelCaseMatcher(
                 bool includeMatchedSpans, string candidate,
-                StringBreaks candidateHumps, TextChunk patternChunk,
+                ArrayBuilder<TextSpan> candidateHumps, TextChunk patternChunk,
                 TextInfo textInfo)
             {
                 _includeMatchedSpans = includeMatchedSpans;
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
                     // We are contiguous if our contiguous tracker was not set to false.
                     var matchedSpansInReverse = _includeMatchedSpans ? ArrayBuilder<TextSpan>.GetInstance() : null;
                     return new CamelCaseResult(
-                        fromStart: false, 
+                        fromStart: false,
                         contiguous: contiguous != false,
                         matchCount: 0,
                         matchedSpansInReverse: matchedSpansInReverse);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 
                 // Look for a hump in the candidate that matches the current letter we're on.
                 var patternCharacter = _patternText[patternIndex];
-                for (int humpIndex = candidateHumpIndex, n = _candidateHumps.GetCount(); humpIndex < n; humpIndex++)
+                for (int humpIndex = candidateHumpIndex, n = _candidateHumps.Count; humpIndex < n; humpIndex++)
                 {
                     // If we've been contiguous, but we jumped past a hump, then we're no longer contiguous.
                     if (contiguous.HasValue && contiguous.Value)
