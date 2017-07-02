@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             if (expressionType != null 
                 && expressionType.IsEnumType() 
-                && (cast.IsParentKind(SyntaxKind.UnaryMinusExpression) || cast.IsParentKind(SyntaxKind.UnaryPlusExpression)))
+                && (cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryMinusExpression) || cast.WalkUpParentheses().IsParentKind(SyntaxKind.UnaryPlusExpression)))
             {
                 return false;
             }

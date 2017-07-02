@@ -4013,5 +4013,49 @@ enum Sign
         }
     }");
         }
+
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnNegatingEnumValue3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Foo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( [|-((int) mySign)|] );
+        }
+    }");
+        }
+
+        [WorkItem(18510, "https://github.com/dotnet/roslyn/issues/18510")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        public async Task DontRemoveCastOnNegatingEnumValue4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+enum Sign
+    {
+        Positive = 1,
+        Negative = -1
+    }
+
+    class T
+    {
+        void Foo()
+        {
+            Sign mySign = Sign.Positive;
+            Sign invertedSign = (Sign) ( [|+((int) mySign)|] );
+        }
+    }");
+        }
     }
 }
