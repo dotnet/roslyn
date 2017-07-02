@@ -43,12 +43,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             If token.Kind = SyntaxKind.CommaToken Then
-                For Each n In argumentList.Arguments.GetWithSeparators()
-                    If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
-                        context.IsExclusive = True
-                        Exit For
-                    End If
-                Next
+                Dim languageVersion = DirectCast(document.Project.ParseOptions, VisualBasicParseOptions).LanguageVersion
+                If languageVersion < LanguageVersion.VisualBasic15_5 Then
+                    For Each n In argumentList.Arguments.GetWithSeparators()
+                        If n.IsNode AndAlso DirectCast(n.AsNode(), ArgumentSyntax).IsNamed Then
+                            context.IsExclusive = True
+                            Exit For
+                        End If
+                    Next
+                End If
             End If
 
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(argumentList, cancellationToken).ConfigureAwait(False)

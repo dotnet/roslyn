@@ -79,6 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
+            var languageVersion = ((CSharpParseOptions)document.Project.ParseOptions).LanguageVersion;
+            if (languageVersion < LanguageVersion.CSharp7_2 && token.IsMandatoryNamedParameterPosition())
+            {
+                context.IsExclusive = true;
+            }
+
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             var workspace = document.Project.Solution.Workspace;
