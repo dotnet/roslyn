@@ -38,8 +38,6 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
                 }.ToImmutableDictionary()
 
         ' CA1823: AvoidUnusedPrivateFieldsAnalyzer 
-        ' TODO: Remove the below suppression once https://github.com/dotnet/roslyn-analyzers/issues/933 is fixed.
-#Disable Warning CA1823
         Private Const s_baseTypeString = "BaseType"
         Private Const s_interfacesString = "Interfaces"
         Private Const s_allInterfacesString = "AllInterfaces"
@@ -49,7 +47,6 @@ Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
         Private Const s_typeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol"
         Private Const s_namedTypeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol"
         Private Const s_typeParameterSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeParameterSymbol"
-#Enable Warning CA1823
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
             Get
