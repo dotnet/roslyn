@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -155,8 +156,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return type;
         }
 
-        private async Task<IEnumerable<(string, SymbolKind)>> GetRecommendedNamesAsync(
-            IEnumerable<IEnumerable<string>> baseNames,
+        private static async Task<IEnumerable<(string, SymbolKind)>> GetRecommendedNamesAsync(
+            ImmutableArray<IEnumerable<string>> baseNames,
             NameDeclarationInfo declarationInfo,
             CSharpSyntaxContext context,
             Document document,
