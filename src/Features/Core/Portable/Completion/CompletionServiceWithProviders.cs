@@ -400,9 +400,9 @@ namespace Microsoft.CodeAnalysis.Completion
             return item;
         }
 
-        private Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(IEnumerable<CompletionProvider> completionProviders)
+        private static Dictionary<CompletionProvider, int> GetCompletionProviderToIndex(ImmutableArray<CompletionProvider> completionProviders)
         {
-            var result = new Dictionary<CompletionProvider, int>();
+            var result = new Dictionary<CompletionProvider, int>(completionProviders.Length);
 
             int i = 0;
             foreach (var completionProvider in completionProviders)
