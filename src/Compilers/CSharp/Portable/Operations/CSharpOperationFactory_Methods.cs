@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -113,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Semantics
                 SyntaxNode syntax = value.Syntax?.Parent ?? expression.Syntax;
                 ITypeSymbol type = target.Type;
                 Optional<object> constantValue = value.ConstantValue;
-                var assignment = new AssignmentExpression(target, value, isInvalid, syntax, type, constantValue);
+                var assignment = new SimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue);
                 builder.Add(assignment);
             }
 

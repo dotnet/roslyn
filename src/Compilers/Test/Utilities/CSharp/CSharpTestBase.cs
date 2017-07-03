@@ -731,8 +731,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return GetSyntaxNodeOfTypeForBinding<SyntaxNode>(synList);
         }
 
-        protected const string startString = "/*<bind>*/";
-        protected const string endString = "/*</bind>*/";
+        protected const string StartString = "/*<bind>*/";
+        protected const string EndString = "/*</bind>*/";
 
         protected static TNode GetSyntaxNodeOfTypeForBinding<TNode>(List<SyntaxNode> synList) where TNode : SyntaxNode
         {
@@ -741,26 +741,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 string exprFullText = node.ToFullString();
                 exprFullText = exprFullText.Trim();
 
-                if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
+                if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(endString))
-                        if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
+                    if (exprFullText.Contains(EndString))
+                    {
+                        if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
+                        {
                             return node;
+                        }
                         else
+                        {
                             continue;
+                        }
+                    }
                     else
+                    {
                         return node;
+                    }
                 }
 
-                if (exprFullText.EndsWith(endString, StringComparison.Ordinal))
+                if (exprFullText.EndsWith(EndString, StringComparison.Ordinal))
                 {
-                    if (exprFullText.Contains(startString))
-                        if (exprFullText.StartsWith(startString, StringComparison.Ordinal))
+                    if (exprFullText.Contains(StartString))
+                    {
+                        if (exprFullText.StartsWith(StartString, StringComparison.Ordinal))
+                        {
                             return node;
+                        }
                         else
+                        {
                             continue;
+                        }
+                    }
                     else
+                    {
                         return node;
+                    }
                 }
             }
 
