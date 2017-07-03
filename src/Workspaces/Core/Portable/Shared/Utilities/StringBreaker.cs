@@ -275,13 +275,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 {
                     // hit the 'o' in XMLDo.  Return "XML"
                     Debug.Assert(char.IsUpper(identifier[current - 1]));
-                    return TextSpan.FromBounds(wordStart, current - 1);
+                    var end = current - 1;
+                    return new TextSpan(wordStart, end - wordStart);
                 }
                 else
                 {
                     // Hit something else (punctuation, end of string, etc.)
                     // return the entire upper-case section.
-                    return TextSpan.FromBounds(wordStart, current);
+                    return new TextSpan(wordStart, current - wordStart);
                 }
             }
             else if (IsLower(c))
@@ -305,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 current++;
             }
 
-            return TextSpan.FromBounds(wordStart, current);
+            return new TextSpan(wordStart, current - wordStart);
         }
 
         private static TextSpan ScanNumber(string identifier, int length, int wordStart)
