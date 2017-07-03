@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{849E516A-595F-474B-ADB4-E099F921CEDF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -67,14 +67,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <Compile Include="Interactive\FileSystem\DirectiveCompletionProviderUtilities.vb" />
-    <Compile Include="Interactive\FileSystem\LoadDirectiveCompletionProvider.vb" />
-    <Compile Include="Interactive\FileSystem\ReferenceDirectiveCompletionProvider.vb" />
-    <Compile Include="Interactive\CompletionProviders\VisualBasicReplCommandCompletionProvider.vb" />
-    <Compile Include="Interactive\VisualBasicInteractiveEvaluator.vb" />
-    <Compile Include="Interactive\VisualBasicReplServiceProvider.vb" />
-    <Compile Include="Interactive\VisualBasicSendToInteractiveSubmissionProvider.vb" />
-    <Compile Include="VBInteractiveEditorResources.Designer.vb">
+    <Compile Update="VBInteractiveEditorResources.Designer.vb">
       <DependentUpon>VBInteractiveEditorResources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -110,7 +103,7 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="VBInteractiveEditorResources.resx">
+    <EmbeddedResource Update="VBInteractiveEditorResources.resx">
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <LastGenOutput>VBInteractiveEditorResources.Designer.vb</LastGenOutput>
       <CustomToolNamespace>Microsoft.CodeAnalysis.Editor.VisualBasic</CustomToolNamespace>

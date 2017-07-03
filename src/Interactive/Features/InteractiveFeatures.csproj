@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{8E2A252E-A140-45A6-A81A-2652996EA589}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.InteractiveFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -65,20 +65,6 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Interactive\Core\InteractiveHostOptions.cs" />
-    <Compile Include="Interactive\Core\InteractiveHost.cs" />
-    <Compile Include="Interactive\Core\InteractiveHost.InitializedRemoteService.cs" />
-    <Compile Include="Interactive\Core\InteractiveHost.Service.cs" />
-    <Compile Include="Interactive\Core\InteractiveHost.ShadowCopyReference.cs" />
-    <Compile Include="Interactive\Core\InteractiveLanguageNames.cs" />
-    <Compile Include="Interactive\Core\ReplServiceProvider.cs" />
-    <Compile Include="Interactive\Core\InteractiveHost.RemoteAsyncOperation.cs" />
-    <Compile Include="Interactive\Core\ProcessExtensions.cs" />
-    <Compile Include="Interactive\Core\RemoteExecutionResult.cs" />
-    <Compile Include="Interactive\Core\InteractiveHost.RemoteService.cs" />
-    <Compile Include="Interactive\Core\InteractiveHost.LazyRemoteService.cs" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Unshipped.txt" />

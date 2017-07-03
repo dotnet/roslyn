@@ -1,18 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{69F853E5-BD04-4842-984F-FC68CC51F402}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.VisualStudio.Test.Utilities2</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <TargetFrameworkProfile />
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -209,28 +208,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="CodeModel\CodeModelTestHelpers.vb" />
-    <Compile Include="CodeModel\CodeModelTestState.vb" />
-    <Compile Include="CodeModel\Mocks\MockTextManagerAdapter.vb" />
-    <Compile Include="CodeModel\Mocks\MockTextPoint.vb" />
-    <Compile Include="MockComponentModel.vb" />
-    <Compile Include="MockVisualStudioWorkspace.vb" />
-    <Compile Include="ObjectBrowser\Mocks\MockObjectBrowserDescription.vb" />
-    <Compile Include="ObjectBrowser\Mocks\MockServiceProvider.vb" />
-    <Compile Include="ProjectSystemShim\Framework\ExtensionMethods.vb" />
-    <Compile Include="ProjectSystemShim\Framework\HierarchyItemMapper.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockHierarchy.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockHierarchyItem.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockHierarchyItemIdentity.vb" />
-    <Compile Include="ProjectSystemShim\Framework\MockVsFileChangeEx.vb" />
-    <Compile Include="ProjectSystemShim\Framework\TestEnvironment.vb" />
-    <Compile Include="ProjectSystemShim\VisualBasicHelpers\MockCompilerHost.vb" />
-    <Compile Include="ProjectSystemShim\VisualBasicHelpers\VisualBasicHelpers.vb" />
-    <Compile Include="PropertyChangedTestMonitor.vb" />
-    <Compile Include="StubVsEditorAdaptersFactoryService.vb" />
-    <Compile Include="VisualStudioTestExportProvider.vb" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

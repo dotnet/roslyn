@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{18F5FBB8-7570-4412-8CC7-0A86FF13B7BA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Text</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures.Text</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -65,23 +65,14 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Compile items go here -->
-    <Compile Include="Extensions.cs" />
-    <Compile Include="Extensions.SnapshotSourceText.cs" />
-    <Compile Include="Extensions.TextBufferContainer.cs" />
-    <Compile Include="Extensions.TextBufferMapper.cs" />
-    <Compile Include="Implementation\TextBufferFactoryService\ITextBufferCloneService.cs" />
-    <Compile Include="Implementation\TextBufferFactoryService\TextBufferCloneServiceFactory.cs" />
-    <Compile Include="Shared\Extensions\ITextSnapshotExtensions.cs" />
-    <Compile Include="Shared\Extensions\ITextSnapshotLineExtensions.cs" />
-    <Compile Include="Shared\Extensions\TextSpanExtensions.cs" />
-    <Compile Include="TextEditorResources.Designer.cs">
+    <Compile Update="TextEditorResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>TextEditorResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="TextEditorResources.resx">
+    <EmbeddedResource Update="TextEditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>TextEditorResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>

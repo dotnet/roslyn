@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <!-- Explicitly set the language before anything else is imported. That way Settings.props sees the right value
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
@@ -60,7 +60,6 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{5DEFADBD-44EB-47A2-A53E-F1282CC9E4E9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.CSharp</AssemblyName>
@@ -70,6 +69,7 @@
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -99,134 +99,28 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.Design" Version="$(MicrosoftVisualStudioShellDesignVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeModel\CSharpCodeModelNavigationPointServiceFactory.cs" />
-    <Compile Include="CodeModel\CSharpCodeModelService.CodeModelEventCollector.cs" />
-    <Compile Include="CodeModel\CSharpCodeModelService.cs" />
-    <Compile Include="CodeModel\CSharpCodeModelService.NodeLocator.cs" />
-    <Compile Include="CodeModel\CSharpCodeModelService.NodeNameGenerator.cs" />
-    <Compile Include="CodeModel\CSharpCodeModelService_Prototype.cs" />
-    <Compile Include="CodeModel\CSharpCodeModelServiceFactory.cs" />
-    <Compile Include="CodeModel\CSharpProjectCodeModel.cs" />
-    <Compile Include="CodeModel\EndRegionFormattingRule.cs" />
-    <Compile Include="CodeModel\Extenders\AutoImplementedPropertyExtender.cs" />
-    <Compile Include="CodeModel\Extenders\CodeTypeLocationExtender.cs" />
-    <Compile Include="CodeModel\Extenders\ExtenderNames.cs" />
-    <Compile Include="CodeModel\Extenders\ExtensionMethodExtender.cs" />
-    <Compile Include="CodeModel\Extenders\PartialMethodExtender.cs" />
-    <Compile Include="CodeModel\Interop\ICSAutoImplementedPropertyExtender.cs" />
-    <Compile Include="CodeModel\Interop\ICSCodeTypeLocation.cs" />
-    <Compile Include="CodeModel\Interop\ICSExtensionMethodExtender.cs" />
-    <Compile Include="CodeModel\Interop\ICSPartialMethodExtender.cs" />
-    <Compile Include="CodeModel\MethodXml\MethodXmlBuilder.cs" />
-    <Compile Include="CodeModel\ModifierFlags.cs" />
-    <Compile Include="CodeModel\ModifierFlagsExtensions.cs" />
-    <Compile Include="CodeModel\ParameterFlags.cs" />
-    <Compile Include="CodeModel\ParameterFlagsExtensions.cs" />
-    <Compile Include="CodeModel\SyntaxListExtensions.cs" />
-    <Compile Include="CodeModel\SyntaxNodeExtensions.cs" />
-    <Compile Include="Debugging\BreakpointResolver.cs" />
-    <Compile Include="Debugging\CSharpBreakpointResolutionService.cs" />
-    <Compile Include="Debugging\CSharpLanguageDebugInfoService.cs" />
-    <Compile Include="Debugging\CSharpProximityExpressionsService.cs" />
-    <Compile Include="Debugging\CSharpProximityExpressionsService.ExpressionType.cs" />
-    <Compile Include="Debugging\CSharpProximityExpressionsService.RelevantExpressionsCollector.cs" />
-    <Compile Include="Debugging\CSharpProximityExpressionsService.Worker.cs" />
-    <Compile Include="Debugging\CSharpProximityExpressionsService_ExpressionTermCollector.cs" />
-    <Compile Include="Debugging\DataTipInfoGetter.cs" />
-    <Compile Include="Debugging\LocationInfoGetter.cs" />
-    <Compile Include="LanguageService\HACK_CSharpCreateServicesOnUIThread.cs" />
-    <Compile Include="ObjectBrowser\CSharpLibraryService.cs" />
-    <Compile Include="ObjectBrowser\CSharpSyncClassViewCommandHandler.cs" />
-    <Compile Include="ObjectBrowser\ListItemFactory.cs" />
-    <Compile Include="Options\NamingStylesOptionPage.cs" />
-    <Compile Include="Options\AdvancedOptionPageStrings.cs" />
-    <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
-    <Compile Include="ProjectSystemShim\CSharpEntryPointFinderService.cs" />
-    <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
-    <Compile Include="CSharpPackage.cs" />
-    <Compile Include="CSharpVSResources.Designer.cs">
+    <Compile Update="CSharpVSResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>CSharpVSResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="EventCompletion\HACK_EventHookupDismissalOnBufferChangePreventerService.cs" />
-    <Compile Include="LanguageService\CSharpCodePageEditorFactory.cs" />
-    <Compile Include="LanguageService\CSharpDebuggerIntelliSenseContext.cs" />
-    <Compile Include="LanguageService\CSharpEditorFactory.cs" />
-    <Compile Include="LanguageService\CSharpHelpContextService.cs" />
-    <Compile Include="LanguageService\CSharpLanguageService.cs" />
-    <Compile Include="LanguageService\CSharpLanguageService_ICSharpProjectHost.cs" />
-    <Compile Include="ObjectBrowser\DescriptionBuilder.cs" />
-    <Compile Include="ObjectBrowser\ObjectBrowserLibraryManager.cs" />
-    <Compile Include="Options\AdvancedOptionPage.cs" />
-    <Compile Include="Options\AdvancedOptionPageControl.xaml.cs">
+    <Compile Update="Options\AdvancedOptionPageControl.xaml.cs">
       <DependentUpon>AdvancedOptionPageControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Options\AutomationObject.cs" />
-    <Compile Include="Options\Formatting\IndentationViewModel.cs" />
-    <Compile Include="Options\Formatting\FormattingIndentationOptionPage.cs" />
-    <Compile Include="Options\Formatting\NewLinesViewModel.cs" />
-    <Compile Include="Options\Formatting\FormattingNewLinesPage.cs" />
-    <Compile Include="Options\Formatting\FormattingOptionPage.cs" />
-    <Compile Include="Options\Formatting\FormattingOptionPageControl.xaml.cs">
+    <Compile Update="Options\Formatting\FormattingOptionPageControl.xaml.cs">
       <DependentUpon>FormattingOptionPageControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Options\Formatting\SpacingViewModel.cs" />
-    <Compile Include="Options\Formatting\FormattingSpacingPage.cs" />
-    <Compile Include="Options\Formatting\StyleViewModel.cs" />
-    <Compile Include="Options\Formatting\WrappingViewModel.cs" />
-    <Compile Include="Options\Formatting\CodeStylePage.cs" />
-    <Compile Include="Options\Formatting\FormattingWrappingPage.cs" />
-    <Compile Include="Options\IntelliSenseOptionPage.cs" />
-    <Compile Include="Options\IntelliSenseOptionPageControl.xaml.cs">
+    <Compile Update="Options\IntelliSenseOptionPageControl.xaml.cs">
       <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Progression\CSharpGraphProvider.cs" />
-    <Compile Include="Progression\CSharpProgressionLanguageService.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompiler.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSCompilerConfig.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSharpProjectSite.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSharpVenusProjectSite.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.ICSInputSet.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.IServiceProvider.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShim.IVsEditorFactoryNotify.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShimWithServices.CodeModel.cs" />
-    <Compile Include="ProjectSystemShim\CSharpProjectShimWithServices.cs" />
-    <Compile Include="ProjectSystemShim\EntryPointFinder.cs" />
-    <Compile Include="ProjectSystemShim\HACK_VariantStructure.cs" />
-    <Compile Include="ProjectSystemShim\Interop\CompilerOptions.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSCompileProgress.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSCompiler.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSCompilerConfig.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSEncProjectServices.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSError.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSharpProjectHost.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSharpProjectRoot.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSharpProjectSite.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSharpTempPECompilerService.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSharpVenusProjectSite.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSInputSet.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSNameTable.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSSourceModule.cs" />
-    <Compile Include="ProjectSystemShim\Interop\ICSSourceText.cs" />
-    <Compile Include="ProjectSystemShim\Interop\OutputFileType.cs" />
-    <Compile Include="ProjectSystemShim\TempPECompilerService.cs" />
-    <Compile Include="Snippets\CSharpSnippetInfoService.cs" />
-    <Compile Include="Snippets\SnippetCommandHandler.cs" />
-    <Compile Include="Snippets\SnippetExpansionClient.cs" />
-    <Compile Include="Snippets\SnippetFunctions\SnippetFunctionClassName.cs" />
-    <Compile Include="Snippets\SnippetFunctions\SnippetFunctionGenerateSwitchCases.cs" />
-    <Compile Include="Snippets\SnippetFunctions\SnippetFunctionSimpleTypeName.cs" />
-    <Compile Include="Utilities\BlankLineInGeneratedMethodFormattingRule.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CSharpVSResources.resx">
+    <EmbeddedResource Update="CSharpVSResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>CSharpVSResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>
@@ -256,7 +150,8 @@
   <ItemGroup>
     <Content Include="CSharpPackageRegistration.pkgdef" />
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\Imports.targets" />
-  </ImportGroup>
+  <ItemGroup>
+    <Compile Remove="Options\CSharpSettingsSerializer.cs" />
+  </ItemGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

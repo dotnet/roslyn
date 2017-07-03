@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{A31228BB-F05C-4D4A-B98A-0E681D876B7C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Services</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.InteractiveServices</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -98,16 +98,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Shell.15.0" Version="$(MicrosoftVisualStudioShell150Version)" />
     <PackageReference Include="Microsoft.VisualStudio.VsInteractiveWindow" Version="$(MicrosoftVisualStudioVsInteractiveWindowVersion)" />
     <PackageReference Include="System.ValueTuple" Version="$(SystemValueTupleVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Interactive\AbstractResetInteractiveCommand.cs" />
-    <Compile Include="Interactive\LogMessage.cs" />
-    <Compile Include="Interactive\VsInteractiveWindowPackage.cs" />
-    <Compile Include="Interactive\VsInteractiveWindowProvider.cs" />
-    <Compile Include="Interactive\CommonVsUtils.cs" />
-    <Compile Include="Interactive\VsResetInteractive.cs" />
-    <Compile Include="Interactive\ScriptingOleCommandTarget.cs" />
-    <Compile Include="Interactive\VsUpdateSolutionEvents.cs" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />

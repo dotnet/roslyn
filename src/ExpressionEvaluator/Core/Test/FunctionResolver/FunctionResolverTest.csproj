@@ -1,20 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{DD317BE1-42A1-4795-B1D4-F370C40D649A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.ExpressionEvaluator.FunctionResolver.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <EnableDefaultItems>true</EnableDefaultItems>
     <!-- Don't transitively copy output files, since everything builds to the same folder. -->
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -65,21 +64,6 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <Compile Include="CSharpFunctionResolverTests.cs" />
-    <Compile Include="CSharpParsingTests.cs" />
-    <Compile Include="FunctionResolverTestBase.cs" />
-    <Compile Include="Module.cs" />
-    <Compile Include="NameComparer.cs" />
-    <Compile Include="ParameterComparer.cs" />
-    <Compile Include="ParsingTestBase.cs" />
-    <Compile Include="Process.cs" />
-    <Compile Include="Request.cs" />
-    <Compile Include="Resolver.cs" />
-    <Compile Include="TypeComparer.cs" />
-    <Compile Include="VisualBasicFunctionResolverTests.cs" />
-    <Compile Include="VisualBasicParsingTests.cs" />
-  </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>

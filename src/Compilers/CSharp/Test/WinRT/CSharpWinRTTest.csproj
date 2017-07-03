@@ -1,34 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <NonShipping>true</NonShipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{FCFA8808-A1B6-48CC-A1EA-0B8CA8AEDA8E}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.WinRT.UnitTests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <Compile Include="AnonymousTypesSymbolTests.cs" />
-    <Compile Include="CodeGen\WinMdEventTests.cs" />
-    <Compile Include="CodeGen\WinRTCollectionTests.cs" />
-    <Compile Include="Metadata\WinMdDumpTest.cs" />
-    <Compile Include="Metadata\WinMdEventTests.cs" />
-    <Compile Include="Metadata\WinMdMetadataTests.cs" />
-    <Compile Include="PdbTests.cs" />
-    <Compile Include="PEParameterSymbolTests.cs" />
-    <Compile Include="WinRTUtil.cs" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>

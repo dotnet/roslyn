@@ -1,20 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{8CEE3609-A5A9-4A9B-86D7-33118F5D6B33}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.Editor.UnitTests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <TargetFrameworkProfile />
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -170,95 +168,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\AttributeTests.cs" />
-    <Compile Include="CodeActions\CodeActionSmartTagProducerTests.cs" />
-    <Compile Include="CodeAnalysisResources.cs" />
-    <Compile Include="CodeFixes\CodeFixServiceTests.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInFixableDiagnosticIds2.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInGetFixAllProvider.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethod.cs" />
-    <Compile Include="CodeFixes\ErrorCases\CodeFixExceptionInRegisterMethodAsync.cs" />
-    <Compile Include="CodeGeneration\AbstractCodeGenerationTests.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.CSharp.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.Shared.cs" />
-    <Compile Include="CodeGeneration\CodeGenerationTests.VisualBasic.cs" />
-    <Compile Include="CodeGeneration\ExpressionGenerationTests.cs" />
-    <Compile Include="CodeGeneration\ExpressionPrecedenceGenerationTests.cs" />
-    <Compile Include="CodeGeneration\NameGenerationTests.cs" />
-    <Compile Include="CodeGeneration\StatementGenerationTests.cs" />
-    <Compile Include="CodeRefactorings\CodeRefactoringServiceTest.cs" />
-    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactorings.cs" />
-    <Compile Include="CodeRefactorings\ErrorCases\CodeRefactoringExceptionInComputeRefactoringsAsync.cs" />
-    <Compile Include="Collections\Immutable\Maps\BidirectionalMapTests.cs" />
-    <Compile Include="Collections\Immutable\Maps\MapTests.cs" />
-    <Compile Include="Collections\IntervalTreeTests.cs" />
-    <Compile Include="Commands\CommandArgsTests.cs" />
-    <Compile Include="Commands\TypeCharCommandArgsTests.cs" />
-    <Compile Include="CommentSelection\CommentUncommentSelectionCommandHandlerTests.cs" />
-    <Compile Include="Completion\FileSystemCompletionHelperTests.cs" />
-    <Compile Include="Completion\GlobalAssemblyCacheCompletionHelperTests.cs" />
-    <Compile Include="Completion\TestFileSystemCompletionHelper.cs" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerServiceTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticDataSerializerTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticDataTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticServiceTests.cs" />
-    <Compile Include="Diagnostics\DiagnosticsSquiggleTaggerProviderTests.cs" />
-    <Compile Include="Diagnostics\SuppressMessageAttributeTests.cs" />
-    <Compile Include="CodeFixes\ExtensionOrderingTests.cs" />
-    <Compile Include="EditAndContinue\TraceLogTests.cs" />
-    <Compile Include="EditAndContinue\EditAndContinueDiagnosticUpdateSourceTests.cs" />
-    <Compile Include="Extensions\SourceTextContainerExtensionsTests.cs" />
-    <Compile Include="Preview\TestOnly_CompilerDiagnosticAnalyzerProviderService.cs" />
-    <Compile Include="Structure\BlockStructureServiceTests.cs" />
-    <Compile Include="DocCommentFormatting\DocCommentFormattingTests.cs" />
-    <Compile Include="EditAndContinue\RudeEditDiagnosticTests.cs" />
-    <Compile Include="EditorAdapter\SpanExtensionsTest.cs" />
-    <Compile Include="EditorAdapter\TextSnapshotImplementationTest.cs" />
-    <Compile Include="EditorAdapter\TextSpanExtensionsTest.cs" />
-    <Compile Include="Extensions\CollectionExtensionsTest.cs" />
-    <Compile Include="Extensions\EnumerableExtensionTests.cs" />
-    <Compile Include="Extensions\IProjectionBufferFactoryServiceExtensionsTests.cs" />
-    <Compile Include="Extensions\ISemanticSnapshotExtensionTests.cs" />
-    <Compile Include="Extensions\ISymbolExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextLineExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextSnapshotExtensionsTests.cs" />
-    <Compile Include="Extensions\ITextSnapshotLineExtensionsTests.cs" />
-    <Compile Include="Extensions\SetExtensionTests.cs" />
-    <Compile Include="LineSeparators\AdornmentManagerTests.cs" />
-    <Compile Include="LinkedFiles\LinkedFileDiffMergingEditorTests.cs" />
-    <Compile Include="MetadataAsSource\AbstractMetadataAsSourceTests.cs" />
-    <Compile Include="MetadataAsSource\AbstractMetadataAsSourceTests.TestContext.cs" />
-    <Compile Include="MetadataAsSource\DocCommentFormatterTests.cs" />
-    <Compile Include="MetadataAsSource\MetadataAsSourceTests.cs" />
-    <Compile Include="MetadataAsSource\MetadataAsSourceTests.CSharp.cs" />
-    <Compile Include="MetadataAsSource\MetadataAsSourceTests.VisualBasic.cs" />
-    <Compile Include="Structure\BlockSpanTests.cs" />
-    <Compile Include="Structure\StructureTaggerTests.cs" />
-    <Compile Include="Preview\PreviewWorkspaceTests.cs" />
-    <Compile Include="RenameTracking\RenameTrackingTaggerProviderTests.cs" />
-    <Compile Include="RenameTracking\RenameTrackingTestState.cs" />
-    <Compile Include="RenameTracking\RenameTrackingWaiter.cs" />
-    <Compile Include="SolutionCrawler\WorkCoordinatorTests.cs" />
-    <Compile Include="Tagging\AsynchronousTaggerTests.cs" />
-    <Compile Include="Tagging\TagSpanIntervalTreeTests.cs" />
-    <Compile Include="TextEditor\TextBufferAssociatedViewServiceTests.cs" />
-    <Compile Include="TextEditor\TryGetDocumentTests.cs" />
-    <Compile Include="Threading\AsynchronousWorkerTests.cs" />
-    <Compile Include="Threading\ForegroundNotificationServiceTests.cs" />
-    <Compile Include="Utilities\EditorServicesUtil.cs" />
-    <Compile Include="Utilities\AsynchronousOperationListenerTests.cs" />
-    <Compile Include="Utilities\AsyncLazyTests.cs" />
-    <Compile Include="Utilities\BloomFilterTests.cs" />
-    <Compile Include="Utilities\PatternMatcherTests.cs" />
-    <Compile Include="Utilities\SymbolEquivalenceComparerTests.cs" />
-    <Compile Include="Workspaces\ProjectCacheHostServiceFactoryTests.cs" />
-    <Compile Include="Workspaces\TextFactoryTests.cs" />
-    <Compile Include="Workspaces\WorkspaceTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="PerfTests\ResetRoslynOptions.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -266,6 +175,10 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Diagnostics\DiagnosticTagSourceTests.cs" />
+    <Compile Remove="TestComposition.cs" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

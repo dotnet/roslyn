@@ -1,19 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{C50166F1-BABC-40A9-95EB-8200080CD701}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.UnitTests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -68,73 +67,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeStyle\EditorConfigCodeStyleParserTests.cs" />
-    <Compile Include="DependentTypeFinderTests.cs" />
-    <Compile Include="Differencing\LongestCommonSubsequenceTests.cs" />
-    <Compile Include="Editting\SyntaxEditorTests.cs" />
-    <Compile Include="Execution\Extensions.cs" />
-    <Compile Include="EditorConfigStorageLocation\EditorConfigStorageLocationTests.cs" />
-    <Compile Include="Execution\SnapshotSerializationTestBase.cs" />
-    <Compile Include="Execution\SnapshotSerializationTests.cs" />
-    <Compile Include="ExtensionOrdererTests.cs" />
-    <Compile Include="Host\WorkspaceServices\TestOptionsServiceFactory.cs" />
-    <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
-    <Compile Include="Host\WorkspaceServices\TestTemporaryStorageService.cs" />
-    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
-    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
-    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
-    <Compile Include="UtilityTest\SourceTextSerializationTests.cs" />
-    <Compile Include="UtilityTest\StringEscapingTests.cs" />
-    <Compile Include="SymbolKeyTests.cs" />
-    <Compile Include="ServicesTestBase.cs" />
-    <Compile Include="UtilityTest\AsyncLazyTests.cs" />
-    <Compile Include="CodeCleanup\AddMissingTokensTests.cs" />
-    <Compile Include="CodeCleanup\CodeCleanupTests.cs" />
-    <Compile Include="CodeCleanup\Extensions.cs" />
-    <Compile Include="CodeCleanup\FixIncorrectTokenTests.cs" />
-    <Compile Include="CodeCleanup\NormalizeModifiersOrOperatorsTests.cs" />
-    <Compile Include="CodeCleanup\ReduceTokenTests.cs" />
-    <Compile Include="CodeCleanup\RemoveUnnecessaryLineContinuationTests.cs" />
-    <Compile Include="UtilityTest\BKTreeTests.cs" />
-    <Compile Include="UtilityTest\FilePathUtilitiesTests.cs" />
-    <Compile Include="UtilityTest\SpellCheckerTests.cs" />
-    <Compile Include="WorkspaceServiceTests\ReferenceCountedDisposableTests.cs" />
-    <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
-    <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
-    <Compile Include="Differencing\MatchTests.cs" />
-    <Compile Include="Differencing\TestNode.cs" />
-    <Compile Include="Differencing\TestTreeComparer.cs" />
-    <Compile Include="UtilityTest\DocumentationCommentIdTests.cs" />
-    <Compile Include="UtilityTest\DocumentationCommentTests.cs" />
-    <Compile Include="UtilityTest\EditDistanceTests.cs" />
-    <Compile Include="UtilityTest\EtwLoggingTests.cs" />
-    <Compile Include="UtilityTest\ExceptionHelpersTests.cs" />
-    <Compile Include="FindAllDeclarationsTests.cs" />
-    <Compile Include="FindAllDeclarationsTests.TestSolutionsAndProject.cs" />
-    <Compile Include="FindReferencesTests.cs" />
-    <Compile Include="FormattingTests.cs" />
-    <Compile Include="GeneratedCodeRecognitionTests.cs" />
-    <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
-    <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
-    <Compile Include="WorkspaceTests\WorkspaceReferenceTests.cs" />
-    <Compile Include="SolutionTests\ProjectDependencyGraphTests.cs" />
-    <Compile Include="SolutionTests\ProjectInfoTests.cs" />
-    <Compile Include="ReferencedSymbolTests.cs" />
-    <Compile Include="UtilityTest\SerializableBytesTests.cs" />
-    <Compile Include="SerializationTests.cs" />
-    <Compile Include="SolutionGeneration.cs" />
-    <Compile Include="SolutionTests\SolutionTests.cs" />
-    <Compile Include="SyntaxNodeTests.cs" />
-    <Compile Include="SyntaxPathTests.cs" />
-    <Compile Include="SyntaxReferenceTests.cs" />
-    <Compile Include="WorkspaceServiceTests\TemporaryStorageServiceTests.cs" />
-    <Compile Include="Host\WorkspaceServices\TestOptionService.cs" />
-    <Compile Include="WorkspaceServiceTests\OptionServiceTests.cs" />
-    <Compile Include="Host\WorkspaceServices\TestPersistenceService.cs" />
-    <Compile Include="Host\TestHost.cs" />
-    <Compile Include="WorkspaceTests\GeneralWorkspaceTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -163,6 +95,9 @@
     <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.VisualBasic.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Host\WorkspaceServices\TemporaryStorage\TestTemporaryStorage.cs" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{E2E889A5-2489-4546-9194-47C63E49EAEB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Hosting.Diagnostics</RootNamespace>
     <AssemblyName>Roslyn.Hosting.Diagnostics</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -52,46 +52,9 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DiagnosticOnly_Logger.cs" />
-    <Compile Include="DiagnosticOnly_TPLListener.cs" />
-    <Compile Include="PerfMargin\ActivityLevel.cs" />
-    <Compile Include="PerfMargin\DataModel.cs" />
-    <Compile Include="PerfMargin\PerfEventActivityLogger.cs" />
-    <Compile Include="PerfMargin\PerfMarginPanel.cs" />
-    <Compile Include="PerfMargin\StatusIndicator.xaml.cs">
+    <Compile Update="PerfMargin\StatusIndicator.xaml.cs">
       <DependentUpon>StatusIndicator.xaml</DependentUpon>
     </Compile>
-    <Compile Include="TestingOnly_WaitingService.cs" />
-    <Compile Include="TraceLogger.cs" />
-    <Compile Include="Waiters\AutomaticCompletionWaiter.cs" />
-    <Compile Include="Waiters\AutomaticEndConstructCorrectionWaiter.cs" />
-    <Compile Include="Waiters\BraceHighlightingWaiter.cs" />
-    <Compile Include="Waiters\ClassificationWaiter.cs" />
-    <Compile Include="Waiters\CompletionSetWaiter.cs" />
-    <Compile Include="Waiters\DesignerAttributeWaiter.cs" />
-    <Compile Include="Waiters\DiagnosticServiceWaiter.cs" />
-    <Compile Include="Waiters\EditorAdornmentWaiter.cs" />
-    <Compile Include="Waiters\ErrorListWaiter.cs" />
-    <Compile Include="Waiters\ErrorSquiggleWaiter.cs" />
-    <Compile Include="Waiters\EventHookupWaiter.cs" />
-    <Compile Include="Waiters\FindReferencesWaiter.cs" />
-    <Compile Include="Waiters\GlobalOperationWatier.cs" />
-    <Compile Include="Waiters\GraphProviderWaiter.cs" />
-    <Compile Include="Waiters\KeywordHighlightingWaiter.cs" />
-    <Compile Include="Waiters\LightBulbWaiter.cs" />
-    <Compile Include="Waiters\LineSeparatorWaiter.cs" />
-    <Compile Include="Waiters\NavigateToWaiter.cs" />
-    <Compile Include="Waiters\NavigationBarWaiter.cs" />
-    <Compile Include="Waiters\OutliningWaiter.cs" />
-    <Compile Include="Waiters\QuickInfoWaiter.cs" />
-    <Compile Include="Waiters\ReferenceHighlightingWaiter.cs" />
-    <Compile Include="Waiters\RemoteHostClientWaiter.cs" />
-    <Compile Include="Waiters\RenameWaiter.cs" />
-    <Compile Include="Waiters\SignatureHelpWaiter.cs" />
-    <Compile Include="Waiters\SnippetWaiter.cs" />
-    <Compile Include="Waiters\SolutionCrawlerWaiter.cs" />
-    <Compile Include="Waiters\TodoCommentListWaiter.cs" />
-    <Compile Include="Waiters\WorkspaceWaiter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />

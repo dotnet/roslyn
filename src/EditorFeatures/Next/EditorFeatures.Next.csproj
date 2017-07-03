@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
@@ -8,12 +8,12 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.EditorFeatures.Next</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -71,21 +71,6 @@
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.cs" />
-    <Compile Include="NavigateTo\Dev15NavigateToHostVersionService.Dev15ItemDisplayFactory.cs" />
-    <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
-    <Compile Include="IntelliSense\Completion\Presentation\Roslyn15CompletionSet.cs" />
-    <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
-    <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSet.cs" />
-    <Compile Include="Options\EditorConfigDocumentOptionsProvider.DocumentOptions.cs" />
-    <Compile Include="Options\EditorConfigDocumentOptionsProvider.EmptyCodingConventionContext.cs" />
-    <Compile Include="Structure\BlockContextProvider.cs" />
-    <Compile Include="Structure\RoslynBlockTag.cs" />
-    <Compile Include="Structure\VisualStudio15StructureTaggerProvider.cs" />
-    <Compile Include="Options\EditorConfigDocumentOptionsProviderFactory.cs" />
-    <Compile Include="Options\EditorConfigDocumentOptionsProvider.cs" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

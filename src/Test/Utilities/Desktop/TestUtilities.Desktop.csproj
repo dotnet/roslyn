@@ -1,18 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{76C6F005-C89D-4348-BB4A-391898DBEB52}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Test.Utilities.Desktop</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7;ubuntu.14.04;osx.10.10</RuntimeIdentifiers>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -55,27 +55,6 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
       <Link>DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
-    <Compile Include="AppDomainUtils.cs" />
-    <Compile Include="CLRHelpers.cs" />
-    <Compile Include="CodeRuntime\DesktopRuntimeEnvironmentFactory.cs" />
-    <Compile Include="CodeRuntime\RuntimeModuleData.cs" />
-    <Compile Include="DesktopRuntimeUtil.cs" />
-    <Compile Include="InstrumentationChecker.cs" />
-    <Compile Include="ConditionalFactAttribute.cs" />
-    <Compile Include="CodeRuntime\AppDomainAssemblyCache.cs" />
-    <Compile Include="CodeRuntime\Exceptions.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="CodeRuntime\RuntimeAssemblyManager.cs" />
-    <Compile Include="SharedResourceHelpers.cs" />
-    <Compile Include="CommonDiagnosticAnalyzers.cs" />
-    <Compile Include="ErrorDiagnostics.cs" />
-    <Compile Include="CodeRuntime\DesktopRuntimeEnvironment.cs" />
-    <Compile Include="MetadataSignatureHelper.cs" />
-    <Compile Include="SigningTestHelpers.cs" />
-    <Compile Include="TestHelpers.cs" />
-    <Compile Include="ThrowingTraceListener.cs" />
-    <Compile Include="Traits.cs" />
-    <Compile Include="Win32Res.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />
@@ -112,6 +91,9 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="SerializableModuleData.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

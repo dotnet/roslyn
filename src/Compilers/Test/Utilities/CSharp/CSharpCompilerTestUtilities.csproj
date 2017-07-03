@@ -1,40 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <DefaultLanguage>en-US</DefaultLanguage>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFramework>netstandard1.3</TargetFramework>
     <NoStdLib>true</NoStdLib>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
-  <ItemGroup>
-    <Compile Include="BasicCompilationUtils.cs" />
-    <Compile Include="CompilationTestUtils.cs" />
-    <Compile Include="CompilingTestBase.cs" />
-    <Compile Include="CSharpTestBase.cs" />
-    <Compile Include="CSharpTrackingDiagnosticAnalyzer.cs" />
-    <Compile Include="DiagnosticExtensions.cs" />
-    <Compile Include="DiagnosticTestUtilities.cs" />
-    <Compile Include="Extensions.cs" />
-    <Compile Include="LocalVariableDeclaratorsCollector.cs" />
-    <Compile Include="MetadataTestHelpers.cs" />
-    <Compile Include="SemanticModelTestBase.cs" />
-    <Compile Include="SymbolUtilities.cs" />
-    <Compile Include="SyntaxTreeExtensions.cs" />
-    <Compile Include="TestOptions.cs" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>

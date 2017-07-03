@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{92412D1A-0F23-45B5-B196-58839C524917}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.InteractiveEditorFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -95,32 +95,7 @@
     <InternalsVisibleToTest Include="RoslynETAHost" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CommandHandlers\InteractiveCompletionCommandHandler.cs" />
-    <Compile Include="CommandHandlers\InteractiveIntelliSenseCommandHandler.cs" />
-    <Compile Include="Completion\AbstractDirectivePathCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\ReplCommandCompletionProvider.cs" />
-    <Compile Include="Completion\GlobalAssemblyCacheCompletionHelper.cs" />
-    <Compile Include="Completion\AbstractReferenceDirectiveCompletionProvider.cs" />
-    <Compile Include="Completion\AbstractLoadDirectiveCompletionProvider.cs" />
-    <Compile Include="Extensibility\Interactive\CSharpVBResetCommand.cs" />
-    <Compile Include="Extensibility\Interactive\InteractiveCommandHandler.cs" />
-    <Compile Include="Extensibility\Interactive\InteractiveEvaluator.cs" />
-    <Compile Include="Extensibility\Interactive\CSharpVBInteractiveCommandContentTypes.cs" />
-    <Compile Include="Extensibility\Interactive\ISendToInteractiveSubmissionProvider.cs" />
-    <Compile Include="Extensibility\Interactive\SendToInteractiveSubmissionProvider.cs" />
-    <Compile Include="Extensibility\Interactive\ResetInteractive.cs" />
-    <Compile Include="Implementation\Completion\InteractiveCommandCompletionService.cs" />
-    <Compile Include="Implementation\Completion\Presentation\CompletionPresenter.cs" />
-    <Compile Include="Implementation\Interactive\InertClassifierProvider.cs" />
-    <Compile Include="Implementation\Interactive\InertClassifierProvider.InertClassifier.cs" />
-    <Compile Include="Implementation\Interactive\InteractiveCommandContentTypeLanguageService.cs" />
-    <Compile Include="Implementation\Interactive\InteractiveDocumentNavigationService.cs" />
-    <Compile Include="Implementation\Interactive\InteractiveDocumentNavigationServiceFactory.cs" />
-    <Compile Include="Implementation\Interactive\InteractiveGlobalUndoServiceFactory.cs" />
-    <Compile Include="Implementation\Interactive\InteractiveTextUndoHistoryWorkspaceServiceFactory.cs" />
-    <Compile Include="Implementation\Interactive\InteractiveWorkspace.cs" />
-    <Compile Include="Implementation\Interactive\InteractiveDocumentSupportsSuggestionService.cs" />
-    <Compile Include="InteractiveEditorFeaturesResources.Designer.cs">
+    <Compile Update="InteractiveEditorFeaturesResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>InteractiveEditorFeaturesResources.resx</DependentUpon>
@@ -131,7 +106,7 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="InteractiveEditorFeaturesResources.resx">
+    <EmbeddedResource Update="InteractiveEditorFeaturesResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>InteractiveEditorFeaturesResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>

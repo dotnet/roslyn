@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x86</Platform>
     <PlatformTarget>x86</PlatformTarget>
-    <ProjectGuid>{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.IntegrationTest.Setup</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.IntegrationTest.Setup</AssemblyName>
@@ -13,7 +12,6 @@
     <RuntimeIdentifiers>win7-x86</RuntimeIdentifiers>
     <Nonshipping>true</Nonshipping>
     <RoslynProjectType>Vsix</RoslynProjectType>
-    <ProjectTypeGuids>{82B43B9B-A64C-4715-B499-D71E9CA2BD60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <GeneratePkgDefFile>true</GeneratePkgDefFile>
     <UseCodebase>true</UseCodebase>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>
@@ -22,8 +20,8 @@
     <CopyBuildOutputToOutputDirectory>true</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'" />
@@ -36,11 +34,6 @@
     <Compile Include="..\..\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
-    <Compile Include="BindingAttributes.cs" />
-    <Compile Include="IntegrationTestServiceCommands.cs" />
-    <Compile Include="IntegrationTestServicePackage.cs" />
-    <Compile Include="TestExtensionErrorHandler.cs" />
-    <Compile Include="TestExtensionManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <VSCTCompile Include="IntegrationTestServiceCommands.vsct">
@@ -49,7 +42,7 @@
     </VSCTCompile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="IntegrationTestServicePackage.resx">
+    <EmbeddedResource Update="IntegrationTestServicePackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>IntegrationTestServicePackage</ManifestResourceName>
       <SubType>Designer</SubType>

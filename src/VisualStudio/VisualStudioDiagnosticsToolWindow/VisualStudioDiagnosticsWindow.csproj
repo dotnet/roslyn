@@ -1,14 +1,11 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{A486D7DE-F614-409D-BB41-0FFDF582E35C}</ProjectGuid>
-    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Roslyn.VisualStudio.DiagnosticsWindow</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.DiagnosticsWindow</AssemblyName>
     <UseCodebase>true</UseCodebase>
@@ -20,11 +17,11 @@
     <CopyOutputSymbolsToOutputDirectory>true</CopyOutputSymbolsToOutputDirectory>
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <TargetVsixContainerName>Roslyn.VisualStudio.DiagnosticsWindow.vsix</TargetVsixContainerName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
     <RoslynProjectType>Vsix</RoslynProjectType>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -93,41 +90,22 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DiagnosticsWindow.cs" />
-    <Compile Include="Guids.cs" />
-    <Compile Include="OptionPages\ForceLowMemoryMode.cs" />
-    <Compile Include="OptionPages\ForceLowMemoryMode_Options.cs" />
-    <Compile Include="OptionPages\InternalSolutionCrawlerPage.cs" />
-    <Compile Include="OptionPages\InternalComponentsOnOffPage.cs" />
-    <Compile Include="OptionPages\InternalDiagnosticsPage.cs" />
-    <Compile Include="OptionPages\InternalFeaturesOnOffPage.cs" />
-    <Compile Include="OptionPages\InternalOptionsControl.cs" />
-    <Compile Include="OptionPages\PerformanceFunctionIdPage.cs" />
-    <Compile Include="OptionPages\PerformanceLoggersPage.cs" />
-    <Compile Include="PkgCmdID.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="VenusMargin\ProjectionBufferMargin.xaml.cs">
+    <Compile Update="VenusMargin\ProjectionBufferMargin.xaml.cs">
       <DependentUpon>ProjectionBufferMargin.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VenusMargin\ProjectionBufferViewModel.cs" />
-    <Compile Include="VenusMargin\ProjectionSpanTag.cs" />
-    <Compile Include="VenusMargin\ProjectionSpanTagDefinition.cs" />
-    <Compile Include="VenusMargin\ProjectionSpanTagger.cs" />
-    <Compile Include="VenusMargin\VenusMargin.cs" />
-    <Compile Include="VenusMargin\VenusMarginFactory.cs" />
-    <Compile Include="VisualStudioDiagnosticsWindowPackage.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
     </EmbeddedResource>

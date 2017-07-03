@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
@@ -8,7 +8,6 @@
     <Platforms>x64</Platforms>
     <OutputType>Exe</OutputType>
     <AssemblyName>DeployCoreClrTestRuntime_DoNotUse</AssemblyName>
-    <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <!--
@@ -18,13 +17,11 @@
     <PackageTargetFallback>portable-net452;dotnet;netstandard1.6</PackageTargetFallback>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;ubuntu.16.04-x64;osx.10.12-x64</RuntimeIdentifiers>
     <RuntimeIdentifier>$(RoslynRuntimeIdentifier)</RuntimeIdentifier>
-    <SelfContained Condition="'$(RoslynRuntimeIdentifier)' != ''" >true</SelfContained>
+    <SelfContained Condition="'$(RoslynRuntimeIdentifier)' != ''">true</SelfContained>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" />
-  <ItemGroup>
-    <Compile Include="Class1.cs" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CodeStyle\Core\Analyzers\CodeStyle.csproj">
       <Project>{275812ee-dedb-4232-9439-91c9757d2ae4}</Project>

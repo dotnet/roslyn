@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
@@ -8,7 +8,6 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{737FF62C-F068-4317-84D0-BFB210C17A4E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CSharp.Interactive</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.CSharp.Repl</AssemblyName>
@@ -17,6 +16,7 @@
     <DeployExtension>false</DeployExtension>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -70,12 +70,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CSharpInteractiveCommandHandler.cs" />
-    <Compile Include="CSharpInteractiveCommands.cs" />
-    <Compile Include="CSharpVsInteractiveWindowProvider.cs" />
-    <Compile Include="CSharpVsInteractiveWindowPackage.cs" />
-    <Compile Include="CSharpVsInteractiveWindowCommandProvider.cs" />
-    <Compile Include="CSharpVsResetInteractiveCommand.cs" />
     <Content Include="CSharpInteractive.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -86,7 +80,7 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>

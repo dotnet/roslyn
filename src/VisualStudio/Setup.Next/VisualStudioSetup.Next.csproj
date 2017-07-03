@@ -1,12 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectTypeGuids>{82b43b9b-a64c-4715-b499-d71e9ca2bd60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <ProjectGuid>{143FE684-6E1C-41DF-9C60-84C7772DC49C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Setup.Next</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Setup.Next</AssemblyName>
@@ -15,7 +13,6 @@
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
     <IncludeDebugSymbolsInLocalVSIXDeployment>false</IncludeDebugSymbolsInLocalVSIXDeployment>
-    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <!-- This VSIX must be compiled with the Dev15 SDK due to the specific
          set of references it uses.  Yet when doing so it can't link in all
          of the Dev14 VSIX that we are creating.  Hence when building specifically
@@ -28,6 +25,7 @@
     <IsProductComponent>true</IsProductComponent>
     <ExtensionInstallationRoot>CommonExtensions</ExtensionInstallationRoot>
     <ExtensionInstallationFolder>Microsoft\ManagedLanguages\VBCSharp\LanguageServicesNext</ExtensionInstallationFolder>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\EditorFeatures\Next\EditorFeatures.Next.csproj">
@@ -125,7 +123,6 @@
     <Compile Include="..\Setup\ProvideRoslynBindingRedirection.cs">
       <Link>ProvideRoslynBindingRedirection.cs</Link>
     </Compile>
-    <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Shell.Framework" Version="$(MicrosoftVisualStudioShellFrameworkVersion)" />

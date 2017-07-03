@@ -1,21 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{2E1658E2-5045-4F85-A64C-C0ECCD39F719}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.VisualStudio.Next.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.VisualStudio.Next.UnitTests</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <TargetFrameworkProfile />
     <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\CSharpCodeAnalysis.csproj">
@@ -200,18 +198,7 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Mocks\TestAnalyzerAssemblyLoader.cs" />
-    <Compile Include="Mocks\TestAssetSource.cs" />
-    <Compile Include="Mocks\TestHostServices.cs" />
-    <Compile Include="Mocks\InProcRemoteHostClientFactory.cs" />
-    <Compile Include="Mocks\TestOptionSet.cs" />
-    <Compile Include="Remote\JsonConverterTests.cs" />
-    <Compile Include="Remote\RemoteHostClientServiceFactoryTests.cs" />
-    <Compile Include="Services\SolutionServiceTests.cs" />
-    <Compile Include="Services\AssetStorageTests.cs" />
-    <Compile Include="Services\AssetServiceTests.cs" />
-    <Compile Include="Services\ServiceHubServicesTests.cs" />
-    <Compile Include="Services\VisualStudioDiagnosticAnalyzerExecutorTests.cs" />
+    <Compile Remove="TestUtils.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

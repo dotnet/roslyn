@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
@@ -8,12 +8,12 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{80FDDD00-9393-47F7-8BAF-7E87CE011068}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Remote</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Remote.ServiceHub</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -65,28 +65,6 @@
     <Compile Include="..\..\..\VisualStudio\Core\Next\Remote\JsonRpcMessageHandler.cs">
       <Link>Shared\JsonRpcMessageHandler.cs</Link>
     </Compile>
-    <Compile Include="Services\CodeAnalysisService_CodeLens.cs" />
-    <Compile Include="Services\CodeAnalysisService_DesignerAttributes.cs" />
-    <Compile Include="Services\CodeAnalysisService_DocumentHighlights.cs" />
-    <Compile Include="Services\CodeAnalysisService_AddImport.cs" />
-    <Compile Include="Services\CodeAnalysisService_TodoComments.cs" />
-    <Compile Include="Services\CodeAnalysisService_SymbolFinder.cs" />
-    <Compile Include="Services\RemoteSymbolSearchUpdateEngine.cs" />
-    <Compile Include="Services\CodeAnalysisService_NavigateTo.cs" />
-    <Compile Include="Services\SnapshotService.JsonRpcAssetSource.cs" />
-    <Compile Include="Services\CodeAnalysisService.cs" />
-    <Compile Include="Services\CodeAnalysisService_Diagnostics.cs" />
-    <Compile Include="Services\RemoteHostService.cs" />
-    <Compile Include="Shared\RoslynJsonConverter.RoslynOnly.cs" />
-    <Compile Include="Shared\ServiceHubServiceBase.cs" />
-    <Compile Include="Services\SnapshotService.cs" />
-    <Compile Include="Shared\Extensions.cs" />
-    <Compile Include="Shared\RoslynJsonConverter.cs" />
-    <Compile Include="Shared\RoslynJsonConverter.SolutionIdConverters.cs" />
-    <Compile Include="Shared\ServerDirectStream.cs" />
-    <Compile Include="Shared\ClientDirectStream.cs" />
-    <Compile Include="Telemetry\WatsonReporter.cs" />
-    <Compile Include="UserOperationBooster.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" />

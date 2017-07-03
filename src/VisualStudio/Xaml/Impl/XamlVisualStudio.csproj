@@ -1,18 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <!-- Explicitly set the language before anything else is imported. That way Settings.props sees the right value
          even in WPF's build of a temporary project, where it won't be able to determine it based on the file extension. -->
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
-  <ImportGroup Label="Settings">
-    <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{971E832B-7471-48B5-833E-5913188EC0E4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.Xaml</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Xaml</AssemblyName>
@@ -20,6 +17,7 @@
     <TargetFramework>net46</TargetFramework>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -51,31 +49,11 @@
     <InternalsVisibleToVisualStudio Include="Microsoft.VisualStudio.DesignTools.XamlLanguageService" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CodeFixes\RemoveUnnecessaryUsings\XamlRemoveUnnecessaryUsingsCodeFixProvider.cs" />
-    <Compile Include="Diagnostics\Analyzers\IXamlDocumentAnalyzerService.cs" />
-    <Compile Include="Diagnostics\Analyzers\XamlDocumentDiagnosticAnalyzer.cs" />
-    <Compile Include="Diagnostics\XamlDiagnosticIds.cs" />
-    <Compile Include="Features\DocumentSpan.cs" />
-    <Compile Include="Features\InlineRename\IXamlRenameInfoService.cs" />
-    <Compile Include="Features\InlineRename\IXamlRenameInfo.cs" />
-    <Compile Include="Features\InlineRename\XamlEditorInlineRenameService.cs" />
-    <Compile Include="Features\OrganizeImports\IXamlOrganizeNamespacesService.cs" />
-    <Compile Include="Features\OrganizeImports\IXamlRemoveUnnecessaryNamespacesService.cs" />
-    <Compile Include="Features\OrganizeImports\XamlOrganizeImportsService.cs" />
-    <Compile Include="Features\OrganizeImports\XamlRemoveUnnecessaryImportsService.cs" />
-    <Compile Include="Features\XamlContentTypeLanguageService.cs" />
-    <Compile Include="Implementation\XamlTextViewCreationListener_IVsRunningDocTableEvents3.cs" />
-    <Compile Include="Implementation\XamlTextViewCreationListener_IVsSolutionEvents.cs" />
-    <Compile Include="Implementation\XamlOleCommandTarget.cs" />
-    <Compile Include="Implementation\XamlTextViewCreationListener.cs" />
-    <Compile Include="Resources.Designer.cs">
+    <Compile Update="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="StringConstants.cs" />
-    <Compile Include="Implementation\XamlProject.cs" />
-    <Compile Include="XamlStaticTypeDefinitions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -88,12 +66,10 @@
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources.resx">
+    <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
-  <ImportGroup Label="Targets">
-    <Import Project="..\..\..\..\build\Targets\Imports.targets" />
-  </ImportGroup>
+  <Import Project="..\..\..\..\build\Targets\Imports.targets" />
 </Project>

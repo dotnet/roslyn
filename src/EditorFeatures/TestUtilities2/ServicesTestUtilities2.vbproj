@@ -1,18 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{3DFB4701-E3D6-4435-9F70-A6E35822C4F2}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Services.Test.Utilities2</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <TargetFrameworkProfile />
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -134,24 +133,6 @@
     <Import Include="Roslyn.Test.Utilities" />
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Intellisense\CompletionWaiter.vb" />
-    <Compile Include="Intellisense\IIntelliSenseTestState.vb" />
-    <Compile Include="Intellisense\SignatureHelpWaiter.vb" />
-    <Compile Include="Intellisense\TestCompletionPresenter.vb" />
-    <Compile Include="Intellisense\TestCompletionPresenterSession.vb" />
-    <Compile Include="Intellisense\TestSignatureHelpPresenter.vb" />
-    <Compile Include="Intellisense\TestSignatureHelpPresenterSession.vb" />
-    <Compile Include="Intellisense\TestState.vb" />
-    <Compile Include="Utilities\AssertEx.vb" />
-    <Compile Include="Utilities\GoToHelpers\GoToTestHelpers.vb" />
-    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationService.vb" />
-    <Compile Include="Utilities\GoToHelpers\MockDocumentNavigationServiceFactory.vb" />
-    <Compile Include="Utilities\GoToHelpers\MockNavigableItemsPresenter.vb" />
-    <Compile Include="Utilities\MockDocumentNavigationServiceProvider.vb" />
-    <Compile Include="Utilities\MockSymbolNavigationServiceProvider.vb" />
-    <Compile Include="Utilities\TestNotificationService.vb" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />

@@ -1,18 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{21A01C2D-2501-4619-8144-48977DD22D9C}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.CodeAnalysis.Scripting.TestUtilities</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nonshipping>true</Nonshipping>
     <TargetFramework>netstandard1.3</TargetFramework>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <NoStdLib>true</NoStdLib>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -45,17 +44,6 @@
       <Project>{3e7dea65-317b-4f43-a25d-62f18d96cfd7}</Project>
       <Name>BasicScripting</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ObjectFormatterTestBase.cs" />
-    <Compile Include="ObjectFormatterTests.Fixtures.cs" />
-    <Compile Include="ScriptingTestHelpers.cs" />
-    <Compile Include="ScriptTaskExtensions.cs" />
-    <Compile Include="TestRuntimeMetadataReferenceResolver.cs" />
-    <Compile Include="TestCompilationFactory.cs" />
-    <Compile Include="TestConsoleIO.cs" />
-    <Compile Include="TestCSharpObjectFormatter.cs" />
-    <Compile Include="TestVisualBasicObjectFormatter.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests" />

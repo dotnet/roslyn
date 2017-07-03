@@ -1,15 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{FE2CBEA6-D121-4FAA-AA8B-FC9900BF8C83}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.InteractiveEditorFeatures</AssemblyName>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -81,18 +81,11 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Test.Utilities2" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Completion\CompletionProviders\CSharpReplCommandCompletionProvider.cs" />
-    <Compile Include="Completion\FileSystem\DirectiveCompletionProviderUtilities.cs" />
-    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
-    <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
-    <Compile Include="CSharpInteractiveEditorResources.Designer.cs">
+    <Compile Update="CSharpInteractiveEditorResources.Designer.cs">
       <DependentUpon>CSharpInteractiveEditorResources.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Interactive\CSharpInteractiveEvaluator.cs" />
-    <Compile Include="Interactive\CSharpReplServiceProvider.cs" />
-    <Compile Include="Interactive\CSharpSendToInteractiveSubmissionProvider.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -106,7 +99,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="CSharpInteractiveEditorResources.resx">
+    <EmbeddedResource Update="CSharpInteractiveEditorResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CSharpInteractiveEditorResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>

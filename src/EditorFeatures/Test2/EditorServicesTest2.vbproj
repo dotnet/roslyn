@@ -1,20 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{3CEA0D69-00D3-40E5-A661-DC41EA07269B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Services.Editor2.UnitTests</AssemblyName>
     <OptionStrict>Off</OptionStrict>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
-    <TargetFrameworkProfile />
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <RoslynProjectType>UnitTest</RoslynProjectType>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -197,146 +195,6 @@
     <Import Include="Xunit" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CallHierarchy\CallHierarchyTests.vb" />
-    <Compile Include="Classification\ClassificationTests.vb" />
-    <Compile Include="Diagnostics\InMemoryAssemblyLoader.vb" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Compliance.vb" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.ComplexTests.vb" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.WordSeparator.vb" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.vb" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.PrefixSuffix.vb" />
-    <Compile Include="Diagnostics\NamingStyles\NamingStyleTests.IdentifierCreation.Casing.vb" />
-    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
-    <Compile Include="Expansion\LambdaParameterExpansionTests.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.Literals.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.LocalFunctions.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.Tuples.vb" />
-    <Compile Include="GoToImplementation\GoToImplementationTests.vb" />
-    <Compile Include="IntelliSense\CompletionServiceTests.vb" />
-    <Compile Include="InteractivePaste\InteractivePasteCommandHandlerTests.vb" />
-    <Compile Include="IntelliSense\CompletionRulesTests.vb" />
-    <Compile Include="LanguageServices\SyntaxFactsServiceTests.vb" />
-    <Compile Include="NamingStyles\NamingStylesTests.vb" />
-    <Compile Include="ReferenceHighlighting\DocumentHighlightsServiceTests.vb" />
-    <Compile Include="Simplification\BlockSimplificationTests.vb" />
-    <Compile Include="Simplification\SimplifierAPITests.vb" />
-    <Compile Include="CodeFixes\CodeFixServiceTests.vb" />
-    <Compile Include="Compilation\CompilationTests.vb" />
-    <Compile Include="Diagnostics\AbstractCrossLanguageUserDiagnosticTest.vb" />
-    <Compile Include="Diagnostics\AddImport\AddImportCrossLanguageTests.vb" />
-    <Compile Include="Diagnostics\AddMissingReference\AddMissingReferenceTests.vb" />
-    <Compile Include="Diagnostics\DiagnosticServiceTests.vb" />
-    <Compile Include="Diagnostics\DiagnosticProviderTests.vb" />
-    <Compile Include="Diagnostics\GenerateEvent\GenerateEventCrossLanguageTests.vb" />
-    <Compile Include="Diagnostics\GenerateFromUsage\GenerateConstructorCrossLanguageTests.vb" />
-    <Compile Include="Diagnostics\GenerateFromUsage\GenerateMethodCrossLanguageTests.vb" />
-    <Compile Include="Diagnostics\GenerateFromUsage\GenerateVariableCrossLanguageTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceCrossLanguageTests.vb" />
-    <Compile Include="Diagnostics\AdditionalFileDiagnosticsTests.vb" />
-    <Compile Include="Expansion\AbstractExpansionTest.vb" />
-    <Compile Include="Expansion\ExtensionMethodExpansionRewriteTests.vb" />
-    <Compile Include="Expansion\ModuleNameExpansionTests.vb" />
-    <Compile Include="Expansion\NameExpansionTests.vb" />
-    <Compile Include="Extensions\ISymbolExtensionsTests.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.AliasSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.AnonymousTypeSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.AsyncSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.ConstructorSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DelegateInvokeMethodSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DynamicAssemblies.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DynamicBinding.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DynamicConstructors.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DynamicDelegatesAndIndexers.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DynamicFunctions.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DynamicIdentifiers.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.DynamicPartialClass.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.EventSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.ExplicitInterfaceMethodSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.ExtensionMethodSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.FieldSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.IndexerSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.LabelSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.LambdaSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.LinkedFiles.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.LocalSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.MethodTypeParameterTypeSymbol.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.NamedTypeSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.NamespaceSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.OperatorSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.OrdinaryMethodSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.ParameterSymbol.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.PropertySymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.RangeVariableSymbol.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.TypeParameterTypeSymbol.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.WinmdSymbols.vb" />
-    <Compile Include="FindReferences\FindReferencesTests.XmlDocSymbols.vb" />
-    <Compile Include="GoToDefinition\GoToDefinitionCommandHandlerTests.vb" />
-    <Compile Include="GoToDefinition\GoToDefinitionTests.vb" />
-    <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests.vb" />
-    <Compile Include="IntelliSense\CSharpCompletionCommandHandlerTests_Projections.vb" />
-    <Compile Include="IntelliSense\CSharpIntelliSenseCommandHandlerTests.vb" />
-    <Compile Include="IntelliSense\CSharpSignatureHelpCommandHandlerTests.vb" />
-    <Compile Include="IntelliSense\MockCompletionProvider.vb" />
-    <Compile Include="IntelliSense\SessionTests.vb" />
-    <Compile Include="IntelliSense\SignatureHelpControllerTests.vb" />
-    <Compile Include="IntelliSense\QuickInfoControllerTests.vb" />
-    <Compile Include="IntelliSense\ModelTests.vb" />
-    <Compile Include="IntelliSense\VisualBasicCompletionCommandHandlerTests.vb" />
-    <Compile Include="IntelliSense\VisualBasicCompletionCommandHandlerTests_Projections.vb" />
-    <Compile Include="IntelliSense\VisualBasicSignatureHelpCommandHandlerTests.vb" />
-    <Compile Include="KeywordHighlighting\AbstractKeywordHighlightingTests.vb" />
-    <Compile Include="KeywordHighlighting\CSharpKeywordHighlightingTests.vb" />
-    <Compile Include="KeywordHighlighting\VisualBasicKeywordHighlightingTests.vb" />
-    <Compile Include="NavigationBar\CSharpNavigationBarTests.vb" />
-    <Compile Include="NavigationBar\MockNavigationBarPresenter.vb" />
-    <Compile Include="NavigationBar\NavigationBarPresenterTests.vb" />
-    <Compile Include="NavigationBar\TestHelpers.vb" />
-    <Compile Include="NavigationBar\VisualBasicNavigationBarTests.vb" />
-    <Compile Include="Peek\PeekTests.vb" />
-    <Compile Include="ReferenceHighlighting\AbstractReferenceHighlightingTests.vb" />
-    <Compile Include="ReferenceHighlighting\CrossLanguageReferenceHighlightingTests.vb" />
-    <Compile Include="ReferenceHighlighting\CSharpReferenceHighlightingTests.vb" />
-    <Compile Include="ReferenceHighlighting\VisualBasicReferenceHighlightingTests.vb" />
-    <Compile Include="Rename\CSharp\AliasTests.vb" />
-    <Compile Include="Rename\CSharp\DeclarationConflictTests.vb" />
-    <Compile Include="Rename\CSharp\EscapingTests.vb" />
-    <Compile Include="Rename\CSharp\GenericTypeParameterTests.vb" />
-    <Compile Include="Rename\CSharp\ImplicitReferenceConflictTests.vb" />
-    <Compile Include="Rename\CSharp\InteractiveTests.vb" />
-    <Compile Include="Rename\CSharp\InterfaceTests.vb" />
-    <Compile Include="Rename\CSharp\LocalConflictTests.vb" />
-    <Compile Include="Rename\DashboardTests.vb" />
-    <Compile Include="Rename\InlineRenameTests.vb" />
-    <Compile Include="Rename\RenameCommandHandlerTests.vb" />
-    <Compile Include="Rename\RenameEngineResult.vb" />
-    <Compile Include="Rename\RenameEngineTests.CSharpConflicts.vb" />
-    <Compile Include="Rename\RenameEngineTests.vb" />
-    <Compile Include="Rename\RenameEngineTests.VisualBasicConflicts.vb" />
-    <Compile Include="Rename\RenameNonRenameableSymbols.vb" />
-    <Compile Include="Rename\RenameTagProducerTests.vb" />
-    <Compile Include="Rename\RenameTestHelpers.vb" />
-    <Compile Include="Rename\RenameWaiter.vb" />
-    <Compile Include="Rename\VisualBasic\AliasTests.vb" />
-    <Compile Include="Rename\VisualBasic\CallSiteConflictResolutionTests.vb" />
-    <Compile Include="Rename\VisualBasic\DeclarationConflictTests.vb" />
-    <Compile Include="Rename\VisualBasic\EscapingTests.vb" />
-    <Compile Include="Rename\VisualBasic\ImplicitReferenceConflictTests.vb" />
-    <Compile Include="Rename\VisualBasic\InvalidIdentifierTests.vb" />
-    <Compile Include="Rename\VisualBasic\QualificationTests.vb" />
-    <Compile Include="Simplification\AbstractSimplificationTests.vb" />
-    <Compile Include="Simplification\CastSimplificationTests.vb" />
-    <Compile Include="Simplification\EscapingSimplifierTest.vb" />
-    <Compile Include="Simplification\ExtensionMethodSimplificationTests.vb" />
-    <Compile Include="Simplification\ModuleNameSimplificationTests.vb" />
-    <Compile Include="Simplification\ParameterSimplificationTests.vb" />
-    <Compile Include="Simplification\ParenthesisSimplificationTests.vb" />
-    <Compile Include="Simplification\TypeInferenceSimplifierTests.vb" />
-    <Compile Include="Simplification\TypeNameSimplifierTest.vb" />
-    <Compile Include="Workspaces\SymbolDescriptionServiceTests.vb" />
-    <Compile Include="Workspaces\TryFindSourceDefinitionTests.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
@@ -349,6 +207,10 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="SimplifyTypeNames\AbstractNameSimplificationServiceTests.vb" />
+    <Compile Remove="SimplifyTypeNames\NameSimplificationServiceTests.vb" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

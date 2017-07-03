@@ -1,11 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="DeployExtension">
   <Import Project="..\..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{B4A38526-5F15-4CA8-B5E9-0BA04E547023}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Microsoft.VisualStudio.VisualBasic.Repl</AssemblyName>
     <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
@@ -13,6 +12,7 @@
     <DeployExtension>false</DeployExtension>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
     <TargetFramework>net46</TargetFramework>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -71,12 +71,6 @@
     <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="VisualBasicInteractiveCommandHandler.vb" />
-    <Compile Include="VisualBasicInteractiveCommands.vb" />
-    <Compile Include="VisualBasicVsInteractiveWindowProvider.vb" />
-    <Compile Include="VisualBasicVsInteractiveWindowPackage.vb" />
-    <Compile Include="VisualBasicVsInteractiveWindowCommandProvider.vb" />
-    <Compile Include="VisualBasicVsResetInteractiveCommand.vb" />
     <Content Include="Resources\ScriptFile.ico" />
     <Content Include="VisualBasicInteractive.rsp">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -87,7 +81,7 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
-    <EmbeddedResource Include="VSPackage.resx">
+    <EmbeddedResource Update="VSPackage.resx">
       <MergeWithCTO>true</MergeWithCTO>
       <ManifestResourceName>VSPackage</ManifestResourceName>
       <SubType>Designer</SubType>

@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\..\..\build\Targets\SettingsSdk.props" />
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{3F2FDC1C-DC6F-44CB-B4A1-A9026F25D66E}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.UnitTests.Utilities</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <RuntimeIdentifiers>win7</RuntimeIdentifiers>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -58,10 +58,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FileSet.cs" />
-    <Compile Include="Formatting\FormattingTestBase.cs" />
-    <Compile Include="SolutionTestUtilities.cs" />
-    <Compile Include="SolutionUtilities.cs" />
     <EmbeddedResource Include="TestFiles\CSharpProject_App.xaml.cs">
       <DependentUpon>CSharpProject_App.xaml</DependentUpon>
     </EmbeddedResource>
@@ -74,9 +70,6 @@
       <DependentUpon>CSharpProject_MainWindow.xaml</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="TestFiles\OtherStuff_Foo.cs" />
-    <Compile Include="TestWorkspace.cs" />
-    <Compile Include="WorkspaceExtensions.cs" />
-    <Compile Include="WorkspaceTestBase.cs" />
     <EmbeddedResource Include="TestFiles\key.snk" />
     <EmbeddedResource Include="TestFiles\VisualBasicProject_Resources.resx_" />
     <EmbeddedResource Include="TestFiles\VisualBasicProject_Settings.settings" />
@@ -345,6 +338,16 @@
     <EmbeddedResource Include="TestFiles\CSharpProject_CSharpProject_Wildcards.csproj">
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="TestFiles\CSharpProject_App.xaml.cs" />
+    <Compile Remove="TestFiles\CSharpProject_AssemblyInfo.cs" />
+    <Compile Remove="TestFiles\CSharpProject_CSharpClass.cs" />
+    <Compile Remove="TestFiles\CSharpProject_CSharpClass_WithConditionalAttributes.cs" />
+    <Compile Remove="TestFiles\CSharpProject_CSharpConsole.cs" />
+    <Compile Remove="TestFiles\CSharpProject_CSharpExternAlias.cs" />
+    <Compile Remove="TestFiles\CSharpProject_MainWindow.xaml.cs" />
+    <Compile Remove="TestFiles\OtherStuff_Foo.cs" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

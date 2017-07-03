@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <ProjectLanguage>CSharp</ProjectLanguage>
   </PropertyGroup>
@@ -8,12 +8,12 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <ProjectGuid>{FE0D4BDD-1C30-488E-A870-854F5B8C5014}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices</RootNamespace>
     <AssemblyName>Microsoft.VisualStudio.LanguageServices.Next</AssemblyName>
     <TargetFramework>net46</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <EnableDefaultItems>true</EnableDefaultItems>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -106,40 +106,14 @@
     <Compile Include="..\..\..\Workspaces\Remote\ServiceHub\Shared\ServerDirectStream.cs">
       <Link>Shared\ServerDirectStream.cs</Link>
     </Compile>
-    <Compile Include="CodeLens\RemoteCodeLensReferencesService.cs" />
-    <Compile Include="FindReferences\Contexts\AbstractTableDataSourceFindUsagesContext.cs" />
-    <Compile Include="FindReferences\Contexts\WithoutReferencesFindUsagesContext.cs" />
-    <Compile Include="FindReferences\Contexts\WithReferencesFindUsagesContext.cs" />
-    <Compile Include="FindReferences\Entries\AbstractDocumentSpanEntry.cs" />
-    <Compile Include="FindReferences\Entries\DefinitionItemEntry.cs" />
-    <Compile Include="FindReferences\Entries\DocumentSpanEntry.cs" />
-    <Compile Include="FindReferences\Entries\Entry.cs" />
-    <Compile Include="FindReferences\Entries\SimpleMessageEntry.cs" />
-    <Compile Include="FindReferences\FindReferencesTableControlEventProcessorProvider.cs" />
-    <Compile Include="FindReferences\FindUsagesOptions.cs" />
-    <Compile Include="FindReferences\IFindAllReferencesWindowExtensions.cs" />
-    <Compile Include="FindReferences\ISupportsNavigation.cs" />
-    <Compile Include="FindReferences\RoslynDefinitionBucket.cs" />
-    <Compile Include="FindReferences\StreamingFindUsagesPresenter.cs" />
-    <Compile Include="FindReferences\ToolTips\DisposableToolTip.cs" />
-    <Compile Include="FindReferences\TableEntriesSnapshot.cs" />
-    <Compile Include="FindReferences\ToolTips\LazyToolTip.cs" />
-    <Compile Include="ProjectSystem\DeferredProjectWorkspaceService.cs" />
-    <Compile Include="Remote\JsonRpcClient.cs" />
-    <Compile Include="Remote\JsonRpcMessageHandler.cs" />
-    <Compile Include="Remote\JsonRpcConnection.cs" />
-    <Compile Include="Remote\RemotableDataJsonRpcEx.cs" />
-    <Compile Include="Remote\RemoteHostClientFactory.cs" />
-    <Compile Include="Remote\ServiceHubRemoteHostClient.WorkspaceHost.cs" />
-    <Compile Include="Remote\ServiceHubRemoteHostClient.cs" />
-    <Compile Include="ServicesVisualStudioNextResources.Designer.cs">
+    <Compile Update="ServicesVisualStudioNextResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>ServicesVisualStudioNextResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ServicesVisualStudioNextResources.resx">
+    <EmbeddedResource Update="ServicesVisualStudioNextResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>ServicesVisualStudioNextResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
