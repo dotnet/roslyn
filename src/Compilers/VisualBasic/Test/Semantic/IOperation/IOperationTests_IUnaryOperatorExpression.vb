@@ -1780,5 +1780,143 @@ IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.Conversion
 
             VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
         End Sub
+
+        <Fact()>
+        Public Sub Test_UnaryOperatorExpression_With_CustomType_NoRightOperator()
+            Dim source = <![CDATA[
+Class A
+    Function Method() As CustomType
+        Dim i As CustomType = Nothing
+        Return +i 'BIND:"+i"
+    End Function
+End Class
+
+Public Class CustomType
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: CustomType, IsInvalid) (Syntax: '+i')
+  IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: CustomType) (Syntax: 'i')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact()>
+        Public Sub Test_UnaryOperatorExpression_With_CustomType_DerivedTypes()
+            Dim source = <![CDATA[
+Class A
+    Function Method() As BaseType
+        Dim i As DerivedType = Nothing
+        Return +i 'BIND:"+i"
+    End Function
+End Class
+
+Public Class BaseType
+    Public Shared Operator +(x As BaseType) As BaseType
+        Return x
+    End Operator
+End Class
+
+Public Class DerivedType
+    Inherits BaseType
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IUnaryOperatorExpression (UnaryOperationKind.OperatorMethodPlus) (OperatorMethod: Function BaseType.op_UnaryPlus(x As BaseType) As BaseType) (OperationKind.UnaryOperatorExpression, Type: BaseType) (Syntax: '+i')
+  IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: BaseType) (Syntax: 'i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact()>
+        Public Sub Test_UnaryOperatorExpression_With_CustomType_ImplicitConversion()
+            Dim source = <![CDATA[
+Class A
+    Function Method() As BaseType
+        Dim i As DerivedType = Nothing
+        Return +i 'BIND:"+i"
+    End Function
+End Class
+
+Public Class BaseType
+    Public Shared Operator +(x As BaseType) As BaseType
+        Return x
+    End Operator
+End Class
+
+Public Class DerivedType
+    Public Shared Narrowing Operator CType(ByVal x As DerivedType) As BaseType
+        Return New BaseType()
+    End Operator
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+  IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact()>
+        Public Sub Test_UnaryOperatorExpression_With_CustomType_ExplicitConversion()
+            Dim source = <![CDATA[
+Class A
+    Function Method() As BaseType
+        Dim i As DerivedType = Nothing
+        Return +i 'BIND:"+i"
+    End Function
+End Class
+
+Public Class BaseType
+    Public Shared Operator +(x As BaseType) As BaseType
+        Return x
+    End Operator
+End Class
+
+Public Class DerivedType
+    Public Shared Widening Operator CType(ByVal x As DerivedType) As BaseType
+        Return New BaseType()
+    End Operator
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+  IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: DerivedType) (Syntax: 'i')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
+
+        <Fact()>
+        Public Sub Test_UnaryOperatorExpression_With_CustomType_Malformed_Operator()
+            Dim source = <![CDATA[
+Class A
+    Function Method() As BaseType
+        Dim i As BaseType = Nothing
+        Return +i 'BIND:"+i"
+    End Function
+End Class
+
+Public Class BaseType
+    Public Shared Operator +(x As Integer) As BaseType
+        Return New BaseType()
+    End Operator
+End Class]]>.Value
+
+            Dim expectedOperationTree = <![CDATA[
+IConversionExpression (ConversionKind.Basic, Implicit) (OperationKind.ConversionExpression, Type: BaseType, IsInvalid) (Syntax: '+i')
+  IUnaryOperatorExpression (UnaryOperationKind.Invalid) (OperationKind.UnaryOperatorExpression, Type: ?, IsInvalid) (Syntax: '+i')
+    ILocalReferenceExpression: i (OperationKind.LocalReferenceExpression, Type: BaseType) (Syntax: 'i')
+]]>.Value
+
+            VerifyOperationTreeForTest(Of UnaryExpressionSyntax)(source, expectedOperationTree)
+        End Sub
     End Class
 End Namespace
