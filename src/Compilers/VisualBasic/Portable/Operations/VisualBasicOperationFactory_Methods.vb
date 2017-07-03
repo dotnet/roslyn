@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.Semantics
                 Dim syntax As SyntaxNode = If(value.Syntax?.Parent, expression.Syntax)
                 Dim type As ITypeSymbol = target.Type
                 Dim constantValue As [Optional](Of Object) = value.ConstantValue
-                Dim assignment = New AssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
+                Dim assignment = New SimpleAssignmentExpression(target, value, isInvalid, syntax, type, constantValue)
                 builder.Add(assignment)
             Next i
 

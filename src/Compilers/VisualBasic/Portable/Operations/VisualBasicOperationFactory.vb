@@ -1092,11 +1092,12 @@ Namespace Microsoft.CodeAnalysis.Semantics
             Dim instance As Lazy(Of IOperation) = New Lazy(Of IOperation)(Function() Nothing)
             Dim [property] As IPropertySymbol = DirectCast(boundAnonymousTypePropertyAccess.ExpressionSymbol, IPropertySymbol)
             Dim member As ISymbol = boundAnonymousTypePropertyAccess.ExpressionSymbol
+            Dim argumentsInEvaluationOrder As Lazy(Of ImmutableArray(Of IArgument)) = New Lazy(Of ImmutableArray(Of IArgument))(Function() ImmutableArray(Of IArgument).Empty)
             Dim isInvalid As Boolean = boundAnonymousTypePropertyAccess.HasErrors
             Dim syntax As SyntaxNode = boundAnonymousTypePropertyAccess.Syntax
             Dim type As ITypeSymbol = boundAnonymousTypePropertyAccess.Type
             Dim constantValue As [Optional](Of Object) = ConvertToOptional(boundAnonymousTypePropertyAccess.ConstantValueOpt)
-            Return New LazyPropertyReferenceExpression([property], instance, member, isInvalid, syntax, type, constantValue)
+            Return New LazyPropertyReferenceExpression([property], instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue)
         End Function
     End Class
 End Namespace
