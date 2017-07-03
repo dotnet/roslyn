@@ -338,14 +338,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="TestFiles\CSharpProject_App.xaml.cs" />
-    <Compile Remove="TestFiles\CSharpProject_AssemblyInfo.cs" />
-    <Compile Remove="TestFiles\CSharpProject_CSharpClass.cs" />
-    <Compile Remove="TestFiles\CSharpProject_CSharpClass_WithConditionalAttributes.cs" />
-    <Compile Remove="TestFiles\CSharpProject_CSharpConsole.cs" />
-    <Compile Remove="TestFiles\CSharpProject_CSharpExternAlias.cs" />
-    <Compile Remove="TestFiles\CSharpProject_MainWindow.xaml.cs" />
-    <Compile Remove="TestFiles\OtherStuff_Foo.cs" />
+    <Compile Remove="TestFiles\*.cs" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\Imports.targets" />
 </Project>

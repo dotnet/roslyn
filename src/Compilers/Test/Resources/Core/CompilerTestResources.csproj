@@ -10,6 +10,7 @@
     <AssemblyName>Roslyn.Compilers.Test.Resources</AssemblyName>
     <TargetFramework>netstandard1.3</TargetFramework>
     <RootNamespace></RootNamespace>
+    <EnableDefaultItems>false</EnableDefaultItems>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
@@ -391,70 +392,15 @@
     <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
     <Content Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.cpp" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
+    <Compile Include="ResourceLoader.cs" />
+    <Compile Include="TestKeys.cs" />
+    <Compile Include="TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Xml.ReaderWriter" Version="$(SystemXmlReaderWriterVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Analyzers\FaultyAnalyzer.cs" />
-    <Compile Remove="AssemblyLoadTests\Alpha.cs" />
-    <Compile Remove="AssemblyLoadTests\Beta.cs" />
-    <Compile Remove="AssemblyLoadTests\Delta.cs" />
-    <Compile Remove="AssemblyLoadTests\Gamma.cs" />
-    <Compile Remove="DiagnosticTests\ErrTestLib01.cs" />
-    <Compile Remove="DiagnosticTests\ErrTestLib02.cs" />
-    <Compile Remove="DiagnosticTests\ErrTestLib11.cs" />
-    <Compile Remove="DiagnosticTests\ErrTestMod01.cs" />
-    <Compile Remove="DiagnosticTests\ErrTestMod02.cs" />
-    <Compile Remove="Encoding\sjis.cs" />
-    <Compile Remove="MetadataTests\InterfaceAndClass\CSClasses01.cs" />
-    <Compile Remove="MetadataTests\InterfaceAndClass\CSInterfaces01.cs" />
-    <Compile Remove="MetadataTests\Interop\Interop.Mock01.cs" />
-    <Compile Remove="MetadataTests\Interop\Interop.Mock01.Impl.cs" />
-    <Compile Remove="MetadataTests\Invalid\LongTypeFormInSignature.cs" />
-    <Compile Remove="MetadataTests\Members.cs" />
-    <Compile Remove="MetadataTests\NetModule01\AppCS.cs" />
-    <Compile Remove="MetadataTests\NetModule01\ModuleCS00.cs" />
-    <Compile Remove="MetadataTests\NetModule01\ModuleCS01.cs" />
-    <Compile Remove="NetFX\aacorlib\aacorlib.v15.0.3928.cs" />
-    <Compile Remove="NetFX\Minimal\minasync.cs" />
-    <Compile Remove="NetFX\Minimal\mincorlib.cs" />
-    <Compile Remove="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
-    <Compile Remove="NetFX\ValueTuple\ValueTuple.cs" />
-    <Compile Remove="PerfTests\CSPerfTest.cs" />
-    <Compile Remove="SymbolsTests\BigVisitor.cs" />
-    <Compile Remove="SymbolsTests\CustomModifiers\ModoptTestOrignal.cs" />
-    <Compile Remove="SymbolsTests\DifferByCase\Consumer.cs" />
-    <Compile Remove="SymbolsTests\DifferByCase\CsharpCaseSen.cs" />
-    <Compile Remove="SymbolsTests\DifferByCase\CSharpDifferCaseOverloads.cs" />
-    <Compile Remove="SymbolsTests\DifferByCase\TypeAndNamespaceDifferByCase.cs" />
-    <Compile Remove="SymbolsTests\ExplicitInterfaceImplementation\CSharpExplicitInterfaceImplementation.cs" />
-    <Compile Remove="SymbolsTests\ExplicitInterfaceImplementation\CSharpExplicitInterfaceImplementationEvents.cs" />
-    <Compile Remove="SymbolsTests\ExplicitInterfaceImplementation\CSharpExplicitInterfaceImplementationProperties.cs" />
-    <Compile Remove="SymbolsTests\Fields\CSFields.cs" />
-    <Compile Remove="SymbolsTests\InheritIComparable.cs" />
-    <Compile Remove="SymbolsTests\Interface\MDInterfaceMapping.cs" />
-    <Compile Remove="SymbolsTests\Metadata\AttributeInterop01.cs" />
-    <Compile Remove="SymbolsTests\Metadata\AttributeInterop02.cs" />
-    <Compile Remove="SymbolsTests\Metadata\AttributeTestDef01.cs" />
-    <Compile Remove="SymbolsTests\Metadata\AttributeTestLib01.cs" />
-    <Compile Remove="SymbolsTests\Metadata\DynamicAttribute.cs" />
-    <Compile Remove="SymbolsTests\Metadata\public-and-private.cs" />
-    <Compile Remove="SymbolsTests\Methods\CSMethods.cs" />
-    <Compile Remove="SymbolsTests\netModule\hash_module.cs" />
-    <Compile Remove="SymbolsTests\NoPia\MissingPIAAttributes.cs" />
-    <Compile Remove="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
-    <Compile Remove="SymbolsTests\TypeForwarders\TypeForwarder1.cs" />
-    <Compile Remove="SymbolsTests\TypeForwarders\TypeForwarder2.cs" />
-    <Compile Remove="SymbolsTests\TypeForwarders\TypeForwarder3.cs" />
-    <Compile Remove="SymbolsTests\UseSiteErrors\CSharpErrors.cs" />
-    <Compile Remove="SymbolsTests\UseSiteErrors\Unavailable.cs" />
-    <Compile Remove="SymbolsTests\Versioning\AR_SA.cs" />
-    <Compile Remove="SymbolsTests\Versioning\EN_US.cs" />
-    <Compile Remove="WinRt\WinMDPrefixing.cs" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

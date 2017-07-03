@@ -76,15 +76,9 @@
     <Content Include="Semantics\BinaryOperatorsTestBaseline3.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline4.txt" />
     <Content Include="Semantics\BinaryOperatorsTestBaseline5.txt" />
-    <Content Include="Semantics\BinaryOperatorsTestSource1.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource2.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource3.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource4.vb" />
-    <Content Include="Semantics\BinaryOperatorsTestSource5.vb" />
-    <Content Include="Semantics\OverloadResolutionTestSource.vb" />
-    <Content Include="Semantics\PrintResultTestSource.vb" />
     <EmbeddedResource Include="Binding\T_1247520.cs" />
     <EmbeddedResource Include="Binding\T_68086.vb" />
+    <Compile Remove="Binding\T_68086.vb" />
     <EmbeddedResource Update="Resource.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources</CustomToolNamespace>
       <Generator>ResXFileCodeGenerator</Generator>
@@ -98,7 +92,13 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="Binding\T_68086.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource1.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource2.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource3.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource4.vb" />
+    <Content Include="Semantics\BinaryOperatorsTestSource5.vb" />
+    <Content Include="Semantics\OverloadResolutionTestSource.vb" />
+    <Content Include="Semantics\PrintResultTestSource.vb" />
     <Compile Remove="Semantics\BinaryOperatorsTestSource1.vb" />
     <Compile Remove="Semantics\BinaryOperatorsTestSource2.vb" />
     <Compile Remove="Semantics\BinaryOperatorsTestSource3.vb" />

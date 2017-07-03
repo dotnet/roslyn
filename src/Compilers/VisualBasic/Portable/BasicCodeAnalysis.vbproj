@@ -37,16 +37,22 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VBResources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />
-    <EmbeddedResource Include="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
-    <EmbeddedResource Include="Symbols\EmbeddedSymbols\VbCoreSourceText.vb" />
-    <EmbeddedResource Include="Symbols\EmbeddedSymbols\VbMyTemplateText.vb" />
     <EmbeddedResource Update="VBResources.resx">
       <CustomToolNamespace>Microsoft.CodeAnalysis.VisualBasic</CustomToolNamespace>
       <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>VBResources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Symbols\EmbeddedSymbols\Embedded.vb" />
+    <EmbeddedResource Include="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
+    <EmbeddedResource Include="Symbols\EmbeddedSymbols\VbCoreSourceText.vb" />
+    <EmbeddedResource Include="Symbols\EmbeddedSymbols\VbMyTemplateText.vb" />
+    <Compile Remove="Symbols\EmbeddedSymbols\Embedded.vb" />
+    <Compile Remove="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
+    <Compile Remove="Symbols\EmbeddedSymbols\VbCoreSourceText.vb" />
+    <Compile Remove="Symbols\EmbeddedSymbols\VbMyTemplateText.vb" />
   </ItemGroup>
   <ItemGroup>
     <BoundTreeDefinition Include="BoundTree\BoundNodes.xml">
@@ -101,12 +107,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Threading.Tasks.Parallel" Version="$(SystemThreadingTasksParallelVersion)" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Symbols\EmbeddedSymbols\Embedded.vb" />
-    <Compile Remove="Symbols\EmbeddedSymbols\InternalXmlHelper.vb" />
-    <Compile Remove="Symbols\EmbeddedSymbols\VbCoreSourceText.vb" />
-    <Compile Remove="Symbols\EmbeddedSymbols\VbMyTemplateText.vb" />
   </ItemGroup>
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\..\..\..\build\Targets\Imports.targets" />

@@ -71,6 +71,7 @@
     </Compile>
     <Content Include="Syntax\VBAllInOne.txt" />
     <None Include="Resources\VBAllInOne.vb" />
+    <Compile Remove="Resources\VBAllInOne.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
@@ -89,9 +90,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Resources\VBAllInOne.vb" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>

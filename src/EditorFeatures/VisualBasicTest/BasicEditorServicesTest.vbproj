@@ -279,6 +279,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <!-- These are None\Content items from above. Don't pass them to the compiler -->
   <ItemGroup>
     <Compile Remove="PerfTests\Sources\BasicClassesAtEndBase.vb" />
     <Compile Remove="PerfTests\Sources\IndividualDS.vb" />

@@ -65,9 +65,6 @@
     </Compile>
     <Content Include="CodeGen\ConversionsILGenTestBaseline.txt" />
     <Content Include="CodeGen\ConversionsILGenTestBaseline1.txt" />
-    <Content Include="CodeGen\ConversionsILGenTestSource.vb" />
-    <Content Include="CodeGen\ConversionsILGenTestSource1.vb" />
-    <Content Include="CodeGen\ConversionsILGenTestSource2.vb" />
     <Content Include="ExpressionTrees\Results\CheckedAndOrXor.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNot.txt" />
     <Content Include="ExpressionTrees\Results\CheckedAndUncheckedIsIsNotNothing.txt" />
@@ -115,12 +112,26 @@
     <Content Include="ExpressionTrees\Results\XmlLiteralsInExprLambda01_Result.txt" />
     <Content Include="ExpressionTrees\Results\XmlLiteralsInExprLambda02_Result.txt" />
     <Content Include="ExpressionTrees\Results\XmlLiteralsInExprLambda03_Result.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CodeGen\ConversionsILGenTestSource.vb" />
+    <Content Include="CodeGen\ConversionsILGenTestSource1.vb" />
+    <Content Include="CodeGen\ConversionsILGenTestSource2.vb" />
     <Content Include="ExpressionTrees\Sources\UserDefinedBinaryOperators.vb" />
     <Content Include="ExpressionTrees\Tests\TestConversion_Narrowing_UDC.vb" />
     <Content Include="ExpressionTrees\Tests\TestConversion_TypeMatrix_UserTypes.vb" />
     <Content Include="ExpressionTrees\Tests\TestConversion_Widening_UDC.vb" />
     <Content Include="ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb" />
     <Content Include="ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb" />
+    <Compile Remove="CodeGen\ConversionsILGenTestSource.vb" />
+    <Compile Remove="CodeGen\ConversionsILGenTestSource1.vb" />
+    <Compile Remove="CodeGen\ConversionsILGenTestSource2.vb" />    
+    <Compile Remove="ExpressionTrees\Sources\UserDefinedBinaryOperators.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestConversion_Narrowing_UDC.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestConversion_TypeMatrix_UserTypes.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestConversion_Widening_UDC.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb" />
+    <Compile Remove="ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="IdentifierComparison = Microsoft.CodeAnalysis.CaseInsensitiveComparison" />
@@ -143,17 +154,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="CodeGen\ConversionsILGenTestSource.vb" />
-    <Compile Remove="CodeGen\ConversionsILGenTestSource1.vb" />
-    <Compile Remove="CodeGen\ConversionsILGenTestSource2.vb" />
-    <Compile Remove="ExpressionTrees\Sources\UserDefinedBinaryOperators.vb" />
-    <Compile Remove="ExpressionTrees\Tests\TestConversion_Narrowing_UDC.vb" />
-    <Compile Remove="ExpressionTrees\Tests\TestConversion_TypeMatrix_UserTypes.vb" />
-    <Compile Remove="ExpressionTrees\Tests\TestConversion_Widening_UDC.vb" />
-    <Compile Remove="ExpressionTrees\Tests\TestUnary_UDO_IsTrueIsFalse.vb" />
-    <Compile Remove="ExpressionTrees\Tests\TestUnary_UDO_PlusMinusNot.vb" />
   </ItemGroup>
   <Import Project="..\..\..\..\..\build\Targets\Imports.targets" />
 </Project>
