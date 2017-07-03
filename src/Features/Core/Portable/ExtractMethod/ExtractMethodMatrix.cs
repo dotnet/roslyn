@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 }
             }
 
-            Contract.ThrowIfFalse(s_matrix.ContainsKey(key));
+            Contract.ThrowIfFalse(s_matrix.ContainsKey(key), $"Matrix does not contain Key '{key}'.");
 
             return s_matrix[key];
         }
@@ -231,6 +231,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
 
                 return hashCode;
             }
+
+            public override string ToString() => GetHashCode().ToString("X");
         }
     }
 }
