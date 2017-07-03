@@ -41,19 +41,21 @@ namespace RunTests
             string workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
-            Dictionary<string, string> environmentVariables = null)
+            Dictionary<string, string> environmentVariables = null,
+            Action<Process> onProcessStartHandler = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var taskCompletionSource = new TaskCompletionSource<ProcessOutput>();
-            var processStartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow);
-            return CreateProcessTask(processStartInfo, lowPriority, taskCompletionSource, cancellationToken);
+            var processStartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables);
+            return CreateProcessTask(processStartInfo, lowPriority, taskCompletionSource, onProcessStartHandler, cancellationToken);
         }
 
         private static Task<ProcessOutput> CreateProcessTask(
             ProcessStartInfo processStartInfo,
             bool lowPriority,
             TaskCompletionSource<ProcessOutput> taskCompletionSource,
+            Action<Process> onProcessStartHandler,
             CancellationToken cancellationToken)
         {
             var errorLines = new List<string>();
@@ -112,6 +114,7 @@ namespace RunTests
                 });
 
             process.Start();
+            onProcessStartHandler?.Invoke(process);
 
             if (lowPriority)
             {

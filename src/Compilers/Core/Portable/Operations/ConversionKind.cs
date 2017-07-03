@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// </summary>
         OperatorMethod = 0x5,
         /// <summary>
+        /// Conversion is defined by the underlying type, and is created when an interpolated
+        /// string expression is being converted to an IFormattable or FormattableString.
+        /// </summary>
+        InterpolatedString = 0x6,
+        /// <summary>
         /// Conversion is invalid.
         /// </summary>
         Invalid = 0xf

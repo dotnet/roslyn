@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-                                                                
+
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1079,7 +1079,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1109,7 +1109,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: index) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1139,7 +1139,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[j:10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 1], [System.Int32 j = 2]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[j:10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: j) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1171,7 +1171,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')";
@@ -1203,7 +1203,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 index] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32, IsInvalid) (Syntax: 'this[10]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1249,7 +1249,7 @@ internal class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
+IPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x = 8], [System.Int32 y = 9]] { set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'd[0]')
   Instance Receiver: ILocalReferenceExpression: d (OperationKind.LocalReferenceExpression, Type: Derived) (Syntax: 'd')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1260,7 +1260,7 @@ IIndexedPropertyReferenceExpression: System.Int32 Derived.this[[System.Int32 x =
 
             string expectedOutput = @"1";
 
-            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);                                      
+            VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
 
             CompileAndVerify(new[] { source }, new[] { SystemRef }, expectedOutput: expectedOutput);
         }
@@ -1284,7 +1284,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+IPropertyReferenceExpression: System.Int32 P.this[System.Int32 x, params System.Int32[] y] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1316,7 +1316,7 @@ class P
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
+IPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { get; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'this[0]')
   Instance Receiver: IInstanceReferenceExpression (InstanceReferenceKind.Explicit) (OperationKind.InstanceReferenceExpression, Type: P) (Syntax: 'this')
   Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '0')
       ILiteralExpression (Text: 0) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 0) (Syntax: '0')
@@ -1324,7 +1324,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
             var expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ElementAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics, AdditionalOperationTreeVerifier: IndexerAccessArgumentVerifier.Verify);
-        } 
+        }
 
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void AssigningToIndexer_UsingDefaultArgumentFromSetter()
@@ -1408,7 +1408,7 @@ IIndexedPropertyReferenceExpression: ref System.Int32 P.this[System.Int32 x] { g
                                    int32)
   } // end of property P::Item
 } // end of class P
-"; 
+";
 
             var csharp = @"
 class C
@@ -1421,7 +1421,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1531,7 +1531,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1643,7 +1643,7 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IIndexedPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.IndexedPropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
+IPropertyReferenceExpression: System.Int32 P.this[[System.Int32 i = 3], [System.Int32 j = 4]] { get; set; } (OperationKind.PropertyReferenceExpression, Type: System.Int32) (Syntax: 'p[10]')
   Instance Receiver: ILocalReferenceExpression: p (OperationKind.LocalReferenceExpression, Type: P) (Syntax: 'p')
   Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: i) (OperationKind.Argument) (Syntax: '10')
       ILiteralExpression (Text: 10) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 10) (Syntax: '10')
@@ -1711,6 +1711,164 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
             VerifyOperationTreeAndDiagnosticsForTestWithIL<InvocationExpressionSyntax>(csharp, il, expectedOperationTree, expectedDiagnostics);
         }
 
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueNullForNullableTypeParameterWithMissingNullableReference()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2()/*</bind>*/;
+    }
+
+    static void M2(bool? x = null)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"IInvocationExpression (static void P.M2([System.Boolean[missing]? x = null])) (OperationKind.InvocationExpression, Type: System.Void[missing]) (Syntax: 'M2()')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                // (3,7): error CS0518: Predefined type 'System.Object' is not defined or imported
+                // class P
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "P").WithArguments("System.Object").WithLocation(2, 7),
+                // (10,20): error CS0518: Predefined type 'System.Nullable`1' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool?").WithArguments("System.Nullable`1").WithLocation(9, 20),
+                // (10,20): error CS0518: Predefined type 'System.Boolean' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "bool").WithArguments("System.Boolean").WithLocation(9, 20),
+                // (10,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M2(bool? x = null)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(9, 12),
+                // (5,12): error CS0518: Predefined type 'System.Void' is not defined or imported
+                //     static void M1()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "void").WithArguments("System.Void").WithLocation(4, 12),
+                // (7,19): error CS0518: Predefined type 'System.Object' is not defined or imported
+                //         /*<bind>*/M2()/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "M2").WithArguments("System.Object").WithLocation(6, 19),
+                // (3,7): error CS1729: 'object' does not contain a constructor that takes 0 arguments
+                // class P
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "P").WithArguments("object", "0").WithLocation(2, 7)
+            };
+
+            var compilation = CreateCompilation(source, options: Test.Utilities.TestOptions.ReleaseDll);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(compilation, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact, WorkItem(20330, "https://github.com/dotnet/roslyn/issues/20330")]
+        public void DefaultValueWithParameterErrorType()
+        {
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, S s = 0)
+    {
+    }
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [S s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(1): IArgument (ArgumentKind.Explicit, Matching Parameter: null) (OperationKind.Argument, IsInvalid) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,27): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, S s = 0)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 27),
+                      // file.cs(9,29): error CS1750: A value of type 'int' cannot be used as a default parameter because there are no standard conversions to type 'S'
+                      //     static void M2(int x, S s = 0)
+                      Diagnostic(ErrorCode.ERR_NoConversionForDefaultParam, "s").WithArguments("int", "S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        public void DefaultValueForGenericWithUndefinedTypeArgument()
+        {
+            // TODO: https://github.com/dotnet/roslyn/issues/18722
+            //       This should be treated as invalid invocation.
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, G<S> s = null)
+    {
+    }
+}
+
+class G<T>
+{
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [G<S> s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
+      ILiteralExpression (OperationKind.LiteralExpression, Type: G<S>, Constant: null) (Syntax: 'M2(1)')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, G<S> s = null)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [Fact]
+        [WorkItem(18722, "https://github.com/dotnet/roslyn/issues/18722")]
+        public void DefaultValueForNullableGenericWithUndefinedTypeArgument()
+        {
+            // TODO: https://github.com/dotnet/roslyn/issues/18722
+            //       This should be treated as invalid invocation.
+            string source = @"
+class P
+{
+    static void M1()
+    {
+        /*<bind>*/M2(1)/*</bind>*/;
+    }
+
+    static void M2(int x, G<S>? s = null)
+    {
+    }
+}
+
+struct G<T>
+{
+}
+";
+            string expectedOperationTree = @"
+IInvocationExpression (static void P.M2(System.Int32 x, [G<S>? s = null])) (OperationKind.InvocationExpression, Type: System.Void) (Syntax: 'M2(1)')
+  Arguments(2): IArgument (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument) (Syntax: '1')
+      ILiteralExpression (Text: 1) (OperationKind.LiteralExpression, Type: System.Int32, Constant: 1) (Syntax: '1')
+    IArgument (ArgumentKind.DefaultValue, Matching Parameter: s) (OperationKind.Argument) (Syntax: 'M2(1)')
+      IDefaultValueExpression (OperationKind.DefaultValueExpression, Type: G<S>?) (Syntax: 'M2(1)')";
+
+            var expectedDiagnostics = new DiagnosticDescription[] { 
+                      // file.cs(9,29): error CS0246: The type or namespace name 'S' could not be found (are you missing a using directive or an assembly reference?)
+                      //     static void M2(int x, G<S> s = null)
+                      Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "S").WithArguments("S").WithLocation(9, 29)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
         private class IndexerAccessArgumentVerifier : OperationWalker
         {
             public static readonly IndexerAccessArgumentVerifier Instance = new IndexerAccessArgumentVerifier();
@@ -1724,9 +1882,9 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
                 Instance.Visit(operation);
             }
 
-            public override void VisitIndexedPropertyReferenceExpression(IIndexedPropertyReferenceExpression operation)
+            public override void VisitPropertyReferenceExpression(IPropertyReferenceExpression operation)
             {
-                if (operation.IsInvalid)
+                if (operation.IsInvalid || operation.ArgumentsInEvaluationOrder.Length == 0)
                 {
                     return;
                 }
@@ -1742,5 +1900,5 @@ IInvocationExpression ( void P.M1([System.Int32 s = ""abc""])) (OperationKind.In
                 }
             }
         }
-    }             
+    }
 }
