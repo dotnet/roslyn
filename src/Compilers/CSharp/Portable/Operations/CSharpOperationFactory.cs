@@ -372,11 +372,12 @@ namespace Microsoft.CodeAnalysis.Semantics
             PropertySymbol property = boundAnonymousPropertyDeclaration.Property;
             Lazy<IOperation> instance = new Lazy<IOperation>(() => null);
             ISymbol member = boundAnonymousPropertyDeclaration.Property;
+            Lazy<ImmutableArray<IArgument>> argumentsInEvaluationOrder = new Lazy<ImmutableArray<IArgument>>(() => ImmutableArray<IArgument>.Empty);
             bool isInvalid = boundAnonymousPropertyDeclaration.HasErrors;
             SyntaxNode syntax = boundAnonymousPropertyDeclaration.Syntax;
             ITypeSymbol type = boundAnonymousPropertyDeclaration.Type;
             Optional<object> constantValue = ConvertToOptional(boundAnonymousPropertyDeclaration.ConstantValue);
-            return new LazyPropertyReferenceExpression(property, instance, member, isInvalid, syntax, type, constantValue);
+            return new LazyPropertyReferenceExpression(property, instance, member, argumentsInEvaluationOrder, isInvalid, syntax, type, constantValue);
         }
 
         private IObjectCreationExpression CreateBoundObjectCreationExpressionOperation(BoundObjectCreationExpression boundObjectCreationExpression)
