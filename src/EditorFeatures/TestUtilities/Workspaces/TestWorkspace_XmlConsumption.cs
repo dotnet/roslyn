@@ -390,15 +390,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         {
             if (language == LanguageNames.CSharp)
             {
-                var found = CodeAnalysis.CSharp.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, out var languageVersion);
-                Assert.True(found, $"'{languageVersionAttribute.Value}' is not a valid C# language version");
+                var languageVersion = (CodeAnalysis.CSharp.LanguageVersion)Enum.Parse(typeof(CodeAnalysis.CSharp.LanguageVersion), languageVersionAttribute.Value);
                 parseOptions = ((CSharpParseOptions)parseOptions).WithLanguageVersion(languageVersion);
             }
             else if (language == LanguageNames.VisualBasic)
             {
-                var languageVersion = CodeAnalysis.VisualBasic.LanguageVersion.Default;
-                var found = CodeAnalysis.VisualBasic.LanguageVersionFacts.TryParse(languageVersionAttribute.Value, ref languageVersion);
-                Assert.True(found, $"'{languageVersionAttribute.Value}' is not a valid VB language version");
+                var languageVersion = (CodeAnalysis.VisualBasic.LanguageVersion)Enum.Parse(typeof(CodeAnalysis.VisualBasic.LanguageVersion), languageVersionAttribute.Value);
                 parseOptions = ((VisualBasicParseOptions)parseOptions).WithLanguageVersion(languageVersion);
             }
 

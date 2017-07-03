@@ -578,7 +578,7 @@ class C
         Public Async Function TestNonTrailingNamedArgumentInCSharp7_1() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="C#" LanguageVersion="7.1" CommonReferences="true" AssemblyName="CSProj">
+                     <Project Language="C#" LanguageVersion="CSharp7_1" CommonReferences="true" AssemblyName="CSProj">
                          <Document FilePath="C.cs">
 class C
 {
@@ -604,7 +604,7 @@ class C
         Public Async Function TestNonTrailingNamedArgumentInCSharp7_2() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="C#" LanguageVersion="7.2" CommonReferences="true" AssemblyName="CSProj">
+                     <Project Language="C#" LanguageVersion="CSharp7_2" CommonReferences="true" AssemblyName="CSProj">
                          <Document FilePath="C.cs">
 class C
 {

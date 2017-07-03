@@ -2528,7 +2528,7 @@ Anonymous Types:
         Public Async Function TestNonTrailingNamedArgumentInVB15_3() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="Visual Basic" LanguageVersion="15.3" CommonReferences="true" AssemblyName="VBProj">
+                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_3" CommonReferences="true" AssemblyName="VBProj">
                          <Document FilePath="C.vb">
 Class C
     Sub M()
@@ -2553,7 +2553,7 @@ End Class
         Public Async Function TestNonTrailingNamedArgumentInVB15_5() As Task
             Using state = TestState.CreateTestStateFromWorkspace(
                  <Workspace>
-                     <Project Language="Visual Basic" LanguageVersion="15.5" CommonReferences="true" AssemblyName="VBProj">
+                     <Project Language="Visual Basic" LanguageVersion="VisualBasic15_5" CommonReferences="true" AssemblyName="VBProj">
                          <Document FilePath="C.vb">
 Class C
     Sub M()
