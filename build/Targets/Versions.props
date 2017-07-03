@@ -38,7 +38,8 @@
          Additionally, in order ensure the value fits in the 16-bit PE header fields, we will only take the last five digits of the BuildNumber, so
          in the case of 20160615, we will set BuildNumberFiveDigitDateStamp to 60615. Unfortunately for releases in 2017 we can't go any higher, so
          well continue the month counting instead: the build after 61231 is 61301. -->
-    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(0))).Substring($([System.Convert]::ToInt32(3))).Trim())), $([System.Convert]::ToInt32(8800))))</BuildNumberFiveDigitDateStamp>
+    <BuildNumberFiveDigitDateStampLeft>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(0))).Substring($([System.Convert]::ToInt32(3))).Trim())</BuildNumberFiveDigitDateStampLeft>
+    <BuildNumberFiveDigitDateStamp>$([MSBuild]::Subtract($([System.Convert]::ToInt32($(BuildNumberFiveDigitDateStampLeft))), $([System.Convert]::ToInt32(8800))))</BuildNumberFiveDigitDateStamp>
     <BuildNumberBuildOfTheDayPadded>$(BuildNumber.Split($([System.Convert]::ToString(`.`).ToCharArray())).GetValue($([System.Convert]::ToInt32(1))).PadLeft($([System.Convert]::ToInt32(2)), $([System.Convert]::ToChar(`0`))))</BuildNumberBuildOfTheDayPadded>
 
     <!-- NuGet version -->
